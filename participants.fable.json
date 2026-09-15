@@ -10,6 +10,15 @@
       "max_tool_calls": 2,
       "timeout": 300
     },
+    "opus-worker": {
+      "adapter": "claude",
+      "model": "claude-opus-5",
+      "review_mode": "evidence",
+      "tools": ["retrieve", "verify"],
+      "max_turns": 3,
+      "max_tool_calls": 2,
+      "timeout": 300
+    },
     "astra-reviewer": {
       "adapter": "codex",
       "model": "gpt-6-astra",

@@ -16,6 +16,10 @@ and checked offline. Live Fable qualification remains pending his Anthropic API
 spending hold and first-spend authorization. Llama results below are historical;
 they are not a recommendation to keep using it.
 
+Patrick subsequently added Opus for lighter work. The same candidate registry
+includes `claude-opus-5` as `opus-worker`, selectable in the two-role review form.
+Opus is configured and checked offline; live quality and cost remain unmeasured.
+
 Keep Astra/xhigh for the current review team. Apply the measured 1000-token skills
 catalog budget. Use deterministic rules for monitoring and escalation proposals.
 Sol is promising for constrained repairs with independent checks; neither Sol nor

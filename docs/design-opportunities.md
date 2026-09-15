@@ -80,3 +80,7 @@ review-form command. The current Astra default remains usable; the Fable profile
 is configured but not live-qualified. Do not infer lower cost or better accuracy
 from the model name. Live Anthropic execution remains subject to Patrick's saved
 API spending freeze until September 16 and his first-spend authorization rule.
+
+Patrick subsequently added Opus for lighter work. Include `claude-opus-5` as an
+optional worker in the same registry; keep each accepted review at two selected
+roles. Validate all intended pairings offline without promoting unmeasured quality.
