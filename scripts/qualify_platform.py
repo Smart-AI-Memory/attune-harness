@@ -26,9 +26,10 @@ def qualify(output):
         'installed_source':source.as_posix(),'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.glob('*.py')},
         'native_process_and_recovery':'unrun','model_calls':0,'checks':[]}
     tests=['test_contract.py','test_adapters.py','test_operations.py','test_github_checks.py','test_native.py']
-    if os.name=='posix':
-        tests+=['test_process.py','test_review.py','test_review_boundaries.py','test_recovery.py',
+    if os.name in ('posix','nt'):
+        tests+=['test_review.py','test_review_boundaries.py','test_recovery.py',
                 'test_astra_review.py','test_native_evidence_review.py','test_focused_native.py']
+        tests += ['test_process.py'] if os.name=='posix' else ['test_windows_runtime.py']
     else:
         # Prove truthful rejection; do not disguise this as Windows qualification.
         with tempfile.TemporaryDirectory(prefix='harness-platform-') as directory:
@@ -48,7 +49,7 @@ def qualify(output):
     run=subprocess.run(argv,cwd=output,capture_output=True,text=True,encoding='utf-8',timeout=180)
     (output/'tests.txt').write_text(run.stdout+'\n'+run.stderr,encoding='utf-8')
     receipt['exit']=run.returncode;receipt['command']=argv
-    if os.name=='posix':receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
+    if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
     (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:v for k,v in receipt.items() if k not in ('sources','command')},indent=2))

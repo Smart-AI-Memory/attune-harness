@@ -188,7 +188,9 @@ def test_stale_checkpoint_and_copied_run_refused(case):
 
 def test_concurrent_owner_refused_and_lock_released_after_process_death(case):
     record = review(*case, max_operations=2)
-    script = 'import fcntl,sys; f=open(sys.argv[1],"a+"); fcntl.flock(f,fcntl.LOCK_EX); print("locked",flush=True); sys.stdin.read()'
+    script = ('from pathlib import Path; import sys; from attune_harness.review_store import RunStore; '
+              's=RunStore(Path(sys.argv[1]).parent,existing=True); lease=s.lease(); lease.__enter__(); '
+              'print("locked",flush=True); sys.stdin.read()')
     process = subprocess.Popen([sys.executable, '-c', script, str(case[2] / '.writer.lock')],
                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     try:

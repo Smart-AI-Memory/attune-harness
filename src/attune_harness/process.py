@@ -1,6 +1,7 @@
-"""Bounded local POSIX subprocesses for disposable native adapter probes."""
+"""Bounded local subprocesses with POSIX groups or Windows Job Object ownership."""
 
 import math
+from contextlib import ExitStack
 import os
 import signal
 import subprocess
@@ -48,10 +49,10 @@ def invoke(
     """Run without shell expansion; preserve bounded diagnostics on failure.
 
     A timeout/cancel/limit after launch has unknown external effects. Polling
-    bounds captured output, not instantaneous file growth. POSIX only for now.
+    bounds captured output, not instantaneous file growth. Not a security sandbox.
     """
-    if os.name != "posix":
-        raise NotImplementedError("native process groups currently require POSIX")
+    if os.name not in ("posix", "nt"):
+        raise NotImplementedError("native supervision requires POSIX or Windows")
     # Empty arguments are useful CLI values (e.g. --tools ""), except argv[0].
     if not argv or not argv[0] or any(not isinstance(arg, str) for arg in argv):
         raise ValueError("argv must contain an executable and string arguments")
@@ -61,12 +62,18 @@ def invoke(
         raise ValueError("max_output_bytes must be a positive integer")
     if cancel is not None and cancel.is_set():
         return ProcessResult(argv, None, "", "", "cancelled_before_start")
-    with tempfile.TemporaryFile() as source, tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
+    with ExitStack() as stack, tempfile.TemporaryFile() as source, tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
         source.write(prompt.encode("utf-8"))
         source.seek(0)
+        job = None
         try:
-            process = subprocess.Popen(argv, stdin=source, stdout=out, stderr=err,
-                                       cwd=cwd, start_new_session=True)
+            if os.name == 'nt':
+                from .windows import WindowsJob
+                job = stack.enter_context(WindowsJob())
+                process = job.launch(argv, stdin=source, stdout=out, stderr=err, cwd=cwd)
+            else:
+                process = subprocess.Popen(argv, stdin=source, stdout=out, stderr=err,
+                                           cwd=cwd, start_new_session=True)
         except FileNotFoundError as error:
             return ProcessResult(argv, None, "", str(error), "not_found")
         except OSError as error:
@@ -86,7 +93,12 @@ def invoke(
                 time.sleep(0.01)
         finally:
             # Also stop descendants left behind by an exited parent.
-            _kill_group(process)
+            if job is not None:
+                job.stop(process)
+            else:
+                _kill_group(process)
+        if job is not None:
+            failure = failure or job.launch_failure()
         if os.fstat(out.fileno()).st_size + os.fstat(err.fileno()).st_size > max_output_bytes:
             failure = failure or "output_limit"
         out.seek(0)

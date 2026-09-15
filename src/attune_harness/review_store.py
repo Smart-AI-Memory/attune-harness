@@ -30,15 +30,23 @@ class RunStore:
     @contextmanager
     def lease(self):
         """One process owns mutation; the OS releases the lock after a crash."""
-        if os.name != 'posix':
-            raise FeatureUnavailable('Review mutation/recovery currently requires POSIX file locks')
-        import fcntl
+        if os.name not in ('posix', 'nt'):
+            raise FeatureUnavailable('Review mutation/recovery requires POSIX or Windows file locks')
         lock = self.directory / '.writer.lock'
-        fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+        if os.name == 'nt':
+            from .windows import open_lock
+            fd = open_lock(lock)
+        else:
+            fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
         try:
             try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError as exc:
+                if os.name == 'nt':
+                    import msvcrt
+                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as exc:
                 raise PersistenceError('Run is busy; another owner holds the writer lock') from exc
             yield
         finally:
