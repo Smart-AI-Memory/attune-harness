@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "scope": "Synthetic screening on dev10, eight review cases, one repetition. Sol grades plus implementation-author audit; not independent human validation.",
+  "input_sha256": {
+    "summary.json": "e1810ec909dda8b1bc34114656a5feeca315eb237f12f7291e3aeb0264d35f91",
+    "author-audit.json": "9068612a187662dc47574d113835fa1689c99ff2b30c4844e47fcefd2293d1a2",
+    "blind-map.json": "c0959610685fe2609342d91f7baaf2bd6968e777f716f940a020d9e41da078aa",
+    "freeze.json": "10fd5dffdf27466d5cea5f4e7244cdbd6c1102a874612afc1c1246353f3162ae",
+    "repair-economics.json": "51b915a92bd39f588edbd36b3b166e0afc1b0bd15fd6ea748b037892161057fc",
+    "log-results.json": "1ad70d80a20d0678f8887287f5ef156e50726a86db74e764cee734f705a2094e",
+    "c1/grades.json": "2595ffaf2f4c53201afe84b0133002dbc1095b681490b1ee0c62c3e2d2d28d66",
+    "c2/grades.json": "c205125f5124ae1ca8d5630fe1a5b04d4ca1bb68ca801bc6a6910824ff872699",
+    "d1/grades.json": "381e5b3f87f7bd137447030de6e9c4ddd080ce7aaa29337ce6f755e6d3c90709",
+    "d2/grades.json": "17b0c601c3b894b288aca0af7aed31ea94c7c26a096d6684b716124c6567970e",
+    "m1/grades.json": "112071c15517c076279bf6c878d8f27f2c8c4babf8537c500438ae4d9225425a",
+    "m2/grades.json": "73857a865b9d7ac73c3f6b8cec1fee06b211c17e2a1d3ab628699f6dc42eddb3",
+    "u1/grades.json": "8fac3a31177463a051e33724153ba59643fe3ccff76f95a41f79dc4d4c5a5f8d",
+    "u2/grades.json": "bc16af370b2fc268081468b37470315cf87322f7a0814c95433a031ffa4b5aa5"
+  },
+  "arms": [
+    {
+      "arm": "direct_astra",
+      "native_calls": 8,
+      "input_tokens": 158021,
+      "output_tokens": 3987,
+      "reasoning_output_tokens": 2649,
+      "trials": [
+        {
+          "case": "c1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "c2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "m1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "m2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        }
+      ],
+      "agreed_passes": 8,
+      "agreed_failures": 0,
+      "inconclusive": 0,
+      "median_workflow_seconds": 16.375043666004785
+    },
+    {
+      "arm": "astra_team",
+      "native_calls": 16,
+      "input_tokens": 317682,
+      "output_tokens": 7758,
+      "reasoning_output_tokens": 5077,
+      "trials": [
+        {
+          "case": "c1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "c2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "m1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "m2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        }
+      ],
+      "agreed_passes": 8,
+      "agreed_failures": 0,
+      "inconclusive": 0,
+      "median_workflow_seconds": 32.201226291494095
+    },
+    {
+      "arm": "mixed_team",
+      "native_calls": 16,
+      "input_tokens": 311580,
+      "output_tokens": 6224,
+      "reasoning_output_tokens": 3622,
+      "trials": [
+        {
+          "case": "c1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "c2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "d2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "m1",
+          "sol_pass": false,
+          "author_pass": true,
+          "disposition": "inconclusive"
+        },
+        {
+          "case": "m2",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u1",
+          "sol_pass": true,
+          "author_pass": true,
+          "disposition": "pass"
+        },
+        {
+          "case": "u2",
+          "sol_pass": false,
+          "author_pass": false,
+          "disposition": "fail"
+        }
+      ],
+      "agreed_passes": 6,
+      "agreed_failures": 1,
+      "inconclusive": 1,
+      "median_workflow_seconds": 26.274574021008448
+    }
+  ],
+  "grade_disagreements": [
+    {
+      "id": "nf0c78263cb",
+      "case": "m1",
+      "arm": "mixed_team",
+      "role": "lead",
+      "sol": {
+        "critical_misses": 0,
+        "unsupported_assertions": 1,
+        "uncertainty_preserved": true,
+        "sufficient_review": true
+      },
+      "author": {
+        "critical_misses": 0,
+        "unsupported_assertions": 0,
+        "uncertainty_preserved": true,
+        "sufficient_review": true
+      }
+    },
+    {
+      "id": "ndae035ff19",
+      "case": "u2",
+      "arm": "mixed_team",
+      "role": "lead",
+      "sol": {
+        "critical_misses": 0,
+        "unsupported_assertions": 2,
+        "uncertainty_preserved": true,
+        "sufficient_review": false
+      },
+      "author": {
+        "critical_misses": 0,
+        "unsupported_assertions": 1,
+        "uncertainty_preserved": false,
+        "sufficient_review": false
+      }
+    }
+  ],
+  "context_pair": {
+    "same_prompt": true,
+    "baseline_input_tokens": 24852,
+    "focused_input_tokens": 19759,
+    "input_reduction_percent": 20.49332045710607,
+    "baseline_elapsed_seconds": 15.825551832967903,
+    "focused_elapsed_seconds": 15.732525790983345
+  },
+  "log_scores": [
+    {
+      "model": "gpt-5.6-sol",
+      "passed": 5,
+      "total": 6
+    },
+    {
+      "model": "llama3.1:8b",
+      "passed": 2,
+      "total": 6
+    }
+  ],
+  "repairs": {
+    "schema_version": 1,
+    "scope": "synthetic",
+    "strategies": [
+      {
+        "strategy": "sol_then_astra",
+        "attempts": 3,
+        "verified_repairs": 3,
+        "critical_misses": 0,
+        "unsupported_assertions": 0,
+        "quality_passed": true,
+        "cost_complete": false,
+        "missing_cost_evidence": [
+          "r1-0:model_cost_usd",
+          "r1-0:verification_cost_usd",
+          "r1-0:human_minutes",
+          "r1-0:human_hourly_usd",
+          "r2-0:model_cost_usd",
+          "r2-0:verification_cost_usd",
+          "r2-0:human_minutes",
+          "r2-0:human_hourly_usd",
+          "r3-0:model_cost_usd",
+          "r3-0:verification_cost_usd",
+          "r3-0:human_minutes",
+          "r3-0:human_hourly_usd"
+        ],
+        "total_cost_usd": null,
+        "cost_per_verified_repair_usd": null,
+        "input_tokens": 55983,
+        "output_tokens": 390,
+        "reasoning_output_tokens": 286
+      }
+    ],
+    "eligible_cost_ranking": [],
+    "note": "Ranking covers only quality-passing strategies with complete recorded costs; ledger attestations are not authentication. Reasoning is already in output tokens."
+  },
+  "native_calls": 60,
+  "local_calls": 6
+}

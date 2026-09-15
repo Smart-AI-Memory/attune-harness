@@ -1,11 +1,9 @@
 {
   "schema_version": 1,
   "participants": {
-    "astra-lead": {
-      "adapter": "codex",
-      "model": "gpt-6-astra",
-      "reasoning_effort": "xhigh",
-      "skills_context_tokens": 1000,
+    "fable-lead": {
+      "adapter": "claude",
+      "model": "claude-fable-5-1",
       "review_mode": "evidence",
       "tools": ["retrieve", "verify"],
       "max_turns": 3,

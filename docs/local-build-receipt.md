@@ -281,3 +281,21 @@ Both narratives identify the critical conflict, preserve uncertainty and limit t
 verifier's scope. No unsupported assertion was found in this one manually inspected
 scenario; it is not a general accuracy score. The matched benchmark, independent
 grading, human correction costs and cost per verified repair remain open.
+
+## Opportunities 1–5 and native Windows — 2026-09-15
+
+Dev10 adds the focused Codex profile, deterministic triage, GitHub check import,
+and repair economics. The frozen campaign completed 60 native and six local calls;
+[the report](opportunities-implementation-report.md) preserves failures and grading
+disagreements. No dollar ranking was earned.
+
+Dev11 adds Windows process supervision and crash-released writer locks. The local
+suite passed 850 tests with nine Windows-only skips; installed review/recovery
+passed 35 checks. GitHub run 34930971590 passed all six native OS/Python jobs:
+369 tests per macOS/Linux job and 355 per Windows job, with no skips. The earlier
+failing Windows fixtures and dev10 unsupported baseline are retained.
+
+The 1000-token catalog profile passed its focused regression checks. The final
+build, source identity, reproducible wheel and historical preservation checks are
+recorded locally under `docs/receipts/opportunities/final-build.json` and
+`final-preservation.json`. Frozen dev9/dev10 environments remain separate.

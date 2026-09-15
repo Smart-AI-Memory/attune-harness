@@ -46,7 +46,9 @@ affects catalog description space, not the complete model context or access poli
 A fresh Sol invocation audits the key before seeing candidate outputs. Separate
 per-case Sol calls grade anonymous outputs; the implementation author then audits
 the judgments. Same-family model errors remain possible, and this is not independent
-human grading. Eight synthetic cases with one repetition are screening evidence,
+human grading. In the September 15 run, the author graded anonymous outputs before
+reading Sol's grades and the role mapping; disagreements remain explicit in the
+[results](opportunities-implementation-report.md). Eight synthetic cases with one repetition are screening evidence,
 not a reliable estimate of production error rate. Do not promote a team or cheaper
 model because of green software tests alone.
 

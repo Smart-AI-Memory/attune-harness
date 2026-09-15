@@ -280,3 +280,25 @@ The strongest case against this plan is its integration breadth for a sole devel
 ## Planning verification
 
 The read-only collaboration preflight passed with 87 governance tests and preserved the three pre-existing draft files. Local and cached-main identity were checked; remote freshness remains unverified in this turn. Earlier research reported 150 characterization tests passing; they were not rerun for this documentation-only plan. No new harness experiments, paid model trials, implementation, commits, or publication occurred while drafting this plan.
+
+## Reliability opportunities continuation — 2026-09-15
+
+[Opportunities 1–5 report](opportunities-implementation-report.md): the standalone
+private GitHub library now runs installed qualification on native macOS, Linux
+and Windows, with Python 3.10 and 3.12. Dev11 includes Windows process and lock
+support; six jobs passed. This closes that bounded platform gap, not all host,
+provider or extension qualification.
+
+Eight frozen review cases showed 8/8 agreed passes for direct Astra and the Astra
+team; mixed Sol/Astra had six passes, one failure and one inconclusive grade.
+Neither general accuracy nor mixed-team promotion was established. Sol passed
+three constrained configuration repairs, but diagnostic errors in both Sol and
+Llama keep deterministic rules in charge. Cost accounting is implemented; billed
+usage and human correction remain missing. Production migration and unattended
+repair remain separate, unqualified outcomes.
+
+Patrick's latest steering: retire Llama from intended use; Fable 5.1 is the next
+candidate. `participants.fable.json` configures a Fable lead and Astra reviewer.
+Offline form validation passes. Live Fable qualification is pending the API
+spending hold and first-spend authorization; do not rerun the immutable campaign
+to substitute Fable, or treat its configuration as measured quality.

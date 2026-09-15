@@ -48,16 +48,28 @@ The [qualification guide](docs/qualification.md) explains the frozen model compa
 and native platform checks. Raw historical receipts are retained locally and excluded
 from Git; historical receipt links may require the original workspace.
 
+The [September 15 results](docs/opportunities-implementation-report.md) record the
+eight-case model comparison, narrow worker failures and six successful native CI
+jobs. They separate software reliability from model accuracy.
+
 This workspace's [review profile](participants.json) now selects **GPT-6 Astra,
-extra-high reasoning** for both lead and reviewer. The native adapter passes the model and effort
+extra-high reasoning** for both lead and reviewer, with a 1000-token skills catalog
+budget. The native adapter passes the model and effort
 explicitly to Codex and uses `review_mode: evidence`: the host retrieves/verifies
 evidence and binds response identifiers; each model role writes one review.
 New `review-form` and `review` commands use `./participants.json`
 unless `--config` selects another registry. See the [Astra setup](docs/astra-review.md)
 and [execution receipt](docs/native-evidence-review-receipt.md). Native execution still requires
-`--allow-external`; changing a model or effort requires a newly accepted review.
+`--allow-external`; changing the model, effort or catalog budget requires a newly
+accepted review. Resume an older run with its original registry; the changed
+profile cannot silently replace an accepted configuration.
 
-The opt-in [local documentation-review pilot](docs/pilot-workflow.md) uses pinned
+The [Fable-led profile](docs/fable-review.md) selects Fable 5.1 with an Astra
+reviewer as the next candidate. It is configured but not live-qualified. Patrick
+retired Llama from the intended workflow on September 15; its retained experiments
+provide historical comparison evidence.
+
+The historical [local documentation-review pilot](docs/pilot-workflow.md) uses pinned
 Ollama inference, real Attune evidence tools and checkpointed continuation.
 It retains two independent narratives as unverified proposals and preserves
 unknown document claims. See the [migration boundaries](docs/pilot-migration.md)

@@ -69,3 +69,14 @@ the current account before creation. CI runs installed-artifact checks; Windows
 records the current unsupported execution/recovery boundary rather than calling
 that a native execution pass. The read-only REST adapter rejects incomplete pages,
 stale revisions and ambiguous check states; it never dispatches or posts messages.
+
+## Fable steering — September 15
+
+Patrick retired Llama from the intended workflow and requested Fable as the next
+candidate. Preserve the frozen Llama results and environments as history. Add an
+explicit Fable-led/Astra-reviewed registry using `claude-fable-5-1`, the identifier
+in the local attune-ai model registry. Validate it offline with the installed
+review-form command. The current Astra default remains usable; the Fable profile
+is configured but not live-qualified. Do not infer lower cost or better accuracy
+from the model name. Live Anthropic execution remains subject to Patrick's saved
+API spending freeze until September 16 and his first-spend authorization rule.

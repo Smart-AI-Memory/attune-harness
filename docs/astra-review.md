@@ -4,17 +4,20 @@ The workspace profile [participants.json](../participants.json) selects two dist
 roles, `astra-lead` and `astra-reviewer`, both using the native Codex adapter with
 `model: gpt-6-astra` and `reasoning_effort: xhigh`. This is an explicit worker
 selection; it does not depend on the model selected in the current Codex chat.
+It also sets `skills_context_tokens: 1000`, supported from dev10 onward. The
+[measured context comparison](opportunities-implementation-report.md) explains
+this catalog budget and its limits.
 
 The profile also selects `review_mode: evidence`. The host runs retrieval and
 verification first and attaches the response identifier in code. Each role makes
 one model invocation for its final review; the model does not copy protocol hashes.
 
-## Use the installed dev9 environment
+## Use the installed dev11 environment
 
 From `/Users/patrickroebuck/attune-harness`:
 
 ```sh
-source .venv-astra-evidence/bin/activate
+source .venv-platforms/bin/activate
 attune-harness review-form
 ```
 
@@ -45,7 +48,7 @@ Native runtime settings,
 hooks and internal retries can still affect execution.
 
 The accepted registry and form bind the exact effort and model. Resume requires
-the original request, registry and checkpoint. A changed effort needs a new
+the original request, registry and checkpoint. A changed effort or catalog budget needs a new
 accepted review; existing runs are not silently repointed. There is no automatic
 fallback to another model.
 
