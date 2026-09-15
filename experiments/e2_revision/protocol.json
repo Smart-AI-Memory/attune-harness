@@ -1,0 +1,17 @@
+{
+  "experiment": "E2-revision-call-bound",
+  "revision": 1,
+  "baseline_wheel_sha256": "c07d974a0eb4da5d9a90111d9148654a3967e251367bf6ac072dc7703799b27c",
+  "adapters": ["command-review", "mcp-stdio-2026-07-28"],
+  "conditions": ["version-bound-cache", "call-bound-evidence"],
+  "states": ["working", "advertised-but-broken", "dependency-missing", "upgraded", "disabled", "permission-denied"],
+  "design": "24 independent filesystem cells and separate plan/invocation/oracle processes; same E2 fault fixtures and installed package baseline",
+  "revised_claim": "History never proves current availability. Allowed requests execute once and return evidence of that invocation only. Current guards can deny an attempt. No cached result is served.",
+  "post_success_fault": "For each revised working cell, break the runtime after a successful invocation without changing the descriptor. Plan and execute a new requested call using the new history; its failure must remain visible.",
+  "adopt_when": "All 12 revised cells evaluated; zero pre-call verified availability or usability claims; zero unnecessary current-guard rejections; both working and both upgraded calls return valid scoped results; both upgrades invalidate prior history; both broken calls report failure; disabled/denied/missing cells do not dispatch through the revised consumer; both post-success broken calls fail without reused output or verified availability claims.",
+  "revise_when": "Any revised acceptance criterion fails in an evaluable cell",
+  "inconclusive_when": "A required cell or observation cannot be evaluated due to infrastructure failure",
+  "baseline_expected": "Original cache still emits false verified availability in the two unchanged-metadata runtime faults",
+  "disposition_scope": "Adopt only the narrowed call-bound evidence contract for this local profile; do not adopt a general availability cache or claim live-host qualification",
+  "provider_calls": 0
+}

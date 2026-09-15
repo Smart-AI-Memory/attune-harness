@@ -1,0 +1,6 @@
+{
+  "docs/recovery-workflow.md": "78deee0aaa6e5240fec68c68902ae92ef670d73b1ae825baf36f06eae9844418",
+  "docs/token-accounting-receipt.md": "2ffd0bbc454b2fe45ef8d23975b58f632c1c27cd852ff38381609126a4f3c1f1",
+  "docs/pilot-migration.md": "b488e8e8da4b85570ba5f90764b89d0e8f6d3e7dbae777031561df0904dcfa90",
+  "src/attune_harness/recovery.py": "fe4aef2ec31410c6181580462f92c29e63380a842c78e0b049b3c227301c6d33"
+}

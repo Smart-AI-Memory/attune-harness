@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "version": "review-quality-v1",
+  "cases": [
+    "c01",
+    "c02",
+    "c03",
+    "c04",
+    "c05",
+    "c06"
+  ],
+  "arms": [
+    "single",
+    "harness"
+  ],
+  "repeats": 3,
+  "order_seed": 66001,
+  "blind_seed": 66002,
+  "base_seed": 66100,
+  "max_generations": 54,
+  "max_seconds": 1200,
+  "max_output_tokens": 2048,
+  "package_version": "0.1.0.dev5",
+  "wheel_sha256": "26826256205bd21300d7cf66bb2c7fce7b047d6570c5b1a38476ca69448b477c",
+  "model_pin": {
+    "name": "llama3.1:8b",
+    "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+    "server_version": "0.31.1"
+  },
+  "objective": "Review the document against its reference evidence. Identify concrete contradictions or unsafe instructions, cite the relevant document or reference passage, and distinguish confirmed defects from explicit uncertainty. If there is no supported defect, say so. Tool success does not certify arbitrary prose. Do not invent defects or treat an explicitly unmeasured possibility as a proven false claim.",
+  "query": "reference evidence recovery claims preference review effort",
+  "acceptance": {
+    "completed_harness_trials": 18,
+    "critical_opportunities": 6,
+    "critical_misses": 0,
+    "unsupported_assertions": 0,
+    "ambiguous_trials_preserving_uncertainty": 6
+  },
+  "review_effort": "latency, narrative count/words, missing critical issues and unsupported assertion instances; human time unmeasured",
+  "production_changes": false
+}

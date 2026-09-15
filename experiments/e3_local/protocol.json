@@ -1,0 +1,33 @@
+{
+  "experiment": "E3-local-model",
+  "revision": 1,
+  "model": "llama3.1:8b",
+  "model_digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "server_version": "0.31.1",
+  "endpoint": "http://127.0.0.1:11434",
+  "settings": {"temperature": 0.2, "num_ctx": 4096, "num_predict": 192, "top_k": 40, "top_p": 0.9, "repeat_penalty": 1.1},
+  "repeats": 3,
+  "repeat_seeds": [61001, 61002, 61003],
+  "stage_seed_offsets": {"draft": 0, "review-1": 100, "review-2": 200, "review-3": 300, "final": 400},
+  "order_seed": 20260914,
+  "call_timeout_seconds": 60,
+  "max_calls_per_trial": 5,
+  "max_campaign_calls": 504,
+  "max_campaign_seconds": 7200,
+  "failure_policy": "No retry. Failed/malformed/truncated calls fail the trial and remain in correctness and critical-miss denominators. An uncertain timed-out generation stops the campaign until the local server state is checked.",
+  "strategies": ["solo", "fixed-cross-review", "fixed-roundtable", "adaptive"],
+  "routing": "Use original E3 strategy rules. Reviewer disagreement is explicit disagree=true OR a structured answer different from the initial draft. All additional reviewers see the original draft and no peer reviews.",
+  "system_prompt": "You are a careful evidence reviewer. Use only the supplied task evidence and contract. Do not invent defects. Return only the required JSON. The task includes finding codes; use those exact codes for demonstrated issues and an empty list when none. Rationale must be one short sentence. Your output is a proposal, not verified truth.",
+  "stage_instructions": {
+    "draft": "Assess the task independently. Set uncertain when you cannot confidently resolve the evidence. Set critical_risk when an error could permit an unsafe effect or false verification. Set disagree=false.",
+    "review": "Review the task and initial draft independently. Return your own answer; set disagree=true if the draft verdict or findings need correction. Do not agree merely because a draft exists.",
+    "final": "Resolve the task using the initial draft and independent reviews. Accept only findings supported by the task evidence. Return your final answer."
+  },
+  "bootstrap": {"replicas": 2000, "seed": 61099, "unit": "task with all repeats and strategies paired", "stratification": "resample three task clusters within each of four families", "interval": [0.025, 0.975], "baseline_selection": "reselect best fixed strategy inside each resample"},
+  "baseline_selection": "Most completed-correct trials, then fewest critical misses, then median API cost (all zero here), then lexical strategy name",
+  "disposition": "revise if adaptive has fewer completed-correct trials or extra critical misses versus the selected fixed baseline; otherwise inconclusive because paid-cost reduction and human repair/generalization are unmeasured",
+  "paid_api_cost_usd": 0,
+  "human_repair_seconds": null,
+  "local_compute_cost_usd": null,
+  "generalization": "One local quantized model and 12 short diagnostic tasks; no native-provider or broad product-quality claim"
+}

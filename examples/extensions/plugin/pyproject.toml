@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "attune-harness-evidence-example"
+version = "0.1.0"
+description = "Data-only portable skill and retrieval tool bundle for Attune Harness"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+attune_harness_evidence = ["extension.json", "SKILL.md"]

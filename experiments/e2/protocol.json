@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "experiment": "E2",
+  "revision": 1,
+  "frozen_date": "2026-09-14",
+  "baseline_wheel_sha256": "c07d974a0eb4da5d9a90111d9148654a3967e251367bf6ac072dc7703799b27c",
+  "adapters": ["command-review", "mcp-stdio-2026-07-28"],
+  "conditions": ["declaration-only", "version-bound-cache"],
+  "states": ["working", "advertised-but-broken", "dependency-missing", "upgraded", "disabled", "permission-denied"],
+  "repeats": 1,
+  "probe_arguments": {"query": "quartz retention policy", "k": 3},
+  "design": "24 independent filesystem cells; separate qualification, decision and oracle processes; no timing or cost comparison",
+  "declaration_policy": "Current manifest declares the tool => declared and predicted usable. This deliberately naive inference is not a verified claim and is not existing Harness behavior.",
+  "cache_policy": "One prior successful adapter invocation may be promoted to verified_available only while the current artifact, adapter/protocol versions, installed dependency versions, tool schema, accepted registry/grants and source snapshot match, with enabled lifecycle and target grant. Otherwise defer or deny.",
+  "cache_key_excludes": ["injected runtime fault flag", "oracle response", "state label", "condition label"],
+  "faults": {
+    "working": "Keep accepted scope, artifact and runtime healthy",
+    "advertised-but-broken": "After a healthy observation, make the fixture backend raise on retrieval without changing declared package/artifact versions or source snapshot; injection is explicit and confined to the adapter subprocess",
+    "dependency-missing": "Oracle and descriptor run in an isolated environment where attune-rag code and metadata are actually absent",
+    "upgraded": "Disable, change manifest version and skill bytes, replace, enable, bind new artifact and accept new request; test old observation invalidation before an explicit fresh qualification",
+    "disabled": "Disable the selected installed extension, retaining its declaration and user data",
+    "permission-denied": "Accept a registry with the target tool removed from the selected participant grants while retaining another retrieval grant; oracle still attempts the denied tool"
+  },
+  "oracle": "Independent fresh process invokes the target through the selected real adapter. Usable requires retrieved result, expected artifact identity, and at least one source with the independently computed file hash. No policy may inspect this outcome before its decision is saved.",
+  "metrics": ["false_usable_predictions", "false_verified_availability_claims", "unnecessary_rejections", "deferred_usable_cases", "working_accepted", "upgrade_evidence_invalidated", "upgrade_requalification_usable", "actual_target_invocations"],
+  "adopt_when": "Cache condition has zero false verified-availability claims and zero unnecessary rejections, both working cases accepted, both upgrades invalidate prior evidence and become usable after explicit requalification",
+  "revise_when": "Any adoption criterion fails with an evaluable oracle; retain raw failures and do not promote the candidate cache to production",
+  "inconclusive_when": "Any required cell cannot be evaluated due to experiment infrastructure failure",
+  "scope": "Deterministic local retrieval; no remote authentication, model-quality, temporal reliability, statistical superiority or general availability claims",
+  "provider_calls": 0
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "participants": {
+    "astra-lead": {
+      "adapter": "codex",
+      "model": "gpt-6-astra",
+      "reasoning_effort": "xhigh",
+      "review_mode": "evidence",
+      "tools": ["retrieve", "verify"],
+      "max_turns": 3,
+      "max_tool_calls": 2,
+      "timeout": 300
+    },
+    "astra-reviewer": {
+      "adapter": "codex",
+      "model": "gpt-6-astra",
+      "reasoning_effort": "xhigh",
+      "review_mode": "evidence",
+      "tools": ["retrieve", "verify"],
+      "max_turns": 3,
+      "max_tool_calls": 2,
+      "timeout": 300
+    }
+  }
+}

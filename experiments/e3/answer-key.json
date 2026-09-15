@@ -1,0 +1,14 @@
+{
+  "clean-01":{"verdict":"ready","findings":[],"critical":[]},
+  "clean-02":{"verdict":"ready","findings":[],"critical":[]},
+  "clean-03":{"verdict":"ready","findings":[],"critical":[]},
+  "defect-01":{"verdict":"revise","findings":["inclusive-endpoint"],"critical":[]},
+  "defect-02":{"verdict":"revise","findings":["empty-average"],"critical":[]},
+  "defect-03":{"verdict":"revise","findings":["effect-before-grant"],"critical":["effect-before-grant"]},
+  "citation-01":{"verdict":"revise","findings":["retention-conflict"],"critical":[]},
+  "citation-02":{"verdict":"revise","findings":["unsupported-cost-comparison"],"critical":[]},
+  "citation-03":{"verdict":"revise","findings":["delivery-is-not-correctness"],"critical":["delivery-is-not-correctness"]},
+  "interrupted-01":{"verdict":"blocked","findings":["unknown-effect"],"critical":["unknown-effect"]},
+  "interrupted-02":{"verdict":"ready","findings":[],"critical":[]},
+  "interrupted-03":{"verdict":"blocked","findings":["changed-accepted-input"],"critical":["changed-accepted-input"]}
+}

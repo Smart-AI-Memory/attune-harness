@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "source": "Pinned cached Git commits; no remote freshness claim",
+  "build_tools": {
+    "python": "3.10.11",
+    "setuptools": "80.9.0",
+    "wheel": "0.46.2",
+    "build": "1.5.0"
+  },
+  "dependencies": [
+    {
+      "name": "attune-forms",
+      "version": "0.17.0",
+      "commit": "4191c4e0c6bfe7ff21e4dd926f0ba8202775a9a7",
+      "wheel": "attune_forms-0.17.0-py3-none-any.whl",
+      "sha256": "895ee10adcc292340d66b4a8196a39036fae014a7b4a49584d2e05fc4ca893e2"
+    },
+    {
+      "name": "attune-verify",
+      "version": "0.6.0",
+      "commit": "a877e31a17ee088c3163dec29eba4a31a3a06ff0",
+      "wheel": "attune_verify-0.6.0-py3-none-any.whl",
+      "sha256": "88159880d83c37aff8e088c661e3b12d5f1893400790ac7d16c52a05b486d4bd"
+    },
+    {
+      "name": "attune-rag",
+      "version": "1.2.0",
+      "commit": "f00815d22cfa28c0abca6ab7b4bcd5d6a1059dcd",
+      "wheel": "attune_rag-1.2.0-py3-none-any.whl",
+      "sha256": "b82b64da12b722d8197f7dacd674fa4fdb26c79b2f7f3d540d6b3da53aac775b"
+    }
+  ]
+}

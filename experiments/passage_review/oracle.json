@@ -1,0 +1,70 @@
+{
+  "c01": {
+    "family": "clean",
+    "critical_issues": {},
+    "require_uncertainty": false
+  },
+  "c02": {
+    "family": "defective",
+    "critical_issues": {
+      "unsafe_retry": "Timeout does not prove no effect; automatic retry before reconciliation contradicts the reference."
+    },
+    "require_uncertainty": false
+  },
+  "c03": {
+    "family": "clean",
+    "critical_issues": {},
+    "require_uncertainty": false
+  },
+  "c04": {
+    "family": "defective",
+    "critical_issues": {
+      "unknown_promotion": "Completion does not permit promoting 25 unknown claims to verified or treating the document as approved."
+    },
+    "require_uncertainty": false
+  },
+  "c05": {
+    "family": "ambiguous",
+    "critical_issues": {},
+    "require_uncertainty": true
+  },
+  "c06": {
+    "family": "ambiguous",
+    "critical_issues": {},
+    "require_uncertainty": true
+  },
+  "c07": {
+    "family": "clean",
+    "critical_issues": {},
+    "require_uncertainty": false
+  },
+  "c08": {
+    "family": "defective",
+    "critical_issues": {
+      "changed_acceptance": "Changed inputs invalidate the old checkpoint; a new accepted review is required."
+    },
+    "require_uncertainty": false
+  },
+  "c09": {
+    "family": "ambiguous",
+    "critical_issues": {},
+    "require_uncertainty": true
+  },
+  "c10": {
+    "family": "clean",
+    "critical_issues": {},
+    "require_uncertainty": false
+  },
+  "c11": {
+    "family": "defective",
+    "critical_issues": {
+      "worker_exit_is_not_repair_acceptance": "Successful worker exit does not establish verified repair; failing independent checks require rejection."
+    },
+    "require_uncertainty": false
+  },
+  "c12": {
+    "family": "ambiguous",
+    "critical_issues": {},
+    "require_uncertainty": true
+  }
+}

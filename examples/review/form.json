@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "form_revision": "893d715be6843a094f34e6ede6150fd0148bef5247ee21f7a6de2f0c0ed52de0",
+  "definition": {
+    "title": "Bounded evidence review",
+    "fields": [
+      {
+        "id": "objective",
+        "text": "What should this evidence review address?",
+        "type": "text_input",
+        "required": true
+      },
+      {
+        "id": "query",
+        "text": "Search terms for supporting evidence",
+        "type": "text_input",
+        "required": true
+      },
+      {
+        "id": "document",
+        "text": "Markdown document to review",
+        "type": "text_input",
+        "required": true
+      },
+      {
+        "id": "context",
+        "text": "Trusted verification context manifest",
+        "type": "text_input",
+        "required": true
+      },
+      {
+        "id": "corpus",
+        "text": "Local Markdown source directory",
+        "type": "text_input",
+        "required": true
+      },
+      {
+        "id": "lead",
+        "text": "Lead",
+        "type": "single_select",
+        "options": [
+          "sample-lead",
+          "sample-reviewer"
+        ],
+        "required": true
+      },
+      {
+        "id": "reviewer",
+        "text": "Reviewer",
+        "type": "single_select",
+        "options": [
+          "sample-lead",
+          "sample-reviewer"
+        ],
+        "required": true
+      }
+    ]
+  },
+  "markdown": "## Bounded evidence review\n\n1. **What should this evidence review address?**\n*free text*\n\n2. **Search terms for supporting evidence**\n*free text*\n\n3. **Markdown document to review**\n*free text*\n\n4. **Trusted verification context manifest**\n*free text*\n\n5. **Local Markdown source directory**\n*free text*\n\n6. **Lead**\n- sample-lead\n- sample-reviewer\n\n7. **Reviewer**\n- sample-lead\n- sample-reviewer\n\n---\nReply by filling the `answers` values below, or with shorthand lines \u2014 `field_id: value` or `N: value` (field number); a triage row is `field_id.item_id: disposition`; a ranking is a comma list in order (`field_id: b, a, c`) or one slot per line (`field_id.1: b`); an assumption row is `field_id.item_id: accept`, `field_id.item_id: reject`, or `field_id.item_id: edit: <text>`:\n\n```json\n{\n  \"__elicitation_response__\": true,\n  \"title\": \"Bounded evidence review\",\n  \"answers\": {\n    \"objective\": null,\n    \"query\": null,\n    \"document\": null,\n    \"context\": null,\n    \"corpus\": null,\n    \"lead\": null,\n    \"reviewer\": null\n  }\n}\n```",
+  "submission": {
+    "schema_version": 1,
+    "form_revision": "893d715be6843a094f34e6ede6150fd0148bef5247ee21f7a6de2f0c0ed52de0",
+    "accepted": false,
+    "answers": {
+      "objective": null,
+      "query": null,
+      "document": null,
+      "context": null,
+      "corpus": null,
+      "lead": null,
+      "reviewer": null
+    }
+  }
+}

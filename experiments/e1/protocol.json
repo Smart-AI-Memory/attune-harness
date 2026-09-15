@@ -1,0 +1,16 @@
+{
+  "experiment": "E1-local-precursor",
+  "revision": 1,
+  "conditions": ["attune-packet", "harness-capsule"],
+  "variants": {"valid-link": "verified", "broken-link": "refuted", "unsupported-prose": "unknown", "no-results": "verified"},
+  "interruptions": ["prepared", "lost-ack", "saved-result"],
+  "directions": [["alpha", "gamma"], ["gamma", "alpha"]],
+  "baseline_attune_ai": "16.4.0",
+  "baseline_packet_sha256": "f4fad9592bbcae0cddc4ca21a48726361c3fceda4dddb651427897d0fd14ab88",
+  "baseline_wheel_sha256": "c07d974a0eb4da5d9a90111d9148654a3967e251367bf6ac072dc7703799b27c",
+  "mandatory": ["accepted request preserved", "zero duplicate request effects", "zero false document verification", "unknown effects block resume and transfer"],
+  "baseline_success": "packet preserves accepted request and visible evidence; operator continuation is unmeasured",
+  "candidate_success": "correct completed review after bounded recovery and selected lead transfer; explicit reconciliation for lost acknowledgements",
+  "disposition_rule": "inconclusive for full E1: no human/model task comparison and only evidence-review variants; any mechanical violation additionally requires revision",
+  "provider_calls": 0
+}

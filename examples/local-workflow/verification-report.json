@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "request_id": "94205865-6f36-4439-8854-1c62b3a3340f",
+  "operation": "verify",
+  "status": "verified",
+  "dependency": {
+    "name": "attune-verify",
+    "version": "0.6.0"
+  },
+  "artifacts": {
+    "document": {
+      "path": "/Users/patrickroebuck/attune-harness/examples/local-workflow/project/guide.md",
+      "sha256": "05133d3a8640227144382f29e7b4aa1fc7a2c2e060a612a1300553df3ec4834a"
+    },
+    "context": {
+      "path": "/Users/patrickroebuck/attune-harness/examples/local-workflow/context.json",
+      "sha256": "461ae7e687bb6521b0f1eb6020aed23537d5f503ca7d8b703f7c9de4f625ea7d"
+    }
+  },
+  "passed": true,
+  "result": {
+    "schema_version": 1,
+    "ok": true,
+    "status": "verified",
+    "checked": [
+      "imports",
+      "flags",
+      "links",
+      "counts"
+    ],
+    "semantic_ran": false,
+    "coverage": {
+      "total": 1,
+      "verified": 1,
+      "refuted": 0,
+      "unknown": 0
+    },
+    "findings": [],
+    "claims": [
+      {
+        "id": "69928ba66d876da29b440ac32d1c6109bc941ae54decf4327eb105250aba6ebc",
+        "kind": "links",
+        "subject": "reference.md",
+        "status": "verified",
+        "evidence": "[reference](reference.md)",
+        "location": "line 3",
+        "detail": "",
+        "source": "/Users/patrickroebuck/attune-harness/examples/local-workflow/project"
+      }
+    ]
+  }
+}

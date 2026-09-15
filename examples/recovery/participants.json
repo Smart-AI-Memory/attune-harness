@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "participants": {
+    "sample-lead": {"adapter": "deterministic", "tools": ["retrieve", "verify"], "max_turns": 3, "max_tool_calls": 2},
+    "sample-alternate": {"adapter": "deterministic", "tools": ["retrieve", "verify"], "max_turns": 3, "max_tool_calls": 2},
+    "sample-reviewer": {"adapter": "deterministic", "tools": ["retrieve", "verify"], "max_turns": 3, "max_tool_calls": 2}
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "form_revision": "893d715be6843a094f34e6ede6150fd0148bef5247ee21f7a6de2f0c0ed52de0",
+  "accepted": true,
+  "answers": {
+    "objective": "Review the sample retention-policy document and its local evidence.",
+    "query": "quartz retention policy",
+    "document": "../local-workflow/project/guide.md",
+    "context": "../local-workflow/context.json",
+    "corpus": "../local-workflow/project",
+    "lead": "sample-lead",
+    "reviewer": "sample-reviewer"
+  }
+}

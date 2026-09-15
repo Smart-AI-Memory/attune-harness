@@ -1,0 +1,25 @@
+{
+  "experiment": "E3",
+  "revision": 1,
+  "purpose": "Candidate evaluation set and offline campaign preparation; not live-model qualification",
+  "repeats": 3,
+  "order_seed": 20260914,
+  "families": ["clean-change", "planted-defect", "citation-disagreement", "interrupted-work"],
+  "strategies": {
+    "solo": "Lead reads the task and submits one final response.",
+    "fixed-cross-review": "Lead drafts; one separate reviewer receives task and draft; lead receives review and submits final. Three calls.",
+    "fixed-roundtable": "Lead drafts; three separate reviewers independently receive task and draft; lead receives all reviews and submits final. Five calls.",
+    "adaptive": "Lead drafts with boolean uncertain and critical_risk signals. Both false: draft is final (one call). Otherwise obtain one independent review; obtain two additional independent reviews when critical_risk or reviewer disagreement is true. Lead submits final after review (three or five calls). Routing cannot read task answers."
+  },
+  "output_contract": {"verdict": "ready | revise | blocked", "findings": "unique finding codes supported by supplied evidence"},
+  "cost_target_fraction": 0.2,
+  "reference_selection": "Among fixed multi-agent strategies: greatest completed-correct count, then fewest critical misses, then lowest median model cost",
+  "acceptance": "At least 20% lower median model cost than selected fixed baseline, no fewer completed-correct trials, no extra critical misses; task-cluster uncertainty and human repair must be reported before adoption",
+  "tuning_tasks": [],
+  "tuning_rule": "Evaluation inputs and answer keys cannot be used to tune strategies; future tuning tasks must be separate and recorded",
+  "model_bindings": null,
+  "execution_settings": null,
+  "price_snapshot": null,
+  "spend_authorization": null,
+  "disposition": "inconclusive: real execution, bindings, priced approval and uncertainty analysis outstanding"
+}

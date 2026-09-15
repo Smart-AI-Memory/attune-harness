@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "form_revision": "b82b98074583f16263ae582f99e960e2a44ff7d60c639f326656a0495ea5f314",
+  "accepted": true,
+  "answers": {
+    "objective": "Review the sample retention policy and preserve the accepted request across local lead transfers.",
+    "query": "quartz retention policy",
+    "document": "../local-workflow/project/guide.md",
+    "context": "../local-workflow/context.json",
+    "corpus": "../local-workflow/project",
+    "lead": "sample-lead",
+    "reviewer": "sample-reviewer"
+  }
+}

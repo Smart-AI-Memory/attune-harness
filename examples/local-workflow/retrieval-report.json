@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "request_id": "f823c013-7bac-4346-9884-9d569bd22770",
+  "operation": "retrieve",
+  "status": "retrieved",
+  "dependency": {
+    "name": "attune-rag",
+    "version": "1.2.0"
+  },
+  "query": "quartz retention policy",
+  "k": 3,
+  "corpus": {
+    "root": "/Users/patrickroebuck/attune-harness/examples/local-workflow/project",
+    "version": "96bdce290ebf3a27",
+    "documents": 2
+  },
+  "retriever": "KeywordRetriever",
+  "sources": [
+    {
+      "path": "guide.md",
+      "sha256": "05133d3a8640227144382f29e7b4aa1fc7a2c2e060a612a1300553df3ec4834a",
+      "score": 3.0,
+      "match_reason": "content:3",
+      "excerpt": "# Verification workflow\n\nConsult the [reference](reference.md) for the quartz retention policy.\n"
+    },
+    {
+      "path": "reference.md",
+      "sha256": "4d7a225d33f43091088a3fe965564305af35176359f6e663c78537459fc33aa7",
+      "score": 3.0,
+      "match_reason": "content:3",
+      "excerpt": "# Quartz retention policy\n\nThis fixture demonstrates local source retrieval and link verification.\nIts policy text is sample project content, not a claim about a deployed system.\n"
+    }
+  ]
+}

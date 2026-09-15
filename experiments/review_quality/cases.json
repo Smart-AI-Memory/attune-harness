@@ -1,0 +1,32 @@
+[
+  {
+    "id": "c01",
+    "document": "# Recovery guidance\n\nA timed-out external command may have executed. Preserve the pending operation, inspect its receipt, and reconcile explicitly before continuation. Do not retry automatically.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Recovery reference\n\nA timed-out external command may already have executed. Preserve its pending operation. Inspect the receipt and explicitly reconcile before continuation. Do not retry automatically.\n\nSource: docs/recovery-workflow.md and the retained dev5 runtime. Strict verification checks supported extracted claims; it does not certify arbitrary policy prose.\n"
+  },
+  {
+    "id": "c02",
+    "document": "# Recovery guidance\n\nA timed-out external command proves that nothing executed. Retry it automatically once before inspecting or reconciling the pending operation.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Recovery reference\n\nA timed-out external command may already have executed. Preserve its pending operation. Inspect the receipt and explicitly reconcile before continuation. Do not retry automatically.\n\nSource: docs/recovery-workflow.md and the retained dev5 runtime. Strict verification checks supported extracted claims; it does not certify arbitrary policy prose.\n"
+  },
+  {
+    "id": "c03",
+    "document": "# Evidence guidance\n\nThe pilot has 9 verified, 0 refuted, and 25 unknown claims. Keep unknown claims visible as unknown. Model narratives remain unverified proposals, even when the workflow completes.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Evidence reference\n\nThe retained local pilot has 34 extracted claims: 9 verified, 0 refuted, and 25 unknown. Unknown claims remain unknown. Model review narratives are unverified proposals. A completed workflow does not certify arbitrary document prose.\n\nSource: docs/token-accounting-receipt.md and the retained pilot record.\n"
+  },
+  {
+    "id": "c04",
+    "document": "# Evidence guidance\n\nThe pilot has 9 verified, 0 refuted, and 25 unknown claims. Promote those 25 unknown claims to verified and approve the document once the workflow completes.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Evidence reference\n\nThe retained local pilot has 34 extracted claims: 9 verified, 0 refuted, and 25 unknown. Unknown claims remain unknown. Model review narratives are unverified proposals. A completed workflow does not certify arbitrary document prose.\n\nSource: docs/token-accounting-receipt.md and the retained pilot record.\n"
+  },
+  {
+    "id": "c05",
+    "document": "# Workflow preference\n\nPatrick may prefer this workflow, but no preferred-path decision has been recorded. Keep the existing default until that decision is made.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Migration reference\n\nPatrick has not been recorded as selecting the Harness documentation workflow as his preferred daily path. Human repair time and comparative usability are unmeasured. An assisted local trial alone does not establish preference or time savings.\n\nSource: docs/pilot-migration.md.\n"
+  },
+  {
+    "id": "c06",
+    "document": "# Review effort\n\nHarness may reduce human review effort. This possible benefit has not been measured; no time-saving result is being claimed. Comparative usability remains unresolved.\n\n[Reference evidence](reference.md)\n",
+    "reference": "# Migration reference\n\nPatrick has not been recorded as selecting the Harness documentation workflow as his preferred daily path. Human repair time and comparative usability are unmeasured. An assisted local trial alone does not establish preference or time savings.\n\nSource: docs/pilot-migration.md.\n"
+  }
+]
