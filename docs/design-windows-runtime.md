@@ -39,3 +39,11 @@ macOS and Linux before claiming support; retain failed runs and their fixes.
 References: [Job Objects](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects),
 [AssignProcessToJobObject](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-assignprocesstojobobject),
 [Python Windows locks](https://docs.python.org/3/library/msvcrt.html#msvcrt.locking).
+
+First native result: all nine Windows-specific cases passed on both Python 3.10
+and 3.12, including reparse rejection. The broader run exposed two test portability
+defects: a shared 30 ms deadline masked intended non-timeout failure modes, and an
+oversized parameter ID exceeded Windows' environment-variable length. Give each
+non-timeout fixture two seconds, retain the timeout fixture's short limit, and use
+short explicit IDs for the oversized-response tests. Production code is unchanged
+by these corrections. Preserve Actions run 34930761748 as the failed first attempt.

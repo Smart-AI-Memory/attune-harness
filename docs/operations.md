@@ -25,6 +25,10 @@ The parser uses check app identity and name in its deduplication key. It does no
 infer a code defect from a failed GitHub check; a trusted diagnosis must distinguish
 test, infrastructure and unknown failures before proposing a repair team.
 
+The adapter was exercised against this repository's real Actions results during
+qualification: running checks produced `wait`, successful checks produced `observe`,
+and the initial Windows test failure produced `human_review`, with zero model calls.
+
 ## Deterministic triage
 
 `attune-harness triage-check event.json` accepts:

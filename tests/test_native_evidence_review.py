@@ -61,7 +61,7 @@ def test_real_tools_then_one_native_call_per_role_with_host_correlation(case, mo
     assert canonical(replay)==canonical(result) and len(calls)==2
 
 
-@pytest.mark.parametrize('text',['', 'Findings:', 'x'*32750])
+@pytest.mark.parametrize('text',['', 'Findings:', 'x'*32750], ids=['empty','unfinished','oversized'])
 def test_empty_unfinished_or_oversized_review_fails_without_retry(case,monkeypatch,text):
     change_config(case,configure)
     calls=[];install_peer(monkeypatch,calls,text)

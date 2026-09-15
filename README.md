@@ -39,8 +39,9 @@ print(receipt.status.value)  # verified
 The [GitHub library](https://github.com/Smart-AI-Memory/attune-harness) is private.
 This is a development package; no PyPI publication is implied. The CI workflow
 tests the installed library on macOS, Linux and Windows and records actual
-capabilities. **Windows native process supervision and review recovery are currently
-unsupported**; passing portable-core checks does not change that limit.
+capabilities. Dev11 adds Windows Job Object supervision and native writer locks;
+the [qualification guide](docs/qualification.md) distinguishes platform execution
+checks from model-provider qualification.
 
 Dev10 adds [deterministic triage, GitHub check imports, and repair economics](docs/operations.md).
 The [qualification guide](docs/qualification.md) explains the frozen model comparisons

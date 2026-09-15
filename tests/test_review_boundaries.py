@@ -123,14 +123,14 @@ def test_command_roundtrip_uses_argument_vector_and_stdin(tmp_path):
     assert exchange.last_identity['returncode'] == 0
 
 
-@pytest.mark.parametrize('command,match', [
-    (['/does/not/exist'], 'not_found'),
-    ([sys.executable, '-c', 'import sys; sys.stderr.write("diagnostic"); sys.exit(3)'], 'diagnostic'),
-    ([sys.executable, '-c', 'import time; time.sleep(3)'], 'timeout'),
-    ([sys.executable, '-c', 'print("x"*70000)'], 'output_limit'),
+@pytest.mark.parametrize('command,match,timeout', [
+    (['/does/not/exist'], 'not_found', 2),
+    ([sys.executable, '-c', 'import sys; sys.stderr.write("diagnostic"); sys.exit(3)'], 'diagnostic', 2),
+    ([sys.executable, '-c', 'import time; time.sleep(3)'], 'timeout', 0.03),
+    ([sys.executable, '-c', 'print("x"*70000)'], 'output_limit', 2),
 ])
-def test_command_faults_do_not_become_output(tmp_path, command, match):
-    exchange = ReviewExchange({'adapter': 'command', 'command': command, 'timeout': 0.03}, tmp_path)
+def test_command_faults_do_not_become_output(tmp_path, command, match, timeout):
+    exchange = ReviewExchange({'adapter': 'command', 'command': command, 'timeout': timeout}, tmp_path)
     with pytest.raises(RuntimeError, match=match):
         exchange(wire())
 

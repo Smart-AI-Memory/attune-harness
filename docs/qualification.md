@@ -7,16 +7,22 @@ macOS, Ubuntu and Windows runners, using Python 3.10 and 3.12. Each job runs
 `python -I scripts/qualify_platform.py --output qualification` and uploads the
 platform identity, installed source hashes, test output and JUnit results.
 
-POSIX jobs exercise timeout, cancellation, bounded output, descendant termination,
-lost acknowledgements, crash-released locks and explicit recovery. Windows jobs
-exercise the portable core and confirm the current explicit rejection of native
-process/recovery operations. Their receipt says `unsupported`, not native success.
+The jobs exercise timeout, cancellation, bounded output, descendant termination,
+lost acknowledgements, crash-released locks and explicit recovery. Windows uses
+Job Objects with a gated bootstrap and native file locks. Its additional cases
+cover owner death, failed job assignment, Unicode paths and reparse-point rejection.
+The original dev10 Windows receipt records `unsupported`; dev11 is the first native
+Windows implementation. Retain both versions' evidence when comparing support.
 Model providers are not called by CI. These tests qualify the runner/platform and
 adapter fixtures; native model behavior requires the separate frozen campaign.
 
 ## Accuracy and worker qualification
 
-From an installed dev10 environment with the review extra:
+The model campaign is frozen on dev10, separately from the dev11 platform work.
+Use the preserved dev10 environment with the review extra. On a fresh clone,
+commit `c2fa34038483ec7a028a50f554bf1a95e54039a5` contains that version; build and
+install it in an isolated environment before invoking the campaign. The current
+library remains dev11; do not overwrite a frozen environment to run a comparison.
 
 ```sh
 python -I experiments/opportunities/campaign.py prepare --out /absolute/new-run
