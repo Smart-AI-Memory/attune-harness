@@ -1,0 +1,9 @@
+# Task 4 implementation note
+
+Add primary status/resume and advanced task reconciliation/transfer/cancellation, using the existing OS writer lease and atomic checkpoint. Extract record-level controls from recovery.py; legacy wrappers retain their exact loading, arguments and returned schema. Task adapters validate their own envelope and save the complete parent through TaskExecutionStore. No second effect journal or retry loop.
+
+Actual scratch: RecoveryCursor paused after one persisted read-only operation, then replayed that same key/result with one total call and one event. New tests will cover each boundary in the real four/five-operation assessment, unknown dispatches, matching recovered replies, explicit bounded read-only retry, stale/copy ownership, persistence loss, transferred assignment isolation and terminal cancellation. Recovery must reconstruct packet digests; no response may become another assignment's work.
+
+Task status reads without provider dispatch; running checkpoints are displayed as unresolved. Resume uses saved accepted inputs and grants, validates sources, and accepts an optional checkpoint for compare-and-set callers. Stale completed assessment evidence is rejected on resume rather than reported as fresh. Stopped-run cancellation retains unknown effects. Transfer selects an identity already in the registry, has a fresh attempt, occurs before reviewer execution and preserves prior evidence. Reconciliation may record operator-provided replies but cannot authenticate them.
+
+Rejected: migrating old checkpoints, treating inspection as permission to retry, clearing failed events, silently refreshing accepted inputs, or dispatching again after a persistence failure. Historical v1 operation identities remain unchanged. Legacy controls remain available; primary status can inspect either profile, while legacy resume still requires its original request/config arguments.

@@ -12,6 +12,8 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest='command')
     from .review_cli import add_commands, execute
     add_commands(sub)
+    from .task_cli import add_controls, execute_control
+    add_controls(sub)
     from .extension_cli import add_commands as add_extensions
     add_extensions(sub)
     from .voyage_cli import add_commands as add_voyage
@@ -49,6 +51,8 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument('--k', type=int, default=3)
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
     args = parser.parse_args(argv)
+    if args.command in ('status', 'resume', 'reconcile-task', 'transfer-task', 'cancel-task'):
+        return execute_control(args)
     if args.command == 'review':
         from .task_cli import validate_mode, execute_intake
         if validate_mode(args, parser):

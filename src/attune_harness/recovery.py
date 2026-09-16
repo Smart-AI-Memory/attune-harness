@@ -148,16 +148,7 @@ def resume_review(directory: Path, request: Path, config: Path, checkpoint: str,
         prepared = prepare_review(request, config)
         if prepared['requirement_revision'] != record['requirement_revision']:
             raise ValueError('Accepted request, registry or source snapshot changed; continuation refused')
-        for event in record['events']:
-            if event['state'] != 'completed' and event['phase'] != 'prepared':
-                if event['effect_class'] == 'paid_retrieval' and 'retrieval' in record['registry']:
-                    from .retrieval_task import safe_stage_continuation
-                    safe_stage_continuation(store.directory / 'retrieval-work')
-                    event.update(state='pending', phase='prepared')
-                    event.pop('error', None)
-                    event.pop('effects', None)
-                    continue
-                raise UnresolvedOperation(f"Operation {event['event_id']} may have executed; reconcile before resume")
+        prepare_continuation(record, store)
         require_feature('attune-verify', 'attune_verify', VERIFY_VERSION, 'review')
         if 'retrieval' not in record['registry']:
             require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'review')
@@ -172,35 +163,39 @@ def reconcile_review(directory: Path, checkpoint: str, event_id: str, *,
     store = RunStore(directory, existing=True)
     with store.lease():
         record = load_recovery(store, checkpoint)
-        ensure_active(record)
-        event = next((item for item in record['events'] if item['event_id'] == event_id), None)
-        if event is None or event['phase'] != 'dispatching' or event['state'] == 'completed':
-            raise ValueError('Event is not an unresolved dispatch')
-        before = copy.deepcopy(event)
-        if reply_file is not None:
-            if event['kind'] != 'participant_turn':
-                raise ValueError('Recovered replies apply only to participant turns')
-            raw = read_text(reply_file, 65_536)
-            action = decode_action(raw, event['request_digest'])
-            event.update(state='completed', phase='completed', result={'action': action, 'identity': None})
-            evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
-                        'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
-                        'identity': 'operator-supplied; not authenticated'}
-        else:
-            if event['effect_class'] != 'read_only':
-                raise UnresolvedOperation('Unknown external effects cannot be retried as read-only')
-            if event['attempts'] >= 2:
-                raise ValueError('Read-only retry limit exhausted')
-            event.update(state='pending', phase='prepared', attempts=event['attempts'] + 1)
-            evidence = {'kind': 'explicit_read_only_retry'}
-        event.pop('error', None)
-        event.pop('effects', None)
-        record['recovery']['reconciliations'].append({'event_id': event_id,
-            'checkpoint': checkpoint, 'previous': before, 'evidence': evidence})
-        record['status'] = 'paused'
-        record.pop('error', None)
-        store.save(record)
-        return record
+        return reconcile_record(record, store, checkpoint, event_id, reply_file=reply_file, retry_read_only=retry_read_only)
+
+
+def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, retry_read_only=False):
+    ensure_active(record)
+    event = next((item for item in record['events'] if item['event_id'] == event_id), None)
+    if event is None or event['phase'] != 'dispatching' or event['state'] == 'completed':
+        raise ValueError('Event is not an unresolved dispatch')
+    before = copy.deepcopy(event)
+    if reply_file is not None:
+        if event['kind'] != 'participant_turn':
+            raise ValueError('Recovered replies apply only to participant turns')
+        raw = read_text(reply_file, 65_536)
+        action = decode_action(raw, event['request_digest'])
+        event.update(state='completed', phase='completed', result={'action': action, 'identity': None})
+        evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
+                    'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
+                    'identity': 'operator-supplied; not authenticated'}
+    else:
+        if event['effect_class'] != 'read_only':
+            raise UnresolvedOperation('Unknown external effects cannot be retried as read-only')
+        if event['attempts'] >= 2:
+            raise ValueError('Read-only retry limit exhausted')
+        event.update(state='pending', phase='prepared', attempts=event['attempts'] + 1)
+        evidence = {'kind': 'explicit_read_only_retry'}
+    event.pop('error', None)
+    event.pop('effects', None)
+    record['recovery']['reconciliations'].append({'event_id': event_id,
+        'checkpoint': checkpoint, 'previous': before, 'evidence': evidence})
+    record['status'] = 'paused'
+    record.pop('error', None)
+    store.save(record)
+    return record
 
 
 def transfer_lead(directory: Path, checkpoint: str, participant_id: str, reason: str):
@@ -208,32 +203,38 @@ def transfer_lead(directory: Path, checkpoint: str, participant_id: str, reason:
     store = RunStore(directory, existing=True)
     with store.lease():
         record = load_recovery(store, checkpoint)
-        ensure_active(record)
-        recovery = record['recovery']
-        current = recovery['assignments']['lead']
-        if participant_id not in record['registry']['participants'] or participant_id in (
-            current['participant_id'], recovery['assignments']['reviewer']['participant_id'],
-        ):
-            raise ValueError('Choose a different lead already in the accepted registry, distinct from the reviewer')
-        if len(recovery['transfers']) >= 2:
-            raise ValueError('Transfer limit exhausted')
-        if any(event['state'] != 'completed' for event in record['events']):
-            raise UnresolvedOperation('Transfer requires reconciliation of every pending operation')
-        reviewer_attempt = recovery['assignments']['reviewer']['attempt_id']
-        if any(event.get('attempt_id') == reviewer_attempt for event in record['events']):
-            raise ValueError('Transfer is unavailable after independent reviewer execution begins')
-        prior = [copy.deepcopy(event) for event in record['events'] if event.get('attempt_id') == current['attempt_id']]
-        transfer = {'from': current['participant_id'], 'to': participant_id, 'checkpoint': checkpoint,
-                    'prior_attempt_id': current['attempt_id'], 'reason': reason,
-                    'reason_provenance': 'operator assertion; not governance authority',
-                    'prior_events': prior, 'prior_participant': copy.deepcopy(record['participants'].get('lead'))}
-        recovery['transfers'].append(transfer)
-        recovery['assignments']['lead'] = {'participant_id': participant_id, 'attempt_id': str(uuid4())}
-        record['participants'].pop('lead', None)
-        record['status'] = 'paused'
-        record.pop('error', None)
-        store.save(record)
-        return record
+        return transfer_record(record, store, checkpoint, participant_id, reason)
+
+
+def transfer_record(record, store, checkpoint, participant_id, reason, *, role='lead'):
+    ensure_active(record)
+    recovery = record['recovery']
+    current = recovery['assignments'][role]
+    if participant_id not in record['registry']['participants'] or participant_id in (
+        current['participant_id'], recovery['assignments'].get('reviewer', {}).get('participant_id'),
+    ):
+        raise ValueError('Choose a different lead already in the accepted registry, distinct from the reviewer')
+    if len(recovery['transfers']) >= 2:
+        raise ValueError('Transfer limit exhausted')
+    if any(event['state'] != 'completed' for event in record['events']):
+        raise UnresolvedOperation('Transfer requires reconciliation of every pending operation')
+    reviewer_attempt = recovery['assignments'].get('reviewer', {}).get('attempt_id')
+    if reviewer_attempt and any(event.get('attempt_id') == reviewer_attempt for event in record['events']):
+        raise ValueError('Transfer is unavailable after independent reviewer execution begins')
+    prior = [copy.deepcopy(event) for event in record['events'] if event.get('attempt_id') == current['attempt_id']]
+    transfer = {'from': current['participant_id'], 'to': participant_id, 'checkpoint': checkpoint,
+                'prior_attempt_id': current['attempt_id'], 'reason': reason,
+                'reason_provenance': 'operator assertion; not governance authority',
+                'prior_events': prior, 'prior_participant': copy.deepcopy(record['participants'].get(role))}
+    recovery['transfers'].append(transfer)
+    recovery['assignments'][role] = {'participant_id': participant_id, 'attempt_id': str(uuid4())}
+    if role == 'assessor':
+        transfer['attempt_id'] = recovery['assignments'][role]['attempt_id']
+    record['participants'].pop(role, None)
+    record['status'] = 'paused'
+    record.pop('error', None)
+    store.save(record)
+    return record
 
 
 def cancel_review(directory: Path, checkpoint: str, reason: str):
@@ -241,10 +242,27 @@ def cancel_review(directory: Path, checkpoint: str, reason: str):
     store = RunStore(directory, existing=True)
     with store.lease():
         record = load_recovery(store, checkpoint)
-        if record['status'] in ('completed', 'cancelled'):
-            return record  # Terminal state wins; no mutation and no rollback claim.
-        record['recovery']['cancellation'] = {'reason': reason, 'checkpoint': checkpoint,
-                                             'effects': 'Pending external effects remain unresolved; no rollback was performed'}
-        record['status'] = 'cancelled'
-        store.save(record)
-        return record
+        return cancel_record(record, store, checkpoint, reason)
+
+
+def cancel_record(record, store, checkpoint, reason):
+    if record['status'] in ('completed', 'cancelled'):
+        return record  # Terminal state wins; no mutation and no rollback claim.
+    record['recovery']['cancellation'] = {'reason': reason, 'checkpoint': checkpoint,
+                                         'effects': 'Pending external effects remain unresolved; no rollback was performed'}
+    record['status'] = 'cancelled'
+    store.save(record)
+    return record
+
+
+def prepare_continuation(record, store):
+    for event in record['events']:
+        if event['state'] != 'completed' and event['phase'] != 'prepared':
+            if event['effect_class'] == 'paid_retrieval' and 'retrieval' in record['registry']:
+                from .retrieval_task import safe_stage_continuation
+                safe_stage_continuation(store.directory / 'retrieval-work')
+                event.update(state='pending', phase='prepared')
+                event.pop('error', None)
+                event.pop('effects', None)
+                continue
+            raise UnresolvedOperation(f"Operation {event['event_id']} may have executed; reconcile before resume")

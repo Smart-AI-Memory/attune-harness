@@ -49,6 +49,9 @@ class TaskExecutionStore:
         self.directory, self.path = store.directory, store.path
 
     def save(self, execution):
+        if len(execution['events']) > self.task['request']['budgets']['max_operations']:
+            from .review_store import PersistenceError
+            raise PersistenceError('Accepted operation budget exhausted')
         self.task['execution'] = execution
         self.task['status'] = execution['status']
         self.store.save(self.task)
@@ -104,6 +107,8 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
                                                    'attempt_id': a['assignment_id']} for role, a in bound.items()},
                              'transfers': [], 'reconciliations': []}}
             task['recovery']['runtime'] = RUNTIME_PROFILE
+        from .recovery import prepare_continuation
+        prepare_continuation(task['execution'], store)
         execute_assessment(task['execution'], TaskExecutionStore(store, task), prepared,
             allow_external=grants['external'], allow_provider=grants['provider'],
             max_operations=max_operations, exchange_factory=exchange_factory,
@@ -123,8 +128,59 @@ def validate_execution(task):
         raise ValueError('Execution differs from accepted task identity/profile')
     expected = {role: {'participant_id': a['participant_id'], 'attempt_id': a['assignment_id']}
                 for role, a in task['bindings']['assessment']['assignments'].items()}
+    transfers = execution['recovery']['transfers']
+    if not isinstance(transfers, list) or len(transfers) > 2:
+        raise ValueError('Invalid task transfer history')
+    for transfer in transfers:
+        current = expected['assessor']
+        if (transfer['from'] != current['participant_id'] or
+                transfer['prior_attempt_id'] != current['attempt_id'] or
+                transfer['to'] not in request['registry']['participants'] or
+                transfer['to'] in (current['participant_id'], expected.get('reviewer', {}).get('participant_id'))):
+            raise ValueError('Invalid transferred assignment')
+        expected['assessor'] = {'participant_id': transfer['to'], 'attempt_id': transfer['attempt_id']}
     if execution['recovery']['assignments'] != expected:
         raise ValueError('Execution assignments differ from accepted task bindings')
     validate_events(execution)
     if len(execution['events']) > request['budgets']['max_operations']:
         raise ValueError('Execution exceeds accepted operation budget')
+
+
+def inspect_task(directory):
+    task = read_task(directory)
+    if task['status'] == 'running':
+        task['persisted_status'] = 'running'
+        task['status'] = 'unresolved'
+        task['inspection_note'] = 'Owner may still be running; no dispatch or retry was performed.'
+    return task
+
+
+def control_task(directory, action, *, checkpoint=None, **kwargs):
+    from .recovery import reconcile_record, transfer_record, cancel_record
+    from .review_contract import bounded_text
+    store = RunStore(safe_storage(directory), existing=True)
+    with store.lease():
+        task = read_task(store.directory)
+        current = task['checkpoint_digest']
+        if checkpoint is not None and checkpoint != current:
+            raise ValueError('Stale task checkpoint')
+        if 'execution' not in task:
+            raise ValueError('Task has no execution to control')
+        run, adapter = task['execution'], TaskExecutionStore(store, task)
+        if action == 'reconcile':
+            reply = kwargs.get('reply_file')
+            retry = kwargs.get('retry_read_only', False)
+            if (reply is not None) == retry:
+                raise ValueError('Choose one recovered reply or read-only retry')
+            check_fresh(task)
+            reconcile_record(run, adapter, current, kwargs['event_id'], reply_file=reply, retry_read_only=retry)
+        elif action == 'transfer':
+            bounded_text(kwargs['reason'], 'transfer reason')
+            check_fresh(task)
+            transfer_record(run, adapter, current, kwargs['participant_id'], kwargs['reason'], role='assessor')
+        elif action == 'cancel':
+            bounded_text(kwargs['reason'], 'cancellation reason')
+            cancel_record(run, adapter, current, kwargs['reason'])
+        else:
+            raise ValueError('Unknown task control')
+        return task
