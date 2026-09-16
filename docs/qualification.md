@@ -81,3 +81,7 @@ native contract tests that do not depend on unpublished receipts.
 
 Configuration behavior: [official Codex reference](https://learn.chatgpt.com/docs/config-file/config-reference).
 CI structure: [GitHub matrix documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
+
+## Unified task runtime — offline qualification, 2026-09-16
+
+The [unified-task verification receipt](specs/unified-task-execution/verification.md) qualifies installed assessment and bounded POSIX repair software on the observed macOS/Python profiles. Tasks 1–7 are accepted. The final wheel’s 41 source/module hashes match; 22 outside-tree consumer processes exercise assessment, repair and continuation. Legacy routes remain available. These local results are not new CI, Windows repair or native-model qualification. Task 8’s comparison packet is prepared but unrun; no semantic-quality or economic improvement is claimed.

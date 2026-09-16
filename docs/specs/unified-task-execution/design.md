@@ -59,7 +59,7 @@ The plan is a bounded list of host-known operations and assignments, not executa
 
 ## Shared execution services
 
-Task 2 implements intake in `src/attune_harness/task_contract.py` and `src/attune_harness/task_cli.py`. Runtime/policy modules remain future work: [[?src/attune_harness/task_runtime.py]], [[?src/attune_harness/task_policies.py]], and [[?src/attune_harness/repair.py]]. Names are locations, not a commitment to create abstractions unused by these slices.
+Task 2 implements intake in `src/attune_harness/task_contract.py` and `src/attune_harness/task_cli.py`. Tasks 3–7 implement the shared runtime in `src/attune_harness/task_runtime.py`, policies in `src/attune_harness/task_policies.py`, and bounded effects in `src/attune_harness/repair.py`. See the verification receipt for implemented behavior and qualification limits.
 
 | Existing seam | Planned treatment |
 |---|---|

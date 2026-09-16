@@ -77,3 +77,9 @@ See [installed assessment qualification](assessment-receipt.md): 40 module hashe
 ## Task 7 observed software evidence
 
 [Repair qualification](repair-receipt.md) binds the final 41-module installed artifact, positive/wrong/rejecting-review journeys, 1,126 applicable suite passes, final 117 focused passes, and 13 targeted guard mutations. No native/model outcome evidence was substituted.
+
+## Execution evidence, 2026-09-16
+
+Tasks 1–7 are accepted on offline evidence; [verification](verification.md) records the installed artifact, actual tests, guard mutations, preserved legacy contracts and exclusions. Task 8 has 49 passing offline checks, including simulated native transport across all assessment arms, real repair effects, integrity/admission failures and exact retained-grade-set checks. Its refreshed baseline captured all 18 legacy routes in 54 captures with zero provider attempts.
+
+The current packet is `docs/receipts/unified-task-execution/task8-frozen-protocol-qualified/`; protocol SHA-256 `536505510f36feeaae4cc5c36a642e3e754b4f87cef34fc67d69803a1cac6057`. Earlier packets and failures are retained; their runner hashes are stale and cannot be executed by the current runner. Sixty trials and a 92-call ceiling are prepared. No live outcomes exist, so Task 8 and full-spec qualification remain incomplete.

@@ -1,6 +1,6 @@
 # Task ladder — unified task execution
 
-Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–6 accepted on offline evidence; Task 7 software qualification ready for automatic acceptance. Native comparative qualification remains Task 8.** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
+Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–7 accepted on offline evidence. Task 8’s comparison protocol is prepared and offline-tested; native comparative qualification remains unrun and unaccepted.** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
 
 Canonical XML: `.claude/plans/unified-task-execution.md`. Task acceptance and auto-run decisions belong to the existing spec lifecycle, not this summary. Naming agreement does not approve implementation.
 
@@ -33,7 +33,7 @@ Task 5 qualifies software and installed behavior without pretending native outco
 
 Existing implementation: `src/attune_harness/cli.py`, `src/attune_harness/review.py`, `src/attune_harness/review_contract.py`, `src/attune_harness/review_participants.py`, `src/attune_harness/review_cli.py`, `src/attune_harness/review_store.py`, `src/attune_harness/recovery.py`, `src/attune_harness/process.py`, and `.gitignore`.
 
-Task 2 adds `src/attune_harness/task_contract.py` and `src/attune_harness/task_cli.py`. Future implementation: [[?src/attune_harness/task_runtime.py]], [[?src/attune_harness/task_policies.py]], [[?src/attune_harness/repair.py]]. Future behavioral suites and experiments are declared in the XML's files-to-create sections; they are not claimed to exist.
+Task 2 adds `src/attune_harness/task_contract.py` and `src/attune_harness/task_cli.py`. Tasks 3–7 implement `src/attune_harness/task_runtime.py`, `src/attune_harness/task_policies.py` and `src/attune_harness/repair.py`. The [verification receipt](verification.md) identifies implemented suites, installed consumers and the prepared Task 8 experiment. XML files-to-create entries retain the approved plan.
 
 Existing regression owners: `tests/test_review.py`, `tests/test_review_boundaries.py`, `tests/test_recovery.py`, `tests/test_native_evidence_review.py`, `tests/test_voyage_integration.py`, `tests/test_operations.py`, `tests/test_extensions.py`, `tests/test_mcp.py`, and `tests/test_process.py`. Add or reuse focused cases rather than duplicating existing assertions mechanically.
 

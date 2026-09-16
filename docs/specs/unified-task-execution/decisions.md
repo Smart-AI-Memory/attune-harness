@@ -119,3 +119,7 @@ Form construction/cache and validation share the contract module, with the CLI d
 ## D20 — Auto-run remaining offline tasks (2026-09-16)
 
 Patrick: “auto-run the rest.” Canonical Task 2 action `auto_run_remaining` accepted its offline receipt and enabled automatic continuation. Completed tasks: 1 and 2. This includes implementation and offline qualification for Tasks 3–7 and preparation of Task 8's frozen trials. It does not authorize model/provider spend or manufacture unrun native evidence.
+
+## D21 — Offline implementation complete; native comparison held
+
+Tasks 3–7 were automatically accepted from actual software receipts under D20; no paid-model gate score was substituted. Saved state is completed=[1,2,3,4,5,6,7], current=8, auto_run=true. Task 8 has a frozen installed-artifact protocol, 49 offline runner checks and a refreshed all-command compatibility receipt. It is not accepted: native quality, blind human outcomes and economic evidence remain absent under Patrick’s offline choice. No paid trial, new budget allocation, remote push or PR was performed. [Verification](verification.md) gives both bounded slice decisions.
