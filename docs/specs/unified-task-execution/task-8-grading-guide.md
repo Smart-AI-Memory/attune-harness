@@ -17,4 +17,6 @@ Save all 60 entries as `grades.json`; keep failures, unknowns and all comparison
 .venv-task-repair-final310/bin/python -I experiments/task_execution/campaign.py audit docs/receipts/unified-task-execution/task8-subscription-live --grades docs/receipts/unified-task-execution/task8-subscription-live/grades.json
 ```
 
-The separate corrected-prompt follow-up exercises eight required-review repairs on a new artifact. It is targeted requalification, not a replacement for these original outcomes or a new full 60-trial study. Its results must be identified separately in any final ruling. No assistant-generated labels have been presented as human grades.
+The separate corrected-prompt follow-up is complete: **all eight required-review repairs passed**, using 16 native calls against the new artifact. Every case failed its probe before repair, passed afterward, and received digest-bound approval with empty findings. All 212 retained artifacts and the wheel hash were reverified. See the [native receipt](task-8-live-receipt.md) and [follow-up summary](../../receipts/unified-task-execution/task8-review-contract-live/mechanical-summary.json). No repeat run is needed merely to complete this follow-up.
+
+This is targeted requalification; retain the original 60 outcomes separately in the final ruling. The frozen protocol selected human grading for the original comparison; those grades remain pending. No assistant-generated labels have been presented as human grades.
