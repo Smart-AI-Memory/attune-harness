@@ -2,7 +2,7 @@
 
 Status: revised spec and implementation plan approved, September 16, 2026. Owner: attune-harness.
 Requirements R1–R14, design, validation and this eight-task plan are approved. Execution is authorized.
-Spec: `docs/specs/unified-task-execution/`. Task 1 accepted on offline evidence; 1/8 accepted. Task 2 intake implementation awaits acceptance.
+Spec: `docs/specs/unified-task-execution/`. Tasks 1–4 accepted on offline evidence; 4/8 accepted. Task 5 installed assessment qualification in progress.
 
 Outcome: one task identity and shared execution services for evidence assessment
 (solo and independent review), then scoped repair with real effects and a real
@@ -207,4 +207,4 @@ Preserve all 18 current command routes and supported old review records.
 Read decisions D1, D11 and D16 for the user's approved direction and revised-spec approval.
 The approved reflect extension follows this ladder; its implementation breakdown is separate.
 
-<!-- spec-state: {"schema_version": 1, "completed": ["1", "2", "3"], "current": "4", "auto_run": true, "last_updated": "2026-09-16T15:15:56.995982+00:00"} -->
+<!-- spec-state: {"schema_version": 1, "completed": ["1", "2", "3", "4"], "current": "5", "auto_run": true, "last_updated": "2026-09-16T15:19:19.493709+00:00"} -->

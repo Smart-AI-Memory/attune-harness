@@ -69,3 +69,7 @@ Report all model/tool calls, input/output tokens, elapsed time, human interventi
 ## Consolidation receipt
 
 Record the original 18-name inventory, its final dispositions, primary help entries, compatibility routes, and before/after ownership of intake/dispatch/evidence/recovery. Re-run a scripted old and new journey through the same engine. Name removed duplicate paths, remaining adapters, and any policy branches that indicate the abstraction has grown too broad. Conduct the R13 intent-to-command walkthrough and record confusion without claiming broad UX validation from a single participant.
+
+## Task 5 observed software evidence
+
+See [installed assessment qualification](assessment-receipt.md): 40 module hashes matched, 15 outside-tree consumer/measurement processes, 35 legacy installed checks, five guard mutations detected, and 1,076 applicable tests passed with 25 skips. Two historical/host-limited modules are explicitly excluded and their failed receipts retained. Model/native quality and other-platform task receipts remain pending.

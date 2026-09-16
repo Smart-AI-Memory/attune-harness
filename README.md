@@ -16,6 +16,37 @@ local indexes, hybrid search, standard reranking, and source/cost receipts. The 
 and deterministic structured tools remain available. See the
 [implementation receipt](docs/voyage-retrieval-receipt.md) for the qualified scope.
 
+## Task-oriented evidence review
+
+Install `.[review]`, then supply one goal and the source/participant choices. Missing
+answers are collected interactively; headless runs return a bound intake form.
+Explicit acceptance executes the assessment. For example, from a project with
+`docs/guide.md`, a trusted verification context and a participant registry:
+
+```sh
+attune-harness review --goal "Check the guide against project evidence" \
+  --project . --config participants.json --document docs/guide.md \
+  --context context.json --corpus docs --query "retention policy" \
+  --criteria "Identify unsupported claims and preserve uncertainty" \
+  --assessor alpha --accept
+attune-harness status .attune-harness/tasks/<task-id>
+attune-harness resume .attune-harness/tasks/<task-id>
+```
+
+Use `--plan independent-review --reviewer beta` for a separate assignment;
+`--allow-external` explicitly enables configured command/native participants.
+`--intake-only` prepares accepted inputs without executing. `--pause-after 2`
+creates a durable interruption for later resume. A completed assessment can report
+a refuted or unknown document; participant narratives remain unverified proposals.
+The JSON includes the task directory and identity.
+
+`reconcile-task`, `transfer-task`, and `cancel-task` expose bounded recovery controls.
+`--help` lists every advanced command. All 18 legacy routes remain available,
+including positional `review request.json --config ... --run-dir ...` and its
+original status/exit semantics. Plan/build/ship are not implemented task journeys.
+See the [assessment receipt](docs/specs/unified-task-execution/assessment-receipt.md)
+for installed software evidence and outstanding native-model qualification.
+
 ## Library quickstart
 
 Requires Python 3.10 or later. Install from this checkout:
