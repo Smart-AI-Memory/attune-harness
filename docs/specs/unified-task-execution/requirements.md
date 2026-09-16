@@ -1,6 +1,6 @@
 # Requirements — unified task execution
 
-Status: approved by Patrick Roebuck, 2026-09-16. Requirements R1–R14 were approved first; the subsequent revised-spec approval also covers the design, validation and eight-task plan. The approved [session-reflection extension](session-reflection.md) adds a follow-on design without changing R1–R14. Execution is authorized; Task 1 implementation and offline checks are ready, with task acceptance pending. See the [baseline receipt](baseline.md).
+Status: approved by Patrick Roebuck, 2026-09-16. Requirements R1–R14 were approved first; the subsequent revised-spec approval also covers the design, validation and eight-task plan. The approved [session-reflection extension](session-reflection.md) adds a follow-on design without changing R1–R14. Execution is authorized; Task 1 is accepted on offline evidence and Task 2 intake implementation awaits acceptance. See the [baseline receipt](baseline.md).
 
 ## Outcome and slices
 

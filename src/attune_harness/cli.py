@@ -49,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument('--k', type=int, default=3)
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
     args = parser.parse_args(argv)
+    if args.command == 'review':
+        from .task_cli import validate_mode, execute_intake
+        if validate_mode(args, parser):
+            return execute_intake(args)
     if args.command in ('code-config', 'index', 'retrieval-task'):
         from .voyage_cli import execute as execute_voyage
         return execute_voyage(args)

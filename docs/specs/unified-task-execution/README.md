@@ -1,6 +1,6 @@
 # Unified task execution
 
-Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Task 1 implementation/offline checks ready; 0/8 tasks accepted.** Execution was explicitly authorized. Owner: attune-harness.
+Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Task 1 accepted on offline evidence; 1/8 tasks accepted. Task 2 intake implementation awaits acceptance.** Execution was explicitly authorized. Owner: attune-harness.
 
 Give Harness one task request and durable identity across intake, evidence, participants, integration, inspection, and recovery. First deliver evidence assessment through explicit solo and independent-review plans. Then deliver scoped repair through the same services, with real file effects and independent acceptance checks.
 
@@ -13,6 +13,7 @@ Give Harness one task request and durable identity across intake, evidence, part
 | [Validation plan](validation.md) | Failure-sensitive cases, provider qualification, and frozen comparisons |
 | [Authoring receipt](authoring-receipt.md) | Actual draft checks, lifecycle receipts, and review state |
 | [Task 1 baseline](baseline.md) | Actual compatibility, recovery, source identity and intake-timing evidence |
+| [Task 2 intake](task-2-receipt.md) | Versioned intake, form reuse, checks and limitations |
 | [Session reflection](session-reflection.md) | Approved reflect design and reusable insight form; follow-on slice outside the current eight tasks |
 | [XML plan](../../../.claude/plans/unified-task-execution.md) | Canonical machine-readable tasks and saved execution state |
 

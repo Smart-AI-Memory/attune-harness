@@ -1,6 +1,6 @@
 # Decisions — unified task execution
 
-Status: revised spec approved, 2026-09-16. D16 accepts the implementation proposals and reflection extension; D17 records execution. Earlier entries preserve their original proposal/approval history. Task 1 implementation/offline checks are ready; no implementation task is accepted.
+Status: revised spec approved, 2026-09-16. D16 accepts the implementation proposals and reflection extension; D17 records execution. Earlier entries preserve their original proposal/approval history. D18 records offline Task 1 acceptance; 1/8 tasks accepted. Task 2 intake implementation awaits acceptance.
 
 ## D1 — User-set scope
 
@@ -103,3 +103,15 @@ Spec approval was recorded through the canonical plan collector after publishing
 Patrick confirmed “yes” to “go—start implementing the approved spec.” This resolved automatic approval review's rejection of the earlier ambiguous “g0.” The canonical collector accepted start_execution at revision 11. Real execution gates passed (symbol-reality `642d64892a92`, falsifiability `5d808e09d5af`); Task 1 started at revision 13. Saved state is `completed=[]`, `current=1`, `auto_run=false`.
 
 Task 1 delivered the reproducible zero-provider baseline, 28 compatibility cases, a source/ownership inventory and [actual receipts](baseline.md). All 36 production modules and the captured unrelated Voyage work remain unchanged. The standard spec task-quality workflow invokes paid review agents, which the offline Task 1 scope does not authorize. No paid review ran or skipped score was labeled passing. Task acceptance and the offline-versus-paid review route remain explicit decisions after this concrete result.
+
+## D18 — Baseline committed; offline Task 1 acceptance selected
+
+Patrick instructed committing the existing spec and Task 1 baseline before continuing production implementation. Commit `e546cc6` contains those artifacts and their supporting assessments; unrelated Voyage work was excluded. The 28 compatibility tests passed again, all 154 frozen artifacts matched their manifest, and all 36 production modules still matched the baseline before implementation.
+
+On the open review-route choice Patrick said, “I'm leaning toward offline unless you think the paid would be superior.” The assistant agreed for this deterministic baseline and transcribed acceptance through the canonical workspace. `approve_task` was accepted at revision 2 of `spec-a783c8d9ea154f23a68e04f7effe23a3`; Task 2 started at revision 3. The numeric receipt field explicitly denotes observed test pass percentage (28/28 × 100), never a paid-model score. Paid reviews and live qualification remain unrun. Saved state is completed=[1], current=2, auto_run=false; this does not approve remaining implementation tasks.
+
+## D19 — Task 2 choices and limits
+
+Intake uses the existing `RunStore` unchanged and shares participant configuration validation with the legacy loader, whose two-participant minimum remains intact. The new loader permits one configured participant for solo intake. The CLI explicitly separates positional legacy requests from goal intake and bound task responses. The new route ends at accepted intake with execution marked not_started; Task 3 owns assessment execution.
+
+Form construction/cache and validation share the contract module, with the CLI depending on it in one direction. Only unbound immutable rendering is cached; identities, answers, permissions and submission bindings are produced separately. Process-local reuse measured a small local benefit; no persistent cache or user-visible speed claim is justified. Keyword corpora must exclude task storage; the conservative Voyage check requires an external task directory when selected repository roots overlap it. No unrelated Voyage validation-reuse implementation was changed.

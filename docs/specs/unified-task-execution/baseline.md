@@ -1,6 +1,6 @@
 # Task 1 baseline — unified task execution
 
-Status: implementation and offline checks ready, 2026-09-16. Task acceptance is pending; **0/8 tasks accepted**. This increment adds measurement and compatibility artifacts, not production runtime behavior.
+Status: accepted on offline evidence, 2026-09-16; **1/8 tasks accepted**. Baseline artifacts were committed as `e546cc6` before production changes. This increment adds measurement and compatibility artifacts, not production runtime behavior.
 
 ## Reproduce and retained evidence
 
@@ -93,4 +93,4 @@ Fresh-process time includes the probe and poison-boundary setup as well as start
 - A [disposable mutation](../../receipts/unified-task-execution/task1-mutation-retry.json) removed the completed-review verdict exit guard. **1/1 mutation detected; 3/4 selected new cases failed**, while the original cases passed. An initial probe path assertion stopped before pytest; its failed receipt is retained separately.
 - The frozen manifest, original paused/completed/uncertain record states and unchanged source were independently checked after the run.
 
-The standard Attune task-quality workflow invokes paid code-review/security agents; it was not run under this offline task's scope. No skipped review is reported as passed and no model-derived quality score is fabricated. Offline checks are ready for task acceptance or an explicitly selected review route. Installed-artifact, native-provider and comparative semantic qualification remain later tasks.
+The standard Attune task-quality workflow invokes paid code-review/security agents; it was not run under this offline task's scope. No skipped review is reported as passed and no model-derived quality score is fabricated. Patrick selected offline acceptance after the 28 compatibility tests were rerun and all 154 frozen artifacts and 36 production modules were verified unchanged. The canonical collector accepted `approve_task` at workspace `spec-a783c8d9ea154f23a68e04f7effe23a3`, revision 2. Its numeric field explicitly denoted observed compatibility-test pass percentage (28/28 × 100), not a paid review or semantic-quality score. Installed-artifact, native-provider and comparative semantic qualification remain later tasks.
