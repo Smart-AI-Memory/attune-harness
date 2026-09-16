@@ -115,3 +115,7 @@ On the open review-route choice Patrick said, “I'm leaning toward offline unle
 Intake uses the existing `RunStore` unchanged and shares participant configuration validation with the legacy loader, whose two-participant minimum remains intact. The new loader permits one configured participant for solo intake. The CLI explicitly separates positional legacy requests from goal intake and bound task responses. The new route ends at accepted intake with execution marked not_started; Task 3 owns assessment execution.
 
 Form construction/cache and validation share the contract module, with the CLI depending on it in one direction. Only unbound immutable rendering is cached; identities, answers, permissions and submission bindings are produced separately. Process-local reuse measured a small local benefit; no persistent cache or user-visible speed claim is justified. Keyword corpora must exclude task storage; the conservative Voyage check requires an external task directory when selected repository roots overlap it. No unrelated Voyage validation-reuse implementation was changed.
+
+## D20 — Auto-run remaining offline tasks (2026-09-16)
+
+Patrick: “auto-run the rest.” Canonical Task 2 action `auto_run_remaining` accepted its offline receipt and enabled automatic continuation. Completed tasks: 1 and 2. This includes implementation and offline qualification for Tasks 3–7 and preparation of Task 8's frozen trials. It does not authorize model/provider spend or manufacture unrun native evidence.

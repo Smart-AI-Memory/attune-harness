@@ -321,7 +321,7 @@ def test_cli_goal_intake_and_headless_response(case, capsys, monkeypatch):
     submission = result['submission']; submission['accepted'] = True
     path = case[0].parent / 'task-response.json'
     path.write_text(json.dumps(submission), encoding='utf-8')
-    assert main(['review', '--task-response', str(path), '--task-dir', str(case[2])]) == 0
+    assert main(['review', '--task-response', str(path), '--task-dir', str(case[2]), '--intake-only']) == 0
     accepted = json.loads(capsys.readouterr().out)
     assert accepted['status'] == 'accepted' and accepted['execution_status'] == 'not_started'
     assert accepted['task_id'] == result['task_id']
@@ -448,7 +448,7 @@ def test_interactive_complete_intake_is_accepted_without_dispatch(case, monkeypa
     supplied = iter(['Useful evidence assessment', 'quartz', 'project/guide.md', 'context.json',
                      'project', 'alpha', 'yes'])
     monkeypatch.setattr(builtins, 'input', lambda _: next(supplied))
-    assert main(['review', '--goal', 'Check guide', '--project', str(case[0].parent),
+    assert main(['review', '--intake-only', '--goal', 'Check guide', '--project', str(case[0].parent),
                  '--config', str(case[1]), '--task-dir', str(case[2])]) == 0
     record = read_task(case[2])
     assert record['status'] == 'accepted' and record['events'] == []

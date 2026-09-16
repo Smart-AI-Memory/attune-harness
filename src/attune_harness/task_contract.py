@@ -182,12 +182,19 @@ def read_task(directory):
     record = read_record(directory)
     fields(record, ('schema_version', 'operation', 'task_profile', 'status', 'request',
                     'record_path', 'acceptance', 'bindings', 'events', 'history',
-                    'recovery', 'checkpoint_digest'))
+                    'recovery', 'checkpoint_digest', *(['execution'] if 'execution' in record else [])))
     if record['operation'] != 'task' or record['task_profile'] != PROFILE:
         raise ValueError('Unsupported task profile')
-    if record['status'] not in ('draft', 'accepted') or record['events'] != []:
+    if record['status'] not in ('draft', 'accepted', 'running', 'completed', 'paused', 'failed', 'unavailable', 'unresolved', 'cancelled') or record['events'] != []:
         raise ValueError('Unsupported intake state; execution requires a supported runtime')
-    if record['recovery'] != {'profile': {'kind': 'task-intake', 'version': 1}}:
+    expected_recovery = {'profile': {'kind': 'task-intake', 'version': 1}}
+    if 'execution' in record:
+        from .task_policies import RUNTIME_PROFILE, validate_execution
+        expected_recovery['runtime'] = RUNTIME_PROFILE
+        validate_execution(record)
+    elif record['status'] not in ('draft', 'accepted'):
+        raise ValueError('Execution state requires a runtime record')
+    if record['recovery'] != expected_recovery:
         raise ValueError('Unsupported task recovery profile')
     if record['record_path'] != str(directory / 'record.json'):
         raise ValueError('Copied task cannot become another owner')
@@ -201,7 +208,7 @@ def read_task(directory):
         raise ValueError('Invalid task revision')
     budgets(request['budgets'])
     validate_answers(request['answers'], request['plan'], request['registry'],
-                     complete=record['status'] == 'accepted')
+                     complete=record['status'] != 'draft')
     if not isinstance(record['history'], list) or len(record['history']) != request['revision'] - 1:
         raise ValueError('Invalid revision history')
     if record['status'] == 'draft':
@@ -363,6 +370,8 @@ def revise_task(directory, *, checkpoint, answers=None, plan=None, budget=None):
         record = read_task(store.directory)
         if checkpoint != record['checkpoint_digest']:
             raise ValueError('Stale task checkpoint')
+        if 'execution' in record:
+            raise ValueError('Executed tasks cannot revise their evidence; create a new task')
         old = copy.deepcopy(record['request'])
         request = record['request']
         if plan is not None:

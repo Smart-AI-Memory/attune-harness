@@ -207,4 +207,4 @@ Preserve all 18 current command routes and supported old review records.
 Read decisions D1, D11 and D16 for the user's approved direction and revised-spec approval.
 The approved reflect extension follows this ladder; its implementation breakdown is separate.
 
-<!-- spec-state: {"schema_version": 1, "completed": ["1"], "current": "2", "auto_run": false, "last_updated": "2026-09-16T13:21:03.250117+00:00"} -->
+<!-- spec-state: {"schema_version": 1, "completed": ["1", "2"], "current": "3", "auto_run": true, "last_updated": "2026-09-16T15:11:11.084520+00:00"} -->

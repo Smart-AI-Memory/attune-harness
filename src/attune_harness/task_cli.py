@@ -39,6 +39,7 @@ def present_task(directory, *, bypass=False):
 
 
 def add_arguments(parser):
+    parser.add_argument('--intake-only', action='store_true', help='Prepare/accept without executing')
     parser.add_argument('--goal', help='Start task-oriented assessment intake instead of legacy review JSON')
     parser.add_argument('--project', type=Path, help='Task project root (default: current directory)')
     parser.add_argument('--plan', choices=('solo', 'independent-review'))
@@ -56,14 +57,14 @@ def validate_mode(args, parser):
     task = args.goal is not None or args.task_response is not None
     names = ('project', 'plan', 'task_dir', 'profile', 'criteria', 'query', 'document',
              'context', 'corpus', 'assessor', 'reviewer', 'accept',
-             'bypass_intake_cache', 'clear_intake_cache')
+             'bypass_intake_cache', 'clear_intake_cache', 'intake_only')
     if task:
         if args.request is not None or args.run_dir is not None or args.max_operations is not None:
             parser.error('Task intake and legacy request/--run-dir/--max-operations are mutually exclusive')
         if args.goal is not None and args.task_response is not None:
             parser.error('--goal and --task-response are mutually exclusive')
         if args.task_response is not None:
-            forbidden = tuple(n for n in names if n not in ('task_dir', 'bypass_intake_cache', 'clear_intake_cache'))
+            forbidden = tuple(n for n in names if n not in ('task_dir', 'bypass_intake_cache', 'clear_intake_cache', 'intake_only'))
             if args.task_dir is None or any(getattr(args, n) is not None and getattr(args, n) is not False for n in forbidden):
                 parser.error('--task-response requires --task-dir and cannot be combined with intake overrides')
             if args.allow_external or args.allow_provider:
@@ -113,8 +114,11 @@ def execute_intake(args):
             if response['accepted']:
                 accept_task(directory, response)
         result = present_task(directory, bypass=args.bypass_intake_cache)
+        if result['status'] == 'accepted' and not args.intake_only:
+            from .task_policies import execute_task
+            result = execute_task(directory)
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
-        return 0 if result['status'] == 'accepted' else 1
+        return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
     except Exception as exc:
         print(json.dumps({'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
                           'error': {'type': type(exc).__name__, 'detail': str(exc)}}, indent=2))

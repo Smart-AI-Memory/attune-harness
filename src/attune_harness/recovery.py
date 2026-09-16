@@ -110,6 +110,11 @@ def load_recovery(store: RunStore, checkpoint: str) -> dict:
         'running', 'paused', 'unresolved', 'failed', 'unavailable', 'completed', 'cancelled',
     ):
         raise ValueError('Unsupported recovery state')
+    validate_events(record)
+    return record
+
+
+def validate_events(record):
     seen = set()
     for event in record['events']:
         if event['kind'] not in ('preflight_verification', 'initial_retrieval', 'participant_turn', 'tool', 'final_verification'):
@@ -123,7 +128,7 @@ def load_recovery(store: RunStore, checkpoint: str) -> dict:
             ('prepared', 'pending'), ('dispatching', 'pending'), ('dispatching', 'failed'), ('completed', 'completed'),
         ):
             raise ValueError('Invalid saved operation state')
-    return record
+
 
 
 def ensure_active(record):

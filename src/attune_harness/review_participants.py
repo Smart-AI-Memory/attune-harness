@@ -136,7 +136,7 @@ class ReviewExchange:
                                   **({'skills_context_tokens': config['skills_context_tokens']}
                                      if 'skills_context_tokens' in config else {}))
         attempt = Attempt(task, turn['turn_id'], turn['requirement_revision'],
-                          turn['participant_id'], turn['role'], 'harness-review-v1')
+                          turn['participant_id'], 'lead' if turn['role'] == 'assessor' else turn['role'], 'harness-review-v1')
         try:
             text = JsonParticipant(attempt, exchange).run(task).text
             if evidence:

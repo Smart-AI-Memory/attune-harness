@@ -1,0 +1,11 @@
+# Task 3 software receipt
+
+The legacy assessment loop moved from review.py to task_runtime.py. review.py is now a schema/service adapter; new accepted tasks run through that same loop, RecoveryCursor and error/persistence handling. task_policies.py binds accepted identities and preserves independent evidence packets. No synthesis call was added.
+
+Observed first qualification: 244 tests passed (new assessment, intake, legacy review/boundaries/recovery/native evidence), Python 3.12.13 in the preserved .venv-voyage312 environment. Raw receipt: docs/receipts/unified-task-execution/task3-tests.xml. The 12 new assessment cases execute real forms, retrieval and verification; include a separately invoked command peer; assert one/two calls, isolated assignments, contradictory narratives, unknown/refuted documents, invalid output, freshness and operation budgets. Native provider calls were not run.
+
+CLI acceptance now executes review; --intake-only explicitly preserves preparation without execution. Tool-verified document claims never certify participant prose. Integration always leaves semantic acceptance unverified. Durable controls and installed artifact qualification are the next separate tasks.
+
+Broader suite retained: 1,079 passed, 25 skipped, 33 failures all from sandbox-denied localhost fixture binds, and 7 historical review-quality fixture errors because this interpreter's installed artifact differs from the frozen token-accounting campaign. No historical artifact or environment was altered to conceal that mismatch. Local-socket tests are rerun with the needed OS permission; the pinned historical campaign remains a separate reproducibility limitation. Two further assessment cases cover output budget and native evidence transport with a fake native peer, not native model qualification.
+
+Final focused receipt: **335 passed**, including 13 new assessment cases, after fixing the real native role mismatch found by the new peer (task assessor maps to native lead). Raw `task3-final-v2.xml`; prior failing runs are retained. Source inspection finds one participant dispatch closure and one assessment exception boundary, both in task_runtime.py; review.py delegates without its former loop. This is offline software evidence, not model quality or a paid code/security review score.
