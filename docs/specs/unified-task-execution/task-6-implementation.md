@@ -1,0 +1,11 @@
+# Task 6 implementation note
+
+Implement a bounded POSIX dedicated-checkout replacement profile. Freeze the whole bounded checkout (including protected metadata), allowed existing UTF-8 files, root identity, and immutable probe argv/cwd/timeout/output/environment/oracle paths. Task storage must be outside the checkout. Native tools remain read-only; the host alone applies validated replacements. This is a cooperating-owner checkout boundary, not a sandbox against a hostile process with the same OS account. Windows effects remain unavailable until native handle qualification exists.
+
+Actual disposable probe on this host: O_NOFOLLOW rejected a symlink with errno 62; hardlinked source reported link count 2; directory-fd relative atomic replacement changed the target while the prior hardlink retained old bytes. Therefore reject hardlinks before edits, traverse every directory through no-follow handles, stage in the held parent directory, recheck the preimage, atomically replace, fsync and verify the after-image before acknowledgement.
+
+Validate the complete patch before any write: exact JSON schema, 1–20 distinct accepted relative paths, UTF-8 size bounds, correct before hashes, real changes and no protected/oracle files. Journal each file through the shared RecoveryCursor. Capture truthful partial results; there is no whole-patch atomicity claim. A lost acknowledgement can be reconciled only by actual before/after bytes, with an explicit bounded retry for known-before and no automatic rewrite for unexpected content.
+
+The trusted acceptance probe runs through process.invoke with a frozen explicit environment. Default existing adapters retain inherited environments; the new environment parameter is POSIX-only for now. Failed-before/passed-after is required by the repair policy in Task 7. Tests here prove real effects, denied traversal/symlink/hardlink/preimage/probe attacks, unrelated changes, partial writes and unknown-after reconciliation. Mutate scope, preimage, oracle and post-write guards in disposable copies.
+
+Rejected: broad native write grants, shell patch commands, file creation/deletion/rename, trusting worker self-verdict, optimistic rollback, or a fake in-memory filesystem. Repair primitives belong to the existing operation journal, not a parallel retry system. New pipeline composition is Task 7.

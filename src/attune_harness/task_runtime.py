@@ -197,3 +197,11 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
         return record
     store.save(record)
     return record
+
+
+def perform_probe(cursor, plan, key):
+    """Immutable repair acceptance probe on the same operation journal as assessment."""
+    from .repair import expected_snapshot, run_probe
+    expected = expected_snapshot(plan, cursor.record['events'])
+    return cursor.perform(key, 'acceptance_probe', lambda: run_probe(plan, expected),
+                          effect_class='unknown', plan_digest=digest(plan), artifact_digest=digest(expected))

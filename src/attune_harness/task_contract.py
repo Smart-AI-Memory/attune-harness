@@ -395,3 +395,9 @@ def revise_task(directory, *, checkpoint, answers=None, plan=None, budget=None):
         record.update(status='draft', acceptance=None, bindings={})
         store.save(record)
         return record
+
+
+def freeze_repair_contract(checkout, allowed, probe, task_directory):
+    """Capture immutable repair scope/probe before accepting a worker assignment."""
+    from .repair import freeze
+    return freeze(checkout, allowed, copy.deepcopy(probe), safe_storage(task_directory))
