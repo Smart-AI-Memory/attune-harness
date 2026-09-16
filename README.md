@@ -9,6 +9,13 @@ adapters connect participants. Native review qualification is recorded separatel
 from software tests; Claude's retry remains on hold.
 No provider SDK or attune-ai installation is required by the core.
 
+Dev13 adds [repository-first Attune RAG](docs/code-first-rag.md): application
+code and tests, explicitly selected schemas/configuration, optional documentation,
+and an Attune AI plugin using the shared Voyage engine. It builds on Dev12's
+local indexes, hybrid search, standard reranking, and source/cost receipts. The dependency-free core
+and deterministic structured tools remain available. See the
+[implementation receipt](docs/voyage-retrieval-receipt.md) for the qualified scope.
+
 ## Library quickstart
 
 Requires Python 3.10 or later. Install from this checkout:

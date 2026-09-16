@@ -1,0 +1,46 @@
+[
+  {
+    "id": "tuning-01",
+    "query": "Where are supported reasoning-effort values validated?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "validate_reasoning_effort"
+      }
+    ]
+  },
+  {
+    "id": "tuning-02",
+    "query": "Where is the skills catalog token budget checked?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "validate_skills_context_tokens"
+      }
+    ]
+  },
+  {
+    "id": "tuning-03",
+    "query": "Where is an extension enabled or disabled?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "mutate"
+      }
+    ]
+  },
+  {
+    "id": "tuning-04",
+    "query": "Which function inspects a saved review without resuming it?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "inspect_run"
+      }
+    ]
+  }
+]

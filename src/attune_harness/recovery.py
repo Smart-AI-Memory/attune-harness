@@ -18,7 +18,12 @@ ENGINE_PROFILE = {'version': 1, 'turn_protocol_sha256': digest(PROTOCOL),
 
 def engine_profile(registry):
     # Older engines reject extended turns while existing records stay resumable.
-    return {**ENGINE_PROFILE, **({'extensions': 1} if registry.get('extensions') else {})}
+    profile = {**ENGINE_PROFILE, **({'extensions': 1} if registry.get('extensions') else {})}
+    if 'retrieval' in registry:
+        from .voyage_provider import VOYAGE_VERSION, LANCEDB_VERSION
+        profile.pop('rag')
+        profile.update(version=2, retrieval='voyage-v1', voyage=VOYAGE_VERSION, lancedb=LANCEDB_VERSION)
+    return profile
 
 
 class ReviewPaused(Exception):
@@ -80,7 +85,7 @@ class RecoveryCursor:
             result = call()
         except Exception as exc:
             event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
-                         effects='unknown' if effect_class == 'unknown' else 'read_only')
+                         effects='read_only' if effect_class == 'read_only' else 'unknown')
             raise
         event.update(state='completed', phase='completed', result=copy.deepcopy(result))
         self.store.save(self.record)
@@ -127,7 +132,7 @@ def ensure_active(record):
 
 
 def resume_review(directory: Path, request: Path, config: Path, checkpoint: str, *,
-                  allow_external=False, max_operations=None, exchange_factory=ReviewExchange):
+                  allow_external=False, allow_provider=False, max_operations=None, exchange_factory=ReviewExchange):
     from .review import prepare_review, execute_review
     store = RunStore(directory, existing=True)
     with store.lease():
@@ -140,11 +145,19 @@ def resume_review(directory: Path, request: Path, config: Path, checkpoint: str,
             raise ValueError('Accepted request, registry or source snapshot changed; continuation refused')
         for event in record['events']:
             if event['state'] != 'completed' and event['phase'] != 'prepared':
+                if event['effect_class'] == 'paid_retrieval' and 'retrieval' in record['registry']:
+                    from .retrieval_task import safe_stage_continuation
+                    safe_stage_continuation(store.directory / 'retrieval-work')
+                    event.update(state='pending', phase='prepared')
+                    event.pop('error', None)
+                    event.pop('effects', None)
+                    continue
                 raise UnresolvedOperation(f"Operation {event['event_id']} may have executed; reconcile before resume")
         require_feature('attune-verify', 'attune_verify', VERIFY_VERSION, 'review')
-        require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'review')
+        if 'retrieval' not in record['registry']:
+            require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'review')
         return execute_review(record, store, prepared, allow_external=allow_external,
-                              max_operations=max_operations, exchange_factory=exchange_factory)
+                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory)
 
 
 def reconcile_review(directory: Path, checkpoint: str, event_id: str, *,

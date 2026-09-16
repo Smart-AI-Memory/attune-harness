@@ -16,13 +16,30 @@ Windows implementation. Retain both versions' evidence when comparing support.
 Model providers are not called by CI. These tests qualify the runner/platform and
 adapter fixtures; native model behavior requires the separate frozen campaign.
 
+The installed-wheel selection also includes Voyage budget/replay checks,
+evaluator CLI status checks, plugin lifecycle tests and host qualification
+boundary fixtures. `tests/test_code_rag_host_check.py` compiles the actual host
+check script with optimization levels 0 and 1 and supplies invalid result,
+usage and session evidence. Explicit runtime checks must reject it in both modes;
+`python -O` and `PYTHONOPTIMIZE=1` must not remove qualification checks. Real Attune
+dispatcher cases require the optional host package and skip when it is absent;
+the boundary fixtures run with Harness's MCP dependency alone.
+
+For a real, zero-provider-call host check, run
+`python -I scripts/check_code_rag_host.py --output /absolute/new-host-check` in a
+separate compatible Attune environment with a freshly installed Harness wheel.
+It discovers and calls the tool over stdio and checks the durable session after
+shutdown. Use `python -I -O` to exercise the optimized launcher too.
+The [September 16 fix receipt](sol-review-fix-receipt.md) distinguishes local
+source regression results from historical installed-host evidence.
+
 ## Accuracy and worker qualification
 
 The model campaign is frozen on dev10, separately from the dev11 platform work.
 Use the preserved dev10 environment with the review extra. On a fresh clone,
 commit `c2fa34038483ec7a028a50f554bf1a95e54039a5` contains that version; build and
 install it in an isolated environment before invoking the campaign. The current
-library remains dev11; do not overwrite a frozen environment to run a comparison.
+library is dev13; do not overwrite a frozen environment to run a comparison.
 
 ```sh
 python -I experiments/opportunities/campaign.py prepare --out /absolute/new-run
