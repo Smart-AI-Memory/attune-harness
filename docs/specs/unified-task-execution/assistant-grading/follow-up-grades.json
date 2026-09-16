@@ -1,0 +1,58 @@
+[
+  {
+    "trial_id": "arithmetic-claude-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "arithmetic-codex-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "empty-default-claude-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "empty-default-codex-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "interrupted-repair-claude-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "interrupted-repair-codex-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "lower-bound-claude-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  },
+  {
+    "trial_id": "lower-bound-codex-lead-required-review",
+    "completed_correct": true,
+    "critical_miss": false,
+    "unsupported_findings": 0,
+    "human_correction_seconds": null
+  }
+]

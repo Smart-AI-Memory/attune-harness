@@ -1,0 +1,242 @@
+[
+  {
+    "blind_id": "4afc0d5991d916aa7004",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "505b4212387d2ec2c41c",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "c6cc6f0e56952009c358",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "78b6f3bc3a09910c4b63",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "0ea03cf5fb174c620b56",
+    "rationale": "Empty strings and None map to unknown while nonempty strings are preserved. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "6919b60945ce92fc3b51",
+    "rationale": "Identifies the 90-versus-14-day contradiction. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "6cebf54c7b0da4699b47",
+    "rationale": "Empty strings and None map to unknown while nonempty strings are preserved. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "af1230e98fe634ce80cb",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "e2cba0aee27c8839f52f",
+    "rationale": "Correctly finds 90 versus 14 days, but adds a separate concrete missing-date/version/source defect without an established metadata requirement. Count this extra allegation, not the supported retention contradiction."
+  },
+  {
+    "blind_id": "bbc77802a7cea679ecfc",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "dbab239fae8bcaa93423",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "700d0647536cb3eda09c",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "716a7c94815d3717e6b7",
+    "rationale": "Calls two compatible wording differences concrete defects: exemption from ordinary retention is not indefinite retention, and deletes is a reasonable paraphrase of logs lasting 14 days. Optional precision suggestions would be supported; established defects are not."
+  },
+  {
+    "blind_id": "58e0b2b9411b389df7db",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "b88ca614ecf5c94ec15a",
+    "rationale": "Identifies the 90-versus-14-day contradiction. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "a91320fea2cc6854e2be",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "2bf1eab99ec925a1df88",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "96a3ddd7171f8ae7c315",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "fac4adb954c4338f9ebb",
+    "rationale": "Treats geographic certainty as unsupported and actual placement as unknown, not proven non-European. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "b973f65bd58c1351de43",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "9b5ddb87c4a4fbab4857",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "9bb22df2ba92a331598c",
+    "rationale": "Identifies the 90-versus-14-day contradiction. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "5acc3122f48e7fac30c4",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "5b468ff6ac0e82f798b7",
+    "rationale": "Identifies the 90-versus-14-day contradiction. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "310d8ff50dd74e70eb39",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "d6a33378d1f7be89c73e",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "6e3d72533f385f34cd5c",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "c39b1edf0d83c56b8d4d",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "96aefd5c5bbba37c44ef",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "39dee391b4305d7708a5",
+    "rationale": "Treats geographic certainty as unsupported and actual placement as unknown, not proven non-European. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "14f5d51375f9aa3db087",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "4e369c2b1433fcf9d413",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "b3132f1fc0b594dcc98d",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "913fb58eaaccc697f599",
+    "rationale": "Both narratives retain compatibility and qualify the wording gaps as precision/uncertainty rather than established contradictions. Optional clarification is not counted as an unsupported defect."
+  },
+  {
+    "blind_id": "3a8d9f2a0353dcff88b8",
+    "rationale": "Truthiness patch satisfies the frozen empty/nonempty-string oracle and preserves None. It also changes other falsey inputs such as 0/False, which the frozen contract does not specify; this grade does not qualify those inputs."
+  },
+  {
+    "blind_id": "4072616565bd66a1c00f",
+    "rationale": "Empty strings and None map to unknown while nonempty strings are preserved. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "e092799807408d9aa17b",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "59f6694df2423dbae9eb",
+    "rationale": "Treats geographic certainty as unsupported and actual placement as unknown, not proven non-European. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "c5f09b11d4c7661a1357",
+    "rationale": "Some conflict wording is imprecise, but the narratives explicitly say unspecified neither confirms nor denies Europe and retain unknown actual placement. No allegation that Europe is proven false."
+  },
+  {
+    "blind_id": "199740d3667faad65def",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "56dcc94a1e1ced8d7709",
+    "rationale": "Truthiness patch satisfies the frozen empty/nonempty-string oracle and preserves None. It also changes other falsey inputs such as 0/False, which the frozen contract does not specify; this grade does not qualify those inputs."
+  },
+  {
+    "blind_id": "dcbda0b2d92a4dbb5e1a",
+    "rationale": "Treats the ordinary-log duration and legal-hold exception as compatible; missing release detail is a clarification, not an established defect. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "ad39731d584f025fa4c8",
+    "rationale": "Identifies conflict between a no-loss guarantee and possible loss of the last minute of writes. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "21c5adad72a54dd9e054",
+    "rationale": "Identifies conflict between universal backup encryption and optional/default-off encryption. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "84b29a5fceb100fdec10",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "c4fcf22504fc6d251645",
+    "rationale": "Empty strings and None map to unknown while nonempty strings are preserved. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "dfbe62b3772243c20bee",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "c400216bfeb773a9e787",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "206c82c927a00dbbb1b8",
+    "rationale": "Treats the ordinary-log duration and legal-hold exception as compatible; missing release detail is a clarification, not an established defect. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "40a3bc44dd0731cd4561",
+    "rationale": "First narrative correctly treats the qualified exception as compatible; second alleges two concrete defects (deletion wording and omitted release condition). The returned assessment retains those unsupported allegations; an accurate companion narrative does not remove them."
+  },
+  {
+    "blind_id": "c8060b641c18f93fc20b",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "5b647003a6dccf814602",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "8d996215667dc215c9ab",
+    "rationale": "Flags unsupported geographic certainty while explicitly preserving unknown placement; apparent-conflict phrasing does not negate the explicit statement that Europe is not proven false."
+  },
+  {
+    "blind_id": "1f825a09cdbf040d27a8",
+    "rationale": "Identifies the 90-versus-14-day contradiction. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "bbb5658b980e8d653012",
+    "rationale": "max(0, value) implements the lower bound. The retained immutable probe failed before and passed after; patch changes only module.py."
+  },
+  {
+    "blind_id": "56a8c85c873f98e94e6d",
+    "rationale": "Addition replaces subtraction. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "6a2fc227282e55fc2977",
+    "rationale": "Recognizes matching 14-day policy without inventing defects. Retains limits of semantic/tool verification."
+  },
+  {
+    "blind_id": "1e62da5db5461f1f6dc4",
+    "rationale": "First narrative treats the release endpoint as a clarification; second calls the exemption a concrete overbroad defect. Exemption from ordinary retention does not assert indefinite retention. Its separate deletion caveat is explicitly uncertain and is not counted."
+  },
+  {
+    "blind_id": "e4a66191fda1fce8d747",
+    "rationale": "strip removes both leading and trailing whitespace. The retained immutable probe failed before and passed after; patch changes only module.py. Required review failed its contract because approval contained positive findings. Seeded code defect is fixed; execution failure still prevents completed-correct. Positive explanations are not unsupported defect allegations."
+  },
+  {
+    "blind_id": "5a35fb223d51bc5fa2b9",
+    "rationale": "Treats geographic certainty as unsupported and actual placement as unknown, not proven non-European. Retains limits of semantic/tool verification."
+  }
+]

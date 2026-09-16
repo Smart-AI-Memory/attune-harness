@@ -1,6 +1,6 @@
 # Task ladder — unified task execution
 
-Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–7 accepted on offline evidence. Task 8’s 60-trial native comparison finished and exposed a review-contract defect. The correction passed eight targeted native cases. Independent human grading and final acceptance remain pending. See the [live receipt](task-8-live-receipt.md).** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
+Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–7 accepted on offline evidence. Task 8 outcome grading is complete as a supplementary assistant evaluation: 48/60 original trials completed correctly; both original quality floors require revision. The separate corrected repair follow-up grades 8/8. Task 8 remains unaccepted. See the [grading report](task-8-assistant-grading.md) and [native receipt](task-8-live-receipt.md).** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
 
 Canonical XML: `.claude/plans/unified-task-execution.md`. Task acceptance and auto-run decisions belong to the existing spec lifecycle, not this summary. Naming agreement does not approve implementation.
 

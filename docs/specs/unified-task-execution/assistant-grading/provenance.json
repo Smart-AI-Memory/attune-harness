@@ -1,0 +1,26 @@
+{
+  "grader": "current Codex assistant",
+  "grading_type": "supplementary assistant evaluation; not human and not independently blinded",
+  "date": "2026-09-16",
+  "prior_knowledge": "Campaign history and repair contract failure known before grading; original blind-key mapping not opened during this grading pass until after labels and rationale were saved. Source protocol was inspected for rubric/contract context.",
+  "new_provider_calls": 0,
+  "human_correction_seconds": null,
+  "original_packet_sha256": "481e63f3a5b4a737b147b8a0aa8f4ea4f062636a16733af853824b6e2704bc6b",
+  "labels_saved_before_unblinding": true,
+  "original_grades_sha256": "303a4ae3e317905e9216fe7cd24f5e04504618e3762c0ad96e9e5502d87de029",
+  "original_rationales_sha256": "609d651764ba64298ad972836920b94b8d019f7b815c2fd8db3d2f874325acf5",
+  "artifacts_sha256": {
+    "follow-up-audit.json": "fe99cdc16c86fb3fae4a5a6932cfbf6de2f456d28227b3fbe2e966a715dc0d5e",
+    "follow-up-grades.json": "3dc47fc26cb5510d7352ac0ffc15042528cd680c8d86d2ecfe3f837e9d72628d",
+    "follow-up-rationales.json": "7b97942051d2e43756dd0d4273993237467d4d9e9d7bc0af34464b34fd04da05",
+    "original-audit.json": "24934a1e14e186b43323c7c3d09578122dd0c7341ac997eb592766dec73eca10",
+    "original-grades.json": "303a4ae3e317905e9216fe7cd24f5e04504618e3762c0ad96e9e5502d87de029",
+    "original-rationales.json": "609d651764ba64298ad972836920b94b8d019f7b815c2fd8db3d2f874325acf5"
+  },
+  "retained_manifest_files_verified": {
+    "task8-subscription-live": 941,
+    "task8-review-contract-live": 212,
+    "task8-frozen-protocol-qualified": 11
+  },
+  "follow_up_grading": "Unblinded current-assistant reading of the eight corrected patches, original sources, immutable probes and bound review responses; separate from original grades."
+}

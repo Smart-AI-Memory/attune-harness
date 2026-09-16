@@ -1,6 +1,6 @@
 # Task 8 native qualification receipt
 
-September 16, 2026. **The original 60-trial comparison finished; it exposed a repair-review contract defect. The corrected artifact passed all eight targeted native repair cases. Task 8 remains unaccepted pending the final ruling and required human grades.** No assistant-generated labels are represented as human grades.
+September 16, 2026. **The original 60-trial comparison finished; it exposed a repair-review contract defect. The corrected artifact passed all eight targeted native repair cases. The subsequent [assistant grading](task-8-assistant-grading.md) records 48/60 original and 8/8 corrected completed-correct outcomes; the original quality ruling is revise, and Task 8 remains unaccepted.** No assistant-generated labels are represented as human grades.
 
 ## Original comparison
 
@@ -52,4 +52,4 @@ Local receipts under `docs/receipts/unified-task-execution/`:
 - Correction: `task8-correction-suite.xml`, build/install logs, `task8-correction-installed/summary.json`, and `task8-review-contract-live/`.
 - Human review: `task8-subscription-live/blind-packet.json`, `grades-template.json` and `blind-redaction-receipt.json`. Withhold mapping and pre-redaction files from graders. [Grading guide](task-8-grading-guide.md).
 
-Assessment has demonstrated native execution on the recorded profiles; independent semantic grading remains pending. Repair has demonstrated actual effects/probes and revealed the original review-contract failure; judge the corrected follow-up separately. Unknown billing/human time remains unknown. No full-spec acceptance or economic superiority claim follows from runtime completion.
+Assessment has demonstrated native execution on the recorded profiles; supplementary assistant grading now finds four assessments with unsupported allegations. Independent human grading selected by the frozen protocol remains pending. Repair has demonstrated actual effects/probes and revealed the original review-contract failure; judge the corrected follow-up separately. Unknown billing/human time remains unknown. No full-spec acceptance or economic superiority claim follows from runtime completion.

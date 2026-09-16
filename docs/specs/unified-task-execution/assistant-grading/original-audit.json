@@ -1,0 +1,14 @@
+{
+  "status": "revise",
+  "quality_floor": false,
+  "slice_quality_floor": {
+    "assessment": false,
+    "repair": false
+  },
+  "completed_correct": 48,
+  "critical_misses": 0,
+  "unsupported_findings": 6,
+  "billed_usd": null,
+  "human_seconds": null,
+  "cost_ranking": "unqualified; no token/billing inference from missing data"
+}

@@ -1,6 +1,6 @@
 # Unified task execution
 
-Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Tasks 1–7 accepted on offline evidence. Task 8’s 60-trial native comparison finished and exposed a review-contract defect. The correction passed eight targeted native cases. Independent human grading and final acceptance remain pending. See the [live receipt](task-8-live-receipt.md).** Execution was explicitly authorized. Owner: attune-harness.
+Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Tasks 1–7 accepted on offline evidence. Task 8 outcome grading is complete as a supplementary assistant evaluation: 48/60 original trials completed correctly; both original quality floors require revision. The separate corrected repair follow-up grades 8/8. Task 8 remains unaccepted. See the [grading report](task-8-assistant-grading.md) and [native receipt](task-8-live-receipt.md).** Execution was explicitly authorized. Owner: attune-harness.
 
 Give Harness one task request and durable identity across intake, evidence, participants, integration, inspection, and recovery. First deliver evidence assessment through explicit solo and independent-review plans. Then deliver scoped repair through the same services, with real file effects and independent acceptance checks.
 
@@ -16,7 +16,8 @@ Give Harness one task request and durable identity across intake, evidence, part
 | [Task 2 intake](task-2-receipt.md) | Versioned intake, form reuse, checks and limitations |
 | [Assessment qualification](assessment-receipt.md) | Installed Slice 1 evidence and limits |
 | [Repair qualification](repair-receipt.md) | Installed Slice 2 evidence and limits |
-| [Current verification](verification.md) | Seven accepted tasks, command disposition and pending native comparison |
+| [Current verification](verification.md) | Seven accepted tasks, command disposition and bounded native evidence |
+| [Assistant outcome grading](task-8-assistant-grading.md) | Original comparison ruling, separate follow-up, all 68 grades and rationale |
 | [Session reflection](session-reflection.md) | Approved reflect design and reusable insight form; follow-on slice outside the current eight tasks |
 | [XML plan](../../../.claude/plans/unified-task-execution.md) | Canonical machine-readable tasks and saved execution state |
 

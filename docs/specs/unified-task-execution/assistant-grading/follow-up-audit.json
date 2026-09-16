@@ -1,0 +1,16 @@
+{
+  "status": "targeted_follow_up_passed",
+  "comparison_quality_floor": null,
+  "scope": "Eight corrected required-review trials only; no matched direct/solo baseline in this packet. This is not the original 60-trial auditor or a new full comparison.",
+  "protocol_sha256": "e94cdbae0115842fe53b715767144059a907365a05f6a8c2d26150c4cc80ed5a",
+  "trials": 8,
+  "completed_correct": 8,
+  "critical_misses": 0,
+  "unsupported_findings": 0,
+  "retained_result_hashes_verified": 8,
+  "immutable_oracles_verified": 8,
+  "final_patches_verified": 8,
+  "bound_approvals_verified": 8,
+  "billed_usd": null,
+  "human_seconds": null
+}

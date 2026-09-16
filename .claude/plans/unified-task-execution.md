@@ -2,7 +2,7 @@
 
 Status: revised spec and implementation plan approved, September 16, 2026. Owner: attune-harness.
 Requirements R1–R14, design, validation and this eight-task plan are approved. Execution is authorized.
-Spec: `docs/specs/unified-task-execution/`. Tasks 1–7 accepted on offline evidence; 7/8 accepted. Task 8 completed its 60-trial native comparison, corrected a discovered review-contract defect, and passed eight targeted native follow-ups. Human grading and final acceptance remain pending. See docs/specs/unified-task-execution/task-8-live-receipt.md.
+Spec: `docs/specs/unified-task-execution/`. Tasks 1–7 accepted on offline evidence; 7/8 accepted. Task 8 supplementary assistant grading is complete: 48/60 original trials completed correctly, with both original quality floors requiring revision; the separate corrected repair follow-up grades 8/8. Task 8 remains current and unaccepted. Frozen human grading and final acceptance remain pending. See docs/specs/unified-task-execution/task-8-assistant-grading.md.
 
 Outcome: one task identity and shared execution services for evidence assessment
 (solo and independent review), then scoped repair with real effects and a real

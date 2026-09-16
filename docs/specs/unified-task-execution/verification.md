@@ -1,6 +1,6 @@
 # Unified task runtime — verification receipt
 
-**2026-09-16: Tasks 1–7 accepted on offline evidence; Task 8 not accepted.** The [native receipt](task-8-live-receipt.md) records a completed 60-trial comparison, its discovered review-contract defect, and a separately qualified correction. The original offline preparation evidence below predates those runs. Both slices have bounded software qualification. Native quality, human correction effort and economic comparison remain unqualified. Full-spec completion and production-provider promotion are not claimed.
+**2026-09-16: Tasks 1–7 accepted on offline evidence; Task 8 not accepted.** The [native receipt](task-8-live-receipt.md) records a completed 60-trial comparison, its discovered review-contract defect, and a separately qualified correction. The original offline preparation evidence below predates those runs. Both slices have bounded software qualification. The [assistant grading](task-8-assistant-grading.md) records 48/60 original completed-correct outcomes and failed original quality floors, plus 8/8 correct in the separate corrected repair follow-up. Broad native quality, human correction effort and economic comparison remain unqualified. Full-spec completion and production-provider promotion are not claimed.
 
 ## Delivered behavior and artifact
 

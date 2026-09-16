@@ -87,3 +87,7 @@ The current packet is `docs/receipts/unified-task-execution/task8-frozen-protoco
 ## Subsequent authorized native execution
 
 The [native receipt](task-8-live-receipt.md) records the later 60-trial, 92-call subscription/credit comparison: 52 runtime completions and eight required-review failures despite passing repair probes. The original artifact and every failure remain retained. A prompt/validator contract clarification passed 178 software checks and 22 installed-consumer processes; its eight-case native follow-up is recorded separately. Human grading and correction-time measurements have not been fabricated. The [grading packet guide](task-8-grading-guide.md) identifies the concrete anonymous packet and response template.
+
+## Supplementary assistant outcome grading
+
+Patrick requested grading the retained outputs without another native run. The [grading report](task-8-assistant-grading.md) records all 60 original and eight corrected follow-up judgments with assistant provenance. The unchanged original auditor returns revise: 48/60 completed-correct, zero critical misses and six unsupported allegations, failing both original slice floors. The separately checked corrected follow-up grades 8/8. This is a post-run supplemental grader choice, not completion of the frozen human protocol. No fixture expectations, original failures or unknown cost/time values were rewritten. Task 8 remains unaccepted.

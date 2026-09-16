@@ -1,0 +1,42 @@
+[
+  {
+    "trial_id": "arithmetic-claude-lead-required-review",
+    "result_sha256": "a901a04c5682f28f62c30055c0929014664eed8d58803ae1b3adef8eeae546cb",
+    "rationale": "Addition replaces subtraction. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "arithmetic-codex-lead-required-review",
+    "result_sha256": "79072d4edcdd39585ebed3b6c4f76d069fe80cda9822e126bb8c84b125c3b949",
+    "rationale": "Addition replaces subtraction. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "empty-default-claude-lead-required-review",
+    "result_sha256": "ebf247cd274d42bfc80f9a4518d5e36675118c7831331ff7d636dddaf9e25ced",
+    "rationale": "Explicit None/empty-string checks preserve other values. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "empty-default-codex-lead-required-review",
+    "result_sha256": "81bdcfc13062f6de1118e25f19f08275934aa2ea6f9e9c681074ffdad8c09ed6",
+    "rationale": "Explicit None/empty-string checks preserve other values. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "interrupted-repair-claude-lead-required-review",
+    "result_sha256": "5773691465a815aa73cf8517b92c03d55ec2c78412a6950cddf19baf3de26139",
+    "rationale": "strip removes both leading and trailing whitespace. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "interrupted-repair-codex-lead-required-review",
+    "result_sha256": "2436656311b188f3e9ec85992e1757cfd9d695fcd90b530706280db071b1f251",
+    "rationale": "strip removes both leading and trailing whitespace. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "lower-bound-claude-lead-required-review",
+    "result_sha256": "6ce81e745c2992870c30a27070a7be9aa5941f1a91cf86bc5f2187b5e038290f",
+    "rationale": "max(0, value) implements the lower bound. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  },
+  {
+    "trial_id": "lower-bound-codex-lead-required-review",
+    "result_sha256": "e8156fde4c374750b62fdc0105ca48d9b597085494198e159952c916ed4886c5",
+    "rationale": "max(0, value) implements the lower bound. The retained probe failed before and passed after. Only module.py was replaced; the immutable oracle and final bytes match. Required review approved the bound artifact/probe with no findings."
+  }
+]
