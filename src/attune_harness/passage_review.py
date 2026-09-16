@@ -36,12 +36,23 @@ def catalog(turn):
     inputs = [('document', document['path'], document.get('sha256'), document['text'])]
     inputs += [('reference', path, identity[0], identity[1])
                for path, identity in sorted(references.items())]
+    metadata = grounded_review.source_passages(turn)
     for kind, path, source_sha, content in inputs:
         for start, end, quote in _blocks(content):
+            source = metadata.get(path, {}) if kind == 'reference' else {}
+            modern = 'start_byte' in source
+            if modern:
+                original_start = source['start_byte'] + len(content[:start].encode('utf-8'))
+                original_end = source['start_byte'] + len(content[:end].encode('utf-8'))
+            else:
+                original_start, original_end = start, end
             identity = ('D' if kind == 'document' else 'R') + digest(
-                {'revision': revision, 'kind': kind, 'path': path, 'start': start, 'end': end})
+                {'revision': revision, 'kind': kind, 'path': path, 'start': original_start, 'end': original_end})
             result[kind][identity] = {'path': path, 'source_sha256': source_sha,
-                                     'start': start, 'end': end, 'text': quote}
+                                     'start': original_start, 'end': original_end, 'text': quote}
+            if modern:
+                result[kind][identity].update(offset_unit='utf8-byte', source_path=source['path'],
+                                             repo_id=source['repo_id'], passage_id=source['passage_id'])
     if not result['document'] or not result['reference']:
         raise ValueError('Passage review requires substantive document and reference passages')
     return result

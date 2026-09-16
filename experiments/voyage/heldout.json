@@ -1,0 +1,590 @@
+[
+  {
+    "id": "heldout-01",
+    "query": "Where is a repeated check failure recognized as already handled?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "triage"
+      }
+    ]
+  },
+  {
+    "id": "heldout-02",
+    "query": "Which code refuses to repeat work when earlier effects are unknown?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "triage"
+      }
+    ]
+  },
+  {
+    "id": "heldout-03",
+    "query": "How does the harness suggest infrastructure investigation instead of a code repair?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "triage"
+      }
+    ]
+  },
+  {
+    "id": "heldout-04",
+    "query": "Where is the finite limit on repair attempts checked before proposing a team?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "triage"
+      }
+    ]
+  },
+  {
+    "id": "heldout-05",
+    "query": "Where are failed attempts and escalation included in the cost of a repair strategy?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "repair_economics"
+      }
+    ]
+  },
+  {
+    "id": "heldout-06",
+    "query": "Which function prevents a verified repair from receiving another billed attempt?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "repair_economics"
+      }
+    ]
+  },
+  {
+    "id": "heldout-07",
+    "query": "Where does missing human-time or model-price evidence prevent cost ranking?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "repair_economics"
+      }
+    ]
+  },
+  {
+    "id": "heldout-08",
+    "query": "How is independent passing evidence required before counting a repair as verified?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/operations.py",
+        "symbol": "repair_economics"
+      }
+    ]
+  },
+  {
+    "id": "heldout-09",
+    "query": "Where are check results rejected when they belong to another commit?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/github_checks.py",
+        "symbol": "check_suggestions"
+      }
+    ]
+  },
+  {
+    "id": "heldout-10",
+    "query": "Which function requires a complete check-run export instead of a partial page?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/github_checks.py",
+        "symbol": "check_suggestions"
+      }
+    ]
+  },
+  {
+    "id": "heldout-11",
+    "query": "Where are timed out GitHub checks treated as having unknown effects?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/github_checks.py",
+        "symbol": "check_suggestions"
+      }
+    ]
+  },
+  {
+    "id": "heldout-12",
+    "query": "How does the check importer reject duplicate check IDs?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/github_checks.py",
+        "symbol": "check_suggestions"
+      }
+    ]
+  },
+  {
+    "id": "heldout-13",
+    "query": "Which decoder extracts a completed assistant result from a Codex event stream?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_codex"
+      }
+    ]
+  },
+  {
+    "id": "heldout-14",
+    "query": "Where does the native adapter interpret Codex process events?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_codex"
+      }
+    ]
+  },
+  {
+    "id": "heldout-15",
+    "query": "Which function decodes the native coding agent transcript into text and identity?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_codex"
+      }
+    ]
+  },
+  {
+    "id": "heldout-16",
+    "query": "Where should I inspect result parsing when a Codex response is rejected?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_codex"
+      }
+    ]
+  },
+  {
+    "id": "heldout-17",
+    "query": "Which decoder extracts Claude text and session identity?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_claude"
+      }
+    ]
+  },
+  {
+    "id": "heldout-18",
+    "query": "Where is a native Claude response parsed before it reaches the harness?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_claude"
+      }
+    ]
+  },
+  {
+    "id": "heldout-19",
+    "query": "Which function converts Claude CLI JSON into the portable answer?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_claude"
+      }
+    ]
+  },
+  {
+    "id": "heldout-20",
+    "query": "Where should I inspect a failed Claude response format?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/native.py",
+        "symbol": "decode_claude"
+      }
+    ]
+  },
+  {
+    "id": "heldout-21",
+    "query": "Where is a child process deadline enforced?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/process.py",
+        "symbol": "invoke"
+      }
+    ]
+  },
+  {
+    "id": "heldout-22",
+    "query": "Which code captures bounded stdout and stderr from native model processes?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/process.py",
+        "symbol": "invoke"
+      }
+    ]
+  },
+  {
+    "id": "heldout-23",
+    "query": "Where is cancellation handled for a running external process?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/process.py",
+        "symbol": "invoke"
+      }
+    ]
+  },
+  {
+    "id": "heldout-24",
+    "query": "Which execution wrapper receives a command, input text and working directory?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/process.py",
+        "symbol": "invoke"
+      }
+    ]
+  },
+  {
+    "id": "heldout-25",
+    "query": "Where is a JSON participant response checked against its original assignment?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/adapters.py",
+        "symbol": "JsonParticipant.run"
+      }
+    ]
+  },
+  {
+    "id": "heldout-26",
+    "query": "Which method runs independent verification after a model returns JSON?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/adapters.py",
+        "symbol": "JsonParticipant.execute"
+      }
+    ]
+  },
+  {
+    "id": "heldout-27",
+    "query": "Where should I inspect the refusal to execute the same JSON participant twice?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/adapters.py",
+        "symbol": "JsonParticipant.run"
+      }
+    ]
+  },
+  {
+    "id": "heldout-28",
+    "query": "Which method turns a participant exchange into a portable attempt receipt?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/adapters.py",
+        "symbol": "JsonParticipant.execute"
+      }
+    ]
+  },
+  {
+    "id": "heldout-29",
+    "query": "Where are review records written through a temporary file and atomically replaced?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "RunStore.save"
+      }
+    ]
+  },
+  {
+    "id": "heldout-30",
+    "query": "Which method refuses a review record larger than eight mebibytes?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "RunStore.save"
+      }
+    ]
+  },
+  {
+    "id": "heldout-31",
+    "query": "Where is review checkpoint data flushed before continuation?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "RunStore.save"
+      }
+    ]
+  },
+  {
+    "id": "heldout-32",
+    "query": "Which method records a persistence failure instead of pretending a checkpoint was saved?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "RunStore.save"
+      }
+    ]
+  },
+  {
+    "id": "heldout-33",
+    "query": "Where is a saved checkpoint digest checked against the record contents?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "read_record"
+      }
+    ]
+  },
+  {
+    "id": "heldout-34",
+    "query": "Which function reads bounded review JSON without executing an operation?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "read_record"
+      }
+    ]
+  },
+  {
+    "id": "heldout-35",
+    "query": "Where should I inspect a corrupted checkpoint rejection?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "read_record"
+      }
+    ]
+  },
+  {
+    "id": "heldout-36",
+    "query": "Which record reader validates the schema version?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/review_store.py",
+        "symbol": "read_record"
+      }
+    ]
+  },
+  {
+    "id": "heldout-37",
+    "query": "Where is an extension manifest discovered and validated?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "discover"
+      }
+    ]
+  },
+  {
+    "id": "heldout-38",
+    "query": "Which function computes the artifact information for a local extension?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "discover"
+      }
+    ]
+  },
+  {
+    "id": "heldout-39",
+    "query": "Where should I inspect why an extension manifest cannot be loaded?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "discover"
+      }
+    ]
+  },
+  {
+    "id": "heldout-40",
+    "query": "Which function reads the declared extension tool and skill contract?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "discover"
+      }
+    ]
+  },
+  {
+    "id": "heldout-41",
+    "query": "Where are configured extension bindings validated against their base directory?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "validate_bindings"
+      }
+    ]
+  },
+  {
+    "id": "heldout-42",
+    "query": "Which function checks the structure of a registry extension binding?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "validate_bindings"
+      }
+    ]
+  },
+  {
+    "id": "heldout-43",
+    "query": "Where should I inspect rejected extension bindings before review setup?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "validate_bindings"
+      }
+    ]
+  },
+  {
+    "id": "heldout-44",
+    "query": "Which function validates the accepted association between an extension name and artifact?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "validate_bindings"
+      }
+    ]
+  },
+  {
+    "id": "heldout-45",
+    "query": "Where does an extension tool delegate retrieval to the host callback?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "invoke_tool"
+      }
+    ]
+  },
+  {
+    "id": "heldout-46",
+    "query": "Which function checks a contributed tool before invoking its retrieval behavior?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "invoke_tool"
+      }
+    ]
+  },
+  {
+    "id": "heldout-47",
+    "query": "Where should I inspect the execution of an accepted extension search tool?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "invoke_tool"
+      }
+    ]
+  },
+  {
+    "id": "heldout-48",
+    "query": "Which function supplies an extension retrieval result from a portable host call?",
+    "expected": [
+      {
+        "repo_id": "attune-harness",
+        "path": "src/attune_harness/extensions.py",
+        "symbol": "invoke_tool"
+      }
+    ]
+  },
+  {
+    "id": "heldout-49",
+    "query": "Where is Google OAuth login implemented for end users?",
+    "expected": []
+  },
+  {
+    "id": "heldout-50",
+    "query": "Which code accepts Stripe checkout webhooks?",
+    "expected": []
+  },
+  {
+    "id": "heldout-51",
+    "query": "Where does the application send a password reset email?",
+    "expected": []
+  },
+  {
+    "id": "heldout-52",
+    "query": "Which database migration creates a shopping cart table?",
+    "expected": []
+  },
+  {
+    "id": "heldout-53",
+    "query": "Where does the harness upload user avatars to S3?",
+    "expected": []
+  },
+  {
+    "id": "heldout-54",
+    "query": "Which code schedules restaurant delivery orders?",
+    "expected": []
+  },
+  {
+    "id": "heldout-55",
+    "query": "Where is a mobile push notification token registered?",
+    "expected": []
+  },
+  {
+    "id": "heldout-56",
+    "query": "Which source implements a Redis cluster failover controller?",
+    "expected": []
+  },
+  {
+    "id": "heldout-57",
+    "query": "Where does the app generate PDF sales invoices?",
+    "expected": []
+  },
+  {
+    "id": "heldout-58",
+    "query": "Which function stores credit card numbers for recurring billing?",
+    "expected": []
+  },
+  {
+    "id": "heldout-59",
+    "query": "Where is an Android camera permission requested?",
+    "expected": []
+  },
+  {
+    "id": "heldout-60",
+    "query": "Which code implements a Kubernetes admission webhook?",
+    "expected": []
+  }
+]

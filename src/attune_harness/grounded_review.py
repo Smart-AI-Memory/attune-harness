@@ -39,28 +39,34 @@ def text(value, name, *, prose=False):
     return value
 
 
-def sources(turn):
+def source_passages(turn):
     """Use only retrieved excerpts; never open a model-supplied path."""
     found = {}
     for item in turn['history']:
         result = item['result']
         if result['operation'] != 'retrieve':
             continue
-        root = Path(result.get('corpus', {}).get('root', '.'))
         for source in result['sources']:
+            modern = result.get('evidence_version') == 2
+            root = Path(result['corpus']['roots'][source['repo_id']] if modern else result.get('corpus', {}).get('root', '.'))
             path = text(source['path'], 'source path')
             if Path(path).is_absolute() or '..' in Path(path).parts:
                 raise ValueError('Retrieved source path escapes the corpus')
             if (root/path).resolve() == Path(turn['document']['path']).resolve():
                 continue  # The reviewed document cannot corroborate itself.
             excerpt = text(source['excerpt'], 'source excerpt')
-            identity = (source['sha256'], excerpt)
-            if path in found and found[path] != identity:
+            key = (source['repo_id'] + ':' + path + '#' + source['passage_id']) if modern else path
+            identity = {**source, 'excerpt': excerpt}
+            if key in found and (found[key]['sha256'], found[key]['excerpt']) != (source['sha256'], excerpt):
                 raise ValueError('Ambiguous retrieved reference: ' + path)
-            found[path] = identity
+            found[key] = identity
     if not found:
         raise ValueError('Grounded review requires a distinct retrieved reference')
     return found
+
+
+def sources(turn):
+    return {key: (p['sha256'], p['excerpt']) for key, p in source_passages(turn).items()}
 
 
 def project(turn):

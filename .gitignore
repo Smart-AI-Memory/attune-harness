@@ -22,3 +22,5 @@ CLAUDE.md
 *.log
 .env
 .env.*
+# Local workflow history and SQLite sidecars.
+/.attune/history.db*

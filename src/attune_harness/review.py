@@ -27,7 +27,21 @@ def prepare_review(request_path: Path, config_path: Path) -> dict:
     originals = {document: read_text(document, 65_536), context: read_text(context, 65_536)}
     artifacts = {name: {'path': str(paths[name]), 'sha256': hashlib.sha256(originals[paths[name]].encode('utf-8')).hexdigest()}
                  for name in ('document', 'context')}
-    source_snapshot = snapshot_sources(corpus)
+    if 'retrieval' in registry:
+        from .voyage_index import check_generation
+        selected = registry['retrieval']
+        _, metadata = check_generation(selected['config'], selected['generation'])
+        roots = {r['repo_id']: Path(r['path']) for r in selected['config']['roots']}
+        if corpus not in roots.values():
+            raise ValueError('Review corpus must be one of the selected application roots')
+        # Exclude the reviewed document before candidate selection and paid reranking.
+        from .voyage_sources import in_scope
+        if any((roots[p['repo_id']] / p['path']).resolve() == document and in_scope(p, selected['scope'])
+               for p in metadata['passages']):
+            raise ValueError('Accepted retrieval scope must exclude the reviewed document')
+        source_snapshot = {'generation': selected['generation'], 'manifest': digest(metadata['manifest'])}
+    else:
+        source_snapshot = snapshot_sources(corpus)
     revision = digest({'submission': accepted['submission'], 'paths': accepted['paths'],
                        'registry': registry, 'artifacts': artifacts, 'source_snapshot': source_snapshot})
     return {'accepted': accepted, 'registry': registry, 'answers': answers, 'paths': paths,
@@ -41,7 +55,7 @@ def authorize_external(selected, allow_external):
 
 
 def review(request_path: Path, config_path: Path, run_directory: Path, *,
-           allow_external: bool = False, max_operations=None, exchange_factory=ReviewExchange) -> dict:
+           allow_external: bool = False, allow_provider: bool = False, max_operations=None, exchange_factory=ReviewExchange) -> dict:
     prepared = prepare_review(request_path, config_path)
     accepted, registry, answers = (prepared[name] for name in ('accepted', 'registry', 'answers'))
     authorize_external({role: registry['participants'][answers[role]] for role in ('lead', 'reviewer')}, allow_external)
@@ -58,10 +72,10 @@ def review(request_path: Path, config_path: Path, run_directory: Path, *,
                               'transfers': [], 'reconciliations': []})
     with store.lease():
         return execute_review(record, store, prepared, allow_external=allow_external,
-                              max_operations=max_operations, exchange_factory=exchange_factory)
+                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory)
 
 
-def execute_review(record, store, prepared, *, allow_external=False, max_operations=None, exchange_factory=ReviewExchange):
+def execute_review(record, store, prepared, *, allow_external=False, allow_provider=False, max_operations=None, exchange_factory=ReviewExchange):
     answers, paths, originals = (prepared[name] for name in ('answers', 'paths', 'originals'))
     document, context, corpus = (paths[name] for name in ('document', 'context', 'corpus'))
     assignments = record['recovery']['assignments']
@@ -81,7 +95,12 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
 
     def retrieve(query, k):
         stable_inputs()
-        result = retrieve_sources(query, corpus, k=k)
+        if 'retrieval' in record['registry']:
+            from .voyage_retrieval import retrieve_voyage
+            result = retrieve_voyage(record['registry']['retrieval'], query, k=k,
+                                     work_dir=store.directory / 'retrieval-work', allow_provider=allow_provider)
+        else:
+            result = retrieve_sources(query, corpus, k=k)
         stable_inputs()
         return result
 
@@ -103,7 +122,8 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
         extension_catalog()
         # Reject missing dependencies or invalid context before any participant call.
         record['preflight_verification'] = cursor.perform('preflight', 'preflight_verification', verify, effect_class='unknown')
-        initial = cursor.perform('retrieval', 'initial_retrieval', lambda: retrieve(answers['query'], 3), effect_class='read_only')
+        retrieval_effect = 'paid_retrieval' if 'retrieval' in record['registry'] else 'read_only'
+        initial = cursor.perform('retrieval', 'initial_retrieval', lambda: retrieve(answers['query'], 3), effect_class=retrieval_effect)
         record['initial_retrieval'] = initial
         for role, config in selected.items():
             participant_id = assignments[role]['participant_id']
@@ -180,7 +200,7 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
                     operation = verify
                 outcome['tool_calls'] += 1
                 result = cursor.perform(f'{attempt_id}:tool:{index}', 'tool', operation,
-                                 effect_class='read_only' if is_retrieval else 'unknown', participant_id=participant_id,
+                                 effect_class=retrieval_effect if is_retrieval else 'unknown', participant_id=participant_id,
                                  attempt_id=attempt_id, action=action)
                 if is_retrieval and result['corpus']['version'] != initial['corpus']['version']:
                     raise ValueError('Corpus changed during review')
@@ -192,6 +212,10 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
         for event in record['events']:
             result = event.get('result', {})
             if result.get('operation') == 'retrieve':
+                if result.get('backend') == 'voyage':
+                    from .voyage_retrieval import validate_evidence
+                    validate_evidence(record['registry']['retrieval'], result['sources'])
+                    continue
                 for source in result['sources']:
                     source_path = (corpus / source['path']).resolve()
                     if not source_path.is_relative_to(corpus):
@@ -199,7 +223,11 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
                     actual = hashlib.sha256(read_text(source_path).encode('utf-8')).hexdigest()
                     if actual != source['sha256']:
                         raise ValueError('Retrieved source changed during review')
-        if snapshot_sources(corpus) != record['recovery']['source_snapshot']:
+        if 'retrieval' in record['registry']:
+            from .voyage_index import check_generation
+            selected_retrieval = record['registry']['retrieval']
+            check_generation(selected_retrieval['config'], selected_retrieval['generation'])
+        elif snapshot_sources(corpus) != record['recovery']['source_snapshot']:
             raise ValueError('Accepted corpus snapshot changed during review')
         extension_catalog()
         if any(event['state'] != 'completed' for event in record['events']):
@@ -210,8 +238,9 @@ def execute_review(record, store, prepared, *, allow_external=False, max_operati
     except PersistenceError:
         raise  # No more dispatch or optimistic record overwrite after a write failure.
     except BaseException as exc:
+        from .voyage_provider import PaidStageUnresolved
         record['status'] = ('paused' if isinstance(exc, ReviewPaused) else
-                            'unresolved' if isinstance(exc, UnresolvedOperation) else
+                            'unresolved' if isinstance(exc, (UnresolvedOperation, PaidStageUnresolved)) else
                             'unavailable' if isinstance(exc, FeatureUnavailable) else
                             'failed' if isinstance(exc, Exception) else 'unresolved')
         record['error'] = {'type': type(exc).__name__, 'detail': str(exc)}

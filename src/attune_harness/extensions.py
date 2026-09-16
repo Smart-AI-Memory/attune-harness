@@ -197,7 +197,11 @@ def invoke_tool(bindings: dict, name: str, arguments: dict, call) -> dict:
             raise ValueError('k must be an integer in 1..20')
         result = call(arguments['query'], arguments['k'])
         _current(state, binding['artifact_digest'], enabled=True)
+        dependency = {'attune-rag': RAG_VERSION}
+        if result.get('backend') == 'voyage':
+            from .voyage_provider import VOYAGE_VERSION, LANCEDB_VERSION
+            dependency = {'voyageai': VOYAGE_VERSION, 'lancedb': LANCEDB_VERSION}
         return {**result, 'extension': {'id': extension_id, 'tool': name,
                     'artifact_digest': bundle['artifact_digest'], 'version': bundle['declaration']['version'],
-                    'binding': 'retrieve', 'dependency': {'attune-rag': RAG_VERSION},
+                    'binding': 'retrieve', 'dependency': dependency,
                     'evidence_scope': 'This call and its recorded corpus only; not general availability'}}

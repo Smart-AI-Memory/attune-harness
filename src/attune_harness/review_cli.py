@@ -21,6 +21,7 @@ def add_commands(sub):
     command.add_argument('--allow-external', action='store_true',
                          help='Explicitly enable configured commands/native models, which may use credentials and incur costs')
     command.add_argument('--max-operations', type=int, help='Pause after this many newly completed operations (1–100)')
+    command.add_argument('--allow-provider', action='store_true', help='Authorize accepted Voyage retrieval uploads/calls')
     inspect = sub.add_parser('inspect-review', help='Read a saved review without resuming or invoking participants')
     inspect.add_argument('run_dir', type=Path)
     resume = sub.add_parser('resume-review', help='Continue a matching checkpoint without repeating completed work')
@@ -30,6 +31,7 @@ def add_commands(sub):
     resume.add_argument('--checkpoint', required=True, help='checkpoint_digest from inspect-review')
     resume.add_argument('--allow-external', action='store_true')
     resume.add_argument('--max-operations', type=int)
+    resume.add_argument('--allow-provider', action='store_true')
     reconcile = sub.add_parser('reconcile-review', help='Attach a recovered reply or authorize one known read-only retry')
     reconcile.add_argument('run_dir', type=Path)
     reconcile.add_argument('--checkpoint', required=True)
@@ -57,7 +59,7 @@ def execute(args) -> int:
         elif args.command == 'resume-review':
             from .recovery import resume_review
             result = resume_review(args.run_dir, args.request, args.config, args.checkpoint,
-                                   allow_external=args.allow_external, max_operations=args.max_operations)
+                                   allow_external=args.allow_external, allow_provider=args.allow_provider, max_operations=args.max_operations)
         elif args.command == 'reconcile-review':
             from .recovery import reconcile_review
             result = reconcile_review(args.run_dir, args.checkpoint, args.event,
@@ -71,11 +73,12 @@ def execute(args) -> int:
         else:
             from .review import review
             result = review(args.request, args.config, args.run_dir, allow_external=args.allow_external,
-                            max_operations=args.max_operations)
+                            allow_provider=args.allow_provider, max_operations=args.max_operations)
     except FeatureUnavailable as exc:
         result = report(args.command, 'unavailable', error={'type': type(exc).__name__, 'detail': str(exc)})
     except Exception as exc:
-        result = report(args.command, 'unresolved' if isinstance(exc, UnresolvedOperation) else 'failed',
+        from .voyage_provider import PaidStageUnresolved
+        result = report(args.command, 'unresolved' if isinstance(exc, (UnresolvedOperation, PaidStageUnresolved)) else 'failed',
                         error={'type': type(exc).__name__, 'detail': str(exc)})
     print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
     if result['status'] == 'ready':

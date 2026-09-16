@@ -49,8 +49,12 @@ def bounded_text(value, name, limit=4096):
 def load_registry(path: Path) -> dict:
     value = parse_json(read_text(path, 131_072))
     extended = isinstance(value, dict) and 'extensions' in value
-    fields(value, ('schema_version', 'participants', *(['extensions'] if extended else [])))
+    fields(value, ('schema_version', 'participants', *(['extensions'] if extended else []),
+                   *(['retrieval'] if isinstance(value, dict) and 'retrieval' in value else [])))
     versioned(value)
+    if 'retrieval' in value:
+        from .voyage_index import load_selection
+        load_selection(value['retrieval'])
     available_tools = set(TOOLS)
     if 'extensions' in value:
         from .extensions import catalog, validate_bindings
@@ -123,6 +127,9 @@ def review_form(registry: dict) -> dict:
         for role in ('lead', 'reviewer')
     ]
     definition = {'title': 'Bounded evidence review', 'fields': definitions}
+    if 'retrieval' in registry:
+        definition['title'] = 'Bounded evidence review with Voyage code embeddings and paid rerank-2.5'
+        next(f for f in definitions if f['id'] == 'corpus')['text'] = 'Selected application repository root'
     form = library.form_from_dict(definition)
     return {'schema_version': 1, 'form_revision': digest({'form': definition, 'registry': registry}),
             'definition': definition, 'markdown': library.form_to_markdown(form),
