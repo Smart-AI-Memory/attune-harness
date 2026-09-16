@@ -1,0 +1,33 @@
+{
+  "exit_code": 0,
+  "receipts": [
+    {
+      "gate_id": "symbol-reality",
+      "phase": "execution",
+      "target": "unified-task-execution",
+      "state": "PASS",
+      "findings": [],
+      "evidence_refs": [
+        "checked 18 cited tokens against /Users/patrickroebuck/attune-harness"
+      ],
+      "proposed_disposition": "proceed",
+      "waived": false,
+      "receipt_id": "642d64892a92",
+      "timestamp": "2026-09-16T08:59:59.151992+00:00",
+      "decisions_ref": null
+    },
+    {
+      "gate_id": "falsifiability",
+      "phase": "execution",
+      "target": "unified-task-execution",
+      "state": "PASS",
+      "findings": [],
+      "evidence_refs": [],
+      "proposed_disposition": "proceed",
+      "waived": false,
+      "receipt_id": "5d808e09d5af",
+      "timestamp": "2026-09-16T08:59:59.152316+00:00",
+      "decisions_ref": null
+    }
+  ]
+}

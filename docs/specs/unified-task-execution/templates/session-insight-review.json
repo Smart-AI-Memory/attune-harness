@@ -1,0 +1,34 @@
+{
+  "slots": ["project", "coverage", "candidate_id", "category", "claim", "source", "basis", "value", "destination"],
+  "example_slots": {
+    "project": "Example project",
+    "coverage": "Synthetic transcript, messages 1–4; complete fixture",
+    "candidate_id": "example-001",
+    "category": "Opportunities",
+    "claim": "Measure repeated intake questions before optimizing form rendering.",
+    "source": "Synthetic message 3: We keep answering the same project questions.",
+    "basis": "Inference from the reported repeated questions; no latency measurement yet.",
+    "value": "Could reduce repeated input; the latency benefit is unmeasured.",
+    "destination": "Project notes: session-insights.md (illustrative destination only)"
+  },
+  "title": "Reflect — {project}",
+  "description": "Coverage: {coverage}. Review candidate insights before saving them. Unanswered items remain unreviewed.",
+  "fields": [
+    {
+      "id": "insights",
+      "type": "triage",
+      "text": "Which insights should we keep, edit, revisit or discard?",
+      "help_text": "Keep saves the exact item to its displayed destination when supported and authorized. It does not start work or approve its suggestions.",
+      "required": true,
+      "triage_items": [
+        {
+          "id": "{candidate_id}",
+          "label": "{claim}",
+          "tag": "{category}",
+          "detail": "Source: {source}\nBasis: {basis}\nWhy it matters: {value}\nKeep destination: {destination}"
+        }
+      ],
+      "dispositions": ["Keep", "Edit", "Revisit", "Discard"]
+    }
+  ]
+}

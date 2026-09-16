@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-09-16T08:52:33.238758+00:00",
+  "revision_note": "Revised spec approved, including reflect follow-on design and validated candidate template",
+  "tasks_parsed": 8,
+  "task_ids": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "commands_mapped": 18,
+  "declared_future_files": 19,
+  "path_or_dependency_errors": [],
+  "state": {
+    "plan_path": "/Users/patrickroebuck/attune-harness/.claude/plans/unified-task-execution.md",
+    "completed": [],
+    "current": null,
+    "auto_run": false,
+    "last_updated": "2026-09-16T08:09:52.551795+00:00",
+    "schema_version": 1
+  },
+  "template_receipt": "session-reflection-template-checks.json",
+  "gate_exit": 0,
+  "gates": [
+    {
+      "gate_id": "symbol-reality",
+      "phase": "tasks",
+      "target": "unified-task-execution",
+      "state": "PASS",
+      "findings": [],
+      "evidence_refs": [
+        "checked 18 cited tokens against /Users/patrickroebuck/attune-harness"
+      ],
+      "proposed_disposition": "proceed",
+      "waived": false,
+      "receipt_id": "8045caaeb7ea",
+      "timestamp": "2026-09-16T08:52:33.238172+00:00",
+      "decisions_ref": null
+    },
+    {
+      "gate_id": "falsifiability",
+      "phase": "tasks",
+      "target": "unified-task-execution",
+      "state": "PASS",
+      "findings": [],
+      "evidence_refs": [],
+      "proposed_disposition": "proceed",
+      "waived": false,
+      "receipt_id": "716120f7263c",
+      "timestamp": "2026-09-16T08:52:33.238591+00:00",
+      "decisions_ref": null
+    }
+  ]
+}

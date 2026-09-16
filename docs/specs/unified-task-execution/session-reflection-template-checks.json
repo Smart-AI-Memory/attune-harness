@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-09-16T08:50:48.284508+00:00",
+  "library": "attune-forms",
+  "version": "0.17.0",
+  "module": "/Users/patrickroebuck/attune-ai/.venv/lib/python3.10/site-packages/attune_forms/__init__.py",
+  "template": "session-insight-review",
+  "method": "Actual installed template loader with a process-local test patch of its template directory; installed package files unchanged. Batch assembled from the same candidate definition and validated with form_from_dict.",
+  "valid_actions": {
+    "Keep": "PASS",
+    "Edit": "PASS",
+    "Revisit": "PASS",
+    "Discard": "PASS"
+  },
+  "negative_cases": {
+    "unknown_item": "PASS",
+    "invalid_action": "PASS",
+    "missing_ruling": "PASS",
+    "missing_source_slot": "PASS"
+  },
+  "six_category_batch": "PASS",
+  "markdown_render": "PASS",
+  "limits": [
+    "No visible-host interaction tested",
+    "No user response collected; all responses synthetic",
+    "No runtime command implemented",
+    "No memory or other destination write performed",
+    "Template not installed in package registry"
+  ]
+}
