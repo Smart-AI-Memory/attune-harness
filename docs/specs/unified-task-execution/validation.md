@@ -73,3 +73,7 @@ Record the original 18-name inventory, its final dispositions, primary help entr
 ## Task 5 observed software evidence
 
 See [installed assessment qualification](assessment-receipt.md): 40 module hashes matched, 15 outside-tree consumer/measurement processes, 35 legacy installed checks, five guard mutations detected, and 1,076 applicable tests passed with 25 skips. Two historical/host-limited modules are explicitly excluded and their failed receipts retained. Model/native quality and other-platform task receipts remain pending.
+
+## Task 7 observed software evidence
+
+[Repair qualification](repair-receipt.md) binds the final 41-module installed artifact, positive/wrong/rejecting-review journeys, 1,126 applicable suite passes, final 117 focused passes, and 13 targeted guard mutations. No native/model outcome evidence was substituted.

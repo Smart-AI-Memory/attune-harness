@@ -13,7 +13,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def qualify(python, wheel, output):
+def qualify(python, wheel, output, *, repair=False):
     output.mkdir(parents=True, exist_ok=False)
     work = Path(tempfile.mkdtemp(prefix='harness-task-installed-')).resolve()
     rows = []
@@ -79,10 +79,11 @@ print(json.dumps(samples))'''
     for i in range(5):
         call(['-c',"import json;from attune_harness.task_cli import present_task;from pathlib import Path;print(json.dumps(present_task(Path('solo'))['intake_metrics']))"],label='fresh-intake')
         fresh.append(rows[-1]['elapsed_ms'])
-    summary={'status':'passed','work_directory':str(work),'identity':identity,'wheel':str(wheel),
+    repair_receipt = qualify_repair(python,work,call) if repair else None
+    summary={'repair':repair_receipt,'status':'passed','work_directory':str(work),'identity':identity,'wheel':str(wheel),
              'wheel_sha256':hashlib.sha256(wheel.read_bytes()).hexdigest(),'module_count':len(packaged),
              'cli_and_measurement_processes':len(rows),'native_provider_calls':0,'independent_command_calls':len(peer_calls),
-             'host':platform.platform(),'supported_observation':'macOS Python3.10 installed assessment software only',
+             'host':platform.platform(),'supported_observation':'macOS Python3.10 installed assessment/repair software' if repair else 'macOS Python3.10 installed assessment software only',
              'native_quality':'pending','other_platforms':'not run',
              'intake_median_ms':{k:statistics.median(x['elapsed_ms'] for x in v) for k,v in samples.items()},
              'fresh_process_median_ms':statistics.median(fresh),'cache_limit':16,'avoided_model_calls':0}
@@ -91,7 +92,48 @@ print(json.dumps(samples))'''
     return summary
 
 
+def qualify_repair(python,work,call):
+    peer=work/'repair-peer.py'
+    log=work/'repair-calls.jsonl'
+    peer.write_text('import json,sys,pathlib\nr=json.load(sys.stdin);t=r["turn"];e=t["repair"];mode=sys.argv[1]\n'
+        + 'with pathlib.Path('+repr(str(log))+').open("a") as s:s.write(json.dumps({"role":t["role"],"mode":mode,"digest":r["request_digest"]})+"\\n")\n'
+        + 'if t["role"]=="worker":v={"schema_version":1,"replacements":[{"path":"app.py","before_sha256":e["before_hashes"]["app.py"],"text":"def add(a,b):\\n    return "+("0" if mode=="wrong" else "a+b")+"\\n"}]}\n'
+        + 'else:v={"schema_version":1,"artifact_digest":e["artifact_digest"],"probe_digest":e["probe_digest"],"verdict":"reject" if mode=="reject" else "approve","findings":[]}\n'
+        + 'print(json.dumps({"schema_version":1,"request_digest":r["request_digest"],"action":{"kind":"final","text":json.dumps(v)}}))\n')
+    results=[]
+    for mode in ('correct','wrong','reject'):
+        root=work/('checkout-'+mode)
+        subprocess.run(['git','init','-q',str(root)],check=True,cwd=work)
+        (root/'app.py').write_text('def add(a,b):\n    return a-b\n')
+        (root/'probe.py').write_text('from app import add\nassert add(2,3)==5\n')
+        probe=work/('probe-'+mode+'.json')
+        probe.write_text(json.dumps({'argv':[str(python),'probe.py'],'cwd':'.','timeout':10,'max_output_bytes':4096,
+            'environment':{'PATH':'/usr/bin:/bin','PYTHONDONTWRITEBYTECODE':'1','PYTHONNOUSERSITE':'1'},'oracle_paths':['probe.py']}))
+        registry=work/('repair-registry-'+mode+'.json')
+        registry.write_text(json.dumps({'schema_version':1,'participants':{name:{'adapter':'command',
+            'command':[str(python),'-I',str(peer),mode],'timeout':10,'tools':[],'max_turns':1,'max_tool_calls':0} for name in ('worker','reviewer')}}))
+        directory=work/('fix-'+mode)
+        paused=call(['-m','attune_harness','fix','--goal','Fix addition','--project',work,'--checkout',root,
+            '--config',registry,'--scope','app.py','--probe',probe,'--worker','worker','--reviewer','reviewer',
+            '--criteria','Addition is correct without changing the oracle','--task-dir',directory,
+            '--accept','--allow-external','--pause-after','3'],expected=1,label='fix-'+mode+'-paused')
+        assert paused['status']=='paused'
+        before_inode=(root/'app.py').stat().st_ino
+        result=call(['-m','attune_harness','resume',directory],expected=0 if mode=='correct' else 2,label='fix-'+mode+'-resume')
+        assert (root/'app.py').stat().st_ino==before_inode
+        if mode=='correct':
+            assert result['execution']['integration']['acceptance_status']=='verified_within_probe_scope'
+            again=call(['-m','attune_harness','resume',directory],label='fix-replay');assert again==result
+        else:
+            assert result['status']=='failed' and 'integration' not in result['execution']
+        results.append({'case':mode,'status':result['status'],'task_id':result['request']['task_id']})
+    calls=[json.loads(line) for line in log.read_text().splitlines()]
+    assert len(calls)==5 and len({r['digest'] for r in calls})==5
+    return {'cases':results,'command_invocations':len(calls),'native_provider_calls':0,'duplicate_writes':0}
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--python',type=Path,required=True);p.add_argument('--wheel',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
-    a=p.parse_args();qualify(a.python.absolute(),a.wheel.absolute(),a.output.absolute())
+    p.add_argument('--repair',action='store_true')
+    a=p.parse_args();qualify(a.python.absolute(),a.wheel.absolute(),a.output.absolute(),repair=a.repair)

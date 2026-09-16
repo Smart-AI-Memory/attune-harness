@@ -54,7 +54,7 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
         from .extensions import catalog
         return catalog(bindings, enabled=True)
 
-    try:
+    def plan_steps():
         extension_catalog()
         # Reject missing dependencies or invalid context before any participant call.
         record['preflight_verification'] = cursor.perform('preflight', 'preflight_verification', verify, effect_class='unknown')
@@ -96,22 +96,8 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
                     }
                 if policy:
                     policy.prepare_turn(turn)
-                request_digest = digest(turn)
-                wire = canonical({'schema_version': 1, 'request_digest': request_digest, 'turn': turn})
-                if len(wire.encode('utf-8')) > 524_288:
-                    raise ValueError('Participant request exceeds 512 KiB')
-                def dispatch():
-                    try:
-                        raw = exchange(wire)
-                        return {'action': decode_action(raw, request_digest),
-                                'identity': getattr(exchange, 'last_identity', None)}
-                    finally:
-                        outcome['last_identity'] = getattr(exchange, 'last_identity', None)
-                response = cursor.perform(f'{attempt_id}:turn:{index}', 'participant_turn', dispatch,
-                                   effect_class='read_only' if config['adapter'] == 'deterministic' and type(exchange) is ReviewExchange else 'unknown',
-                                   participant_id=participant_id,
-                                   attempt_id=attempt_id, turn_id=turn['turn_id'], request_digest=request_digest)
-                outcome['last_identity'] = response['identity']
+                response = dispatch_assignment(cursor, f'{attempt_id}:turn:{index}', turn,
+                                               config, exchange, outcome)
                 stable_inputs()
                 extension_catalog()
                 action = response['action']
@@ -179,6 +165,13 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
         record['retrieval_outcome'] = initial['status']
         if policy:
             record['integration'] = policy.integrate(record)
+    return guarded_execution(record, store, plan_steps)
+
+
+def guarded_execution(record, store, call):
+    """Shared status/error/persistence handling; write failure forbids another dispatch."""
+    try:
+        call()
     except PersistenceError:
         raise  # No more dispatch or optimistic record overwrite after a write failure.
     except BaseException as exc:
@@ -199,9 +192,32 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
     return record
 
 
-def perform_probe(cursor, plan, key):
+def perform_probe(cursor, plan, key, *, expected=None):
     """Immutable repair acceptance probe on the same operation journal as assessment."""
     from .repair import expected_snapshot, run_probe
-    expected = expected_snapshot(plan, cursor.record['events'])
+    if expected is None:
+        expected = expected_snapshot(plan, cursor.record['events'])
     return cursor.perform(key, 'acceptance_probe', lambda: run_probe(plan, expected),
                           effect_class='unknown', plan_digest=digest(plan), artifact_digest=digest(expected))
+
+
+def dispatch_assignment(cursor, key, turn, config, exchange, outcome):
+    """Single transport/correlation boundary for legacy, assessment and repair."""
+    participant_id, attempt_id = turn['participant_id'], turn['attempt_id']
+    request_digest = digest(turn)
+    wire = canonical({'schema_version': 1, 'request_digest': request_digest, 'turn': turn})
+    if len(wire.encode('utf-8')) > 524_288:
+        raise ValueError('Participant request exceeds 512 KiB')
+    def dispatch():
+        try:
+            raw = exchange(wire)
+            return {'action': decode_action(raw, request_digest),
+                    'identity': getattr(exchange, 'last_identity', None)}
+        finally:
+            outcome['last_identity'] = getattr(exchange, 'last_identity', None)
+    response = cursor.perform(key, 'participant_turn', dispatch,
+                       effect_class='read_only' if config['adapter'] == 'deterministic' and type(exchange) is ReviewExchange else 'unknown',
+                       participant_id=participant_id,
+                       attempt_id=attempt_id, turn_id=turn['turn_id'], request_digest=request_digest)
+    outcome['last_identity'] = response['identity']
+    return response

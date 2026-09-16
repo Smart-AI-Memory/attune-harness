@@ -19,10 +19,11 @@ DEFAULT_FIELDS = {'query', 'document', 'context', 'corpus', 'assessor', 'reviewe
 BASE_FIELDS = ('goal', 'criteria', 'query', 'document', 'context', 'corpus', 'assessor')
 
 
-def answer_names(plan):
+def answer_names(plan, *, repair=False):
     if plan not in PLANS:
         raise ValueError('Plan must be solo or independent-review')
-    return (*BASE_FIELDS, *(['reviewer'] if plan == 'independent-review' else []))
+    names = ('goal', 'criteria', 'assessor') if repair else BASE_FIELDS
+    return (*names, *(['reviewer'] if plan == 'independent-review' else []))
 
 
 def load_task_registry(path):
@@ -41,8 +42,8 @@ def budgets(value):
     return copy.deepcopy(value)
 
 
-def validate_answers(answers, plan, registry, *, complete=False):
-    fields(answers, answer_names(plan))
+def validate_answers(answers, plan, registry, *, complete=False, repair=False):
+    fields(answers, answer_names(plan, repair=repair))
     for name, value in answers.items():
         if value is None and not complete:
             continue
@@ -163,6 +164,10 @@ def create_task(project_root, config_path, *, goal, plan='solo', directory=None,
                'budgets': budgets(budget if budget is not None else DEFAULT_BUDGETS),
                'registry': registry, 'config': config, 'defaults_origin': origin,
                'evidence': evidence(project, target, values, registry)}
+    return store_task_request(request, target)
+
+
+def store_task_request(request, target):
     # Validate all known inputs before any storage mutation.
     target.parent.mkdir(parents=True, exist_ok=True)
     store = RunStore(target)
@@ -190,7 +195,7 @@ def read_task(directory):
     expected_recovery = {'profile': {'kind': 'task-intake', 'version': 1}}
     if 'execution' in record:
         from .task_policies import RUNTIME_PROFILE, validate_execution
-        expected_recovery['runtime'] = RUNTIME_PROFILE
+        expected_recovery['runtime'] = {'kind':'repair','version':1} if 'repair' in record['request'] else RUNTIME_PROFILE
         validate_execution(record)
     elif record['status'] not in ('draft', 'accepted'):
         raise ValueError('Execution state requires a runtime record')
@@ -200,7 +205,7 @@ def read_task(directory):
         raise ValueError('Copied task cannot become another owner')
     request = record['request']
     fields(request, ('schema_version', 'task_id', 'revision', 'project_root', 'plan',
-                     'answers', 'budgets', 'registry', 'config', 'defaults_origin', 'evidence'))
+                     'answers', 'budgets', 'registry', 'config', 'defaults_origin', 'evidence', *(['repair'] if 'repair' in request else [])))
     versioned(request)
     if str(UUID(request['task_id'])) != request['task_id']:
         raise ValueError('Invalid task identity')
@@ -208,7 +213,9 @@ def read_task(directory):
         raise ValueError('Invalid task revision')
     budgets(request['budgets'])
     validate_answers(request['answers'], request['plan'], request['registry'],
-                     complete=record['status'] != 'draft')
+                     complete=record['status'] != 'draft', repair='repair' in request)
+    if 'repair' in request:
+        validate_repair_request(request)
     if not isinstance(record['history'], list) or len(record['history']) != request['revision'] - 1:
         raise ValueError('Invalid revision history')
     if record['status'] == 'draft':
@@ -230,6 +237,11 @@ def check_fresh(record):
     registry, config = load_task_registry(request['config']['path'])
     if registry != request['registry'] or config != request['config']:
         raise ValueError('Stale registry; revise intake before accepting or executing')
+    if 'repair' in request:
+        from .repair import assert_snapshot, expected_snapshot
+        plan = request['repair']['scope']
+        assert_snapshot(plan, expected_snapshot(plan, record.get('execution', {}).get('events', [])))
+        return
     actual = evidence(Path(request['project_root']), Path(record['record_path']).parent,
                       request['answers'], registry)
     if actual != request['evidence']:
@@ -259,7 +271,7 @@ def bindings(request, permissions):
                              'qualification': 'configured; live provider quality not established'}
     return {'assessment': {**identity, 'plan': request['plan'], 'assignments': assignments},
             'retrieval': {**identity, 'evidence': copy.deepcopy(request['evidence'].get('retrieval'))},
-            'permissions': copy.deepcopy(permissions), 'effect_classes': ['assessment'],
+            'permissions': copy.deepcopy(permissions), 'effect_classes': ['file_replacement', 'acceptance_probe'] if 'repair' in request else ['assessment'],
             'budgets': copy.deepcopy(request['budgets'])}
 
 
@@ -280,12 +292,12 @@ def task_template(request, *, bypass=False):
               'context': 'Trusted verification context manifest', 'corpus': 'Source directory',
               'assessor': 'Assessor', 'reviewer': 'Independent reviewer'}
     definitions = []
-    for name in answer_names(request['plan']):
+    for name in answer_names(request['plan'], repair='repair' in request):
         item = {'id': name, 'text': labels[name], 'type': 'text_input', 'required': True}
         if name in ('assessor', 'reviewer'):
             item.update(type='single_select', options=sorted(request['registry']['participants']))
         definitions.append(item)
-    definition = {'title': 'Evidence assessment: ' + request['plan'], 'fields': definitions}
+    definition = {'title': ('Scoped repair: ' if 'repair' in request else 'Evidence assessment: ') + request['plan'], 'fields': definitions}
     key = digest({'profile': PROFILE, 'forms_version': FORMS_VERSION, 'definition': definition,
                   'project_root': request['project_root'], 'registry': request['registry'],
                   'evidence': request['evidence'], 'budgets': request['budgets']})
@@ -344,15 +356,18 @@ def accept_task(directory, submission):
                 submission['checkpoint_digest'] != record['checkpoint_digest']):
             raise ValueError('Stale or foreign task response')
         check_fresh(record)
-        validate_answers(submission['answers'], request['plan'], request['registry'], complete=True)
+        validate_answers(submission['answers'], request['plan'], request['registry'], complete=True, repair='repair' in request)
         validate_permissions(submission['permissions'])
         library = require_feature('attune-forms', 'attune_forms', FORMS_VERSION, 'review')
         library.collect_form_response(library.form_from_dict(template['definition']),
                                       submission['answers'], template_id='harness-task-v1')
         check_fresh(record)
         request['answers'] = copy.deepcopy(submission['answers'])
-        request['evidence'] = evidence(Path(request['project_root']), store.directory,
-                                       request['answers'], request['registry'])
+        if 'repair' in request:
+            validate_repair_request(request)
+        else:
+            request['evidence'] = evidence(Path(request['project_root']), store.directory,
+                                           request['answers'], request['registry'])
         record['status'] = 'accepted'
         record['acceptance'] = {'accepted': True, 'request_digest': digest(request),
                                 'permissions': copy.deepcopy(submission['permissions']),
@@ -370,7 +385,7 @@ def revise_task(directory, *, checkpoint, answers=None, plan=None, budget=None):
         record = read_task(store.directory)
         if checkpoint != record['checkpoint_digest']:
             raise ValueError('Stale task checkpoint')
-        if 'execution' in record:
+        if 'execution' in record or 'repair' in record['request']:
             raise ValueError('Executed tasks cannot revise their evidence; create a new task')
         old = copy.deepcopy(record['request'])
         request = record['request']
@@ -401,3 +416,50 @@ def freeze_repair_contract(checkout, allowed, probe, task_directory):
     """Capture immutable repair scope/probe before accepting a worker assignment."""
     from .repair import freeze
     return freeze(checkout, allowed, copy.deepcopy(probe), safe_storage(task_directory))
+
+
+def validate_repair_request(request):
+    value = request['repair']
+    fields(value, ('scope', 'review'))
+    if value['review'] not in ('none', 'requested', 'required'):
+        raise ValueError('Review policy must be none, requested or required')
+    if request['plan'] != ('solo' if value['review'] == 'none' else 'independent-review'):
+        raise ValueError('Repair plan does not match the accepted review obligation')
+    from .repair import PROFILE as repair_profile, validate_scope
+    validate_scope(value['scope'])
+    if value['scope']['profile'] != repair_profile or request['evidence'] != {'repair': digest(value['scope'])}:
+        raise ValueError('Repair scope/evidence profile mismatch')
+    selected = [request['registry']['participants'][v] for k,v in request['answers'].items()
+                if k in ('assessor','reviewer') and v is not None]
+    if any(c.get('review_mode') == 'evidence' for c in selected):
+        raise ValueError('Repair requires action transport; native evidence-review mode is assessment-only')
+    if value['review'] == 'required' and len(selected) == 2:
+        left,right = selected
+        if left.get('model') and (left['adapter'],left['model']) == (right['adapter'],right.get('model')):
+            raise ValueError('Required repair review needs a different configured native model')
+
+
+def create_repair_task(project_root, config_path, *, goal, checkout, allowed, probe,
+                       worker, criteria, reviewer=None, review='required', directory=None, budget=None):
+    project = Path(project_root).resolve()
+    if not project.is_dir():
+        raise ValueError('Project must exist')
+    registry, config = load_task_registry(config_path)
+    task_id = str(uuid4())
+    target = safe_storage(directory or project / '.attune-harness/tasks' / task_id)
+    scope = freeze_repair_contract(checkout, allowed, probe, target)
+    if not Path(scope['root']).is_relative_to(project):
+        raise ValueError('Dedicated checkout must be inside the task project')
+    plan = 'solo' if review == 'none' else 'independent-review'
+    answers = {'goal':goal,'criteria':criteria,'assessor':worker}
+    if plan == 'independent-review':
+        answers['reviewer'] = reviewer
+    elif reviewer is not None:
+        raise ValueError('No-review policy cannot carry a hidden reviewer')
+    validate_answers(answers, plan, registry, repair=True)
+    request = {'schema_version':1,'task_id':task_id,'revision':1,'project_root':str(project),
+               'plan':plan,'answers':answers,'budgets':budgets(budget or DEFAULT_BUDGETS),
+               'registry':registry,'config':config,'defaults_origin':None,
+               'evidence':{'repair':digest(scope)},'repair':{'scope':scope,'review':review}}
+    validate_repair_request(request)
+    return store_task_request(request,target)

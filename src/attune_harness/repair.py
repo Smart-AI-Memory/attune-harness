@@ -160,11 +160,12 @@ def freeze(root, allowed, probe, state_directory):
     for name in (*allowed, *oracles):
         if name not in plan['before']:
             raise ValueError('Accepted paths must be existing regular files')
+    plan['inputs'] = {}
     with root_handle(plan) as fd:
         for name in allowed:
             with parent_handle(fd, name) as (parent, leaf):
                 raw, _ = read_file(parent, leaf, limit=MAX_FILE)
-                raw.decode('utf-8')
+                plan['inputs'][name] = raw.decode('utf-8')
     return plan
 
 
@@ -260,7 +261,7 @@ def run_probe(plan, expected):
     result = invoke(tuple(probe['argv']), '', cwd=Path(plan['root']), timeout=probe['timeout'],
                     max_output_bytes=probe['max_output_bytes'], environment=probe['environment'])
     assert_snapshot(plan, expected)
-    return {**asdict(result), 'passed': result.returncode == 0 and result.failure is None,
+    return {**asdict(result), 'argv': list(result.argv), 'passed': result.returncode == 0 and result.failure is None,
             'plan_digest': digest(plan), 'artifact_digest': digest(expected),
             'isolation': 'Explicit environment, bounded subprocess; not a security sandbox'}
 
@@ -285,3 +286,22 @@ def reconcile_replacement(plan, event, *, retry_before=False):
     event.pop('error', None)
     event.pop('effects', None)
     return {'kind': 'observed_file_bytes', 'sha256': sha(raw), 'retry_before': retry_before}
+
+
+def validate_scope(plan):
+    """Reject unknown frozen policy fields without refreshing accepted bytes."""
+    fields(plan, ('profile','root','root_identity','allowed','probe','executable_sha256','before','inputs'))
+    if plan['profile'] != PROFILE or not Path(plan['root']).is_absolute():
+        raise ValueError('Unsupported repair scope')
+    fields(plan['root_identity'], ('device','inode'))
+    fields(plan['probe'], ('argv','cwd','timeout','max_output_bytes','environment','oracle_paths'))
+    if (not isinstance(plan['allowed'],list) or not 1 <= len(plan['allowed']) <= 20 or
+            len(set(plan['allowed'])) != len(plan['allowed']) or set(plan['inputs']) != set(plan['allowed'])):
+        raise ValueError('Invalid frozen replacement scope')
+    for path in plan['allowed']:
+        relative(path)
+        if any(p in PROTECTED for p in PurePosixPath(path).parts) or path in plan['probe']['oracle_paths']:
+            raise ValueError('Frozen scope includes protected state/oracle')
+        fields(plan['before'][path], ('sha256','mode'))
+        if not isinstance(plan['inputs'][path],str) or sha(plan['inputs'][path].encode('utf-8')) != plan['before'][path]['sha256']:
+            raise ValueError('Frozen source text does not match accepted preimage')

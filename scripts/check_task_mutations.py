@@ -26,11 +26,19 @@ REPAIR_MUTANTS={
 }
 
 
-def main(python,output,repair_effects=False):
- mutants=REPAIR_MUTANTS if repair_effects else MUTANTS
+POLICY_MUTANTS={
+ 'drop-requested-review':('task_policies.py',"if repair['review']!='none':",'if False:', 'test_failed_before_passed_after_and_bound_review or test_wrong_or_unreviewed_repair_never_verified'),
+ 'review-artifact-binding':('task_policies.py',"review_result['artifact_digest']!=artifact or",'False or', 'test_wrong_or_unreviewed_repair_never_verified'),
+ 'accept-failed-probe':('task_policies.py',"if not after['passed']:",'if False:', 'test_wrong_or_unreviewed_repair_never_verified'),
+ 'ignore-review-objections':('task_policies.py',"if review_result['verdict']!='approve' or review_result['findings']:",'if False:', 'test_wrong_or_unreviewed_repair_never_verified'),
+}
+
+
+def main(python,output,repair_effects=False,repair_policy=False):
+ mutants=POLICY_MUTANTS if repair_policy else REPAIR_MUTANTS if repair_effects else MUTANTS
  output.mkdir(parents=True,exist_ok=False)
  selection=' or '.join(v[3] for v in mutants.values())
- tests=['tests/test_task_repair_effects.py'] if repair_effects else ['tests/test_task_assessment.py','tests/test_task_recovery.py']
+ tests=['tests/test_task_repair.py'] if repair_policy else ['tests/test_task_repair_effects.py'] if repair_effects else ['tests/test_task_assessment.py','tests/test_task_recovery.py']
  def run(label,source):
   xml=output/(label+'.xml')
   cmd=[str(python),'-B','-m','pytest',*tests,'-k',selection,'-q','-p','no:cacheprovider','-o','pythonpath='+str(source),'--junitxml='+str(xml)]
@@ -58,4 +66,5 @@ def main(python,output,repair_effects=False):
 if __name__=='__main__':
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--python',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
  p.add_argument('--repair-effects',action='store_true')
- a=p.parse_args();main(a.python.absolute(),a.output.absolute(),a.repair_effects)
+ p.add_argument('--repair-policy',action='store_true')
+ a=p.parse_args();main(a.python.absolute(),a.output.absolute(),a.repair_effects,a.repair_policy)

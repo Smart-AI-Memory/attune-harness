@@ -114,10 +114,10 @@ def load_recovery(store: RunStore, checkpoint: str) -> dict:
     return record
 
 
-def validate_events(record):
+def validate_events(record, *, kinds=('preflight_verification', 'initial_retrieval', 'participant_turn', 'tool', 'final_verification')):
     seen = set()
     for event in record['events']:
-        if event['kind'] not in ('preflight_verification', 'initial_retrieval', 'participant_turn', 'tool', 'final_verification'):
+        if event['kind'] not in kinds:
             raise ValueError('Unsupported saved operation kind')
         if type(event['attempts']) is not int or not 1 <= event['attempts'] <= 2:
             raise ValueError('Invalid saved attempt count')

@@ -47,6 +47,51 @@ original status/exit semantics. Plan/build/ship are not implemented task journey
 See the [assessment receipt](docs/specs/unified-task-execution/assessment-receipt.md)
 for installed software evidence and outstanding native-model qualification.
 
+## Scoped repair
+
+`fix` replaces explicitly listed existing UTF-8 files in an exclusively owned,
+bounded POSIX checkout with a local `.git` directory. Keep task state outside that
+checkout. Creation, deletion, renames, symlinks/hardlinks, linked Git worktrees and
+Windows repair effects are outside this first profile. The entire checkout is
+bounded to 1,000 entries and 16 MiB, including protected metadata.
+
+Prepare a trusted probe JSON before the worker runs:
+
+```json
+{
+  "argv": ["/absolute/path/to/python", "probe.py"],
+  "cwd": ".",
+  "timeout": 30,
+  "max_output_bytes": 8192,
+  "environment": {"PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
+  "oracle_paths": ["probe.py"]
+}
+```
+
+```sh
+attune-harness fix --goal "Repair addition" --project /path/to/parent \
+  --checkout /path/to/parent/dedicated-clone --scope src/math.py \
+  --probe /path/to/probe.json --config /path/to/participants.json \
+  --worker alpha --reviewer beta --review required \
+  --criteria "The frozen acceptance probe passes without changing its oracle" \
+  --accept --allow-external
+```
+
+Repair uses the same status/resume controls. `--review none` explicitly selects no
+review; both requested and required review must complete with no unresolved
+objections. A required native reviewer must select a different configured model.
+The worker returns a replacement proposal; the host applies it and retains the
+failed-before/passed-after probe evidence. Native participant tool grants remain
+read-only. Trusted command peers and probes are supervised processes, **not a
+security sandbox**; use a dedicated checkout and trusted commands.
+
+For an uncertain file write, `reconcile-task <task> --event <id> --observe-file`
+records an observed matching after-image. `--retry-before` permits one retry only
+when the original bytes remain. Unexpected bytes stay unresolved; cancellation
+never rolls back later edits. Unknown probe effects are not automatically retried.
+See the [repair receipt](docs/specs/unified-task-execution/repair-receipt.md) for the
+exact tested profile and pending native qualification.
+
 ## Library quickstart
 
 Requires Python 3.10 or later. Install from this checkout:

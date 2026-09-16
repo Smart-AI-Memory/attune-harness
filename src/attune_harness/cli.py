@@ -8,12 +8,13 @@ from .features import FeatureUnavailable, output_path, report, write_report
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog='attune-harness')
+    parser = argparse.ArgumentParser(prog='attune-harness', description='Primary tasks: review, fix, status, resume. All advanced and legacy commands are listed below.')
     sub = parser.add_subparsers(dest='command')
     from .review_cli import add_commands, execute
     add_commands(sub)
-    from .task_cli import add_controls, execute_control
+    from .task_cli import add_controls, execute_control, add_fix
     add_controls(sub)
+    add_fix(sub)
     from .extension_cli import add_commands as add_extensions
     add_extensions(sub)
     from .voyage_cli import add_commands as add_voyage
@@ -51,6 +52,10 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument('--k', type=int, default=3)
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
     args = parser.parse_args(argv)
+    if args.command == 'fix':
+        from .task_cli import validate_fix, execute_intake
+        validate_fix(args, parser)
+        return execute_intake(args)
     if args.command in ('status', 'resume', 'reconcile-task', 'transfer-task', 'cancel-task'):
         return execute_control(args)
     if args.command == 'review':

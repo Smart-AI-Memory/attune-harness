@@ -1,6 +1,6 @@
 # Task ladder — unified task execution
 
-Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–4 accepted on offline evidence; 4/8 tasks accepted. Task 5 installed assessment qualification in progress.** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
+Status: implementation plan approved with the revised spec, 2026-09-16. **Tasks 1–6 accepted on offline evidence; Task 7 software qualification ready for automatic acceptance. Native comparative qualification remains Task 8.** The approved reflect design is a follow-on slice; its implementation breakdown is not part of these eight tasks. See the [Task 1 baseline](baseline.md) and [Task 2 receipt](task-2-receipt.md) for actual checks and acceptance status.
 
 Canonical XML: `.claude/plans/unified-task-execution.md`. Task acceptance and auto-run decisions belong to the existing spec lifecycle, not this summary. Naming agreement does not approve implementation.
 

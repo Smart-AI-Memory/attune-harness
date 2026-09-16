@@ -32,6 +32,7 @@ def present_task(directory, *, bypass=False):
             'task_id': request['task_id'], 'revision': request['revision'],
             'task_directory': str(Path(record['record_path']).parent),
             'answers': copy.deepcopy(request['answers']),
+            'repair_contract': copy.deepcopy(request.get('repair')),
             'definition': template['definition'], 'markdown': template['markdown'],
             'submission': submission, 'defaults_origin': request['defaults_origin'],
             'intake_metrics': metrics, 'execution_status': record['status'] if 'execution' in record else 'not_started',
@@ -88,18 +89,29 @@ def execute_intake(args):
         if args.clear_intake_cache:
             clear_template_cache()
         if args.task_response is not None:
+            saved = read_task(args.task_dir)
+            if (args.command == 'fix') != ('repair' in saved['request']):
+                raise ValueError('Task response belongs to another task policy')
             from .features import read_text
             response = parse_json(read_text(args.task_response, 131072))
             record = accept_task(args.task_dir, response)
             directory = Path(record['record_path']).parent
         else:
-            names = answer_names(args.plan or 'solo')
-            if args.reviewer is not None and 'reviewer' not in names:
-                raise ValueError('--reviewer requires --plan independent-review')
-            answers = {n: getattr(args, n) for n in names if n != 'goal' and getattr(args, n) is not None}
-            record = create_task(args.project or Path.cwd(), args.config, goal=args.goal,
-                                 plan=args.plan or 'solo', directory=args.task_dir,
-                                 answers=answers, profile=args.profile)
+            if args.command == 'fix':
+                from .task_contract import create_repair_task
+                from .features import read_text
+                record = create_repair_task(args.project or Path.cwd(), args.config, goal=args.goal,
+                    checkout=args.checkout, allowed=args.scope, probe=parse_json(read_text(args.probe,65536)),
+                    worker=args.worker, criteria=args.criteria, reviewer=args.reviewer, review=args.review,
+                    directory=args.task_dir)
+            else:
+                names = answer_names(args.plan or 'solo')
+                if args.reviewer is not None and 'reviewer' not in names:
+                    raise ValueError('--reviewer requires --plan independent-review')
+                answers = {n: getattr(args, n) for n in names if n != 'goal' and getattr(args, n) is not None}
+                record = create_task(args.project or Path.cwd(), args.config, goal=args.goal,
+                                     plan=args.plan or 'solo', directory=args.task_dir,
+                                     answers=answers, profile=args.profile)
             directory = Path(record['record_path']).parent
             presented = present_task(directory, bypass=args.bypass_intake_cache)
             response = presented['submission']
@@ -109,7 +121,8 @@ def execute_intake(args):
                 for name, value in response['answers'].items():
                     if value is None:
                         response['answers'][name] = input(name + ': ').strip()
-                print(json.dumps({'answers': response['answers'], 'permissions': response['permissions']}, indent=2))
+                print(json.dumps({'answers': response['answers'], 'permissions': response['permissions'],
+                                  'repair_contract': presented['repair_contract']}, indent=2))
                 response['accepted'] = input('Accept this intake? [y/N] ').strip().lower() in ('y', 'yes')
             elif args.accept:
                 response['accepted'] = True
@@ -146,6 +159,8 @@ def add_controls(sub):
             group = parser.add_mutually_exclusive_group(required=True)
             group.add_argument('--reply', type=Path)
             group.add_argument('--retry-read-only', action='store_true')
+            group.add_argument('--observe-file', action='store_true', help='Reconcile a replacement from observed after-bytes')
+            group.add_argument('--retry-before', action='store_true', help='Authorize one replacement retry only if original bytes remain')
         elif name == 'transfer-task':
             parser.add_argument('--assessor', required=True)
             parser.add_argument('--reason', required=True)
@@ -163,7 +178,7 @@ def execute_control(args):
         elif args.command == 'resume':
             result = execute_task(args.task_dir, checkpoint=args.checkpoint, max_operations=args.max_operations)
         else:
-            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only},
+            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'observe_file':args.observe_file,'retry_before':args.retry_before},
                        'transfer-task': lambda: {'participant_id':args.assessor,'reason':args.reason},
                        'cancel-task': lambda: {'reason':args.reason}}
             result = control_task(args.task_dir, args.command.split('-')[0],
@@ -177,3 +192,38 @@ def execute_control(args):
         print(json.dumps({'status':'unresolved' if isinstance(exc,UnresolvedOperation) else 'failed',
                           'error':{'type':type(exc).__name__,'detail':str(exc)}}))
         return 2
+
+
+def add_fix(sub):
+    parser = sub.add_parser('fix', help='Repair scoped existing files using an immutable acceptance probe')
+    parser.add_argument('--goal')
+    parser.add_argument('--project',type=Path)
+    parser.add_argument('--config',type=Path)
+    parser.add_argument('--checkout',type=Path,help='Dedicated POSIX checkout; task state must be outside it')
+    parser.add_argument('--scope',nargs='+',help='Explicit existing relative UTF-8 replacement paths')
+    parser.add_argument('--probe',type=Path,help='Trusted frozen probe JSON (argv/cwd/environment/limits/oracles)')
+    parser.add_argument('--worker')
+    parser.add_argument('--review',choices=('none','requested','required'),default=None)
+    parser.add_argument('--reviewer')
+    parser.add_argument('--criteria')
+    parser.add_argument('--task-dir',type=Path)
+    parser.add_argument('--task-response',type=Path)
+    parser.add_argument('--accept',action='store_true')
+    parser.add_argument('--intake-only',action='store_true')
+    parser.add_argument('--allow-external',action='store_true')
+    parser.add_argument('--pause-after',type=int)
+    parser.add_argument('--bypass-intake-cache',action='store_true')
+    parser.add_argument('--clear-intake-cache',action='store_true')
+    parser.set_defaults(allow_provider=False)
+
+
+def validate_fix(args, parser):
+    if args.task_response is not None:
+        if args.task_dir is None or args.accept or args.allow_external or any(getattr(args,n) is not None for n in
+                ('goal','project','config','checkout','scope','probe','worker','review','reviewer','criteria')):
+            parser.error('Fix response requires --task-dir and cannot override accepted inputs or permissions')
+    else:
+        if not args.goal or not args.checkout or not args.scope or not args.probe:
+            parser.error('Fix requires --goal, --checkout, --scope and --probe, or a bound --task-response')
+        args.config=args.config or Path('participants.json')
+        args.review=args.review or 'required'

@@ -1,0 +1,11 @@
+# Task 7 implementation note
+
+Compose a bounded repair policy using the same intake templates, accepted bindings, parent checkpoint, RecoveryCursor, participant dispatch, process adapter and error boundary as assessment. Extract the existing dispatch closure and exception handling into shared runtime functions before composing the new sequence; do not copy transport or retry loops. Keep the legacy packet bytes/keys unchanged.
+
+Repair intake freezes explicit scope/probe plus original file texts. Its compact goal/criteria/worker/reviewer form binds those choices and permissions before dispatch. Review policy none/requested/required is explicit; requested and required both need an attributed approving reply bound to the final artifact and passing probe. A required review cannot use two labels for the same configured native model. Native evidence-only review transport is unsupported for repair; native action transport retains its existing read-only restrictions.
+
+Actual scratch: changing final artifact changes the review packet digest; explicit-environment process invocation succeeded and exposed only the declared Python settings plus platform/interpreter-added locale and macOS text-encoding settings. Task 6's 136 passing checks already demonstrate actual failed-before/passed-after effects and lost-ack reconciliation. Cases here: every policy boundary replay, no-op/wrong patch, pre-existing passing probe, missing/rejecting/stale review, changed oracle/final bytes, invalid worker tools, uncertain writes and probes, and a real installed command-peer repair.
+
+The baseline probe always reconstructs the original artifact digest on resume; workers receive frozen before texts, not current edited files. Reviewer packets carry diff/before/after/probe evidence but no worker self-verdict. Final acceptance is qualified as probe-and-review verified within that frozen scope, never general correctness. Transfer is prohibited after replacement effects begin. No automatic probe retry can guess away external effects.
+
+Rejected: a separate fix engine, trusting a worker-selected command, dropping requested review when it fails, treating no-op or initially passing tests as repaired behavior, rewriting completed operations under changed input, or counting simulated native transport as provider qualification.
