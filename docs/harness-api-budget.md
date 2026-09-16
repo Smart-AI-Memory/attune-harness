@@ -57,3 +57,23 @@ Approval basis: Patrick said, “I just added $40 to the api of claude,” then
 “so you can test claude and sonnet and opus,” and “Use that as a budget for the
 harness project and related work.” The initial $15 calibration allocation was
 stated before this authorization.
+
+## Unified task execution — September 16 follow-up
+
+Patrick authorized Task 8 and use of newly added credit, then explicitly chose
+“Use existing Claude subscription.” The first configured-key attempt returned
+HTTP 400 insufficient credit with zero inference tokens and $0 provider-reported
+cost. Patrick clarified that Anthropic Claude is funded; the failed request is
+not evidence of his account-wide funding state. No alternate key or API retry
+was used.
+
+Task 8 then completed 92 native calls plus an announced 16-call correction run
+through Claude's existing Max login and Codex's authorized ChatGPT credits.
+Claude's API-key override was removed only from the subprocess environment.
+The preliminary $15 Task 8 API planning reservation was not used and is released;
+the original calibration reservation remains unchanged. Claude's subscription
+model-use cost metadata is not a verified API charge and must not be deducted
+from the shared $40 as though it were one. Codex credit estimates and subscription
+quota remain separate from this API allocation. No top-up purchase was performed.
+See the [Task 8 native receipt](specs/unified-task-execution/task-8-live-receipt.md)
+for retained failures, corrected outcomes and remaining human grading.

@@ -1,6 +1,6 @@
 # Unified task runtime — verification receipt
 
-**2026-09-16: Tasks 1–7 accepted on offline evidence; Task 8 prepared, not accepted.** Both slices have bounded software qualification. Native quality, human correction effort and economic comparison remain unqualified. Full-spec completion and production-provider promotion are not claimed.
+**2026-09-16: Tasks 1–7 accepted on offline evidence; Task 8 not accepted.** The [native receipt](task-8-live-receipt.md) records a completed 60-trial comparison, its discovered review-contract defect, and a separately qualified correction. The original offline preparation evidence below predates those runs. Both slices have bounded software qualification. Native quality, human correction effort and economic comparison remain unqualified. Full-spec completion and production-provider promotion are not claimed.
 
 ## Delivered behavior and artifact
 
@@ -55,7 +55,7 @@ New primary help emphasizes review/fix/status/resume. Advanced `reconcile-task`,
 
 The repair profile is not a security sandbox for hostile same-user processes or untrusted probes. Applied files may remain if a later probe or reviewer rejects the result. Passing a probe means verified within that probe’s scope, not general semantic correctness.
 
-## Task 8 frozen comparison, held offline
+## Task 8 original offline preparation (historical)
 
 The current packet is `docs/receipts/unified-task-execution/task8-frozen-protocol-qualified/`, protocol SHA-256 `536505510f36feeaae4cc5c36a642e3e754b4f87cef34fc67d69803a1cac6057`. It freezes runner/artifact/module identities, new synthetic cases, configured settings, trial order, grading keys, cache conditions and call limits. Earlier packets are retained but have stale runner hashes.
 
@@ -68,4 +68,4 @@ Six assessment cases compare legacy/solo/independent-review; four repair cases c
 
 Execution requires a separate exact-protocol admission record with explicit approval, a current numerical estimate, budget review and confirmed native profiles. None was created. The shared Claude budget is $40 with an existing calibration reservation; this campaign receives no allocation. Current access/billing and trial token estimates are unknown. Existing unrelated authorizations do not authorize these trials.
 
-The runner persists dispatch intent, raw native outputs, observed token metadata, failures and elapsed time. Missing billed cost stays unknown; reasoning tokens are not counted twice. Human grading packets hide explicit identities, with a separate withheld mapping; prose or arm shape may still reveal the model. Complete retained trial/grade sets and matched quality floors are required. There are no live results or human grades yet. **Offline preparation cannot accept Task 8.**
+The runner persists dispatch intent, raw native outputs, observed token metadata, failures and elapsed time. Missing billed cost stays unknown; reasoning tokens are not counted twice. Human grading packets hide explicit identities, with a separate withheld mapping; prose or arm shape may still reveal the model. Complete retained trial/grade sets and matched quality floors are required. At the original offline freeze there were no live results or human grades. The subsequent [native receipt](task-8-live-receipt.md) supersedes that execution status; independent human grades remain pending. **Offline preparation cannot accept Task 8.**

@@ -123,3 +123,15 @@ Patrick: “auto-run the rest.” Canonical Task 2 action `auto_run_remaining` a
 ## D21 — Offline implementation complete; native comparison held
 
 Tasks 3–7 were automatically accepted from actual software receipts under D20; no paid-model gate score was substituted. Saved state is completed=[1,2,3,4,5,6,7], current=8, auto_run=true. Task 8 has a frozen installed-artifact protocol, 49 offline runner checks and a refreshed all-command compatibility receipt. It is not accepted: native quality, blind human outcomes and economic evidence remain absent under Patrick’s offline choice. No paid trial, new budget allocation, remote push or PR was performed. [Verification](verification.md) gives both bounded slice decisions.
+
+## D22 — Paid execution authorized; first trial rejected by Claude billing
+
+Patrick asked to proceed with Task 8, then explicitly said “I just added money to the account please use it.” The Codex top-up was observed. Following a stated planning estimate and exact-protocol admission, the frozen first Claude trial returned HTTP 400 insufficient credit, with zero tokens and $0 reported cost. The runner stopped after one dispatch; zero Codex trials ran. The [live receipt](task-8-live-receipt.md) preserves the failure and separates the Codex and Anthropic billing routes. Task 8 is still current and unaccepted. No authentication fallback or retry was attempted.
+
+## D23 — Subscription route and retained correction experiment
+
+Patrick explicitly selected “Use existing Claude subscription,” later clarified that Anthropic Claude is funded, and agreed to continue after successful subscription responses were observed. Normal keychain access confirmed the Max login when the API-key override was omitted from only the subprocess environment. The original configured-key rejection remains a time-specific receipt, not a claim about overall funding.
+
+The unchanged 60-trial comparison completed all 92 native calls and exposed eight required-review failures caused by approve responses containing positive findings. The prompt clarification was designed before editing, preserves the strict validator, and passed 178 software tests plus 22 independent installed processes. A separate targeted eight-case/16-call native follow-up was announced before dispatch under the same authorized spend class. It preserves original outcomes and has its own new artifact/protocol. Neither software nor runtime completion substitutes for the required human grades.
+
+The targeted correction completed eight of eight repairs successfully, with 16 calls, passing probes and bound approval/empty findings. Total successful-provider dispatches across the original study and correction are 108, plus the separately retained rejected API attempt. Task 8 remains current because independent human semantic grading and correction-time evidence are not supplied by these runtime receipts.

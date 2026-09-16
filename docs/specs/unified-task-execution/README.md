@@ -1,6 +1,6 @@
 # Unified task execution
 
-Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Tasks 1–7 accepted on offline evidence. Task 8’s comparison protocol is prepared and offline-tested; native comparative qualification remains unrun and unaccepted.** Execution was explicitly authorized. Owner: attune-harness.
+Status: revised spec approved by Patrick Roebuck, 2026-09-16, including design, validation, the eight-task review/fix plan and the session-reflection extension. **Tasks 1–7 accepted on offline evidence. Task 8’s 60-trial native comparison finished and exposed a review-contract defect. The correction passed eight targeted native cases. Independent human grading and final acceptance remain pending. See the [live receipt](task-8-live-receipt.md).** Execution was explicitly authorized. Owner: attune-harness.
 
 Give Harness one task request and durable identity across intake, evidence, participants, integration, inspection, and recovery. First deliver evidence assessment through explicit solo and independent-review plans. Then deliver scoped repair through the same services, with real file effects and independent acceptance checks.
 

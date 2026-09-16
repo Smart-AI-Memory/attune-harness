@@ -285,7 +285,12 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
             text=assignment('reviewer',{'artifact_digest':artifact,'probe_digest':digest(after),
                 'changes':[{'path':i['path'],'before':scope['inputs'][i['path']],'after':i['text']} for i in proposal['replacements']],
                 'before_probe':before,'after_probe':after},
-                'Review the final diff and probe independently. Return a final action whose text is JSON with schema_version 1, artifact_digest, probe_digest copied from evidence, verdict (approve/reject/uncertain), and findings (list of strings). Do not copy another participant verdict.')
+                'Review the final diff and probe independently. Return a final action whose text is JSON with schema_version 1, artifact_digest, probe_digest copied from evidence, verdict (approve/reject/uncertain), and findings (list of strings). '
+                'Findings are blocking defects or material uncertainty only: any finding blocks acceptance. '
+                'If you approve with no blocking issue, return verdict "approve" and findings []. '
+                'Do not put positive summaries or nonblocking scope disclosures in findings. '
+                'Evaluate the supplied host probe receipts within their stated scope; independent review does not require rerunning the probe. '
+                'Use reject or uncertain when the evidence does not support acceptance, and explain the blocking issue in findings. Do not copy another participant verdict.')
             review_result=parse_json(text)
             fields(review_result,('schema_version','artifact_digest','probe_digest','verdict','findings'));versioned(review_result)
             if (review_result['artifact_digest']!=artifact or review_result['probe_digest']!=digest(after) or

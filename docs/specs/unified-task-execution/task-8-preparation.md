@@ -1,5 +1,7 @@
 # Task 8 offline preparation note
 
+Historical preparation record. See the [native receipt](task-8-live-receipt.md) for later authorized execution and correction.
+
 Freeze the candidate wheel/source identity, configured model/settings, held-out fixture bytes, comparison arms, call ceilings, order, cache conditions, grading rubric and exclusions before live execution. Preparation, verification and grading-integrity checks must never construct a provider. A separate explicit first-spend decision and current account/profile checks are still required; an auto-run software task result is not permission for native trials.
 
 Actual scratch: changing a frozen case's expected unknown outcome to clean changed its SHA-256 and was detected. Earlier installed consumers verified all 41 candidate modules; their source hashes bind this protocol. Cases below are a new synthetic screening set rather than the Quartz implementation fixture. They are held out from implementation tests, not a blinded production distribution. Native command identity/access and billing remain unqualified.
