@@ -77,7 +77,144 @@ outstanding. Five native calls were used across the failed and successful runs.
 
 Build a harness that lets Patrick choose Claude or Codex to lead useful work, involve other LLMs, and connect participants to Attune features through extensible interfaces. Learn from Attune's successes and failures, standards research, and testable original ideas.
 
+**Portfolio standard and preservation, 2026-09-17:** Harness is Patrick's portfolio
+piece and must reflect his high standards. Preserve useful capabilities while
+deliberately growing, integrating and refining the organically developed product.
+Use relevant primary industry and academic evidence, existing research and bounded
+experiments; verify applicability through actual product behavior. Agents, teams,
+workflows, memory, `/spec` and the verb-based grammar must be wired and reliable.
+Do not reduce useful feature scope as a shortcut to release. The
+[corrected readiness direction](harness-release-readiness-direction.md) records
+this instruction and the proposed evidence-to-acceptance method. No release,
+deprecation or blanket implementation approval follows from this direction alone.
+
 **Migration direction:** Patrick expects to move his development effort and day-to-day work toward the newer libraries and architecture. Plan for that destination, rather than assuming the new harness will remain permanently subordinate to attune-ai. Attune-ai can serve as an initial integration, behavioral reference, and transition bridge. Its eventual maintenance scope or retirement remains undecided; no retirement date or feature freeze is implied.
+
+**2026-09-16 direction:** Patrick is leaning toward deprecating attune-ai and
+releasing attune-harness as its successor. This is product direction, not an
+instruction to deprecate or publish either package now. He set the following
+priority order:
+
+1. Work that benefits both products.
+2. Work that benefits attune-harness.
+3. Enhancements that affect only attune-ai.
+
+**Agreed exception, 2026-09-16:** a documented Harness release blocker outranks
+an optional shared enhancement. Patrick explicitly agreed in conversation.
+Each exception must name the release criterion it resolves; loosely defined
+blockers must not displace shared work indefinitely. The three-tier order remains
+the default for other work. This settles the priority-policy form only, not the
+separate first-journey scope decision or any release/deprecation action.
+
+For classification, the existing `ask_payload.py` repair directly benefits an
+attune-ai compatibility endpoint. Its findings inform Harness's control design,
+but shared learning alone does not mean the runtime fix ships in both products.
+
+**Research direction, 2026-09-16:** Patrick explicitly encouraged reuse of the
+project's accumulated research and bounded agent investigations whose evidence
+returns to the lead for verification and final analysis. Start from existing
+knowledge, distinguish observed results from external claims and new hypotheses,
+and give each investigation a concrete question and stopping condition. Apply the
+priority order above. The initial [control and latency synthesis](research/control-and-latency-2026-09-16.md)
+records two completed research investigations, a telemetry scope probe and the
+next proposed experiments. It does not create a standing research service.
+Patrick's subsequent clarification retains low-cost model support for memory
+management and other routine work as an intended direction. Distinguish this
+from adding a research committee: qualify each worker's assigned task, combine
+semantic work with existing deterministic checks, and escalate unresolved
+judgment without routing all routine work back through the lead. No substitute
+has yet demonstrated better memory outcomes or total cost.
+**Provider correction, 2026-09-16:** Patrick wants lower-cost models from either
+OpenAI or Anthropic considered and is shifting more work toward OpenAI. This
+supersedes the assistant's inference that the replacement support worker should
+be Anthropic-only or default to Fable 5.1. The research synthesis records a
+price-checked proposed shortlist led by GPT-5.6 Luna with Haiku 4.5 as a comparison;
+selection still depends on task quality, latency and total cost. Existing review
+profiles do not qualify a memory-management role.
+
+**Accepted evaluation priority, 2026-09-16:** Patrick agreed with the priorities
+and GPT-5.6 Luna as the first memory/support candidate. Retain Haiku 4.5 as the
+comparison and assess accuracy, latency and total cost including corrections.
+This settles candidate order; task-specific qualification remains outstanding.
+
+**Memory preservation, 2026-09-16:** Patrick explicitly wants the valuable memory
+features retained and Luna considered for their routine management. Preserve
+curated personal memory, session findings/recall and structured/classified pattern
+capabilities through the transition. The [eight-call research result](research/luna-stage-contract-results-2026-09-16.md)
+passed shape checks but exposed unsupported or ambiguous wording in memory
+updates; it qualifies neither autonomous curation nor a production routing change.
+
+**Proposed agent structure, 2026-09-16:** Patrick proposed a Luna-powered agent
+for routine work with delegation to a more capable model for harder tasks.
+The [research design](research/control-and-latency-2026-09-16.md#proposed-luna-agent-with-escalation)
+records workflow ownership, evidence-preserving handoffs, explicit escalation
+triggers in addition to model judgment, and bounded retries. Known difficult
+tasks may route directly to the stronger agent. Qualification must measure missed
+escalations and total work/cost; no production routing or new approval policy is
+established by the proposal.
+
+**Accepted escalation principles, 2026-09-16:** Patrick agreed to explicit task
+rules and sampled checks in addition to model judgment, direct routing of known
+difficult work, and completion of routine work without a stronger agent repeating
+it. He then raised stronger-agent routing and memory content as design questions.
+The [routing proposal](research/control-and-latency-2026-09-16.md#open-routing-design-active-lead-and-background-memory-work)
+distinguishes delegation by an already-active stronger lead from host routing for
+background maintenance, with both agents consuming relevant source-backed memory.
+That choice remains under discussion; no production routing implementation is
+authorized or qualified by this note. Disposable research authorization and
+results follow.
+
+**Research execution, 2026-09-16:** Patrick authorized the next experiments.
+The [memory/routing result](research/memory-routing-results-2026-09-16.md) records
+27 passing offline tests, 21 native calls, and a separate six-control offline
+replay. Source-selected Luna completed 4/4 authoring cases; rewrite content was
+also correct, but interface friction rejected 3/4 replies. All three background
+routing approaches reached correct final dispositions, with extra calls from
+dedicated stronger routing and a missing-evidence escalation. Preserve original
+failures; do not promote these tiny samples into production qualification.
+
+**Revised research execution, 2026-09-16:** Patrick then authorized implementing
+and testing all three follow-up changes. The [v2 result](research/memory-routing-v2-results-2026-09-16.md)
+records host-owned version binding, exact unchanged-reply handling and distinct
+reasoning/evidence/decision outcomes in a disposable prototype. All 58 offline
+checks passed; 20 native calls included one explicit audit. Revised authoring
+passed 4/4 cases. Typed routing completed all three cases in three calls, avoiding
+the coarse policy's two redundant escalations. Luna solved the fully evidenced
+calculation; reasoning escalation is only tested offline here. Production
+integration, representative memory workloads and active-lead economics remain
+open. This research did not execute the separate plan/build scoping spec.
+
+**Mixed sorter research, 2026-09-16:** The authorized
+[12-item queue experiment](research/memory-sorter-results-2026-09-16.md) completed
+114 offline checks and 32 native calls. Luna's core judgments passed 11/11 assigned
+items, but ten replies triggered metadata repair because the expanded schema and
+host citation rules disagreed. Direct Astra was faster on the three matched
+tasks under this contract. Audits caught all three injected errors and accepted
+the valid control. Continue evaluating Luna, but correct the response contract
+before integration/economics claims. Node-kind and proposed-removal results do
+not qualify installed taxonomy, security classification or durable forgetting.
+
+**Citation repair research, 2026-09-16:** The authorized
+[paired follow-up](research/memory-citations-results-2026-09-16.md) completed
+157 offline checks and 23 native calls. Repaired Luna passed all eight fresh
+cases on the first attempt with supported meaning and citations; the old
+contract passed 2/8 initially and needed six Astra citation repairs. Repaired
+workers plus one scheduled audit used nine calls and 112.11 native process
+seconds versus fourteen calls and 207.26 for old workers/corrections. Carry the
+repaired interface forward with all host controls retained. These supplied-
+evidence results do not qualify live memory effects, representative economics,
+Voyage retrieval or plan/build execution.
+
+**Bounded memory worker, 2026-09-16:** Patrick authorized carrying the repaired
+contract forward. The [proposal-only prototype](research/memory-worker-results-2026-09-16.md)
+now persists host routing, sampling, dispatch intent and outcomes, rejects stale
+or duplicate work and uses no separate router model. 211 checks pass; eight saved
+Luna replies plus one saved audit replay exactly, with zero new native calls.
+An actual temporary FileStashBackend probe passes capture/reopen/recall/exact-ID
+removal, while confirming duplicate-ID records and cross-project recall behavior.
+Installed taxonomy mapping, actual update transactions, security, context refresh
+and production economics remain qualification work; no live memory integration
+or plan/build execution is enabled.
 
 **Transition target:** Patrick plans to maintain both for a few more weeks, then migrate to the newer library. Treat this as the intended overlap window, not an exact calendar deadline or authorization to delete the old package. Prioritize the workflows needed for his migration and make any readiness shortfall visible before the overlap ends. The six-phase roadmap describes the wider program; migration need not wait for optional adaptive-collaboration research or every extension integration.
 
@@ -302,3 +439,39 @@ candidate. `participants.fable.json` configures a Fable lead and Astra reviewer.
 Offline form validation passes. Live Fable qualification is pending the API
 spending hold and first-spend authorization; do not rerun the immutable campaign
 to substitute Fable, or treat its configuration as measured quality.
+
+## Isolated memory journey continuation — 2026-09-16
+
+The [Luna memory journey](research/memory-journey-results-2026-09-16.md) adds a
+disposable adapter over actual temporary FileStashBackend stores, retaining the
+frozen worker/citation contracts. Capture, correction and forgetting completed
+in three Luna calls plus one preselected Astra audit; no escalation was needed.
+253 central checks passed, including competing-process stale-write rejection,
+duplicate prevention, actual removal, scoped storage and explicit context refresh.
+All prior campaigns and receipts remain unchanged. This is one note journey,
+not production memory migration or a workload savings result. Service-level
+security/taxonomy, receiving-agent context injection and active-lead economics
+remain open. The scoping-only plan/build outline was not executed.
+
+Patrick subsequently selected adoption in both products and emphasized preserving
+the existing memories he values. The
+[shared-memory adoption plan](specs/shared-memory-adoption/requirements.md) starts
+with current-format recall, then extracts one common worker and qualifies real
+service/context adapters and installed entry points. Patrick approved the five-task
+plan and starting implementation on 2026-09-17. All five tasks are accepted:
+[preservation baseline](specs/shared-memory-adoption/baseline.md) and a shared
+proposal-only worker. Task 3's explicit-root compatibility reader passes 162
+checks and detects 6/6 protection removals. A third-round age-binding race is
+repaired, independently closed in a user-directed focused check, and centrally
+reproduced; see [acceptance evidence](specs/shared-memory-adoption/task3-review.md).
+Task 4 now has both CLI entry points, explicit MCP transport and replaceable
+current-context packets. Functional repairs, repository gates and the bounded
+independent host review are complete. Historical-job authorization is repaired,
+with six regressions that detect guard removal. Task 5 installed qualification
+passes 151 checks and 24 disabled-route legacy checks in temporary environments;
+the support record and independent evidence review are complete. Live memories
+are not activated. See the
+[support and verification record](specs/shared-memory-adoption/verification.md). Existing raw, personal, curated, keyed working-memory and
+persisted-pattern paths are retained; new legacy-store worker mutations remain
+unavailable. Remote-user usage collection is no longer
+needed; useful local telemetry remains in scope.

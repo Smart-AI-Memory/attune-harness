@@ -8,17 +8,28 @@ from .features import FeatureUnavailable, output_path, report, write_report
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog='attune-harness', description='Primary tasks: review, fix, status, resume. All advanced and legacy commands are listed below.')
+    import sys
+    invocation = sys.argv[1:] if argv is None else argv
+    if invocation[:1] == ['memory']:
+        from .memory_cli import main as memory_main
+        return memory_main(invocation[1:])
+    parser = argparse.ArgumentParser(prog='attune-harness')
     sub = parser.add_subparsers(dest='command')
     from .review_cli import add_commands, execute
     add_commands(sub)
     from .task_cli import add_controls, execute_control, add_fix
     add_controls(sub)
     add_fix(sub)
+    from .work_cli import add_commands as add_work
+    add_work(sub)
+    from .test_cli import add_command as add_test
+    add_test(sub)
     from .extension_cli import add_commands as add_extensions
     add_extensions(sub)
     from .voyage_cli import add_commands as add_voyage
     add_voyage(sub)
+    from .memory_cli import add_commands as add_memory
+    add_memory(sub)
     for name, description in (
         ('triage-check', 'Suggest a bounded response to a trusted check event; never dispatch'),
         ('repair-economics', 'Account for all repair attempts and quality before cost ranking'),
@@ -51,7 +62,15 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument('--allow-provider', action='store_true')
     retrieve.add_argument('--k', type=int, default=3)
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
+    from .cli_help import configure_help
+    configure_help(parser, sub)
     args = parser.parse_args(argv)
+    if args.command in ('plan', 'build'):
+        from .work_cli import execute as execute_work
+        return execute_work(args)
+    if args.command == 'test':
+        from .test_cli import execute as execute_test
+        return execute_test(args)
     if args.command == 'fix':
         from .task_cli import validate_fix, execute_intake
         validate_fix(args, parser)

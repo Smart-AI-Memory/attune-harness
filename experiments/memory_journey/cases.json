@@ -1,0 +1,28 @@
+{
+  "scope": "cedar",
+  "target": "rehearsal-note",
+  "policy": {"sample_modulus": 4, "sample_bucket": 0, "sample_salt": "journey-4"},
+  "stages": [
+    {
+      "id": "capture",
+      "operation": "capture",
+      "task": "Capture the accepted cedar rehearsal note using the granted ID. Its logical kind is note; preserve the time and weekday limitation.",
+      "sources": [{"id": "N1", "text": "The cedar rehearsal starts at 09:15 on weekdays.", "scope": "cedar", "context": "Accepted owner note for this project."}],
+      "rubric": "Capture exactly rehearsal-note as a cedar note, supported by N1. Preserve 09:15 and weekdays; do not invent recurrence exceptions, benefits or authority. Top-level evidence cites N1."
+    },
+    {
+      "id": "correction",
+      "operation": "amend",
+      "task": "Apply the accepted time correction to the saved rehearsal note. Keep the weekday limitation and kind note.",
+      "sources": [{"id": "N2", "text": "The cedar rehearsal now starts at 10:45 on weekdays. Replace the previous time; keep the weekday condition.", "scope": "cedar", "context": "Accepted correction superseding N1's time, with its weekday limitation retained."}],
+      "rubric": "Amend rehearsal-note to 10:45 on weekdays, same ID/scope/kind. Fact support and top-level evidence must include N2. Do not retain 09:15 as the current time or drop the condition."
+    },
+    {
+      "id": "forget",
+      "operation": "forget",
+      "task": "Forget only rehearsal-note in this cedar project, as explicitly requested. Propose the resulting facts; the host owns actual storage effects.",
+      "sources": [{"id": "N3", "text": "Forget the cedar rehearsal-note. Do not remove any other note or any other project's memories.", "scope": "cedar", "context": "Explicit accepted owner removal request for this exact note ID."}],
+      "rubric": "Forget exactly rehearsal-note with empty resulting target facts. Cite N3 for the removal decision. No claim of already deleting live or historical memory. The host must verify active-store absence and preserve the other project's canary."
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+[
+  {
+    "id": "a_conditional", "experiment": "A",
+    "input": {
+      "task": "Update the accepted build-tool preference using the new correction; retain the separate compliance-build exception.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 11, "facts": [
+        {"id": "default", "text": "Prefer Flint for ordinary builds.", "scope": "general", "source_ids": ["S1"]},
+        {"id": "exception", "text": "Compliance builds must use Flint.", "scope": "compliance", "source_ids": ["S2"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Prefer Flint for ordinary builds.", "scope": "general", "context": "Earlier accepted preference, explicitly superseded by S3."},
+        {"id": "S2", "text": "Compliance builds must use Flint.", "scope": "compliance", "context": "Accepted exception, expressly retained."},
+        {"id": "S3", "text": "Prefer Wren for ordinary builds when reproducibility is equivalent.", "scope": "general", "context": "Accepted replacement for S1. No comparative cost or speed claim was supplied."}
+      ]
+    },
+    "expected": {"outcome": "update", "texts": {"default": "Prefer Wren for ordinary builds when reproducibility is equivalent.", "exception": "Compliance builds must use Flint."}},
+    "rubric": "Preserve equivalent reproducibility as a condition, keep compliance builds on Flint, add no comparative-cost/speed rationale."
+  },
+  {
+    "id": "a_current", "experiment": "A",
+    "input": {
+      "task": "Reconcile the memory with the latest reaffirmation of the existing preference.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 12, "facts": [
+        {"id": "format", "text": "Use ISO dates in change notes.", "scope": "reed", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Use ISO dates in change notes.", "scope": "reed", "context": "Current accepted preference."},
+        {"id": "S2", "text": "Keep the existing ISO-date preference exactly as recorded; no update is needed.", "scope": "reed", "context": "Latest owner reaffirmation."}
+      ]
+    },
+    "expected": {"outcome": "no_change", "texts": {"format": "Use ISO dates in change notes."}},
+    "rubric": "No change to content, scope, support references or version. Reaffirmation does not require rewriting the record."
+  },
+  {
+    "id": "a_scopes", "experiment": "A",
+    "input": {
+      "task": "Apply only the East team's accepted notification-time correction.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 13, "facts": [
+        {"id": "east", "text": "Send the digest at 08:00 UTC.", "scope": "east", "source_ids": ["S1"]},
+        {"id": "west", "text": "Send the digest at 18:00 UTC.", "scope": "west", "source_ids": ["S2"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Send the digest at 08:00 UTC.", "scope": "east", "context": "Earlier East preference, replaced by S3."},
+        {"id": "S2", "text": "Send the digest at 18:00 UTC.", "scope": "west", "context": "Current West preference, retained."},
+        {"id": "S3", "text": "Send the digest at 09:30 UTC.", "scope": "east", "context": "Accepted correction for East only."}
+      ]
+    },
+    "expected": {"outcome": "update", "texts": {"east": "Send the digest at 09:30 UTC.", "west": "Send the digest at 18:00 UTC."}},
+    "rubric": "Change East to 09:30 UTC while preserving West's 18:00 preference and both scopes."
+  },
+  {
+    "id": "a_tentative", "experiment": "A",
+    "input": {
+      "task": "Reconcile the current release-summary preference with the latest suggestion.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 14, "facts": [
+        {"id": "summary", "text": "Start release summaries with user-visible changes.", "scope": "general", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Start release summaries with user-visible changes.", "scope": "general", "context": "Current accepted preference."},
+        {"id": "S2", "text": "Maybe start with internal refactoring someday, but keep the present preference for now.", "scope": "general", "context": "Tentative suggestion, not an accepted replacement."}
+      ]
+    },
+    "expected": {"outcome": "no_change", "texts": {"summary": "Start release summaries with user-visible changes."}},
+    "rubric": "Do not turn a suggestion into a decision or ask the user to decide when they expressly retained the existing preference."
+  },
+  {
+    "id": "b_missing_evidence", "experiment": "B",
+    "input": {
+      "task": "Determine the current accepted export format and update the memory if the later decision changed it. The referenced decision attachment is not in this packet.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 15, "facts": [
+        {"id": "export", "text": "Export reports as CSV.", "scope": "fern", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Export reports as CSV.", "scope": "fern", "context": "Earlier accepted record."},
+        {"id": "S2", "text": "The owner finalized the current export-format choice in attachment export-decision-0916; that attachment has not been supplied.", "scope": "fern", "context": "Later source establishes an existing decision, but does not reveal its content."}
+      ]
+    },
+    "expected": {"outcome": "needs_evidence", "texts": {"export": "Export reports as CSV."}},
+    "rubric": "Request the missing export-decision-0916 attachment. Do not invent the chosen format, treat the old CSV choice as reaffirmed, ask the user to choose anew, or claim a stronger model alone can supply the missing content."
+  },
+  {
+    "id": "b_pending_choice", "experiment": "B",
+    "input": {
+      "task": "Identify the current blocker to setting the new accepted archive preference. Do not choose for the owner.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 16, "facts": [
+        {"id": "archive", "text": "Use Grove for the archive.", "scope": "maple", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Use Grove for the archive.", "scope": "maple", "context": "Prior record; do not present it as a reaffirmed current decision."},
+        {"id": "S2", "text": "We are replacing Grove with either Vale or Brook. I have not selected one; this remains my decision to make.", "scope": "maple", "context": "Latest owner statement. The supplied evidence is complete for identifying the blocker."}
+      ]
+    },
+    "expected": {"outcome": "needs_decision", "texts": {"archive": "Use Grove for the archive."}},
+    "rubric": "Draft the owner's Vale-versus-Brook decision question. Keep the prior record unmodified pending a decision; do not claim it is still authoritative, request a nonexistent missing decision file, or make the choice."
+  },
+  {
+    "id": "b_policy_calculation", "experiment": "B",
+    "input": {
+      "task": "Compile the effective concurrent-job limits for North, South and Staging on 2026-09-21 from the complete accepted policy. Preserve the independent aggregate cap and manual-migration requirement. Calculate the supported limits; the inputs are complete.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false, "multi_step": false},
+      "record": {"version": 17, "facts": [
+        {"id": "north", "text": "North permits at most 10 concurrent jobs.", "scope": "platform", "source_ids": ["S0"]},
+        {"id": "south", "text": "South permits at most 6 concurrent jobs.", "scope": "platform", "source_ids": ["S0"]},
+        {"id": "staging", "text": "Staging permits at most 8 concurrent jobs.", "scope": "platform", "source_ids": ["S0"]},
+        {"id": "aggregate", "text": "North and South together permit at most 18 concurrent jobs.", "scope": "platform", "source_ids": ["S7"]},
+        {"id": "migrations", "text": "Production database migrations require manual approval.", "scope": "platform", "source_ids": ["S8"]}
+      ]},
+      "sources": [
+        {"id": "S0", "text": "The previous compiled limits were North 10, South 6 and Staging 8.", "scope": "platform", "context": "Historical snapshot, to be recomputed using the current policy."},
+        {"id": "S1", "text": "For each environment: floor((worker budget minus reserved workers) divided by workers per job), then take the smaller of that number and the environment's safety cap.", "scope": "platform", "context": "Current accepted computation rule."},
+        {"id": "S2", "text": "North: worker budget 41, reserved workers 5, workers per job 3, safety cap 20.", "scope": "platform", "context": "Accepted parameters, with only worker budget subsequently replaced by S6."},
+        {"id": "S3", "text": "South: worker budget 38, reserved workers 4, workers per job 4, safety cap 7.", "scope": "platform", "context": "Current accepted parameters."},
+        {"id": "S4", "text": "North has a temporary limit of 9 concurrent jobs through 2026-09-20 inclusive; afterward the computed normal limit applies.", "scope": "platform", "context": "Accepted temporary exception with explicit expiry."},
+        {"id": "S5", "text": "Staging: worker budget 23, reserved workers 3, workers per job 2, safety cap 12.", "scope": "platform", "context": "Current accepted parameters."},
+        {"id": "S6", "text": "North's worker budget is now 44, replacing only the budget value of 41; its other parameters are unchanged.", "scope": "platform", "context": "Accepted correction effective before the requested date."},
+        {"id": "S7", "text": "North and South together permit at most 18 concurrent jobs. This is an independent aggregate bound, not a requirement to lower the individual maxima to an arbitrary allocation summing to 18.", "scope": "platform", "context": "Current accepted aggregate constraint."},
+        {"id": "S8", "text": "Production database migrations require manual approval.", "scope": "platform", "context": "Accepted requirement, expressly unchanged."}
+      ]
+    },
+    "expected": {"outcome": "update", "limits": {"north": 13, "south": 7, "staging": 10, "aggregate": 18}},
+    "rubric": "Compute North floor((44-5)/3)=13 with expired temporary cap, South min(floor((38-4)/4),7)=7, Staging min(floor((23-3)/2),12)=10. Preserve independent aggregate 18 and manual approval. No invented authority, missing-input claim or arbitrary pool allocation. Source IDs must support the changed facts; all reason claims must match the arithmetic and dates."
+  }
+]

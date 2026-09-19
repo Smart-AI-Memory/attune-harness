@@ -1,0 +1,58 @@
+{
+  "mode": "actual extracted UI handlers; synthetic elements/state; no real UI interaction",
+  "archive": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+  "sources": {
+    "webview/assets/app-primary-4af6ed7f68d1.js": "6d75ae321771510842fbcc303846913f7434bc8a67e0c69fb5adb22c632eb3ac",
+    "webview/assets/app-initial-4d7ea7f81c2d.js": "5dcf4a29db25b086f9bd11d053eec60cf0c50bfd988494969cec452e03f19245"
+  },
+  "checks": [
+    {
+      "name": "pointer-enter updates hover without selecting an answer",
+      "result": "passed"
+    },
+    {
+      "name": "explicit click selects the option (positive control)",
+      "result": "passed"
+    },
+    {
+      "name": "automatic question opening assigns a 30-second deadline",
+      "result": "passed"
+    },
+    {
+      "name": "hover does not clear the deadline; matching timeout closes the panel",
+      "result": "passed"
+    },
+    {
+      "name": "user-interaction handler clears deadline and stale timeout cannot close",
+      "result": "passed"
+    },
+    {
+      "name": "editing the draft clears the deadline",
+      "result": "passed"
+    }
+  ],
+  "static_checks": [
+    {
+      "name": "native panel hides after turn leaves inProgress",
+      "result": "present"
+    },
+    {
+      "name": "timer invokes timeout dismissal",
+      "result": "present"
+    },
+    {
+      "name": "pointer-down capture calls user-interaction callback",
+      "result": "present"
+    }
+  ],
+  "guard_removal": {
+    "removed": "user interaction clearing the deadline",
+    "detected": true
+  },
+  "limitations": [
+    "No visible-host incident reproduction",
+    "No real pointer event stream or screenshot",
+    "No proof which event caused Patrick’s incident",
+    "No app patch or real answer submission"
+  ]
+}

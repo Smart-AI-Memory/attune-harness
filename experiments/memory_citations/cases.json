@@ -1,0 +1,499 @@
+[
+  {
+    "id": "capture",
+    "input": {
+      "task": "Remember this accepted update-writing preference using the granted new node ID.",
+      "record": {
+        "version": 31,
+        "facts": []
+      },
+      "sources": [
+        {
+          "id": "P10",
+          "text": "State the outcome before describing the sequence of events.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [
+          "new-7"
+        ],
+        "remove_ids": [],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "capture",
+      "outcome": "update",
+      "rubric": "Create new-7 as a cedar preference with P10. No cost, speed or rationale invention."
+    }
+  },
+  {
+    "id": "condition",
+    "input": {
+      "task": "Apply the accepted ordinary-runner correction while retaining the signed-run exception.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "normal",
+            "text": "Use Slate for ordinary runs.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P20"
+            ]
+          },
+          {
+            "id": "signed",
+            "text": "Signed runs must use Slate.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P21"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P20",
+          "text": "Use Slate for ordinary runs.",
+          "scope": "cedar",
+          "context": "Previous accepted choice replaced by P22."
+        },
+        {
+          "id": "P21",
+          "text": "Signed runs must use Slate.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        },
+        {
+          "id": "P22",
+          "text": "Prefer Willow for ordinary runs only if execution logs are retained.",
+          "scope": "cedar",
+          "context": "Accepted correction of P20; signed-run exception stays in force."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "amend",
+      "outcome": "update",
+      "rubric": "Ordinary Willow is conditional on retained execution logs; signed Slate mandatory. Fact refs P22/P21; top refs must include P22 supporting the correction, not only old P20."
+    }
+  },
+  {
+    "id": "distinct",
+    "input": {
+      "task": "Consolidate genuinely duplicate notification preferences, if any; preserve project conditions.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "one",
+            "text": "Send notices on working days at 16:00.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P30"
+            ]
+          },
+          {
+            "id": "two",
+            "text": "Send notices every day at 16:00.",
+            "scope": "elm",
+            "kind": "preference",
+            "source_ids": [
+              "P31"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P30",
+          "text": "Send notices on working days at 16:00.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        },
+        {
+          "id": "P31",
+          "text": "Send notices every day at 16:00.",
+          "scope": "elm",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar",
+          "elm"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [
+          "two"
+        ],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "retain",
+      "outcome": "no_change",
+      "rubric": "Preserve both exact snapshots, kinds, scopes and refs. Distinct project and day condition; cite P30 and P31 for comparison. No owner choice needed."
+    }
+  },
+  {
+    "id": "consolidate",
+    "input": {
+      "task": "Fold the duplicate normal-notification rule into canonical channel; retain the emergency exception.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "channel",
+            "text": "Send normal notifications by email.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P40"
+            ]
+          },
+          {
+            "id": "copy",
+            "text": "Normal notifications go by email.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P41"
+            ]
+          },
+          {
+            "id": "emergency",
+            "text": "Emergency notifications require a phone call.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P42"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P40",
+          "text": "Send normal notifications by email.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        },
+        {
+          "id": "P41",
+          "text": "Normal notifications go by email.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        },
+        {
+          "id": "P42",
+          "text": "Emergency notifications require a phone call.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [
+          "copy"
+        ],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "consolidate",
+      "outcome": "update",
+      "rubric": "Remove copy; canonical email retains P40 and P41; phone-call exception retains P42. Top references must support duplicate equivalence with P40/P41."
+    }
+  },
+  {
+    "id": "forget_all",
+    "input": {
+      "task": "Forget both temporary notes in this captured collection, as requested; produce a candidate only.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "temp-a",
+            "text": "Temporary rehearsal is at 10:00.",
+            "scope": "cedar",
+            "kind": "note",
+            "source_ids": [
+              "P50"
+            ]
+          },
+          {
+            "id": "temp-b",
+            "text": "Temporary room code is room-C.",
+            "scope": "cedar",
+            "kind": "note",
+            "source_ids": [
+              "P51"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P50",
+          "text": "Temporary rehearsal is at 10:00.",
+          "scope": "cedar",
+          "context": "Temporary note."
+        },
+        {
+          "id": "P51",
+          "text": "Temporary room code is room-C.",
+          "scope": "cedar",
+          "context": "Temporary note."
+        },
+        {
+          "id": "P52",
+          "text": "Forget both temporary notes temp-a and temp-b. No other memories are part of this request.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [
+          "temp-a",
+          "temp-b"
+        ],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "forget",
+      "outcome": "update",
+      "rubric": "Resulting facts must be empty and version advanced by host. Top references must include P52 for the forgetting decision; content provenance alone is insufficient. No actual durable deletion claim."
+    }
+  },
+  {
+    "id": "kind",
+    "input": {
+      "task": "Classify this saved observation as a lesson, preserving all other fields exactly.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "ordering",
+            "text": "The retry preserved item ordering in this one replay.",
+            "scope": "cedar",
+            "kind": "note",
+            "source_ids": [
+              "P60"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P60",
+          "text": "The retry preserved item ordering in this one replay.",
+          "scope": "cedar",
+          "context": "Observed result, not a general guarantee."
+        },
+        {
+          "id": "P61",
+          "text": "Keep that observation as a lesson without making it a universal rule.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [],
+        "classify_ids": [
+          "ordering"
+        ],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "classify",
+      "outcome": "update",
+      "rubric": "Only note to lesson changes. Fact still cites P60; decision evidence must include P61. Do not invent universal reliability."
+    }
+  },
+  {
+    "id": "absent",
+    "input": {
+      "task": "Reconcile the current interchange-format memory with the finalized replacement decision.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "format",
+            "text": "Use JSON for interchange.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P70"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P70",
+          "text": "Use JSON for interchange.",
+          "scope": "cedar",
+          "context": "Earlier accepted choice."
+        },
+        {
+          "id": "P71",
+          "text": "The finalized replacement choice is in decision-bundle-m2.",
+          "scope": "cedar",
+          "context": "That attachment has not been supplied."
+        },
+        {
+          "id": "P72",
+          "text": "Perhaps try CSV.",
+          "scope": "cedar",
+          "context": "Unaccepted suggestion, not the finalized attachment."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "amend",
+      "outcome": "needs_evidence",
+      "rubric": "Request decision-bundle-m2. Cite P71 for the absence/decision-reference claim; never cite attachment filename as source ID. No inferred CSV, reaffirmed JSON or request to choose again."
+    }
+  },
+  {
+    "id": "choice",
+    "input": {
+      "task": "Record the replacement cache choice when settled and identify the current next step.",
+      "record": {
+        "version": 31,
+        "facts": [
+          {
+            "id": "cache",
+            "text": "Use Rowan for the cache.",
+            "scope": "cedar",
+            "kind": "preference",
+            "source_ids": [
+              "P80"
+            ]
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "P80",
+          "text": "Use Rowan for the cache.",
+          "scope": "cedar",
+          "context": "Old accepted choice."
+        },
+        {
+          "id": "P81",
+          "text": "We will replace Rowan with either Ash or Fir. I have not selected one and the choice remains mine.",
+          "scope": "cedar",
+          "context": "Accepted owner statement."
+        }
+      ],
+      "grants": {
+        "scopes": [
+          "cedar"
+        ],
+        "kinds": [
+          "preference",
+          "lesson",
+          "decision",
+          "note"
+        ],
+        "create_ids": [],
+        "remove_ids": [],
+        "classify_ids": [],
+        "assigned_model": "luna"
+      }
+    },
+    "expected": {
+      "operation": "amend",
+      "outcome": "needs_decision",
+      "rubric": "Request the owner choice Ash versus Fir with P81 support. Keep old record unmodified without reaffirming it. No missing-document request or choice on owner behalf."
+    }
+  }
+]

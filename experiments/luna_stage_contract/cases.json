@@ -1,0 +1,52 @@
+[
+  {
+    "id": "inspect_correction",
+    "stage": "inspect",
+    "input": {
+      "task": "Select the source reads needed before answering which providers Mira currently wants considered. You are in inspection: do not answer the question or write a memory.",
+      "sources": [
+        {"id": "S1", "state": "already_read", "text": "2026-09-01: Prefer Anthropic for support work."},
+        {"id": "S2", "state": "unread", "title": "2026-09-16: Mira corrects her earlier provider preference"}
+      ]
+    },
+    "expected": {"required_reads": ["S2"]},
+    "rubric": "Must request S2 before answering; the old preference cannot establish the correction. No native tools or effects."
+  },
+  {
+    "id": "inspect_unavailable",
+    "stage": "inspect",
+    "input": {
+      "task": "Select the source reads needed to establish Mira's monthly budget. No relevant sources are available in the supplied scope. Return an empty actions list; do not invent sources, answer or infer a budget.",
+      "sources": []
+    },
+    "expected": {"required_reads": []},
+    "rubric": "Empty actions are correct here only because the declared scope has no available evidence. This is not a successful budget answer."
+  },
+  {
+    "id": "answer_preserve_exception",
+    "stage": "answer",
+    "input": {
+      "task": "Propose one concise current memory about provider selection. Preserve still-applicable exceptions; distinguish preference from exclusivity. This is a proposal, not permission to change any backend.",
+      "sources": [
+        {"id": "S1", "text": "2026-09-01: Prefer Anthropic generally."},
+        {"id": "S2", "text": "2026-09-16: Compare lower-cost OpenAI and Anthropic workers. Prefer OpenAI when task quality is similar."},
+        {"id": "S3", "text": "2026-09-16: My personal health journal stays local. That exception still applies."}
+      ]
+    },
+    "expected": {"decision": "update", "required_sources": ["S2", "S3"]},
+    "rubric": "Must retain both eligible providers, OpenAI preference conditional on similar quality, and local-only health-journal exception. Must not claim provider superiority, automatic migration or permission to upload the journal."
+  },
+  {
+    "id": "answer_tentative",
+    "stage": "answer",
+    "input": {
+      "task": "Decide whether the latest statement authorizes replacing the current accepted provider preference. Use no_change and empty memory when the proposal is still undecided; cite the relevant evidence.",
+      "sources": [
+        {"id": "S1", "text": "Accepted preference: compare OpenAI and Anthropic by task quality and total cost."},
+        {"id": "S2", "text": "Perhaps we should use Anthropic exclusively someday, but I have not decided. Keep the accepted preference for now."}
+      ]
+    },
+    "expected": {"decision": "no_change", "required_sources": ["S2"]},
+    "rubric": "Must not promote a tentative suggestion to an accepted preference. A no_change disposition with empty replacement text preserves the current memory."
+  }
+]

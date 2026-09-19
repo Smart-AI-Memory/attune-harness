@@ -45,6 +45,7 @@ def invoke(
     argv: tuple[str, ...], prompt: str, *, cwd: Path,
     timeout: float = 60, max_output_bytes: int = 1_048_576,
     cancel: Event | None = None, environment: dict[str, str] | None = None,
+    capture_interrupt: bool = False,
 ) -> ProcessResult:
     """Run without shell expansion; preserve bounded diagnostics on failure.
 
@@ -97,6 +98,10 @@ def invoke(
                 if failure:
                     break
                 time.sleep(0.01)
+        except KeyboardInterrupt:
+            if not capture_interrupt:
+                raise
+            failure = 'interrupted_effects_unknown'
         finally:
             # Also stop descendants left behind by an exited parent.
             if job is not None:

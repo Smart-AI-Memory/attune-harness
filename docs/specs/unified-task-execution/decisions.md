@@ -141,3 +141,45 @@ The targeted correction completed eight of eight repairs successfully, with 16 c
 After declining an unnecessary repeat run, Patrick said “proceed to outcome grading.” The current assistant read and graded all 60 original records and the separate eight-case corrected artifact, without provider calls or delegated agents. Labels explicitly identify assistant provenance and prior knowledge; original labels/rationales were saved before opening the mapping during this grading pass. The frozen protocol had selected a human grader; the approved spec itself did not require human-only semantic grading. This supplement does not amend that protocol or pretend to supply human labels or measured human effort.
 
 The unchanged installed original auditor returns revise: 48/60 completed-correct, zero critical misses and six unsupported allegations across four assessments. The assessment regression is concentrated in Claude-lead solo; all eight original required-review executions remain failures despite repaired code. The corrected artifact separately grades 8/8 with intact oracle/result hashes and bound approvals. All 1,164 previously manifested files remain unchanged. Task 8 stays current/unaccepted because the original quality floors failed and broad qualification is not established. See the [grading report](task-8-assistant-grading.md), including borderline-judgment sensitivity. No additional run, runtime change or economic superiority claim follows from this grading request.
+
+## D25 — Primary navigation and compatibility discovery (2026-09-16)
+
+Patrick selected “A — Adopt this navigation design (Recommended)” in the native
+decision form (reply to `call_PZ0cR3hHSrB0P2NtlDM9JhvA`, item 0): Do work,
+Continue work, and Configure and inspect. He then requested that users not have
+to learn the old commands and suggested aliases. The refined recommendation
+keeps old names as hidden compatibility routes, preserving distinct contracts
+rather than treating all operations as interchangeable aliases. Patrick said
+“go and show me the current navigation structure,” then “sounds good” to the
+concrete `--help` / `--help-all` implementation scope.
+
+Default help and onboarding teach review/fix and status/resume. Full help exposes
+setup, tools, recovery and a separate compatibility section; all old commands
+remain callable. The [navigation design](../../design-navigation.md) records the
+pre-code probe, cases and tradeoff. This bounded presentation change does not
+implement future task verbs or change Task 8's qualification status.
+
+## D26 — Human direction and AI command use (2026-09-16)
+
+Patrick clarified: “some of the commands are used by the ai primarily and that
+the human controls them through the spec writing and at quality gates.” Human
+onboarding therefore centers on defining work and deciding from evidence. The AI
+uses task and operational commands within accepted scope; the command catalog
+serves execution, integration and optional direct use. This supersedes D25's
+framing that users should learn four commands. Help labels now distinguish Task
+execution, Task controls, and AI tools and integration. Existing compatibility
+routes, authorizations and gate semantics remain intact.
+
+## D27 — Proportionate authoring and direct human intervention (2026-09-16)
+
+Patrick clarified that humans can intercede through the verb commands. Specs are
+the principal authoring form for more complex constructs or features, while
+Harness should use a clear one-shot prompt when sufficient or an XML-enhanced
+prompt when that is better. This refines D26: human control is not confined to
+spec writing or gate decisions, and ordinary tasks do not require a spec.
+
+The authoring forms are alternatives chosen to suit the work. Direct verbs remain
+available alongside them, without changing existing authorization or gate
+requirements. Onboarding records this direction; the current task CLI supports
+goal-based review/fix intake. Automatic choice among prompt, XML-enhanced prompt
+and spec is not implemented by this help/navigation increment.

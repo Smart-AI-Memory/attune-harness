@@ -1,5 +1,6 @@
 """Actual forms/tools and independently correlated command peers; no paid calls."""
 import json
+import subprocess
 import sys
 import pytest
 
@@ -8,6 +9,63 @@ from attune_harness.task_policies import execute_task
 from attune_harness.review_participants import ReviewExchange
 from test_review import case, change, scripted
 from test_task_contract import draft, response
+
+
+def test_goal_accept_pause_status_resume_as_one_cli_journey(case):
+    """The advertised primary command keeps one identity without repeated calls."""
+    root, registry, task = case[0].parent, case[1], case[2]
+    calls = root / 'peer-calls.jsonl'
+    peer = root / 'journey-peer.py'
+    peer.write_text(
+        'import json,sys\n'
+        'packet=json.load(sys.stdin)\n'
+        'with open(sys.argv[1], "a", encoding="utf-8") as log:\n'
+        '    log.write(json.dumps(packet)+"\\n")\n'
+        'print(json.dumps({"schema_version":1,"request_digest":packet["request_digest"],'
+        '"action":{"kind":"final","text":"Observed role " + packet["turn"]["role"]}}))\n',
+        encoding='utf-8',
+    )
+    configuration = {'adapter': 'command', 'command': [sys.executable, '-I', str(peer), str(calls)],
+                     'timeout': 10, 'tools': [], 'max_turns': 1, 'max_tool_calls': 0}
+    change(registry, lambda data: data.update(participants={
+        name: configuration for name in ('alpha', 'beta')}))
+
+    def invoke(arguments, expected):
+        result = subprocess.run([sys.executable, '-B', '-m', 'attune_harness', *arguments],
+                                cwd=root, capture_output=True, text=True, timeout=30)
+        assert result.returncode == expected, result.stdout + result.stderr
+        return json.loads(result.stdout)
+
+    paused = invoke([
+        'review', '--goal', 'Check guide evidence', '--project', str(root),
+        '--config', str(registry), '--task-dir', str(task),
+        '--criteria', 'Preserve uncertainty', '--query', 'quartz',
+        '--document', 'project/guide.md', '--context', 'context.json', '--corpus', 'project',
+        '--plan', 'independent-review', '--assessor', 'alpha', '--reviewer', 'beta',
+        '--allow-external', '--accept', '--pause-after', '3',
+    ], 1)
+    assert paused['status'] == 'paused'
+    first_calls = calls.read_bytes()
+    packets = [json.loads(line) for line in first_calls.splitlines()]
+    assert [packet['turn']['role'] for packet in packets] == ['assessor']
+    before_status = read_task(task)
+    inspected = invoke(['status', str(task)], 0)
+    assert inspected['status'] == 'paused'
+    assert read_task(task) == before_status and calls.read_bytes() == first_calls
+
+    completed = invoke(['resume', str(task)], 0)
+    assert completed['status'] == 'completed'
+    assert completed['request']['task_id'] == inspected['request']['task_id'] == paused['request']['task_id']
+    final_calls = calls.read_bytes()
+    packets = [json.loads(line) for line in final_calls.splitlines()]
+    assert [packet['turn']['role'] for packet in packets] == ['assessor', 'reviewer']
+    assert len({packet['request_digest'] for packet in packets}) == 2
+    assert all(packet['turn']['task_id'] == completed['request']['task_id'] for packet in packets)
+    integration = completed['execution']['integration']
+    assert integration['acceptance_status'] == 'unverified'
+    assert integration['semantic_verification'] is False
+    assert invoke(['resume', str(task)], 0) == completed
+    assert calls.read_bytes() == final_calls
 
 
 @pytest.mark.parametrize('plan,count', [('solo', 1), ('independent-review', 2)])

@@ -13,7 +13,7 @@ def add_commands(sub):
     form = sub.add_parser('review-form', help='Render the accepted-request form for a participant registry')
     form.add_argument('--config', type=Path, default=Path('participants.json'),
                       help='Trusted participant registry (default: ./participants.json)')
-    command = sub.add_parser('review', help='Review Markdown evidence with a lead, reviewer and scoped tools')
+    command = sub.add_parser('review', help='Assess a document against project evidence')
     command.add_argument('request', type=Path, nargs='?', help='Submitted legacy review-form JSON')
     command.add_argument('--config', type=Path,
                          help='Trusted participant registry (default: ./participants.json)')

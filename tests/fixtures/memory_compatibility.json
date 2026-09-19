@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "purpose": "Synthetic existing-format compatibility fixtures; never live user memory",
+  "raw": [
+    {"id": "N1", "text": "Aurora reminder was 09:15 weekdays; superseded by N2.", "type": "note", "cwd": "project-a"},
+    {"id": "N2", "text": "Aurora reminder is now 10:45 weekdays; corrects N1.", "type": "decision", "cwd": "project-a"},
+    {"id": "N3", "text": "Aurora: inspect evidence before accepting a changed finding.", "type": "pattern", "cwd": "project-a"},
+    {"id": "N4", "text": "Aurora duplicate acknowledgment previously hid a failed save.", "type": "bug", "cwd": "project-a"},
+    {"id": "N5", "text": "Aurora unrelated project reference; do not treat this as project-a authority.", "type": "reference", "cwd": "project-b"}
+  ],
+  "documents": [
+    {"root": "global", "path": "aurora/decision.md", "body": "Aurora global reminder is 09:15. This is the global default, not a project correction.", "query": "Aurora reminder"},
+    {"root": "project", "path": "aurora/decision.md", "body": "Aurora project reminder is 10:45. This explicitly supersedes the global reminder for this project.", "query": "Aurora reminder"},
+    {"root": "global", "path": "safety/pattern.md", "body": "Aurora procedure: inspect the complete source, check its project, then ask at the quality gate.", "query": "Aurora procedure"},
+    {"root": "global", "path": "recovery/troubleshooting.md", "body": "Aurora recovery: an absent receipt is not evidence that no write occurred. Reconcile the operation first.", "query": "Aurora recovery"},
+    {"root": "global", "path": "manual/reference.md", "body": "Aurora manual preserves the complete explanation and its source links. Follow the relevant quality checks before making a change. See [[reference_policy]].", "repeat": 12, "tail": "END_OF_SOURCE: rollback requires the original record and operation identity.", "query": "Aurora manual"}
+  ],
+  "curated": {"path": "reference_policy.md", "content": "---\nname: reference_policy\ndescription: Aurora source preservation policy\nmetadata:\n  type: reference\n  curated: true\n  promoted_from_stash_id: N3\n  promoted_from_session: synthetic-session\n  review_verdict: promote\n  review_response_id: synthetic-review\n  future_field: retain-me\n---\n\nAurora policy: preserve original evidence and links. See [[reference_other]] and [[?future_rule]].\n"},
+  "digest_node": {"id": "reference_synthetic_policy", "name": "reference_policy", "type": "reference", "description": "Aurora policy preserves original evidence and links.", "updated_at": "2026-09-16T12:00:00Z", "edges": [{"target": "reference_other", "relation": "references"}], "future_field": "retain-me"},
+  "working": {"key": "aurora:analysis", "value": {"findings": ["N1", "N2"], "current_time": "10:45", "source": "N2", "future_field": {"keep": true}}},
+  "pattern": {"pattern_id": "pat_legacy_aurora", "content": "Aurora: retain complete evidence before interpreting a correction.", "metadata": {"classification": "INTERNAL", "created_by": "synthetic-owner", "pattern_type": "architecture", "encrypted": false, "retention_days": 36500, "access_control": {"access_level": "workspace"}, "future_field": {"keep": true}}}
+}

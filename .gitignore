@@ -25,3 +25,6 @@ CLAUDE.md
 # Local workflow history and SQLite sidecars.
 /.attune/history.db*
 /.attune-harness/tasks/
+.claude/
+docs/handoffs/
+docs/reflections/

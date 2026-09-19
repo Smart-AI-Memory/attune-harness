@@ -455,3 +455,155 @@ def test_index_cannot_shadow_the_entire_selected_repository(corpus):
     cfg['index_dir'] = str(root)
     with pytest.raises(ValueError, match='contain a selected repository'):
         config(cfg, root)
+
+
+def test_public_selection_validation_returns_same_object_and_checks_generation(built, monkeypatch):
+    from attune_harness import voyage_index as index
+    root, selected, _ = built
+    original, checked = index.check_generation, []
+
+    def tracked(*args):
+        checked.append(args)
+        return original(*args)
+
+    monkeypatch.setattr(index, 'check_generation', tracked)
+    assert index.load_selection(selected) is selected
+    assert checked == [(selected['config'], selected['generation'])]
+    (root / 'README.md').write_bytes((root / 'README.md').read_bytes().replace(b'Selected', b'Rejected'))
+    with pytest.raises(ValueError, match='Stale index'):
+        index.load_selection(selected)
+
+
+@pytest.mark.parametrize('change', [
+    lambda s: s.update(extra='unsupported'),
+    lambda s: s.update(config_digest='0' * 64),
+    lambda s: s['config'].update(index_dir=s['config']['index_dir'] + '/.'),
+    lambda s: s.update(generation='../generation'),
+    lambda s: s['scope'].update(repo_ids=['outside']),
+])
+def test_invalid_selection_rejected_before_work_or_provider(built, tmp_path, change):
+    _, selected, provider = built
+    change(selected)
+    provider.calls.clear()
+    with pytest.raises(ValueError):
+        retrieval.retrieve_voyage(selected, 'save_cart', work_dir=tmp_path / 'refused', allow_provider=True, provider=provider)
+    assert not provider.calls and not (tmp_path / 'refused').exists()
+
+
+def alter_index_fixture(root, selected, kind):
+    """Faults target independent source, publication and database guards."""
+    from attune_harness.voyage_index import database, write_json
+    if kind == 'source':
+        # Unrelated to the returned save_cart excerpt; preserves file length.
+        path = root / 'README.md'
+        path.write_bytes(path.read_bytes().replace(b'Selected', b'Rejected'))
+    elif kind == 'revision':
+        git(root, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+            'commit', '--allow-empty', '-m', 'revision only')
+    elif kind == 'added':
+        (root / 'new.py').write_text('new_value = 1\n', encoding='utf-8')
+        git(root, 'add', 'new.py')
+    elif kind == 'deleted':
+        (root / 'README.md').unlink()
+    else:
+        directory, metadata = read_generation(selected['config'], selected['generation'])
+        if kind == 'metadata':
+            metadata['passages'][0]['excerpt'] += 'changed'
+            write_json(directory / 'manifest.json', metadata)
+        elif kind == 'publication':
+            publication = json.loads((directory / 'published.json').read_text())
+            publication['receipt_digest'] = '0' * 64
+            write_json(directory / 'published.json', publication)
+        else:
+            table = database(directory / 'db').open_table('passages')
+            table.update(values={'vector': [0.0, 1.0] + [0.0] * 1022} if kind == 'vector' else {'text': 'altered'})
+
+
+@pytest.mark.parametrize('cached', [False, True])
+@pytest.mark.parametrize('kind', ['source', 'revision', 'added', 'deleted', 'metadata', 'publication', 'text', 'vector'])
+def test_retrieval_revalidates_all_integrity_inputs_on_every_call(built, tmp_path, cached, kind):
+    root, selected, provider = built
+    work = tmp_path / 'run'
+    if cached:
+        result = retrieval.retrieve_voyage(selected, 'save_cart', k=1, work_dir=work, allow_provider=True, provider=provider)
+        assert result['sources'][0]['path'] == 'app.py'
+    alter_index_fixture(root, selected, kind)
+    provider.calls.clear()
+    with pytest.raises(ValueError):
+        retrieval.retrieve_voyage(selected, 'save_cart', k=1, work_dir=work, allow_provider=True, provider=provider)
+    assert not provider.calls
+    if not cached:
+        assert not work.exists()
+
+
+@pytest.mark.parametrize('boundary', ['embed', 'candidates', 'rerank'])
+@pytest.mark.parametrize('kind', ['source', 'vector', 'metadata'])
+def test_retained_boundary_stops_mutation_before_next_effect_or_evidence(built, tmp_path, monkeypatch, boundary, kind):
+    root, selected, provider = built
+    target = retrieval if boundary == 'candidates' else provider
+    original = getattr(target, boundary)
+
+    def changed(*args):
+        result = original(*args)
+        alter_index_fixture(root, selected, kind)
+        return result
+
+    monkeypatch.setattr(target, boundary, changed)
+    provider.calls.clear()
+    work = tmp_path / 'run'
+    with pytest.raises(ValueError):
+        retrieval.retrieve_voyage(selected, 'save_cart', k=1, work_dir=work, allow_provider=True, provider=provider)
+    assert [c[0] for c in provider.calls] == (['embed', 'rerank'] if boundary == 'rerank' else ['embed'])
+    key = digest({'selection': selected, 'query': 'save_cart', 'k': 1})
+    assert not (work / (key + '.json')).exists()
+    assert read_record(work)['invocations'][-1]['state'] == 'prepared'
+    assert all(read_record(p)['status'] == 'completed' for p in (work / 'stages').iterdir() if p.is_dir())
+
+
+@pytest.mark.parametrize('kind', ['source', 'vector', 'metadata'])
+def test_cached_evidence_still_checks_changes_after_entry(built, tmp_path, monkeypatch, kind):
+    root, selected, provider = built
+    work = tmp_path / 'run'
+    retrieval.retrieve_voyage(selected, 'save_cart', k=1, work_dir=work, allow_provider=True, provider=provider)
+    key = digest({'selection': selected, 'query': 'save_cart', 'k': 1})
+    cached = work / (key + '.json')
+    original = retrieval.read_json
+
+    def changed(path):
+        result = original(path)
+        if path == cached:
+            alter_index_fixture(root, selected, kind)
+        return result
+
+    monkeypatch.setattr(retrieval, 'read_json', changed)
+    provider.calls.clear()
+    with pytest.raises(ValueError):
+        retrieval.retrieve_voyage(selected, 'save_cart', k=1, work_dir=work, provider=provider)
+    assert not provider.calls
+    assert read_record(work)['invocations'][-1]['state'] == 'prepared'
+
+
+def test_portable_offline_probe_in_fresh_directory_and_no_overwrite(tmp_path):
+    import os
+    import sys
+    script = Path(__file__).resolve().parents[1] / 'experiments/voyage/profile_validation.py'
+    source = script.parents[2]
+    fixture, output = tmp_path / 'fixture', tmp_path / 'samples'
+    command = [sys.executable, str(script)]
+    env = {k: v for k, v in os.environ.items() if k not in ('VOYAGE_API_KEY', 'PYTHONPATH')}
+    prepare = command + ['prepare', '--source', str(source), '--workspace', str(fixture), '--files', '1', '--symbols', '2']
+    run = subprocess.run(prepare, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=60)
+    assert run.returncode == 0, run.stderr
+    assert json.loads(run.stdout)['live_provider_calls'] == 0
+    measure = command + ['measure', '--source', str(source), '--workspace', str(fixture), '--output', str(output)]
+    run = subprocess.run(measure, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=60)
+    assert run.returncode == 0, run.stderr
+    result = json.loads((output / 'result.json').read_text())
+    assert result['live_provider_calls'] == 0 and result['fixture']['passages'] == 2
+    assert {mode: summary['full_check_counts'] for mode, summary in result['summary'].items()} == {
+        'direct_recompute': [4], 'direct_cached': [3], 'session_setup': [1],
+        'session_recompute': [6], 'session_cached': [5]}
+    before = (output / 'result.json').read_bytes()
+    assert subprocess.run(measure, cwd=tmp_path, env=env, capture_output=True, timeout=60).returncode != 0
+    assert subprocess.run(prepare, cwd=tmp_path, env=env, capture_output=True, timeout=60).returncode != 0
+    assert (output / 'result.json').read_bytes() == before

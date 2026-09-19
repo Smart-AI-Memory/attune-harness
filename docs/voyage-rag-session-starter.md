@@ -2,6 +2,30 @@
 
 Updated September 16, 2026, after PR #1 merged.
 
+**Latest reranker result:** Patrick approved the `rerank-2.5` versus
+`rerank-2.5-lite` comparison with a $1 local stop budget. Read
+[the results and decision](reranker-comparison-results.md) first. All 200 calls
+completed for $0.09212483 before credits. Lite cost 60% less but saved only a paired
+median 19.0 ms. Complete top-five evidence was 74/80 versus 75/80; both scored
+76/80 at top ten. Two case-level losses failed the predefined no-loss check;
+keep the current default. This retrospective experiment does not approve or
+complete the separate production task ladder below.
+
+**Latest continuation:** Patrick approved the `/spec` task ladder for the latency
+increment. Read [the draft task ladder](specs/voyage-validation-reuse/tasks.md),
+[design and measurements](specs/voyage-validation-reuse/design.md), and
+[decisions](specs/voyage-validation-reuse/decisions.md) first. The XML plan is
+`.claude/plans/voyage-validation-reuse.md`; plan approval and execution start are
+recorded. Task 1's offline implementation/checks are ready: 79 Voyage tests pass,
+and the fresh baseline confirms direct 4/3 and session 6/5 full checks. The
+standard paid review workflow has not run; offline-review/auto-run selection and
+task acceptance remain pending. Do not restart the assessment.
+A separate disposable prototype removed one immediate duplicate validation:
+six-query warm offline means fell from 3.098 to 2.624 s for recomputation and
+2.559 to 2.064 s for cached results; 68 existing tests passed on each snapshot.
+No production source or preserved installation changed. Larger caching and
+Voyage options are assessed in the design, including their remaining proof work.
+
 Continue my work on the new repository-grounded Attune RAG integration using
 **Voyage AI**. Attune Harness helps AI users build applications through vibe
 engineering. I want retrieval anchored in application code, tests, and selected

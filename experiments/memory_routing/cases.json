@@ -1,0 +1,121 @@
+[
+  {
+    "id": "a_conditional_correction", "experiment": "A",
+    "input": {
+      "task": "Maintain the current testing preferences using the accepted correction. Preserve unrelated exceptions and do not invent a reason for the choice.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false},
+      "record": {"version": 4, "facts": [
+        {"id": "routine", "text": "Use Iron for routine tests.", "scope": "general", "source_ids": ["S1"]},
+        {"id": "payments", "text": "Payment tests must use Iron.", "scope": "payments", "source_ids": ["S2"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Use Iron for routine tests.", "scope": "general", "context": "Earlier accepted preference."},
+        {"id": "S2", "text": "Payment tests must use Iron.", "scope": "payments", "context": "Accepted exception, explicitly still applies."},
+        {"id": "S3", "text": "Prefer Finch for routine tests when failure detection is comparable.", "scope": "general", "context": "Accepted correction replacing S1. No explanation of comparative speed or cost was supplied."}
+      ]
+    },
+    "expected": {"status": "update", "replacements": {"routine": "S3"}},
+    "rubric": "Replace the routine rule with the conditional Finch preference. Preserve the payment exception. No cost/speed superiority or additional selection condition. S1 is explicitly superseded."
+  },
+  {
+    "id": "a_tentative", "experiment": "A",
+    "input": {
+      "task": "Maintain the accepted documentation preference in light of the latest note.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false},
+      "record": {"version": 2, "facts": [
+        {"id": "format", "text": "Write explanations as short paragraphs.", "scope": "general", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Write explanations as short paragraphs.", "scope": "general", "context": "Current accepted preference."},
+        {"id": "S2", "text": "Perhaps switch explanations to bullet lists someday.", "scope": "general", "context": "Unaccepted suggestion; the user explicitly said to retain the current preference for now."}
+      ]
+    },
+    "expected": {"status": "no_change", "replacements": {}},
+    "rubric": "Preserve the accepted paragraph preference. A tentative suggestion must not become accepted memory; no unresolved decision needs to be forced on the user."
+  },
+  {
+    "id": "a_unresolved", "experiment": "A",
+    "input": {
+      "task": "Maintain the release-window memory from the supplied accepted notes. No other chronology or precedence is available.",
+      "operation": "replace_existing", "signals": {"known_conflict": true, "changes_scope": false},
+      "record": {"version": 5, "facts": [
+        {"id": "window", "text": "Schedule the release for 09:00 UTC.", "scope": "harbor", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Schedule the release for 09:00 UTC.", "scope": "harbor", "context": "Earlier accepted record."},
+        {"id": "S2", "text": "Schedule the release for 10:00 UTC.", "scope": "harbor", "context": "Accepted replacement note, recorded at 12:00 UTC on September 16."},
+        {"id": "S3", "text": "Schedule the release for 11:00 UTC.", "scope": "harbor", "context": "Accepted replacement note, recorded at 12:00 UTC on September 16. Neither note supersedes the other."}
+      ]
+    },
+    "expected": {"status": "needs_review", "replacements": {}},
+    "rubric": "Keep the existing record untouched pending resolution. Identify the competing 10:00 and 11:00 choices; do not invent precedence or claim the old time has been reaffirmed."
+  },
+  {
+    "id": "a_project_scope", "experiment": "A",
+    "input": {
+      "task": "Apply the accepted North project correction and preserve the South project's own preference.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false},
+      "record": {"version": 8, "facts": [
+        {"id": "north", "text": "Use Pine for the documentation theme.", "scope": "north", "source_ids": ["S1"]},
+        {"id": "south", "text": "Use Cypress for the documentation theme.", "scope": "south", "source_ids": ["S2"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Use Pine for the documentation theme.", "scope": "north", "context": "Earlier North preference."},
+        {"id": "S2", "text": "Use Cypress for the documentation theme.", "scope": "south", "context": "Current South preference, still applies."},
+        {"id": "S3", "text": "Use Juniper for the documentation theme.", "scope": "north", "context": "Accepted correction replacing North's Pine choice only."}
+      ]
+    },
+    "expected": {"status": "update", "replacements": {"north": "S3"}},
+    "rubric": "Update only North to Juniper. Preserve South/Cypress, source provenance and both scopes."
+  },
+  {
+    "id": "b_routine", "experiment": "B",
+    "input": {
+      "task": "Maintain the accepted project-local language preference from the new decision.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false},
+      "record": {"version": 3, "facts": [
+        {"id": "language", "text": "Write the Cedar project's release notes in English.", "scope": "cedar", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Write the Cedar project's release notes in English.", "scope": "cedar", "context": "Earlier accepted preference."},
+        {"id": "S2", "text": "Write the Cedar project's release notes in Spanish.", "scope": "cedar", "context": "New accepted decision, explicitly replaces the earlier language preference."}
+      ]
+    },
+    "expected": {"status": "update", "replacements": {"language": "S2"}, "route": "luna"},
+    "rubric": "An explicit scoped replacement is routine under this experiment's routing policy. Update the language to Spanish without extra claims."
+  },
+  {
+    "id": "b_known_conflict", "experiment": "B",
+    "input": {
+      "task": "Maintain the archive-location preference using both new owner decisions. Intake marked a conflict; no precedence has been established.",
+      "operation": "replace_existing", "signals": {"known_conflict": true, "changes_scope": false},
+      "record": {"version": 6, "facts": [
+        {"id": "archive", "text": "Keep project archives in Amber.", "scope": "orchard", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Keep project archives in Amber.", "scope": "orchard", "context": "Earlier accepted preference."},
+        {"id": "S2", "text": "Keep project archives in Birch.", "scope": "orchard", "context": "Accepted new owner decision. Same time and authority as S3."},
+        {"id": "S3", "text": "Keep project archives in Elm.", "scope": "orchard", "context": "Accepted new owner decision. Same time and authority as S2; no ordering or override."}
+      ]
+    },
+    "expected": {"status": "needs_review", "replacements": {}, "route": "astra"},
+    "rubric": "Known conflict routes directly to the stronger agent. Correct final disposition identifies Birch versus Elm and preserves the record pending human resolution. Stronger reasoning cannot invent the owner's decision."
+  },
+  {
+    "id": "b_unflagged_conflict", "experiment": "B",
+    "input": {
+      "task": "Maintain the team's planning-meeting preference from the two imported owner notes. Their ordering in this packet is arbitrary.",
+      "operation": "replace_existing", "signals": {"known_conflict": false, "changes_scope": false},
+      "record": {"version": 7, "facts": [
+        {"id": "meeting", "text": "Hold the planning meeting on Tuesday.", "scope": "willow", "source_ids": ["S1"]}
+      ]},
+      "sources": [
+        {"id": "S1", "text": "Hold the planning meeting on Tuesday.", "scope": "willow", "context": "Earlier accepted preference."},
+        {"id": "S2", "text": "Hold the planning meeting on Wednesday.", "scope": "willow", "context": "Accepted owner note replacing Tuesday; imported without a timestamp."},
+        {"id": "S3", "text": "Keep the planning meeting on Tuesday; Wednesday is unsuitable.", "scope": "willow", "context": "Accepted owner note; imported without a timestamp. No evidence of which owner note is newer."}
+      ]
+    },
+    "expected": {"status": "needs_review", "replacements": {}, "route": "astra"},
+    "rubric": "Evidence content requires conflict handling despite the false intake flag. Luna returning needs_review is safe recognition even when its initial assignment differs from the reference Astra routing policy. Stronger review is not inherently necessary to recognize missing evidence. Do not infer chronology from packet order or claim a new meeting day is settled."
+  }
+]

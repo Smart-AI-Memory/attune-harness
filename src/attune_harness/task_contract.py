@@ -185,6 +185,12 @@ def read_task(directory):
     if (directory / 'record.json').is_symlink():
         raise ValueError('Task record cannot be a symlink')
     record = read_record(directory)
+    if record.get('task_profile') == 'feature-work-v1':
+        from .work_contract import validate_work_task
+        return validate_work_task(record, directory)
+    if record.get('task_profile') == 'pytest-change-v1':
+        from .test_change import validate_test_task
+        return validate_test_task(record, directory)
     fields(record, ('schema_version', 'operation', 'task_profile', 'status', 'request',
                     'record_path', 'acceptance', 'bindings', 'events', 'history',
                     'recovery', 'checkpoint_digest', *(['execution'] if 'execution' in record else [])))
@@ -233,6 +239,12 @@ def read_task(directory):
 
 
 def check_fresh(record):
+    if record.get('task_profile') == 'feature-work-v1':
+        from .work_contract import check_work_fresh
+        return check_work_fresh(record)
+    if record.get('task_profile') == 'pytest-change-v1':
+        from .test_change import check_test_fresh
+        return check_test_fresh(record)
     request = record['request']
     registry, config = load_task_registry(request['config']['path'])
     if registry != request['registry'] or config != request['config']:
@@ -341,6 +353,8 @@ def accept_task(directory, submission):
     store = RunStore(safe_storage(directory), existing=True)
     with store.lease():
         record = read_task(store.directory)
+        if record['task_profile'] != PROFILE:
+            raise ValueError('This profile uses its own acceptance owner')
         if record['status'] != 'draft':
             raise ValueError('This task revision is already accepted; do not replay approval')
         request = record['request']
@@ -383,6 +397,8 @@ def revise_task(directory, *, checkpoint, answers=None, plan=None, budget=None):
     store = RunStore(safe_storage(directory), existing=True)
     with store.lease():
         record = read_task(store.directory)
+        if record['task_profile'] != PROFILE:
+            raise ValueError('This profile uses its own revision owner')
         if checkpoint != record['checkpoint_digest']:
             raise ValueError('Stale task checkpoint')
         if 'execution' in record or 'repair' in record['request']:

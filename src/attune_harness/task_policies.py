@@ -70,7 +70,17 @@ def prepare_task(task):
             'source_snapshot': snapshot}
 
 
-def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_factory=ReviewExchange):
+def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_factory=ReviewExchange,
+                 allow_external=False, allow_native=False):
+    if read_task(directory).get('task_profile') == 'feature-work-v1':
+        from .work_runtime import plan_work, build_work
+        work = read_task(directory)
+        execute = build_work if work['status'] == 'accepted' and work['request'].get('effects') else plan_work
+        return execute(directory, checkpoint=checkpoint, max_operations=max_operations, exchange_factory=exchange_factory,
+                       allow_external=allow_external, allow_native=allow_native)
+    if read_task(directory).get('task_profile') == 'pytest-change-v1':
+        from .test_change import execute_test_task
+        return execute_test_task(directory, checkpoint=checkpoint, max_operations=max_operations)
     """Start or continue accepted work; completed operations belong to their assignment."""
     from .review import authorize_external
     from .retrieval import retrieve_sources
@@ -153,6 +163,9 @@ def validate_execution(task):
 
 def inspect_task(directory):
     task = read_task(directory)
+    if task.get('task_profile') == 'pytest-change-v1':
+        from .test_change import present_test_task
+        return present_test_task(task)
     if task['status'] == 'running':
         task['persisted_status'] = 'running'
         task['status'] = 'unresolved'
@@ -161,6 +174,9 @@ def inspect_task(directory):
 
 
 def control_task(directory, action, *, checkpoint=None, **kwargs):
+    if read_task(directory).get('task_profile') == 'pytest-change-v1':
+        from .test_change import control_test_task
+        return control_test_task(directory, action, checkpoint=checkpoint, **kwargs)
     from .recovery import reconcile_record, transfer_record, cancel_record
     from .review_contract import bounded_text
     store = RunStore(safe_storage(directory), existing=True)

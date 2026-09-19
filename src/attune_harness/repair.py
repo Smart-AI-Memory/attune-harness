@@ -114,26 +114,15 @@ def snapshot(plan):
     return result
 
 
-def freeze(root, allowed, probe, state_directory):
-    root = Path(root).absolute()
-    state = Path(state_directory).absolute()
-    if state.is_relative_to(root) or root.is_relative_to(state):
-        raise ValueError('Repair checkout and task state must be disjoint')
-    if not (root / '.git').is_dir() or (root / '.git').is_symlink():
-        raise ValueError('Repair requires a dedicated checkout with local .git directory')
-    if not isinstance(allowed, list) or not 1 <= len(allowed) <= 20 or len(set(allowed)) != len(allowed):
-        raise ValueError('Accept 1–20 distinct replacement paths')
-    for name in allowed:
-        relative(name)
-        if any(p in PROTECTED for p in PurePosixPath(name).parts):
-            raise ValueError('Protected state/metadata cannot be replaced')
+def validate_probe(root, allowed, probe, *, check_executable=True):
+    """Shared bounded trusted-check contract; no command is run here."""
     fields(probe, ('argv', 'cwd', 'timeout', 'max_output_bytes', 'environment', 'oracle_paths'))
     argv = probe['argv']
     if (not isinstance(argv, list) or not 1 <= len(argv) <= 32 or
             any(not isinstance(v, str) or '\x00' in v or len(v) > 4096 for v in argv) or
-            not Path(argv[0]).is_absolute() or not Path(argv[0]).is_file()):
+            not Path(argv[0]).is_absolute() or (check_executable and not Path(argv[0]).is_file())):
         raise ValueError('Probe requires a bounded argv with an existing absolute executable')
-    if Path(argv[0]).resolve().is_relative_to(root.resolve()):
+    if (Path(argv[0]).resolve() if check_executable else Path(argv[0])).is_relative_to(root.resolve() if check_executable else root):
         raise ValueError('Probe executable must be outside editable checkout')
     if probe['cwd'] != '.':
         raise ValueError('Probe cwd must be the accepted checkout root')
@@ -153,6 +142,23 @@ def freeze(root, allowed, probe, state_directory):
         relative(name)
         if name in allowed:
             raise ValueError('Acceptance oracle cannot be in replacement scope')
+
+
+def freeze(root, allowed, probe, state_directory):
+    root = Path(root).absolute()
+    state = Path(state_directory).absolute()
+    if state.is_relative_to(root) or root.is_relative_to(state):
+        raise ValueError('Repair checkout and task state must be disjoint')
+    if not (root / '.git').is_dir() or (root / '.git').is_symlink():
+        raise ValueError('Repair requires a dedicated checkout with local .git directory')
+    if not isinstance(allowed, list) or not 1 <= len(allowed) <= 20 or len(set(allowed)) != len(allowed):
+        raise ValueError('Accept 1–20 distinct replacement paths')
+    for name in allowed:
+        relative(name)
+        if any(p in PROTECTED for p in PurePosixPath(name).parts):
+            raise ValueError('Protected state/metadata cannot be replaced')
+    validate_probe(root, allowed, probe)
+    argv, oracles = probe['argv'], probe['oracle_paths']
     plan = {'profile': PROFILE, 'root': str(root), 'root_identity': identity(root.stat()),
             'allowed': list(allowed), 'probe': copy.deepcopy(probe),
             'executable_sha256': sha(Path(argv[0]).read_bytes())}

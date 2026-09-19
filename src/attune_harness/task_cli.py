@@ -142,8 +142,8 @@ def execute_intake(args):
 
 def add_controls(sub):
     for name, help_text in (
-        ('status', 'Inspect a saved task or legacy review without execution'),
-        ('resume', 'Continue a task using its saved accepted request'),
+        ('status', 'Inspect a saved task'),
+        ('resume', 'Continue a saved task'),
         ('reconcile-task', 'Attach a correlated reply or authorize one known read-only retry'),
         ('transfer-task', 'Transfer an assessor to an already accepted identity'),
         ('cancel-task', 'Cancel stopped work while preserving uncertain effects'),
@@ -154,6 +154,8 @@ def add_controls(sub):
             parser.add_argument('--checkpoint', help='Optional expected checkpoint for scripted compare-and-set')
         if name == 'resume':
             parser.add_argument('--max-operations', type=int)
+            parser.add_argument('--allow-external', action='store_true', help='Explicit feature-work command dispatch')
+            parser.add_argument('--allow-native', action='store_true', help='Separate feature-work native trial authorization')
         elif name == 'reconcile-task':
             parser.add_argument('--event', required=True)
             group = parser.add_mutually_exclusive_group(required=True)
@@ -171,6 +173,12 @@ def add_controls(sub):
 def execute_control(args):
     from .task_policies import inspect_task, execute_task, control_task
     try:
+        from .review_store import read_record
+        if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
+            from .work_cli import execute_control as execute_work_control
+            return execute_work_control(args)
+        if args.command == 'resume' and (args.allow_external or args.allow_native):
+            raise ValueError('These dispatch options apply only to feature work; existing tasks retain their saved permissions')
         if args.command == 'status':
             from .review_store import read_record, inspect_run
             result = (inspect_run(args.task_dir) if read_record(args.task_dir).get('operation') == 'review'
@@ -183,9 +191,15 @@ def execute_control(args):
                        'cancel-task': lambda: {'reason':args.reason}}
             result = control_task(args.task_dir, args.command.split('-')[0],
                                   checkpoint=args.checkpoint, **options[args.command]())
+        if result.get('task_profile') == 'pytest-change-v1':
+            from .test_change import public_test_task
+            result = public_test_task(result)
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         if args.command == 'status':
             return 0
+        if result.get('task_profile') == 'pytest-change-v1':
+            from .test_change import exit_code
+            return exit_code(result)
         return 0 if result['status'] == 'completed' else (1 if result['status'] in ('paused','cancelled') else 2)
     except Exception as exc:
         from .recovery import UnresolvedOperation
@@ -195,7 +209,7 @@ def execute_control(args):
 
 
 def add_fix(sub):
-    parser = sub.add_parser('fix', help='Repair scoped existing files using an immutable acceptance probe')
+    parser = sub.add_parser('fix', help='Repair scoped files and check the result')
     parser.add_argument('--goal')
     parser.add_argument('--project',type=Path)
     parser.add_argument('--config',type=Path)

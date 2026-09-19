@@ -1,0 +1,62 @@
+{
+  "recorded_at": "2026-09-18T20:34:11.609201+00:00",
+  "scope": "isolated response-controls prototype; no production integration",
+  "suite": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /private/tmp/attune-fresh-resolution-y74ui3g8/integrated/bin/python -B -m pytest -q -p no:cacheprovider experiments/response_controls/test_controls.py",
+    "exit_code": 0,
+    "passed": 28,
+    "elapsed_seconds": 7.26,
+    "observed_summary": "28 passed in 7.26s",
+    "evidence": "Observed completed subprocess output in this session",
+    "guard_removal_result": "Not required: these tests accompany new prototype code."
+  },
+  "documented_demo": {
+    "flow": "local-response-demo",
+    "exit_code": 0,
+    "job_directory": "/private/tmp/attune-response-demo/58f610c592764594bdaa57f3f997daec",
+    "result": {
+      "version": 1,
+      "id": "58f610c592764594bdaa57f3f997daec",
+      "phase": "ready",
+      "submitted_at": 1789763580.157173,
+      "started_at": 1789763580.205159,
+      "started_monotonic": 577360.538994291,
+      "finished_at": 1789763581.526248,
+      "elapsed_seconds": 1.3211630419827998,
+      "correctness": "unknown",
+      "notification": "not_requested",
+      "response_dispatched": true,
+      "validation_dispatched": false,
+      "cost": "unavailable",
+      "label": "Local response demo",
+      "warning_seconds": 0.2,
+      "timeout_seconds": 5.0,
+      "notification_backend": "inbox",
+      "spec_sha256": "a7532ce8acba1f7dfd89e810872a0722a9e61fcca1536b1b8da692ebe59c8861"
+    },
+    "noninteractive_warning_count_observed": 1,
+    "command_kind": "local /bin/sleep; no model or validator"
+  },
+  "primary_source_bindings": {
+    "protocol": "docs/receipts/plan-build-luna-broader-preparation-2026-09-18/protocol.json",
+    "protocol_sha256": "e8e65c303977bcc3fcb57a01bc3feeee52ba3abfad4e70ddf92a9780124f70f7",
+    "checked": 144,
+    "matched": 144,
+    "differences": []
+  },
+  "sha256": {
+    "experiments/response_controls/control.py": "2228463f0019ee579e0f338e88f2866347bf838c33ad49a7c424b73852fa0826",
+    "experiments/response_controls/test_controls.py": "152832f9355e1b82331d9b9bb38cdc0a145848284248a6d17f2921322fc7b201",
+    "experiments/response_controls/disclosure.html": "ba4ce28f8b57b57961b115c3d22d8d848622e6abb8a6ceec5eae258fb2c76092",
+    "src/attune_harness/process.py": "c7bd96eaca0d1c1171533a6c4fbc70a69f3170b1aa82df5a20a91027f4e9de00"
+  },
+  "new_model_calls": 0,
+  "provider_charges_from_test_commands": 0,
+  "unqualified": [
+    "Production build integration",
+    "Forms and inline action handlers",
+    "Real OS notification delivery and clickable result links",
+    "Windows and host-reboot persistence",
+    "Model cost or speed improvement"
+  ]
+}
