@@ -8,7 +8,30 @@ version = "0.1.0rc1"
 description = "Portable execution contracts for multi-model agent work"
 requires-python = ">=3.10"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Patrick Roebuck", email = "admin@smartaimemory.com"}
+]
+maintainers = [
+    {name = "Smart-AI-Memory", email = "admin@smartaimemory.com"}
+]
+keywords = ["ai-agent", "multi-agent", "agent-harness", "llm", "mcp", "developer-tools", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Environment :: Console",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Smart-AI-Memory/attune-harness"
+Repository = "https://github.com/Smart-AI-Memory/attune-harness"
+Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
 tokens = ["tiktoken==0.12.0"]
