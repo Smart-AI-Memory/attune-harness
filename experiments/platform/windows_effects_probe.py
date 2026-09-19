@@ -31,6 +31,8 @@ DELETE = 0x00010000
 FILE_READ_DATA = 0x0001
 FILE_WRITE_DATA = 0x0002
 FILE_LIST_DIRECTORY = 0x0001
+FILE_TRAVERSE = 0x0020
+FILE_ADD_FILE = 0x0002
 FILE_READ_ATTRIBUTES = 0x0080
 FILE_SHARE_ALL = 0x7
 FILE_OPEN = 0x1
@@ -45,6 +47,10 @@ FILE_ATTRIBUTE_REPARSE_POINT = 0x400
 FILE_RENAME_FLAG_REPLACE_IF_EXISTS = 0x1
 FILE_RENAME_FLAG_POSIX_SEMANTICS = 0x2
 FILE_RENAME_INFO_EX = 22  # FILE_INFO_BY_HANDLE_CLASS, not NT FILE_INFORMATION_CLASS.
+NT_FILE_RENAME_INFORMATION_EX = 65
+NT_FILE_RENAME_INFORMATION = 10
+STATUS_PENDING = 0x00000103
+STATUS_OBJECT_NAME_NOT_FOUND = 0xC0000034
 STATUS_REPARSE_POINT_ENCOUNTERED = 0xC000050B
 FILE_ID_INFO_CLASS = 18
 FILE_STANDARD_INFO_CLASS = 1
@@ -171,6 +177,9 @@ def _windows_api():
         ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.DWORD,
         wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD]
     nt.NtCreateFile.restype = ctypes.c_long
+    nt.NtSetInformationFile.argtypes = [wintypes.HANDLE, ctypes.POINTER(IO_STATUS_BLOCK),
+        ctypes.c_void_p, wintypes.ULONG, ctypes.c_int]
+    nt.NtSetInformationFile.restype = ctypes.c_long
     k.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
         ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
     k.CreateFileW.restype = wintypes.HANDLE
@@ -240,7 +249,8 @@ def _windows_api():
         result, ios = wintypes.HANDLE(), IO_STATUS_BLOCK()
         access = (FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE |
                   (FILE_LIST_DIRECTORY if directory else FILE_READ_DATA) |
-                  (FILE_WRITE_DATA | DELETE if writable else 0))
+                  (FILE_ADD_FILE | FILE_TRAVERSE if directory and writable else 0) |
+                  (FILE_WRITE_DATA | DELETE if writable and not directory else 0))
         # FILE_DIRECTORY_FILE is documented as incompatible with
         # FILE_OPEN_REPARSE_POINT; inspect Directory after opening instead.
         options = ((0 if directory else FILE_NON_DIRECTORY_FILE) |
@@ -310,25 +320,46 @@ def _windows_api():
             raise ValueError("scratch file length disagrees with handle snapshot")
         return buf.raw[:count.value]
 
-    def replace(handle, parent, target, audit):
+    def replace(handle, parent, target, audit, case):
         name = _leaf(target).encode("utf-16-le")
         offset = FILE_RENAME_INFO.FileName.offset
         # Microsoft requires at least sizeof(FILE_RENAME_INFORMATION) plus
         # FileNameLength. The first native run allocated offset+name+NUL,
         # which was two bytes short of this minimum on x64 (Win32 error 87).
         payload = ctypes.create_string_buffer(ctypes.sizeof(FILE_RENAME_INFO) + len(name))
-        audit.update({"api": "SetFileInformationByHandle", "class": FILE_RENAME_INFO_EX,
-            "flags": FILE_RENAME_FLAG_REPLACE_IF_EXISTS | FILE_RENAME_FLAG_POSIX_SEMANTICS,
-            "root_directory_handle_supplied": True, "target_leaf": target,
+        native = case["api"] == "nt"
+        info_class = case["class"]
+        flags = case["flags"]
+        root_supplied = case["root"] == "parent"
+        audit.update({"api": "NtSetInformationFile" if native else "SetFileInformationByHandle",
+            "class": info_class, "flags": flags,
+            "root_directory_handle_supplied": root_supplied, "target_leaf": target,
             "filename_offset": offset, "struct_size": ctypes.sizeof(FILE_RENAME_INFO),
             "filename_bytes": len(name), "buffer_bytes": len(payload)})
         header = ctypes.cast(payload, ctypes.POINTER(FILE_RENAME_INFO)).contents
-        header.Flags = FILE_RENAME_FLAG_REPLACE_IF_EXISTS | FILE_RENAME_FLAG_POSIX_SEMANTICS
-        header.RootDirectory = parent
+        header.Flags = flags
+        header.RootDirectory = parent if root_supplied else None
         header.FileNameLength = len(name)
         ctypes.memmove(ctypes.addressof(payload) + offset, name, len(name))
-        wincheck(k.SetFileInformationByHandle(handle, FILE_RENAME_INFO_EX, payload,
-                                              len(payload)), "SetFileInformationByHandle(FileRenameInfoEx)")
+        if not native:
+            wincheck(k.SetFileInformationByHandle(handle, info_class, payload,
+                                                  len(payload)), "SetFileInformationByHandle(FileRenameInfoEx)")
+            audit["win32_success"] = True
+            return
+        ios = IO_STATUS_BLOCK()
+        ios.Status = 0xDEADBEEF
+        returned = nt.NtSetInformationFile(handle, ctypes.byref(ios), payload,
+                                           len(payload), info_class)
+        result_status = returned & 0xFFFFFFFF
+        ios_status = (ios.Status or 0) & 0xFFFFFFFF
+        audit.update({"returned_ntstatus": result_status, "io_status_block_status": ios_status,
+                      "ntstatus_disagrees": result_status != ios_status,
+                      "nonfinal": result_status != 0 and result_status >> 30 != 3})
+        # Microsoft specifies the returned NTSTATUS as authoritative unless
+        # it is STATUS_PENDING. An untouched IOSB on immediate error is not
+        # evidence of an unknown outcome; the after-image still must match.
+        if result_status != 0:
+            raise ProbeError("NtSetInformationFile", result_status, "ntstatus")
 
     def filesystem(path):
         volume_root = Path(path).anchor
@@ -344,6 +375,138 @@ def _windows_api():
     return locals()
 
 
+def _rename_matrix(root, root_handle, api, receipt):
+    cases = (
+        {"id": "A", "api": "win32", "class": FILE_RENAME_INFO_EX, "flags": 3, "root": "parent", "parent_add_file": False},
+        {"id": "B", "api": "nt", "class": NT_FILE_RENAME_INFORMATION_EX, "flags": 3, "root": "parent", "parent_add_file": False},
+        {"id": "C", "api": "nt", "class": NT_FILE_RENAME_INFORMATION_EX, "flags": 3, "root": "parent", "parent_add_file": True},
+        {"id": "D", "api": "nt", "class": NT_FILE_RENAME_INFORMATION_EX, "flags": 1, "root": "parent", "parent_add_file": True},
+        {"id": "E", "api": "nt", "class": NT_FILE_RENAME_INFORMATION, "flags": 1, "root": "parent", "parent_add_file": True},
+        {"id": "F", "api": "win32", "class": FILE_RENAME_INFO_EX, "flags": 3, "root": "null", "parent_add_file": False},
+    )
+    root_id = api["identity"](root_handle)
+    receipt["rename_cases"] = []
+    receipt["handle_relative_observed_cases"] = []
+    old, proposed, protected = b"old synthetic\n", b"new synthetic\n", b"protected\n"
+    target, sibling = "target-é.txt", "prepared-é.tmp"
+
+    def observe_entry(parent, name):
+        try:
+            with api["owned"](api["child"](parent, name)) as handle:
+                entry = api["observed"](handle)
+                return {"metadata": entry,
+                        "sha256": _digest(api["read"](handle, entry["size"]))}
+        except ProbeError as exc:
+            if exc.kind == "ntstatus" and exc.code == STATUS_OBJECT_NAME_NOT_FOUND:
+                return None
+            raise
+
+    for case in cases:
+        path = root / ("case-" + case["id"] + " é space")
+        path.mkdir()
+        (path / target).write_bytes(old)
+        (path / "protected.txt").write_bytes(protected)
+        item = {"id": case["id"], "config": case.copy(),
+                "scratch_is_independent": True, "process_crash_induced": False,
+                "null_root_cwd_confined_to_scratch": case["root"] == "null",
+                "parent_requested_access": FILE_READ_ATTRIBUTES | READ_CONTROL |
+                    SYNCHRONIZE | FILE_LIST_DIRECTORY |
+                    (FILE_ADD_FILE | FILE_TRAVERSE if case["parent_add_file"] else 0)}
+        receipt["rename_cases"].append(item)
+        with api["owned"](api["child"](root_handle, path.name, directory=True,
+                                      writable=case["parent_add_file"])) as parent:
+            parent_id = api["identity"](parent)
+            with api["owned"](api["child"](parent, sibling, create=True, writable=True)) as prepared:
+                api["write"](prepared, proposed)
+                def snapshot():
+                    return {"root_metadata": api["observed"](root_handle),
+                            "parent_metadata": api["observed"](parent),
+                            "target": observe_entry(parent, target),
+                            "sibling": observe_entry(parent, sibling),
+                            "protected": observe_entry(parent, "protected.txt")}
+
+                before = snapshot()
+                item["before"] = before
+                if (before["root_metadata"]["identity"] != root_id or
+                    before["parent_metadata"]["identity"] != parent_id
+                    or before["target"]["sha256"] != _digest(old)
+                    or before["sibling"]["sha256"] != _digest(proposed)
+                    or before["protected"]["sha256"] != _digest(protected)):
+                    item["outcome"] = "preimage-invalid"
+                    raise ValueError("independent case preimage disagrees")
+                original_cwd = Path.cwd()
+                try:
+                    if case["root"] == "null":
+                        # NULL-root control cannot write relative to the repo
+                        # even if Win32 interprets the name against process CWD.
+                        os.chdir(path)
+                    try:
+                        api["replace"](prepared, parent, target, item.setdefault("request", {}), case)
+                    except ProbeError as exc:
+                        item["dispatch"] = {"status": "rejected", "kind": exc.kind,
+                                            "code": exc.code, "message": str(exc)}
+                    except Exception as exc:
+                        item["dispatch"] = {"status": "unexpected_exception",
+                                            "type": type(exc).__name__, "message": str(exc)}
+                    else:
+                        item["dispatch"] = {"status": "completed"}
+                finally:
+                    os.chdir(original_cwd)
+                try:
+                    after = snapshot()
+                except Exception as exc:
+                    item["after_observation_error"] = {"type": type(exc).__name__,
+                                                       "message": str(exc)}
+                    item["outcome"] = "effects-unknown"
+                    break
+                item["after"] = after
+                stable_directory_fields = ("identity", "attributes", "number_of_links",
+                                           "is_directory", "dacl_sddl_sha256")
+                authority_stable = (
+                    all(after["root_metadata"][field] == before["root_metadata"][field]
+                        for field in stable_directory_fields) and
+                    all(after["parent_metadata"][field] == before["parent_metadata"][field]
+                        for field in stable_directory_fields) and
+                    after["protected"] == before["protected"])
+                request = item.get("request", {})
+                if request.get("nonfinal"):
+                    item["outcome"] = "effects-unknown"
+                    break
+                if item["dispatch"]["status"] == "rejected":
+                    if (authority_stable and after["target"] == before["target"]
+                        and after["sibling"] == before["sibling"]):
+                        item["outcome"] = "clean-rejection"
+                        continue
+                    item["outcome"] = "effects-unknown"
+                    break
+                if item["dispatch"]["status"] != "completed":
+                    item["outcome"] = "effects-unknown"
+                    break
+                original = before["target"]["metadata"]
+                prepared_metadata = before["sibling"]["metadata"]
+                target_after = after["target"]
+                verified = (authority_stable and after["sibling"] is None and
+                    target_after is not None and target_after["sha256"] == _digest(proposed)
+                    and target_after["metadata"]["identity"] == prepared_metadata["identity"]
+                    and target_after["metadata"]["identity"] != original["identity"]
+                    and target_after["metadata"]["attributes"] == original["attributes"]
+                    and target_after["metadata"]["dacl_sddl_sha256"] == original["dacl_sddl_sha256"])
+                if not verified:
+                    item["outcome"] = "effects-unknown"
+                    break
+                item["outcome"] = "verified-after-image"
+                if case["api"] == "nt" and case["root"] == "parent":
+                    receipt["handle_relative_observed_cases"].append(case["id"])
+                else:
+                    item["qualification"] = "diagnostic-only"
+
+    if any(item.get("outcome") == "effects-unknown" for item in receipt["rename_cases"]):
+        raise ValueError("a diagnostic case had unknown effects")
+    if not receipt["handle_relative_observed_cases"]:
+        raise ValueError("no retained-parent native rename verified")
+    receipt["qualification"] = "observed native primitive only; no Windows effects backend"
+
+
 def _probe(receipt: dict):
     api = _windows_api()
     receipt["abi"] = {"pointer_size": ctypes.sizeof(ctypes.c_void_p),
@@ -352,6 +515,8 @@ def _probe(receipt: dict):
         "object_attributes_size": ctypes.sizeof(api["OBJECT_ATTRIBUTES"]),
         "io_status_block_size": ctypes.sizeof(api["IO_STATUS_BLOCK"]),
         "info_class": FILE_RENAME_INFO_EX,
+        "nt_extended_info_class": NT_FILE_RENAME_INFORMATION_EX,
+        "nt_classic_info_class": NT_FILE_RENAME_INFORMATION,
         "rename_flags": FILE_RENAME_FLAG_REPLACE_IF_EXISTS | FILE_RENAME_FLAG_POSIX_SEMANTICS,
         "nt_object_flags": OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE,
         "nt_share_flags": FILE_SHARE_ALL,
@@ -361,6 +526,9 @@ def _probe(receipt: dict):
                            FILE_SYNCHRONOUS_IO_NONALERT,
         "nt_directory_access": FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE |
                                FILE_LIST_DIRECTORY,
+        "nt_directory_add_file_access": FILE_READ_ATTRIBUTES | READ_CONTROL |
+                                        SYNCHRONIZE | FILE_LIST_DIRECTORY |
+                                        FILE_ADD_FILE | FILE_TRAVERSE,
         "nt_read_access": FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE |
                           FILE_READ_DATA,
         "nt_write_access": FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE |
@@ -440,47 +608,17 @@ def _probe(receipt: dict):
                         receipt["leaf_refusal"].append(unsafe)
                 if len(receipt["leaf_refusal"]) != 4:
                     raise ValueError("unsafe leaf accepted")
-                temp_name = "prepared-é.tmp"
-                with api["owned"](api["child"](parent, temp_name, create=True, writable=True)) as temp_handle:
-                    api["write"](temp_handle, proposed)
-                    temp_before = api["observed"](temp_handle)
-                    if api["identity"](parent) != parent_before or api["identity"](root_handle) != root_before:
-                        raise ValueError("retained ancestor identity changed")
-                    api["replace"](temp_handle, parent, target, receipt.setdefault("rename_request", {}))
-                # Simulate lost acknowledgement: inspect the namespace without
-                # using any completed operation result/identity from replace.
-                with api["owned"](api["child"](parent, target)) as after_handle:
-                    after = api["observed"](after_handle)
-                    after_bytes = api["read"](after_handle, len(proposed))
-                with api["owned"](api["child"](parent, "protected.txt")) as protected_handle:
-                    protected_bytes = api["read"](protected_handle, len(protected))
-                receipt["replacement"] = {"old": before, "prepared": temp_before,
-                    "observed_after_discarded_completion": after,
-                    "process_crash_induced": False,
-                    "old_sha256": _digest(old), "proposed_sha256": _digest(proposed),
-                    "observed_sha256": _digest(after_bytes),
-                    "parent_identity_stable": api["identity"](parent) == parent_before,
-                    "root_identity_stable": api["identity"](root_handle) == root_before,
-                    "protected_sha256": _digest(protected_bytes),
-                    "target_identity_changed": before["identity"] != after["identity"],
-                    "observed_identity_is_prepared": temp_before["identity"] == after["identity"],
-                    "dacl_equal_in_inherited_case": before["dacl_sddl_sha256"] == after["dacl_sddl_sha256"],
-                    "attributes_equal_in_default_case": before["attributes"] == after["attributes"]}
-                result = receipt["replacement"]
-                if (result["observed_sha256"] != result["proposed_sha256"]
-                    or result["protected_sha256"] != _digest(protected)
-                    or not all(result[key] for key in ("root_identity_stable",
-                        "parent_identity_stable", "target_identity_changed",
-                        "observed_identity_is_prepared", "dacl_equal_in_inherited_case",
-                        "attributes_equal_in_default_case"))):
-                    raise ValueError("after-image or default metadata observation disagrees")
+                if (api["identity"](parent) != parent_before or
+                    api["identity"](root_handle) != root_before):
+                    raise ValueError("preflight ancestor identity changed")
+                _rename_matrix(root, root_handle, api, receipt)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    receipt = {"schema": "windows-effects-primitive-probe-v1", "status": "unsupported",
+    receipt = {"schema": "windows-effects-rename-matrix-v1", "status": "unsupported",
         "os": platform.platform(), "release": platform.version(),
         "python": sys.version, "executable": str(Path(sys.executable).absolute()),
         "limits": ["No power-loss durability proof", "No nondefault ACL preservation proof",
