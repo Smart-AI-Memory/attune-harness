@@ -1,0 +1,4 @@
+# The test suite depends on tests/fixtures and the experiments/ tree, neither of
+# which ships in the source distribution. Exclude the tests rather than publish
+# a partial suite that cannot run. Run tests from a repository checkout.
+prune tests
