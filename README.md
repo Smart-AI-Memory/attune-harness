@@ -4,7 +4,7 @@
 > successor to attune-ai and is public for early evaluation. Interfaces,
 > configuration formats and CLI commands may change between candidates.
 > Model-provider qualification is incomplete; see [qualification](docs/qualification.md).
-> Pre-release builds are on PyPI as of 0.1.0.dev14 (September 19, 2026): `pip install --pre attune-harness`.
+> The package is not yet published to PyPI; install from a checkout or a tagged release.
 
 A portable, extensible runtime for multi-model agents, under development.
 
