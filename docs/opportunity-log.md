@@ -526,3 +526,17 @@ and its associated content into smartaimemory.com **after he approves the conten
 That approval is pending. Website integration and publication have not started.
 The [integration handoff](handoffs/smartaimemory-controls-article.md) identifies the
 two working drafts, the approval condition and the public-link/content checks.
+
+Unnumbered, 2026-09-19 (assign the next O-number at the next log review): product
+modules named like tests. While inspecting the source distribution before a first
+PyPI publication, Patrick noticed `test_change.py`, `test_cli.py`,
+`test_execution.py` and `test_scope.py` inside `src/attune_harness/`. They are
+product code for the `attune-harness test` command, not tests, and must ship. The
+`test_*.py` names match pytest's default discovery pattern, so they read as
+misplaced tests to people and tools. No defect is observed: `testpaths = ["tests"]`
+keeps pytest out of `src/`, and the modules define no test functions. Candidate
+follow-up: move them to a subpackage such as `attune_harness/testing/` (`cli.py`,
+`scope.py`, `execution.py`, `change.py`). The rename touches package imports,
+changes module hashes that existing receipts bind, and needs its own regression
+pass, so it is recorded separately and does not block publication. Effort: small
+to medium. Nothing is renamed or authorized by this note.
