@@ -97,6 +97,28 @@ def test_timeout_stops_descendant_effect(tmp_path):
     assert not marker.exists()
 
 
+@pytest.mark.parametrize('capture', [False, True])
+def test_keyboard_interrupt_preserves_default_and_opt_in_cleanup(tmp_path, monkeypatch, capture):
+    import attune_harness.process as runner
+    children = []
+    launch = runner.subprocess.Popen
+    def tracked(*args, **kwargs):
+        child = launch(*args, **kwargs)
+        children.append(child)
+        return child
+    def interrupt(_):
+        raise KeyboardInterrupt
+    monkeypatch.setattr(runner.subprocess, 'Popen', tracked)
+    monkeypatch.setattr(runner.time, 'sleep', interrupt)
+    if capture:
+        result = invoke(command('import time;time.sleep(20)'), '', cwd=tmp_path, capture_interrupt=True)
+        assert result.failure == 'interrupted_effects_unknown'
+    else:
+        with pytest.raises(KeyboardInterrupt):
+            invoke(command('import time;time.sleep(20)'), '', cwd=tmp_path)
+    assert children[0].poll() is not None
+
+
 def test_exit_race_reaps_then_rechecks_group_without_losing_output(tmp_path, monkeypatch):
     import attune_harness.process as runner
     real = os.killpg

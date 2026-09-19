@@ -1,5 +1,6 @@
 """Real Windows Job Object and file-lock probes; never simulated as a native pass."""
 import os
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,53 @@ pytestmark=pytest.mark.skipif(os.name!='nt',reason='Requires a native Windows ru
 
 
 def command(code):return (sys.executable,'-c',code)
+
+
+def explicit_environment():
+    return {'SystemRoot': os.environ['SystemRoot'], 'ATTUNE_EXPLICIT': 'café',
+            'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
+
+
+def test_windows_explicit_environment_reaches_target_exactly(tmp_path, monkeypatch):
+    monkeypatch.setenv('ATTUNE_AMBIENT_CANARY', 'must-not-leak')
+    environment = explicit_environment()
+    keys = sorted(k.upper() for k in environment)
+    code = ('import json,os;print(json.dumps({"keys":sorted(os.environ),'
+            f'"values":{{k:os.environ.get(k) for k in {keys!r}}}}}))')
+    result = invoke(command(code), '',
+                    cwd=tmp_path, environment=environment)
+    assert result.failure is None, result
+    assert json.loads(result.stdout) == {'keys': keys,
+                                       'values': {k.upper(): v for k, v in environment.items()}}
+    assert environment == explicit_environment()
+
+
+def test_windows_default_environment_still_inherits(tmp_path, monkeypatch):
+    monkeypatch.setenv('ATTUNE_DEFAULT_CANARY', 'inherited')
+    result = invoke(command('import os;print(os.environ["ATTUNE_DEFAULT_CANARY"])'), '',
+                    cwd=tmp_path)
+    assert result.failure is None and result.stdout.strip() == 'inherited'
+
+
+def test_windows_ambiguous_environment_is_rejected_before_job(tmp_path, monkeypatch):
+    from attune_harness.windows import WindowsJob
+    monkeypatch.setattr(WindowsJob, '__enter__', lambda self: pytest.fail('job created'))
+    with pytest.raises(ValueError, match='distinct ignoring case'):
+        invoke(command('raise SystemExit(99)'), '', cwd=tmp_path,
+               environment={'Path': 'first', 'PATH': 'second'})
+
+
+def test_windows_explicit_environment_keeps_descendant_cleanup(tmp_path):
+    marker = tmp_path / 'escaped'
+    child = f'import time,pathlib;time.sleep(3);pathlib.Path({str(marker)!r}).write_text("bad")'
+    parent = ('import subprocess,sys,time;'
+              f'subprocess.Popen([sys.executable,"-c",{child!r}]);'
+              'print("spawned",flush=True);time.sleep(20)')
+    result = invoke(command(parent), '', cwd=tmp_path, timeout=2,
+                    environment=explicit_environment())
+    assert result.failure == 'timeout_effects_unknown' and 'spawned' in result.stdout
+    time.sleep(3.2)
+    assert not marker.exists()
 
 
 def test_windows_success_failure_unicode_and_spaced_cwd(tmp_path):
@@ -53,14 +101,16 @@ def test_windows_descendants_stop_even_after_parent_exit(tmp_path,parent_wait):
     time.sleep(3.2);assert not marker.exists()
 
 
-def test_windows_failed_job_assignment_never_starts_requested_code(tmp_path):
+@pytest.mark.parametrize('explicit', [False, True])
+def test_windows_failed_job_assignment_never_starts_requested_code(tmp_path, explicit):
     from attune_harness.windows import WindowsJob
     marker=tmp_path/'effect'
     with WindowsJob() as job:
         job.api.AssignProcessToJobObject=lambda *_args:0
         with pytest.raises(OSError):
             job.launch(command(f'from pathlib import Path;Path({str(marker)!r}).write_text("bad")'),
-                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,cwd=tmp_path)
+                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,cwd=tmp_path,
+                environment=explicit_environment() if explicit else None)
     assert not marker.exists()
 
 

@@ -41,6 +41,9 @@ jobs:
           python -m pip check
       - name: Qualify installed artifact and record platform limits
         run: python -I scripts/qualify_platform.py --output qualification
+      - name: Verify Windows environment guard detects inheritance
+        if: runner.os == 'Windows'
+        run: python -I experiments/platform/check_windows_environment_guard.py --output qualification/environment-guard
       - name: Keep qualification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
