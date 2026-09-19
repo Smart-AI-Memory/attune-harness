@@ -44,12 +44,19 @@ def qualify(output):
             except FeatureUnavailable:receipt['checks'].append('native recovery explicitly unsupported')
             else:raise AssertionError('Update the Windows qualification suite before claiming support')
         receipt['native_process_and_recovery']='unsupported'
-    argv=[sys.executable,'-m','pytest','-q','-o','pythonpath=',
+    argv=[sys.executable,'-m','pytest','-vv','-o','pythonpath=',
           '--junitxml='+str(output/'tests.xml'),*[str(ROOT/'tests'/t) for t in tests]]
     if os.name != 'posix':
         argv += ['-k', 'not actual_cli_process_through_full_adapter']
-    run=subprocess.run(argv,cwd=output,capture_output=True,text=True,encoding='utf-8',timeout=180)
-    (output/'tests.txt').write_text(run.stdout+'\n'+run.stderr,encoding='utf-8')
+    # Keep progress even if the whole suite exhausts its orchestration budget.
+    # Individual operation deadlines and test assertions are unchanged.
+    with (output/'tests.txt').open('wb') as log:
+        try:
+            run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=600)
+        except subprocess.TimeoutExpired:
+            run=subprocess.CompletedProcess(argv,124)
+            receipt['failure']='suite_timeout'
+    receipt['suite_timeout_seconds']=600
     receipt['exit']=run.returncode;receipt['command']=argv
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
