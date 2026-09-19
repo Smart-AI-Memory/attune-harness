@@ -1,0 +1,37 @@
+name: Release workflow registration (inert on default branch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full reviewed commit SHA
+        required: true
+        type: string
+      version:
+        description: Exact final or TestPyPI RC version
+        required: true
+        type: string
+      target:
+        description: Explicit destination
+        required: true
+        type: choice
+        options: [pypi, testpypi]
+        default: pypi
+      publish:
+        description: Publish only from a separately reviewed branch workflow
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  registration_only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Refuse default-branch publication
+        shell: bash
+        run: |
+          echo 'This default-branch file only registers manual dispatch. Use --ref with a reviewed release-candidate branch containing the full workflow.' >&2
+          exit 1
