@@ -125,13 +125,21 @@ def test_interrupt_keeps_pending_work_unresolved(mcp_case, monkeypatch):
     assert saved['status'] == 'unresolved' and saved['events'][0]['state'] == 'pending'
 
 
-def sdk_parameters(mcp_case, *, slow=False):
+def sdk_parameters(mcp_case, *, release=None):
     from mcp.client.stdio import StdioServerParameters
     source = str(Path(module.__file__).resolve().parent.parent)
     boot = f'import sys;sys.path.insert(0,{source!r});'
-    if slow:
-        boot += ('import time;import attune_harness.mcp_server as m;real=m.retrieve_sources;'
-                 'm.retrieve_sources=lambda *a,**k:(time.sleep(.25),real(*a,**k))[1];')
+    if release is not None:
+        boot += ('\nimport time\nfrom pathlib import Path\n'
+                 'import attune_harness.mcp_server as m\nreal=m.retrieve_sources\n'
+                 'def held_retrieve(*args, **kwargs):\n'
+                 '    deadline=time.monotonic()+15\n'
+                 f'    while not Path({str(release)!r}).exists():\n'
+                 '        if time.monotonic() >= deadline: raise TimeoutError("fixture release missing")\n'
+                 '        time.sleep(.01)\n'
+                 '    time.sleep(1.25)\n'
+                 '    return real(*args, **kwargs)\n'
+                 'm.retrieve_sources=held_retrieve\n')
     boot += 'from attune_harness.cli import main;raise SystemExit(main(sys.argv[1:]))'
     return StdioServerParameters(command=sys.executable,args=['-c',boot,'mcp-serve','--request',str(mcp_case[0]),
            '--config',str(mcp_case[1]),'--participant','alpha','--session-dir',str(mcp_case[2])])
@@ -167,21 +175,41 @@ def test_sdk_cancellation_retains_started_call_receipt(mcp_case):
     pytest.importorskip('mcp')
     from mcp import ClientSession
     from mcp.client.stdio import stdio_client
-    from mcp.shared.exceptions import MCPError
+    release = mcp_case[2].parent / 'release-retrieval'
     async def journey():
-        async with stdio_client(sdk_parameters(mcp_case,slow=True)) as (read,write):
+        async def observe(predicate):
+            deadline = asyncio.get_running_loop().time() + 10
+            while True:
+                saved = read_record(mcp_case[2])
+                if predicate(saved['events']):
+                    return saved
+                assert asyncio.get_running_loop().time() < deadline, saved
+                await asyncio.sleep(.02)
+
+        async with stdio_client(sdk_parameters(mcp_case,release=release)) as (read,write):
             async with ClientSession(read,write) as client:
                 await client.initialize()
-                with pytest.raises(MCPError, match='[Tt]imed out|[Tt]imeout'):
-                    await client.call_tool('harness.evidence.search', {'query':'quartz policy','k':3},
-                                           read_timeout_seconds=.05)
-                # Client timeout sends cancellation. Wait on observable record state,
-                # not an assumption that a canceled response means the call did not run.
-                for _ in range(100):
-                    await asyncio.sleep(.01)
-                    saved = read_record(mcp_case[2])
-                    if saved['events'] and saved['events'][0]['state'] == 'completed':
-                        break
+                call = asyncio.create_task(client.call_tool('harness.evidence.search',
+                    {'query':'quartz policy','k':3}))
+                try:
+                    # A timed request could be cancelled before any work started.
+                    # Hold the child until its durable pending receipt is observed.
+                    started = await observe(bool)
+                    assert len(started['events']) == 1, started
+                    assert started['events'][0]['state'] == 'pending', started
+                    call.cancel()  # The SDK sends the protocol cancellation notification.
+                    with pytest.raises(asyncio.CancelledError):
+                        await call
+                finally:
+                    release.touch()
+                    if not call.done():
+                        call.cancel()
+                        with pytest.raises(asyncio.CancelledError):
+                            await call
+                # Retrieval takes >1s after release, exceeding the old poll budget.
+                saved = await observe(lambda events: events and events[0]['state'] != 'pending')
+                assert len(saved['events']) == 1, saved
+                assert saved['events'][0]['state'] == 'completed', saved
                 assert saved['events'][0]['result']['status'] == 'retrieved'
     asyncio.run(journey())
 
