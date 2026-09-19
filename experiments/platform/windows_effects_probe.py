@@ -63,6 +63,19 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _source_fingerprint(path: Path) -> dict:
+    executed = path.read_bytes()
+    git_bytes = executed.replace(b"\r\n", b"\n")
+    if b"\r" in git_bytes:
+        raise ValueError("unsupported standalone carriage return in source")
+    git_header = f"blob {len(git_bytes)}\0".encode("ascii")
+    return {"executed_sha256": _digest(executed),
+            "git_lf_sha256": _digest(git_bytes),
+            "git_blob_sha1": hashlib.sha1(git_header + git_bytes).hexdigest(),
+            "crlf_lines": executed.count(b"\r\n"),
+            "lf_lines": git_bytes.count(b"\n")}
+
+
 def _leaf(name: str) -> str:
     # The caller must never smuggle another component or alternate stream into
     # an operation intended to be relative to an already validated directory.
@@ -297,10 +310,18 @@ def _windows_api():
             raise ValueError("scratch file length disagrees with handle snapshot")
         return buf.raw[:count.value]
 
-    def replace(handle, parent, target):
+    def replace(handle, parent, target, audit):
         name = _leaf(target).encode("utf-16-le")
         offset = FILE_RENAME_INFO.FileName.offset
-        payload = ctypes.create_string_buffer(offset + len(name) + 2)
+        # Microsoft requires at least sizeof(FILE_RENAME_INFORMATION) plus
+        # FileNameLength. The first native run allocated offset+name+NUL,
+        # which was two bytes short of this minimum on x64 (Win32 error 87).
+        payload = ctypes.create_string_buffer(ctypes.sizeof(FILE_RENAME_INFO) + len(name))
+        audit.update({"api": "SetFileInformationByHandle", "class": FILE_RENAME_INFO_EX,
+            "flags": FILE_RENAME_FLAG_REPLACE_IF_EXISTS | FILE_RENAME_FLAG_POSIX_SEMANTICS,
+            "root_directory_handle_supplied": True, "target_leaf": target,
+            "filename_offset": offset, "struct_size": ctypes.sizeof(FILE_RENAME_INFO),
+            "filename_bytes": len(name), "buffer_bytes": len(payload)})
         header = ctypes.cast(payload, ctypes.POINTER(FILE_RENAME_INFO)).contents
         header.Flags = FILE_RENAME_FLAG_REPLACE_IF_EXISTS | FILE_RENAME_FLAG_POSIX_SEMANTICS
         header.RootDirectory = parent
@@ -327,6 +348,7 @@ def _probe(receipt: dict):
     api = _windows_api()
     receipt["abi"] = {"pointer_size": ctypes.sizeof(ctypes.c_void_p),
         "rename_info_filename_offset": api["FILE_RENAME_INFO"].FileName.offset,
+        "rename_info_struct_size": ctypes.sizeof(api["FILE_RENAME_INFO"]),
         "object_attributes_size": ctypes.sizeof(api["OBJECT_ATTRIBUTES"]),
         "io_status_block_size": ctypes.sizeof(api["IO_STATUS_BLOCK"]),
         "info_class": FILE_RENAME_INFO_EX,
@@ -424,7 +446,7 @@ def _probe(receipt: dict):
                     temp_before = api["observed"](temp_handle)
                     if api["identity"](parent) != parent_before or api["identity"](root_handle) != root_before:
                         raise ValueError("retained ancestor identity changed")
-                    api["replace"](temp_handle, parent, target)
+                    api["replace"](temp_handle, parent, target, receipt.setdefault("rename_request", {}))
                 # Simulate lost acknowledgement: inspect the namespace without
                 # using any completed operation result/identity from replace.
                 with api["owned"](api["child"](parent, target)) as after_handle:
@@ -466,9 +488,13 @@ def main() -> int:
     try:
         repo_root = Path(__file__).resolve().parents[2]
         workflow = repo_root / ".github/workflows/windows-effects-primitive.yml"
-        receipt["artifacts"] = {"probe_sha256": _digest(Path(__file__).read_bytes()),
+        probe_fingerprint = _source_fingerprint(Path(__file__))
+        workflow_fingerprint = _source_fingerprint(workflow)
+        receipt["artifacts"] = {"probe_sha256": probe_fingerprint["executed_sha256"],
+            "probe_source": probe_fingerprint,
             "executable_sha256": _digest(Path(sys.executable).read_bytes()),
-            "workflow_sha256": _digest(workflow.read_bytes()),
+            "workflow_sha256": workflow_fingerprint["executed_sha256"],
+            "workflow_source": workflow_fingerprint,
             "github_sha": os.environ.get("GITHUB_SHA")}
         if os.name != "nt":
             raise RuntimeError("real Windows required; no simulated result")
