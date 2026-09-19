@@ -13,15 +13,17 @@ def add_commands(sub):
     form = sub.add_parser('review-form', help='Render the accepted-request form for a participant registry')
     form.add_argument('--config', type=Path, default=Path('participants.json'),
                       help='Trusted participant registry (default: ./participants.json)')
-    command = sub.add_parser('review', help='Review Markdown evidence with a lead, reviewer and scoped tools')
-    command.add_argument('request', type=Path, help='Submitted review-form JSON')
-    command.add_argument('--config', type=Path, default=Path('participants.json'),
+    command = sub.add_parser('review', help='Assess a document against project evidence')
+    command.add_argument('request', type=Path, nargs='?', help='Submitted legacy review-form JSON')
+    command.add_argument('--config', type=Path,
                          help='Trusted participant registry (default: ./participants.json)')
-    command.add_argument('--run-dir', type=Path, required=True, help='New directory for the durable run record')
+    command.add_argument('--run-dir', type=Path, help='New directory for the durable legacy run record')
     command.add_argument('--allow-external', action='store_true',
                          help='Explicitly enable configured commands/native models, which may use credentials and incur costs')
     command.add_argument('--max-operations', type=int, help='Pause after this many newly completed operations (1–100)')
     command.add_argument('--allow-provider', action='store_true', help='Authorize accepted Voyage retrieval uploads/calls')
+    from .task_cli import add_arguments
+    add_arguments(command)
     inspect = sub.add_parser('inspect-review', help='Read a saved review without resuming or invoking participants')
     inspect.add_argument('run_dir', type=Path)
     resume = sub.add_parser('resume-review', help='Continue a matching checkpoint without repeating completed work')

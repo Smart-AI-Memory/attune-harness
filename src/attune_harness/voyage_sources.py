@@ -122,7 +122,9 @@ def code_config(root: Path, index_dir: Path, *, repo_id='app', include_docs=Fals
 
 
 def git(root, *args):
-    run = subprocess.run(['git', '-C', str(root), *args], capture_output=True, timeout=15)
+    # Snapshot reads must not refresh .git/index when an overlay becomes clean.
+    run = subprocess.run(['git', '--no-optional-locks', '-c', 'diff.autoRefreshIndex=false',
+                          '-C', str(root), *args], capture_output=True, timeout=15)
     if run.returncode:
         raise ValueError('Selected source must be a readable Git repository with a HEAD revision')
     if len(run.stdout) > 8 * 1024 * 1024:
@@ -162,7 +164,12 @@ def snapshot(cfg):
             raise ValueError('Source root must be the Git repository root')
         revision = git(root, 'rev-parse', 'HEAD').decode().strip()
         tracked = set(git(root, 'ls-files', '-z', '--cached').decode('utf-8').strip('\0').split('\0')) - {''}
-        dirty = set(git(root, 'diff', '--name-only', '-z', 'HEAD', '--').decode('utf-8').strip('\0').split('\0'))
+        # name-only trusts stale index stat data when auto-refresh is disabled.
+        # numstat compares content, including binary and mode-only changes.
+        changes = git(root, 'diff', '--numstat', '-z', '--no-renames',
+                      '--no-ext-diff', '--no-textconv', 'HEAD', '--')
+        dirty = {entry.split(b'\t', 2)[2].decode('utf-8')
+                 for entry in changes.split(b'\0') if entry}
         names = set(tracked)
         if cfg['allow_untracked']:
             names.update(git(root, 'ls-files', '-z', '--others', '--exclude-standard').decode('utf-8').strip('\0').split('\0'))

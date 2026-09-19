@@ -44,7 +44,8 @@ def _kill_group(process: subprocess.Popen) -> None:
 def invoke(
     argv: tuple[str, ...], prompt: str, *, cwd: Path,
     timeout: float = 60, max_output_bytes: int = 1_048_576,
-    cancel: Event | None = None,
+    cancel: Event | None = None, environment: dict[str, str] | None = None,
+    capture_interrupt: bool = False,
 ) -> ProcessResult:
     """Run without shell expansion; preserve bounded diagnostics on failure.
 
@@ -53,6 +54,12 @@ def invoke(
     """
     if os.name not in ("posix", "nt"):
         raise NotImplementedError("native supervision requires POSIX or Windows")
+    if environment is not None:
+        if os.name != 'posix':
+            raise NotImplementedError('Explicit probe environments currently require POSIX')
+        if not isinstance(environment, dict) or any(not isinstance(k, str) or not isinstance(v, str)
+                or not k or '=' in k or '\x00' in k or '\x00' in v for k,v in environment.items()):
+            raise ValueError('Environment must contain valid string entries')
     # Empty arguments are useful CLI values (e.g. --tools ""), except argv[0].
     if not argv or not argv[0] or any(not isinstance(arg, str) for arg in argv):
         raise ValueError("argv must contain an executable and string arguments")
@@ -73,7 +80,7 @@ def invoke(
                 process = job.launch(argv, stdin=source, stdout=out, stderr=err, cwd=cwd)
             else:
                 process = subprocess.Popen(argv, stdin=source, stdout=out, stderr=err,
-                                           cwd=cwd, start_new_session=True)
+                                           cwd=cwd, start_new_session=True, env=environment)
         except FileNotFoundError as error:
             return ProcessResult(argv, None, "", str(error), "not_found")
         except OSError as error:
@@ -91,6 +98,10 @@ def invoke(
                 if failure:
                     break
                 time.sleep(0.01)
+        except KeyboardInterrupt:
+            if not capture_interrupt:
+                raise
+            failure = 'interrupted_effects_unknown'
         finally:
             # Also stop descendants left behind by an exited parent.
             if job is not None:
