@@ -80,8 +80,10 @@ Preserve existing command behavior and data while qualifying new worker operatio
 ## Done when
 
 One optional shared worker is usable from both products; current-format recall
-and a qualified capture/correct/forget path pass the above checks using disposable
-data. All existing memory capabilities retain an available supported path, with
+passes the above checks using disposable data. New managed worker mutations are
+unavailable on current legacy stores, which lack qualified serialization (see
+[adapter-design.md](adapter-design.md)); a qualified writer protocol is a separate
+follow-up. All existing memory capabilities retain an available supported path, with
 an explicit matrix of which new adapter operations are qualified. Installed
 receipts identify actual source/dependency versions and limitations. Live rollout,
 release and any data conversion are separately identifiable actions, never implied

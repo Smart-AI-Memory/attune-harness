@@ -182,6 +182,35 @@ operation/version records are control state and retain their stronger guarantees
 Track product-wide uploader and hosted-endpoint retirement separately. No existing
 upload setting, deployed service or collected data changed during this planning.
 
+## Follow-up: qualified writer protocol for legacy stores
+
+Recorded on 2026-09-19 during post-acceptance review. This is the work that would
+unblock new managed worker mutations; it is not part of the accepted five-task
+ladder and adds no release blocker to it.
+
+Task 3's disposable legacy-lock probe held one writer active, aged its lock file,
+and a second writer obtained the lock. Existing file writes have no expected-version
+update, can produce duplicate identifiers, and may divert a lost acknowledgment
+into another tier (see [adapter-design.md](adapter-design.md)). The shared route
+therefore qualifies current legacy directories for reads only, and the strict stash
+seam reports acknowledged/refused/uncertain without granting worker write capability.
+Until this follow-up is delivered, the worker's routine sorting and maintenance role
+can propose and replay decisions but cannot apply them to existing stores.
+
+Questions to settle when this work becomes timely:
+
+- What serialization and versioning can every writer honor, including legacy
+  callers that ignore a new lock, without converting or moving the corpus?
+- How are record identity and operation replay demonstrated per R5, and how is an
+  uncertain effect reconciled rather than retried or diverted?
+- What root-bound exact-record API lets personal documents be corrected or removed
+  without mapping onto cross-root `forget_topic`?
+- Which tier qualifies first, and what disposable concurrent-writer evidence on each
+  claimed platform would justify changing its row in the support matrix?
+
+Read-in-place, preserved existing commands and conversion-free rollback continue to
+apply. No protocol, schema, migration or schedule is selected by this note.
+
 ## Deferred: user, project and team access separation
 
 Patrick identified this as a future need on 2026-09-17 and explicitly said it is
