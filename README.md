@@ -1,5 +1,11 @@
 # Attune Harness
 
+> **Status: release candidate, not production-ready.** Attune Harness is the
+> successor to attune-ai and is public for early evaluation. Interfaces,
+> configuration formats and CLI commands may change between candidates.
+> Model-provider qualification is incomplete; see [qualification](docs/qualification.md).
+> The package is not yet published to PyPI; install from a checkout or a tagged release.
+
 A portable, extensible runtime for multi-model agents, under development.
 
 The standalone core runs participants and independently checks their results.
@@ -280,8 +286,7 @@ receipt = run(
 print(receipt.status.value)  # verified
 ```
 
-The [GitHub library](https://github.com/Smart-AI-Memory/attune-harness) is private.
-This is a development package; no PyPI publication is implied. The CI workflow
+The CI workflow
 tests the installed library on macOS, Linux and Windows and records actual
 capabilities. Dev11 adds Windows Job Object supervision and native writer locks;
 the [qualification guide](docs/qualification.md) distinguishes platform execution

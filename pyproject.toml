@@ -14,7 +14,7 @@ dependencies = []
 tokens = ["tiktoken==0.12.0"]
 verify = ["attune-verify==0.6.0"]
 rag = ["attune-rag==1.2.0"]
-voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==4.26.0"]
+voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow>=25.0.1,<26", "jsonschema>=4.26,<5"]
 review = ["attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
 mcp = ["mcp==2.2.0", "attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
 
