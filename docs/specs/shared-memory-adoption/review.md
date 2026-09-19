@@ -1,6 +1,9 @@
 # Shared memory adoption — planning receipt
 
-Status: plan ready for chair review; no task started or accepted.
+Status: historical planning receipt from 2026-09-17, retained as written below.
+When it was written, no task had started or been accepted. All five tasks were
+later accepted at canonical revision 23; see [verification.md](verification.md)
+for the as-built evidence, support matrix and limits.
 
 The five XML tasks parse through Attune's actual spec reader. Source inspection
 and the existing preflight establish the baseline; no integration test or new

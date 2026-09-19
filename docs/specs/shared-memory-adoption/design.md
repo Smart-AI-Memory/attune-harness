@@ -3,6 +3,10 @@
 Status: implementation plan approved by Patrick on 2026-09-17; All five tasks accepted; canonical completion revision 23. Live activation and release remain outside this plan.
 Auto-run authorized for Tasks 2–5; pause on serious findings.
 
+This document records the approved plan, so its body is written in plan tense. For
+what was actually built, see [adapter-design.md](adapter-design.md) and
+[verification.md](verification.md).
+
 ## Verified starting points
 
 Read-only inspection used Harness HEAD
