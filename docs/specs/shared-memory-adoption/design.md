@@ -215,6 +215,12 @@ Questions to settle when this work becomes timely:
 Read-in-place, preserved existing commands and conversion-free rollback continue to
 apply. No protocol, schema, migration or schedule is selected by this note.
 
+Update, 2026-09-19: the [native memory scoping note](../native-memory/scoping.md)
+proposes a different route, which Patrick accepted as the direction: design
+versioned storage natively in Harness and keep legacy stores read-only, rather than
+qualifying the legacy writers. If that spec proceeds, its Task 5 supersedes the
+questions above.
+
 ## Deferred: user, project and team access separation
 
 Patrick identified this as a future need on 2026-09-17 and explicitly said it is
