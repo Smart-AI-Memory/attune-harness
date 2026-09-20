@@ -540,3 +540,34 @@ follow-up: move them to a subpackage such as `attune_harness/testing/` (`cli.py`
 changes module hashes that existing receipts bind, and needs its own regression
 pass, so it is recorded separately and does not block publication. Effort: small
 to medium. Nothing is renamed or authorized by this note.
+
+Unnumbered, 2026-09-19 (assign the next O-number at the next log review): pinned
+GitHub Actions target Node.js 20. The TestPyPI rehearsal run 35476747591 raised a
+deprecation annotation on its `build` and `verify_testpypi` jobs: three pinned
+actions target Node.js 20 and are being forced to run on Node.js 24. The pins are
+`actions/checkout@11d5960a326750d5838078e36cf38b85af677262` (v4),
+`actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065` (v5) and
+`actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02` (v4). The same
+three SHAs are pinned in `qualification.yml`, so the library qualification matrix
+is affected as well as `publish-pypi.yml`. No defect is observed: the jobs ran and
+the rehearsal was not blocked. Candidate follow-up: bump each pin to a current
+release that targets Node.js 24, keeping full-SHA pins with the version comment,
+in every workflow on every branch that carries them. New pins change the workflow
+on a release branch, so qualification and a `publish=false` dry run must pass
+again before the next real publish. Effort: small. Nothing is bumped or authorized
+by this note.
+
+Unnumbered, 2026-09-19 (assign the next O-number at the next log review):
+`ubuntu-latest` moves to Ubuntu 26. The same rehearsal run 35476747591 carried a
+notice on `build`, `publish_testpypi` and `verify_testpypi` that the
+`ubuntu-latest` label will migrate to Ubuntu 26 beginning October 19, 2026
+(actions/runner-images issue 14748). `publish-pypi.yml` runs those jobs on
+`ubuntu-latest`, and the `qualification.yml` matrix uses `ubuntu-latest` alongside
+`macos-latest` and `windows-latest`. No defect is observed. The risk is that the
+runner image changes underneath a release without any change to the repository,
+so a qualification pass recorded before the migration does not describe the image
+used after it. Candidate follow-up: either pin `ubuntu-24.04` in both workflows so
+the image changes only by a reviewed commit, or let the label float and treat the
+first qualification run on Ubuntu 26 as evidence to read before relying on it for
+a publish. The macOS and Windows `-latest` labels float the same way and deserve
+the same decision. Effort: small. Nothing is pinned or authorized by this note.
