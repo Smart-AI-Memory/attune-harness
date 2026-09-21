@@ -61,59 +61,28 @@ An empty result has `answer_support: insufficient_evidence`. There is no
 calibrated semantic abstention threshold yet. Behavioral claims require tests.
 The system neither creates a new document collection nor generates an answer.
 
-## Use inside Attune AI
+## Use inside Attune AI: removed
 
-Install the Harness wheel and its `[voyage]` extra in a compatible Attune AI
-environment. Do not add Harness's `[mcp]` extra there: the host keeps its own
-MCP SDK. This in-process route was tested with Attune AI 16.4.0 and MCP 1.29.1.
-Other host versions require qualification.
+Versions 0.1.0 and 0.2.0 shipped `attune_harness.attune_bridge`, which served
+`code_evidence_query` from inside Attune AI's own MCP server. It was removed
+after 0.2.0: Harness is replacing Attune AI and no longer plugs into it. See D8 in the
+[spec authority addendum](specs/spec-authority/addendum-2026-09-21.md).
 
-After exporting the key, launch the real Attune MCP server with its extra tool:
-
-```sh
-python -I -m attune_harness.attune_bridge --request /absolute/path/to/task.json \
-  --session-dir /absolute/path/to/NEW_SESSION_DIRECTORY --allow-provider
-```
-
-Select this launcher as the host's MCP command to expose `code_evidence_query`
-alongside Attune's tools. The new tool accepts only `query` and `k`; it cannot
-change repositories, models, permissions or budgets. It delegates to the same
-RetrievalSession as Harness. Repeated queries within the session reuse evidence;
-closing or failing the session stops further calls. A session directory is used
-once. A restart requires a deliberate new session; it does not continue unknown
-paid work or restore a spent budget.
-
-An exception leaving `activate()` records the session as `unresolved`, even if
-it occurs in host setup or serving outside `search()`. This includes cancellation
-and keyboard interrupts; the original exception propagates. Normal exit records
-completion unless an earlier search failed. Both paths close the session to
-further calls.
-
-The local qualified interpreter is `.venv-code-rag/bin/python`. That environment
-inherits this machine's existing Attune packages; it is not a clean dependency
-resolution. See the receipt for its pre-existing dependency conflicts. Its frozen
-installed wheel predates the [September 16 source fixes](sol-review-fix-receipt.md).
-Qualify a newly built wheel in a separate environment to use those fixes through
-the `python -I` launcher.
-
-For embedding in a Python host, use `CodeEvidencePlugin` from
-`attune_harness.attune_bridge` inside its `activate()` context manager, register
-it with `PluginRegistry`, and construct the Attune MCP server while it is active.
-The plugin uses Attune's existing plugin-handler convention, as its Redis plugin
-does. It does not patch built-in handler dispatch or replace generation workflows.
-
-Other coding agents can continue using `attune-harness mcp-serve` in Harness's
-MCP 2.2.0 environment. Both adapters share the same retrieval implementation.
+Use `attune-harness mcp-serve` in Harness's MCP 2.2.0 environment. It serves the
+same accepted retrieval grants from the same RetrievalSession, so scope, budgets
+and evidence reuse are unchanged. The tool is named `harness.retrieve` there, not
+`code_evidence_query`; see the [MCP workflow](mcp-workflow.md).
 
 ## Migration boundary
 
-Use `code_evidence_query` for implementation evidence. The existing
+Use `harness.retrieve`, served by `attune-harness mcp-serve`, for implementation
+evidence. The existing
 `rag_knowledge_query`, `rag-code-gen`, help and personal-memory paths keep their
 existing contracts. Their legacy package still owns model settings and other
 consumers, so it has not been uninstalled or had its collection deleted.
 The new code path never falls back to that collection after a Voyage failure.
 Switching the active desktop MCP configuration and routing old generation
-workflows are separate from making this optional plugin available.
+workflows are separate work.
 
 See [design](design-code-first-rag.md), [implementation receipt](code-first-rag-receipt.md),
 and the [earlier live accuracy check](voyage-accuracy-receipt.md).

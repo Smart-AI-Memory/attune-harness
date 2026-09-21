@@ -1,14 +1,10 @@
-"""Repository-first selection and the actual optional Attune host boundary."""
+"""Repository-first selection."""
 
-import asyncio
 import json
 
 import pytest
 
-from attune_harness import voyage_provider
 from attune_harness.cli import main
-from attune_harness.retrieval_task import task_template
-from attune_harness.review_store import read_record
 from attune_harness.voyage_index import build_index, selection
 from attune_harness.voyage_retrieval import retrieve_voyage
 from attune_harness.voyage_sources import code_config, collect, config
@@ -80,92 +76,3 @@ def test_empty_repository_evidence_is_explicit(tmp_path):
     assert result['status'] == 'no_results' and not result['sources']
     assert result['evidence_basis']['answer_support'] == 'insufficient_evidence'
     assert not provider.calls
-
-
-@pytest.fixture
-def host_plugin(built, tmp_path, monkeypatch):
-    pytest.importorskip('attune.plugins.base')
-    from attune_harness.attune_bridge import CodeEvidencePlugin
-    root, selected, provider = built
-    request = tmp_path / 'task.json'
-    task = task_template(selected['config'], selected['generation'], 'Find source and its tests', max_calls=2)
-    task['accepted'] = True
-    request.write_text(json.dumps(task))
-    monkeypatch.setenv('ATTUNE_VERSION_CHECK', '0')
-    monkeypatch.setenv('ATTUNE_HOME', str(tmp_path / 'attune-home'))
-    monkeypatch.setattr(voyage_provider, 'VoyageProvider', lambda: provider)
-    provider.calls.clear()
-    plugin = CodeEvidencePlugin(request, tmp_path / 'host-session', allow_provider=True)
-    return plugin, provider, root
-
-
-def test_real_attune_host_registration_dispatch_reuse_and_close(host_plugin):
-    from attune.mcp.server import AttuneMCPServer
-    from attune.plugins.registry import PluginRegistry
-    plugin, provider, _ = host_plugin
-    registry = PluginRegistry()
-    with plugin.activate():
-        registry.register_plugin('harness-code-rag', plugin)
-        plugin.on_activate()
-        server = AttuneMCPServer()
-        plugin.register_mcp_tools(server)
-        assert 'code_evidence_query' in server.tools
-        args = {'query': 'save_cart', 'k': 2}
-        first = asyncio.run(server.call_tool('code_evidence_query', args))
-        assert first['status'] == 'retrieved', first
-        assert 'save_cart' in first['sources'][0]['excerpt']
-        second = asyncio.run(server.call_tool('code_evidence_query', args))
-        assert first['sources'] == second['sources']
-        assert second['usage']['new_provider_calls'] == 0
-        assert [call[0] for call in provider.calls] == ['embed', 'rerank']
-        exhausted = asyncio.run(server.call_tool('code_evidence_query', args))
-        assert exhausted['success'] is False and 'budget' in exhausted['error']
-    with pytest.raises(RuntimeError, match='inactive'):
-        plugin.search(args)
-    with pytest.raises(RuntimeError, match='closed'):
-        with plugin.activate():
-            pass
-    assert read_record(plugin.scope.store.directory)['status'] == 'unresolved'
-
-
-def test_host_rejects_changed_source_before_provider_call(host_plugin):
-    plugin, provider, root = host_plugin
-    with plugin.activate():
-        (root / 'app.py').write_text('changed = True\n')
-        with pytest.raises(ValueError, match='Stale index'):
-            plugin.search({'query': 'save_cart', 'k': 2})
-        assert not provider.calls
-
-
-def test_host_refuses_caller_scope_override(host_plugin):
-    plugin, provider, _ = host_plugin
-    with plugin.activate():
-        with pytest.raises(ValueError):
-            plugin.search({'query': 'save_cart', 'k': 2, 'corpus': '/etc'})
-        assert not provider.calls
-
-
-def test_closed_successful_plugin_rejects_queries(host_plugin):
-    plugin, provider, _ = host_plugin
-    args = {'query': 'save_cart', 'k': 2}
-    with plugin.activate():
-        assert plugin.search(args)['sources']
-    assert read_record(plugin.scope.store.directory)['status'] == 'completed'
-    with pytest.raises(RuntimeError, match='inactive'):
-        plugin.search(args)
-    assert len(provider.calls) == 2
-
-
-@pytest.mark.parametrize('error_type', [RuntimeError, KeyboardInterrupt, asyncio.CancelledError])
-def test_host_context_exception_records_interruption(host_plugin, error_type):
-    plugin, provider, _ = host_plugin
-    error = error_type('host failed outside search')
-    with pytest.raises(error_type) as raised:
-        with plugin.activate():
-            raise error
-    assert raised.value is error
-    saved = read_record(plugin.scope.store.directory)
-    assert saved['status'] == 'unresolved'
-    assert saved['events'] == [] and provider.calls == []
-    with pytest.raises(RuntimeError, match='inactive'):
-        plugin.search({'query': 'save_cart', 'k': 2})

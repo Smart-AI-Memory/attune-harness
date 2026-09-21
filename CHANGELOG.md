@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Removed: `attune_harness.attune_bridge` and `attune_harness.memory_bridge`, the
+  two modules that plugged Harness into Attune AI's plugin registry and MCP
+  server. Harness is replacing Attune AI and no longer plugs into it; two other
+  modules still import it and are being reworked. Nothing else in the package
+  used the removed modules. For repository evidence over MCP, use
+  `attune-harness mcp-serve`, which serves the same retrieval session. The
+  `memory` command is unchanged; memory had no other MCP surface, and one served
+  by Harness itself is not written yet.
+
 ## 0.2.0
 
 Adds an experimental Windows effects backend, alpha. `fix` and the work runtime

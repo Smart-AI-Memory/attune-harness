@@ -27,15 +27,18 @@ evaluator CLI status checks, plugin lifecycle tests and host qualification
 boundary fixtures. `tests/test_code_rag_host_check.py` compiles the actual host
 check script with optimization levels 0 and 1 and supplies invalid result,
 usage and session evidence. Explicit runtime checks must reject it in both modes;
-`python -O` and `PYTHONOPTIMIZE=1` must not remove qualification checks. Real Attune
-dispatcher cases require the optional host package and skip when it is absent;
-the boundary fixtures run with Harness's MCP dependency alone.
+`python -O` and `PYTHONOPTIMIZE=1` must not remove qualification checks. The
+boundary fixtures run with Harness's MCP dependency alone. The five real Attune
+dispatcher cases in `tests/test_code_rag.py` were removed with the module they
+tested; they skipped whenever Attune AI was absent, so CI never ran them.
 
-For a real, zero-provider-call host check, run
-`python -I scripts/check_code_rag_host.py --output /absolute/new-host-check` in a
-separate compatible Attune environment with a freshly installed Harness wheel.
-It discovers and calls the tool over stdio and checks the durable session after
-shutdown. Use `python -I -O` to exercise the optimized launcher too.
+`scripts/check_code_rag_host.py` checked the tool through Attune AI's dispatcher
+by launching `attune_harness.attune_bridge`. That module was removed after 0.2.0
+(D8 in the [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md)),
+so the script can no longer complete a host check. It and its test stay for now
+because `scripts/qualify_platform.py` still selects the test; removing them is
+separate work.
+
 The [September 16 fix receipt](sol-review-fix-receipt.md) distinguishes local
 source regression results from historical installed-host evidence.
 
