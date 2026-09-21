@@ -105,6 +105,7 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 
 `target=testpypi` takes a release-candidate version such as `X.Y.Zrc1`, and
 `pyproject.toml` has to carry that version, so it needs its own commit and
-branch. 0.2.0 skipped it: packaging had not changed since 0.1.0, and the build
+branch. Name the branch `release/...`: pushes qualify only on `main` and
+`release/**`, and the rehearsal gate needs a push or dispatch run on the commit. 0.2.0 skipped it: packaging had not changed since 0.1.0, and the build
 job already installs the wheel and runs the installed check before any upload.
 Use it when packaging metadata, the build backend or the workflow itself changes.
