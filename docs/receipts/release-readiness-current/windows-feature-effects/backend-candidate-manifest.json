@@ -1,0 +1,25 @@
+{
+  "native_run": 35416700935,
+  "paths": {
+    ".github/workflows/windows-effects-backend.yml": "bd014984112342eb46981998a74e9ca6107f32f311bf93bce9d204be3e1603eb",
+    "docs/design-windows-effect-backend.md": "bebe26d6a2e33cb473a9a714ef4259fab73c8bffb2e02e9d4e067b69a7727866",
+    "docs/receipts/release-readiness-current/windows-feature-effects/primitive-native-success-chain.json": "c05ee2d232e6fadcc94a8df5704b289e4027564191945c98c6160fd30627a3ac",
+    "experiments/platform/qualify_windows_effects_backend.py": "b8cc991ec248a8e4bcbbf520b2f46492bf098fc418a4ce30d28f221cce1c5fd3",
+    "src/attune_harness/assessment_effects.py": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e",
+    "src/attune_harness/process.py": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291",
+    "src/attune_harness/repair.py": "fdc61ebd543d53bada368306319b16505abc71dea97b8b5fd2c4b966531bcd0d",
+    "src/attune_harness/task_contract.py": "de647670d5fa464107426dfb866769b5f7711e4dd3483b59dac5938d969bb5e8",
+    "src/attune_harness/task_policies.py": "2fed1f710729dc30833b2fcd490b85a4ffe47197158bf2ed569358973b0c344c",
+    "src/attune_harness/windows_effects.py": "cac809327af5a6e5427be9dec3051c468a1fb9831d30d54ffb3b9b0240d9cf1f",
+    "src/attune_harness/work_build.py": "7b0edd00743aa57c1af76164c280a75fcc5e0026ecaf6f8eb4d30993e34d6b4d",
+    "src/attune_harness/work_effects.py": "cc196be40f06d40d711e375cc6e12e2b1d0641f2e2a774eb74531d67d0ed5b53",
+    "src/attune_harness/work_runtime.py": "55b39c3d0a27393bddf42eeae40c4084ab6a24dbe54aceb4893f657f2ee29253",
+    "tests/test_windows_effects.py": "2444dd163be32104a65c1c04f75edf77b4ddfc4e4d685bb96c959a34b6783f74"
+  },
+  "runner": "windows-2025 Python 3.10/3.12 and windows-2022 Python 3.12",
+  "schema": "windows-effect-backend-candidate-v1",
+  "scope": "isolated native installed test; no release or effect qualification yet",
+  "selected_tests": [
+    "tests/test_windows_effects.py"
+  ]
+}

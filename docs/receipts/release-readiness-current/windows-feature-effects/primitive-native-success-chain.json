@@ -1,0 +1,45 @@
+{
+  "native_run_id": 35416700935,
+  "prior_negative_chain_sha256": "c1b94222020f988957b45aa174a76740dbfd13dfeabf72c161ae3c8fbc732191",
+  "qualified_observation": "native NtSetInformationFile retained-parent replacement on scratch local NTFS only",
+  "receipts": {
+    "3.10": {
+      "commit": "4d98fa93968b77d9ecffcd247c976fca12621783",
+      "null_root_diagnostic_only": "diagnostic-only",
+      "observed_native_case_ids": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "path": "docs/receipts/release-readiness-current/windows-feature-effects/third-native-3.10.json",
+      "probe_lf_sha256": "340ffa8ad540d352bf8aab443ba42b4b3c392b1745037c770d888896abbfc701",
+      "runner_executed_sha256": "02325e027ea35cd5209bbf562b0476f62086b5c4207c1d27449b0d8bb88f9060",
+      "sha256": "9de046ecc60f628e0c4335c5424f567e893b284f2023939c55959ac3b0b0597b",
+      "win32_retained_parent_error": 87
+    },
+    "3.12": {
+      "commit": "4d98fa93968b77d9ecffcd247c976fca12621783",
+      "null_root_diagnostic_only": "diagnostic-only",
+      "observed_native_case_ids": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "path": "docs/receipts/release-readiness-current/windows-feature-effects/third-native-3.12.json",
+      "probe_lf_sha256": "340ffa8ad540d352bf8aab443ba42b4b3c392b1745037c770d888896abbfc701",
+      "runner_executed_sha256": "02325e027ea35cd5209bbf562b0476f62086b5c4207c1d27449b0d8bb88f9060",
+      "sha256": "0d4b5023e4d71523558eba97a7ab3cf88e9f8c341491d02f9636fb5e86a801c5",
+      "win32_retained_parent_error": 87
+    }
+  },
+  "schema": "windows-effects-primitive-native-success-chain-v1",
+  "unqualified": [
+    "Win32 class22 retained-parent replacement",
+    "distinct ACL/attribute preservation",
+    "atomicity under concurrent readers",
+    "power-loss durability",
+    "production feature or repair backend"
+  ]
+}

@@ -480,7 +480,7 @@ def validate_repair_request(request):
         raise ValueError('Repair plan does not match the accepted review obligation')
     from .repair import PROFILE as repair_profile, validate_scope
     validate_scope(value['scope'])
-    if value['scope']['profile'] != repair_profile or request['evidence'] != {'repair': digest(value['scope'])}:
+    if value['scope']['profile'] not in (repair_profile, 'windows-existing-utf8-v1') or request['evidence'] != {'repair': digest(value['scope'])}:
         raise ValueError('Repair scope/evidence profile mismatch')
     selected = [request['registry']['participants'][v] for k,v in request['answers'].items()
                 if k in ('assessor','reviewer') and v is not None]

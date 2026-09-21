@@ -1,0 +1,97 @@
+{
+  "abi": {
+    "info_class": 22,
+    "io_status_block_size": 16,
+    "nt_create_disposition": 2,
+    "nt_directory_access": 1179777,
+    "nt_directory_options": 2097184,
+    "nt_file_options": 2097248,
+    "nt_object_flags": 4160,
+    "nt_open_disposition": 1,
+    "nt_read_access": 1179777,
+    "nt_share_flags": 7,
+    "nt_write_access": 1245315,
+    "object_attributes_size": 48,
+    "pointer_size": 8,
+    "rename_flags": 3,
+    "rename_info_filename_offset": 20,
+    "rename_info_struct_size": 24
+  },
+  "artifacts": {
+    "executable_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+    "github_sha": "4a599bc57022a2a8b8b984beb816df7fd0f9806e",
+    "probe_sha256": "9084438e1a94c00b7a588e12960f15c89326279a575ebdfa772c4d2f86ad2d7d",
+    "probe_source": {
+      "crlf_lines": 516,
+      "executed_sha256": "9084438e1a94c00b7a588e12960f15c89326279a575ebdfa772c4d2f86ad2d7d",
+      "git_blob_sha1": "b191402e6ee782f4af180ce75401b1791c0732ca",
+      "git_lf_sha256": "ac4e2a5f57e4f7512615027ccfe56c55ba74d3d71df485572d3d1b9c8ccbc345",
+      "lf_lines": 516
+    },
+    "workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d",
+    "workflow_source": {
+      "crlf_lines": 40,
+      "executed_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d",
+      "git_blob_sha1": "6ec0b9c570c6b322dcb9c2adcbaae7329eab49f5",
+      "git_lf_sha256": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+      "lf_lines": 40
+    }
+  },
+  "environment": {
+    "ambient_canary_absent": true,
+    "exact_child_environment": true,
+    "keys": [
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "SystemRoot"
+    ],
+    "systemroot_requirement_unproven": true,
+    "systemroot_supplied": true
+  },
+  "error": {
+    "code": 87,
+    "kind": "win32",
+    "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+    "type": "ProbeError"
+  },
+  "executable": "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+  "filesystem": "NTFS",
+  "hardlink_refusal": {
+    "observed_links": 2,
+    "rejected_before_write": true
+  },
+  "leaf_refusal": [
+    "sub\\file",
+    "target:stream",
+    "..",
+    "trailing."
+  ],
+  "limits": [
+    "No power-loss durability proof",
+    "No nondefault ACL preservation proof",
+    "No production feature/repair integration or hostile concurrent writer proof"
+  ],
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "release": "10.0.26100",
+  "rename_request": {
+    "api": "SetFileInformationByHandle",
+    "buffer_bytes": 48,
+    "class": 22,
+    "filename_bytes": 24,
+    "filename_offset": 20,
+    "flags": 3,
+    "root_directory_handle_supplied": true,
+    "struct_size": 24,
+    "target_leaf": "target-\u00e9.txt"
+  },
+  "reparse_refusal": {
+    "attributes": 1056,
+    "rejected_before_write": true,
+    "status": "observed"
+  },
+  "schema": "windows-effects-primitive-probe-v1",
+  "status": "unsupported",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 501, in main\n    _probe(receipt)\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 449, in _probe\n    api[\"replace\"](temp_handle, parent, target, receipt.setdefault(\"rename_request\", {}))\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 330, in replace\n    wincheck(k.SetFileInformationByHandle(handle, FILE_RENAME_INFO_EX, payload,\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 213, in wincheck\n    raise ProbeError(name, ctypes.get_last_error(), \"win32\")\nProbeError: SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057\n"
+}

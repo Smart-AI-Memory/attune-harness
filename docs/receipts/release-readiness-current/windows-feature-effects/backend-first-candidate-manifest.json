@@ -1,0 +1,21 @@
+{
+  "native_run": 35416700935,
+  "paths": {
+    "docs/design-windows-effect-backend.md": "bebe26d6a2e33cb473a9a714ef4259fab73c8bffb2e02e9d4e067b69a7727866",
+    "docs/receipts/release-readiness-current/windows-feature-effects/primitive-native-success-chain.json": "c05ee2d232e6fadcc94a8df5704b289e4027564191945c98c6160fd30627a3ac",
+    "src/attune_harness/assessment_effects.py": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e",
+    "src/attune_harness/process.py": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291",
+    "src/attune_harness/repair.py": "fdc61ebd543d53bada368306319b16505abc71dea97b8b5fd2c4b966531bcd0d",
+    "src/attune_harness/task_contract.py": "de647670d5fa464107426dfb866769b5f7711e4dd3483b59dac5938d969bb5e8",
+    "src/attune_harness/task_policies.py": "2fed1f710729dc30833b2fcd490b85a4ffe47197158bf2ed569358973b0c344c",
+    "src/attune_harness/windows_effects.py": "cac809327af5a6e5427be9dec3051c468a1fb9831d30d54ffb3b9b0240d9cf1f",
+    "src/attune_harness/work_build.py": "7b0edd00743aa57c1af76164c280a75fcc5e0026ecaf6f8eb4d30993e34d6b4d",
+    "src/attune_harness/work_effects.py": "cc196be40f06d40d711e375cc6e12e2b1d0641f2e2a774eb74531d67d0ed5b53",
+    "tests/test_windows_effects.py": "511cbaa3ee191f2e9ff025385a8bb15190ecb3299a08f94e23b83b50e7cb982b"
+  },
+  "schema": "windows-effect-backend-candidate-v1",
+  "scope": "isolated native installed test; no release or effect qualification yet",
+  "selected_tests": [
+    "tests/test_windows_effects.py"
+  ]
+}

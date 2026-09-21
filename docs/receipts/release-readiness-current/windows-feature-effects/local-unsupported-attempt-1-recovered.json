@@ -1,0 +1,24 @@
+{
+  "artifacts": {
+    "executable_sha256": "d289725bd7f5dac5fdc116f834ca0597f712c8fdddd5f1372fdc71254593197d",
+    "github_sha": null,
+    "probe_sha256": "e64eae08d01ef8a21d29a3e9a650d8608e391c507614723d28b6ae210225af91",
+    "workflow_sha256": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467"
+  },
+  "error": {
+    "message": "real Windows required; no simulated result",
+    "type": "RuntimeError"
+  },
+  "executable": "/Users/patrickroebuck/.pyenv/versions/3.10.11/bin/python3",
+  "limits": [
+    "No power-loss durability proof",
+    "No nondefault ACL preservation proof",
+    "No production feature/repair integration or hostile concurrent writer proof"
+  ],
+  "os": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.10.11 (main, Apr 11 2025, 20:19:33) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "release": "Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:48 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6020",
+  "schema": "windows-effects-primitive-probe-v1",
+  "status": "unsupported",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/experiments/platform/windows_effects_probe.py\", line 474, in main\n    raise RuntimeError(\"real Windows required; no simulated result\")\nRuntimeError: real Windows required; no simulated result\n"
+}

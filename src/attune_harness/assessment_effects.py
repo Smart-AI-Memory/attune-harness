@@ -52,6 +52,11 @@ def completed_patches(record):
         raw = item['text'].encode('utf-8')
         expected = dict(path=item['path'], before_sha256=item['before_sha256'],
                         after_sha256=sha(raw), bytes=len(raw))
+        if plan['profile'] == 'windows-existing-utf8-v1':
+            from .windows_effects import validate_repair_result
+            result = event.get('result')
+            validate_repair_result(item, result)
+            expected = result
         if event['phase'] != 'completed' or event.get('result') != expected:
             raise ValueError('Repair result differs from its exact replacement bytes')
         completed[str(Path(plan['root']) / item['path'])] = item

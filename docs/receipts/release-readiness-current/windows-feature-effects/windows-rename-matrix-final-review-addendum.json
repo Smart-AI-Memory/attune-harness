@@ -1,0 +1,32 @@
+{
+  "chain": {
+    "path": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/docs/receipts/release-readiness-current/windows-feature-effects/primitive-third-attempt-chain.json",
+    "sha256": "c1b94222020f988957b45aa174a76740dbfd13dfeabf72c161ae3c8fbc732191"
+  },
+  "disposition": "Go for the third isolated Windows diagnostic CI run only. No production effects support or successful rename is claimed before native receipts.",
+  "limits": [
+    "Read-only source and receipt review; no pytest, native execution, CI dispatch, model or provider call.",
+    "Prior matrix API/ABI and scratch confinement analysis carries forward from the superseded receipt.",
+    "Not a production Windows backend qualification."
+  ],
+  "preservation": "All bound historical native negatives and distinct draft/final/reviewed local negatives match their retained hashes. Earlier review receipt remains unmodified.",
+  "receipt_type": "evidence-chain",
+  "reviewed_change": {
+    "finding": "No remaining blocking issue in this bounded change.",
+    "lines": "415-479",
+    "observation": "Full root and parent metadata are retained. Authority comparison requires identical identity, attributes, number_of_links, is_directory, and DACL fingerprint; directory size is observational because rename can alter directory entries. Target, sibling and protected entry checks remain exact.",
+    "path": "experiments/platform/windows_effects_probe.py"
+  },
+  "reviewer": "Astra XHIGH",
+  "schema": "bounded-source-review-addendum-v1",
+  "source_sha256": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-rename-diagnostics.md": "bddde4071f10d9ba603089f1dbcc287d7db1dc7e324cba481bf878e4e6672870",
+    "docs/windows-effects-primitive-results.md": "1f69f1fa5b55fc6ada4a8ac0ae8c8a4792cc78d4136a4583e14634119fcc0c0a",
+    "experiments/platform/windows_effects_probe.py": "340ffa8ad540d352bf8aab443ba42b4b3c392b1745037c770d888896abbfc701"
+  },
+  "supersedes_binding": {
+    "path": "/private/tmp/dfc-evidence/windows-rename-matrix-final-review.json",
+    "sha256": "e6003105cfebd2fbf73349dcd034373a32b08d7c3d5c473c45c9ac7b4053c808"
+  }
+}

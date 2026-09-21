@@ -1,0 +1,1019 @@
+{
+  "abi": {
+    "info_class": 22,
+    "io_status_block_size": 16,
+    "nt_classic_info_class": 10,
+    "nt_create_disposition": 2,
+    "nt_directory_access": 1179777,
+    "nt_directory_add_file_access": 1179811,
+    "nt_directory_options": 2097184,
+    "nt_extended_info_class": 65,
+    "nt_file_options": 2097248,
+    "nt_object_flags": 4160,
+    "nt_open_disposition": 1,
+    "nt_read_access": 1179777,
+    "nt_share_flags": 7,
+    "nt_write_access": 1245315,
+    "object_attributes_size": 48,
+    "pointer_size": 8,
+    "rename_flags": 3,
+    "rename_info_filename_offset": 20,
+    "rename_info_struct_size": 24
+  },
+  "artifacts": {
+    "executable_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+    "github_sha": "4d98fa93968b77d9ecffcd247c976fca12621783",
+    "probe_sha256": "02325e027ea35cd5209bbf562b0476f62086b5c4207c1d27449b0d8bb88f9060",
+    "probe_source": {
+      "crlf_lines": 654,
+      "executed_sha256": "02325e027ea35cd5209bbf562b0476f62086b5c4207c1d27449b0d8bb88f9060",
+      "git_blob_sha1": "16505092044f811c4a2208197b887dd1f28927c7",
+      "git_lf_sha256": "340ffa8ad540d352bf8aab443ba42b4b3c392b1745037c770d888896abbfc701",
+      "lf_lines": 654
+    },
+    "workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d",
+    "workflow_source": {
+      "crlf_lines": 40,
+      "executed_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d",
+      "git_blob_sha1": "6ec0b9c570c6b322dcb9c2adcbaae7329eab49f5",
+      "git_lf_sha256": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+      "lf_lines": 40
+    }
+  },
+  "environment": {
+    "ambient_canary_absent": true,
+    "exact_child_environment": true,
+    "keys": [
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "SystemRoot"
+    ],
+    "systemroot_requirement_unproven": true,
+    "systemroot_supplied": true
+  },
+  "executable": "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+  "filesystem": "NTFS",
+  "handle_relative_observed_cases": [
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "hardlink_refusal": {
+    "observed_links": 2,
+    "rejected_before_write": true
+  },
+  "leaf_refusal": [
+    "sub\\file",
+    "target:stream",
+    "..",
+    "trailing."
+  ],
+  "limits": [
+    "No power-loss durability proof",
+    "No nondefault ACL preservation proof",
+    "No production feature/repair integration or hostile concurrent writer proof"
+  ],
+  "os": "Windows-2025Server-10.0.26100-SP0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "qualification": "observed native primitive only; no Windows effects backend",
+  "release": "10.0.26100",
+  "rename_cases": [
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "2a680400000006000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "36680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 0
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "37680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "35680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "2a680400000006000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "36680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 0
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "37680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "35680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "win32",
+        "class": 22,
+        "flags": 3,
+        "id": "A",
+        "parent_add_file": false,
+        "root": "parent"
+      },
+      "dispatch": {
+        "code": 87,
+        "kind": "win32",
+        "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+        "status": "rejected"
+      },
+      "id": "A",
+      "null_root_cwd_confined_to_scratch": false,
+      "outcome": "clean-rejection",
+      "parent_requested_access": 1179777,
+      "process_crash_induced": false,
+      "request": {
+        "api": "SetFileInformationByHandle",
+        "buffer_bytes": 48,
+        "class": 22,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 3,
+        "root_directory_handle_supplied": true,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt"
+      },
+      "scratch_is_independent": true
+    },
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "39680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "42680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": null,
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "43680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "39680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "42680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "43680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "3a680400000005000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "nt",
+        "class": 65,
+        "flags": 3,
+        "id": "B",
+        "parent_add_file": false,
+        "root": "parent"
+      },
+      "dispatch": {
+        "status": "completed"
+      },
+      "id": "B",
+      "null_root_cwd_confined_to_scratch": false,
+      "outcome": "verified-after-image",
+      "parent_requested_access": 1179777,
+      "process_crash_induced": false,
+      "request": {
+        "api": "NtSetInformationFile",
+        "buffer_bytes": 48,
+        "class": 65,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 3,
+        "io_status_block_status": 0,
+        "nonfinal": false,
+        "ntstatus_disagrees": false,
+        "returned_ntstatus": 0,
+        "root_directory_handle_supplied": true,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt"
+      },
+      "scratch_is_independent": true
+    },
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "3a680400000006000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "45680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": null,
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "46680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "3a680400000006000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "45680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "46680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "44680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "nt",
+        "class": 65,
+        "flags": 3,
+        "id": "C",
+        "parent_add_file": true,
+        "root": "parent"
+      },
+      "dispatch": {
+        "status": "completed"
+      },
+      "id": "C",
+      "null_root_cwd_confined_to_scratch": false,
+      "outcome": "verified-after-image",
+      "parent_requested_access": 1179811,
+      "process_crash_induced": false,
+      "request": {
+        "api": "NtSetInformationFile",
+        "buffer_bytes": 48,
+        "class": 65,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 3,
+        "io_status_block_status": 0,
+        "nonfinal": false,
+        "ntstatus_disagrees": false,
+        "returned_ntstatus": 0,
+        "root_directory_handle_supplied": true,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt"
+      },
+      "scratch_is_independent": true
+    },
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "44680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "48680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": null,
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "49680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "44680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "48680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "49680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "47680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "nt",
+        "class": 65,
+        "flags": 1,
+        "id": "D",
+        "parent_add_file": true,
+        "root": "parent"
+      },
+      "dispatch": {
+        "status": "completed"
+      },
+      "id": "D",
+      "null_root_cwd_confined_to_scratch": false,
+      "outcome": "verified-after-image",
+      "parent_requested_access": 1179811,
+      "process_crash_induced": false,
+      "request": {
+        "api": "NtSetInformationFile",
+        "buffer_bytes": 48,
+        "class": 65,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 1,
+        "io_status_block_status": 0,
+        "nonfinal": false,
+        "ntstatus_disagrees": false,
+        "returned_ntstatus": 0,
+        "root_directory_handle_supplied": true,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt"
+      },
+      "scratch_is_independent": true
+    },
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "47680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4b680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": null,
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4c680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "47680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4b680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4c680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4a680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "nt",
+        "class": 10,
+        "flags": 1,
+        "id": "E",
+        "parent_add_file": true,
+        "root": "parent"
+      },
+      "dispatch": {
+        "status": "completed"
+      },
+      "id": "E",
+      "null_root_cwd_confined_to_scratch": false,
+      "outcome": "verified-after-image",
+      "parent_requested_access": 1179811,
+      "process_crash_induced": false,
+      "request": {
+        "api": "NtSetInformationFile",
+        "buffer_bytes": 48,
+        "class": 10,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 1,
+        "io_status_block_status": 0,
+        "nonfinal": false,
+        "ntstatus_disagrees": false,
+        "returned_ntstatus": 0,
+        "root_directory_handle_supplied": true,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt"
+      },
+      "scratch_is_independent": true
+    },
+    {
+      "after": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "4a680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4e680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": null,
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4f680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        }
+      },
+      "before": {
+        "parent_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "1511657d3882562eb125cfe4469fc4801b963a8436bc26faeeeb7a00b5372f54",
+          "identity": {
+            "file_id": "4a680400000005000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "protected": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4e680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 10
+          },
+          "sha256": "4378f5f8c155589bc148ca4213669f0b620dd18942e10450eae5779ce6c59beb"
+        },
+        "root_metadata": {
+          "attributes": 16,
+          "dacl_sddl_sha256": "d858e832d1332b5311c14003361db4282279d3859c36af7b9bfc99c369092af8",
+          "identity": {
+            "file_id": "6c350400000007000000000000000000",
+            "volume": 5969225261885072001
+          },
+          "is_directory": true,
+          "number_of_links": 1,
+          "size": 4096
+        },
+        "sibling": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4f680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "4b2cdad615eacd2f470f260d59221eb69f4d0fa19d7c0d95717bb8062d883412"
+        },
+        "target": {
+          "metadata": {
+            "attributes": 32,
+            "dacl_sddl_sha256": "4fa7202964f87cc173cffcb99f463e3192687d8e18a33315578cbae6c9b8e95d",
+            "identity": {
+              "file_id": "4d680400000004000000000000000000",
+              "volume": 5969225261885072001
+            },
+            "is_directory": false,
+            "number_of_links": 1,
+            "size": 14
+          },
+          "sha256": "b8a70e7b5f78452898e8cbcf5e7ae97e4e7e6eca6122418ef393bc04f153bdd0"
+        }
+      },
+      "config": {
+        "api": "win32",
+        "class": 22,
+        "flags": 3,
+        "id": "F",
+        "parent_add_file": false,
+        "root": "null"
+      },
+      "dispatch": {
+        "status": "completed"
+      },
+      "id": "F",
+      "null_root_cwd_confined_to_scratch": true,
+      "outcome": "verified-after-image",
+      "parent_requested_access": 1179777,
+      "process_crash_induced": false,
+      "qualification": "diagnostic-only",
+      "request": {
+        "api": "SetFileInformationByHandle",
+        "buffer_bytes": 48,
+        "class": 22,
+        "filename_bytes": 24,
+        "filename_offset": 20,
+        "flags": 3,
+        "root_directory_handle_supplied": false,
+        "struct_size": 24,
+        "target_leaf": "target-\u00e9.txt",
+        "win32_success": true
+      },
+      "scratch_is_independent": true
+    }
+  ],
+  "reparse_refusal": {
+    "attributes": 1056,
+    "rejected_before_write": true,
+    "status": "observed"
+  },
+  "schema": "windows-effects-rename-matrix-v1",
+  "status": "observed"
+}

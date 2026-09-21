@@ -213,7 +213,8 @@ def control_task(directory, action, *, checkpoint=None, **kwargs):
                         raise ValueError('Task is terminal')
                     from .repair import reconcile_replacement
                     before = copy.deepcopy(event)
-                    evidence = reconcile_replacement(task['request']['repair']['scope'], event, retry_before=kwargs.get('retry_before',False))
+                    evidence = reconcile_replacement(task['request']['repair']['scope'], event,
+                        retry_before=kwargs.get('retry_before',False), events=run['events'])
                     check_fresh(task)
                     run['recovery']['reconciliations'].append({'event_id':event['event_id'],'checkpoint':current,'previous':before,'evidence':evidence})
                     run['status']='paused';run.pop('error',None);adapter.save(run)

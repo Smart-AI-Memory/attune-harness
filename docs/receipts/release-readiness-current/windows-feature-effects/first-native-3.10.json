@@ -1,0 +1,71 @@
+{
+  "abi": {
+    "info_class": 22,
+    "io_status_block_size": 16,
+    "nt_create_disposition": 2,
+    "nt_directory_access": 1179777,
+    "nt_directory_options": 2097184,
+    "nt_file_options": 2097248,
+    "nt_object_flags": 4160,
+    "nt_open_disposition": 1,
+    "nt_read_access": 1179777,
+    "nt_share_flags": 7,
+    "nt_write_access": 1245315,
+    "object_attributes_size": 48,
+    "pointer_size": 8,
+    "rename_flags": 3,
+    "rename_info_filename_offset": 20
+  },
+  "artifacts": {
+    "executable_sha256": "3cce33d75d6fdae4e004d0bdf149320b3147482a9caf370079dcb9c191a1b260",
+    "github_sha": "cdc18f5850fb5608e7b0e7983115ed3a06e2fc7c",
+    "probe_sha256": "b465e2b3589e8b5a65c2858bf2cc6bb90cd55d9f60bb66c5c1949f71e900e3f3",
+    "workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d"
+  },
+  "environment": {
+    "ambient_canary_absent": true,
+    "exact_child_environment": true,
+    "keys": [
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE",
+      "SystemRoot"
+    ],
+    "systemroot_requirement_unproven": true,
+    "systemroot_supplied": true
+  },
+  "error": {
+    "code": 87,
+    "kind": "win32",
+    "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+    "type": "ProbeError"
+  },
+  "executable": "C:\\hostedtoolcache\\windows\\Python\\3.10.11\\x64\\python.exe",
+  "filesystem": "NTFS",
+  "hardlink_refusal": {
+    "observed_links": 2,
+    "rejected_before_write": true
+  },
+  "leaf_refusal": [
+    "sub\\file",
+    "target:stream",
+    "..",
+    "trailing."
+  ],
+  "limits": [
+    "No power-loss durability proof",
+    "No nondefault ACL preservation proof",
+    "No production feature/repair integration or hostile concurrent writer proof"
+  ],
+  "os": "Windows-10-10.0.26100-SP0",
+  "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+  "release": "10.0.26100",
+  "reparse_refusal": {
+    "attributes": 1056,
+    "rejected_before_write": true,
+    "status": "observed"
+  },
+  "schema": "windows-effects-primitive-probe-v1",
+  "status": "unsupported",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 475, in main\n    _probe(receipt)\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 427, in _probe\n    api[\"replace\"](temp_handle, parent, target)\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 309, in replace\n    wincheck(k.SetFileInformationByHandle(handle, FILE_RENAME_INFO_EX, payload,\n  File \"D:\\a\\attune-harness\\attune-harness\\experiments\\platform\\windows_effects_probe.py\", line 200, in wincheck\n    raise ProbeError(name, ctypes.get_last_error(), \"win32\")\nProbeError: SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057\n"
+}

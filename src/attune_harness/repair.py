@@ -5,7 +5,7 @@ import copy
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import stat
 from uuid import uuid4
 from .features import FeatureUnavailable
@@ -88,6 +88,9 @@ def read_file(parent, name, *, limit=MAX_TREE):
 
 
 def snapshot(plan):
+    if plan['profile'] == 'windows-existing-utf8-v1' or plan['profile'] == 'windows-feature-effects-v1':
+        from . import windows_effects
+        return windows_effects.snapshot(plan)
     result, total = {}, 0
     def walk(fd, prefix=''):
         nonlocal total
@@ -114,15 +117,26 @@ def snapshot(plan):
     return result
 
 
-def validate_probe(root, allowed, probe, *, check_executable=True):
+def validate_probe(root, allowed, probe, *, check_executable=True, windows_profile=False):
     """Shared bounded trusted-check contract; no command is run here."""
     fields(probe, ('argv', 'cwd', 'timeout', 'max_output_bytes', 'environment', 'oracle_paths'))
     argv = probe['argv']
+    if windows_profile:
+        from .windows_effects import absolute_path
+        absolute_executable = absolute_path(argv[0]) if isinstance(argv, list) and argv else False
+    else:
+        absolute_executable = bool(isinstance(argv, list) and argv
+                                   and isinstance(argv[0], str) and Path(argv[0]).is_absolute())
     if (not isinstance(argv, list) or not 1 <= len(argv) <= 32 or
             any(not isinstance(v, str) or '\x00' in v or len(v) > 4096 for v in argv) or
-            not Path(argv[0]).is_absolute() or (check_executable and not Path(argv[0]).is_file())):
+            not absolute_executable or (check_executable and not Path(argv[0]).is_file())):
         raise ValueError('Probe requires a bounded argv with an existing absolute executable')
-    if (Path(argv[0]).resolve() if check_executable else Path(argv[0])).is_relative_to(root.resolve() if check_executable else root):
+    if windows_profile:
+        inside = PureWindowsPath(argv[0]).is_relative_to(PureWindowsPath(root))
+    else:
+        inside = (Path(argv[0]).resolve() if check_executable else Path(argv[0])).is_relative_to(
+            root.resolve() if check_executable else root)
+    if inside:
         raise ValueError('Probe executable must be outside editable checkout')
     if probe['cwd'] != '.':
         raise ValueError('Probe cwd must be the accepted checkout root')
@@ -131,10 +145,16 @@ def validate_probe(root, allowed, probe, *, check_executable=True):
     if type(probe['max_output_bytes']) is not int or not 1 <= probe['max_output_bytes'] <= 65536:
         raise ValueError('Probe output budget must be in 1..65536')
     env = probe['environment']
-    if (not isinstance(env, dict) or set(env) - {'PATH', 'LANG', 'LC_ALL', 'PYTHONDONTWRITEBYTECODE', 'PYTHONNOUSERSITE'} or
+    accepted_env = {'PATH', 'LANG', 'LC_ALL', 'PYTHONDONTWRITEBYTECODE', 'PYTHONNOUSERSITE'}
+    if windows_profile:
+        accepted_env.add('SystemRoot')
+    if (not isinstance(env, dict) or set(env) - accepted_env or
             any(not isinstance(v, str) or '\x00' in v for v in env.values()) or
             env.get('PYTHONDONTWRITEBYTECODE') != '1' or env.get('PYTHONNOUSERSITE') != '1'):
         raise ValueError('Probe requires a frozen minimal environment and disabled Python bytecode/user-site')
+    if windows_profile and (len({key.casefold() for key in env}) != len(env)
+                            or not env.get('SystemRoot')):
+        raise ValueError('Windows probe requires one frozen SystemRoot and no casefold key aliases')
     oracles = probe['oracle_paths']
     if not isinstance(oracles, list) or not oracles or len(oracles) > 20:
         raise ValueError('Declare protected oracle paths before worker execution')
@@ -155,10 +175,33 @@ def freeze(root, allowed, probe, state_directory):
         raise ValueError('Accept 1–20 distinct replacement paths')
     for name in allowed:
         relative(name)
-        if any(p in PROTECTED for p in PurePosixPath(name).parts):
+        if any((p.casefold() if os.name == 'nt' else p) in PROTECTED for p in PurePosixPath(name).parts):
             raise ValueError('Protected state/metadata cannot be replaced')
-    validate_probe(root, allowed, probe)
+    validate_probe(root, allowed, probe, windows_profile=os.name == 'nt')
     argv, oracles = probe['argv'], probe['oracle_paths']
+    if os.name == 'nt':
+        from . import windows_effects
+        for name in allowed:
+            windows_effects.editable_relative(name)
+        for name in oracles:
+            windows_effects.relative(name)
+        plan = {'profile': windows_effects.REPAIR_PROFILE,
+                'snapshot_version': windows_effects.SNAPSHOT_VERSION,
+                'root': str(root), 'root_identity': windows_effects.root_identity(root),
+                'allowed': list(allowed), 'probe': copy.deepcopy(probe),
+                'executable_sha256': sha(Path(argv[0]).read_bytes())}
+        plan['before'] = snapshot(plan)
+        if any(name not in plan['before'] or plan['before'][name]['kind'] != 'file'
+               for name in (*allowed, *oracles)):
+            raise ValueError('Accepted Windows paths must be existing regular files')
+        plan['inputs'] = {}
+        for name in allowed:
+            text, entry, inherited = windows_effects.file_text(plan, name)
+            windows_effects.eligible_file(entry, inherited)
+            if entry != plan['before'][name]:
+                raise ValueError('Accepted Windows file changed during freeze')
+            plan['inputs'][name] = text
+        return plan
     plan = {'profile': PROFILE, 'root': str(root), 'root_identity': identity(root.stat()),
             'allowed': list(allowed), 'probe': copy.deepcopy(probe),
             'executable_sha256': sha(Path(argv[0]).read_bytes())}
@@ -185,7 +228,11 @@ def decode_patch(raw, plan):
     seen = set()
     for item in items:
         fields(item, ('path', 'before_sha256', 'text'))
-        path = relative(item['path'])
+        if plan['profile'] == 'windows-existing-utf8-v1':
+            from .windows_effects import editable_relative
+            path = editable_relative(item['path'])
+        else:
+            path = relative(item['path'])
         if path not in plan['allowed'] or path in seen:
             raise ValueError('Patch path is outside accepted scope or duplicated')
         if path in plan['probe']['oracle_paths'] or any(p in PROTECTED for p in PurePosixPath(path).parts):
@@ -201,6 +248,9 @@ def decode_patch(raw, plan):
 
 
 def expected_snapshot(plan, events):
+    if plan['profile'] == 'windows-existing-utf8-v1':
+        from .windows_effects import expected_snapshot as windows_expected
+        return windows_expected(plan, events, kind='replacement')
     result = copy.deepcopy(plan['before'])
     for event in events:
         if event['kind'] == 'replacement' and event['state'] == 'completed':
@@ -215,6 +265,9 @@ def assert_snapshot(plan, expected):
 
 
 def replace_file(plan, item):
+    if plan['profile'] == 'windows-existing-utf8-v1':
+        from .windows_effects import replace_file as windows_replace
+        return windows_replace(plan, item)
     raw = item['text'].encode('utf-8')
     with root_handle(plan) as root:
         with parent_handle(root, item['path']) as (parent, leaf):
@@ -272,9 +325,15 @@ def run_probe(plan, expected):
             'isolation': 'Explicit environment, bounded subprocess; not a security sandbox'}
 
 
-def reconcile_replacement(plan, event, *, retry_before=False):
+def reconcile_replacement(plan, event, *, retry_before=False, events=None):
     if event['kind'] != 'replacement' or event['phase'] != 'dispatching' or event['state'] == 'completed':
         raise ValueError('Not an unresolved replacement')
+    if plan['profile'] == 'windows-existing-utf8-v1':
+        from .windows_effects import reconcile as windows_reconcile
+        if events is None:
+            raise ValueError('Windows reconciliation requires the complete repair journal')
+        return windows_reconcile(plan, event, events,
+                                 kind='replacement', retry_before=retry_before)
     item = event['patch']
     with root_handle(plan) as root:
         with parent_handle(root, item['path']) as (parent, leaf):
@@ -296,6 +355,38 @@ def reconcile_replacement(plan, event, *, retry_before=False):
 
 def validate_scope(plan):
     """Reject unknown frozen policy fields without refreshing accepted bytes."""
+    if isinstance(plan, dict) and plan.get('profile') == 'windows-existing-utf8-v1':
+        from . import windows_effects
+        fields(plan, ('profile','snapshot_version','root','root_identity','allowed','probe',
+                      'executable_sha256','before','inputs'))
+        if (type(plan['snapshot_version']) is not int or plan['snapshot_version'] != 1
+                or not windows_effects.absolute_path(plan['root'])):
+            raise ValueError('Invalid Windows repair profile')
+        if (not isinstance(plan['allowed'], list) or not 1 <= len(plan['allowed']) <= 20
+                or len(set(plan['allowed'])) != len(plan['allowed'])
+                or set(plan['inputs']) != set(plan['allowed'])):
+            raise ValueError('Invalid Windows replacement scope')
+        if not isinstance(plan['before'], dict) or len(plan['before']) > 1000:
+            raise ValueError('Invalid Windows snapshot')
+        for name, entry in plan['before'].items():
+            if name:
+                windows_effects.relative(name.rstrip('/'))
+            windows_effects.validate_entry(entry, root=not name)
+        if plan['before'].get('', {}).get('identity') != plan['root_identity']:
+            raise ValueError('Windows root identity does not match snapshot')
+        for name in plan['allowed']:
+            windows_effects.editable_relative(name)
+            if (name in plan['probe']['oracle_paths'] or name not in plan['before']
+                    or plan['before'][name]['kind'] != 'file'
+                    or not isinstance(plan['inputs'][name], str)
+                    or sha(plan['inputs'][name].encode('utf-8')) != plan['before'][name]['sha256']):
+                raise ValueError('Invalid Windows accepted file scope')
+        for name in plan['probe']['oracle_paths']:
+            windows_effects.relative(name)
+            if name not in plan['before'] or plan['before'][name]['kind'] != 'file':
+                raise ValueError('Invalid Windows oracle scope')
+        fields(plan['probe'], ('argv','cwd','timeout','max_output_bytes','environment','oracle_paths'))
+        return
     fields(plan, ('profile','root','root_identity','allowed','probe','executable_sha256','before','inputs'))
     if plan['profile'] != PROFILE or not Path(plan['root']).is_absolute():
         raise ValueError('Unsupported repair scope')

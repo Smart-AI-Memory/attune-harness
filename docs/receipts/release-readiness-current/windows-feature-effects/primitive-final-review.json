@@ -1,0 +1,49 @@
+{
+  "closed_findings": [
+    {
+      "evidence": "experiments/platform/windows_effects_probe.py:110 now records supplied=true and requirement_unproven=true; child exact finite environment comparison and injected ambient canary remain.",
+      "finding": "SystemRoot necessity was overstated"
+    },
+    {
+      "evidence": "experiments/platform/windows_effects_probe.py:275 shared eligibility check is actually called against the multiply linked retained handle at :379 and rejects before any write.",
+      "finding": "Hardlink refusal was only detection"
+    },
+    {
+      "evidence": "experiments/platform/windows_effects_probe.py:469 binds script, workflow, executable SHA-256 and observed GITHUB_SHA.",
+      "finding": "Receipt lacked source/executable identity"
+    },
+    {
+      "evidence": "Module docstring and :435 after-image receipt now explicitly record discarded completion and process_crash_induced=false.",
+      "finding": "Process-crash claim exceeded experiment"
+    }
+  ],
+  "disposition": "No remaining blocking finding for parent-run isolated Windows 3.10/3.12 CI experiment; no production support qualification.",
+  "evidence_chain": {
+    "path": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/docs/receipts/release-readiness-current/windows-feature-effects/primitive-evidence-chain.json",
+    "sha256": "c52a0b135c772646d25bc49dc5e950564e423fa29fe6f2087c167f965d0ec2c2"
+  },
+  "files": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-feature-effects.md": "fe72f64d869d09e3062a8dd0fd8c621fb27b51d113ad8af7f57072b3c7b0b0c0",
+    "docs/receipts/release-readiness-current/windows-feature-effects/local-unsupported.json": "0eb81f3712cf18cff016c08796ba1e55d68a1c8b40a7e4c7d55e4efb138a4ab5",
+    "docs/windows-effects-primitive-results.md": "043a41f59bee87ab305a770178a57cb59081afb79094f1017eac68ac95f6e62c",
+    "experiments/platform/windows_effects_probe.py": "e64eae08d01ef8a21d29a3e9a650d8608e391c507614723d28b6ae210225af91"
+  },
+  "limitations": [
+    "Reviewer ran no probe, pytest, provider/model call, CI dispatch, or network request.",
+    "No Windows observation exists in reviewed chain; local unsupported receipt is a negative control only.",
+    "Does not qualify ancestor reparse races, arbitrary ACL preservation, concurrent writers/readers, process crash or power loss, production effects/recovery ownership, or all Windows filesystems.",
+    "The fixed-branch CI experiment is authorized by parent scope; this review is not authorization to merge, release, publish, or change credentials."
+  ],
+  "receipt_type": "evidence-chain",
+  "reviewed_boundaries": [
+    "ctypes ABI declarations, handle ownership, NTSTATUS handling, parent-relative single leaf open, FileRenameInfoEx information class and dynamic name layout reviewed statically; native validity remains the experiment outcome.",
+    "Fixed local NTFS scratch only; retained root/parent handles; link count and reparse checks; exact before/after bytes and old/prepared/new identities; default inherited DACL/attributes observed separately.",
+    "Missing symlink privilege or unexpected API errors cannot become status=observed; nonzero result and diagnostic JSON retained.",
+    "Workflow push trigger limited to isolated branch, manual dispatch remains available; contents read-only, checkout credential persistence disabled, actions pinned by commit, 3.10/3.12 matrix, ten-minute timeout, failure artifacts required."
+  ],
+  "reviewer": "Astra XHIGH",
+  "schema": "bounded-source-review-v1",
+  "scope": "Windows primitive experiment and isolated-branch observation workflow only",
+  "source_root": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness"
+}

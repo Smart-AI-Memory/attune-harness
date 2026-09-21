@@ -1,0 +1,60 @@
+name: Isolated Windows effects backend qualification
+
+on:
+  push:
+    branches: [codex/windows-effects-backend-20260918]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-effects-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  installed-owner-journey:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            python: '3.10'
+          - os: windows-2025
+            python: '3.12'
+          - os: windows-2022
+            python: '3.12'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build and install the isolated candidate
+        shell: pwsh
+        run: |
+          $out = "qualification-windows/backend-${{ matrix.os }}-${{ matrix.python }}"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          python -m pip install "build==1.3.0" "setuptools==80.9.0" 2>&1 | Tee-Object -FilePath "$out/bootstrap.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m build --wheel 2>&1 | Tee-Object -FilePath "$out/build.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-voyage.lock','-c','requirements-mcp.lock','pytest==9.1.1','attune-harness[review,voyage,mcp] @ '+w.resolve().as_uri()],check=True)" 2>&1 | Tee-Object -FilePath "$out/install.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip check 2>&1 | Tee-Object -FilePath "$out/pip-check.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run installed native owner journeys with bounded retained output
+        shell: pwsh
+        env:
+          ATTUNE_CI_WINDOWS_LABEL: ${{ matrix.os }}
+        run: |
+          python -I experiments/platform/qualify_windows_effects_backend.py --output "qualification-windows/backend-${{ matrix.os }}-${{ matrix.python }}"
+      - name: Preserve receipts, failures and exact source identities
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-effects-backend-${{ matrix.os }}-${{ matrix.python }}
+          path: qualification-windows/backend-${{ matrix.os }}-${{ matrix.python }}/
+          if-no-files-found: warn
