@@ -739,3 +739,60 @@ and the workflow decision is written down where the guardrails live. Effort: med
 the merges are small but the workflow decision and the fate of `wip` are judgment
 calls, and everything lands on a public default branch. Nothing is merged, moved or
 authorized by this note.
+
+Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
+published 0.1.0 README overstates the harness's independence, and attune-ai is an
+undeclared runtime tie. Patrick read the README on the PyPI page after the release
+and found it inaccurate. His position, stated 2026-09-21: attune-ai should not be a
+dependency, and code was imported and modified from attune-ai into Harness. Checked
+against the source at tag `v0.1.0`. What holds: the bare `pip install
+attune-harness` pulls zero packages (clean venv, 2026-09-21), and no module under
+`src/attune_harness` has a static import of a provider SDK. What does not hold falls
+into three parts. First, provider SDKs are used. README line 26 says "No provider
+SDK, no API key, and no attune-ai installation" and line 127 says the core "must run
+with no provider SDK and nothing else from the Attune family installed". Both are
+true of the bare core install and read as claims about the harness. `memory_native.py`
+imports `anthropic` and constructs `anthropic.Anthropic(...)` behind the
+`memory-native` extra, and `voyage_provider.py` loads `voyageai` behind `voyage`.
+Second, attune-ai is called at runtime and declared nowhere in `pyproject.toml`,
+neither as a dependency nor as an extra. `memory_context.py` imports
+`attune.memory.harness_adapter.CompatibilityAdapter` inside `MemoryHost.__init__`, so
+memory context cannot be constructed without attune-ai; the native memory scoping
+note recorded on 2026-09-19 that `attune-harness memory capabilities` reports
+`unavailable` and exits 2 with attune-ai absent (not re-run today: the command needs
+a `--config` that was not fabricated for the check). `spec_bridge.py` imports
+`attune.spec.workspace` and `attune.elicitation.command_workspace` and subclasses
+`SpecWorkspaceAdapter`, which is why `plan --accept` needs the Attune AI Spec
+runtime; the README's qualified table concedes that one case. README line 127 goes
+on to say the Attune libraries "come in as extras, where you can see exactly what
+each one adds". That is true of `attune-forms`, `attune-verify` and `attune-rag`,
+which load lazily through `features.require_feature` at pinned versions, and false of
+attune-ai, which no extra names. Separately, `attune_bridge.py` and
+`memory_bridge.py` import `attune.plugins.base` at module top level. They are plugins
+meant to be loaded by attune-ai, are not entry points, and are imported by nothing in
+Harness; a plugin importing its host is expected, so they are a different case from
+the two above and should not be counted as the same defect. Third, provenance is
+unstated. A search of `README.md`, `docs/`, `src/`, `LICENSE` and `CHANGELOG.md` at
+`v0.1.0` finds no statement that any Harness code originated in attune-ai, and there
+is no `NOTICE` file. Which modules are derived was not determined from the source;
+that fact is Patrick's. Asked which portions, he named the memory system as an
+example ("things like the memory system"); the full list is not established. Both packages are Apache-2.0 and both are his, so this is an
+accuracy question, not a licensing defect. The 0.1.0 page on PyPI is frozen; a
+correction shows on GitHub when it lands and on PyPI only with the next version.
+Direction N1 of the [native memory scoping note](specs/native-memory/scoping.md)
+already says to cut the functional tie for memory, and its ladder Task 1 ("Map the
+dependency") is the first step; the table of four modules above is a start on it.
+The Spec tie in `spec_bridge.py` is covered by no note or spec. A suggestion made
+during the session to declare attune-ai as an extra was withdrawn: it would formalize
+the tie Patrick wants removed. Candidate follow-up, in order: correct the README
+wording on whichever line becomes the trunk (a draft is at
+`docs/handoffs/README-independence-wording-draft-2026-09-21.md`, on disk only), with
+the origin sentence completed by Patrick; decide whether a `NOTICE` or a short
+provenance section in the docs is wanted; extend the dependency map to the Spec tie
+and decide whether it is cut, kept as a stated optional integration, or replaced;
+then do the cut through the successor spec. Done when the README claims only what a
+clean environment demonstrates, every runtime call into attune-ai is either removed
+or named in the README and in packaging, and an installed-environment check with
+attune-ai absent exercises memory context and plan acceptance and records what each
+does. Effort: small for the wording, larger for the cut. Nothing is changed or
+authorized by this note.
