@@ -16,6 +16,12 @@ Windows implementation. Retain both versions' evidence when comparing support.
 Model providers are not called by CI. These tests qualify the runner/platform and
 adapter fixtures; native model behavior requires the separate frozen campaign.
 
+Each platform job runs the test files selected in `scripts/qualify_platform.py`
+against the installed wheel. One more job, on Ubuntu with Python 3.10, runs every
+test from the source tree with plain `pytest`, so a test outside that selection
+cannot break unnoticed. It qualifies no platform. The required `Qualification`
+check passes only when the platform jobs and that job pass.
+
 The installed-wheel selection also includes Voyage budget/replay checks,
 evaluator CLI status checks, plugin lifecycle tests and host qualification
 boundary fixtures. `tests/test_code_rag_host_check.py` compiles the actual host

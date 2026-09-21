@@ -17,7 +17,7 @@ update this table when they change.
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
 | GitHub environment `testpypi` | Branches allowed to deploy | `codex/testpypi-rc-20260918`, which no longer exists |
 | GitHub environment `testpypi` | Required reviewer | `silversurfer562` |
-| Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six Library qualification jobs: Ubuntu, macOS and Windows on Python 3.10 and 3.12 |
+| Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six platform jobs (Ubuntu, macOS and Windows on Python 3.10 and 3.12) and the full test suite on Ubuntu |
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
 | PyPI project `attune-harness` | Trusted publisher | Must name this repository, `publish-pypi.yml` and the `pypi` environment. Uploads use OIDC; there is no API token |
 
