@@ -160,28 +160,46 @@ through the stores, so it drops out.
 ## What this means for memory in the first stable release
 
 D10 makes memory a goal for the first stable release if its review allows. The
-review allows it on POSIX and not on Windows.
+review allows it on POSIX and not on Windows: the format reader and ranking are
+medium-sized work, but the adapter cannot read on Windows at all.
 
-- The format reader and ranking are medium-sized work, not large, and can be a
-  spec of their own running beside Tasks 2 to 5.
-- What decides the release is the platform. Either memory ships in the first
-  stable release as POSIX-only and says so, as `fix` did before 0.2.0; or it
-  waits for a handle-based reader on Windows with its own safety review.
-
-That is Patrick's call and is not made here.
+**Ruled by Patrick on September 21: wait for Windows.** Memory does not ship as
+POSIX-only. It ships when a handle-based reader exists on Windows and has had
+its own safety review, as `windows_effects.py` did for `fix`. If that is ready
+for the first stable release, memory is in it; if not, memory follows in the
+release after. The reader and ranking can still be specified and built on POSIX
+first, beside Tasks 2 to 5. See D11 in [the addendum](addendum-2026-09-21.md).
 
 ## Dependencies these verdicts would bring
 
 Harness's core declares no dependencies today.
 
-- **`defusedxml`: an open question, not a requirement.** The decomposer uses it
-  and falls back to regex when parsing fails. The first proposal said the
-  standard library parser is not a safe substitute. But Harness already parses
-  the same plan files with it: `spec_bridge.py:12` imports
-  `xml.etree.ElementTree`, and line 58 calls `ET.fromstring(block)`. Either that
-  is already a weakness in shipped Harness, or `defusedxml` is unnecessary here.
-  Nobody has tested entity expansion against it. Settle this before Task 2, and
-  fix `spec_bridge.py` in its own change if it turns out to be the first.
+- **`defusedxml`: not needed, provided the parser keeps Harness's shape.** Patrick
+  asked for this to be tested before Task 2, and it was, on September 21 with
+  Python 3.10.11 and expat 2.5.0. Four hostile plan files (nested entity
+  expansion, an external `file:///etc/passwd` entity, quadratic blowup, and a
+  `DOCTYPE` placed inside a task) and one normal task were run two ways: as
+  `spec_bridge.legacy_plan` does it, and as a whole document.
+
+  | Input | As Harness parses it | As a whole document |
+  | --- | --- | --- |
+  | A normal task | parsed | parsed |
+  | Nested entity expansion | refused: undefined entity | refused: amplification limit |
+  | External entity | refused: undefined entity | refused: undefined entity |
+  | Quadratic blowup | refused: undefined entity | refused: amplification limit |
+  | `DOCTYPE` inside a task | refused: not well-formed | refused: not well-formed |
+
+  Harness is safe by construction, not by its expat version. It never parses a
+  file. It caps the file at 65,536 bytes, extracts each `<task>...</task>` block
+  with a regular expression, and parses the blocks one at a time. An entity has
+  to be declared in a `DOCTYPE` before the root element, and an extracted block
+  starts at `<task`, so no declaration can reach the parser. The whole-document
+  column does depend on the expat that Python is linked against: this one
+  enforces an amplification limit, and another might not.
+  So the lifted parser needs no new dependency, on two conditions that Task 2
+  should turn into tests: it parses extracted blocks and never a whole file, and
+  these five cases stay in its suite. Only macOS was tested; nothing above
+  depends on the platform except the whole-document column.
 - **`PyYAML`: needed, as an extra.** The adapter imports it lazily and only for
   sources with frontmatter, but it parses the owner, scope and classification
   labels that decide authority. Replacing it with a regular expression would
@@ -209,13 +227,13 @@ the same reason. Sizes are lines carried or written, with their tests.
 | Work | Size | Depends on |
 | --- | --- | --- |
 | Adapt `path_validation.py`: fix the Windows check, make it public | Small: 93 lines, 19 tests, plus Windows cases | nothing |
-| Lift the `<task>` parser; adapt `spec_reader.py` | Medium: 189 plus 56 lines; 10 tests, plus cases from the decomposer's 66 | the `defusedxml` question |
+| Lift the `<task>` parser; adapt `spec_reader.py` | Medium: 189 plus 56 lines; 10 tests, plus cases from the decomposer's 66 and the five hostile-input cases | nothing |
 | Adapt `spec/state.py`: refuse unknown versions, take the plans directory as an argument, agree comment placement with `spec_bridge.py` | Medium: 319 lines, 130 tests to port | the two above |
 | Adapt `command_workspace.py`: move locking to the task store, decide where form events go | Medium: 504 lines, 22 tests | Task 3's design for R1 |
 | Carry four names from `spec_intake.py` without the registry write | Small to medium: `FormSchema`'s module is unread | nothing |
 | Adapt `spec/workspace.py` at three seams | Large: 995 lines, 51 tests | all of the above |
 | Memory: a reader for three store formats, one ranking function, the adapter | Medium on POSIX: 423 lines and 26 tests for the adapter; 189 tests to characterize the reader | its own spec |
-| Memory on Windows | Unsized | a handle-based reader and its safety review |
+| Memory on Windows, which Patrick ruled memory waits for | Unsized | a handle-based reader and its safety review |
 
 `workspace.py` is the critical path for the spec authority. Windows is the
 critical path for memory.
@@ -262,7 +280,7 @@ line by the proposer before it changed this document.
 | `intake_template` is `attune_forms`; line 116 writes a global registry | `spec_intake.py` reasoning corrected |
 | The adapter refuses to run off POSIX | Memory section rewritten; Windows is the deciding question |
 | Ranking is 35 lines plus `attune_rag` | Memory reader resized from large to medium |
-| Harness already parses plan XML with the standard library | `defusedxml` changed from requirement to open question |
+| Harness already parses plan XML with the standard library | `defusedxml` changed from requirement to open question, then tested and found unnecessary |
 | `structlog` arrives through `file_stash.py` | Added to dependencies, as avoided |
 | The decomposer has 66 tests in a file of another name | Table corrected |
 
@@ -275,7 +293,7 @@ read `attune_rag`. The fact checker did not read `intake_template`,
 - No Attune AI test was run. Test counts are counts of test functions, not of
   passing tests.
 - `meta_workflows/models.py` and the stores' further imports were not read.
-- Whether the standard library XML parser is safe for plan files.
+- The XML result on Linux, Windows or any expat other than 2.5.0.
 - That the carried tests pass under Harness. R5 requires it; it is Task 2's
   evidence, not this table's.
 - Behaviour on Windows. Every Windows statement here comes from reading code.
