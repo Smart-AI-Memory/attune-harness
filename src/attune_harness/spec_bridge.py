@@ -12,7 +12,7 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from .features import read_text
+from .features import OVERSIZE, read_text
 from .review_contract import digest, parse_json
 from .task_contract import read_task
 from .work_contract import (
@@ -48,9 +48,17 @@ def plan_content(raw):
 
 def legacy_plan(path):
     """Use the existing parser; retain its fields and disclose everything ignored."""
+    # Read first, so an oversize plan is reported even where Attune AI is absent.
+    try:
+        raw = read_text(Path(path), 65536)
+    except ValueError as error:
+        if not str(error).startswith(OVERSIZE):
+            raise
+        raise ValueError(
+            f"{error} Split the plan into smaller plan files and import each one as its own task."
+        ) from error
     from attune.pipeline.spec_reader import read_spec
 
-    raw = read_text(Path(path), 65536)
     content = plan_content(raw)
     blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
     if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
