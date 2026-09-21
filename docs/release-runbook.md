@@ -21,7 +21,7 @@ update this table when they change.
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
 | PyPI project `attune-harness` | Trusted publisher | Must name this repository, `publish-pypi.yml` and the `pypi` environment. Uploads use OIDC; there is no API token |
 
-Three things follow from that table.
+Four things follow from that table.
 
 The `testpypi` environment cannot deploy until its allowed branch is changed. A
 TestPyPI rehearsal will build and then be rejected at the publish job. 0.2.0 hit
@@ -36,6 +36,11 @@ fails unless the platform jobs passed or were skipped for a pull request the
 classifier found documentation-only. Pushes to `main` never skip, so every
 commit there has a full run, and the release gate reads only those. The reasons
 are in the comments in `.github/workflows/qualification.yml`.
+
+Required approvals is 0 on purpose. Every agent acts through Patrick's one
+GitHub account, so requiring an approval today would block every pull request.
+[The collaboration plan](agent-collaboration-plan.md) records the option that
+changes this, and the order it has to be done in.
 
 "Isolated Windows effects backend qualification" is not a required check. It
 runs on pushes to `main` and on pull requests that touch the backend's inputs,
