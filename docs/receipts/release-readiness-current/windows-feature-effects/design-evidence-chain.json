@@ -1,0 +1,39 @@
+{
+  "design": {
+    "path": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/docs/design-windows-feature-effects.md",
+    "sha256": "0b7a664c4de8ea61d1a29f57e7f43b9f20ab80c8268d49d58fd529d95d10537d"
+  },
+  "native_model_calls": 0,
+  "native_windows_effect_calls": 0,
+  "official_references": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntcreatefile",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/obtaining-a-handle-to-a-directory",
+    "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_rename_info",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilew",
+    "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers",
+    "https://learn.microsoft.com/en-us/windows/win32/api/ntdef/ns-ntdef-_object_attributes"
+  ],
+  "platform_probe": "macOS source inspection; no Windows execution",
+  "provider_calls": 0,
+  "schema_version": 1,
+  "source": {
+    "src/attune_harness/_windows_worker.py": "f50c5538e9af03b65105f16f68f06ce28e9350a820556b7a6aa0124255d95cff",
+    "src/attune_harness/assessment_effects.py": "8fc7f1e46d9e683c452a5ff9e1339af50874494f9c32c0eeb9a304c3c361b020",
+    "src/attune_harness/process.py": "c7bd96eaca0d1c1171533a6c4fbc70a69f3170b1aa82df5a20a91027f4e9de00",
+    "src/attune_harness/repair.py": "c6c9bbc583db6c9f92f7f47707c9a6ab5ea84f364baca7c00c25c59be83e5940",
+    "src/attune_harness/task_contract.py": "74004c3fd38b35d2d6ec60a8e739af14a81aca0cfad21d3dd0997420e89b71b2",
+    "src/attune_harness/task_handoff.py": "db6ebf0bd52ba67b165a1cb566b84868ed7d80b2f16d4d9031712c7b8f817712",
+    "src/attune_harness/task_policies.py": "70af50ed520c40c25a8f627ba166c02a1a68abb6566753ea30bc180d92eb371c",
+    "src/attune_harness/task_runtime.py": "16d24ff3bc8352210e52fba643f10c2da0d1ef7014d467424ab2a242c718d2fc",
+    "src/attune_harness/windows.py": "ee7ab6c96e424ef00545de4be8c06af66bc39ed7bf3df9956bcbd1e45ec523e4",
+    "src/attune_harness/work_build.py": "c03557ae700eee18eabdbbf7e28952218b8d9e7af9dfb0c91e4f897294e55d36",
+    "src/attune_harness/work_effects.py": "bf2ba1689195ed3ecba10b9e7f06723f6cc16a4ce33bd382f9775f15aefd4f69",
+    "src/attune_harness/work_runtime.py": "8182cb774aa6f6e2a05bdb94424d4f0efbebfb717312708227f8e4b65683e7eb",
+    "tests/test_process.py": "85e47758d3bd731dfc42f38c21e22a3976850d8c98068aaaf7801d21988b7fbb",
+    "tests/test_task_repair_effects.py": "096a135b08ffeede5a29a7ee2ffddc125c1d96c86e9bb64a08f30d6a9acd2bc6",
+    "tests/test_work_effects.py": "7c9a61bf99ed105f576348fafc5d6a67c38af83867a2c64458c7eaf85a6bdce4"
+  },
+  "status": "design_only_native_windows_unqualified",
+  "type": "windows-feature-effects-design-evidence-chain"
+}

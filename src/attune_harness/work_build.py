@@ -301,7 +301,8 @@ def check_build_fresh(record):
         plan, work_effects.expected_snapshot(plan, record["build"]["events"])
     )
     for probe in [*work_effects.verification_probes(plan).values(), *plan["checks"]]:
-        repair.validate_probe(Path(plan["root"]), plan["allowed"], probe["probe"])
+        repair.validate_probe(Path(plan["root"]), plan["allowed"], probe["probe"],
+                              windows_profile=plan['profile'] == work_effects.WINDOWS_PROFILE)
         if (
             repair.sha(Path(probe["probe"]["argv"][0]).read_bytes())
             != probe["executable_sha256"]
@@ -507,9 +508,14 @@ def validate_build(run, request):
                     manifest_digest=digest(plan),
                     effect_class="file_" + item["kind"],
                 )
-                path, entry = work_effects.after_entry(plan, item)
-                if result != {"path": path, "entry": entry}:
-                    raise ValueError("Build file receipt differs from proposed bytes")
+                if plan['profile'] == work_effects.WINDOWS_PROFILE:
+                    from .windows_effects import observed_effect_result
+                    if result != observed_effect_result(item, result.get('entry', {})):
+                        raise ValueError('Windows build file receipt differs from proposed bytes')
+                else:
+                    path, entry = work_effects.after_entry(plan, item)
+                    if result != {"path": path, "entry": entry}:
+                        raise ValueError("Build file receipt differs from proposed bytes")
             probe(step["id"])
         final = probe("final")
         review = participant(
@@ -551,7 +557,6 @@ def build_work(
     from .work_contract import check_work_fresh
     from .work_runtime import _effect_owner
 
-    work_effects.require_platform()
     if type(allow_external) is not bool or type(allow_native) is not bool:
         raise ValueError("Dispatch permissions must be booleans")
     store = RunStore(safe_storage(directory), existing=True)
@@ -560,6 +565,7 @@ def build_work(
         record = _effect_owner(store, checkpoint or current["checkpoint_digest"])
         request = record["request"]
         plan = request["effects"]
+        work_effects.require_platform(plan)
         roles, probes = preflight(request)
         configs = {
             r: request["registry"]["participants"][a["participant"]]

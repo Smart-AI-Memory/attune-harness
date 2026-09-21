@@ -1,0 +1,64 @@
+{
+  "chain": {
+    "path": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/docs/receipts/release-readiness-current/windows-feature-effects/primitive-second-attempt-chain.json",
+    "sha256": "e104f8b604ce12de6b0e288a5b3e0b11fe9d7234e64f064067d47a676027d110"
+  },
+  "disposition": "Go for the second isolated Windows primitive CI observation. No Windows replacement success or production support is established by this review.",
+  "files": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-feature-effects.md": "36a739c2c614d975e588d26f41ef95f13ac723c1a98d63c99a26a5e18c41adea",
+    "docs/receipts/release-readiness-current/windows-feature-effects/local-unsupported.json": "c4930b7e140c02198fc44dc7c07231a29d4d8e14b980a0f37418ad39444f98dc",
+    "docs/windows-effects-primitive-results.md": "5881b4df2f50230d7f4c555a26db87588b7af5f0f454424681ce9e460e9b5e82",
+    "experiments/platform/windows_effects_probe.py": "ac4e2a5f57e4f7512615027ccfe56c55ba74d3d71df485572d3d1b9c8ccbc345"
+  },
+  "first_native_evidence": {
+    "/private/tmp/attune-windows-primitive-35415783622/windows-effects-primitive-3.10/effects-3.10.json": {
+      "error": {
+        "code": 87,
+        "kind": "win32",
+        "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+        "type": "ProbeError"
+      },
+      "sha256": "7b4a8447c8f978e376291c059778efbeb606156d5df0a5c4670e6da34627b398"
+    },
+    "/private/tmp/attune-windows-primitive-35415783622/windows-effects-primitive-3.12/effects-3.12.json": {
+      "error": {
+        "code": 87,
+        "kind": "win32",
+        "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+        "type": "ProbeError"
+      },
+      "sha256": "2fe45242f3799ce8738a7d37e4d078d68d15346c51ef5a807c129b10f21c93b2"
+    }
+  },
+  "limits": [
+    "Code87 is consistent with the buffer defect but does not prove it is the sole cause.",
+    "No null-root/path-based fallback or automatic alternate API success was introduced.",
+    "No reviewer native probe, pytest, provider/model call, CI dispatch or production edit.",
+    "Native primitive success would still not establish concurrent reader atomicity, process crash/power-loss recovery, arbitrary ACL preservation or a production Windows effects backend."
+  ],
+  "primary_sources": [
+    {
+      "supports": "The rename buffer minimum includes sizeof structure plus name bytes; flags1/2 and relative simple name with RootDirectory are documented.",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_file_rename_information"
+    },
+    {
+      "supports": "Flags apply to FileRenameInfoEx; FileNameLength is byte count and a directory handle may resolve a relative FileName.",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_rename_info"
+    },
+    {
+      "supports": "Buffer length is in bytes and failed calls report GetLastError; a failure alone does not identify its specific invalid parameter.",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle"
+    }
+  ],
+  "receipt_type": "evidence-chain",
+  "reviewed_fix": [
+    "The reviewed x64 ABI has FileName offset 20 and sizeof structure 24. The previous allocation offset+name_bytes+2 was two bytes below the documented native rename buffer minimum sizeof+name_bytes.",
+    "The changed allocation uses sizeof(FILE_RENAME_INFO)+UTF16 name byte count. The exact API, class22, flags3, non-null retained RootDirectory and relative single target leaf remain unchanged.",
+    "Pre-call rename_request records structure size, field offset, name length, allocation length, flags and parent-handle presence even if the API refuses.",
+    "Executed source hashes remain distinct from explicitly LF-normalized fingerprints; GITHUB_SHA and executable identity retained. Workflow bytes unchanged.",
+    "Both initial failure receipts remain byte-identical; results documentation treats the sizing correction as a hypothesis awaiting the second native result."
+  ],
+  "reviewer": "Astra XHIGH",
+  "schema": "bounded-source-review-v1"
+}

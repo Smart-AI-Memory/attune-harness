@@ -1,6 +1,7 @@
 """Bounded planning and accepted file effects on the shared task journal."""
 
 import copy
+import os
 import time
 from pathlib import Path
 
@@ -335,11 +336,15 @@ def apply_work_effects(directory, checkpoint, proposal, *, max_operations=None):
         require_platform,
     )
 
-    require_platform()
+    # Preserve the historical POSIX preflight before the lease needs its locks.
+    # Windows admission depends on the accepted manifest, loaded under lease.
+    if os.name != 'nt':
+        require_platform()
     store = RunStore(safe_storage(directory), existing=True)
     with store.lease():
         record = _effect_owner(store, checkpoint)
         request = record["request"]
+        require_platform(request["effects"])
         operations(request["effects"], proposal)
         control_runners(request)
         run = record.get("build")
@@ -403,12 +408,14 @@ def reconcile_work_effect(directory, checkpoint, event_id, *, retry_before=False
     """Explicit host reconciliation; never infer permission from an unknown write."""
     from .work_effects import reconcile_effect, require_platform
 
-    require_platform()
+    if os.name != 'nt':
+        require_platform()
     if type(retry_before) is not bool:
         raise ValueError("Retry policy must be boolean")
     store = RunStore(safe_storage(directory), existing=True)
     with store.lease():
         record = _effect_owner(store, checkpoint)
+        require_platform(record["request"]["effects"])
         if "build" not in record:
             raise ValueError("No effect operation to reconcile")
         run = record["build"]

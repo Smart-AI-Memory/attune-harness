@@ -1,0 +1,314 @@
+{
+  "argv": [
+    "C:\\hostedtoolcache\\windows\\Python\\3.10.11\\x64\\python.exe",
+    "-I",
+    "-m",
+    "pytest",
+    "-q",
+    "-c",
+    "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\attune-windows-effects-consumer-yho_dma1\\pytest.ini",
+    "-o",
+    "pythonpath=",
+    "--junitxml=D:\\a\\attune-harness\\attune-harness\\qualification-windows\\backend-3.10\\tests.xml",
+    "D:\\a\\attune-harness\\attune-harness\\tests\\test_windows_effects.py"
+  ],
+  "candidate_manifest_sha256": "2e4ba3091055b0e77913ae3e0c4c4803f78aa8a10e84357a12414b3708172a86",
+  "commit": "a8b419c15296348d0e70dfe5bed43bd0fed55d46",
+  "consumer_cwd": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\attune-windows-effects-consumer-yho_dma1",
+  "counts": {
+    "errors": 0,
+    "failures": 1,
+    "skipped": 0,
+    "tests": 10
+  },
+  "duration_seconds": 1.469,
+  "error": {
+    "detail": "Installed native test selection did not pass exactly",
+    "type": "ValueError"
+  },
+  "installed_package": "C:\\hostedtoolcache\\windows\\Python\\3.10.11\\x64\\Lib\\site-packages\\attune_harness",
+  "junit_sha256": "d34e9b81274724204d95e99f5e64cccaf4ee8afaf55e3a1550f0c60f5a9b567c",
+  "log_sha256": "5b3a42b04797b29ac978b250e67dad6549dac3d90b257d27b2e6750c230430cb",
+  "max_log_bytes": 2097152,
+  "modules": {
+    "__init__.py": {
+      "executed_sha256": "ab9c50f35770d4485304649b23151bb61748bf196c4930432ae2b966919fd959",
+      "git_lf_sha256": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289"
+    },
+    "__main__.py": {
+      "executed_sha256": "b2aacd9a98a3bad15bbd0ef243418009d220b20950c9d99f2232fdadece63a8c",
+      "git_lf_sha256": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186"
+    },
+    "_pytest_worker.py": {
+      "executed_sha256": "06f50766e76751cab5f1ee5cda81da4d0a69fd2b28d2741ec16a2def1d9e1099",
+      "git_lf_sha256": "4af455e8fabb6b0d5dc7ac1923221e1ecd50af7ece3a6e135f1a75ecefe2a87d"
+    },
+    "_windows_worker.py": {
+      "executed_sha256": "3d3d00911155bdd2de572fb64ef94a1743258de3a215eafbd0e7ec634a76da1c",
+      "git_lf_sha256": "f50c5538e9af03b65105f16f68f06ce28e9350a820556b7a6aa0124255d95cff"
+    },
+    "a2a.py": {
+      "executed_sha256": "2b7b6674eb0cc3e1394b22761490c9f0d375e7567c1f283d2ea8ccd8347d3420",
+      "git_lf_sha256": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e"
+    },
+    "adapters.py": {
+      "executed_sha256": "dead100a60ddf0cd086839e1d1687a08222d6f58c61ffd89b998556fa74b31c6",
+      "git_lf_sha256": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe"
+    },
+    "assessment_effects.py": {
+      "executed_sha256": "6d983edaacb7a5c64130ef6392a4ec422d2d22649461068bacfe2be70cc529f7",
+      "git_lf_sha256": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e"
+    },
+    "attune_bridge.py": {
+      "executed_sha256": "35d31cfaefd4cfc7dc3cc41556a8944b5216e93e26e9f2a41c399d10083fa9ef",
+      "git_lf_sha256": "6119f04c66edb6adb91ffe95e7b1249dcc660803ae3b62a61fecb5d71dd04e4e"
+    },
+    "cli.py": {
+      "executed_sha256": "20a6da69c5ddd95bd004d3456cda732fdd76057c930e98a3d7e9346a3307b233",
+      "git_lf_sha256": "2657f096d962b9753570bb6e764c0f24cb4138081d06a7e0a7fb302f655caab3"
+    },
+    "cli_help.py": {
+      "executed_sha256": "6f8ab31c77777bcea29591aac6f61cc4e09cdfd83385f5ef13b6672c022238c2",
+      "git_lf_sha256": "6104eaecba10eb3504431c8763cb176bc8a00fb21eb79fdf77526c79a0e74a7f"
+    },
+    "documentation.py": {
+      "executed_sha256": "c9c780ac3db7703c920284434e7d3fb9714c6b36a8d2fafa54c4b2777036c9e0",
+      "git_lf_sha256": "e343c3baa1cce7f4fe7a2843171c1278a2bed391942a99666fa182bf8c471c1b"
+    },
+    "execution_evidence.py": {
+      "executed_sha256": "0c3092406258fcf692c95cb36e67e81fbf241e8ac81f3f3b5010da4128f45f58",
+      "git_lf_sha256": "4512c57cefd3b3f79bed0f4f06417de9236ad79520aa81aa45ddb2e48db39220"
+    },
+    "extension_cli.py": {
+      "executed_sha256": "44da5b7d94334bd108585ae144593c67fe221804d662462245d01f6d5f71c159",
+      "git_lf_sha256": "f74c1d64f59792d6ec1f5980222c071c2265ba4cff8115dbc4ffb530003277b2"
+    },
+    "extensions.py": {
+      "executed_sha256": "80a0301fd6f07c7318d3be24bbbb616a61260d6fa8cd9a9375c756d4d9437fdc",
+      "git_lf_sha256": "1d5271879e4d4a1b43708f36c3c7913ea1901a0fe467de3054e853c3c5b5f2d6"
+    },
+    "features.py": {
+      "executed_sha256": "55629adb106bfd7c240e2e10b10f410f9773e95f784dfb9bb69a9b9eb6118e26",
+      "git_lf_sha256": "a9c08b77d6ed20926245a90541a9dc6ada3093b24da70c7f96f273f57781cdc5"
+    },
+    "github_checks.py": {
+      "executed_sha256": "ae630b946af43e4e483fdf320e5ae65503d748b6e806b30e6d3c56be485ded33",
+      "git_lf_sha256": "f8be1dace591530cc78b4d4095477abdaca76391fb55eb1d9b57514699da1213"
+    },
+    "grounded_review.py": {
+      "executed_sha256": "5bed3f9599bcc38ecb1c3f2f80c4c5895da4b411efb6303b69d975c35483d20e",
+      "git_lf_sha256": "55e428e68152658b430a0f345d8d183400827c6e3c5f8e9d35059dbf2947fd2a"
+    },
+    "llama_tokens.py": {
+      "executed_sha256": "6045da64447529e3361e5019cb966f97b7e8ad933f0e6a3be430259fa628a8d8",
+      "git_lf_sha256": "5cc4f89b34bd17c0f8064809c5c5bfa98a7adf607f107bd3837d5c558482e8f2"
+    },
+    "mcp_server.py": {
+      "executed_sha256": "c16b3db532eb58f405046893d7952323eabc7feaec16b58f729823a1c7b1f5b0",
+      "git_lf_sha256": "4666b3ebc2046aa18623cdb80ed389852f2729ba1b518afb72b36c90c6000dfa"
+    },
+    "memory_bridge.py": {
+      "executed_sha256": "9d15a2a4e6ce77c781e45927b6ef14df94b4f6707cb837d9e51c92364b7776b5",
+      "git_lf_sha256": "b4874b7157efc6fe7ee51df0ec0e0b4dce030bd22d2a9cc8366dfdf46f96a2d5"
+    },
+    "memory_cli.py": {
+      "executed_sha256": "4177682664fafc110abceaa425e21a241be16f5cb2548b2914f7099c74d38690",
+      "git_lf_sha256": "991765129304a56b567380d1c4913d65d04a7b58b91decb250fdb7aebf9b0ceb"
+    },
+    "memory_context.py": {
+      "executed_sha256": "316f3209e2fe6e36c83e7c50ffd9468a865067adf579551b2f414a4e75071da3",
+      "git_lf_sha256": "1cbbdd756402bc9592f39d5d0a78e3fbb39c95a25f651aa3e238a34ffe6fd533"
+    },
+    "memory_contract.py": {
+      "executed_sha256": "dd160daa10265925f937e48aa028558fb016f8e6e216553e32f22922fbe85f90",
+      "git_lf_sha256": "8b50fd654405a8140fa51de6bf4d4a7543caa5d9ea89050f6326c88b1d34cdbb"
+    },
+    "memory_native.py": {
+      "executed_sha256": "383002246dd01b127b94c8d137417ce84fd46a59dbbfa0b3b5903ddab3029f62",
+      "git_lf_sha256": "a77e0ae96b4400594d147cea204f4c3235b0568428bc16d67ac9535da2e6f372"
+    },
+    "memory_worker.py": {
+      "executed_sha256": "6d16d6692286a3ad2316c1e673dcc6f3a2bc068e409148368874672499925938",
+      "git_lf_sha256": "5c3f678a696df6a2d99ad8b333cc43aa1d870f52aacf0601238a86530b978988"
+    },
+    "native.py": {
+      "executed_sha256": "74177e0ffe1da5d6464644d9a879e2b470e43d2671f3051330761ca63ffa7eca",
+      "git_lf_sha256": "69a8581464f9d8320c0dce3a2a9aaa103acf899bb6e746279ebb51ab65dd1b18"
+    },
+    "ollama.py": {
+      "executed_sha256": "4886dfd2ab91e6b394966f08a13513d66840f3e5876e6e2f950c906a21326be7",
+      "git_lf_sha256": "5b59b88d4cb398334857af4771e5f176013d2d7d0e304c99ad0c31898565081d"
+    },
+    "ollama_review.py": {
+      "executed_sha256": "ad28427b1af374c715d67fd352f4ba1e9f17a3b0525ac0e34ae6ed011b66bdff",
+      "git_lf_sha256": "b194396ea4e1418b451ed894ec3d6b8426919b5bbb2e0bad9d7e3ed250b3ea3b"
+    },
+    "operations.py": {
+      "executed_sha256": "cbee3d36c6048412fd81ae7839ebe68686ed73b792058911a6c8ed71419e6908",
+      "git_lf_sha256": "0cd4e3eb9777b9f12deff53525e5b24e199cbeecc005e4fbe2eaa97b2f832b28"
+    },
+    "passage_review.py": {
+      "executed_sha256": "174715bf1fb036942ca2aa64a4545f65764a29f3dcc8d43948e47402c2c21628",
+      "git_lf_sha256": "bd88e77342a87e8fdd548bec84fc98afd8dd17f20f7456acb964f34f1dd3ea0e"
+    },
+    "process.py": {
+      "executed_sha256": "a1ae864ed6bdcce67a6ec9113c6bd048a9dd7e22576d4b8d73db6b810a1b2822",
+      "git_lf_sha256": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291"
+    },
+    "recovery.py": {
+      "executed_sha256": "bdbb0b2c4a616a08bfc64c536a23b0c88783d600de432f95e53aeabf3f969829",
+      "git_lf_sha256": "72abdeeb67a49d0bb1b0316f8cf398bf8d6aec6731c899f7e7739294b3594e3f"
+    },
+    "repair.py": {
+      "executed_sha256": "407cfee5ed3d54ce131479faee4318448c6703d53f623393fd07692282910414",
+      "git_lf_sha256": "fdc61ebd543d53bada368306319b16505abc71dea97b8b5fd2c4b966531bcd0d"
+    },
+    "retrieval.py": {
+      "executed_sha256": "633b01738f612c318e68484ae6a572940b2427ca49cae6870cb7588bbe0ee060",
+      "git_lf_sha256": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1"
+    },
+    "retrieval_task.py": {
+      "executed_sha256": "95d67d42f7ec61bb6399ec19f67020f4304322b92e863de0126f5ea2d0c04e13",
+      "git_lf_sha256": "2fb48359f1bc67f2b13f2235f2f125ee2ae3bfa3a7f7a5287f4c827dd1ccdeb5"
+    },
+    "review.py": {
+      "executed_sha256": "50d4521182cbd371eac9165eb53b7cb2dd75a2ff94be469ecf71d9c62674d8b9",
+      "git_lf_sha256": "8524a9ae34f1a612629031649c5fe8eebd84f09ad97c635c2725f00e09ef4145"
+    },
+    "review_cli.py": {
+      "executed_sha256": "fad551c91b575922a7cebe6e31b82e81d71d6c1c7b2106a209899c531c2e9b72",
+      "git_lf_sha256": "8a182fdb7ca755e05817d599a9fcae795e435887eadc1c3ebf3b32edd038861f"
+    },
+    "review_contract.py": {
+      "executed_sha256": "6402ea5ec3df2803b533776f14a12d1f9fcfca47613c53915739c99589fd8dfe",
+      "git_lf_sha256": "83a6694cbeefd933bc6deef2098333877dcbd86b142743b552ce8f81f0ba4427"
+    },
+    "review_participants.py": {
+      "executed_sha256": "97c1ab811a1124ebf0a1e9a8af5292abd5d7605e1043fff5566d80e66213afcf",
+      "git_lf_sha256": "c50e33c5e0600e6e9e0086327f817e234f148b9c9992ab59c4dbdf69277a0305"
+    },
+    "review_store.py": {
+      "executed_sha256": "cbf5069e70a0055232723ca0ed463f986382ada2d80f306ad0d2f2d031b0b3ef",
+      "git_lf_sha256": "7828953a71bf64c83e7786e856a6be6aa93efe439f238d3e866d2b3927bb61fd"
+    },
+    "spec_bridge.py": {
+      "executed_sha256": "51063ad1bbfacd4f9d5949fbcda4f3ee3630d8979c57b8e93dd3819326178235",
+      "git_lf_sha256": "e6161ba1432beffd37a41fe1a9faa1640bd5d45824820674751d54a7c8cf5826"
+    },
+    "spec_handoff.py": {
+      "executed_sha256": "f59bb3d780ec1c230ad24b04f0207bd2662536473ec41b5ce5cedbf8600c8594",
+      "git_lf_sha256": "f909fd18cde4830fdc8d0cb781b38e36d506494a82410ca84c337d015ff32da5"
+    },
+    "task_cli.py": {
+      "executed_sha256": "b91e8710cecc09d5a07a24618f50716f286b4739a318b21464a113dd1d1fa20c",
+      "git_lf_sha256": "b085e8dfad4410563269e82fea4cc118daf4ff2036aeed3209691d3962985093"
+    },
+    "task_contract.py": {
+      "executed_sha256": "641599a59defa19342c60d465cf3eca39209a494b4a39f51c547461081523752",
+      "git_lf_sha256": "de647670d5fa464107426dfb866769b5f7711e4dd3483b59dac5938d969bb5e8"
+    },
+    "task_handoff.py": {
+      "executed_sha256": "bcee1bc99da14294693430558afddbecf2a84f56697ab66d76ec7427ef85974f",
+      "git_lf_sha256": "db6ebf0bd52ba67b165a1cb566b84868ed7d80b2f16d4d9031712c7b8f817712"
+    },
+    "task_policies.py": {
+      "executed_sha256": "fc1197f2761eb64ec04f8a140e84b5cb51033a50bb8e9e65bab0b9be9c306cae",
+      "git_lf_sha256": "2fed1f710729dc30833b2fcd490b85a4ffe47197158bf2ed569358973b0c344c"
+    },
+    "task_runtime.py": {
+      "executed_sha256": "2408818b635a2acac2dac05e4270a5d168102083158b618a6e656de0cd075f24",
+      "git_lf_sha256": "16d24ff3bc8352210e52fba643f10c2da0d1ef7014d467424ab2a242c718d2fc"
+    },
+    "test_change.py": {
+      "executed_sha256": "73105683a71953f0054180527f10520ad337fb590884f99544de88245969e409",
+      "git_lf_sha256": "ae311410e25d2182789b273e75f2038526c75c8047bf3cb6fdc6b9333ff6a421"
+    },
+    "test_cli.py": {
+      "executed_sha256": "88505f365672e6ff79af6591a281fae3c86bf89dd075ee159391c0937cbf0999",
+      "git_lf_sha256": "4dced7ddec6de529fee805acca1503aa10469025fde22f57bd943219b1cd7429"
+    },
+    "test_execution.py": {
+      "executed_sha256": "b3be7f05c75167ef0cedd2af6dd25fe457c47132d71308c2d8a4da76bcedd8c4",
+      "git_lf_sha256": "5b0f4390380d85e9917b25de4f0a6f300e9f13e38bc5ee95509af0aef8f335ba"
+    },
+    "test_scope.py": {
+      "executed_sha256": "da75f9f302e8ec92cc680b93b9fe30ae703676b836b636cbd4670a115fda79f0",
+      "git_lf_sha256": "63f89320bc8e2bb275da9d2c21f89131bbc09200278b5744bc852caacb572296"
+    },
+    "verification.py": {
+      "executed_sha256": "543cd2373e23c4629c5759685a14ffed73e99c5a083403362b62d4066f6e781e",
+      "git_lf_sha256": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c"
+    },
+    "voyage_cli.py": {
+      "executed_sha256": "d6d9c7e136082b5d48b463db935000fa90e0440e857a5ae7d83e9480948fcb6f",
+      "git_lf_sha256": "2eb7a0fadbac848a12838e85bc0ad4cd8d50b735e3529eb4ebd09b72e92c8319"
+    },
+    "voyage_index.py": {
+      "executed_sha256": "74232a53b95caf25b78ed98e14a04e84936af12b781ded4513003abc09f3a17a",
+      "git_lf_sha256": "1c28461f6e73d617bdce241cb30b3039b8d5af95fe7d01c696bbb2ce366bea94"
+    },
+    "voyage_provider.py": {
+      "executed_sha256": "f66d9f9466296cc614c617c5cbb2a2ce65d6351e542c7e9e958908cb12382005",
+      "git_lf_sha256": "2f248fd432e72bac6f395cd3f108360335ca56869fcca0d3137c15867b4fb5e3"
+    },
+    "voyage_retrieval.py": {
+      "executed_sha256": "83352d9df0ed28f963ad1fa8a815c5b1c23380cd8bb57ca9a5cf8661b1c8eb40",
+      "git_lf_sha256": "e64d1e6851b78f541528f133b05ee7b2f0968b00503a0700a6b04a3bc7b8f951"
+    },
+    "voyage_sources.py": {
+      "executed_sha256": "7b7c203ecde83e97a3f6852875dc8e5b8c1b007a4d63f6f2044fea0bb64f6e83",
+      "git_lf_sha256": "e7e5696da075a69fdd921cc725f64dc1b8a17464d255aefe15c5cf9355ede4bd"
+    },
+    "windows.py": {
+      "executed_sha256": "fc89f6c7c26c4160d9cfbd5db1de7251f600672c7e905fd9cfd9d80fe4b8b9b3",
+      "git_lf_sha256": "c5abac57c88ab4fa23c851e8fce042296ddc8403d0b024d297af9beddcd90a26"
+    },
+    "windows_effects.py": {
+      "executed_sha256": "482219e93dc03d2d3289826ed47581c2045caac9b126f39b989185fa4922708a",
+      "git_lf_sha256": "cac809327af5a6e5427be9dec3051c468a1fb9831d30d54ffb3b9b0240d9cf1f"
+    },
+    "work_bodies.py": {
+      "executed_sha256": "269f1dc1a52a0b69d91f1f17022179e3901a1ff1a0b904c8ebe41f8632b31b25",
+      "git_lf_sha256": "0c3206842e6369e561b61f4fc49f7c2260ecb136c603aa6f5ae0ee9f96338624"
+    },
+    "work_build.py": {
+      "executed_sha256": "b88e175b71c89edb54997483d933ccaff1e79ad9eaa687cfbc40baa0ab174224",
+      "git_lf_sha256": "7b0edd00743aa57c1af76164c280a75fcc5e0026ecaf6f8eb4d30993e34d6b4d"
+    },
+    "work_cli.py": {
+      "executed_sha256": "523a17c56f62ab1f0ee481fee611bc1b0613e1b06bd5ecbc35ab1de34aec8e61",
+      "git_lf_sha256": "b269983c253f32597afbca8022d2e3fa5f40584d2dc5f6d81a083ac22ee74b54"
+    },
+    "work_contract.py": {
+      "executed_sha256": "711fbe501e3401e011e9a148b123ae0638fa6873e2e62093c3fd92c15278a758",
+      "git_lf_sha256": "f54f95772dbaba49d5b6416faf7560d956b97d5312e750132147349a4cb2cc28"
+    },
+    "work_decisions.py": {
+      "executed_sha256": "f07ecd5895a3b094b77304736f5993df762f362f489733afc8ea59c945993e33",
+      "git_lf_sha256": "000d5bcca054c41edab98310ae639f72c9780f3f02ae65bbb9a8d31d6ada532b"
+    },
+    "work_effects.py": {
+      "executed_sha256": "019b142a3869dedd7fc5c8da828bb8eb88a9cb58dc7f5ec2e4ab46065d22f90c",
+      "git_lf_sha256": "cc196be40f06d40d711e375cc6e12e2b1d0641f2e2a774eb74531d67d0ed5b53"
+    },
+    "work_review_handoff.py": {
+      "executed_sha256": "e34ee80ec9a81b84d57ae0a19b12f69dca3027ddcba5c9a925179c2ec8ec1e6d",
+      "git_lf_sha256": "27953e3da1cfc8946f0715d956c5d7c92ad423c3a5fa378bbfaede8a722b409e"
+    },
+    "work_runtime.py": {
+      "executed_sha256": "e46947963deb74fc5f45f3b6945840840cc7963168e5f74c8ec522e0ba72eecb",
+      "git_lf_sha256": "8182cb774aa6f6e2a05bdb94424d4f0efbebfb717312708227f8e4b65683e7eb"
+    }
+  },
+  "platform": "Windows-10-10.0.26100-SP0",
+  "provider_calls": 0,
+  "python": "3.10.11",
+  "returncode": 1,
+  "schema": "windows-effect-installed-journey-v1",
+  "selected_tests": "tests/test_windows_effects.py",
+  "source_manifest_sha256": "dc6530fbc25271e967a81538b5ee89350b9d8f43388d9cef252f06f92e050b8c",
+  "status": "failed",
+  "stop_reason": null,
+  "timeout_seconds": 180,
+  "wheel_sha256": "2fa8b12d39f35a4e11bfd806a9ba07446df04ae3f2848dfde465fac837f6caf1"
+}

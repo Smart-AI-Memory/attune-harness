@@ -1,0 +1,34 @@
+{
+  "cases": "9 passed, 1 failed on both Python 3.10 and 3.12; accepted work owner platform gate called without Windows plan",
+  "commit": "a8b419c15296348d0e70dfe5bed43bd0fed55d46",
+  "first_candidate_manifest_sha256": "8f573fb6ab38fdf7a536462cd6f596db476382be524f9b8fdba58dd6815a8759",
+  "first_source67_manifest_sha256": "74994c8570550fbec6b2823a17d0c88413dedfa360ec4edec9c7a5846d6a788f",
+  "manifest_checkout_evidence": {
+    "backend-first-candidate-manifest.json": {
+      "method": "Git checkout CRLF reconstruction; raw manifest not uploaded by first CI",
+      "reconstructed_windows_crlf_sha256": "2e4ba3091055b0e77913ae3e0c4c4803f78aa8a10e84357a12414b3708172a86",
+      "retained_git_lf_sha256": "8f573fb6ab38fdf7a536462cd6f596db476382be524f9b8fdba58dd6815a8759"
+    },
+    "backend-first-ci-source67.json": {
+      "method": "Git checkout CRLF reconstruction; raw manifest not uploaded by first CI",
+      "reconstructed_windows_crlf_sha256": "dc6530fbc25271e967a81538b5ee89350b9d8f43388d9cef252f06f92e050b8c",
+      "retained_git_lf_sha256": "74994c8570550fbec6b2823a17d0c88413dedfa360ec4edec9c7a5846d6a788f"
+    }
+  },
+  "retained": {
+    "3.10": {
+      "backend-first-3.10-receipt.json": "a4b2f874fa3cf6c1f20e62c815e1c506b25c671496cb96b63b6a684a651f7cf7",
+      "backend-first-3.10-tests.log": "5b3a42b04797b29ac978b250e67dad6549dac3d90b257d27b2e6750c230430cb",
+      "backend-first-3.10-tests.xml": "d34e9b81274724204d95e99f5e64cccaf4ee8afaf55e3a1550f0c60f5a9b567c"
+    },
+    "3.12": {
+      "backend-first-3.12-receipt.json": "4663c9fc6a39f478d7844aa6545e761dd5e06683305fc75cbb227360a5f28b3d",
+      "backend-first-3.12-tests.log": "29f3d3e3268023af3815146af474b259e9a1ee6bd2819f0052cf742ddcd2b384",
+      "backend-first-3.12-tests.xml": "df2ad0ad964d723e9e450e02a32a333adc9fccf319e8d5d276724045786e26b1"
+    }
+  },
+  "run_id": 35418073442,
+  "schema": "windows-backend-first-ci-v1",
+  "status": "failed",
+  "url": "https://github.com/Smart-AI-Memory/attune-harness/actions/runs/35418073442"
+}
