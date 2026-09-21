@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added: `attune_harness.paths.validate_file_path`, carried from Attune AI's
+  path validation as the first step of making spec support part of Harness. It
+  resolves a path and refuses one that leaves an allowed directory or lands in
+  a system directory. On Windows it compares whole path components from the
+  drive's root, where the original matched substrings and so refused legitimate
+  paths such as `C:\repo\etc\plans\x.md`. Nothing in Harness calls it yet.
 - Changed: an input over its size limit is refused with a fuller message. It
   now gives the file's actual size beside the limit and says the file was
   refused whole, because Harness never shortens an input to fit. The error is
