@@ -38,7 +38,7 @@ def test_null_bytes_are_refused_with_the_exact_message(bad):
 
 @pytest.mark.parametrize("error", [OSError("boom"), RuntimeError("loop")])
 def test_a_path_that_cannot_be_resolved_is_a_value_error(monkeypatch, error):
-    def fail(self):
+    def fail(self, *args, **kwargs):
         raise error
 
     monkeypatch.setattr(paths.Path, "resolve", fail)
@@ -135,7 +135,11 @@ def test_a_posix_system_path_given_on_windows_is_refused_at_the_drive_root(name)
         "D:\\work\\sys\\proc\\dev\\x",
         "D:\\work\\Program Files\\x",
         "C:\\projects\\windows\\system32\\notes.md",
+        "C:\\Windows",
         "C:\\Windows\\Temp\\x",
+        "\\\\?\\C:\\repo\\etc\\x",
+        "\\\\?\\UNC\\server\\share\\repo\\etc\\x",
+        "\\\\server\\share\\repo\\dev\\x",
         "C:\\etcetera\\x",
         "C:\\",
     ],
@@ -143,6 +147,23 @@ def test_a_posix_system_path_given_on_windows_is_refused_at_the_drive_root(name)
 def test_the_same_names_deeper_in_a_windows_path_are_allowed(safe):
     # The original refused all of these by substring.
     assert _protected(safe, windows=True) is None
+
+
+@pytest.mark.parametrize(
+    "path, named",
+    [
+        ("\\\\?\\GLOBALROOT\\Device\\HarddiskVolume2\\Windows\\System32\\evil.dll", "windows\\system32"),
+        ("\\\\.\\GLOBALROOT\\Device\\HarddiskVolume2\\Program Files\\x", "program files"),
+        ("\\\\?\\Volume{b75e2c83-0000-0000-0000-602200000000}\\Windows\\System32\\x", "windows\\system32"),
+        ("\\\\?\\UNC\\server\\share\\Program Files\\x", "program files"),
+        ("C:Windows\\System32\\x", "windows\\system32"),
+        ("Program Files\\x", "program files"),
+        ("repo\\etc\\passwd", "etc"),
+    ],
+)
+def test_with_no_drive_root_to_count_from_a_protected_name_anywhere_refuses(path, named):
+    # Device paths, drive-relative and relative strings: as strict as the original.
+    assert _protected(path, windows=True) == named
 
 
 @windows_only
