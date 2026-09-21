@@ -15,7 +15,9 @@ to delete other packages' data or to publish a release.
 2. New retrieval results declare byte-checked provenance separately from answer
    support. Candidates require source inspection; an empty selection declares
    insufficient evidence. No score threshold is invented from one negative case.
-3. An optional Attune BasePlugin delegates to the same accepted RetrievalSession
+3. *Removed after 0.2.0; see D8 in the
+   [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md).*
+   An optional Attune BasePlugin delegates to the same accepted RetrievalSession
    as Harness. Its own tool is `code_evidence_query`; paths and budgets are fixed
    by the launcher. Activation, actual host dispatch, reuse, disable/close,
    exhausted budgets and changed sources must be exercised. A failed paid
