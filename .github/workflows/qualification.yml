@@ -17,14 +17,14 @@ concurrency:
 
 jobs:
   # A pull request that only touches documentation cannot change the wheel or
-  # what the tests exercise, so the six jobs below skip their work for it.
+  # what the tests exercise, so the platform jobs below are skipped for it.
   #
-  # The jobs themselves must still run and report. They are one matrix job, and
-  # branch protection requires the six expanded names. GitHub evaluates a job's
-  # `if` before it expands the matrix, so a skipped matrix job reports one check
-  # under the unexpanded name and the six required checks never arrive: the pull
-  # request could never merge. For the same reason this workflow has no `paths`
-  # filter. The skip is therefore per step.
+  # Branch protection requires the single `Qualification` check at the bottom of
+  # this file, never the six platform names. Keep it that way. GitHub evaluates a
+  # job's `if` before it expands the matrix, so a skipped matrix job reports one
+  # check under the unexpanded name; if the six names were required, they would
+  # never arrive and no documentation pull request could merge. For the same
+  # reason this workflow has no `paths` filter: `Qualification` must always report.
   #
   # Only pull requests skip. Pushes and dispatches always qualify in full, so
   # every commit on main has a real run. The release gate reads only those.
@@ -66,8 +66,9 @@ jobs:
   installed-library:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
     needs: changes
-    # Run even if classification failed; an empty answer means qualify.
-    if: ${{ !cancelled() }}
+    # Skip only on an explicit "false". A failed classification leaves the
+    # answer empty, which means qualify.
+    if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -75,26 +76,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ['3.10', '3.12']
-    env:
-      QUALIFY: ${{ needs.changes.outputs.qualify != 'false' }}
     steps:
-      - name: Say plainly that nothing was qualified
-        if: env.QUALIFY != 'true'
-        shell: bash
-        run: |
-          message="Documentation-only pull request: nothing was built, installed or tested in this job. This check is green because it has nothing to test, not because the platform was qualified. Every push to main runs the full qualification."
-          echo "::notice title=Qualification skipped::$message"
-          echo "$message" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        if: env.QUALIFY == 'true'
         with:
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        if: env.QUALIFY == 'true'
         with:
           python-version: ${{ matrix.python }}
       - name: Build and install library
-        if: env.QUALIFY == 'true'
         shell: bash
         run: |
           python -m pip install "build==1.3.0" "setuptools>=77"
@@ -102,16 +91,15 @@ jobs:
           python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-voyage.lock','-c','requirements-mcp.lock','pytest==9.1.1','attune-harness[review,voyage,mcp] @ '+w.resolve().as_uri()],check=True)"
           python -m pip check
       - name: Diagnose native Windows environment and retain bounded output
-        if: env.QUALIFY == 'true' && runner.os == 'Windows'
+        if: runner.os == 'Windows'
         run: python -I experiments/platform/diagnose_windows_environment.py
       - name: Qualify installed artifact and record platform limits
-        if: env.QUALIFY == 'true'
         run: python -I scripts/qualify_platform.py --output qualification
       - name: Verify Windows environment guard detects inheritance
-        if: env.QUALIFY == 'true' && runner.os == 'Windows'
+        if: runner.os == 'Windows'
         run: python -I experiments/platform/check_windows_environment_guard.py --output qualification/environment-guard
       - name: Keep qualification evidence
-        if: always() && env.QUALIFY == 'true'
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: qualification-${{ matrix.os }}-${{ matrix.python }}
