@@ -754,6 +754,15 @@ with no provider SDK and nothing else from the Attune family installed". Both ar
 true of the bare core install and read as claims about the harness. `memory_native.py`
 imports `anthropic` and constructs `anthropic.Anthropic(...)` behind the
 `memory-native` extra, and `voyage_provider.py` loads `voyageai` behind `voyage`.
+Patrick added that the harness uses SDK code from both OpenAI and Anthropic. The
+Anthropic half is confirmed above. The OpenAI half is not an SDK: the string `openai`
+appears nowhere under `src/` or in `pyproject.toml` at `v0.1.0`, on `main` or on
+`wip`. What is true, and what "No provider SDK" hides, is that `native.py` reaches
+both providers through their command-line tools, `claude -p --output-format json
+--json-schema ...` and `codex exec --json --output-schema ...`, run as supervised
+subprocesses with the executable defaulting to the provider name; Harness neither
+installs nor pins them, and the README does not say they are required. If source
+adapted from either SDK is meant, no trace of it was found.
 Second, attune-ai is called at runtime and declared nowhere in `pyproject.toml`,
 neither as a dependency nor as an extra. `memory_context.py` imports
 `attune.memory.harness_adapter.CompatibilityAdapter` inside `MemoryHost.__init__`, so
