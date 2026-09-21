@@ -102,8 +102,15 @@ those limits. No agent can widen them.
   blocked.
 - Merge pinned to the commit the checks ran on, then confirm `main`'s tree
   matches it.
-- The author of a change does not review it. Ask for a review from a different
-  model, or from Patrick, before merging anything that touches `src/`.
+- The author of a change does not review it. Before merging anything that
+  touches `src/`, get a review from a different model or from Patrick, and
+  record in the pull request who reviewed it and what they found.
+- Nothing enforces that. Every agent here acts through Patrick's one GitHub
+  account, so GitHub cannot tell author from reviewer, and requiring an approval
+  would block every pull request. It is on your honour. The enforced
+  alternative is recorded in
+  [the collaboration plan](docs/agent-collaboration-plan.md); it is planned,
+  not in force, and not yours to set up.
 - Workflows must run from `main`. Do not write a trigger that names your own
   branch, and do not freeze a gate to a branch's identity.
 
