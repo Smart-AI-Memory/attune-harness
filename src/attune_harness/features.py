@@ -33,8 +33,7 @@ def report(operation: str, status: str, **fields) -> dict:
             "operation": operation, "status": status, **fields}
 
 
-class InputTooLarge(ValueError):
-    """An input is over its limit. It was refused whole, never shortened."""
+OVERSIZE = "Input exceeds its limit"
 
 
 def read_text(path: Path, limit: int = 4 * 1024 * 1024) -> str:
@@ -43,11 +42,13 @@ def read_text(path: Path, limit: int = 4 * 1024 * 1024) -> str:
         raise ValueError(f"Not a regular input file: {path}")
     with path.open('rb') as stream:
         raw = stream.read(limit + 1)
-        size = os.fstat(stream.fileno()).st_size
-    if len(raw) > limit:
-        raise InputTooLarge(
-            f"Input exceeds its limit of {limit} bytes; it is {size} bytes: {path}. "
-            "It was refused whole. Harness never shortens an input to fit.")
+        if len(raw) > limit:
+            # Another writer may shrink the file after the read. Never report
+            # a size smaller than what was read.
+            size = max(os.fstat(stream.fileno()).st_size, len(raw))
+            raise ValueError(
+                f"{OVERSIZE} of {limit} bytes; it is {size} bytes: {path}. "
+                "It was refused whole. Harness never shortens an input to fit.")
     return raw.decode('utf-8')
 
 
