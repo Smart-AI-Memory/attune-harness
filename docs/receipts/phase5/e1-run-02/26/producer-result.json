@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "request_id": "7040621c-25bb-406a-a9f1-e39669d2aebd",
+  "operation": "review",
+  "status": "failed",
+  "run_id": "9428c531-8984-475d-8e01-63ba8735bfe7",
+  "requirement_revision": "e1b2a5a0924af8b1ef0d11241bf1ad9f3bf507484d6f8a5b72d73721fa2d8ef6",
+  "accepted": {
+    "submission": {
+      "schema_version": 1,
+      "form_revision": "f38ef92894f1fa7911bc0d97e49c5e12f0e2ad7400a24c68ce5cd41f98fc3c4f",
+      "accepted": true,
+      "answers": {
+        "objective": "Review local evidence. Preserve constraints; never repeat an uncertain request effect.",
+        "query": "quartz retention policy",
+        "document": "project/guide.md",
+        "context": "context.json",
+        "corpus": "project",
+        "lead": "alpha",
+        "reviewer": "reviewer"
+      }
+    },
+    "form_response": {
+      "template_id": "harness-review-v1",
+      "responses": {
+        "objective": "Review local evidence. Preserve constraints; never repeat an uncertain request effect.",
+        "query": "quartz retention policy",
+        "document": "project/guide.md",
+        "context": "context.json",
+        "corpus": "project",
+        "lead": "alpha",
+        "reviewer": "reviewer"
+      },
+      "timestamp": "2026-09-14T18:25:36.299034",
+      "response_id": "resp-20260914-182536-2cc55388"
+    },
+    "paths": {
+      "document": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project/guide.md",
+      "context": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/context.json",
+      "corpus": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project"
+    },
+    "forms_version": "0.17.0"
+  },
+  "registry": {
+    "schema_version": 1,
+    "participants": {
+      "alpha": {
+        "adapter": "command",
+        "tools": [],
+        "max_turns": 1,
+        "max_tool_calls": 0,
+        "timeout": 5,
+        "command": [
+          "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+          "-I",
+          "/Users/patrickroebuck/attune-harness/experiments/e1/peer.py",
+          "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26",
+          "lost-ack"
+        ]
+      },
+      "gamma": {
+        "adapter": "command",
+        "tools": [],
+        "max_turns": 1,
+        "max_tool_calls": 0,
+        "timeout": 5,
+        "command": [
+          "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+          "-I",
+          "/Users/patrickroebuck/attune-harness/experiments/e1/peer.py",
+          "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26",
+          "none"
+        ]
+      },
+      "reviewer": {
+        "adapter": "deterministic",
+        "tools": [
+          "retrieve",
+          "verify"
+        ],
+        "max_turns": 3,
+        "max_tool_calls": 2
+      }
+    }
+  },
+  "artifacts": {
+    "document": {
+      "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project/guide.md",
+      "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+    },
+    "context": {
+      "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/context.json",
+      "sha256": "461ae7e687bb6521b0f1eb6020aed23537d5f503ca7d8b703f7c9de4f625ea7d"
+    }
+  },
+  "events": [
+    {
+      "event_id": "42890ee7-7159-4fba-9840-b9333bd8e70a",
+      "operation_key": "preflight",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "preflight_verification",
+      "effect_class": "unknown",
+      "result": {
+        "schema_version": 1,
+        "request_id": "98766efd-0b2a-49a9-8b8c-b633eb6226ba",
+        "operation": "verify",
+        "status": "verified",
+        "dependency": {
+          "name": "attune-verify",
+          "version": "0.6.0"
+        },
+        "artifacts": {
+          "document": {
+            "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project/guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+          },
+          "context": {
+            "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/context.json",
+            "sha256": "461ae7e687bb6521b0f1eb6020aed23537d5f503ca7d8b703f7c9de4f625ea7d"
+          }
+        },
+        "passed": true,
+        "result": {
+          "schema_version": 1,
+          "ok": true,
+          "status": "verified",
+          "checked": [
+            "imports",
+            "flags",
+            "links",
+            "counts"
+          ],
+          "semantic_ran": false,
+          "coverage": {
+            "total": 1,
+            "verified": 1,
+            "refuted": 0,
+            "unknown": 0
+          },
+          "findings": [],
+          "claims": [
+            {
+              "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+              "kind": "links",
+              "subject": "reference.md",
+              "status": "verified",
+              "evidence": "[Quartz retention policy](reference.md)",
+              "location": "line 1",
+              "detail": "",
+              "source": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "event_id": "8fef1647-0d0b-4a17-b189-7fe13eca403f",
+      "operation_key": "retrieval",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "initial_retrieval",
+      "effect_class": "read_only",
+      "result": {
+        "schema_version": 1,
+        "request_id": "81a24c7b-113a-4cc3-b16e-3af77e42f140",
+        "operation": "retrieve",
+        "status": "retrieved",
+        "dependency": {
+          "name": "attune-rag",
+          "version": "1.2.0"
+        },
+        "query": "quartz retention policy",
+        "k": 3,
+        "corpus": {
+          "root": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project",
+          "version": "65bf36668d86a121",
+          "documents": 2
+        },
+        "retriever": "KeywordRetriever",
+        "sources": [
+          {
+            "path": "guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "[Quartz retention policy](reference.md)"
+          },
+          {
+            "path": "reference.md",
+            "sha256": "59012353b8212e6bff901350520afcbbec6f768db4cf629bb79adebb2e522340",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "Quartz retention policy fixture reference."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "0662f1bc-2806-4dac-9dbd-ba6acd119f69",
+      "operation_key": "3612f2c4-2541-5f5e-87ba-868b2e8396b9:turn:0",
+      "state": "failed",
+      "phase": "dispatching",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "unknown",
+      "participant_id": "alpha",
+      "attempt_id": "3612f2c4-2541-5f5e-87ba-868b2e8396b9",
+      "turn_id": "35cda0cc-3588-58bf-99fa-3a5b14c67a1c",
+      "request_digest": "c9e0a4e2ba31fe025a2dd018001ed3fb8ec98880b61b692ab42823f2a62367cc",
+      "error": {
+        "type": "RuntimeError",
+        "detail": "Participant command failed (nonzero_exit): "
+      },
+      "effects": "unknown"
+    }
+  ],
+  "participants": {
+    "lead": {
+      "participant_id": "alpha",
+      "attempt_id": "3612f2c4-2541-5f5e-87ba-868b2e8396b9",
+      "adapter": "command",
+      "status": "failed",
+      "tool_calls": 0,
+      "last_identity": {
+        "adapter": "command",
+        "returncode": 23,
+        "failure": "nonzero_exit",
+        "stderr": ""
+      }
+    }
+  },
+  "record_path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/run/record.json",
+  "verification_scope": "Supported claims in the reviewed document; participant narratives are not verified",
+  "external_execution_enabled": true,
+  "recovery": {
+    "profile": {
+      "version": 1,
+      "turn_protocol_sha256": "8838cfa943ddf9b48aa83b1055fb85a0f4011e7e11f93837774c1607656a8cba",
+      "verify": "0.6.0",
+      "rag": "1.2.0"
+    },
+    "source_snapshot": {
+      "guide.md": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+      "reference.md": "59012353b8212e6bff901350520afcbbec6f768db4cf629bb79adebb2e522340"
+    },
+    "assignments": {
+      "lead": {
+        "participant_id": "alpha",
+        "attempt_id": "3612f2c4-2541-5f5e-87ba-868b2e8396b9"
+      },
+      "reviewer": {
+        "participant_id": "reviewer",
+        "attempt_id": "ce70205f-6983-50ca-88af-ef991d2cff1a"
+      }
+    },
+    "transfers": [],
+    "reconciliations": []
+  },
+  "checkpoint_digest": "3b900491b60dcf490c4c937473f327e7932218ea126b97600af28ecf7ef37610",
+  "preflight_verification": {
+    "schema_version": 1,
+    "request_id": "98766efd-0b2a-49a9-8b8c-b633eb6226ba",
+    "operation": "verify",
+    "status": "verified",
+    "dependency": {
+      "name": "attune-verify",
+      "version": "0.6.0"
+    },
+    "artifacts": {
+      "document": {
+        "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project/guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+      },
+      "context": {
+        "path": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/context.json",
+        "sha256": "461ae7e687bb6521b0f1eb6020aed23537d5f503ca7d8b703f7c9de4f625ea7d"
+      }
+    },
+    "passed": true,
+    "result": {
+      "schema_version": 1,
+      "ok": true,
+      "status": "verified",
+      "checked": [
+        "imports",
+        "flags",
+        "links",
+        "counts"
+      ],
+      "semantic_ran": false,
+      "coverage": {
+        "total": 1,
+        "verified": 1,
+        "refuted": 0,
+        "unknown": 0
+      },
+      "findings": [],
+      "claims": [
+        {
+          "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+          "kind": "links",
+          "subject": "reference.md",
+          "status": "verified",
+          "evidence": "[Quartz retention policy](reference.md)",
+          "location": "line 1",
+          "detail": "",
+          "source": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project"
+        }
+      ]
+    }
+  },
+  "initial_retrieval": {
+    "schema_version": 1,
+    "request_id": "81a24c7b-113a-4cc3-b16e-3af77e42f140",
+    "operation": "retrieve",
+    "status": "retrieved",
+    "dependency": {
+      "name": "attune-rag",
+      "version": "1.2.0"
+    },
+    "query": "quartz retention policy",
+    "k": 3,
+    "corpus": {
+      "root": "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26/project",
+      "version": "65bf36668d86a121",
+      "documents": 2
+    },
+    "retriever": "KeywordRetriever",
+    "sources": [
+      {
+        "path": "guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "[Quartz retention policy](reference.md)"
+      },
+      {
+        "path": "reference.md",
+        "sha256": "59012353b8212e6bff901350520afcbbec6f768db4cf629bb79adebb2e522340",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "Quartz retention policy fixture reference."
+      }
+    ]
+  },
+  "error": {
+    "type": "RuntimeError",
+    "detail": "Participant command failed (nonzero_exit): "
+  }
+}

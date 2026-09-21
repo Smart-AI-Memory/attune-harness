@@ -20,10 +20,18 @@ PROFILE = RECEIPTS / 'llama3.1-tokenizer.json'
 FIXTURES = json.loads((RECEIPTS / 'retained-count-fixtures.json').read_text())
 
 
+def licensed(name):
+    """Llama-derived receipts are not redistributed; skip where they are absent."""
+    path = RECEIPTS / name
+    if not path.is_file():
+        pytest.skip(f'{name} is not redistributed; add it to {RECEIPTS} to run this test')
+    return path
+
+
 @pytest.fixture(scope='module')
 def tokenizer():
     pytest.importorskip('tiktoken')
-    return LlamaTokenizer(PROFILE, ModelPin(**PIN))
+    return LlamaTokenizer(licensed(PROFILE.name), ModelPin(**PIN))
 
 
 @pytest.mark.parametrize('fixture', FIXTURES, ids=[str(i) for i in range(len(FIXTURES))])
@@ -59,9 +67,10 @@ def test_missing_or_changed_dependency_is_explicit_and_never_falls_back(monkeypa
         if missing:
             raise llama_tokens.importlib.metadata.PackageNotFoundError(name)
         return '0.13.0'
+    profile = licensed(PROFILE.name)
     monkeypatch.setattr(llama_tokens.importlib.metadata, 'version', version)
     with pytest.raises(ValueError, match=r'attune-harness\[tokens\]'):
-        LlamaTokenizer(PROFILE, ModelPin(**PIN))
+        LlamaTokenizer(profile, ModelPin(**PIN))
 
 
 def counted_model(server, count):
@@ -205,7 +214,8 @@ def test_cli_tokenizer_selection_is_forwarded_before_generation(monkeypatch, tmp
 
 
 def test_export_profile_uses_metadata_only_and_refuses_overwrite(monkeypatch, tmp_path):
-    show = json.loads((RECEIPTS/'disposable-show.json').read_text())
+    show = json.loads(licensed('disposable-show.json').read_text())
+    expected = licensed(PROFILE.name).read_bytes()
     calls = []
     def request(endpoint, payload=None, **kwargs):
         calls.append((endpoint, payload))
@@ -215,7 +225,7 @@ def test_export_profile_uses_metadata_only_and_refuses_overwrite(monkeypatch, tm
     monkeypatch.setattr(LocalModel, 'metadata', lambda s: {'fixture': 'unchanged'})
     output = tmp_path/'profile.json'
     result = llama_tokens.export_tokenizer(output)
-    assert output.read_bytes() == PROFILE.read_bytes() and result['generation_calls'] == 0
+    assert output.read_bytes() == expected and result['generation_calls'] == 0
     assert calls == [('show', {'model': PIN['name'], 'verbose': True})]
     with pytest.raises(FileExistsError):
         llama_tokens.export_tokenizer(output)
@@ -224,7 +234,7 @@ def test_export_profile_uses_metadata_only_and_refuses_overwrite(monkeypatch, tm
 
 @pytest.mark.parametrize('fault', ['template', 'vocabulary', 'incomplete', 'metadata-drift'])
 def test_export_failure_preserves_destination_absence(monkeypatch, tmp_path, fault):
-    show = json.loads((RECEIPTS/'disposable-show.json').read_text())
+    show = json.loads(licensed('disposable-show.json').read_text())
     if fault == 'template': show['template'] = 'different'
     elif fault == 'vocabulary': show['model_info']['tokenizer.ggml.tokens'][0] = 'different'
     elif fault == 'incomplete': show.pop('model_info')

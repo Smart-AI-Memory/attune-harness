@@ -1,0 +1,733 @@
+{
+  "record": {
+    "schema_version": 1,
+    "request_id": "dd7cccf3-26d5-43aa-ae59-25d7cc7c92cc",
+    "operation": "review",
+    "status": "completed",
+    "run_id": "4104df05-dfc3-4e5d-9b75-2087d2b8c5ca",
+    "requirement_revision": "4726de6732bdf4ea079a019efe5d135c1f194868cba586977b7fc23fd33defde",
+    "accepted": {
+      "submission": {
+        "schema_version": 1,
+        "form_revision": "4f4bc441d4909ecac83d51c64f78daa8b8bb3db418d0a5a292a032fabe5019a2",
+        "accepted": true,
+        "answers": {
+          "objective": "E2 local capability experiment",
+          "query": "quartz retention policy",
+          "document": "corpus/guide.md",
+          "context": "context.json",
+          "corpus": "corpus",
+          "lead": "lead",
+          "reviewer": "reviewer"
+        }
+      },
+      "form_response": {
+        "template_id": "harness-review-v1",
+        "responses": {
+          "objective": "E2 local capability experiment",
+          "query": "quartz retention policy",
+          "document": "corpus/guide.md",
+          "context": "context.json",
+          "corpus": "corpus",
+          "lead": "lead",
+          "reviewer": "reviewer"
+        },
+        "timestamp": "2026-09-14T18:08:47.488174",
+        "response_id": "resp-20260914-180847-c76180b5"
+      },
+      "paths": {
+        "document": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+        "context": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+        "corpus": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus"
+      },
+      "forms_version": "0.17.0"
+    },
+    "registry": {
+      "schema_version": 1,
+      "extensions": {
+        "evidence": {
+          "state_dir": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/extension-state",
+          "artifact_digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621"
+        }
+      },
+      "participants": {
+        "lead": {
+          "adapter": "command",
+          "command": [
+            "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+            "-I",
+            "/Users/patrickroebuck/attune-harness/experiments/e2/participant.py"
+          ],
+          "timeout": 5,
+          "tools": [
+            "evidence.search"
+          ],
+          "max_turns": 2,
+          "max_tool_calls": 1
+        },
+        "reviewer": {
+          "adapter": "deterministic",
+          "tools": [
+            "evidence.search"
+          ],
+          "max_turns": 2,
+          "max_tool_calls": 1
+        }
+      }
+    },
+    "artifacts": {
+      "document": {
+        "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+      },
+      "context": {
+        "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+        "sha256": "f6a46e1ada1d187edcc5ed271380d6a72f4a31c21842a173874c85f6addf4db5"
+      }
+    },
+    "events": [
+      {
+        "event_id": "2f6fafe8-21a4-4895-a485-1a389907b5a6",
+        "operation_key": "preflight",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "preflight_verification",
+        "effect_class": "unknown",
+        "result": {
+          "schema_version": 1,
+          "request_id": "a1492e61-71a9-4c32-8764-1cee6b0e6388",
+          "operation": "verify",
+          "status": "verified",
+          "dependency": {
+            "name": "attune-verify",
+            "version": "0.6.0"
+          },
+          "artifacts": {
+            "document": {
+              "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+              "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+            },
+            "context": {
+              "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+              "sha256": "f6a46e1ada1d187edcc5ed271380d6a72f4a31c21842a173874c85f6addf4db5"
+            }
+          },
+          "passed": true,
+          "result": {
+            "schema_version": 1,
+            "ok": true,
+            "status": "verified",
+            "checked": [
+              "imports",
+              "flags",
+              "links",
+              "counts"
+            ],
+            "semantic_ran": false,
+            "coverage": {
+              "total": 1,
+              "verified": 1,
+              "refuted": 0,
+              "unknown": 0
+            },
+            "findings": [],
+            "claims": [
+              {
+                "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+                "kind": "links",
+                "subject": "reference.md",
+                "status": "verified",
+                "evidence": "[Quartz retention policy](reference.md)",
+                "location": "line 1",
+                "detail": "",
+                "source": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "event_id": "6702e8c9-fb61-4bd5-84a7-fce2f2176ee1",
+        "operation_key": "retrieval",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "initial_retrieval",
+        "effect_class": "read_only",
+        "result": {
+          "schema_version": 1,
+          "request_id": "29cc9824-8ae9-4a9c-b3d1-6b38be08de94",
+          "operation": "retrieve",
+          "status": "retrieved",
+          "dependency": {
+            "name": "attune-rag",
+            "version": "1.2.0"
+          },
+          "query": "quartz retention policy",
+          "k": 3,
+          "corpus": {
+            "root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus",
+            "version": "3eebd7b7ee8a9f29",
+            "documents": 2
+          },
+          "retriever": "KeywordRetriever",
+          "sources": [
+            {
+              "path": "guide.md",
+              "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "[Quartz retention policy](reference.md)"
+            },
+            {
+              "path": "reference.md",
+              "sha256": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "Quartz retention policy is an independently checked E2 fixture."
+            }
+          ]
+        }
+      },
+      {
+        "event_id": "0ee1d407-3a59-492d-9f95-510db5419c74",
+        "operation_key": "ea88e59b-c42d-57e1-82b0-0044f9c941d6:turn:0",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "participant_turn",
+        "effect_class": "unknown",
+        "participant_id": "lead",
+        "attempt_id": "ea88e59b-c42d-57e1-82b0-0044f9c941d6",
+        "turn_id": "11a5e211-1602-5fda-8786-19422be1182a",
+        "request_digest": "f815ea4a04264ff64903da868a1ed308917270dd6678fb432c5ead7ff5babfbf",
+        "result": {
+          "action": {
+            "kind": "tool",
+            "name": "evidence.search",
+            "arguments": {
+              "query": "quartz retention policy",
+              "k": 3
+            }
+          },
+          "identity": {
+            "adapter": "command",
+            "returncode": 0,
+            "failure": null,
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "event_id": "d8f43845-6d80-4c90-ab8e-c94ccdbb96ca",
+        "operation_key": "ea88e59b-c42d-57e1-82b0-0044f9c941d6:tool:0",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "tool",
+        "effect_class": "read_only",
+        "participant_id": "lead",
+        "attempt_id": "ea88e59b-c42d-57e1-82b0-0044f9c941d6",
+        "action": {
+          "kind": "tool",
+          "name": "evidence.search",
+          "arguments": {
+            "query": "quartz retention policy",
+            "k": 3
+          }
+        },
+        "result": {
+          "schema_version": 1,
+          "request_id": "fcdea997-9dfc-4580-8d1d-5d569370a594",
+          "operation": "retrieve",
+          "status": "retrieved",
+          "dependency": {
+            "name": "attune-rag",
+            "version": "1.2.0"
+          },
+          "query": "quartz retention policy",
+          "k": 3,
+          "corpus": {
+            "root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus",
+            "version": "3eebd7b7ee8a9f29",
+            "documents": 2
+          },
+          "retriever": "KeywordRetriever",
+          "sources": [
+            {
+              "path": "guide.md",
+              "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "[Quartz retention policy](reference.md)"
+            },
+            {
+              "path": "reference.md",
+              "sha256": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "Quartz retention policy is an independently checked E2 fixture."
+            }
+          ],
+          "extension": {
+            "id": "evidence",
+            "tool": "evidence.search",
+            "artifact_digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621",
+            "version": "0.1.0",
+            "binding": "retrieve",
+            "dependency": {
+              "attune-rag": "1.2.0"
+            },
+            "evidence_scope": "This call and its recorded corpus only; not general availability"
+          }
+        }
+      },
+      {
+        "event_id": "166c7e41-af74-4494-9371-a6fe6ca2e982",
+        "operation_key": "ea88e59b-c42d-57e1-82b0-0044f9c941d6:turn:1",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "participant_turn",
+        "effect_class": "unknown",
+        "participant_id": "lead",
+        "attempt_id": "ea88e59b-c42d-57e1-82b0-0044f9c941d6",
+        "turn_id": "17895150-2c05-5e3a-8d94-5519f98c6e1f",
+        "request_digest": "a2c1b4be3ba17a6a8a1d3b0fa72bf69ea5387983a046e537059213a65d70ea85",
+        "result": {
+          "action": {
+            "kind": "final",
+            "text": "Local E2 fixture finished its tool request."
+          },
+          "identity": {
+            "adapter": "command",
+            "returncode": 0,
+            "failure": null,
+            "stderr": ""
+          }
+        }
+      },
+      {
+        "event_id": "f3eaa62f-b21a-456a-997c-d320499d5104",
+        "operation_key": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867:turn:0",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "participant_turn",
+        "effect_class": "read_only",
+        "participant_id": "reviewer",
+        "attempt_id": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867",
+        "turn_id": "b4184557-e821-5376-afac-951d2c88a2f6",
+        "request_digest": "c56f9bdc1f4294153cbc7c41b30bad9decb9f660bf9628ecbdb0e9077f98b269",
+        "result": {
+          "action": {
+            "kind": "tool",
+            "name": "evidence.search",
+            "arguments": {
+              "query": "quartz retention policy",
+              "k": 3
+            }
+          },
+          "identity": {
+            "adapter": "deterministic",
+            "model": null
+          }
+        }
+      },
+      {
+        "event_id": "34bb932c-6649-4a95-832e-e6be7e38c6dc",
+        "operation_key": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867:tool:0",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "tool",
+        "effect_class": "read_only",
+        "participant_id": "reviewer",
+        "attempt_id": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867",
+        "action": {
+          "kind": "tool",
+          "name": "evidence.search",
+          "arguments": {
+            "query": "quartz retention policy",
+            "k": 3
+          }
+        },
+        "result": {
+          "schema_version": 1,
+          "request_id": "5ea9013c-74c0-4d85-a6e0-98c82bbf6b6a",
+          "operation": "retrieve",
+          "status": "retrieved",
+          "dependency": {
+            "name": "attune-rag",
+            "version": "1.2.0"
+          },
+          "query": "quartz retention policy",
+          "k": 3,
+          "corpus": {
+            "root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus",
+            "version": "3eebd7b7ee8a9f29",
+            "documents": 2
+          },
+          "retriever": "KeywordRetriever",
+          "sources": [
+            {
+              "path": "guide.md",
+              "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "[Quartz retention policy](reference.md)"
+            },
+            {
+              "path": "reference.md",
+              "sha256": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33",
+              "score": 3.0,
+              "match_reason": "content:3",
+              "excerpt": "Quartz retention policy is an independently checked E2 fixture."
+            }
+          ],
+          "extension": {
+            "id": "evidence",
+            "tool": "evidence.search",
+            "artifact_digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621",
+            "version": "0.1.0",
+            "binding": "retrieve",
+            "dependency": {
+              "attune-rag": "1.2.0"
+            },
+            "evidence_scope": "This call and its recorded corpus only; not general availability"
+          }
+        }
+      },
+      {
+        "event_id": "64424baf-8571-4446-9ca2-aa37bcfb8c9c",
+        "operation_key": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867:turn:1",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "participant_turn",
+        "effect_class": "read_only",
+        "participant_id": "reviewer",
+        "attempt_id": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867",
+        "turn_id": "457f7b85-e411-53a7-bd10-d5e805b97885",
+        "request_digest": "c282ab31b1dca36e51e33602d4483fafe2936894d82e1261bd2205c152c1c543",
+        "result": {
+          "action": {
+            "kind": "final",
+            "text": "Deterministic demonstration: evidence.search=retrieved. No model judgment was performed."
+          },
+          "identity": {
+            "adapter": "deterministic",
+            "model": null
+          }
+        }
+      },
+      {
+        "event_id": "24af993a-fb74-4f2c-9e56-adbad406c33b",
+        "operation_key": "final",
+        "state": "completed",
+        "phase": "completed",
+        "attempts": 1,
+        "kind": "final_verification",
+        "effect_class": "unknown",
+        "result": {
+          "schema_version": 1,
+          "request_id": "25f85b39-701d-4cb3-84c2-4aa9373e9dca",
+          "operation": "verify",
+          "status": "verified",
+          "dependency": {
+            "name": "attune-verify",
+            "version": "0.6.0"
+          },
+          "artifacts": {
+            "document": {
+              "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+              "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+            },
+            "context": {
+              "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+              "sha256": "f6a46e1ada1d187edcc5ed271380d6a72f4a31c21842a173874c85f6addf4db5"
+            }
+          },
+          "passed": true,
+          "result": {
+            "schema_version": 1,
+            "ok": true,
+            "status": "verified",
+            "checked": [
+              "imports",
+              "flags",
+              "links",
+              "counts"
+            ],
+            "semantic_ran": false,
+            "coverage": {
+              "total": 1,
+              "verified": 1,
+              "refuted": 0,
+              "unknown": 0
+            },
+            "findings": [],
+            "claims": [
+              {
+                "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+                "kind": "links",
+                "subject": "reference.md",
+                "status": "verified",
+                "evidence": "[Quartz retention policy](reference.md)",
+                "location": "line 1",
+                "detail": "",
+                "source": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "participants": {
+      "lead": {
+        "participant_id": "lead",
+        "attempt_id": "ea88e59b-c42d-57e1-82b0-0044f9c941d6",
+        "adapter": "command",
+        "status": "completed",
+        "tool_calls": 1,
+        "last_identity": {
+          "adapter": "command",
+          "returncode": 0,
+          "failure": null,
+          "stderr": ""
+        },
+        "text": "Local E2 fixture finished its tool request."
+      },
+      "reviewer": {
+        "participant_id": "reviewer",
+        "attempt_id": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867",
+        "adapter": "deterministic",
+        "status": "completed",
+        "tool_calls": 1,
+        "last_identity": {
+          "adapter": "deterministic",
+          "model": null
+        },
+        "text": "Deterministic demonstration: evidence.search=retrieved. No model judgment was performed."
+      }
+    },
+    "record_path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/oracle-run/record.json",
+    "verification_scope": "Supported claims in the reviewed document; participant narratives are not verified",
+    "external_execution_enabled": true,
+    "recovery": {
+      "profile": {
+        "version": 1,
+        "turn_protocol_sha256": "8838cfa943ddf9b48aa83b1055fb85a0f4011e7e11f93837774c1607656a8cba",
+        "verify": "0.6.0",
+        "rag": "1.2.0",
+        "extensions": 1
+      },
+      "source_snapshot": {
+        "guide.md": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+        "reference.md": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33"
+      },
+      "assignments": {
+        "lead": {
+          "participant_id": "lead",
+          "attempt_id": "ea88e59b-c42d-57e1-82b0-0044f9c941d6"
+        },
+        "reviewer": {
+          "participant_id": "reviewer",
+          "attempt_id": "46b93f66-cf27-55e1-8ed0-5e3cb3e51867"
+        }
+      },
+      "transfers": [],
+      "reconciliations": []
+    },
+    "checkpoint_digest": "24f56e0a4d7c7eedcf11f271a832462cd72c5167cb80f0253c2e1365d8bb3231",
+    "preflight_verification": {
+      "schema_version": 1,
+      "request_id": "a1492e61-71a9-4c32-8764-1cee6b0e6388",
+      "operation": "verify",
+      "status": "verified",
+      "dependency": {
+        "name": "attune-verify",
+        "version": "0.6.0"
+      },
+      "artifacts": {
+        "document": {
+          "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+          "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+        },
+        "context": {
+          "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+          "sha256": "f6a46e1ada1d187edcc5ed271380d6a72f4a31c21842a173874c85f6addf4db5"
+        }
+      },
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "ok": true,
+        "status": "verified",
+        "checked": [
+          "imports",
+          "flags",
+          "links",
+          "counts"
+        ],
+        "semantic_ran": false,
+        "coverage": {
+          "total": 1,
+          "verified": 1,
+          "refuted": 0,
+          "unknown": 0
+        },
+        "findings": [],
+        "claims": [
+          {
+            "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+            "kind": "links",
+            "subject": "reference.md",
+            "status": "verified",
+            "evidence": "[Quartz retention policy](reference.md)",
+            "location": "line 1",
+            "detail": "",
+            "source": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus"
+          }
+        ]
+      }
+    },
+    "initial_retrieval": {
+      "schema_version": 1,
+      "request_id": "29cc9824-8ae9-4a9c-b3d1-6b38be08de94",
+      "operation": "retrieve",
+      "status": "retrieved",
+      "dependency": {
+        "name": "attune-rag",
+        "version": "1.2.0"
+      },
+      "query": "quartz retention policy",
+      "k": 3,
+      "corpus": {
+        "root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus",
+        "version": "3eebd7b7ee8a9f29",
+        "documents": 2
+      },
+      "retriever": "KeywordRetriever",
+      "sources": [
+        {
+          "path": "guide.md",
+          "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+          "score": 3.0,
+          "match_reason": "content:3",
+          "excerpt": "[Quartz retention policy](reference.md)"
+        },
+        {
+          "path": "reference.md",
+          "sha256": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33",
+          "score": 3.0,
+          "match_reason": "content:3",
+          "excerpt": "Quartz retention policy is an independently checked E2 fixture."
+        }
+      ]
+    },
+    "verification": {
+      "schema_version": 1,
+      "request_id": "25f85b39-701d-4cb3-84c2-4aa9373e9dca",
+      "operation": "verify",
+      "status": "verified",
+      "dependency": {
+        "name": "attune-verify",
+        "version": "0.6.0"
+      },
+      "artifacts": {
+        "document": {
+          "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus/guide.md",
+          "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+        },
+        "context": {
+          "path": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/context.json",
+          "sha256": "f6a46e1ada1d187edcc5ed271380d6a72f4a31c21842a173874c85f6addf4db5"
+        }
+      },
+      "passed": true,
+      "result": {
+        "schema_version": 1,
+        "ok": true,
+        "status": "verified",
+        "checked": [
+          "imports",
+          "flags",
+          "links",
+          "counts"
+        ],
+        "semantic_ran": false,
+        "coverage": {
+          "total": 1,
+          "verified": 1,
+          "refuted": 0,
+          "unknown": 0
+        },
+        "findings": [],
+        "claims": [
+          {
+            "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+            "kind": "links",
+            "subject": "reference.md",
+            "status": "verified",
+            "evidence": "[Quartz retention policy](reference.md)",
+            "location": "line 1",
+            "detail": "",
+            "source": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus"
+          }
+        ]
+      }
+    },
+    "document_outcome": "verified",
+    "retrieval_outcome": "retrieved"
+  },
+  "target_result": {
+    "schema_version": 1,
+    "request_id": "fcdea997-9dfc-4580-8d1d-5d569370a594",
+    "operation": "retrieve",
+    "status": "retrieved",
+    "dependency": {
+      "name": "attune-rag",
+      "version": "1.2.0"
+    },
+    "query": "quartz retention policy",
+    "k": 3,
+    "corpus": {
+      "root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/00/corpus",
+      "version": "3eebd7b7ee8a9f29",
+      "documents": 2
+    },
+    "retriever": "KeywordRetriever",
+    "sources": [
+      {
+        "path": "guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "[Quartz retention policy](reference.md)"
+      },
+      {
+        "path": "reference.md",
+        "sha256": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "Quartz retention policy is an independently checked E2 fixture."
+      }
+    ],
+    "extension": {
+      "id": "evidence",
+      "tool": "evidence.search",
+      "artifact_digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621",
+      "version": "0.1.0",
+      "binding": "retrieve",
+      "dependency": {
+        "attune-rag": "1.2.0"
+      },
+      "evidence_scope": "This call and its recorded corpus only; not general availability"
+    }
+  },
+  "target_dispatches": 1,
+  "error": null,
+  "harness_location": "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/lib/python3.10/site-packages/attune_harness/__init__.py"
+}

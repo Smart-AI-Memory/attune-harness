@@ -1,0 +1,26 @@
+[
+  {
+    "action": "setup",
+    "python": "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "",
+    "ended_ns": 1789424736164459000
+  },
+  {
+    "action": "produce",
+    "python": "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "",
+    "ended_ns": 1789424736432931000
+  },
+  {
+    "action": "recover",
+    "python": "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "",
+    "ended_ns": 1789424736678258000
+  }
+]

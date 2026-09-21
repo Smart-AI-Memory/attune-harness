@@ -1,0 +1,8 @@
+{
+  "sha256": {
+    "protocol.json": "2e3e9e15931d496e9677b96aa9cc78c097b64509f16c8cd5b85ae694635f7905",
+    "tasks.json": "71036f558f7f4e4461d6f6064378d595834a05dc8a58e404185cfdd3701d7878",
+    "answer-key.json": "e6d7f726f457e879905e53e58f4be4d934eab7cffb6b5094a9b9f15db6c40124"
+  },
+  "frozen_before": "synthetic validation; no model trials executed"
+}

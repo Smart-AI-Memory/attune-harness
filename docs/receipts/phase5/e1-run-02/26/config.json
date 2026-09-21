@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "participants": {
+    "alpha": {
+      "adapter": "command",
+      "tools": [],
+      "max_turns": 1,
+      "max_tool_calls": 0,
+      "timeout": 5,
+      "command": [
+        "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+        "-I",
+        "/Users/patrickroebuck/attune-harness/experiments/e1/peer.py",
+        "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26",
+        "lost-ack"
+      ]
+    },
+    "gamma": {
+      "adapter": "command",
+      "tools": [],
+      "max_turns": 1,
+      "max_tool_calls": 0,
+      "timeout": 5,
+      "command": [
+        "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+        "-I",
+        "/Users/patrickroebuck/attune-harness/experiments/e1/peer.py",
+        "/Users/patrickroebuck/attune-harness/docs/receipts/phase5/e1-run-02/26",
+        "none"
+      ]
+    },
+    "reviewer": {
+      "adapter": "deterministic",
+      "tools": [
+        "retrieve",
+        "verify"
+      ],
+      "max_turns": 3,
+      "max_tool_calls": 2
+    }
+  }
+}

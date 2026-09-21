@@ -1,0 +1,1 @@
+Quartz retention policy fixture reference.

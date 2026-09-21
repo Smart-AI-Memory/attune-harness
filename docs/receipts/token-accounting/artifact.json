@@ -1,0 +1,41 @@
+{
+  "wheel": "/Users/patrickroebuck/attune-harness/dist/attune_harness-0.1.0.dev5-py3-none-any.whl",
+  "sha256": "26826256205bd21300d7cf66bb2c7fce7b047d6570c5b1a38476ca69448b477c",
+  "rebuild_byte_identical": true,
+  "production_modules": 22,
+  "installed": {
+    "version": "0.1.0.dev5",
+    "location": "/Users/patrickroebuck/attune-harness/.venv-token-accounting/lib/python3.10/site-packages/attune_harness/__init__.py",
+    "sources": {
+      "attune_harness/ollama_review.py": "4bcc8082e6f3dbe19cb1ef8f61de37d1cb0ee78e246ed288c8538a0248c88f16",
+      "attune_harness/review_participants.py": "dc4cd5e09ca3623d493c86e15440bbdc04546e1f6a8f9c5029b8e5f9b3c3864f",
+      "attune_harness/a2a.py": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e",
+      "attune_harness/review_store.py": "198c7852ce89a064b44c25968a9c2c265f2137c7acd5c80096f1f22fbc326bac",
+      "attune_harness/verification.py": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c",
+      "attune_harness/recovery.py": "fe4aef2ec31410c6181580462f92c29e63380a842c78e0b049b3c227301c6d33",
+      "attune_harness/review_contract.py": "ab9d9bfd41b4965c840badb9c0e4cfcd5720eba5fe849ed8f9cc86c75242b4ad",
+      "attune_harness/llama_tokens.py": "5cc4f89b34bd17c0f8064809c5c5bfa98a7adf607f107bd3837d5c558482e8f2",
+      "attune_harness/review_cli.py": "d7639f789015100a83dfbd81f94161e9998fc87a9c939b6af2dcade47f72d14e",
+      "attune_harness/__init__.py": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289",
+      "attune_harness/features.py": "a9c08b77d6ed20926245a90541a9dc6ada3093b24da70c7f96f273f57781cdc5",
+      "attune_harness/native.py": "0cac42ca83d9d6565f5fb03568cae676592d3bc319d96368fa0379ea7ee899b8",
+      "attune_harness/extension_cli.py": "f74c1d64f59792d6ec1f5980222c071c2265ba4cff8115dbc4ffb530003277b2",
+      "attune_harness/review.py": "946ef0c0c8ec964a20c456f22564c0674faecf32a19562cc51b433d8b99ab0cf",
+      "attune_harness/extensions.py": "3ff7ba339aab9745f91ef6b17cb38382ce2c171b0803ad3c65d96b82dd978248",
+      "attune_harness/cli.py": "913c0602731d692d852977794618cc1e435c9966c31105ddaf52accdb5a09811",
+      "attune_harness/retrieval.py": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1",
+      "attune_harness/process.py": "b6a09165ae7f871d50c80b80e495467479edeb1568ae256a59b83d43f3a1c511",
+      "attune_harness/ollama.py": "5b59b88d4cb398334857af4771e5f176013d2d7d0e304c99ad0c31898565081d",
+      "attune_harness/__main__.py": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186",
+      "attune_harness/mcp_server.py": "b02bd7a29003a3f371af8f4409283063e166f54e966f6f8cc21e7d4fbb4d5935",
+      "attune_harness/adapters.py": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe"
+    }
+  },
+  "preserved_wheels": {
+    "0": "c07d974a0eb4da5d9a90111d9148654a3967e251367bf6ac072dc7703799b27c",
+    "1": "4521aa9e093ba5391b77aeeb88eebd4ffd23d084993597d3ce756b5c01a9a537",
+    "2": "148eece51ed8442e824b433be2e1d30590fa4ba0f23bd74b643905755a8d7478",
+    "3": "1005160c7bd0c0063a8bb3db2d09f5b9079201cca75144b48073609b55fa4b74",
+    "4": "89c37766c4b9f577e668dd09b331c1fce7f6834aec11451aac2a923445ec941a"
+  }
+}

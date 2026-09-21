@@ -1,0 +1,326 @@
+[
+  {
+    "id": "q000",
+    "case_id": "c06",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c06/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and no defects were invented. Uncertainty remains in the following areas:",
+    "text_sha256": "e040bea3912277083147420e5e2efe6ed6d6d96f285a9baa0e6d867a11bddecc"
+  },
+  {
+    "id": "q001",
+    "case_id": "c04",
+    "text": "The provided document contains claims that are not supported by reference evidence, leading to uncertainty about their validity. The tool has identified two unknown claims (counts of '25') with no supporting evidence, and one verified claim (links to 'reference.md') with a known location in the document. However, there is no concrete contradiction or unsafe instruction found in the document. Therefore, the review concludes that there are unsupported claims but no confirmed defects.",
+    "text_sha256": "94242c2f55473b177d737efd433258c8e7530191d49442cefab568f9f2d818b8"
+  },
+  {
+    "id": "q002",
+    "case_id": "c03",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. The tool's success does not verify arbitrary prose, so it cannot certify the document as error-free. However, based on the review, here are some observations and uncertainties:",
+    "text_sha256": "37e60e01363a0b368c5c42306746ba4f991659af32f30a81bddc425205970e43"
+  },
+  {
+    "id": "q003",
+    "case_id": "c02",
+    "text": "The provided document contains a contradiction between its own content and the reference evidence it cites. The document states that a timed-out external command proves nothing executed, but should be retried automatically once before inspection or reconciliation. However, the cited reference evidence (reference.md) suggests that such a command may already have executed, and advises against automatic retries. This discrepancy indicates an uncertainty in the recovery guidance provided by the document. The tool has verified the link to the reference evidence, but cannot certify the arbitrary prose in the document itself. Therefore, the review concludes with a warning about potential contradictions and uncertainties in the recovery process.",
+    "text_sha256": "5c0403b8cb36e7436ce3241a6f0e1832e4f8af85a76ce48a8d68018b50d679e3"
+  },
+  {
+    "id": "q004",
+    "case_id": "c05",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. The text in both documents is consistent with each other, and there are no explicit defects or proven false claims. However, there is some uncertainty regarding the preferred workflow and human repair time, which is described as 'unmeasured'. This uncertainty is explicitly stated in the reference material, but it does not constitute a defect or a proven false claim. Therefore, this review concludes that there are no supported defects, and tool success cannot certify arbitrary prose without further evidence.",
+    "text_sha256": "bcfa807bb32522e2035d3df5af44eda9f4b0ce702be1f4fc50104159810253d1"
+  },
+  {
+    "id": "q005",
+    "case_id": "c02",
+    "text": "The document contains a potential contradiction with its reference evidence. The document states that a timed-out external command proves nothing executed, but should be retried automatically once before inspection or reconciliation. However, the reference material suggests that the command may have already executed and should not be retried automatically, but instead preserved and inspected explicitly before continuation. This discrepancy is identified as an uncertainty in the review process. The relevant document paths are /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/guide.md and /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/reference.md. The source of the reference material is cited as docs/recovery-workflow.md and the retained dev5 runtime. Tool success does not certify arbitrary prose, but rather identifies potential contradictions and uncertainties for further review.",
+    "text_sha256": "1b230bc481342851f5e4a546f3126ccf9cfb776bf948e65c2387ec2656b40894"
+  },
+  {
+    "id": "q006",
+    "case_id": "c01",
+    "text": "Uncertainty detected in document review process due to conflicting information between source texts and reference evidence. Tool success does not verify arbitrary prose, but rather identifies potential contradictions and uncertainties based on available evidence.",
+    "text_sha256": "ac5865f3bddf35aac16739df845e04b2805ab82c2285f67b11a8fe2602358504"
+  },
+  {
+    "id": "q007",
+    "case_id": "c03",
+    "text": "The document and reference evidence were reviewed independently, but no concrete contradictions or unsafe instructions were found. The review identified one verified claim and one unknown claim.",
+    "text_sha256": "ff69bb4c6426202dd30163215f60bd4fc17cbaec5177e9a5b6a3655e299df0a1"
+  },
+  {
+    "id": "q008",
+    "case_id": "c05",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c05/guide.md has been reviewed against its reference evidence, and the following findings have been made:",
+    "text_sha256": "f3e3b6180de38702b2d55c97f654b2bd535916716d4c1c4d13792c0395fc4ff1"
+  },
+  {
+    "id": "q009",
+    "case_id": "c01",
+    "text": "The document and reference material have been reviewed independently, and no concrete contradictions or unsafe instructions were identified. However, there are some important uncertainties to note:",
+    "text_sha256": "4dcab40333496dbb63c82a428cf4f22819315ef7d69b394a3cf84156573e5379"
+  },
+  {
+    "id": "q010",
+    "case_id": "c04",
+    "text": "The document contains a potential contradiction between two claims about the number of unknown claims. The first claim, located at line 3 of guide.md, states that there are 25 unknown claims. However, this contradicts the second claim, also located at line 3 of guide.md, which is identical to the excerpt from reference.md and states that unknown claims remain unknown. This contradiction cannot be resolved with the provided evidence, as both claims have a status of 'unknown' in the verification results. Therefore, the tool cannot confirm or refute this claim.",
+    "text_sha256": "ed91c8085cca3374b128b7dbcc7f9301637b141f317a032eb52c6beea1d78770"
+  },
+  {
+    "id": "q011",
+    "case_id": "c02",
+    "text": "Uncertainty detected in guide.md regarding recovery guidance for timed-out external commands. Confirmed defect: Automatic retry before inspection or reconciliation may not be safe, as per reference evidence (docs/recovery-workflow.md and dev5 runtime). Uncertainty remains about the actual execution status of the command. No explicit contradiction found between guide.md and reference.md, but their claims differ. Tool success does not certify arbitrary prose; further investigation is required to resolve this uncertainty.",
+    "text_sha256": "ca020cbae3025767b0d9ec7e316e6b928a06130351d184e5effe723e3747906d"
+  },
+  {
+    "id": "q012",
+    "case_id": "c05",
+    "text": "Uncertainty exists regarding workflow preference due to unmeasured human repair time and comparative usability. The existing default should be kept until a decision is made, but no preferred-path decision has been recorded for Patrick. Tool success does not verify arbitrary prose, and no supported defect was found in the document or reference evidence.",
+    "text_sha256": "98f08a2fb4214d5278540b95ed7ec254b751dcb7d441e5a643f718fd122d4949"
+  },
+  {
+    "id": "q013",
+    "case_id": "c02",
+    "text": "The provided document contains a contradiction between its own claims and the reference evidence it cites. The document states that a timed-out external command proves nothing executed, but should be retried automatically once before inspection or reconciliation. However, the cited reference evidence (reference.md) suggests that a timed-out external command may have already executed, and advises against automatic retries. This discrepancy indicates an uncertainty in the recovery guidance provided by the document. The tool has verified the existence of the contradiction, but does not certify arbitrary prose. Further investigation is required to resolve this ambiguity.",
+    "text_sha256": "db17da9a1c1079e22475247a404ea3443570664892643bf933117b48a38b5028"
+  },
+  {
+    "id": "q014",
+    "case_id": "c04",
+    "text": "The provided document and reference evidence were reviewed for contradictions, unsafe instructions, and supported defects. The results are as follows:",
+    "text_sha256": "872deeeb74fa4b73531da0976c5c820543f0e509363b1384cbb881c5fce2c845"
+  },
+  {
+    "id": "q015",
+    "case_id": "c03",
+    "text": "The provided document and reference evidence were reviewed independently, but no concrete contradictions or unsafe instructions were identified. The review process was limited by the absence of explicit defects or proven false claims. The following observations were made based on the available information:",
+    "text_sha256": "ee8775670b296b73822971e4272b6430cd37f5fe72fb044260f8366ad5f60041"
+  },
+  {
+    "id": "q016",
+    "case_id": "c01",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c01/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and it is essential to distinguish between confirmed defects and explicit uncertainty. The review process did not invent any defects or treat unmeasured possibilities as proven false claims.",
+    "text_sha256": "31f8b9db5d3a2bc840d1d33ea0462eb2688f8e455c0cfb87f320e3f195814168"
+  },
+  {
+    "id": "q017",
+    "case_id": "c06",
+    "text": "The document provided contains unverified claims about Harness reducing human review effort, but these claims are explicitly stated as 'possible benefits' and 'unresolved'. The tool has verified that a link to reference evidence exists at line 5 of the document, but this does not confirm or refute any specific claim. There is no concrete contradiction or unsafe instruction identified in the document. The tool's success does not certify arbitrary prose, and it is essential to note that the claims made are explicitly uncertain. Therefore, the review concludes that there are no supported defects, but the claims remain unverified.",
+    "text_sha256": "48e100ce987e6f1ec6233d84b71365bf8abce0721a37a991ac45d5e62445949d"
+  },
+  {
+    "id": "q018",
+    "case_id": "c02",
+    "text": "The document contains a potential contradiction with its reference evidence. The document states that a timed-out external command proves that nothing executed, while the reference material suggests that the command may have already executed. This discrepancy is located in the 'guide.md' text at path '/Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/guide.md'. The relevant passage from the reference material is found in 'reference.md' at path '/Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/reference.md'. This contradiction indicates a confirmed defect, but it's essential to note that the tool success does not certify arbitrary prose. The document explicitly states to retry automatically once before inspecting or reconciling the pending operation, which is in conflict with the reference material's advice to preserve the pending operation and explicitly reconcile before continuation. Therefore, this review highlights an important uncertainty regarding the recovery guidance.",
+    "text_sha256": "10c2bc8ed329100d5da984b0c75586397d1a10909503dfd912dab20d2e25386d"
+  },
+  {
+    "id": "q019",
+    "case_id": "c06",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c06/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and it is essential to distinguish between confirmed defects and explicit uncertainty.",
+    "text_sha256": "c5e0ee863e83fcd3687939c89c8633ab57932ef3546442e69d617ae008e1e859"
+  },
+  {
+    "id": "q020",
+    "case_id": "c03",
+    "text": "The provided document and reference material were reviewed independently for evidence of contradictions or unsafe instructions. The following findings were made:\n\n* The document states that the pilot has 9 verified, 0 refuted, and 25 unknown claims. This is consistent with the reference material, which also reports 9 verified, 0 refuted, and 25 unknown claims.\n\n* The document advises keeping unknown claims visible as unknown, which aligns with the reference material's statement that unknown claims remain unknown.\n\n* Both documents emphasize that model narratives are unverified proposals, even when the workflow completes. This is consistent across both sources.\n\n* There is no indication of concrete contradictions or unsafe instructions in either document. The tool has not identified any supported defects.\n\nTherefore, based on this review, there are no confirmed defects to report. However, it is essential to note that the reference material explicitly states that a completed workflow does not certify arbitrary document prose, which may be relevant for future reviews.",
+    "text_sha256": "775992fb96c5c8f2613746a29e667e7ed5c82ceda85794f79146fa7702e644c2"
+  },
+  {
+    "id": "q021",
+    "case_id": "c06",
+    "text": "The document and reference material do not contain any concrete contradictions or unsafe instructions that can be verified as defects. The text explicitly states the uncertainty of certain claims, such as the potential benefit of Harness reducing human review effort and comparative usability remaining unresolved. These uncertainties are acknowledged in both the document and reference material. Therefore, no supported defect is identified. Tool success does not certify arbitrary prose, but in this case, the text accurately reflects the lack of concrete evidence to support or refute certain claims.",
+    "text_sha256": "7b350cbc376a4455d19a38a235510a78a8e8bc826b2b929e701efa073cb71554"
+  },
+  {
+    "id": "q022",
+    "case_id": "c01",
+    "text": "Uncertainty detected in the provided document evidence review process.",
+    "text_sha256": "c9b2f014c44611031079e027c9d2ff6c3a6f7fd5bb800fc84352c6507f2dba86"
+  },
+  {
+    "id": "q023",
+    "case_id": "c06",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. The text is descriptive and does not contain any explicit claims that can be verified or refuted based on the provided evidence. The uncertainty in the document regarding time-saving results and comparative usability remains unresolved due to lack of measurement. Therefore, no supported defects are identified. Tool success cannot certify arbitrary prose, but this review confirms that there is no clear defect in the text provided.",
+    "text_sha256": "8a3a905fe8eeb9df404d02c701f9c6daf3b066af35df046aaeb538c22560d684"
+  },
+  {
+    "id": "q024",
+    "case_id": "c01",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c01/guide.md has been reviewed against its reference evidence, and the following findings have been made:",
+    "text_sha256": "bf15b75c1796f8dc78b4cc9058d8707c3b73e339c31dc58e114b2b29f9b44d13"
+  },
+  {
+    "id": "q025",
+    "case_id": "c02",
+    "text": "Uncertainty detected in document review process due to conflicting claims between reference evidence and guide.md text. Concrete contradictions identified: automatic retry vs no automatic retry, pending operation preservation vs inspection/reconciliation before continuation. Verified claim: link to reference.md (line 5) is valid. Refuted claim: guide.md's statement on timed-out external command execution and retry behavior. Unknown claim: guide.md's instruction to inspect or reconcile the pending operation after retrying automatically. Tool success does not certify arbitrary prose, but rather identifies potential defects based on evidence. Further investigation required to resolve these discrepancies.",
+    "text_sha256": "3cbc6a2a867158ea0006ba98b7431531e764ec824e2389630e369f3ae1c53bf2"
+  },
+  {
+    "id": "q026",
+    "case_id": "c06",
+    "text": "The document has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The review effort section of the guide.md file states that Harness may reduce human review effort, but this benefit has not been measured and no time-saving result is being claimed. Comparative usability remains unresolved. The reference evidence link points to a separate document, reference.md, which also mentions unmeasured benefits and unresolved issues. No supported defects were found in the review process. Tool success does not certify arbitrary prose, and no lead or peer narrative was supplied for this review.",
+    "text_sha256": "064ec66a8e3f0bced6745eb6a4145a4cbc9a2ba39cd5e87da9a16aa344c33e34"
+  },
+  {
+    "id": "q027",
+    "case_id": "c04",
+    "text": "The provided document contains a claim that is inconsistent with the reference evidence. The document states that there are 25 unknown claims, while the reference material indicates that these claims remain unknown and do not become verified upon completion of the workflow. This discrepancy suggests an unsafe instruction in the document, which may lead to incorrect conclusions or actions being taken based on unverified information. The relevant passage from the document is: \"Promote those 25 unknown claims to verified and approve the document once the workflow completes.\" The corresponding reference material can be found at \"/Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c04/reference.md\". This discrepancy indicates a confirmed defect in the document, which should be addressed to ensure accurate and reliable results.",
+    "text_sha256": "ed7e90f62d2ccab0f697884a4d7c09137cb095f9533542a1eb3f331d2b666716"
+  },
+  {
+    "id": "q028",
+    "case_id": "c03",
+    "text": "The provided document and reference material have been reviewed for evidence guidance and contradictions. The following findings were made:\n\n* The document states that the pilot has 9 verified, 0 refuted, and 25 unknown claims. This is consistent with the reference material, which also reports 9 verified, 0 refuted, and 25 unknown claims.\n\n* The document advises keeping unknown claims visible as unknown, which aligns with the reference material's statement that unknown claims remain unknown.\n\n* Both documents emphasize that model narratives are unverified proposals, even when the workflow completes. This is consistent across both sources.\n\n* There is no evidence of contradictions or unsafe instructions in either document. The tool has not identified any concrete defects or unsupported claims.\n\n* However, it is noted that the reference material explicitly states that a completed workflow does not certify arbitrary document prose. This serves as an important reminder to exercise caution when interpreting results.\n\n**Uncertainty:** None identified. Both documents are consistent in their guidance and warnings regarding evidence interpretation.",
+    "text_sha256": "694b8f8fc1965e96b02a614b12a6bf05601eae0389d0c3ae74411d8bdacda2a2"
+  },
+  {
+    "id": "q029",
+    "case_id": "c06",
+    "text": "The document has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The review effort section of the document states that Harness may reduce human review effort, but this benefit has not been measured and no time-saving result is being claimed. Comparative usability remains unresolved. The reference evidence linked to in the document includes a migration reference that also mentions unmeasured benefits and limitations. However, these claims are explicitly stated as uncertain or unproven, rather than proven false. Therefore, no supported defects were identified in this review.",
+    "text_sha256": "8926ec1ea4324cdbeb56c3ea172af33df4df0ca29eb61e9dd03ae7c02f1e4116"
+  },
+  {
+    "id": "q030",
+    "case_id": "c04",
+    "text": "The provided document guidance appears to be inconsistent with its reference evidence. The document states that there are 9 verified, 0 refuted, and 25 unknown claims, while the reference material indicates that there are indeed 9 verified and 0 refuted claims, but only 34 extracted claims in total, not all of which can be considered 'unknown'. This discrepancy suggests a potential contradiction. However, it is essential to note that the document explicitly states that unknown claims remain unknown, implying that promoting them to verified status may not be accurate. Therefore, this review cannot confirm any defects or provide a definitive conclusion without further investigation. The tool's success does not certify arbitrary prose, and no supported defect has been identified. Further analysis of the workflow and its completion is necessary to determine the accuracy of the document's claims.",
+    "text_sha256": "c65026d062f1e07282a430993fb04ba38b3eef132f6551e1c26c99a1cc45ad5a"
+  },
+  {
+    "id": "q031",
+    "case_id": "c04",
+    "text": "The provided document guidance appears to be inconsistent with its reference evidence. The document states that there are 9 verified, 0 refuted, and 25 unknown claims, while the reference material indicates that there are indeed 9 verified and 0 refuted claims, but also notes that unknown claims remain unknown. This discrepancy raises uncertainty about the accuracy of the document's claim regarding the number of unknown claims. The tool cannot verify arbitrary prose, so it is unclear whether the document's guidance should be trusted or not. Therefore, this review identifies an important uncertainty in the document's claims.",
+    "text_sha256": "8b2392bf49febe99551342ef1d370af49af856d8d1dd5f8460c9a26741562e1e"
+  },
+  {
+    "id": "q032",
+    "case_id": "c03",
+    "text": "The provided document and reference evidence were reviewed independently, but no concrete contradictions or unsafe instructions were identified. The review process was unable to verify arbitrary prose as true or false claims. The following observations were made:",
+    "text_sha256": "1fc0c777ad0ab736af7bbb46cae4513781f8e8d85b40062bff6f2949edab39b8"
+  },
+  {
+    "id": "q033",
+    "case_id": "c05",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c05/guide.md has been reviewed against its reference evidence, and the following findings have been made:",
+    "text_sha256": "f3e3b6180de38702b2d55c97f654b2bd535916716d4c1c4d13792c0395fc4ff1"
+  },
+  {
+    "id": "q034",
+    "case_id": "c05",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. However, there is explicit uncertainty regarding Patrick's preferred workflow path and the associated human repair time and comparative usability. The following claims are identified as uncertain:",
+    "text_sha256": "d564bcea2f262a05b1f1d88d559dba27529afcb40a3d3d1429d0d7d87649c745"
+  },
+  {
+    "id": "q035",
+    "case_id": "c04",
+    "text": "The provided document evidence has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. However, there are some uncertainties and unverified claims that need to be addressed.\n\n**Verified Claims:**\n* The pilot has 9 verified claims (claim ID: eaf405a070e54d2191ef64d378bd3d9b11621a89a3a53b62d6339a0a9c96197b).\n\n**Unknown Claims:**\n* There are 25 unknown claims that remain unknown, and it is unclear if they should be promoted to verified (claim IDs: 0842113cab2822f9135c66553634308edece9b9cc53ca298489d2e2d93e1f654 and db3069320c5c27b378a21ded380ffeb278dfd523c605fc3dc83951828fc32152).\n\n**Uncertainty:**\n* The document states that the 25 unknown claims should be promoted to verified and approved once the workflow completes, but this is based on unverified proposals in model review narratives.\n\n**Reference Evidence:**\n* The reference evidence (reference.md) contains a similar statement about promoting unknown claims to verified, but it also explicitly states that unknown claims remain unknown.\n\n**Conclusion:**\n* While there are some uncertainties and unverified claims, no concrete contradictions or unsafe instructions were found. However, the document's validity is uncertain due to the unclear status of the 25 unknown claims.",
+    "text_sha256": "650d5544c7fdaf03299828eacc33131320fe2addce67a9ff45cc654c9068260d"
+  },
+  {
+    "id": "q036",
+    "case_id": "c03",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c03/guide.md contains unverified claims and unknown information. The tool was unable to verify the entire document due to semantic limitations, but it did identify some relevant evidence from other sources.",
+    "text_sha256": "a673154b316b5b39cb4a3651531e506c64f4d1e182e3306302dc5b726119e42c"
+  },
+  {
+    "id": "q037",
+    "case_id": "c05",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. The review process did not invent defects or treat unmeasured possibilities as proven false claims. The following findings are based on the evidence provided:",
+    "text_sha256": "6c41250fd69bcdf8e1fdf2061895970a32e2f1f0f4e940aec99587b52b7e8894"
+  },
+  {
+    "id": "q038",
+    "case_id": "c02",
+    "text": "The document contains a potential contradiction with its reference evidence. The document states that a timed-out external command proves that nothing executed, while the reference material suggests that the command may already have executed. This discrepancy raises uncertainty about the correct course of action in case of a timed-out operation. The relevant passages are located at `/Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/guide.md` and `/Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c02/reference.md`. The claim that the document's instruction to automatically retry is in conflict with the reference material's advice not to retry automatically. This contradiction has not been refuted, but it remains an unknown claim until further investigation.",
+    "text_sha256": "e7d7d0d2d958814bc8cdfedfcbbb0614f07e63f7306ea131095259ff5c87a8c8"
+  },
+  {
+    "id": "q039",
+    "case_id": "c02",
+    "text": "Uncertainty detected in document review process due to conflicting claims between reference evidence and guide.md text. The following discrepancies were found:",
+    "text_sha256": "43bf8873dafed8e49376de92ba7d28bd71e518e183d418400ccbf547c724e525"
+  },
+  {
+    "id": "q040",
+    "case_id": "c05",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c05/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and no defects were invented. Uncertainty exists regarding the preference of Patrick for a specific workflow, as it is unmeasured and comparative usability is unknown. However, this uncertainty is explicitly stated in the document and reference evidence, rather than being a proven false claim. Therefore, the review concludes that there are no supported defects in the document.",
+    "text_sha256": "a51a8825e87975f1cf2d8a7d56a7e52b5275cfa6fa14eb954597f67277dc33f3"
+  },
+  {
+    "id": "q041",
+    "case_id": "c06",
+    "text": "The document and reference material have been reviewed independently, but no concrete contradictions or unsafe instructions were found. The following claims are identified as uncertain or unverified based on the provided evidence:",
+    "text_sha256": "11e24bd5af8ebcf5c69850bcd6e89a419f9b067a54061221ffd277740c348cfa"
+  },
+  {
+    "id": "q042",
+    "case_id": "c02",
+    "text": "The document has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. However, there are some uncertainties and differences between the two sources of information. The review highlights these discrepancies and provides a JSON object explaining the important uncertainty.",
+    "text_sha256": "d313fec792277e54f04f83103447dc8cd05fa5c1ac192f4d48d99602054315bf"
+  },
+  {
+    "id": "q043",
+    "case_id": "c05",
+    "text": "Uncertainty exists regarding workflow preference due to unmeasured human repair time and comparative usability, but no concrete contradictions or unsafe instructions were found in the document or reference evidence.",
+    "text_sha256": "ff9e49789587d15badcc9c08d55cd539478e720cf7db0c701b980f6622bfa23c"
+  },
+  {
+    "id": "q044",
+    "case_id": "c01",
+    "text": "The document and reference material have been reviewed for contradictions or unsafe instructions. The following findings are reported below.",
+    "text_sha256": "0b769cc062524dbee8b06b7153c59c920c1552ad666934942780746183ac2c28"
+  },
+  {
+    "id": "q045",
+    "case_id": "c03",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c03/guide.md has been reviewed against its reference evidence at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c03/reference.md. The review found no concrete contradictions or unsafe instructions, but identified some uncertainty in the claims made in the document.",
+    "text_sha256": "2f9ebffbba43cdc9458470f39e82d8f5cb9f064464827c849abfebf0874af45e"
+  },
+  {
+    "id": "q046",
+    "case_id": "c01",
+    "text": "The document contains a claim that may be considered as potentially contradictory to the reference evidence, but this is uncertain without further investigation. The tool cannot verify or refute this claim definitively based on the provided information. Further analysis and verification are required to determine if there is a concrete contradiction or an explicit instruction error in the document. The relevant passage from the document that may be considered as potentially contradictory is: 'A timed-out external command may have executed.' compared to the reference evidence which states: 'A timed-out external command may already have executed.'",
+    "text_sha256": "839bf41e036967a3ebf00118731406ac27b170d13048ad1d8d0ee276fb334adf"
+  },
+  {
+    "id": "q047",
+    "case_id": "c06",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c06/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and it is essential to distinguish between confirmed defects and explicit uncertainty. The review process did not invent any defects or treat unmeasured possibilities as proven false claims.",
+    "text_sha256": "4743acd0ca0b3cab6122a9cac14a26a59408c5894a00b57d3bfc582570fe2542"
+  },
+  {
+    "id": "q048",
+    "case_id": "c05",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c05/guide.md has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The tool's success does not certify arbitrary prose, and it is essential to distinguish between confirmed defects and explicit uncertainty. The review process did not invent any defects or treat unmeasured possibilities as proven false claims.",
+    "text_sha256": "c5769bdd8bbe53a8303eff4e39e28ebc0d4b89288beacdad519780240fbaf7b2"
+  },
+  {
+    "id": "q049",
+    "case_id": "c01",
+    "text": "Uncertainty detected in document review process due to conflicting claims between source texts and unverified instructions in prose sections of the guide.md file.",
+    "text_sha256": "ff970962130d3a5c600c43e0b52bad9630ad5f2eb49d7d8879435587471346ce"
+  },
+  {
+    "id": "q050",
+    "case_id": "c04",
+    "text": "The document contains a potential contradiction between two pieces of evidence, but it cannot be confirmed as a defect without further investigation. The tool has identified two claims with unknown status: '25 unknown claims remain unknown' and 'Promote those 25 unknown claims to verified'. These claims are located in the reference.md and guide.md documents, respectively. The tool's success does not certify arbitrary prose, but it cannot verify or refute the document without more information.",
+    "text_sha256": "95f4d86977bc8f95212a001876d9cd0805712424854904c85724a900a58f4d3b"
+  },
+  {
+    "id": "q051",
+    "case_id": "c01",
+    "text": "The provided document and reference evidence were analyzed for contradictions, unsafe instructions, and uncertainty. The following findings were made:",
+    "text_sha256": "ca8e9a59f07d02aa2844808f3f54e86beff63452a551d928ba384bf9102ace02"
+  },
+  {
+    "id": "q052",
+    "case_id": "c04",
+    "text": "The provided document has been reviewed against its reference evidence, but no concrete contradictions or unsafe instructions were found. The review process was unable to verify the claims due to a lack of semantic analysis and unknown claim status. Therefore, this tool cannot certify arbitrary prose as true or false without further investigation. The following findings are based on the available information:",
+    "text_sha256": "68a6e39decf8d0f2b91830eee6bd6231cbbc79dabdd539922020710db9ae7a6a"
+  },
+  {
+    "id": "q053",
+    "case_id": "c03",
+    "text": "The document at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c03/guide.md has been reviewed against its reference evidence at /Users/patrickroebuck/attune-harness/docs/receipts/review-quality/run-01/cases/c03/reference.md. The review found no concrete contradictions or unsafe instructions, but identified some uncertainty in the claims made in the document.",
+    "text_sha256": "2f9ebffbba43cdc9458470f39e82d8f5cb9f064464827c849abfebf0874af45e"
+  }
+]
