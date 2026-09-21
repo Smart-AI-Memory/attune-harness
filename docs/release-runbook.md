@@ -17,11 +17,11 @@ update this table when they change.
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
 | GitHub environment `testpypi` | Branches allowed to deploy | `codex/testpypi-rc-20260918`, which no longer exists |
 | GitHub environment `testpypi` | Required reviewer | `silversurfer562` |
-| Branch protection on `main` | Required checks | The six Library qualification jobs: Ubuntu, macOS and Windows on Python 3.10 and 3.12 |
+| Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six Library qualification jobs: Ubuntu, macOS and Windows on Python 3.10 and 3.12 |
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
 | PyPI project `attune-harness` | Trusted publisher | Must name this repository, `publish-pypi.yml` and the `pypi` environment. Uploads use OIDC; there is no API token |
 
-Two things follow from that table.
+Three things follow from that table.
 
 The `testpypi` environment cannot deploy until its allowed branch is changed. A
 TestPyPI rehearsal will build and then be rejected at the publish job. 0.2.0 hit
@@ -29,8 +29,17 @@ the same problem on `pypi`: the only allowed branch had been deleted as merged,
 and nothing in the repository said the environment depended on it. Before
 deleting a release branch, check both environments.
 
+Do not change the required check back to the six platform names. A pull request
+that only touches documentation skips the platform jobs, so those names never
+report for it, and it could never merge. `Qualification` always reports, and it
+fails unless the platform jobs passed or were skipped for a pull request the
+classifier found documentation-only. Pushes to `main` never skip, so every
+commit there has a full run, and the release gate reads only those. The reasons
+are in the comments in `.github/workflows/qualification.yml`.
+
 "Isolated Windows effects backend qualification" is not a required check. It
-runs on every pull request, but a failure there does not block a merge.
+runs on pushes to `main` and on pull requests that touch the backend's inputs,
+and a failure there does not block a merge.
 
 Read the environments without changing them:
 
