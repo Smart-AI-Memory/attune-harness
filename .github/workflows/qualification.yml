@@ -61,7 +61,7 @@ jobs:
               qualify=false
               while IFS= read -r file; do
                 case "$file" in
-                  docs/*|AGENTS.md|CHANGELOG.md) ;;
+                  docs/*|AGENTS.md|CHANGELOG.md|.github/pull_request_template.md) ;;
                   *) qualify=true; break ;;
                 esac
               done <<< "$files"
