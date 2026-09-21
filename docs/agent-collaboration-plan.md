@@ -74,3 +74,41 @@ enforcement, because Patrick can then approve.
 
 Revisit when a second vendor's agent returns to regular work here. That is the
 moment two agents' work actually meets.
+
+## Aspirational goal, not scheduled: reproducible source distributions
+
+This one is about releases, not about agents. It is recorded here because this
+is the file that separates what is in force from what is only intended. Nobody
+should act on it without Patrick asking.
+
+In force: `publish-pypi.yml` sets `SOURCE_DATE_EPOCH` to the release commit's
+time, and that makes the wheel reproducible. Measured on 2026-09-21 with
+setuptools 84.0.0, two builds of one commit from trees with different file
+times:
+
+| | Wheel | Sdist |
+| --- | --- | --- |
+| `SOURCE_DATE_EPOCH` unset | differs | differs |
+| `SOURCE_DATE_EPOCH` set | identical | differs |
+
+The sdist differs because setuptools ignores the variable there. All 83 tar
+members carried a checkout or build time, the gzip header carried the build
+time, and the builder's user id and name were embedded. File names and contents
+were identical.
+
+The goal: a small script, `scripts/normalize_sdist.py`, that repacks the
+`.tar.gz` with a fixed time, owner and gzip header, run in the build job before
+`twine check` and the installed check, so the publish run's hashes can be
+compared with the rehearsal's for both files.
+
+What it needs first:
+
+- A design note. The script rewrites the bytes that are uploaded to PyPI.
+- Tests that build twice and require equal hashes, and that compare the
+  repacked file list and contents with the original.
+- A TestPyPI rehearsal, because the workflow changes. That is blocked until the
+  `testpypi` environment allows a branch that exists; see
+  [the release runbook](release-runbook.md).
+
+Rejected for this goal: moving to a build backend with reproducible sdists. It
+changes packaging for every user to fix a hash comparison.

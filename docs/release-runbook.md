@@ -90,10 +90,16 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 
 ## Things that look wrong and are not
 
-- **The publish run's hashes differ from the rehearsal's.** Builds are not
-  reproducible: `SOURCE_DATE_EPOCH` is not set, so every archive timestamp
-  differs. In 0.2.0 the file lists and every file's content were identical. The
-  hashes that matter are the ones from the run that published.
+- **The publish run's sdist hash differs from the rehearsal's.** The workflow
+  sets `SOURCE_DATE_EPOCH` to the commit's time, which makes the wheel
+  reproducible: two local builds of one commit gave the same wheel hash. The
+  setuptools sdist ignores it. Every tar member carries a checkout or build
+  time, and the gzip header carries the build time, so the `.tar.gz` differs on
+  every build while its file list and contents stay the same. A wheel hash can
+  still move if setuptools releases between the two runs, because the build
+  takes `setuptools>=77` unpinned. The hashes that matter are the ones from the
+  run that published. Making the sdist reproducible is recorded as a goal in
+  [the collaboration plan](agent-collaboration-plan.md).
 - **`pip` cannot find the new version right after a successful publish.** PyPI's
   index is cached. For 0.2.0 the versioned JSON endpoint had the files at once
   and the simple index listed them about 30 seconds later. Retry before
