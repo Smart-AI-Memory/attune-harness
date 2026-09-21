@@ -1,4 +1,21 @@
-"""Installed Windows effects qualification with bounded, retained native output."""
+"""Installed Windows effects qualification with bounded, retained native output.
+
+Two modes, because two different questions get asked of this script.
+
+Observed (the default, and what CI runs on pull requests and on main): build,
+install, prove the installed package is the source in this checkout, and run the
+native tests. It records every module's hash in the receipt but compares them
+with nothing, so it keeps working as main moves.
+
+Frozen (--source-manifest and --candidate-manifest together): additionally
+require the exact bytes named by two frozen manifests. This qualifies one
+candidate. Any later change to any module fails it, by design.
+
+If frozen mode fails with a hash mismatch, the manifests are not broken and the
+fix is not to regenerate them. They record what was qualified. Freezing a new
+candidate is Patrick Roebuck's decision; ask him, and add new manifests beside
+the old ones rather than editing these.
+"""
 
 import argparse
 import hashlib
@@ -16,7 +33,6 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[2]
-RECEIPT_DIR = ROOT / 'docs/receipts/release-readiness-current/windows-feature-effects'
 MAX_LOG = 2 * 1024 * 1024
 TEST_DEADLINE = 180
 
@@ -39,30 +55,52 @@ def counts(path):
             for name in ('tests', 'failures', 'errors', 'skipped')}
 
 
-def installed_identity():
+FROZEN_HELP = (' This is frozen evidence of one qualified candidate, not a defect in your change.'
+               ' Do not regenerate or edit the manifest to make it pass; ask Patrick Roebuck'
+               ' whether to freeze a new candidate.')
+
+
+def module_identity(package, sources, expected=None):
+    """Return per-module hashes after proving installed bytes are the source bytes.
+
+    `expected` is a frozen {module name: LF-normalized sha256}; None observes only.
+    """
+    installed_names = {p.name for p in package.glob('*.py')}
+    source_names = {p.name for p in sources.glob('*.py')}
+    if installed_names != source_names:
+        raise ValueError('Installed module set differs from this checkout: '
+                         + ', '.join(sorted(installed_names ^ source_names)))
+    if expected is not None and installed_names != set(expected):
+        raise ValueError('Module set differs from the frozen source manifest: '
+                         + ', '.join(sorted(installed_names ^ set(expected))) + '.' + FROZEN_HELP)
+    rows = {}
+    for name in sorted(installed_names):
+        installed = (package / name).read_bytes()
+        if installed != (sources / name).read_bytes():
+            raise ValueError('Installed module bytes differ from this checkout: ' + name)
+        identity = sha(lf(installed))
+        if expected is not None and identity != expected[name]:
+            raise ValueError('Module differs from the frozen source manifest: ' + name + '.'
+                             + FROZEN_HELP)
+        rows[name] = {'executed_sha256': sha(installed), 'git_lf_sha256': identity}
+    return rows
+
+
+def installed_identity(source_manifest=None):
     import attune_harness
 
     package = Path(attune_harness.__file__).resolve().parent
     if package.is_relative_to(ROOT) or not package.is_dir():
         raise ValueError('Harness import resolved inside source checkout')
-    manifest = RECEIPT_DIR / 'backend-main-source67.json'
-    expected = json.loads(manifest.read_text())['modules_git_lf_sha256']
-    sources = ROOT / 'src/attune_harness'
-    actual_names = {p.name for p in package.glob('*.py')}
-    if actual_names != set(expected) or {p.name for p in sources.glob('*.py')} != set(expected):
-        raise ValueError('Installed/source module set differs from frozen 67 modules')
-    rows = {}
-    for name, frozen in expected.items():
-        installed = (package / name).read_bytes()
-        source = (sources / name).read_bytes()
-        if installed != source or sha(lf(installed)) != frozen:
-            raise ValueError('Installed module bytes differ from source/Git identity: ' + name)
-        rows[name] = {'executed_sha256': sha(installed), 'git_lf_sha256': frozen}
+    expected = None
+    if source_manifest is not None:
+        expected = json.loads(source_manifest.read_text())['modules_git_lf_sha256']
+    rows = module_identity(package, ROOT / 'src/attune_harness', expected)
     for name in ('repair', 'work_effects', 'windows_effects', 'work_build', 'process', 'windows'):
         origin = Path(importlib.import_module('attune_harness.' + name).__file__).resolve()
         if origin != package / (name + '.py'):
             raise ValueError('Imported module origin differs from installed package: ' + name)
-    return package, rows, sha(manifest.read_bytes())
+    return package, rows, None if source_manifest is None else sha(source_manifest.read_bytes())
 
 
 def stream_run(argv, cwd, env, log_path):
@@ -107,29 +145,42 @@ def stream_run(argv, cwd, env, log_path):
     return process.returncode, stop[0] if stop else None, round(time.monotonic() - start, 3)
 
 
+def optional_path(value):
+    # A dispatch input left blank arrives as an empty string, not as absence.
+    return Path(value) if value else None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--source-manifest', type=optional_path,
+                        help='frozen mode: manifest of every module hash (needs --candidate-manifest)')
+    parser.add_argument('--candidate-manifest', type=optional_path,
+                        help='frozen mode: manifest of candidate file hashes (needs --source-manifest)')
     args = parser.parse_args()
+    if (args.source_manifest is None) != (args.candidate_manifest is None):
+        parser.error('--source-manifest and --candidate-manifest are used together')
+    frozen_mode = args.source_manifest is not None
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=True)
-    receipt = {'schema': 'windows-effect-installed-journey-v1',
+    receipt = {'schema': 'windows-effect-installed-journey-v2',
+               'identity': 'frozen' if frozen_mode else 'observed',
                'status': 'failed', 'python': platform.python_version(),
                'platform': platform.platform(), 'commit': os.environ.get('GITHUB_SHA'),
                'requested_runner': os.environ.get('ATTUNE_CI_WINDOWS_LABEL'),
                'provider_calls': 0, 'selected_tests': 'tests/test_windows_effects.py',
                'timeout_seconds': TEST_DEADLINE, 'max_log_bytes': MAX_LOG}
     try:
-        package, modules, source_manifest_sha = installed_identity()
+        package, modules, source_manifest_sha = installed_identity(args.source_manifest)
         receipt.update(installed_package=str(package), modules=modules,
                        source_manifest_sha256=source_manifest_sha)
-        candidate = RECEIPT_DIR / 'backend-main-candidate-manifest.json'
-        receipt['candidate_manifest_sha256'] = sha(candidate.read_bytes())
-        frozen = json.loads(candidate.read_text())['paths']
-        for relative, expected in frozen.items():
-            if sha(lf((ROOT / relative).read_bytes())) != expected:
-                raise ValueError('Candidate source/test evidence differs from frozen manifest: '
-                                 + relative)
+        if frozen_mode:
+            candidate = args.candidate_manifest
+            receipt['candidate_manifest_sha256'] = sha(candidate.read_bytes())
+            for relative, expected in json.loads(candidate.read_text())['paths'].items():
+                if sha(lf((ROOT / relative).read_bytes())) != expected:
+                    raise ValueError('File differs from the frozen candidate manifest: '
+                                     + relative + '.' + FROZEN_HELP)
         wheel = next((ROOT / 'dist').glob('attune_harness-*.whl'))
         receipt['wheel_sha256'] = sha(wheel.read_bytes())
         env = dict(os.environ)
@@ -154,8 +205,11 @@ def main():
         if xml.is_file():
             receipt['counts'] = counts(xml)
             receipt['junit_sha256'] = sha(xml.read_bytes())
-        if (code != 0 or stop is not None or receipt.get('counts') != {
-            'tests': 10, 'failures': 0, 'errors': 0, 'skipped': 0}):
+        found = receipt.get('counts') or {}
+        # On a native runner nothing may skip: a skip means the test did not run here.
+        clean = (code == 0 and stop is None and found.get('tests', 0) > 0
+                 and not (found.get('failures') or found.get('errors') or found.get('skipped')))
+        if not clean or (frozen_mode and found.get('tests') != 10):
             raise ValueError('Installed native test selection did not pass exactly')
         receipt['status'] = 'passed'
     except BaseException as exc:
