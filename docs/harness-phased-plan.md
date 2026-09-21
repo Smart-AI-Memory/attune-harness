@@ -1,5 +1,14 @@
 # Attune Harness — phased delivery plan
 
+**Superseded in part, 2026-09-21.** This plan dates from September 14 and 15,
+when Harness and Attune AI were meant to coexist. It treats Attune AI as the
+first production integration, keeps a plugin bridge to it, and leaves spec
+approval and memory with it. Patrick has since decided that Harness replaces
+Attune AI: see the [spec authority note](specs/spec-authority/README.md) of
+September 19 and its [addendum](specs/spec-authority/addendum-2026-09-21.md).
+Where they differ from this plan, they are the current direction. The rest of
+this file is kept as the record of how the work started, and is not edited.
+
 **Chosen name:** Patrick accepted **Attune Harness**, with intended package/repository name `attune-harness` and Python import `attune_harness`. A standalone local package now exists. Public registry availability remains unverified; no public package or repository was reserved or published by this work.
 
 **Status:** broader program remains partially qualified; bounded Phase 5 research decisions and the Phase 6 local pilot are complete.  
