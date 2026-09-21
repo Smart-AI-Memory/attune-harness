@@ -190,8 +190,9 @@ Harness's core declares no dependencies today.
   | `DOCTYPE` inside a task | refused: not well-formed | refused: not well-formed |
 
   Harness is safe by construction, not by its expat version. It never parses a
-  file. It caps the file at 65,536 bytes, extracts each `<task>...</task>` block
-  with a regular expression, and parses the blocks one at a time. An entity has
+  file. It refuses a plan over 65,536 bytes outright (it never truncates one),
+  extracts each `<task>...</task>` block with a regular expression, and parses
+  the blocks one at a time. An entity has
   to be declared in a `DOCTYPE` before the root element, and an extracted block
   starts at `<task`, so no declaration can reach the parser. The whole-document
   column does depend on the expat that Python is linked against: this one
