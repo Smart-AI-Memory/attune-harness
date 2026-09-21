@@ -39,12 +39,20 @@ jobs:
           python -m build --wheel
           python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-voyage.lock','-c','requirements-mcp.lock','pytest==9.1.1','attune-harness[review,voyage,mcp] @ '+w.resolve().as_uri()],check=True)"
           python -m pip check
+      - name: Diagnose native Windows environment and retain bounded output
+        if: runner.os == 'Windows'
+        run: python -I experiments/platform/diagnose_windows_environment.py
       - name: Qualify installed artifact and record platform limits
         run: python -I scripts/qualify_platform.py --output qualification
+      - name: Verify Windows environment guard detects inheritance
+        if: runner.os == 'Windows'
+        run: python -I experiments/platform/check_windows_environment_guard.py --output qualification/environment-guard
       - name: Keep qualification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: qualification-${{ matrix.os }}-${{ matrix.python }}
-          path: qualification/
+          path: |
+            qualification/
+            windows-environment-diagnostic/
           if-no-files-found: error
