@@ -110,7 +110,7 @@ tests and model quality are different claims, and this project keeps them apart.
 
 | Area | Qualified | Not qualified |
 | --- | --- | --- |
-| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/qualification.md)) | Other Python versions are outside the matrix |
+| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
 | Models | CI calls no model provider. Native Claude and Codex adapters have recorded comparisons | Native planning and building are experimental. In the September 18, 2026 comparison the original reply contract accepted 1 of 24 replies; after the contract was corrected it accepted 12 of 12. Two repetitions per role do not establish a reliability rate |
 | `fix` and `test` | Local POSIX Git checkouts, regular files, default pytest discovery | Windows repair effects, file creation, deletion and renames, linked worktrees, custom pytest collectors, committed revision ranges |
 | Isolation | Commands and probes run as supervised processes with deadlines and bounded output | **This is not a security sandbox.** Use a dedicated checkout and commands you trust |

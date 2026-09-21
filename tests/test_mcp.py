@@ -177,13 +177,21 @@ def test_sdk_cancellation_retains_started_call_receipt(mcp_case):
     from mcp.client.stdio import stdio_client
     release = mcp_case[2].parent / 'release-retrieval'
     async def journey():
-        async def observe(predicate):
+        def outcome(task):
+            # A timeout alone hides why no receipt appeared; report what the call returned.
+            if task is None or not task.done():
+                return 'call still pending'
+            if task.cancelled():
+                return 'call cancelled'
+            return repr(task.exception() or task.result())[:2000]
+
+        async def observe(predicate, task=None):
             deadline = asyncio.get_running_loop().time() + 10
             while True:
                 saved = read_record(mcp_case[2])
                 if predicate(saved['events']):
                     return saved
-                assert asyncio.get_running_loop().time() < deadline, saved
+                assert asyncio.get_running_loop().time() < deadline, (outcome(task), saved)
                 await asyncio.sleep(.02)
 
         async with stdio_client(sdk_parameters(mcp_case,release=release)) as (read,write):
@@ -194,7 +202,7 @@ def test_sdk_cancellation_retains_started_call_receipt(mcp_case):
                 try:
                     # A timed request could be cancelled before any work started.
                     # Hold the child until its durable pending receipt is observed.
-                    started = await observe(bool)
+                    started = await observe(bool, call)
                     assert len(started['events']) == 1, started
                     assert started['events'][0]['state'] == 'pending', started
                     call.cancel()  # The SDK sends the protocol cancellation notification.
