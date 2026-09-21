@@ -119,3 +119,46 @@ jobs:
             qualification/
             windows-environment-diagnostic/
           if-no-files-found: error
+
+  # One verdict for branch protection to require, in place of the six platform
+  # names. It fails closed: it passes only when the platform jobs passed, or
+  # when they did no work for a pull request the classifier found to be
+  # documentation-only. Anything else, including a cancelled run or a failed
+  # classification, is a failure.
+  qualification:
+    name: Qualification
+    needs: [changes, installed-library]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report one verdict
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CLASSIFIED: ${{ needs.changes.result }}
+          QUALIFY: ${{ needs.changes.outputs.qualify }}
+          PLATFORMS: ${{ needs.installed-library.result }}
+        run: |
+          state="platform jobs: ${PLATFORMS:-none}; classification: ${CLASSIFIED:-none}; qualify: ${QUALIFY:-unset}; event: ${EVENT_NAME:-none}"
+          verdict=fail
+          if [[ "$QUALIFY" == false ]]; then
+            # Only a pull request may skip, and only on a classification that succeeded.
+            if [[ "$EVENT_NAME" == pull_request && "$CLASSIFIED" == success \
+                  && ( "$PLATFORMS" == success || "$PLATFORMS" == skipped ) ]]; then
+              verdict=skipped
+            fi
+          elif [[ "$PLATFORMS" == success ]]; then
+            verdict=pass
+          fi
+          case "$verdict" in
+            pass) message="All six platform jobs passed. ($state)" ;;
+            skipped) message="Documentation-only pull request: nothing was built, installed or tested, so this passes without qualifying any platform. Every push to main runs the full qualification. ($state)" ;;
+            *) message="Qualification did not pass. ($state)" ;;
+          esac
+          echo "$message" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$verdict" == fail ]]; then
+            echo "::error title=Qualification::$message"
+            exit 1
+          fi
+          echo "::notice title=Qualification::$message"
