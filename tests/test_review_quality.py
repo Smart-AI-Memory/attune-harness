@@ -92,6 +92,17 @@ def test_duplicate_trial_cannot_inflate_sample():
 @pytest.fixture(scope='module')
 def rehearsed(tmp_path_factory):
     """Exercise both runners, real retrieval/verification, and blinded audit end to end."""
+    # The campaign is frozen to one installed package: prepare() requires that
+    # version, its exact source hashes and its wheel. Anywhere else this is not a
+    # failing rehearsal, it is a rehearsal that cannot be run.
+    import importlib.metadata
+    frozen = json.loads((HERE/'protocol.json').read_text())['package_version']
+    try:
+        installed = importlib.metadata.version('attune-harness')
+    except importlib.metadata.PackageNotFoundError:
+        installed = 'not installed'
+    if installed != frozen:
+        pytest.skip(f'rehearsal is frozen to attune-harness {frozen}; this environment has {installed}')
     from attune_harness import ollama, ollama_review
     from attune_harness.llama_tokens import LlamaTokenizer
     review_module = importlib.import_module('attune_harness.review')

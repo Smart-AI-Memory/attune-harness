@@ -19,7 +19,14 @@ def invocation(request):
     current = json.loads((cell / 'current.json').read_text())
     raw = json.loads((cell / 'oracle.json').read_text())
     historical = policy.observation(current, raw['target_result'])
-    decision = policy.plan(current, historical, cell / 'oracle-run')
+    # The retained evidence names the directory it was recorded in, and finish()
+    # requires the decision to name the same one. Plan there, as the original run
+    # did, rather than wherever this checkout happens to be. plan() only builds
+    # the path; it does not touch the filesystem.
+    recorded = Path(raw['record']['record_path']).parent
+    if not recorded.is_absolute():
+        pytest.skip('retained evidence records a path that is not absolute on this platform')
+    decision = policy.plan(current, historical, recorded)
     return current, raw, historical, decision
 
 
