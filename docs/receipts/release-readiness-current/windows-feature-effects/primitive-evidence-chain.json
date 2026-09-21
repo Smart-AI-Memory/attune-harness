@@ -1,0 +1,25 @@
+{
+  "files": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-feature-effects.md": "fe72f64d869d09e3062a8dd0fd8c621fb27b51d113ad8af7f57072b3c7b0b0c0",
+    "docs/receipts/release-readiness-current/windows-feature-effects/local-unsupported.json": "0eb81f3712cf18cff016c08796ba1e55d68a1c8b40a7e4c7d55e4efb138a4ab5",
+    "docs/windows-effects-primitive-results.md": "043a41f59bee87ab305a770178a57cb59081afb79094f1017eac68ac95f6e62c",
+    "experiments/platform/windows_effects_probe.py": "e64eae08d01ef8a21d29a3e9a650d8608e391c507614723d28b6ae210225af91"
+  },
+  "limitations": [
+    "No real Windows observation yet",
+    "No process crash or power loss induced",
+    "No arbitrary target ACL preservation proof",
+    "No production Windows effects backend"
+  ],
+  "local": {
+    "exact_leaf_rejection": "four/4 passed",
+    "non_windows_execution_exit": 1,
+    "non_windows_status": "unsupported",
+    "python_3_10_compile": "passed",
+    "python_3_12_compile": "passed",
+    "workflow_yaml": "parsed; one job"
+  },
+  "schema": "windows-effects-primitive-chain-v1",
+  "scope": "offline reviewable probe only; real-Windows observations pending parent CI"
+}

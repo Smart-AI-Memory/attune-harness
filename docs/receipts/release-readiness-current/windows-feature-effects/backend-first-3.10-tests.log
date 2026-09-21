@@ -1,0 +1,39 @@
+.........F                                                               [100%]
+================================== FAILURES ===================================
+____________ test_native_accepted_work_owner_creates_and_replaces _____________
+
+work = (WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-0/test_native_accepted_work_owne0/p... plan with observable checks', 'budgets': {'max_operations': 20, 'max_attempts': 1, 'max_output_bytes': 10000}}], ...})
+
+    @pytest.mark.skipif(os.name != "nt", reason="requires real local NTFS")
+    def test_native_accepted_work_owner_creates_and_replaces(work):
+        case = effect_tests.prepare(work, controls=[], runner=False)
+>       result = effect_tests.execute(case)
+
+D:\a\attune-harness\attune-harness\tests\test_windows_effects.py:228: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\a\attune-harness\attune-harness\tests\test_work_effects.py:88: in execute
+    return apply_work_effects(
+C:\hostedtoolcache\windows\Python\3.10.11\x64\lib\site-packages\attune_harness\work_runtime.py:338: in apply_work_effects
+    require_platform()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+plan = None
+
+    def require_platform(plan=None):
+        from .features import FeatureUnavailable
+    
+        if plan is not None and plan.get('profile') == WINDOWS_PROFILE:
+            from .windows_effects import require_platform as require_windows
+            return require_windows()
+        if os.name != "posix" or any(
+            not hasattr(os, k) for k in ("O_NOFOLLOW", "O_DIRECTORY")
+        ):
+>           raise FeatureUnavailable(
+                "Build effects require the qualified POSIX handle profile"
+            )
+E           attune_harness.features.FeatureUnavailable: Build effects require the qualified POSIX handle profile
+
+C:\hostedtoolcache\windows\Python\3.10.11\x64\lib\site-packages\attune_harness\work_effects.py:30: FeatureUnavailable
+=========================== short test summary info ===========================
+FAILED ::test_native_accepted_work_owner_creates_and_replaces - attune_harness.features.FeatureUnavailable: Build effects require the qualified POSIX handle profile
+1 failed, 9 passed in 1.14s

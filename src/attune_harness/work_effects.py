@@ -14,12 +14,16 @@ from .recovery import UnresolvedOperation, validate_events
 from .review_contract import digest, fields, versioned
 
 PROFILE = "posix-feature-effects-v1"
+WINDOWS_PROFILE = "windows-feature-effects-v1"
 CONTROL_KEYS = ("id", "kind", "owner", "version")
 
 
-def require_platform():
+def require_platform(plan=None):
     from .features import FeatureUnavailable
 
+    if plan is not None and plan.get('profile') == WINDOWS_PROFILE:
+        from .windows_effects import require_platform as require_windows
+        return require_windows()
     if os.name != "posix" or any(
         not hasattr(os, k) for k in ("O_NOFOLLOW", "O_DIRECTORY")
     ):
@@ -47,6 +51,8 @@ def _paths(values, name, *, maximum=20):
 
 
 def validate_manifest(plan):
+    if isinstance(plan, dict) and plan.get('profile') == WINDOWS_PROFILE:
+        return _validate_windows_manifest(plan)
     fields(
         plan,
         (
@@ -137,6 +143,77 @@ def validate_manifest(plan):
     verification_probes(plan)
 
 
+def _validate_windows_manifest(plan):
+    from . import windows_effects as windows
+    fields(plan, (
+        'profile', 'snapshot_version', 'root', 'root_identity', 'allowed', 'parents',
+        'protected', 'checks', 'before',
+        *(['verification'] if 'verification' in plan else []),
+        *(['function_bodies'] if 'function_bodies' in plan else []),
+    ))
+    if (type(plan['snapshot_version']) is not int or plan['snapshot_version'] != 1
+            or not windows.absolute_path(plan['root'])):
+        raise ValueError('Invalid Windows build profile')
+    for name in ('allowed', 'parents', 'protected'):
+        paths = plan[name]
+        if (not isinstance(paths, list) or len(paths) > 20
+                or len(set(paths)) != len(paths)):
+            raise ValueError('Invalid Windows effect paths')
+        for path in paths:
+            windows.relative(path)
+            if name in ('allowed', 'parents') and any(
+                part.casefold() in repair.PROTECTED for part in PurePosixPath(path).parts
+            ):
+                raise ValueError('Protected Windows state cannot be an effect path')
+    if not plan['allowed'] or not plan['protected'] or set(plan['allowed']) & set(plan['protected']):
+        raise ValueError('Windows effects require distinct files and protected inputs')
+    before = plan['before']
+    if not isinstance(before, dict) or len(before) > 1000:
+        raise ValueError('Invalid Windows before snapshot')
+    for path, entry in before.items():
+        if path:
+            windows.relative(path.rstrip('/'))
+        windows.validate_entry(entry, root=not path)
+    if before.get('', {}).get('identity') != plan['root_identity']:
+        raise ValueError('Windows root identity does not match frozen snapshot')
+    needed = set()
+    for path in plan['allowed']:
+        if path + '/' in before:
+            raise ValueError('A directory cannot be a file target')
+        for parent in PurePosixPath(path).parents:
+            if str(parent) == '.':
+                continue
+            parent_path = str(parent)
+            if parent_path in before or parent_path in plan['allowed']:
+                raise ValueError('Windows file target conflicts with a parent')
+            if parent_path + '/' not in before:
+                needed.add(parent_path)
+    if set(plan['parents']) != needed:
+        raise ValueError('Missing Windows parents must be exactly authorized')
+    if any(path not in before or before[path]['kind'] != 'file' for path in plan['protected']):
+        raise ValueError('Windows protected inputs must be existing files')
+    if 'function_bodies' in plan:
+        from .work_bodies import validate_manifest as validate_bodies
+        validate_bodies(plan['function_bodies'], plan['allowed'], before)
+    if not isinstance(plan['checks'], list) or len(plan['checks']) > 32:
+        raise ValueError('Invalid Windows control runners')
+    seen = set()
+    for check in plan['checks']:
+        fields(check, ('control', 'probe', 'executable_sha256'))
+        fields(check['control'], CONTROL_KEYS)
+        from .work_contract import _sha, _validate_controls
+        _validate_controls([{**check['control'], 'required': True, 'phases': ['build']}])
+        if check['control']['kind'] not in ('hook', 'check') or check['control']['id'] in seen:
+            raise ValueError('Invalid Windows control runner')
+        seen.add(check['control']['id'])
+        _sha(check['executable_sha256'])
+        repair.validate_probe(Path(plan['root']), plan['allowed'], check['probe'],
+                              check_executable=False, windows_profile=True)
+        if set(check['probe']['oracle_paths']) - set(plan['protected']):
+            raise ValueError('Windows check inputs must be protected')
+    verification_probes(plan)
+
+
 def verification_probes(plan):
     checks = plan.get("verification", [])
     if not isinstance(checks, list) or len(checks) > 33:
@@ -152,7 +229,8 @@ def verification_probes(plan):
             raise ValueError("Duplicate task verification")
         seen.add(check["task_id"])
         repair.validate_probe(
-            Path(plan["root"]), plan["allowed"], check["probe"], check_executable=False
+            Path(plan["root"]), plan["allowed"], check["probe"], check_executable=False,
+            windows_profile=plan['profile'] == WINDOWS_PROFILE
         )
         if set(check["probe"]["oracle_paths"]) - set(plan["protected"]):
             raise ValueError("Verification inputs must be protected")
@@ -176,16 +254,21 @@ def freeze(
         raise ValueError("Effect checkout and task state must be disjoint")
     if not (root / ".git").is_dir() or (root / ".git").is_symlink():
         raise ValueError("Build effects require a dedicated local Git checkout")
+    if os.name == 'nt':
+        from .windows_effects import root_identity as windows_root_identity
     plan = dict(
-        profile=PROFILE,
+        profile=WINDOWS_PROFILE if os.name == 'nt' else PROFILE,
         root=str(root),
-        root_identity=repair.identity(root.stat()),
+        root_identity=(windows_root_identity(root) if os.name == 'nt'
+                       else repair.identity(root.stat())),
         allowed=copy.deepcopy(allowed),
         parents=copy.deepcopy(parents),
         protected=copy.deepcopy(protected),
         checks=[],
         before={},
     )
+    if os.name == 'nt':
+        plan['snapshot_version'] = 1
     plan["before"] = repair.snapshot(plan)
     if function_bodies is not None:
         if (
@@ -196,11 +279,16 @@ def freeze(
         ):
             raise ValueError("Function body effects cannot create files")
         retained = {}
-        with repair.root_handle(plan) as fd:
+        if os.name == 'nt':
+            from .windows_effects import file_text
             for path in allowed:
-                with repair.parent_handle(fd, path) as (parent, leaf):
-                    raw, _ = repair.read_file(parent, leaf, limit=repair.MAX_FILE)
-                    retained[path] = raw.decode("utf-8")
+                retained[path] = file_text(plan, path)[0]
+        else:
+            with repair.root_handle(plan) as fd:
+                for path in allowed:
+                    with repair.parent_handle(fd, path) as (parent, leaf):
+                        raw, _ = repair.read_file(parent, leaf, limit=repair.MAX_FILE)
+                        retained[path] = raw.decode("utf-8")
         plan["function_bodies"] = {
             "version": 1,
             "bindings": {
@@ -213,7 +301,7 @@ def freeze(
         }
     for check in checks:
         fields(check, ("control", "probe"))
-        repair.validate_probe(root, allowed, check["probe"])
+        repair.validate_probe(root, allowed, check["probe"], windows_profile=os.name == 'nt')
         plan["checks"].append(
             {
                 **copy.deepcopy(check),
@@ -226,7 +314,7 @@ def freeze(
         plan["verification"] = []
         for check in verification:
             fields(check, ("task_id", "probe"))
-            repair.validate_probe(root, allowed, check["probe"])
+            repair.validate_probe(root, allowed, check["probe"], windows_profile=os.name == 'nt')
             plan["verification"].append(
                 {
                     **copy.deepcopy(check),
@@ -236,12 +324,21 @@ def freeze(
                 }
             )
     validate_manifest(plan)
-    with repair.root_handle(plan) as fd:
+    if os.name == 'nt':
+        from .windows_effects import file_text, eligible_file
         for name in allowed:
-            if name in plan["before"]:
-                with repair.parent_handle(fd, name) as (parent, leaf):
-                    raw, _ = repair.read_file(parent, leaf, limit=repair.MAX_FILE)
-                    raw.decode("utf-8")
+            if name in plan['before']:
+                _, entry, inherited = file_text(plan, name)
+                eligible_file(entry, inherited)
+                if entry != plan['before'][name]:
+                    raise ValueError('Windows effect input changed during freeze')
+    else:
+        with repair.root_handle(plan) as fd:
+            for name in allowed:
+                if name in plan["before"]:
+                    with repair.parent_handle(fd, name) as (parent, leaf):
+                        raw, _ = repair.read_file(parent, leaf, limit=repair.MAX_FILE)
+                        raw.decode("utf-8")
     return plan
 
 
@@ -306,7 +403,11 @@ def decode_proposal(proposal, plan):
         raise ValueError("Effect proposal needs 1–20 files")
     for item in files:
         fields(item, ("path", "before_sha256", "text"))
-        path = repair.relative(item["path"])
+        if plan['profile'] == WINDOWS_PROFILE:
+            from .windows_effects import editable_relative
+            path = editable_relative(item['path'])
+        else:
+            path = repair.relative(item["path"])
         if path not in plan["allowed"] or path in seen:
             raise ValueError("Effect proposal exceeds accepted file scope")
         seen.add(path)
@@ -372,6 +473,8 @@ def operations(plan, proposal):
 
 
 def after_entry(plan, item):
+    if plan['profile'] == WINDOWS_PROFILE:
+        raise ValueError('Windows after-entry requires an observed completed result')
     if item["kind"] == "directory":
         return item["path"] + "/", {"kind": "directory", "mode": 0o755}
     return item["path"], {
@@ -381,6 +484,9 @@ def after_entry(plan, item):
 
 
 def expected_snapshot(plan, events):
+    if plan['profile'] == WINDOWS_PROFILE:
+        from .windows_effects import expected_snapshot as windows_expected
+        return windows_expected(plan, events, kind='file_effect')
     expected = copy.deepcopy(plan["before"])
     for event in events:
         if event["kind"] == "file_effect" and event["state"] == "completed":
@@ -423,6 +529,12 @@ def write_effect(plan, item):
         from .work_bodies import validate_file
 
         validate_file(plan, item)
+    if plan['profile'] == WINDOWS_PROFILE:
+        from . import windows_effects
+        if item['kind'] == 'replacement':
+            receipt = windows_effects.replace_file(plan, item)
+            return windows_effects.observed_effect_result(item, receipt['after_entry'])
+        return windows_effects.create_entry(plan, item)
     if item["kind"] == "replacement":
         repair.replace_file(
             plan, {k: item[k] for k in ("path", "before_sha256", "text")}
@@ -463,7 +575,7 @@ def write_effect(plan, item):
 
 def apply_effects(request, proposal, cursor, *, ensure_current=lambda: None):
     plan = request["effects"]
-    require_platform()
+    require_platform(plan)
     validate_request_effects(request)
     ops = operations(plan, proposal)  # Validate every file before the first effect.
     runners, advisory = control_runners(request)
@@ -498,7 +610,8 @@ def run_controls(request, cursor, *, ensure_current=lambda: None):
     repair.assert_snapshot(plan, expected)
     for control, runner in runners:
         ensure_current()
-        repair.validate_probe(Path(plan["root"]), plan["allowed"], runner["probe"])
+        repair.validate_probe(Path(plan["root"]), plan["allowed"], runner["probe"],
+                              windows_profile=plan['profile'] == WINDOWS_PROFILE)
         if (
             repair.sha(Path(runner["probe"]["argv"][0]).read_bytes())
             != runner["executable_sha256"]
@@ -586,14 +699,24 @@ def validate_journal(run, request):
             ):
                 raise ValueError("Effect completion cannot bypass a failed control")
         if kind == "file_effect" and event["state"] == "completed":
-            path, entry = after_entry(plan, event["item"])
-            if event["result"] != {"path": path, "entry": entry}:
-                raise ValueError("Effect result does not match the proposed bytes")
+            if plan['profile'] == WINDOWS_PROFILE:
+                from .windows_effects import observed_effect_result
+                result = event['result']
+                if result != observed_effect_result(event['item'], result.get('entry', {})):
+                    raise ValueError('Windows effect result differs from proposed bytes')
+            else:
+                path, entry = after_entry(plan, event["item"])
+                if event["result"] != {"path": path, "entry": entry}:
+                    raise ValueError("Effect result does not match the proposed bytes")
     if run["status"] == "completed" and (
         len(run["events"]) != len(expected)
         or any(e["state"] != "completed" for e in run["events"])
     ):
         raise ValueError("Incomplete effect batch cannot claim completion")
+    if plan['profile'] == WINDOWS_PROFILE:
+        # Project completed observed identities while validating the saved
+        # journal; this is read-only and does not consult current files.
+        expected_snapshot(plan, run['events'])
 
 
 def reconcile_effect(plan, events, event_id, *, retry_before=False):
@@ -609,6 +732,16 @@ def reconcile_effect(plan, events, event_id, *, retry_before=False):
         from .work_bodies import validate_file
 
         validate_file(plan, event["item"])
+    if plan['profile'] == WINDOWS_PROFILE:
+        from .windows_effects import reconcile as windows_reconcile
+        previous = copy.deepcopy(event)
+        observed = windows_reconcile(plan, event, events, kind='file_effect',
+                                     retry_before=retry_before)
+        event.setdefault('reconciliations', []).append({
+            'previous': previous, 'evidence': 'operator-requested full Windows checkout observation',
+            'snapshot_digest': observed['snapshot_sha256'], 'retry_before': retry_before,
+        })
+        return event
     before = expected_snapshot(plan, events)
     after = copy.deepcopy(before)
     path, entry = after_entry(plan, event["item"])

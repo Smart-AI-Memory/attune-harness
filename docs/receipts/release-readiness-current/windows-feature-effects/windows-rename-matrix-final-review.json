@@ -1,0 +1,56 @@
+{
+  "chain": {
+    "path": "/Users/patrickroebuck/.codex/worktrees/a1fd/attune-harness/docs/receipts/release-readiness-current/windows-feature-effects/primitive-third-attempt-chain.json",
+    "sha256": "64d72ab8dded578c731064ad02e1a1a9f7c244004e7f70e315a133b689315fb9"
+  },
+  "closed_review_findings": [
+    "Null-root Win32 control is no longer exposed to checkout cwd resolution.",
+    "Native return code, IOSB code, ABI sizes/offsets and exact call settings are recorded. Returned synchronous NTSTATUS is authoritative; untouched/different IOSB on immediate error alone does not stop later independent cases.",
+    "Pending/other nonfinal status, unexpected exception, changed authority/protected state, changed namespace after rejection, or missing post-observation stops the matrix as effects-unknown.",
+    "Each case creates a new scratch parent, target and sibling, makes one rename call, and compares exact target/sibling/protected bytes and metadata plus root/parent identities.",
+    "Only independently verified native retained-parent case IDs qualify the observed primitive. Win32 and null-root failures/successes remain separately visible; no fallback rewrites their outcome."
+  ],
+  "disposition": "Go for the third isolated Windows diagnostic CI run only; no production effects support or successful rename claimed before native receipts.",
+  "limits": [
+    "Reviewer ran no native probe, pytest, CI dispatch or model/provider call.",
+    "No process crash, power loss, arbitrary ACL preservation, concurrency or owner-level backend qualification.",
+    "Current native evidence proves both prior class22 attempts failed; the buffer-only cause hypothesis did not resolve error87.",
+    "Matrix does not choose a production fallback automatically."
+  ],
+  "primary_sources": [
+    {
+      "supports": "Native extended rename uses class65 and classic rename class10, distinct from Win32 class22.",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ne-wdm-_file_information_class"
+    },
+    {
+      "supports": "Five-argument NtSetInformationFile signature includes output IOSB, buffer length and native class.",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntsetinformationfile"
+    },
+    {
+      "supports": "For a non-PENDING return, returned NTSTATUS governs even if IOSB differs. This corrects the reviewer initial overly strict equality advice.",
+      "url": "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ns-wdm-_io_status_block"
+    },
+    {
+      "supports": "Relative filenames can involve process cwd; the null-root control must be scratch-confined.",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_rename_info"
+    }
+  ],
+  "receipt_type": "evidence-chain",
+  "retained_failures_verified": "All four first/second native receipt bytes match the original downloaded artifacts; both historical chain hashes unchanged. Distinct local-negative files match their bound hashes.",
+  "reviewed_cases": {
+    "A": "Win32 class22 flags3 retained parent; fresh reproduction control.",
+    "B": "Native NtSetInformationFile class65 flags3 retained parent, original access.",
+    "C": "B with parent FILE_ADD_FILE and FILE_TRAVERSE.",
+    "D": "C with replace-only flags1.",
+    "E": "Classic native class10, low Boolean byte true in zeroed union storage.",
+    "F": "Win32 null-root diagnostic; cwd confined to independent scratch parent and restored in finally; cannot qualify retained-parent support."
+  },
+  "reviewer": "Astra XHIGH",
+  "schema": "bounded-source-review-v1",
+  "source_sha256": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-rename-diagnostics.md": "60242a680b94264180d98c48e2a8a3ca650f7987610eb7ac37d0847d68365501",
+    "docs/windows-effects-primitive-results.md": "1f69f1fa5b55fc6ada4a8ac0ae8c8a4792cc78d4136a4583e14634119fcc0c0a",
+    "experiments/platform/windows_effects_probe.py": "1166bcb43add64c340f38be6356b2587b129b78e50a8ea6702a7165d0fb44d1d"
+  }
+}

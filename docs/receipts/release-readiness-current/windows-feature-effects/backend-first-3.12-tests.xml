@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="10" time="2.219" timestamp="2026-09-19T03:18:22.387956+00:00" hostname="runnervmvmocb"><testcase classname="" name="test_windows_saved_result_projects_observed_identity_only" time="0.001" /><testcase classname="" name="test_windows_paths_reject_alias_syntax_and_reserved_names" time="0.012" /><testcase classname="" name="test_windows_saved_manifests_reject_bool_version_and_mixed_case_scope" time="0.001" /><testcase classname="" name="test_native_repair_replacement_and_lost_ack_observation" time="0.072" /><testcase classname="" name="test_native_before_retry_and_non_target_change_refusal" time="0.019" /><testcase classname="" name="test_native_feature_directory_file_and_replacement" time="0.271" /><testcase classname="" name="test_native_hardlink_and_path_alias_refuse_before_write" time="0.013" /><testcase classname="" name="test_native_mixed_case_protected_directory_cannot_be_edited" time="0.008" /><testcase classname="" name="test_native_accepted_repair_owner_runs_failed_then_passing_probe" time="1.487" /><testcase classname="" name="test_native_accepted_work_owner_creates_and_replaces" time="0.112"><failure message="attune_harness.features.FeatureUnavailable: Build effects require the qualified POSIX handle profile">work = (WindowsPath('C:/Users/runneradmin/AppData/Local/Temp/pytest-of-runneradmin/pytest-0/test_native_accepted_work_owne0/p... plan with observable checks', 'budgets': {'max_operations': 20, 'max_attempts': 1, 'max_output_bytes': 10000}}], ...})
+
+    @pytest.mark.skipif(os.name != "nt", reason="requires real local NTFS")
+    def test_native_accepted_work_owner_creates_and_replaces(work):
+        case = effect_tests.prepare(work, controls=[], runner=False)
+&gt;       result = effect_tests.execute(case)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+D:\a\attune-harness\attune-harness\tests\test_windows_effects.py:228: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\a\attune-harness\attune-harness\tests\test_work_effects.py:88: in execute
+    return apply_work_effects(
+C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages\attune_harness\work_runtime.py:338: in apply_work_effects
+    require_platform()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+plan = None
+
+    def require_platform(plan=None):
+        from .features import FeatureUnavailable
+    
+        if plan is not None and plan.get('profile') == WINDOWS_PROFILE:
+            from .windows_effects import require_platform as require_windows
+            return require_windows()
+        if os.name != "posix" or any(
+            not hasattr(os, k) for k in ("O_NOFOLLOW", "O_DIRECTORY")
+        ):
+&gt;           raise FeatureUnavailable(
+                "Build effects require the qualified POSIX handle profile"
+            )
+E           attune_harness.features.FeatureUnavailable: Build effects require the qualified POSIX handle profile
+
+C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages\attune_harness\work_effects.py:30: FeatureUnavailable</failure></testcase></testsuite></testsuites>

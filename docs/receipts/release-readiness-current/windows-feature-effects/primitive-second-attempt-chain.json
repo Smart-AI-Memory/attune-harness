@@ -1,0 +1,63 @@
+{
+  "first_native": {
+    "3.10": {
+      "error": {
+        "code": 87,
+        "kind": "win32",
+        "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+        "type": "ProbeError"
+      },
+      "github_sha": "cdc18f5850fb5608e7b0e7983115ed3a06e2fc7c",
+      "preliminary": {
+        "environment": true,
+        "hardlink": true,
+        "reparse": true
+      },
+      "receipt_sha256": "7b4a8447c8f978e376291c059778efbeb606156d5df0a5c4670e6da34627b398",
+      "runner_probe_sha256": "b465e2b3589e8b5a65c2858bf2cc6bb90cd55d9f60bb66c5c1949f71e900e3f3",
+      "runner_workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d"
+    },
+    "3.12": {
+      "error": {
+        "code": 87,
+        "kind": "win32",
+        "message": "SetFileInformationByHandle(FileRenameInfoEx): win32=0x00000057",
+        "type": "ProbeError"
+      },
+      "github_sha": "cdc18f5850fb5608e7b0e7983115ed3a06e2fc7c",
+      "preliminary": {
+        "environment": true,
+        "hardlink": true,
+        "reparse": true
+      },
+      "receipt_sha256": "2fe45242f3799ce8738a7d37e4d078d68d15346c51ef5a807c129b10f21c93b2",
+      "runner_probe_sha256": "b465e2b3589e8b5a65c2858bf2cc6bb90cd55d9f60bb66c5c1949f71e900e3f3",
+      "runner_workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d"
+    }
+  },
+  "first_run_id": 35415783622,
+  "first_source": {
+    "initial_chain_sha256": "c52a0b135c772646d25bc49dc5e950564e423fa29fe6f2087c167f965d0ec2c2",
+    "line_ending_conversion_matched_exactly": true,
+    "local_lf_script_sha256": "e64eae08d01ef8a21d29a3e9a650d8608e391c507614723d28b6ae210225af91",
+    "local_lf_workflow_sha256": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "runner_crlf_script_sha256": "b465e2b3589e8b5a65c2858bf2cc6bb90cd55d9f60bb66c5c1949f71e900e3f3",
+    "runner_crlf_workflow_sha256": "1711385fa2f53956c9d90e40657a5cd427d8bbbd5048a3320fa0c27ada74b31d"
+  },
+  "limit": "No Windows replacement or after-image success until second real runner result",
+  "local_checks": {
+    "non_windows_exit": 1,
+    "non_windows_status": "unsupported",
+    "python3_10_compile": "passed",
+    "python3_12_compile": "passed"
+  },
+  "schema": "windows-effects-primitive-second-attempt-chain-v1",
+  "second_source_sha256": {
+    ".github/workflows/windows-effects-primitive.yml": "495a2614811fdbf7dcca4a1af00829918b23a2955daa2727b7402a6b001f9467",
+    "docs/design-windows-feature-effects.md": "36a739c2c614d975e588d26f41ef95f13ac723c1a98d63c99a26a5e18c41adea",
+    "docs/receipts/release-readiness-current/windows-feature-effects/local-unsupported.json": "c4930b7e140c02198fc44dc7c07231a29d4d8e14b980a0f37418ad39444f98dc",
+    "docs/windows-effects-primitive-results.md": "5881b4df2f50230d7f4c555a26db87588b7af5f0f454424681ce9e460e9b5e82",
+    "experiments/platform/windows_effects_probe.py": "ac4e2a5f57e4f7512615027ccfe56c55ba74d3d71df485572d3d1b9c8ccbc345"
+  },
+  "status": "second-native-run-pending"
+}
