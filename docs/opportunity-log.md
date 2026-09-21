@@ -740,6 +740,41 @@ the merges are small but the workflow decision and the fate of `wip` are judgmen
 calls, and everything lands on a public default branch. Nothing is merged, moved or
 authorized by this note.
 
+Follow-through, 2026-09-21 (same day), on the entry above. Patrick chose `main` as
+the trunk and asked for the reconcile. PR 5
+(`claude/reconcile-release-0.1.0-into-main`) merges the release line into `main`,
+sets `0.2.0.dev0`, and carries the `docs/handoffs/` and `docs/reflections/` ignore
+rules. Three things in the entry above were wrong or incomplete and are corrected
+here instead of being edited away. First, "five release commits" understated it:
+`361bdcb` carried a whole runtime snapshot, so `main` gains about 35 source modules,
+the published 0.1.0 runtime. Second, the workflow question had a cost the entry did
+not see: the 0.1.0 line ships
+`test_workflow_keeps_production_final_and_testpypi_rc_routes_separate`, which asserts
+on the real workflow's content, so keeping `main`'s stub would have left
+qualification red. Patrick chose to carry the real workflow on `main`. Publishing
+from `main` stays blocked by GitHub itself: the `pypi` and `testpypi` environments
+each require `silversurfer562` as reviewer and restrict deployments to a named
+non-`main` branch, so a future release branch must be added to the `pypi`
+environment's policy before it can publish. Once on the default-branch scan path the
+workflow drew three high CodeQL `actions/cache-poisoning` alerts for checking out
+`inputs.release_sha`; commit `4a7723b` checks out `github.sha` instead, which the
+existing `GITHUB_SHA == RELEASE_SHA` guard makes the identical commit, and the alerts
+closed on re-scan. The workflow is therefore no longer byte-identical to the one that
+published 0.1.0. CodeQL never scanned it on the release branch, which is worth
+remembering: a workflow that lives only on release branches is unscanned. Third, the
+"done when" asked for `8fc26a4` to be an ancestor of the trunk. `main`'s protection
+makes that unachievable: it requires linear history, which refuses a merge commit,
+and signed commits, which rules out GitHub's rebase-merge, leaving squash, as PRs 1
+to 4 used. After a squash `main` has the 0.1.0 content and the Windows fix but not
+the ancestry. The tag `v0.1.0` keeps the published commit reachable. The practical
+cost is that `release/0.1.0rc1-packaging` can never be merged cleanly again, so
+future release branches should be cut from `main`. State at the time of writing:
+PR 5 at `4a7723b`, qualification six of six green on push and pull_request, CodeQL
+green, zero open alerts, merge state clean, not merged; merging is Patrick's. Still
+open from the entry above: the fate of `wip`'s commits, which still lack the Windows
+fix and fail qualification on Windows in `qualify_platform.py` with a
+`TimeoutExpired` that predates 2026-09-21.
+
 Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
 published 0.1.0 README overstates the harness's independence, and attune-ai is an
 undeclared runtime tie. Patrick read the README on the PyPI page after the release
