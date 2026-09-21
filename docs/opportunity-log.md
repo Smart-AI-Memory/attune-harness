@@ -798,6 +798,40 @@ scoping ladder Tasks 1 to 3), a decision and plan for the Spec tie, which no spe
 covers, and an installed-environment CI check with attune-ai absent that exercises
 memory context and plan acceptance. Nothing is started or authorized by this note.
 
+Unnumbered, 2026-09-21 (assign the next O-number at the next log review): harness
+memory depends on an attune-ai module that was never released. While sizing the
+dependency cut, the module that `memory_context.py` imports,
+`attune.memory.harness_adapter`, was looked for in `~/attune-ai`. It is not on
+attune-ai `main` (`fa7112219`). It exists only on branch
+`codex/shared-memory-adoption`, commit `c170febaf` ("feat(memory): optional shared
+Harness memory worker adapter and CLI route"); no tag contains that commit and the
+branch has no pull request. attune-ai 16.4.0 on PyPI therefore almost certainly lacks
+it; that is inferred from the branch state, and the wheel was not downloaded and
+inspected. The consequence: harness memory context is unavailable for every user,
+with or without attune-ai installed, except in an environment built from that branch.
+The earlier entries in this log, and the first README wording draft, said memory
+"needs attune-ai installed", which was too generous. The failure is safe and is not a
+0.1.1 emergency: `memory_cli.py` catches the `ImportError` and prints a
+`status: unavailable` report with exit code 2, and the 0.1.0 README labels memory
+experimental and not activated for live memories. It does sharpen the direction. The
+adapter is 423 lines, Harness uses four of its members (`binding`, `capabilities`,
+`query`, `resolve`), and it already imports `attune_harness.memory_contract` and
+`attune_harness.review_contract`, so as written the two packages import each other.
+Bringing it into Harness, which is what Patrick intends, removes that cycle. What it
+still takes from attune-ai is `attune.memory.file_stash`, `attune.memory.personal`,
+`attune.memory.session_stash` and `attune.security.path_validation`; their sizes and
+transitive imports were not measured, and measuring them is the first step because it
+decides whether the port is small or large. For the Spec tie the attune-ai side was
+sized: `spec/workspace.py` 813 lines, `elicitation/command_workspace.py` 504,
+`pipeline/spec_reader.py` 56, with further attune-ai imports beneath them. Candidate
+follow-up: a fresh spec session, seeded by
+`docs/handoffs/session-starter-cut-attune-ai-dependency-2026-09-21.md` (on disk only).
+Separately, decide what becomes of `codex/shared-memory-adoption` in attune-ai once
+the adapter lives in Harness. Done when `attune-harness memory capabilities` succeeds
+in a fresh environment containing only attune-harness, under a CI job that runs with
+attune-ai absent. Effort: unknown until the four modules are measured. Nothing is
+ported, merged or authorized by this note.
+
 Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
 published 0.1.0 README overstates the harness's independence, and attune-ai is an
 undeclared runtime tie. Patrick read the README on the PyPI page after the release
