@@ -70,11 +70,11 @@ class WindowsJob:
         finally:
             if self.temporary is not None:self.temporary.cleanup()
 
-    def launch(self,argv,*,stdin,stdout,stderr,cwd):
+    def launch(self,argv,*,stdin,stdout,stderr,cwd,environment=None):
         bootstrap=Path(__file__).with_name('_windows_worker.py')
         process=subprocess.Popen([sys.executable,'-I',str(bootstrap),str(self.directory),*argv],
             stdin=stdin,stdout=stdout,stderr=stderr,cwd=cwd,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,env=environment)
         handle=None
         try:
             handle=checked(self.api.OpenProcess(0x0101,False,process.pid))  # SET_QUOTA | TERMINATE

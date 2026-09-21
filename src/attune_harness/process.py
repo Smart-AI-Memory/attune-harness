@@ -55,11 +55,14 @@ def invoke(
     if os.name not in ("posix", "nt"):
         raise NotImplementedError("native supervision requires POSIX or Windows")
     if environment is not None:
-        if os.name != 'posix':
-            raise NotImplementedError('Explicit probe environments currently require POSIX')
-        if not isinstance(environment, dict) or any(not isinstance(k, str) or not isinstance(v, str)
+        if not isinstance(environment, dict):
+            raise ValueError('Environment must contain valid string entries')
+        environment = dict(environment)
+        if any(not isinstance(k, str) or not isinstance(v, str)
                 or not k or '=' in k or '\x00' in k or '\x00' in v for k,v in environment.items()):
             raise ValueError('Environment must contain valid string entries')
+        if os.name == 'nt' and len({key.casefold() for key in environment}) != len(environment):
+            raise ValueError('Windows environment keys must be distinct ignoring case')
     # Empty arguments are useful CLI values (e.g. --tools ""), except argv[0].
     if not argv or not argv[0] or any(not isinstance(arg, str) for arg in argv):
         raise ValueError("argv must contain an executable and string arguments")
@@ -77,7 +80,8 @@ def invoke(
             if os.name == 'nt':
                 from .windows import WindowsJob
                 job = stack.enter_context(WindowsJob())
-                process = job.launch(argv, stdin=source, stdout=out, stderr=err, cwd=cwd)
+                process = job.launch(argv, stdin=source, stdout=out, stderr=err, cwd=cwd,
+                                     environment=environment)
             else:
                 process = subprocess.Popen(argv, stdin=source, stdout=out, stderr=err,
                                            cwd=cwd, start_new_session=True, env=environment)
