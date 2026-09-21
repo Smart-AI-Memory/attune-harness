@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.2.0
+
+Adds an experimental Windows effects backend, alpha. `fix` and the work runtime
+now run on Windows instead of refusing. This is new code passing its own native
+tests, not a qualified platform: read the limits before using it on a checkout
+you care about.
+
+- Added: a Windows file-effects backend (`windows-existing-utf8-v1` and
+  `windows-feature-effects-v1` profiles). It is used only on a Windows host; off
+  Windows the module is inert and reports the feature as unavailable. It works
+  through retained handles and requires a fixed local NTFS drive-letter volume,
+  so network, removable and non-NTFS volumes are refused. Reparse points, files
+  with more than one hard link, alternate data streams and path aliases are
+  refused before writing. Files are limited to 64 KiB and the checkout to 1,000
+  entries and 16 MiB.
+- Added: explicit probe environments on Windows. `process.invoke()` passed an
+  `environment` only on POSIX and raised `NotImplementedError` on Windows. It
+  now reaches the supervised child, and keys that collide ignoring case are
+  rejected.
+- Tested: the backend's native tests pass in CI on windows-2025 with Python 3.10
+  and 3.12 and on windows-2022 with Python 3.12. They cover replacing existing
+  files, observing a lost acknowledgement, retrying only when the original bytes
+  remain, creating a directory and a file, and an accepted `fix` running a
+  failing then passing probe.
+- Not qualified: deletion and renames as effects, files with their own ACL or
+  nonstandard attributes, process-crash recovery, concurrent writers, power-loss
+  durability, and any run against a real project. The
+  [design note](docs/design-windows-effect-backend.md) lists the rest. POSIX
+  behavior, profiles and saved records are unchanged.
+- Fixed: the README's link to the September 18 native comparison results
+  returned 404, on PyPI and on GitHub. The document and the receipts it cites
+  are now in the repository.
+- Changed: a clean checkout can run the test suite. The receipt fixtures the
+  tests read are now tracked; tests that need Llama-derived files, which are not
+  redistributed, skip with a reason.
+
 ## 0.1.0
 
 First PyPI release, alpha. The 0.1.0rc1 runtime plus one fix, with the final

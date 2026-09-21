@@ -1,0 +1,794 @@
+[
+  {
+    "call_id": "pb01",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb02",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 1730,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 21903,
+            "webSearchRequests": 0,
+            "costUSD": 0.52458,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 948,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb03",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb04",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb05",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb06",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb07",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 6612,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21060,
+            "webSearchRequests": 0,
+            "costUSD": 0.7520327499999999,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 2967,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb08",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb09",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb10",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb11",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 2597,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21272,
+            "webSearchRequests": 0,
+            "costUSD": 0.55552275,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 1479,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb12",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 4918,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21060,
+            "webSearchRequests": 0,
+            "costUSD": 0.6673327499999999,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 1665,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb13",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb14",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb15",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 5799,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21220,
+            "webSearchRequests": 0,
+            "costUSD": 0.71458275,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 3199,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb16",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb17",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 2834,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21274,
+            "webSearchRequests": 0,
+            "costUSD": 0.56741275,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 1562,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb18",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb19",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 5685,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21218,
+            "webSearchRequests": 0,
+            "costUSD": 0.7088427500000001,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 2864,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb20",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb21",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb22",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-6-astra",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 167 additional skills were not included in the model-visible skills list."
+    ]
+  },
+  {
+    "call_id": "pb23",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "claude-fable-5-1",
+    "reported_models": [
+      "claude-fable-5-1"
+    ],
+    "event_types": {
+      "result": 1
+    },
+    "codex_item_types": {},
+    "claude_result": [
+      {
+        "num_turns": 2,
+        "is_error": false,
+        "subtype": "success",
+        "permission_denials": [],
+        "stop_reason": "tool_use",
+        "modelUsage": {
+          "claude-fable-5-1": {
+            "inputTokens": 2,
+            "outputTokens": 2038,
+            "cacheReadInputTokens": 851,
+            "cacheCreationInputTokens": 21054,
+            "webSearchRequests": 0,
+            "costUSD": 0.52321275,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "thinkingTokens": 938,
+            "canonicalModel": "claude-fable-5-1",
+            "provider": "firstParty",
+            "costBasis": "list"
+          }
+        }
+      }
+    ],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": false,
+      "missing_mcp_executable": false,
+      "skill_icon_warning": false,
+      "state_database_fallback": false
+    },
+    "nonfatal_event_errors": []
+  },
+  {
+    "call_id": "pb24",
+    "returncode": 0,
+    "failure": null,
+    "requested_model": "gpt-5.6-luna",
+    "reported_models": [],
+    "event_types": {
+      "thread.started": 1,
+      "turn.started": 1,
+      "item.completed": 2,
+      "turn.completed": 1
+    },
+    "codex_item_types": {
+      "error": 1,
+      "agent_message": 1
+    },
+    "claude_result": [],
+    "startup_diagnostics": {
+      "unused_mcp_auth_warning": true,
+      "missing_mcp_executable": true,
+      "skill_icon_warning": true,
+      "state_database_fallback": true
+    },
+    "nonfatal_event_errors": [
+      "Exceeded skills context budget. All skill descriptions were removed and 165 additional skills were not included in the model-visible skills list."
+    ]
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "sample-24": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 9,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-13": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 11,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-17": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 8,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-21": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 9,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-19": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 11,
+    "schema_valid_after_diagnostic": false,
+    "validation_error": "Expected fields: ['counter_case', 'evidence', 'id', 'proposal', 'rationale', 'uncertainty']"
+  },
+  "sample-09": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 8,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-22": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 12,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-14": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 9,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-16": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 11,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-10": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 8,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-11": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 7,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  },
+  "sample-03": {
+    "diagnostic": "Append exact accepted criterion text to each task named by existing coverage. Original remains rejected. No original task objective, output, choice or evidence changed. Structural validation only.",
+    "added_check_strings": 9,
+    "schema_valid_after_diagnostic": true,
+    "validation_error": null
+  }
+}

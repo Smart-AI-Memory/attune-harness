@@ -1,0 +1,295 @@
+{
+  "sample-01": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Serializes the full receipt header and every finding in order; notes, statuses and final newline preserved. Only standard-library serialization and known local types; no hidden effects. Original envelope acceptance is scored separately.",
+    "artifact_evaluation": "artifact-evaluations/sample-01/result.json"
+  },
+  "sample-02": {
+    "role": "worker",
+    "semantic_correct": false,
+    "source_inspected": true,
+    "critical_miss": false,
+    "material_correctness_defect": true,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "The code retains finding content but its isinstance(document, Documentation) rejects the CLI-created __main__.Documentation instance. Actual nonempty and empty JSONL CLI tests fail with TypeError while direct serialization and default JSON pass. Original response also has wrong task identity and an extra notes field. Diagnostic separates those envelope failures without changing source code.",
+    "artifact_evaluation": "artifact-evaluations/sample-02/result.json"
+  },
+  "sample-03": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Three scoped dependent steps with full evidence retention, default compatibility, fixed acceptance and supplemental tests. Keeps uncertainty explicit and choices empty; does not assume execution or authority. Original rejects paraphrased checks despite correct coverage intent."
+  },
+  "sample-04": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [
+      "Unused asdict import; nonblocking and outside the frozen correctness floor."
+    ],
+    "human_correction_retained": true,
+    "rationale": "Preserves header, findings, notes and final newline. Only ordinary JSON serialization; artifact passes complete oracle after the separately labeled ID-only diagnostic. Original remains rejected.",
+    "artifact_evaluation": "artifact-evaluations/sample-04/result.json"
+  },
+  "sample-05": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [
+      "Several public helper functions exceed what is needed, but remain within file scope and do not violate the frozen correctness criteria."
+    ],
+    "human_correction_retained": true,
+    "rationale": "Full metadata header excluding findings, ordered dataclass finding wrappers and newline preserve all evidence. Standard-library code with no hidden effects. Original reply has work ID and extra notes; diagnostic source passes actual CLI oracle.",
+    "artifact_evaluation": "artifact-evaluations/sample-05/result.json"
+  },
+  "sample-06": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Full metadata header excludes findings; ordered finding wrappers preserve all evidence and notes. Standard-library serialization and final newline. Source-preserving step-ID diagnostic passes the protected real CLI oracle; original response remains rejected.",
+    "artifact_evaluation": "artifact-evaluations/sample-06/result.json"
+  },
+  "sample-07": {
+    "role": "worker",
+    "semantic_correct": false,
+    "source_inspected": true,
+    "critical_miss": false,
+    "material_correctness_defect": true,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "isinstance(document, Documentation) rejects the CLI-created __main__.Documentation. The actual CLI oracle fails for normal and empty documents, while default JSON/direct serialization pass. Original also returns the work ID. Source-preserving ID diagnostic does not cure the real implementation defect.",
+    "artifact_evaluation": "artifact-evaluations/sample-07/result.json"
+  },
+  "sample-08": {
+    "role": "worker",
+    "semantic_correct": false,
+    "source_inspected": true,
+    "critical_miss": false,
+    "material_correctness_defect": true,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Header leaves the findings key in place, contrary to the supplied exact header contract; it then duplicates findings in separate records. Full CLI receipt equality fails although direct mixed-status serialization checks pass. Original reply also has wrong step identity.",
+    "artifact_evaluation": "artifact-evaluations/sample-08/result.json"
+  },
+  "sample-09": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Three scoped dependent steps preserve all corrected evidence requirements, CLI default and protected checks. Discloses unknown performance and avoids invented authority/choices. Original fails exact-text coverage contract."
+  },
+  "sample-10": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Three scoped dependent steps retain all evidence, advisory notes, default compatibility, empty-input behavior and protected tests. The required criterion is mapped to supplemental verification; no unnecessary choices, performance guarantee or execution authority. Original host rejection is the exact-text requirement on task checks."
+  },
+  "sample-11": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Three scoped dependent steps retain all evidence, advisory notes, default compatibility, empty-input behavior and protected tests. The required criterion is mapped to supplemental verification; no unnecessary choices, performance guarantee or execution authority. Original host rejection is the exact-text requirement on task checks."
+  },
+  "sample-12": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Serializes the full receipt header and every finding in order; notes, statuses and final newline preserved. Only standard-library serialization and known local types; no hidden effects. Original envelope acceptance is scored separately.",
+    "artifact_evaluation": "artifact-evaluations/sample-12/result.json"
+  },
+  "sample-13": {
+    "role": "planner",
+    "semantic_correct": false,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [
+      "Three unselected implementation choices (header derivation, import direction, line encoding) create material-answer prerequisites despite the supplied evidence being sufficient to choose defaults."
+    ],
+    "optional_advice": [
+      "The alternative rationales are useful as nonblocking implementation notes; iterator helper is optional."
+    ],
+    "human_correction_retained": true,
+    "profile_fit": false,
+    "rationale": "Correctly preserves the substantive export contract and uncertainty, but unnecessarily makes routine implementation choices unresolved. Also proposes a verification-only task with no outputs, which the qualified ordered build profile cannot execute. Those model/host boundary failures are separate from its paraphrased coverage-check rejection."
+  },
+  "sample-14": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Scoped dependent exporter, CLI and verification preserve every finding, notes, default JSON, empty input and protected checks. Explicitly discloses unrun tests and unmeasured performance. No needless choices or authority. Original host rejection is exact-text check duplication."
+  },
+  "sample-15": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Serializes the full receipt header and every finding in order; notes, statuses and final newline preserved. Only standard-library serialization and known local types; no hidden effects. Original envelope acceptance is scored separately.",
+    "artifact_evaluation": "artifact-evaluations/sample-15/result.json"
+  },
+  "sample-16": {
+    "role": "planner",
+    "semantic_correct": false,
+    "critical_miss": false,
+    "unsupported_claims": [
+      "The optional iterator is described as a constant-memory path, but no implementation or measurement supports that guarantee; the proposed to_dict-based header materializes all findings. Qualify or substantiate the assertion."
+    ],
+    "unnecessary_blocks": [
+      "An unrequested optional streaming API is an unselected material choice despite no stated consumer need."
+    ],
+    "optional_advice": [
+      "A 1000-claim limit bounds count rather than total bytes."
+    ],
+    "human_correction_retained": true,
+    "profile_fit": false,
+    "rationale": "Core export requirements and protected checks are retained, including awareness of the __main__ type trap. However, it invents a blocking optional API decision and makes an unsupported constant-memory assertion inside that alternative; accurately disclosed unknowns elsewhere are not counted as defects. Verification-only task with empty outputs is also outside the current build profile."
+  },
+  "sample-17": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Scoped exporter \u2192 opt-in CLI \u2192 supplemental tests preserve all findings/notes, default JSON, empty input and immutable acceptance. Performance remains unmeasured. Original contract still rejects paraphrased criterion checks."
+  },
+  "sample-18": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Full receipt and findings serialize without filtering; standard-library JSON only; newline and uncertainty preserved. Original reply uses work ID instead of step ID. ID-only diagnostic passes protected oracle, but original outcome remains rejected.",
+    "artifact_evaluation": "artifact-evaluations/sample-18/result.json"
+  },
+  "sample-19": {
+    "role": "planner",
+    "semantic_correct": false,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [
+      "Unselected stdout formatting and optional streaming API choices introduce human-answer prerequisites despite adequate supplied evidence and no material intent ambiguity."
+    ],
+    "optional_advice": [
+      "The implementation tradeoffs are suitable nonblocking notes."
+    ],
+    "human_correction_retained": true,
+    "profile_fit": false,
+    "rationale": "The plan preserves all substantive evidence requirements and even anticipates the CLI __main__ class-identity trap. However, routine choices remain unselected and a verification-only step has no output, incompatible with the current dependent build profile. One choice option also omits required uncertainty metadata; original validation stops earlier at paraphrased checks."
+  },
+  "sample-20": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Serializes the full receipt header and every finding in order; notes, statuses and final newline preserved. Only standard-library serialization and known local types; no hidden effects. Original envelope acceptance is scored separately.",
+    "artifact_evaluation": "artifact-evaluations/sample-20/result.json"
+  },
+  "sample-21": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Complete scoped exporter, opt-in CLI and supplemental tests with protected baseline/feature checks. Preserves all evidence and uncertainty; no unnecessary choices. Original host contract rejects paraphrased task checks despite their substantive coverage."
+  },
+  "sample-22": {
+    "role": "planner",
+    "semantic_correct": false,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [
+      "Optional iterator API becomes an unselected material choice despite no current consumer or acceptance need."
+    ],
+    "optional_advice": [
+      "State that the 1000-claim cap bounds count, not bytes; the plan otherwise explicitly leaves memory/performance unmeasured."
+    ],
+    "human_correction_retained": true,
+    "profile_fit": false,
+    "rationale": "Substantive export and uncertainty are preserved, but an optional API decision unnecessarily blocks acceptance and a verification-only task lacks an output for the current build profile. Alternative reasoning could remain nonblocking advice. Original structural rejection is exact criterion/check duplication."
+  },
+  "sample-23": {
+    "role": "worker",
+    "semantic_correct": true,
+    "source_inspected": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Serializes the full receipt header and every finding in order; notes, statuses and final newline preserved. Only standard-library serialization and known local types; no hidden effects. Original envelope acceptance is scored separately.",
+    "artifact_evaluation": "artifact-evaluations/sample-23/result.json"
+  },
+  "sample-24": {
+    "role": "planner",
+    "semantic_correct": true,
+    "critical_miss": false,
+    "unsupported_claims": [],
+    "unnecessary_blocks": [],
+    "optional_advice": [],
+    "human_correction_retained": true,
+    "rationale": "Detailed exporter \u2192 CLI \u2192 supplemental verification plan covers corrected all-findings intent, scoped outputs, default compatibility, empty input, notes and fixed checks. Performance stays unknown, no false acceptance. Criterion checks are substantively correct but paraphrased: original host contract rejects exact-text coverage."
+  }
+}
