@@ -775,6 +775,29 @@ open from the entry above: the fate of `wip`'s commits, which still lack the Win
 fix and fail qualification on Windows in `qualify_platform.py` with a
 `TimeoutExpired` that predates 2026-09-21.
 
+Outcome and correction, 2026-09-21. PR 5 was squash-merged by Patrick at 06:36Z as
+`3b3b5ff` (GitHub-verified, single parent `82efb27`). Verified on `main`: tree
+identical to the PR head `4a7723b`; differs from published `v0.1.0` in exactly
+`publish-pypi.yml`, `.gitignore` and `pyproject.toml`; version `0.2.0.dev0`; Windows
+fix, `LICENSE`, changelog and CLI guide present; qualification run 35569216919 six of
+six green; CodeQL green with zero open alerts; `8fc26a4` is not an ancestor, as
+expected, and `v0.1.0` still points at it. This merge brought Harness's own release
+line onto the trunk. It brought no code over from attune-ai, and it did not remove
+the attune-ai runtime tie; Patrick asked, and the answer was no. The dependency map
+in the README-independence entry above was also incomplete: its search missed
+indented imports. On `main` at `3b3b5ff` four modules import attune-ai at ten sites.
+`memory_context.py`: `attune.memory.harness_adapter`. `spec_bridge.py`: three
+modules, not two, `attune.pipeline.spec_reader`, `attune.elicitation.command_workspace`
+and `attune.spec.workspace`. `attune_bridge.py` and `memory_bridge.py`:
+`attune.plugins.base`, `attune.plugins.registry` and `attune.mcp.server` each; these
+remain the expected plugin-imports-its-host case. Harness contains no in-tree copy of
+`harness_adapter.py`, `command_workspace.py` or `workspace.py`, and `pyproject.toml`
+still does not name attune-ai. "attune-ai is not a dependency" is therefore the goal,
+not the state. Reaching it is spec work: the memory reader port (native memory
+scoping ladder Tasks 1 to 3), a decision and plan for the Spec tie, which no spec
+covers, and an installed-environment CI check with attune-ai absent that exercises
+memory context and plan acceptance. Nothing is started or authorized by this note.
+
 Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
 published 0.1.0 README overstates the harness's independence, and attune-ai is an
 undeclared runtime tie. Patrick read the README on the PyPI page after the release
