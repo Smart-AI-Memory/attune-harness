@@ -65,22 +65,24 @@ The system neither creates a new document collection nor generates an answer.
 
 Versions 0.1.0 and 0.2.0 shipped `attune_harness.attune_bridge`, which served
 `code_evidence_query` from inside Attune AI's own MCP server. It was removed
-after 0.2.0: Harness replaces Attune AI and no longer imports it. See D8 in the
+after 0.2.0: Harness is replacing Attune AI and no longer plugs into it. See D8 in the
 [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md).
 
 Use `attune-harness mcp-serve` in Harness's MCP 2.2.0 environment. It serves the
 same accepted retrieval grants from the same RetrievalSession, so scope, budgets
-and evidence reuse are unchanged.
+and evidence reuse are unchanged. The tool is named `harness.retrieve` there, not
+`code_evidence_query`; see the [MCP workflow](mcp-workflow.md).
 
 ## Migration boundary
 
-Use `code_evidence_query` for implementation evidence. The existing
+Use `harness.retrieve`, served by `attune-harness mcp-serve`, for implementation
+evidence. The existing
 `rag_knowledge_query`, `rag-code-gen`, help and personal-memory paths keep their
 existing contracts. Their legacy package still owns model settings and other
 consumers, so it has not been uninstalled or had its collection deleted.
 The new code path never falls back to that collection after a Voyage failure.
 Switching the active desktop MCP configuration and routing old generation
-workflows are separate from making this optional plugin available.
+workflows are separate work.
 
 See [design](design-code-first-rag.md), [implementation receipt](code-first-rag-receipt.md),
 and the [earlier live accuracy check](voyage-accuracy-receipt.md).
