@@ -1,9 +1,33 @@
 name: Isolated Windows effects backend qualification
 
+# Pull requests and main run the observed check: installed bytes are this
+# checkout's bytes, and the native tests pass. It compares with no frozen
+# manifest, so an unrelated change to src/ cannot fail it.
+#
+# Qualifying one exact candidate is a manual dispatch naming both manifests.
+# A hash mismatch there is the evidence doing its job. Do not regenerate a
+# manifest to make it pass; freezing a new candidate is Patrick's decision.
 on:
   push:
+    branches: [main]
   pull_request:
+    paths:
+      - 'src/attune_harness/**'
+      - 'tests/test_windows_effects.py'
+      - 'experiments/platform/qualify_windows_effects_backend.py'
+      - '.github/workflows/windows-effects-backend.yml'
+      - 'pyproject.toml'
+      - 'requirements-*.lock'
   workflow_dispatch:
+    inputs:
+      source_manifest:
+        description: Frozen mode only. Repository path of the source module manifest
+        required: false
+        type: string
+      candidate_manifest:
+        description: Frozen mode only. Repository path of the candidate file manifest
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -50,8 +74,14 @@ jobs:
         shell: pwsh
         env:
           ATTUNE_CI_WINDOWS_LABEL: ${{ matrix.os }}
+          SOURCE_MANIFEST: ${{ inputs.source_manifest }}
+          CANDIDATE_MANIFEST: ${{ inputs.candidate_manifest }}
         run: |
-          python -I experiments/platform/qualify_windows_effects_backend.py --output "qualification-windows/backend-${{ matrix.os }}-${{ matrix.python }}"
+          $frozen = @()
+          if ($env:SOURCE_MANIFEST -or $env:CANDIDATE_MANIFEST) {
+            $frozen = @('--source-manifest', $env:SOURCE_MANIFEST, '--candidate-manifest', $env:CANDIDATE_MANIFEST)
+          }
+          python -I experiments/platform/qualify_windows_effects_backend.py --output "qualification-windows/backend-${{ matrix.os }}-${{ matrix.python }}" @frozen
       - name: Preserve receipts, failures and exact source identities
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
