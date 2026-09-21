@@ -1,7 +1,14 @@
 name: Library qualification
 
+# Pushes qualify only where a push is the record: main, and release branches.
+# The release gates accept a qualification run only from a push or a dispatch,
+# and a release candidate is built from a release/ branch, so those must keep
+# their push runs. Every other branch is qualified by its pull request. Running
+# on every branch push doubled the work: a documentation branch got a 14 second
+# pull request run and, for the same commit, a five minute full matrix.
 on:
   push:
+    branches: [main, 'release/**']
   pull_request:
   workflow_dispatch:
 
