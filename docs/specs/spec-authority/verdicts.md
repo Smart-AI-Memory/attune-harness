@@ -4,8 +4,9 @@ September 21, 2026. Task 1 of [the spec authority note](README.md): review the
 Attune AI code in the spec path, and the memory adapter added by D10 of
 [the addendum](addendum-2026-09-21.md), and give each module one verdict.
 
-**Status: proposed and independently reviewed, not accepted.** Accepting these
-verdicts is Patrick's decision. Nothing here moves any code.
+**Status: accepted by Patrick on September 21, 2026** ("I accept the verdicts";
+D12 in the addendum), after the independent review recorded below. Nothing here
+moves any code. [Task 2's plan](task-2-plan.md) says what moves first.
 
 Everything was read from the Attune AI branch `codex/shared-memory-adoption` at
 `b89f7953f`, the branch Codex qualified Harness against. It is three commits
