@@ -25,7 +25,9 @@ KNOWN = {
     "spec_bridge.py",
 }
 
-LOADERS = {"import_module", "find_spec", "__import__"}
+# require_feature is this package's own loader: it passes its module argument
+# to import_module.
+LOADERS = {"import_module", "find_spec", "__import__", "require_feature"}
 
 
 def is_attune(name):
@@ -46,12 +48,9 @@ def attune_imports(source):
         elif isinstance(node, ast.Call) and node.args:
             called = node.func
             name = called.attr if isinstance(called, ast.Attribute) else getattr(called, "id", "")
-            first = node.args[0]
-            if (
-                name in LOADERS
-                and isinstance(first, ast.Constant)
-                and isinstance(first.value, str)
-                and is_attune(first.value)
+            literals = [arg.value for arg in node.args if isinstance(arg, ast.Constant)]
+            if name in LOADERS and any(
+                isinstance(value, str) and is_attune(value) for value in literals
             ):
                 lines.append(node.lineno)
     return sorted(lines)
@@ -79,6 +78,7 @@ def offenders():
         "import importlib\nimportlib.import_module('attune.mcp.server')",
         "from importlib.util import find_spec\nfind_spec('attune')",
         "__import__('attune.plugins')",
+        "require_feature('attune-ai', 'attune.spec.state', VERSION, 'spec')",
     ],
 )
 def test_every_way_of_importing_attune_is_found(source):
@@ -97,6 +97,7 @@ def test_every_way_of_importing_attune_is_found(source):
         "import importlib\nimportlib.import_module('attune_forms')",
         "note = 'import attune'  # text, not an import",
         "import importlib\nimportlib.import_module(name)",
+        "require_feature('attune-forms', 'attune_forms', VERSION, 'review')",
     ],
 )
 def test_other_libraries_and_relative_imports_are_not_mistaken_for_it(source):
