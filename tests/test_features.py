@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from attune_harness.features import FeatureUnavailable, output_path, read_text, require_feature, write_report
+from attune_harness.features import (FeatureUnavailable, InputTooLarge, output_path, read_text,
+                                     require_feature, write_report)
 
 
 def test_input_bounds_and_encoding(tmp_path):
@@ -19,6 +20,30 @@ def test_input_bounds_and_encoding(tmp_path):
         read_text(source)
     with pytest.raises(ValueError,match='regular'):
         read_text(tmp_path)
+
+
+def test_oversize_input_is_refused_whole_and_says_its_size_and_limit(tmp_path):
+    source = tmp_path/'input.md'
+    source.write_text('x'*70,encoding='utf-8')
+    with pytest.raises(InputTooLarge) as refused:
+        read_text(source,64)
+    message = str(refused.value)
+    assert 'limit of 64 bytes' in message and 'it is 70 bytes' in message and str(source) in message
+    assert 'never shortens' in message
+    # Callers that catch ValueError keep working.
+    assert isinstance(refused.value,ValueError)
+    assert read_text(source,70) == 'x'*70
+
+
+def test_oversize_plan_says_to_split_it_without_needing_attune_ai(tmp_path):
+    from attune_harness.spec_bridge import legacy_plan
+    plan = tmp_path/'plan.md'
+    plan.write_text('<task id="1"><objective>'+'x'*65536+'</objective></task>\n',encoding='utf-8')
+    with pytest.raises(ValueError) as refused:
+        legacy_plan(plan)
+    message = str(refused.value)
+    assert 'limit of 65536 bytes' in message and 'Split the plan into smaller plan files' in message
+    assert isinstance(refused.value.__cause__,InputTooLarge)
 
 
 def test_output_refuses_symlink_metadata_and_bad_paths(tmp_path):

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Changed: an input over its size limit is refused with a fuller message. It
+  now gives the file's actual size beside the limit and says the file was
+  refused whole, because Harness never shortens an input to fit. The error is a
+  new `InputTooLarge`, a `ValueError`, so existing handlers keep working. For an
+  imported plan, the message adds what to do: split it into smaller plan files.
+  That check now runs before Attune AI is loaded, so it is reported either way.
+  The 65,536-byte limit for plans is unchanged.
 - Removed: `attune_harness.attune_bridge` and `attune_harness.memory_bridge`, the
   two modules that plugged Harness into Attune AI's plugin registry and MCP
   server. Harness is replacing Attune AI and no longer plugs into it; two other
