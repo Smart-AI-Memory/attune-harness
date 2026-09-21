@@ -188,9 +188,15 @@ available. See the [implementation results](test-this-change-results.md).
 
 `fix` replaces explicitly listed existing UTF-8 files in an exclusively owned,
 bounded POSIX checkout with a local `.git` directory. Keep task state outside that
-checkout. Creation, deletion, renames, symlinks/hardlinks, linked Git worktrees and
-Windows repair effects are outside this first profile. The entire checkout is
-bounded to 1,000 entries and 16 MiB, including protected metadata.
+checkout. Creation, deletion, renames, symlinks/hardlinks and linked Git worktrees
+are outside this first profile. The entire checkout is bounded to 1,000 entries
+and 16 MiB, including protected metadata.
+
+On Windows, `fix` is experimental as of 0.2.0. It requires a fixed local NTFS
+drive-letter volume, limits files to 64 KiB, and refuses reparse points, files
+with more than one hard link and alternate data streams before writing. It passes
+its own native tests and is not qualified beyond them. See the
+[design note](design-windows-effect-backend.md).
 
 Prepare a trusted probe JSON before the worker runs:
 
