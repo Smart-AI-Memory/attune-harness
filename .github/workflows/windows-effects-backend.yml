@@ -2,7 +2,8 @@ name: Isolated Windows effects backend qualification
 
 on:
   push:
-    branches: [codex/windows-effects-backend-20260918]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

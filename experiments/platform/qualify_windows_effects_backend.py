@@ -45,7 +45,7 @@ def installed_identity():
     package = Path(attune_harness.__file__).resolve().parent
     if package.is_relative_to(ROOT) or not package.is_dir():
         raise ValueError('Harness import resolved inside source checkout')
-    manifest = RECEIPT_DIR / 'backend-ci-source67.json'
+    manifest = RECEIPT_DIR / 'backend-main-source67.json'
     expected = json.loads(manifest.read_text())['modules_git_lf_sha256']
     sources = ROOT / 'src/attune_harness'
     actual_names = {p.name for p in package.glob('*.py')}
@@ -123,7 +123,7 @@ def main():
         package, modules, source_manifest_sha = installed_identity()
         receipt.update(installed_package=str(package), modules=modules,
                        source_manifest_sha256=source_manifest_sha)
-        candidate = RECEIPT_DIR / 'backend-candidate-manifest.json'
+        candidate = RECEIPT_DIR / 'backend-main-candidate-manifest.json'
         receipt['candidate_manifest_sha256'] = sha(candidate.read_bytes())
         frozen = json.loads(candidate.read_text())['paths']
         for relative, expected in frozen.items():
