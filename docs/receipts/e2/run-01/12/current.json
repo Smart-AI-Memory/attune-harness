@@ -1,0 +1,162 @@
+{
+  "tool": "evidence.search",
+  "adapter": "mcp-stdio-2026-07-28",
+  "engine_modules": {
+    "__init__.py": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289",
+    "__main__.py": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186",
+    "a2a.py": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e",
+    "adapters.py": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe",
+    "cli.py": "913c0602731d692d852977794618cc1e435c9966c31105ddaf52accdb5a09811",
+    "extension_cli.py": "f74c1d64f59792d6ec1f5980222c071c2265ba4cff8115dbc4ffb530003277b2",
+    "extensions.py": "3ff7ba339aab9745f91ef6b17cb38382ce2c171b0803ad3c65d96b82dd978248",
+    "features.py": "a9c08b77d6ed20926245a90541a9dc6ada3093b24da70c7f96f273f57781cdc5",
+    "mcp_server.py": "b02bd7a29003a3f371af8f4409283063e166f54e966f6f8cc21e7d4fbb4d5935",
+    "native.py": "0cac42ca83d9d6565f5fb03568cae676592d3bc319d96368fa0379ea7ee899b8",
+    "process.py": "b6a09165ae7f871d50c80b80e495467479edeb1568ae256a59b83d43f3a1c511",
+    "recovery.py": "fe4aef2ec31410c6181580462f92c29e63380a842c78e0b049b3c227301c6d33",
+    "retrieval.py": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1",
+    "review.py": "946ef0c0c8ec964a20c456f22564c0674faecf32a19562cc51b433d8b99ab0cf",
+    "review_cli.py": "d7639f789015100a83dfbd81f94161e9998fc87a9c939b6af2dcade47f72d14e",
+    "review_contract.py": "ab9d9bfd41b4965c840badb9c0e4cfcd5720eba5fe849ed8f9cc86c75242b4ad",
+    "review_participants.py": "dc4cd5e09ca3623d493c86e15440bbdc04546e1f6a8f9c5029b8e5f9b3c3864f",
+    "review_store.py": "198c7852ce89a064b44c25968a9c2c265f2137c7acd5c80096f1f22fbc326bac",
+    "verification.py": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c"
+  },
+  "runtime": {
+    "python": "3.10.11",
+    "platform": "darwin"
+  },
+  "dependencies": {
+    "attune-rag": "1.2.0",
+    "attune-forms": "0.17.0",
+    "attune-verify": "0.6.0",
+    "attune-harness": "0.1.0.dev0",
+    "mcp": "2.2.0"
+  },
+  "required_dependencies": {
+    "attune-rag": "1.2.0",
+    "attune-forms": "0.17.0",
+    "attune-verify": "0.6.0",
+    "attune-harness": "0.1.0.dev0",
+    "mcp": "2.2.0"
+  },
+  "artifact": {
+    "digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621",
+    "version": "0.1.0"
+  },
+  "lifecycle": "enabled",
+  "grants": [
+    "evidence.search"
+  ],
+  "registry": {
+    "schema_version": 1,
+    "extensions": {
+      "evidence": {
+        "state_dir": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/12/extension-state",
+        "artifact_digest": "52cac45bc2004069b71c7253cac0b657fa1b48ffbd30d0b8bf704a416d7f0621"
+      }
+    },
+    "participants": {
+      "lead": {
+        "adapter": "command",
+        "command": [
+          "/Users/patrickroebuck/attune-harness/.venv-mcp2-probe/bin/python",
+          "-I",
+          "/Users/patrickroebuck/attune-harness/experiments/e2/participant.py"
+        ],
+        "timeout": 5,
+        "tools": [
+          "evidence.search"
+        ],
+        "max_turns": 2,
+        "max_tool_calls": 1
+      },
+      "reviewer": {
+        "adapter": "deterministic",
+        "tools": [
+          "evidence.search"
+        ],
+        "max_turns": 2,
+        "max_tool_calls": 1
+      }
+    }
+  },
+  "accepted_request": {
+    "schema_version": 1,
+    "form_revision": "0e27ccff37c3ddc4c8ee66c8cd9d949bcaa2b174c99d1b9edaeb462c7e8c2dc3",
+    "accepted": true,
+    "answers": {
+      "objective": "E2 local capability experiment",
+      "query": "quartz retention policy",
+      "document": "corpus/guide.md",
+      "context": "context.json",
+      "corpus": "corpus",
+      "lead": "lead",
+      "reviewer": "reviewer"
+    }
+  },
+  "corpus_root": "/Users/patrickroebuck/attune-harness/docs/receipts/e2/run-01/12/corpus",
+  "sources": {
+    "guide.md": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+    "reference.md": "fd349219a5400a7b19e510f0446fc242f3992e62bd3dc8f2321528963f9e7d33"
+  },
+  "arguments": {
+    "query": "quartz retention policy",
+    "k": 3
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "minLength": 1
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20
+      }
+    },
+    "required": [
+      "query",
+      "k"
+    ],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "schema_version",
+      "operation",
+      "status",
+      "sources",
+      "corpus"
+    ],
+    "properties": {
+      "schema_version": {
+        "const": 1
+      },
+      "operation": {
+        "const": "retrieve"
+      },
+      "status": {
+        "enum": [
+          "retrieved",
+          "no_results"
+        ]
+      },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "corpus": {
+        "type": "object"
+      }
+    }
+  },
+  "declared_tools": [
+    "evidence.search"
+  ]
+}

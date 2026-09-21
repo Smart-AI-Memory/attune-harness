@@ -1,0 +1,7 @@
+{
+  "condition": "harness-capsule",
+  "variant": "valid-link",
+  "interruption": "lost-ack",
+  "from": "alpha",
+  "to": "gamma"
+}

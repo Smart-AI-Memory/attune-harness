@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "accepted": {
+    "schema_version": 1,
+    "form_revision": "f38ef92894f1fa7911bc0d97e49c5e12f0e2ad7400a24c68ce5cd41f98fc3c4f",
+    "accepted": true,
+    "answers": {
+      "objective": "Review local evidence. Preserve constraints; never repeat an uncertain request effect.",
+      "query": "quartz retention policy",
+      "document": "project/guide.md",
+      "context": "context.json",
+      "corpus": "project",
+      "lead": "alpha",
+      "reviewer": "reviewer"
+    }
+  },
+  "requirement_revision": "e1b2a5a0924af8b1ef0d11241bf1ad9f3bf507484d6f8a5b72d73721fa2d8ef6",
+  "document_outcome": "verified",
+  "steps": [
+    {
+      "action": "resume",
+      "status": "blocked",
+      "detail": "Operation 0662f1bc-2806-4dac-9dbd-ba6acd119f69 may have executed; reconcile before resume"
+    },
+    {
+      "action": "transfer",
+      "status": "blocked",
+      "detail": "Transfer requires reconciliation of every pending operation"
+    },
+    {
+      "action": "operator_reply_reconciliation",
+      "status": "paused"
+    },
+    {
+      "action": "transfer",
+      "status": "paused"
+    }
+  ],
+  "human_repair_seconds": null,
+  "model_correctness": null
+}

@@ -8,6 +8,8 @@ dist/
 .venv*/
 .pilot/
 .benchmarks/
+# Receipts stay local. The few that tests read are force-tracked (git add -f);
+# Llama-derived ones are never redistributed and their tests skip when absent.
 docs/receipts/
 **/receipts/
 experiments/guardian_v1/protected-before.json

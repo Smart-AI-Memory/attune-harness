@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "form_revision": "f38ef92894f1fa7911bc0d97e49c5e12f0e2ad7400a24c68ce5cd41f98fc3c4f",
+  "accepted": true,
+  "answers": {
+    "objective": "Review local evidence. Preserve constraints; never repeat an uncertain request effect.",
+    "query": "quartz retention policy",
+    "document": "project/guide.md",
+    "context": "context.json",
+    "corpus": "project",
+    "lead": "alpha",
+    "reviewer": "reviewer"
+  }
+}
