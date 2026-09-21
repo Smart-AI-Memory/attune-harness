@@ -1,31 +1,30 @@
 # Attune Harness
 
-A portable, extensible runtime for multi-model agents, under development.
+**Run an agent's work, check it independently, and keep a receipt of which happened.**
 
-The standalone core runs participants and independently checks their results.
-Optional integrations provide Attune forms, local retrieval, verification and a
-coordinated evidence-review CLI. Experimental Claude/Codex and JSON command
-adapters connect participants. Native review qualification is recorded separately
-from software tests; Claude's retry remains on hold.
-No provider SDK or attune-ai installation is required by the core.
+> **Status: 0.1.0, alpha.** Interfaces, configuration formats and CLI commands may
+> change before 1.0. What is and is not qualified is
+> [listed below](#what-is-qualified-and-what-is-not), not implied.
 
-Dev13 adds [repository-first Attune RAG](docs/code-first-rag.md): application
-code and tests, explicitly selected schemas/configuration, optional documentation,
-and an Attune AI plugin using the shared Voyage engine. It builds on Dev12's
-local indexes, hybrid search, standard reranking, and source/cost receipts. The dependency-free core
-and deterministic structured tools remain available. See the
-[implementation receipt](docs/voyage-retrieval-receipt.md) for the qualified scope.
+On September 18, 2026 I ran twelve model-written implementations of a small JSONL
+exporter through Harness. Nine behaved correctly under the full check. The other three passed when their serializer
+was tested directly, and failed when run through the real command line, which is the
+only way anyone would ever use them
+([results](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/plan-build-native-results.md)).
 
-## Library quickstart
+That gap is what Harness is for. A participant produces output: a model, a command,
+or your own code. A check you supply, separate from the participant, decides whether
+the output counts. You get back a receipt that says which. The participant's account
+of its own work is recorded. It is never the evidence.
 
-Requires Python 3.10 or later. Install from this checkout:
+## A wrong answer comes back rejected
 
 ```sh
-python -m pip install .
-python -m attune_harness
-# Optional forms, retrieval and document verification:
-python -m pip install '.[review]'
+pip install attune-harness
 ```
+
+The core has no dependencies and needs Python 3.10 or later. No provider SDK, no
+API key, and no attune-ai installation.
 
 ```python
 from attune_harness import Check, Output, Task, run
@@ -43,125 +42,104 @@ receipt = run(
 print(receipt.status.value)  # verified
 ```
 
-The [GitHub library](https://github.com/Smart-AI-Memory/attune-harness) is private.
-This is a development package; no PyPI publication is implied. The CI workflow
-tests the installed library on macOS, Linux and Windows and records actual
-capabilities. Dev11 adds Windows Job Object supervision and native writer locks;
-the [qualification guide](docs/qualification.md) distinguishes platform execution
-checks from model-provider qualification.
+Change the worker to return `"5"` and the same call returns `rejected`, with the
+output and the check's evidence still attached. If the participant or the check
+raises, the status is `failed` and the receipt names the stage and the error. `run`
+executes once. It never retries on its own.
 
-Dev10 adds [deterministic triage, GitHub check imports, and repair economics](docs/operations.md).
-The [qualification guide](docs/qualification.md) explains the frozen model comparisons
-and native platform checks. Raw historical receipts are retained locally and excluded
-from Git; historical receipt links may require the original workspace.
+`python -m attune_harness` runs the installed demonstration and prints a JSON receipt.
 
-The [September 15 results](docs/opportunities-implementation-report.md) record the
-eight-case model comparison, narrow worker failures and six successful native CI
-jobs. They separate software reliability from model accuracy.
+## The CLI applies the same contract to larger work
 
-This workspace's [review profile](participants.json) now selects **GPT-6 Astra,
-extra-high reasoning** for both lead and reviewer, with a 1000-token skills catalog
-budget. The native adapter passes the model and effort
-explicitly to Codex and uses `review_mode: evidence`: the host retrieves/verifies
-evidence and binds response identifiers; each model role writes one review.
-New `review-form` and `review` commands use `./participants.json`
-unless `--config` selects another registry. See the [Astra setup](docs/astra-review.md)
-and [execution receipt](docs/native-evidence-review-receipt.md). Native execution still requires
-`--allow-external`; changing the model, effort or catalog budget requires a newly
-accepted review. Resume an older run with its original registry; the changed
-profile cannot silently replace an accepted configuration.
+```text
+attune-harness --help
 
-The [Fable-led profile](docs/fable-review.md) selects Fable 5.1 with an Astra
-reviewer as the next candidate. It is configured but not live-qualified. Patrick
-retired Llama from the intended workflow on September 15; its retained experiments
-provide historical comparison evidence.
+Task execution
+  plan         Define intent and accept its scope
+  build        Execute accepted tasks and protected checks
+  review       Assess a document against project evidence
+  fix          Repair scoped files and check the result
+  test         Test a captured change and retain the evidence
 
-The historical [local documentation-review pilot](docs/pilot-workflow.md) uses pinned
-Ollama inference, real Attune evidence tools and checkpointed continuation.
-It retains two independent narratives as unverified proposals and preserves
-unknown document claims. See the [migration boundaries](docs/pilot-migration.md)
-before selecting it as a daily workflow. No paid-provider fallback is provided.
+Task controls
+  status       Inspect a saved task
+  resume       Continue a saved task
 
-Run the installed demonstration with `python -m attune_harness`.
-It prints a JSON receipt; wrong output is rejected rather than called complete.
-Run development checks with `python -m pytest tests`.
-
-See `docs/design-first-increment.md` for scope and verification design, and
-`docs/harness-phased-plan.md` for the wider roadmap. Direct construction of a
-receipt is not certification; receipts are local values, not signed attestations.
-The core Participant interface executes in-process without isolation or recovery.
-
-The JSON boundary supplies `attune_harness.adapters.Attempt` and
-`JsonParticipant`: an injected JSON exchange bound to one accepted task/revision
-and one attempt. Responses must match the full request digest and pass strict
-decoding before independent verification. Each adapter instance dispatches once;
-this is not durable deduplication or authentication.
-
-See [portable contract](docs/portable-contract.md) for capability/state cases and
-outstanding guarantees, and [native experiment](docs/native-adapter-experiment.md)
-for the next qualification steps. After installing the wheel, run
-`python -I examples/json_exchange.py` for the independent deterministic consumer.
-
-`attune_harness.native.NativeExchange` supplies a Claude or Codex exchange for
-`JsonParticipant`. It retains native session identity and raw process diagnostics.
-The POSIX runner supports deadlines, cancellation and bounded output capture;
-these do not establish durable recovery or tool isolation. See
-[native receipt](docs/native-build-receipt.md) for the tested support boundary.
-`examples/native_probe.py` is the explicit entry point for an authenticated
-arithmetic probe; it saves the result and raw evidence to a requested directory.
-
-The local feature workflow now supports optional `verify` and `rag` extras:
-
-```sh
-attune-harness verify guide.md --context context.json --output verification.json
-attune-harness retrieve "retention policy" --corpus docs --output sources.json
+AI tools and integration
+  --help-all   Browse operational tools and compatibility commands
 ```
 
-Verification preserves strict verified/refuted/unknown outcomes and per-claim
-library evidence. Retrieval returns ranked local Markdown sources with hashes;
-it makes no model calls. Missing extras return actionable unavailable reports.
-See [local workflow](docs/local-workflow.md) for the prepared example, install
-commands, exit codes, dependency pins and evidence boundaries.
+Every verb follows one pattern. You accept a scope before anything runs, the host
+applies the effects, and checks fixed in advance decide the outcome. `fix` is the
+clearest example: it freezes an acceptance probe before the worker starts, applies
+the worker's proposed replacement itself, and keeps the failed-before and
+passed-after probe evidence. A saved task can be inspected with `status` and
+continued with `resume`; completed operations replay from saved evidence instead of
+running again.
 
-The optional `review` extra combines attune-forms, attune-rag and attune-verify:
+Reaching outside the process takes explicit permission. External command
+participants need `--allow-external`, and native model participants also need
+`--allow-native`. **Approving a plan does not authorize paid calls.**
 
-```sh
-attune-harness review-form --config participants.json
-attune-harness review request.json --config participants.json --run-dir new-run --allow-external
-attune-harness inspect-review new-run
-```
+Many of these commands are there for the agent and its integrations to call.
+Learning their syntax is not the price of entry, and `attune-harness COMMAND --help`
+covers direct use. Full usage, exit codes and recovery controls are in the
+[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/cli-guide.md).
 
-A submitted form selects distinct lead and reviewer identities. Each participant
-gets bounded retrieval/verification calls; the coordinator saves pending work,
-tool results, independent narratives and the document's strict verification result.
-`completed` describes the workflow, not the correctness of arbitrary review prose.
-The prepared deterministic example makes no model calls. External commands and
-native adapters require explicit `--allow-external` selection. Inspection does not
-resume a run or retry an uncertain operation. See [review workflow](docs/review-workflow.md)
-and [implementation receipt](docs/review-workflow-receipt.md).
+## Install only what you use
 
-New runs also support checkpointed resumption, constrained reconciliation,
-local lead transfer and cancellation. Completed operations are replayed from their
-saved evidence; uncertain external effects block resumption. Accepted inputs and
-source hashes must still match. These controls use POSIX file locks and remain
-local to the original run directory. See [recovery workflow](docs/recovery-workflow.md)
-for commands, the deterministic two-way transfer example and qualification limits.
+| You want | Install |
+| --- | --- |
+| The core contracts and CLI, with no dependencies | `pip install attune-harness` |
+| Document claim verification (`attune-verify` 0.6.0) | `pip install 'attune-harness[verify]'` |
+| Local Markdown retrieval with source hashes, no model calls (`attune-rag` 1.2.0) | `pip install 'attune-harness[rag]'` |
+| The evidence-review and test journeys: forms, retrieval and verification together | `pip install 'attune-harness[review]'` |
+| Accepted retrieval grants served over MCP stdio (`mcp` 2.2.0) | `pip install 'attune-harness[mcp]'` |
+| Repository-first retrieval on Voyage embeddings | `pip install 'attune-harness[voyage]'` |
+| Token counting (`tiktoken` 0.12.0) | `pip install 'attune-harness[tokens]'` |
+| Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]'` |
 
-Explicit data-only extension bundles can contribute a portable skill and a
-namespaced retrieval tool. The local lifecycle CLI binds exact artifact bytes,
-checks compatibility, and supports enable/disable/removal while preserving user
-data. Review grants and corpus scope still control each invocation. A separately
-built example plugin and an explicit Attune BasePlugin bridge exercise this
-boundary. See [extension workflow](docs/extension-workflow.md) and its
-[receipt](docs/extension-workflow-receipt.md).
+Extras pin exact versions as of 0.1.0. Keep the quotes: zsh and bash treat square
+brackets as glob characters. When an extra is missing, the command that needs it
+returns an actionable unavailable report instead of a traceback.
 
-The optional `mcp` extra pins SDK 2.2.0 and exposes accepted retrieval grants over
-stdio. Legacy 2025-11-25 and current 2026-07-28 profiles have independent-client
-receipts. See [MCP workflow](docs/mcp-workflow.md).
+## What is qualified and what is not
 
-The dependency-free `A2AExchange` connects the core JSON participant to an
-explicitly pinned local A2A 1.0 peer. It retains task/artifact identity, refuses
-automatic resubmission after acknowledgement loss, and supports explicit refresh
-and cancellation for a known task. See [A2A workflow](docs/a2a-workflow.md).
-These protocol receipts are local; remote authentication, arbitrary executable
-plugins and automatic host installation remain unqualified.
+I would rather you find the limits here than in your own checkout. Green software
+tests and model quality are different claims, and this project keeps them apart.
+
+| Area | Qualified | Not qualified |
+| --- | --- | --- |
+| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
+| Models | CI calls no model provider. Native Claude and Codex adapters have recorded comparisons | Native planning and building are experimental. In the September 18, 2026 comparison the original reply contract accepted 1 of 24 replies; after the contract was corrected it accepted 12 of 12. Two repetitions per role do not establish a reliability rate |
+| `fix` and `test` | Local POSIX Git checkouts, regular files, default pytest discovery | Windows repair effects, file creation, deletion and renames, linked worktrees, custom pytest collectors, committed revision ranges |
+| Isolation | Commands and probes run as supervised processes with deadlines and bounded output | **This is not a security sandbox.** Use a dedicated checkout and commands you trust |
+| Receipts | Receipts retain the task, output and check evidence locally | They are local values, not signed attestations. Constructing a `Receipt` directly certifies nothing |
+| Plan acceptance | Core imports, help and the library run standalone | `plan --accept` needs the optional Attune AI Spec runtime in the same environment |
+| Protocols | MCP (2025-11-25 and 2026-07-28 profiles) and A2A 1.0 have local independent-client receipts | Remote authentication, arbitrary executable plugins and automatic host installation |
+| Memory | A read-only integration plan is accepted and qualified in a temporary install | The memory modules and the `memory-native` extra ship in the wheel but are experimental and not activated for live memories. The native transport is POSIX only, accepts two exact model IDs, refuses any other SDK version, and is never exercised in CI |
+| Roadmap | | `ship` and `reflect` are planned routes and do not exist yet |
+
+## Harness and attune-ai
+
+Harness is the successor I am building to
+[attune-ai](https://pypi.org/project/attune-ai/). It starts from a constraint
+attune-ai never had: the core must run with no provider SDK and nothing else from
+the Attune family installed. The Attune libraries come in as extras, where you can
+see exactly what each one adds.
+
+attune-ai is still where cross-session memory, the Claude Code plugin and the
+multi-agent workflows live. Harness does not replace those today. If that is what
+you need, install attune-ai.
+
+## Links
+
+- [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/qualification.md)
+- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/cli-guide.md)
+- [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.1.0/docs/portable-contract.md)
+- [Repository](https://github.com/Smart-AI-Memory/attune-harness) and
+  [issues](https://github.com/Smart-AI-Memory/attune-harness/issues)
+
+**Apache License 2.0.**
+
+Built by Patrick Roebuck, working with Codex and Claude.

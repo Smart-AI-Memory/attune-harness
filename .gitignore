@@ -24,3 +24,6 @@ CLAUDE.md
 .env.*
 # Local workflow history and SQLite sidecars.
 /.attune/history.db*
+# Local session notes; never published. Same rules as the wip snapshot branch.
+docs/handoffs/
+docs/reflections/

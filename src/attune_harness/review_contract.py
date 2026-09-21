@@ -48,6 +48,11 @@ def bounded_text(value, name, limit=4096):
 
 def load_registry(path: Path) -> dict:
     value = parse_json(read_text(path, 131_072))
+    return validate_registry(value, path)
+
+
+def validate_registry(value: dict, path: Path, *, minimum_participants: int = 2) -> dict:
+    """Shared configuration checks; legacy callers retain the two-role minimum."""
     extended = isinstance(value, dict) and 'extensions' in value
     fields(value, ('schema_version', 'participants', *(['extensions'] if extended else []),
                    *(['retrieval'] if isinstance(value, dict) and 'retrieval' in value else [])))
@@ -61,8 +66,8 @@ def load_registry(path: Path) -> dict:
         validate_bindings(value['extensions'], path.absolute().parent)
         available_tools.update(catalog(value['extensions']))
     roster = value['participants']
-    if not isinstance(roster, dict) or not 2 <= len(roster) <= 16:
-        raise ValueError('Registry requires 2–16 participants')
+    if not isinstance(roster, dict) or not minimum_participants <= len(roster) <= 16:
+        raise ValueError(f'Registry requires {minimum_participants}–16 participants')
     for name, item in roster.items():
         if not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}', name) or not isinstance(item, dict):
             raise ValueError('Invalid participant identity or configuration')

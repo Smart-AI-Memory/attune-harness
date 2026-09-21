@@ -4,11 +4,34 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "attune-harness"
-version = "0.1.0.dev13"
+version = "0.2.0.dev0"
 description = "Portable execution contracts for multi-model agent work"
 requires-python = ">=3.10"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Patrick Roebuck", email = "admin@smartaimemory.com"}
+]
+maintainers = [
+    {name = "Smart-AI-Memory", email = "admin@smartaimemory.com"}
+]
+keywords = ["ai-agent", "multi-agent", "agent-harness", "llm", "mcp", "developer-tools", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Environment :: Console",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Smart-AI-Memory/attune-harness"
+Repository = "https://github.com/Smart-AI-Memory/attune-harness"
+Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
 tokens = ["tiktoken==0.12.0"]
@@ -17,6 +40,7 @@ rag = ["attune-rag==1.2.0"]
 voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==4.26.0"]
 review = ["attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
 mcp = ["mcp==2.2.0", "attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
+memory-native = ["anthropic==1.6.0", "httpx2==2.13.0"]
 
 [project.scripts]
 attune-harness = "attune_harness.cli:main"

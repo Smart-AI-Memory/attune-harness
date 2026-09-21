@@ -412,3 +412,61 @@ def test_recovered_reply_does_not_grant_its_requested_tool(case):
     assert result['status'] == 'failed'
     assert 'not granted' in result['error']['detail']
     assert not any(item['kind'] == 'tool' for item in result['events'])
+
+
+def test_save_survives_concurrent_readers(tmp_path):
+    """A reader briefly holding record.json open must never make the single writer fail.
+
+    Windows refuses os.replace while another handle has the destination open;
+    `status`, an indexer or antivirus can all be that reader. The reader here
+    polls the way a real one does: open, read, close, pause.
+    """
+    import threading
+    import time
+
+    store = RunStore(tmp_path / 'run')
+    record = {'schema_version': 1, 'status': 'running', 'events': []}
+    store.save(record)
+    stop = threading.Event()
+
+    def reader():
+        while not stop.is_set():
+            try:
+                with open(store.path, 'rb') as stream:
+                    stream.read()
+                    time.sleep(.002)  # Hold the handle briefly, as a real reader would.
+            except OSError:
+                pass  # A reader may lose a race; only the writer's outcome is under test.
+            time.sleep(.005)
+
+    thread = threading.Thread(target=reader, daemon=True)
+    thread.start()
+    failures = []
+    try:
+        for index in range(200):
+            record['events'] = [index]
+            try:
+                store.save(record)
+            except PersistenceError as exc:
+                failures.append(f'save {index}: {exc}')
+    finally:
+        stop.set()
+        thread.join(timeout=5)
+    assert not failures, (len(failures), failures[:3])
+    assert json.loads(store.path.read_text(encoding='utf-8'))['events'] == [199]
+
+
+@pytest.mark.skipif(sys.platform != 'win32', reason='Only Windows refuses to replace an open file')
+def test_save_still_fails_closed_when_record_stays_open(tmp_path, monkeypatch):
+    """The retry is bounded: a record held open indefinitely is a persistence failure."""
+    from attune_harness import review_store
+
+    store = RunStore(tmp_path / 'run')
+    record = {'schema_version': 1, 'status': 'running', 'events': []}
+    store.save(record)
+    monkeypatch.setattr(review_store, 'REPLACE_RETRY_SECONDS', .05)
+    with open(store.path, 'rb'):
+        with pytest.raises(PersistenceError, match='persistence failed'):
+            store.save({**record, 'events': [1]})
+    assert json.loads(store.path.read_text(encoding='utf-8'))['events'] == []
+    assert [p.name for p in store.directory.iterdir()] == ['record.json']

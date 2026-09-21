@@ -3,6 +3,7 @@
 import json
 import os
 import tempfile
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -13,6 +14,30 @@ from .review_contract import digest, parse_json, versioned
 
 class PersistenceError(OSError):
     """The caller must stop dispatch when a run record cannot be persisted."""
+
+
+REPLACE_RETRY_SECONDS = 2.0
+
+
+def _replace(source: Path, target: Path) -> None:
+    """Atomic replace. A reader briefly holding the target must not fail the writer.
+
+    Windows refuses to replace a file while another handle has it open (`status`,
+    an indexer, antivirus). Retry for a bounded period, then fail as before so a
+    record that cannot be persisted still stops dispatch.
+    """
+    if os.name != 'nt':
+        os.replace(source, target)
+        return
+    deadline = time.monotonic() + REPLACE_RETRY_SECONDS
+    while True:
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.005)
 
 
 class RunStore:
@@ -65,7 +90,7 @@ class RunStore:
                 stream.write(payload)
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.replace(temporary, self.path)
+            _replace(temporary, self.path)
             if os.name == 'posix':
                 fd = os.open(self.directory, os.O_RDONLY)
                 try:
