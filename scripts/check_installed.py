@@ -75,7 +75,11 @@ def check(python: Path, mode: str) -> dict:
             reference.write_text('# Quartz retention policy\nChanged source.\n',encoding='utf-8')
             assert run(retrieval,0,'retrieved')['corpus']['version']!=before
         console=subprocess.run([str(python.parent/'attune-harness'),'--help'],cwd=root,text=True,capture_output=True)
-        assert console.returncode==0 and 'verify' in console.stdout
+        assert console.returncode==0 and all(
+            command in console.stdout for command in ('plan', 'review', 'fix', '--help-all'))
+        catalog=subprocess.run([str(python.parent/'attune-harness'),'--help-all'],cwd=root,text=True,capture_output=True)
+        assert catalog.returncode==0 and all(
+            command in catalog.stdout for command in ('verify', 'retrieve', 'memory'))
     return {'mode':mode,'cases':cases,'provider_dependencies_absent':True}
 
 
