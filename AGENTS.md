@@ -78,9 +78,9 @@ those limits. No agent can widen them.
   is invisible: nobody can tell whether it is finished, abandoned or shipped.
   If you truly cannot open one, push the branch and tell whoever dispatched you
   its name, its base and its state.
-- The pull request description is the handoff. Say what the change is for, what
-  state it is in, what you verified and how, what you assumed without checking,
-  and what comes next.
+- The pull request description is the handoff. Follow
+  [the template](.github/pull_request_template.md). Cut the narrative, never
+  the evidence or what you did not verify.
 - `docs/handoffs/` and `docs/reflections/` are local session notes and are never
   published. Do not rely on another agent having read them.
 - End every commit message with a `Co-Authored-By:` trailer naming your model,
