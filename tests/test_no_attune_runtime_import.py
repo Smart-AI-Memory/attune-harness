@@ -20,7 +20,6 @@ PACKAGE = Path(__file__).resolve().parents[1] / "src" / "attune_harness"
 # Remove a name when its file stops importing attune, or is deleted.
 KNOWN = {
     "memory_context.py",
-    "spec_bridge.py",
 }
 
 # require_feature is this package's own loader: it passes its module argument

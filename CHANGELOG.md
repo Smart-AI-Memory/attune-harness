@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Changed: `plan --accept` no longer needs Attune AI. The bridge hosts the
+  decision with Harness's own `command_workspace` and `spec_workspace`, the
+  fourth and last step of Task 3 of the spec authority, so the runtime import
+  check's known list is down to `memory_context.py`. What acceptance needs is
+  the `review` extra, which supplies the forms package that renders the
+  decision; without it the command reports the install hint. Two events, a
+  render and an accept, are now written beside the task's `decision.json` in
+  `workspace-events.jsonl`; they never carry the action nonce, and a sink
+  that fails never blocks the decision. The task gate is exercised in CI with
+  Attune AI blocked: two processes against one task directory end with one
+  acceptance, and every wired action is refused without its nonce, on a
+  drifted view, when replayed, and without confirmation where the view
+  requires it. The connected journey's Spec control runs in CI for the first
+  time for the same reason.
 - Added: `attune_harness.spec_workspace`, the Spec adapter that gives each
   stage, action and event of a spec its meaning: `SpecWorkspaceAdapter`,
   `SpecWorkspaceState` and the receipt types, carried from Attune AI as the

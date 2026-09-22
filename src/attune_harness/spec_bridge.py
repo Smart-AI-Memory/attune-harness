@@ -1,8 +1,15 @@
-"""Connect work authority to the existing Spec collector, with no second store.
+"""Connect work authority to the Spec collector, with no second store.
 
 The host creates and consumes the form. Only after successful collection does
 the bridge persist the grant through the work owner. A crash between those
 operations grants nothing; reopen a current form instead of replaying a nonce.
+
+Since Task 3 of the spec authority (D14) the host and the Spec adapter are
+Harness's own, ``command_workspace`` and ``spec_workspace``; nothing here
+imports Attune AI. The host's two events, a render and an accept, are written
+beside the task's ``decision.json`` as evidence; they never carry the action
+nonce, and a sink that fails never blocks a decision. Refusal of a stale or
+replayed decision across processes is the task store's, under its lease.
 """
 
 import copy
@@ -12,9 +19,15 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from .command_workspace import (
+    CommandWorkspaceHost,
+    CommandWorkspaceProjection,
+    jsonl_event_writer,
+)
 from .features import OVERSIZE, read_text
 from .review_contract import digest, parse_json
 from .spec_tasks import parse_tasks
+from .spec_workspace import SpecWorkspaceAdapter, SpecWorkspaceState
 from .task_contract import read_task
 from .work_contract import (
     SIGNALS,
@@ -206,12 +219,6 @@ class WorkSpecBridge:
     """
 
     def __init__(self, directory, *, supported_controls=()):
-        from attune.elicitation.command_workspace import (
-            CommandWorkspaceHost,
-            CommandWorkspaceProjection,
-        )
-        from attune.spec.workspace import SpecWorkspaceAdapter, SpecWorkspaceState
-
         self.directory = Path(directory)
         record = read_task(self.directory)
         if record["status"] != "draft" or missing_information(record["request"]):
@@ -221,7 +228,13 @@ class WorkSpecBridge:
         self.supported = copy.deepcopy(list(supported_controls))
         if SPEC_APPROVAL not in self.supported:
             self.supported.append(SPEC_APPROVAL.copy())
-        self.host = CommandWorkspaceHost()
+        # Evidence of who saw what, when: one JSON line per render and per
+        # accepted action, beside decision.json. Never the nonce (D14).
+        self.host = CommandWorkspaceHost(
+            record_event=jsonl_event_writer(
+                Path(record["record_path"]).with_name("workspace-events.jsonl")
+            )
+        )
         self.decision = None
         bridge = self
         request = record["request"]
