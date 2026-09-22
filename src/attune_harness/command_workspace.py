@@ -39,6 +39,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import copy
+import errno
 import functools
 import hmac
 import json
@@ -239,52 +240,86 @@ class CommandWorkspaceActionResult:
 # file, so a reader is never refused a byte that holds data.
 _LOCK_OFFSET = 1 << 40
 _LOCK_RETRY_SECONDS = 2.0
+# A lock the file system cannot grant at all, as against one that is busy.
+_LOCK_UNSUPPORTED = frozenset(
+    getattr(errno, name) for name in ("ENOLCK", "EOPNOTSUPP", "ENOTSUP", "EINVAL") if hasattr(errno, name)
+)
+_unsupported_lock_reported = False
+
+
+def _try_lock(fd: int) -> None:
+    """Take the append lock once, without waiting; raise OSError if it is held."""
+    if os.name == "nt":
+        import msvcrt
+
+        os.lseek(fd, _LOCK_OFFSET, os.SEEK_SET)
+        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def _unlock(fd: int) -> None:
+    if os.name == "nt":
+        import msvcrt
+
+        os.lseek(fd, _LOCK_OFFSET, os.SEEK_SET)
+        msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(fd, fcntl.LOCK_UN)
 
 
 @contextlib.contextmanager
 def _exclusive_append(fd: int):
     """Hold the one lock that makes an append whole across processes.
 
-    POSIX appends atomically with ``O_APPEND``, and the lock only serializes
-    the size check with the write. Windows does not: the C runtime seeks to
-    the end and then writes, two steps, so two processes appending at once
+    POSIX appends atomically with ``O_APPEND``, and the lock only makes the
+    size check and the write one step. Windows does not: the C runtime seeks
+    to the end and then writes, two steps, so two processes appending at once
     overwrite each other's lines. A byte-range lock past the end of the file
-    serializes them; it is retried for up to ``_LOCK_RETRY_SECONDS`` and then
-    fails, which the host counts as a dropped event.
+    serializes them, ``flock`` does the same elsewhere. On both, the lock is
+    tried without waiting and retried for up to ``_LOCK_RETRY_SECONDS``, then
+    the append fails, which the host counts as a dropped event; a blocking
+    wait would stall the event loop the host runs in. A file system that
+    cannot grant the lock at all (``ENOLCK``, ``EOPNOTSUPP``) gets the
+    unlocked append this writer made before it had a lock, with one warning,
+    rather than losing every event.
     """
-    if os.name == "nt":
-        import msvcrt
-
-        os.lseek(fd, _LOCK_OFFSET, os.SEEK_SET)
-        deadline = time.monotonic() + _LOCK_RETRY_SECONDS
-        while True:
-            try:
-                msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+    global _unsupported_lock_reported
+    deadline = time.monotonic() + _LOCK_RETRY_SECONDS
+    locked = False
+    while True:
+        try:
+            _try_lock(fd)
+            locked = True
+            break
+        except OSError as error:
+            if error.errno in _LOCK_UNSUPPORTED:
+                if not _unsupported_lock_reported:
+                    _unsupported_lock_reported = True
+                    logger.warning("Event file lock unsupported here (%s); appending unlocked", error)
                 break
-            except OSError:
-                if time.monotonic() >= deadline:
-                    raise
-                time.sleep(0.005)
-        try:
-            yield
-        finally:
-            os.lseek(fd, _LOCK_OFFSET, os.SEEK_SET)
-            msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
-    else:
-        import fcntl
-
-        fcntl.flock(fd, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(fd, fcntl.LOCK_UN)
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(0.005)
+    try:
+        yield
+    finally:
+        if locked:
+            # Closing the descriptor releases the lock in any case; an error
+            # here must not replace the refusal being unwound.
+            with contextlib.suppress(OSError):
+                _unlock(fd)
 
 
 def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable[[dict], None]:
     """An event sink that appends one JSON line per event to ``path``.
 
-    The file is created on the first event. A symlink, as the file or as its
-    directory, is refused, and so is a file with more than one hard link,
+    The file is created by the first event it accepts. A symlink, as the file
+    or as its directory, is refused, and so is a file with more than one hard link,
     which would let an append land in another file such as the task record;
     once the file would pass ``limit`` bytes the event is refused, so a
     runaway host cannot fill a task directory. The host counts every refusal.
@@ -301,6 +336,10 @@ def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable
         data = (
             json.dumps(event, ensure_ascii=True, allow_nan=False, sort_keys=True) + "\n"
         ).encode("ascii")
+        if len(data) > limit and not target.exists():
+            # Refuse before creating the file, so a refused first event
+            # leaves nothing behind.
+            raise ValueError(f"Event file {target} would pass {limit} bytes")
         flags = (
             os.O_WRONLY
             | os.O_APPEND
@@ -316,6 +355,10 @@ def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable
                     raise ValueError(f"Event file cannot be a hard link: {target}")
                 if detail.st_size + len(data) > limit:
                     raise ValueError(f"Event file {target} would pass {limit} bytes")
+                # O_APPEND re-seeks to the end for each write on every platform
+                # this runs on; do it here too, so the lock's seek can never be
+                # where the line lands.
+                os.lseek(fd, 0, os.SEEK_END)
                 view = memoryview(data)
                 while view:
                     view = view[os.write(fd, view) :]

@@ -4,6 +4,7 @@ import importlib
 import json
 import os
 import tempfile
+import time
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from uuid import uuid4
@@ -68,6 +69,30 @@ def output_path(path: Path, protected: tuple[Path, ...] = ()) -> Path:
     return target
 
 
+REPLACE_RETRY_SECONDS = 2.0
+
+
+def replace_file(source: Path, target: Path, *, retry_seconds: float = REPLACE_RETRY_SECONDS) -> None:
+    """Atomic replace. A reader briefly holding the target must not fail the writer.
+
+    Windows refuses to replace a file while another handle has it open (a
+    reader of the same record, an indexer, antivirus). Retry for a bounded
+    period, then fail as before. POSIX replaces over an open file at once.
+    """
+    if os.name != 'nt':
+        os.replace(source, target)
+        return
+    deadline = time.monotonic() + retry_seconds
+    while True:
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.005)
+
+
 def write_report(path: Path, value: dict, protected: tuple[Path, ...] = ()) -> None:
     """Atomically publish JSON locally; caller explicitly chooses the path."""
     target = output_path(path, protected)
@@ -77,7 +102,7 @@ def write_report(path: Path, value: dict, protected: tuple[Path, ...] = ()) -> N
         with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=target.parent, delete=False) as stream:
             name = stream.name
             stream.write(payload)
-        os.replace(name, target)
+        replace_file(Path(name), target)
     finally:
         if name is not None and Path(name).exists():
             Path(name).unlink()

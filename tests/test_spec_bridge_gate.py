@@ -352,6 +352,7 @@ REFUSALS = (
     "Spec approval requires a complete draft",  # __init__: opened after the acceptance
     "Run is busy",  # the store's lease, taken by retain_decision or the bind
     "Work changed before retaining the decision",  # retain_decision, under the lease
+    "Decision text could not be retained",  # retain_decision: the replace lost to a reader for 2 s
     "Work changed after the Spec decision was displayed",  # _fresh, an unlocked read
     "reopen the current decision",  # require_current_decision, unlocked or under the lease
     "do not replay a decision",  # bind_work_acceptance, under the lease

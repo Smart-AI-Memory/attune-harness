@@ -11,12 +11,14 @@ eviction of terminal workspaces and the bounded memory of consumed ids.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hashlib
 import json
 import logging
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -614,6 +616,8 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
     On POSIX ``O_APPEND`` already makes this hold; on Windows the C runtime
     appends by seeking and then writing, so without the writer's lock two
     processes tear each other's lines, which the Windows platform job showed.
+    The children wait on stdin and are released together, so the overlap is
+    the test's doing, not the host's timing.
     """
     import attune_harness
 
@@ -625,24 +629,40 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
         "from attune_harness.command_workspace import jsonl_event_writer\n"
         "write = jsonl_event_writer(Path(sys.argv[1]))\n"
         "who = sys.argv[2]\n"
+        "sys.stdin.readline()\n"
         "for n in range(500):\n"
         "    write({'event': 'probe', 'who': who, 'n': n, 'pad': 'x' * 200})\n",
         encoding="utf-8",
     )
-    env = {**os.environ, "PYTHONPATH": str(Path(attune_harness.__file__).resolve().parents[1])}
+    package_parent = str(Path(attune_harness.__file__).resolve().parents[1])
+    existing = os.environ.get("PYTHONPATH")
+    env = {
+        **os.environ,
+        "PYTHONPATH": os.pathsep.join([package_parent, existing]) if existing else package_parent,
+    }
     children = [
         subprocess.Popen(
             [sys.executable, str(script), str(path), f"p{i}"],
             env=env,
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
         for i in range(4)
     ]
-    for child in children:
-        _, err = child.communicate(timeout=120)
-        assert child.returncode == 0, err
+    try:
+        for child in children:
+            child.stdin.write("go\n")
+            child.stdin.flush()
+        for child in children:
+            _, err = child.communicate(timeout=120)
+            assert child.returncode == 0, err
+    finally:
+        for child in children:
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=10)
     lines = path.read_bytes().split(b"\n")
     assert lines[-1] == b""
     events = [json.loads(line) for line in lines[:-1]]
@@ -651,3 +671,52 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
     for event in events:
         seen.setdefault(event["who"], set()).add(event["n"])
     assert seen == {f"p{i}": set(range(500)) for i in range(4)}
+
+
+def test_writer_gives_up_on_a_held_lock_within_the_deadline(tmp_path, monkeypatch):
+    """A wedged holder costs one dropped event, never a blocked event loop."""
+    path = tmp_path / "events.jsonl"
+    path.write_bytes(b"")
+    holder = os.open(path, os.O_RDWR | getattr(os, "O_BINARY", 0))
+    try:
+        command_workspace._try_lock(holder)
+        monkeypatch.setattr(command_workspace, "_LOCK_RETRY_SECONDS", 0.2)
+        host, _ = _host(record_event=jsonl_event_writer(path))
+        started = time.monotonic()
+        result = run(host.open("example", {}))
+        elapsed = time.monotonic() - started
+        assert result.html and host.dropped_events == 1
+        assert 0.2 <= elapsed < 2.0, elapsed
+        assert path.read_bytes() == b""
+    finally:
+        with contextlib.suppress(OSError):
+            command_workspace._unlock(holder)
+        os.close(holder)
+    assert jsonl_event_writer(path) and host.dropped_events == 1
+    jsonl_event_writer(path)({"event": "after"})
+    assert json.loads(path.read_text(encoding="utf-8"))["event"] == "after"
+
+
+def test_writer_appends_unlocked_where_no_lock_can_be_granted(tmp_path, monkeypatch, caplog):
+    """ENOLCK is not a busy lock: the line is still written, with one warning."""
+    import errno
+
+    def unsupported(fd):
+        raise OSError(errno.ENOLCK, "No locks available")
+
+    monkeypatch.setattr(command_workspace, "_try_lock", unsupported)
+    monkeypatch.setattr(command_workspace, "_unsupported_lock_reported", False)
+    path = tmp_path / "events.jsonl"
+    write = jsonl_event_writer(path)
+    with caplog.at_level(logging.WARNING, logger=LOGGER):
+        write({"event": "one"})
+        write({"event": "two"})
+    assert [json.loads(line)["event"] for line in path.read_text(encoding="utf-8").splitlines()] == ["one", "two"]
+    assert sum("lock unsupported" in record.message for record in caplog.records) == 1
+
+
+def test_writer_refuses_a_first_event_over_the_limit_without_creating_the_file(tmp_path):
+    path = tmp_path / "never.jsonl"
+    with pytest.raises(ValueError, match="would pass 10 bytes"):
+        jsonl_event_writer(path, limit=10)({"event": "workspace_rendered"})
+    assert not path.exists()
