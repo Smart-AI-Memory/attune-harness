@@ -365,7 +365,10 @@ class TestPatternIsBounded:
 class TestLineEndingsAndLimits:
     def test_crlf_plan_stays_crlf_across_saves(self, tmp_path):
         text = "# Plan\r\n\r\n" + TASKS.replace("\n", "\r\n")
-        p = plan(tmp_path, text)
+        # Bytes, not write_text: on Windows, text mode would turn each CRLF
+        # into CR CR LF before the module is even called.
+        p = tmp_path / "plan.md"
+        p.write_bytes(text.encode("utf-8"))
         for _ in range(3):
             save_state(SpecState(plan_path=str(p), completed=["1"]))
         raw = p.read_bytes()
