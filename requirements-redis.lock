@@ -1,0 +1,6 @@
+# The redis extra: the Redis memory reads and the Redis scratch store. No server
+# is needed to install it; CI uses it to exercise the no-server path.
+PyJWT==2.14.0
+async-timeout==5.0.1
+redis==5.3.1
+typing_extensions==4.16.0

@@ -63,6 +63,17 @@ def qualify(output):
             receipt['failure']='suite_timeout'
     receipt['suite_timeout_seconds']=600
     receipt['exit']=run.returncode;receipt['command']=argv
+    # The memory verbs from this installed wheel, with the redis extra present
+    # and no server: the extra absent is the release gate's core check.
+    memory=subprocess.run([sys.executable,'-I',str(ROOT/'scripts/check_installed.py'),'--python',sys.executable,
+                           '--mode','redis','--report',str(output/'memory-redis.json')],
+                          cwd=output,capture_output=True,text=True)
+    (output/'memory-redis.txt').write_text(memory.stdout+memory.stderr,encoding='utf-8')
+    receipt['memory_redis']='passed' if memory.returncode==0 else 'failed'
+    receipt['checks'].append('memory redis: extra present, server absent, unavailable; file scratch round trip; redis scratch never diverts'
+                             if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')
+    if memory.returncode!=0 and run.returncode==0:
+        run=subprocess.CompletedProcess(argv,memory.returncode)
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
     (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
