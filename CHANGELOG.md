@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added: `attune-harness memory serve [--limit N] [--chars N]`, the recall
+  digest as compact plain text for a session-start hook: a header with the
+  count, the hydration stamp and the host, one line per curated node, and a
+  footer saying the memory is untrusted evidence and how to read one node or
+  search. Node lines are dropped from the end to fit `--chars` and the header
+  then says how many are shown. It fails open: with no digest, for any reason
+  from a missing `redis` section to an unreachable server, it prints one
+  `skipped` line on stderr, nothing on stdout, and exits 0; a console that
+  cannot encode a character gets a replacement, never a traceback. The
+  installed checks confirm the fail-open path on every platform.
 - Tooling and docs for the review loop: `scripts/review_prep.sh <branch>`
   makes the read-only archive a different-model review works from, the diff
   against the base and a mutation-table scaffold; `docs/review-findings.md`

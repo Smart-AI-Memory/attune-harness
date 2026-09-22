@@ -140,7 +140,14 @@ def memory_checks(run, python, root, mode):
     detail = run(['memory','--config',str(paths['redis-scratch']),'scratch','stash','k','--value','1'],2,'unavailable')['detail']
     assert expected in detail, detail
     assert sorted(str(p) for p in scratch_root.rglob('*')) == before, 'a Redis scratch must never write to the file store'
-    return {'redis_installed': redis_installed, 'refusal': expected}
+    # serve fails open: exit 0, nothing on stdout, one stderr line naming the reason.
+    for name, reason in (('file', expected), ('none', "no 'redis' section")):
+        served = subprocess.run([str(python),'-I','-m','attune_harness','memory','--config',str(paths[name]),'serve'],
+                                cwd=root,text=True,capture_output=True)
+        assert served.returncode == 0 and served.stdout == '', (served.stdout, served.stderr)
+        assert served.stderr.startswith('[attune-harness memory] skipped: ') and reason in served.stderr, served.stderr
+        assert served.stderr.count('\n') == 1, served.stderr
+    return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped'}
 
 
 def main():
