@@ -3,7 +3,9 @@
 Step 2.4 of the spec authority's Task 2. Before it, ``legacy_plan`` imported
 Attune AI's reader at the point of use, so its parse path never ran in CI,
 where Attune AI is not installed. These tests block the ``attune`` package
-outright, so they prove the path needs nothing from it.
+outright, so they prove that calling the path needs nothing from it. That
+importing ``spec_bridge`` needs nothing from it is proved statically by
+``test_no_attune_runtime_import.py``.
 """
 
 import sys
@@ -79,3 +81,28 @@ def test_unmapped_content_is_disclosed(tmp_path):
     assert legacy["tasks"][0]["objective"] == "x"
     assert any("priority" in item for item in legacy["unsupported"])
     assert any("<notes>keep</notes>" in item for item in legacy["unsupported"])
+
+
+def test_prose_and_state_between_and_after_blocks_change_no_task(tmp_path):
+    """Found by review: the reader once re-read the raw file, and a bare & in
+    prose between blocks, or a </task> inside the state comment, dropped it to
+    the regex path and changed task text. Now it sees only the blocks."""
+    plan = tmp_path / "plan.md"
+    plan.write_text(
+        '<task id="1" name="a"><objective>a &amp; b</objective></task>\n'
+        "See R&D notes.\n"
+        '<task id="2" name="b"><objective>c</objective></task>\n\n'
+        '<!-- spec-state: {"schema_version": 2, "current": "\\u003c/task\\u003e"} -->\n',
+        encoding="utf-8",
+    )
+    legacy = legacy_plan(plan)
+    assert [t["objective"] for t in legacy["tasks"]] == ["a & b", "c"]
+    assert legacy["unsupported"] == ["Unmapped surrounding content: See R&D notes."]
+
+
+def test_ill_formed_block_is_refused_with_a_next_action(tmp_path):
+    plan = tmp_path / "plan.md"
+    plan.write_text('<task id="1" name="a"><objective>x<bad attr></objective></task>\n', encoding="utf-8")
+    with pytest.raises(ValueError, match="not well-formed XML") as info:
+        legacy_plan(plan)
+    assert "Fix that block" in str(info.value)

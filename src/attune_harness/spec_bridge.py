@@ -14,7 +14,7 @@ from pathlib import Path
 
 from .features import OVERSIZE, read_text
 from .review_contract import digest, parse_json
-from .spec_tasks import read_spec
+from .spec_tasks import parse_tasks
 from .task_contract import read_task
 from .work_contract import (
     SIGNALS,
@@ -65,10 +65,17 @@ def legacy_plan(path):
     blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
     if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
         raise ValueError("Legacy plan must contain complete nonempty task blocks")
-    nodes = [ET.fromstring(block) for block in blocks]
-    # The reader parses only the <task> region, so the trailing state comment
-    # that plan_content strips never reaches it either.
-    parsed = [task.to_dict() for task in read_spec(str(path))]
+    try:
+        nodes = [ET.fromstring(block) for block in blocks]
+    except ET.ParseError as error:
+        raise ValueError(
+            f"Legacy plan has a task block that is not well-formed XML ({error}). "
+            "Fix that block, or split the plan and import the other tasks."
+        ) from error
+    # The blocks were read once, above, and each has just parsed on its own, so
+    # the reader sees exactly them: no second read, and nothing outside a block
+    # (prose, a state comment) can change how a task is read.
+    parsed = [task.to_dict() for task in parse_tasks("".join(blocks))]
     if len(parsed) != len(nodes):
         raise ValueError("Legacy parser omitted a malformed task")
     known = {

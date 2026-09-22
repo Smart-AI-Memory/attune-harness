@@ -3,9 +3,13 @@
 ## Unreleased
 
 - Changed: importing a legacy plan no longer needs Attune AI. `spec_bridge`
-  reads the plan's tasks through Harness's own `spec_tasks.read_spec`, with the
-  same output, so the read path is exercised in CI, where Attune AI is not
-  installed. Accepting a plan still needs Attune AI's Spec runtime until Task 3.
+  parses the plan's task blocks with Harness's own `spec_tasks` reader, so the
+  read path is exercised in CI, where Attune AI is not installed. Output is
+  identical on every existing plan; on malformed input the new reader is
+  stricter and decodes entities, where the old one was regex-only. The file is
+  read once, and a task block that is not well-formed XML is refused with what
+  to do, where before the parser's own error escaped. Accepting a plan still
+  needs Attune AI's Spec runtime until Task 3.
 - Added: `attune_harness.spec_state`, the reader and writer for the execution
   state a plan file carries in its trailing `<!-- spec-state: ... -->` comment:
   `SpecState`, `load_state`, `save_state`, `clear_state` and
