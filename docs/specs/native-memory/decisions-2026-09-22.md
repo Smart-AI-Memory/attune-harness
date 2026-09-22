@@ -30,3 +30,17 @@ remain his before code starts.
 ## D17: now
 
 Asked when, Patrick chose now, as the first 0.4.0 work.
+
+## D18: the six Task 4 decisions, all as recommended
+
+Asked the six decisions in [the Task 4 design note](task-4-design.md),
+Patrick answered "all as recommended": the four reads plus `status`,
+read-only, against his keyspace and functions rather than the AMS backend;
+`redis` pinned to the newest 5.x at the first pull request, verified against
+a local Redis Stack; the URL from the memory config file or an environment
+variable the config names, password embedded or from a configured
+`password_env`; the scratch interface with both backends in this task,
+startup-only selection, no divert; an in-process double at the client
+boundary plus a live test gated on `ATTUNE_TEST_REDIS_URL`; three reviewed
+pull requests, 4.1 reads and CLI, 4.2 scratch, 4.3 config and installed
+checks. He also gave the go to merge the design note when green.
