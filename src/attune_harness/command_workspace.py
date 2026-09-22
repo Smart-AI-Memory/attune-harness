@@ -237,9 +237,10 @@ def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable
     """An event sink that appends one JSON line per event to ``path``.
 
     The file is created on the first event. A symlink, as the file or as its
-    directory, is refused, and once the file would pass ``limit`` bytes the
-    event is refused, so a runaway host cannot fill a task directory; the
-    host counts the refusal. The size is read before the append, so two
+    directory, is refused, and so is a file with more than one hard link,
+    which would let an append land in another file such as the task record;
+    once the file would pass ``limit`` bytes the event is refused, so a
+    runaway host cannot fill a task directory. The host counts every refusal. The size is read before the append, so two
     writers on one file can pass the limit by at most one line. Lines are
     ASCII, so the byte count is exact and a reader that splits on newlines
     sees one event per line.
@@ -250,7 +251,12 @@ def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable
         if target.is_symlink() or target.parent.is_symlink():
             raise ValueError(f"Event file cannot be, or sit in, a symlink: {target}")
         line = json.dumps(event, ensure_ascii=True, allow_nan=False, sort_keys=True) + "\n"
-        size = target.stat().st_size if target.exists() else 0
+        size = 0
+        if target.exists():
+            detail = target.stat()
+            if detail.st_nlink > 1:
+                raise ValueError(f"Event file cannot be a hard link: {target}")
+            size = detail.st_size
         if size + len(line.encode("utf-8")) > limit:
             raise ValueError(f"Event file {target} would pass {limit} bytes")
         with target.open("a", encoding="utf-8", newline="\n") as stream:

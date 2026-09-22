@@ -434,14 +434,9 @@ async def _accept(directory, checkpoint):
         raise ValueError("Approval requires the exact displayed work checkpoint")
     runners = record["request"].get("effects", {}).get("checks", [])
     supported = [c["control"] for c in runners]
-    try:
-        bridge = WorkSpecBridge(directory, supported_controls=supported)
-    except ImportError as exc:
-        from .features import FeatureUnavailable
-
-        raise FeatureUnavailable(
-            "Spec acceptance requires the qualified optional Attune AI Spec runtime"
-        ) from exc
+    # The forms package renders the decision; without the review extra the
+    # host's loader raises FeatureUnavailable with the install hint.
+    bridge = WorkSpecBridge(directory, supported_controls=supported)
     view = await bridge.open(
         detail="Explicit console approval of the current work intent."
     )

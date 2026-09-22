@@ -84,11 +84,13 @@ attune-harness resume /tmp/my-work --allow-external
 
 Use the checkpoint returned by the preceding command each time. `--run` asks the
 configured planner for a proposal; `--stage` makes it a new unaccepted draft.
-`--accept` submits the explicit console choice through the existing Spec collector.
-It needs the optional Attune AI Spec runtime available in the same environment;
-the qualified candidate owner and its exact identity are recorded in
-[Task 6's results](plan-build-task6-results.md). Core imports and help remain
-independent of that package. Installing Harness does not upgrade an active MCP host.
+`--accept` submits the explicit console choice through Harness's own Spec
+collector. It needs the `review` extra (`pip install 'attune-harness[review]'`),
+which supplies the forms package that renders the decision; Attune AI is not
+needed, and core imports and help stay independent of the extra. Until Task 3 of
+the spec authority the collector was Attune AI's; that arrangement is recorded in
+[Task 6's results](plan-build-task6-results.md). Installing Harness does not
+upgrade an active MCP host.
 
 Commands return durable record locations and JSON results. Missing intent uses the
 existing question grammar. Use `plan --answers` for bound answers or `--revise`

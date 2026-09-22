@@ -326,16 +326,14 @@ def test_real_cli_assessment_repair_test_recovery_and_spec(journey):
 
 
 async def spec_control(root, result, decision):
-    """Real installed optional AI Spec host; no fake human acceptance receipt."""
-    pytest.importorskip(
-        "attune.spec.workspace", reason="optional AI Spec integration profile"
-    )
-    from attune.elicitation.command_workspace import (
+    """Harness's own Spec host; no fake human acceptance receipt."""
+    pytest.importorskip("attune_forms", reason="the review extra renders the decision")
+    from attune_harness.command_workspace import (
         CommandWorkspaceHost,
         CommandWorkspaceError,
     )
-    from attune.spec.state import SpecState, save_state, load_state
-    from attune.spec.workspace import SpecWorkspaceAdapter
+    from attune_harness.spec_state import SpecState, save_state, load_state
+    from attune_harness.spec_workspace import SpecWorkspaceAdapter
     from attune_harness.spec_handoff import bind_test_evidence
 
     (root / ".claude/plans").mkdir(parents=True)
