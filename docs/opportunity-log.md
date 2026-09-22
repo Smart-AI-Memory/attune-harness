@@ -1187,8 +1187,8 @@ note.
 Unnumbered, 2026-09-22 (fourth pass): a millisecond collision on the run
 store's lease reaches a human. `RunStore.lease` takes the writer lock with
 `LK_NBLCK` or `LOCK_NB` and raises `PersistenceError('Run is busy; another
-owner holds the writer lock')` on the first refusal, with no retry. Ten call
-sites take it, and every one of them turns a collision that would have
+owner holds the writer lock')` on the first refusal, with no retry. Thirty-nine functions across eighteen modules take it (the #72 review's
+count; this entry first said ten), and every one of them turns a collision that would have
 resolved in milliseconds into a refusal the caller must act on: the two-process
 gate tests of #59 and #61 kept finding it, and the simultaneous case now lists
 "Run is busy" as an acceptable outcome for the loser. Elsewhere in the codebase

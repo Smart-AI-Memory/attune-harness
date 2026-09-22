@@ -13,6 +13,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 ## Start here
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
+- [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not
 - [Portable contract and qualification map](portable-contract.md): The execution contract and the qualification map
