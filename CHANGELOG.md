@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Qualified: the memory verbs from an installed wheel, the third and last
+  step of native memory Task 4 (D18). Every platform job installs the
+  `redis` extra with a new `requirements-redis.lock` and, with no server,
+  confirms that `memory redis status` and a Redis-backed scratch report
+  unreachable, that the file scratch store round-trips, and that nothing is
+  written to it when Redis is refused; the release gate's offline check does
+  the same with the extra absent, where the report names the extra. The CLI
+  guide gains a Memory section documenting the config's `redis` and
+  `scratch` sections, the verbs, and the statuses.
 - Added: `attune-harness memory scratch capabilities|stash|retrieve|forget|keys`,
   working memory behind one small backend interface, the second step of
   native memory Task 4 (D18). Values are JSON up to 64 KiB under keys of up to

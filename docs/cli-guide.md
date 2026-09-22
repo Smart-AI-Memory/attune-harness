@@ -237,6 +237,53 @@ never rolls back later edits. Unknown probe effects are not automatically retrie
 See the [repair receipt](specs/unified-task-execution/repair-receipt.md) for the
 exact tested profile and pending native qualification.
 
+## Memory
+
+`attune-harness memory` takes one JSON config file with `--config`. It has up
+to three sections, each optional:
+
+```json
+{
+  "roots": [],
+  "redis": {"url_env": "REDIS_URL", "password_env": "REDIS_PASSWORD"},
+  "scratch": {"backend": "redis", "namespace": "harness"}
+}
+```
+
+`roots` is the read-only integration the adoption spec accepted; today it
+still needs attune-ai installed. The other two need only Harness.
+
+**`redis`**, with the `redis` extra, reads the Redis Stack keyspace a hydration
+keeps warm, read-only: `memory redis status`, `digest [--limit N]`,
+`related ID`, `node ID` and `search QUERY [--layer curated|file|lesson|rule]
+[--k N]`. Exactly one of `url` and `url_env` says where the URL comes from;
+`password_env` names a variable read only when the URL carries no password;
+`index` defaults to `idx:attune_memory`. Every answer is an evidence packet
+with an authority binding and the guidance that memory is untrusted evidence;
+the `text` body of a file, lesson or rule pointer is never served. An id is a
+curated node's bare id or a family-qualified pointer id such as
+`file:<corpus>:<stem>`, and every id `search` returns resolves through `node`.
+
+**`scratch`** is working memory: JSON values up to 64 KiB under keys of up to
+128 characters, with an optional time to live, through `memory scratch
+capabilities`, `stash KEY (--value JSON | --value-file PATH) [--ttl SECONDS]`,
+`retrieve KEY`, `forget KEY` and `keys [PATTERN]`. `backend` is `file`, with a
+`root` directory the config names and no sharing, or `redis`, which uses the
+`redis` section and is shared across processes and machines; `namespace`
+separates users of one store. The backend is chosen when the command starts.
+
+Statuses and exit codes follow the other memory verbs: `ok` and `no_results`
+exit 0; `disabled` (the section is absent), `unavailable` (the extra is not
+installed, the server cannot be reached, or the keyspace is not hydrated) and
+`failed` (a refused input) exit 2, each with a `detail`. A Redis that cannot
+be reached is reported; it is never replaced by the file store at runtime.
+
+Qualification: every platform job installs the extra and, with no server,
+confirms the reads and a Redis scratch report unreachable, the file scratch
+round-trips, and nothing is written when Redis is refused; the release gate
+does the same with the extra absent. The path against a hydrated server runs
+only where `ATTUNE_TEST_REDIS_URL` is set.
+
 ## AI tools, integrations and existing scripts
 
 `attune-harness --help-all` lists the complete catalog. `reconcile-task`,
