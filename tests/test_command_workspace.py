@@ -105,6 +105,8 @@ class _Adapter:
             return CommandWorkspaceTransition(_State("intake"), authority_changed=False)
         if kind == "terminal-without-authority":
             return CommandWorkspaceTransition(_State("receipt"), terminal=True, authority_changed=False)
+        if kind == "finish":
+            return CommandWorkspaceTransition(_State("receipt"), terminal=True, result={"finished": True})
         return CommandWorkspaceTransition(_State("preview"))
 
 
@@ -363,7 +365,7 @@ def test_events_are_emitted_only_after_a_canonical_transition() -> None:
         preview = await host.open("example", {})
         assert [e["event"] for e in events] == ["workspace_rendered"]
         assert events[0]["revision"] == 0 and events[0]["adapter_id"] == "example"
-        assert "action_nonce" not in json.dumps(events)
+        assert preview.record.action_nonce not in json.dumps(events)
         payload = {**_payload(preview, "approve", confirmed=True), "instance_id": "0123456789abcdef" * 2}
         with pytest.raises(CommandWorkspaceError):
             await host.collect({**payload, "confirmed": False})
@@ -378,6 +380,7 @@ def test_events_are_emitted_only_after_a_canonical_transition() -> None:
         assert accepted[0]["action"] == "approve"
         assert accepted[0]["instance_id"] == "0123456789abcdef" * 2
         assert accepted[0]["terminal"] is True
+        assert preview.record.action_nonce not in json.dumps(events)
         assert "action_nonce" not in json.dumps(events)
         assert all(e["at"].endswith("+00:00") for e in events)
         # The terminal receipt has no binding, so no render event follows it.
@@ -400,9 +403,10 @@ def test_adapter_failure_emits_nothing() -> None:
     run(scenario())
 
 
-def test_a_failing_sink_is_counted_and_never_blocks_a_decision(caplog) -> None:
+@pytest.mark.parametrize("error", [OSError("disk full"), TypeError("not serializable"), KeyError("x")])
+def test_a_failing_sink_is_counted_and_never_blocks_a_decision(caplog, error) -> None:
     def broken(event: dict) -> None:
-        raise OSError("disk full")
+        raise error
 
     host, _ = _host(record_event=broken)
 
@@ -412,7 +416,7 @@ def test_a_failing_sink_is_counted_and_never_blocks_a_decision(caplog) -> None:
             result = await host.collect(_payload(preview, "approve", confirmed=True))
         assert result.record.terminal is True
         assert host.dropped_events == 2
-        assert "disk full" in caplog.text
+        assert "not recorded" in caplog.text
 
     run(scenario())
 
@@ -437,13 +441,30 @@ def test_jsonl_writer_appends_one_line_per_event(tmp_path) -> None:
     assert path.read_bytes().count(b"\r") == 0
 
 
-def test_jsonl_writer_refuses_a_symlink_and_a_file_past_its_limit(tmp_path) -> None:
+def test_jsonl_writer_refuses_a_symlinked_file_or_directory(tmp_path) -> None:
     real = tmp_path / "real.jsonl"
     real.write_text("", encoding="utf-8")
+    realdir = tmp_path / "realdir"
+    realdir.mkdir()
     link = tmp_path / "link.jsonl"
-    link.symlink_to(real)
+    linkdir = tmp_path / "linkdir"
+    try:
+        link.symlink_to(real)
+        linkdir.symlink_to(realdir, target_is_directory=True)
+    except OSError as exc:
+        pytest.skip("Runner cannot create symlinks: " + str(exc))
     with pytest.raises(ValueError, match="symlink"):
         jsonl_event_writer(link)({"event": "x"})
+    with pytest.raises(ValueError, match="symlink"):
+        jsonl_event_writer(linkdir / "e.jsonl")({"event": "x"})
+    assert not (realdir / "e.jsonl").exists()
+
+
+def test_jsonl_writer_refuses_a_file_past_its_limit_and_writes_ascii(tmp_path) -> None:
+    path = tmp_path / "ascii.jsonl"
+    jsonl_event_writer(path)({"event": "caf\u00e9 \u2028 x"})
+    raw = path.read_bytes()
+    assert raw.isascii() and raw.count(b"\n") == 1 and len(raw.decode().splitlines()) == 1
     small = jsonl_event_writer(tmp_path / "small.jsonl", limit=60)
     small({"event": "workspace_rendered", "n": 1})
     with pytest.raises(ValueError, match="would pass 60 bytes"):
@@ -485,11 +506,53 @@ def test_terminal_publication_is_evicted_too() -> None:
     async def scenario():
         render = await host.open("example", {})
         wid = render.record.workspace_id
-        # An authority-changing publication whose successor is terminal: the
-        # example adapter returns a preview from unknown kinds, so approve it
-        # and check the publish path's eviction through collect's twin.
-        result = await host.collect(_payload(render, "approve", confirmed=True))
-        assert result.record.terminal and host.get(wid) is None
+        result = await host.publish(wid, {"kind": "finish"})
+        assert result.record.terminal is True
+        assert result.record.revision == 1 and result.record.event_sequence == 1
+        assert result.result == {"finished": True}
+        assert host.get(wid) is None
+        assert wid not in host._records and wid not in host._locks
+        assert host.consumed(wid)
+        with pytest.raises(CommandWorkspaceError, match="cannot accept events"):
+            await host.publish(wid, {"kind": "progress"})
+        with pytest.raises(CommandWorkspaceError, match="already consumed"):
+            await host.collect({**_payload(render, "edit"), "workspace_id": wid})
+
+    run(scenario())
+
+
+def test_refused_unknown_ids_leave_no_lock_behind() -> None:
+    """Found by review: a refused call once created a lock for any id it was
+    given, so a stream of bad ids grew the host without bound."""
+    host, _ = _host()
+
+    async def scenario():
+        for i in range(500):
+            with pytest.raises(CommandWorkspaceError, match="unknown or expired"):
+                await host.collect({"workspace_id": f"ghost-{i}"})
+            with pytest.raises(CommandWorkspaceError, match="unknown or expired"):
+                await host.publish(f"ghost-{i}", {"kind": "progress"})
+            with pytest.raises(CommandWorkspaceError, match="unknown command workspace_id"):
+                await host.open("example", {}, workspace_id=f"ghost-{i}")
+        assert host._locks == {} and host._records == {}
+
+    run(scenario())
+
+
+def test_a_failed_creation_leaves_no_lock_behind() -> None:
+    class Failing(_Adapter):
+        adapter_id = "failing"
+
+        def create(self, intake, *, prior_state=None):
+            raise CommandWorkspaceError(["intake refused"])
+
+    host, _ = _host(Failing())
+
+    async def scenario():
+        for _ in range(50):
+            with pytest.raises(CommandWorkspaceError, match="intake refused"):
+                await host.open("failing", {})
+        assert host._locks == {} and host._records == {}
 
     run(scenario())
 

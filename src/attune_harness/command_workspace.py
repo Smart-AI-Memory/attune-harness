@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import functools
 import hmac
 import json
 import logging
@@ -63,8 +64,13 @@ CONSUMED_IDS_KEPT = 1024
 EVENT_FILE_LIMIT = 1024 * 1024
 
 
+@functools.lru_cache(maxsize=1)
 def _forms():
-    """The pinned forms package, loaded on first use."""
+    """The pinned forms package, loaded on first use and then kept.
+
+    A failed load is not cached, so a missing extra is reported on every
+    call until it is installed.
+    """
     return require_feature("attune-forms", "attune_forms", FORMS_VERSION, "review")
 
 
@@ -230,16 +236,20 @@ class CommandWorkspaceActionResult:
 def jsonl_event_writer(path: Path, *, limit: int = EVENT_FILE_LIMIT) -> Callable[[dict], None]:
     """An event sink that appends one JSON line per event to ``path``.
 
-    The file is created on the first event. A symlink is refused, and once
-    the file would pass ``limit`` bytes the event is refused, so a runaway
-    host cannot fill a task directory; the host counts the refusal.
+    The file is created on the first event. A symlink, as the file or as its
+    directory, is refused, and once the file would pass ``limit`` bytes the
+    event is refused, so a runaway host cannot fill a task directory; the
+    host counts the refusal. The size is read before the append, so two
+    writers on one file can pass the limit by at most one line. Lines are
+    ASCII, so the byte count is exact and a reader that splits on newlines
+    sees one event per line.
     """
     target = Path(path)
 
     def write(event: dict) -> None:
-        if target.is_symlink():
-            raise ValueError(f"Event file cannot be a symlink: {target}")
-        line = json.dumps(event, ensure_ascii=False, allow_nan=False, sort_keys=True) + "\n"
+        if target.is_symlink() or target.parent.is_symlink():
+            raise ValueError(f"Event file cannot be, or sit in, a symlink: {target}")
+        line = json.dumps(event, ensure_ascii=True, allow_nan=False, sort_keys=True) + "\n"
         size = target.stat().st_size if target.exists() else 0
         if size + len(line.encode("utf-8")) > limit:
             raise ValueError(f"Event file {target} would pass {limit} bytes")
@@ -316,36 +326,51 @@ class CommandWorkspaceHost:
         resolved_id = workspace_id or f"{adapter_id}-{uuid.uuid4().hex}"
         if resolved_id in self._consumed:
             raise CommandWorkspaceError(["terminal command workspace cannot be replaced"])
+        # A lock exists only for a live record, or for the one being created
+        # here; a refused id never leaves one behind.
+        if workspace_id is not None and workspace_id not in self._locks:
+            raise CommandWorkspaceError(["unknown command workspace_id"])
         lock = self._locks.setdefault(resolved_id, asyncio.Lock())
-        async with lock:
-            current = self._records.get(resolved_id)
-            if workspace_id is not None and current is None:
-                raise CommandWorkspaceError(["unknown command workspace_id"])
-            if current is not None and current.adapter_id != adapter_id:
-                raise CommandWorkspaceError(
-                    ["command workspace adapter does not match canonical state"]
-                )
-            if current is not None and current.adapter_version != adapter.schema_version:
-                raise CommandWorkspaceError(
-                    ["command workspace adapter version changed during the interaction"]
-                )
-            if current is not None and current.terminal:
-                raise CommandWorkspaceError(["terminal command workspace cannot be replaced"])
-            prior_state = copy.deepcopy(current.state) if current is not None else None
-            state = adapter.create(intake, prior_state=prior_state)
-            projection = adapter.project(state)
-            revision = current.revision + 1 if current is not None else 0
-            record = self._record(
-                workspace_id=resolved_id,
-                adapter=adapter,
-                revision=revision,
-                state=state,
-                projection=projection,
-                terminal=False,
-                event_sequence=current.event_sequence if current is not None else 0,
+        try:
+            async with lock:
+                return self._open_locked(adapter, adapter_id, intake, workspace_id, resolved_id)
+        finally:
+            if resolved_id not in self._records:
+                self._locks.pop(resolved_id, None)
+
+    def _open_locked(self, adapter, adapter_id, intake, workspace_id, resolved_id):
+        if resolved_id in self._consumed:
+            raise CommandWorkspaceError(["terminal command workspace cannot be replaced"])
+        current = self._records.get(resolved_id)
+        if workspace_id is not None and current is None:
+            raise CommandWorkspaceError(["unknown command workspace_id"])
+        if current is not None and current.adapter_id != adapter_id:
+            raise CommandWorkspaceError(
+                ["command workspace adapter does not match canonical state"]
             )
-            self._records[resolved_id] = record
-            return self._render(record)
+        if current is not None and current.adapter_version != adapter.schema_version:
+            raise CommandWorkspaceError(
+                ["command workspace adapter version changed during the interaction"]
+            )
+        # A terminal record is never stored (see _store); this and its twins in
+        # collect and publish are kept from the original as belt and braces.
+        if current is not None and current.terminal:
+            raise CommandWorkspaceError(["terminal command workspace cannot be replaced"])
+        prior_state = copy.deepcopy(current.state) if current is not None else None
+        state = adapter.create(intake, prior_state=prior_state)
+        projection = adapter.project(state)
+        revision = current.revision + 1 if current is not None else 0
+        record = self._record(
+            workspace_id=resolved_id,
+            adapter=adapter,
+            revision=revision,
+            state=state,
+            projection=projection,
+            terminal=False,
+            event_sequence=current.event_sequence if current is not None else 0,
+        )
+        self._records[resolved_id] = record
+        return self._render(record)
 
     async def collect(
         self,
@@ -361,7 +386,9 @@ class CommandWorkspaceHost:
             raise CommandWorkspaceError(["command workspace action response requires workspace_id"])
         if workspace_id in self._consumed:
             raise CommandWorkspaceError(["command workspace action authority was already consumed"])
-        lock = self._locks.setdefault(workspace_id, asyncio.Lock())
+        lock = self._locks.get(workspace_id)
+        if lock is None:
+            raise CommandWorkspaceError(["unknown or expired command workspace_id"])
         async with lock:
             current = self._records.get(workspace_id)
             if current is None:
@@ -442,7 +469,9 @@ class CommandWorkspaceHost:
             raise CommandWorkspaceError(["command workspace event must be a mapping"])
         if workspace_id in self._consumed:
             raise CommandWorkspaceError(["terminal command workspace cannot accept events"])
-        lock = self._locks.setdefault(workspace_id, asyncio.Lock())
+        lock = self._locks.get(workspace_id)
+        if lock is None:
+            raise CommandWorkspaceError(["unknown or expired command workspace_id"])
         async with lock:
             current = self._records.get(workspace_id)
             if current is None:
@@ -520,7 +549,7 @@ class CommandWorkspaceHost:
             return
         try:
             self._record_event({"at": datetime.now(timezone.utc).isoformat(), **event})
-        except (OSError, ValueError) as exc:
+        except Exception as exc:  # a sink is caller code; nothing it raises may block a decision
             self.dropped_events += 1
             logger.warning("Workspace event not recorded (%s): %s", event.get("event"), exc)
 
