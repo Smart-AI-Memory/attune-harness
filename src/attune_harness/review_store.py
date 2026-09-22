@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .features import read_text
-from .features import FeatureUnavailable
+from .features import FeatureUnavailable, replace_file
 from .review_contract import digest, parse_json, versioned
 
 
@@ -26,18 +26,7 @@ def _replace(source: Path, target: Path) -> None:
     an indexer, antivirus). Retry for a bounded period, then fail as before so a
     record that cannot be persisted still stops dispatch.
     """
-    if os.name != 'nt':
-        os.replace(source, target)
-        return
-    deadline = time.monotonic() + REPLACE_RETRY_SECONDS
-    while True:
-        try:
-            os.replace(source, target)
-            return
-        except PermissionError:
-            if time.monotonic() >= deadline:
-                raise
-            time.sleep(.005)
+    replace_file(source, target, retry_seconds=REPLACE_RETRY_SECONDS)
 
 
 class RunStore:
