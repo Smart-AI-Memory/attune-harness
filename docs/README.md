@@ -33,6 +33,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [The standing brief for a different-model review](review-brief.md): What the reviewing agent is told before every `src/` change merges
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
+- [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
 - [Spec authority: addendum, September 21, 2026](specs/spec-authority/addendum-2026-09-21.md): Rulings on the spec authority, dated
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
