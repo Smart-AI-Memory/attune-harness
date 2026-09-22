@@ -13,6 +13,13 @@
   long-lived host no longer grows without bound. The forms package loads on
   first use at the pinned version, so importing the module needs nothing
   installed. Nothing in Harness calls it yet.
+- Added: `attune_harness.spec_intake`, the four names the Spec workspace
+  takes from Attune AI's spec intake: `OTHER`, `existing_spec_slugs`,
+  `area_candidates` and `compose_spec_contract`, carried as the second step
+  of Task 3 of the spec authority. The intake form, its provider
+  registration and the line that wrote into a global registry at import
+  time stay behind. `area_candidates` now looks at every package under
+  `src/`, not only `src/attune/`. Nothing in Harness calls it yet.
 - Changed: importing a legacy plan no longer needs Attune AI. `spec_bridge`
   parses the plan's task blocks with Harness's own `spec_tasks` reader, so the
   read path is exercised in CI, where Attune AI is not installed. Output is
