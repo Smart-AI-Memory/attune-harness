@@ -83,7 +83,11 @@ def test_the_module_bound_is_read_at_call_time(tmp_path, monkeypatch):
 
 
 def test_a_lock_the_file_system_cannot_grant_is_reported_at_once(tmp_path, monkeypatch):
-    """ENOLCK and its kin are not a busy owner: no two-second wait, and not the busy words."""
+    """ENOLCK and its kin are not a busy owner: no two-second wait, and not the busy words.
+
+    The message carries the platform's own name for the code: Linux spells
+    EOPNOTSUPP's number ENOTSUP, macOS keeps them distinct.
+    """
     store = RunStore(tmp_path / "run")
     for name in ("ENOLCK", "EOPNOTSUPP", "EINVAL", "EBADF"):
         code = getattr(errno, name, None)
@@ -93,7 +97,8 @@ def test_a_lock_the_file_system_cannot_grant_is_reported_at_once(tmp_path, monke
             raise OSError(code, "no locks here")
         monkeypatch.setattr(review_store, "_lock_once", refuse)
         started = time.monotonic()
-        with pytest.raises(PersistenceError, match=f"^Run lock cannot be taken here; the file system refuses locks \\({name}\\)$"):
+        shown = errno.errorcode[code]
+        with pytest.raises(PersistenceError, match=f"^Run lock cannot be taken here; the file system refuses locks \\({shown}\\)$"):
             with store.lease():
                 pass
         assert time.monotonic() - started < 0.5, name
