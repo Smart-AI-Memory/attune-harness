@@ -26,7 +26,10 @@ SECTIONS = {
 
 
 def test_the_fixture_is_byte_identical_to_the_accepted_one():
-    assert hashlib.sha256(FIXTURE.read_bytes()).hexdigest() == DIGEST
+    # .gitattributes keeps the checkout free of line-ending rewrites; the
+    # normalisation is the backstop for a clone made without it (Windows trap 6).
+    raw = FIXTURE.read_bytes().replace(b"\r\n", b"\n")
+    assert hashlib.sha256(raw).hexdigest() == DIGEST
 
 
 def test_the_fixture_has_the_sections_and_keys_the_ladder_names():

@@ -62,6 +62,18 @@ a root such as the hosted tool cache. **Do.** Resolve the entry point through
 `check_installed.console_script`, which tries all four places. **Where.**
 `scripts/check_installed.py` (#68).
 
+## 6. The checkout rewrites line endings
+
+**Symptom.** A test that pins a fixture by SHA-256 passed on macOS and
+Ubuntu and failed on both Windows jobs with a different digest for the same
+committed file. **Why.** The Windows runners check out with `core.autocrlf`
+on, so every file Git classifies as text is written with `\r\n`; the bytes
+on disk are not the bytes in the repository. **Do.** Mark fixtures that are
+compared by bytes with `-text` in `.gitattributes` so no conversion happens,
+and hash line-ending-normalised bytes as the backstop for a clone made
+without the attribute. **Where.** `.gitattributes`,
+`tests/test_memory_fixture_contract.py` (#79).
+
 ## Also worth remembering
 
 - **Text mode translates newlines.** A writer that must produce exact bytes
