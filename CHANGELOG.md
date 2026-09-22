@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Added: `attune-harness memory redis status|digest|related|node|search`,
+  behind a new `redis` extra (`redis` 5.3.1), the first step of native memory
+  Task 4 (D16, D18). It reads the Redis Stack keyspace a hydration keeps warm,
+  `attune:memory:*` with the `idx:attune_memory` index and the `recall_digest`
+  and `recall_related` functions, and issues no write. Every answer is an
+  evidence packet with an authority binding (host, index, prefix, hydration
+  stamp) and the untrusted-evidence guidance; `search` returns pointers and
+  never a body. The backend is chosen at startup from the memory config's
+  `redis` section (a URL or the variable that holds it, an optional password
+  variable); a configured Redis that is unreachable or not yet hydrated is
+  `unavailable` with the reason, nothing is diverted to a file, and no `redis`
+  section means `disabled`.
 - Changed: `pip install attune-harness` now installs what the review, test,
   acceptance and MCP journeys need: `attune-forms`, `attune-verify`,
   `attune-rag`, `mcp` and `tiktoken`, pinned exactly, where before each was an

@@ -96,6 +96,7 @@ covers direct use. Full usage, exit codes and recovery controls are in the
 | You want | Install |
 | --- | --- |
 | The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install attune-harness` |
+| Read the Redis memory a hydration keeps warm: the recall digest, related nodes, one node, full-text search over the index (`redis` 5.3.1). Read-only; needs a reachable Redis Stack and the hydration's index | `pip install 'attune-harness[redis]'` |
 | Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]'` |
 | Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]'` |
 
@@ -121,7 +122,7 @@ tests and model quality are different claims, and this project keeps them apart.
 | Receipts | Receipts retain the task, output and check evidence locally | They are local values, not signed attestations. Constructing a `Receipt` directly certifies nothing |
 | Plan acceptance | Core imports, help and the library run standalone. `plan --accept` runs from the base install with no Attune AI; CI exercises its gate with Attune AI blocked | Acceptance through a live MCP host; CI submits the console approval |
 | Protocols | MCP (2025-11-25 and 2026-07-28 profiles) and A2A 1.0 have local independent-client receipts | Remote authentication, arbitrary executable plugins and automatic host installation |
-| Memory | A read-only integration plan is accepted and qualified in a temporary install | The memory modules and the `memory-native` extra ship in the wheel but are experimental and not activated for live memories. The native transport is POSIX only, accepts two exact model IDs, refuses any other SDK version, and is never exercised in CI |
+| Memory | A read-only integration plan is accepted and qualified in a temporary install. With the `redis` extra, `memory redis` reads a hydrated Redis Stack keyspace: digest, related, node and search, as evidence packets, pointers never bodies; the tests run against an in-process double, and a live run needs `ATTUNE_TEST_REDIS_URL` | The memory modules and the `memory-native` extra ship in the wheel but are experimental and not activated for live memories. The native transport is POSIX only, accepts two exact model IDs, refuses any other SDK version, and is never exercised in CI |
 | Roadmap | | `ship` and `reflect` are planned routes and do not exist yet |
 
 ## Harness and attune-ai
