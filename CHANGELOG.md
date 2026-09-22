@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.4.0
+
+The install is batteries-included and memory is served. `pip install
+attune-harness` carries the review, test, acceptance and MCP journeys (D15);
+`pip install 'attune-harness[redis]'` adds `memory redis`, read-only reads of
+the Redis Stack keyspace a hydration keeps warm, the Redis backend for
+`memory scratch` working memory, and `memory serve`, the recall digest as
+plain text for a session-start hook that fails open (native memory Task 4,
+D16 to D18). The run store's lease waits a bounded two seconds before it
+reports busy. Every CLI verb's envelope is pinned by a golden table ahead of
+the 1.0 freeze, the review loop is recorded as data with a Windows traps page,
+and `docs/plan-1.0.md` lays out the four phases to 1.0.0. Interfaces may
+still change before 1.0; the README's qualification table says what is and
+is not covered. attune-ai cannot share an environment with this release
+(`mcp` 2.2.0 against its 1.29.1); use `pipx` or a separate venv.
 
 - Docs: `docs/plan-1.0.md`, the four phases between 0.4.0 and 1.0.0, twenty
   tasks with their acceptance receipts, the decisions each needs, and
