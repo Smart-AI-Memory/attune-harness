@@ -33,7 +33,9 @@ def plan_content(raw):
     marker = "<!-- spec-state:"
     if marker not in raw:
         return raw.rstrip() + "\n"
-    match = re.search(r"\n?<!-- spec-state:\s*(\{.*?\})\s*-->\s*\Z", raw, re.S)
+    # No < or > in the payload: the writer escapes both, and the bound keeps
+    # the pattern from spanning prose. spec_state.STATE_PATTERN is identical.
+    match = re.search(r"\n?<!-- spec-state:\s*(\{[^<>]*\})\s*-->\s*\Z", raw, re.S)
     if raw.count(marker) != 1 or not match:
         raise ValueError("Malformed or misplaced Spec state comment")
     state = parse_json(match[1], 65536)

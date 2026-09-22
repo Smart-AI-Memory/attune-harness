@@ -1061,3 +1061,78 @@ request, never one that touches `src/`, and only after the checks have settled; 
 a branch is deleted only after the API reports the pull request merged. Done when
 the rule is in the file the agents read. Effort: small. Nothing is changed or
 authorized by this note.
+
+Unnumbered, 2026-09-22 (third pass, after Task 2 steps 2.3 and 2.4 and the
+four log items): the task reader parses one region, so prose between task
+blocks changes how tasks are read. `spec_tasks.parse_tasks` cuts from the first
+`<task` to the last `</task>` and parses that span as one XML document. A bare
+`&` or `<` in prose between two blocks, or a `</task>` inside the trailing
+state comment, makes the span ill-formed, and the reader drops to its regex
+path with a warning: entities stop being decoded, so `a &amp; b` comes back
+as written. #43's review found this through the bridge, and the bridge now
+parses each block it has already checked, so it is no longer exposed; the
+reader itself still is, for any caller of `read_spec` on a plan with prose
+between tasks, which is how plans are written. Candidate follow-up: in
+`parse_tasks`, find the blocks with the block expression the bridge uses,
+parse each on its own, and fall back to the regex path per block; the region
+cut and the `<r>` wrapper's entity safety stay as they are. Done when a plan
+with `R&D` in the prose between two tasks parses both tasks on the XML path
+with no warning, and the 36 existing tests and the differential against the
+seven plans still pass. Effort: small. Nothing is changed or authorized by
+this note.
+
+Unnumbered, 2026-09-22 (third pass): three atomic writers, one with the
+Windows retry. `review_store._replace` retries `os.replace` for two seconds
+when a reader holds the file, which is the fix that unblocked 0.1.0 on
+Windows. `spec_state._atomic_write_text`, carried in #42, and `repair.py`'s
+writer each call `os.replace` once. #42's review found a second Windows
+defect in the carried writer, newline translation, and it was fixed there;
+the retry was left out to keep to the step's three seams. So a reader holding
+a plan open on Windows fails `save_state` where the same situation in the run
+store is retried. Candidate follow-up: one `features.write_atomic(path,
+data: bytes)` with the retry and no newline translation, used by all three,
+with the run store's existing Windows test moved beside it. Done when every
+`os.replace` under `src/` goes through it. Effort: small, touches `src/`, so
+a different-model review. Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22 (third pass): the documentation index is generated
+once and nothing keeps it complete. #47 added `docs/README.md` with a row for
+each of 191 files. The link check from #44 proves every row's link resolves,
+and nothing proves that every file has a row: the next results document
+lands unindexed. Candidate follow-up: give `scripts/check_doc_links.py`, or a
+sibling, a second duty: every tracked `docs/**/*.md` except the index itself
+must be linked from the index, and a file that is not fails the
+Documentation links job with its path. Done when adding a file under `docs/`
+without an index row cannot show green. Effort: small. Nothing is changed or
+authorized by this note.
+
+Unnumbered, 2026-09-22 (third pass): each step's independent review found a
+defect the author's tests had not, and the reviewer's brief is rewritten each
+time. 2.1: a Windows bypass. 2.2: recursion on deep nesting. 2.3: a pattern
+that could delete a plan body, twice. 2.4: a second read that changed task
+text. In every case the author had run mutations and a differential and
+called the step verified. The brief that found these was written fresh for
+each pull request, in the prompt to the reviewing agent, and exists nowhere
+in the repository. Candidate follow-up: `docs/review-brief.md`, the standing
+brief for a different-model review of a carried module: read the original
+side by side; try to break the seam the step claims to fix; measure
+adversarial input within the declared limit; check the None-versus-raise
+contract, Windows, CRLF, 3.10; report verdict, findings by severity with
+reproduction, and a held list. Each pull request then cites the brief and
+adds only what is specific to the step. Done when the next step's review is
+run from the file. Effort: small. Nothing is changed or authorized by this
+note.
+
+Unnumbered, 2026-09-22 (third pass): the ladder stacks three deep while it
+waits for one merge. #34 (2.2) has been green and reviewed since the morning;
+#42 (2.3) is stacked on it and #43 (2.4) on that. Each merge Patrick makes
+costs the next branch a rebase, a re-sign and a full CI round, and a review
+finding on a lower step ripples upward: #42's fix changed a line in
+`spec_bridge.py` that #43 also touches. The plan's rule that steps "cannot
+run side by side" was written for changelog conflicts and did not anticipate
+this. Candidate follow-up: none in code. Merge #34 first, then #42, then
+#43, each after its checks re-run on the rebased branch; and for Task 3,
+which the design note sizes at four steps, agree a merge cadence before the
+first step opens, so that no more than one step waits at a time. Done when
+Task 3's plan says who merges when. Effort: none. Nothing is changed or
+authorized by this note.

@@ -26,7 +26,7 @@ def qualify(output):
         'installed_source':source.as_posix(),'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.glob('*.py')},
         'native_process_and_recovery':'unrun','model_calls':0,'checks':[]}
     tests=['test_contract.py','test_adapters.py','test_operations.py','test_github_checks.py','test_native.py']
-    tests += ['test_paths.py']
+    tests += ['test_paths.py', 'test_spec_tasks.py', 'test_spec_state.py']
     tests += ['test_voyage.py', 'test_voyage_integration.py', 'test_mcp.py', 'test_voyage_evaluation.py',
               'test_code_rag.py', 'test_code_rag_host_check.py']
     if os.name in ('posix','nt'):
