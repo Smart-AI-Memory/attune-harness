@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 LINK = re.compile(r"\]\(([^)\s]+?)(?:#[^)\s]*)?\)")
-KNOWN = Path(__file__).with_name("known_dead_links.txt")
+KNOWN_NAME = "known_dead_links.txt"
 
 
 def tracked(root: Path) -> list[str]:
@@ -50,6 +50,7 @@ def links(path: str, text: str):
 def check(root: Path) -> list[str]:
     files = tracked(root)
     present = set(files)
+    KNOWN = root / "scripts" / KNOWN_NAME
     known = set()
     if KNOWN.exists():
         known = {
@@ -78,8 +79,18 @@ def check(root: Path) -> list[str]:
     return findings
 
 
+def repository_root() -> Path:
+    """The repository that contains the working directory, else this file's."""
+    probe = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
+    )
+    if probe.returncode == 0 and probe.stdout.strip():
+        return Path(probe.stdout.strip())
+    return Path(__file__).resolve().parents[1]
+
+
 def main() -> int:
-    root = Path(__file__).resolve().parents[1]
+    root = repository_root()
     findings = check(root)
     for line in findings:
         print(line)
