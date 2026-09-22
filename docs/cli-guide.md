@@ -110,7 +110,7 @@ active integration and release remain separate qualification boundaries.
 
 ## Task-oriented evidence review
 
-Install `'attune-harness[review]'`, then supply one goal and the source/participant choices. Missing
+Install `attune-harness`, then supply one goal and the source/participant choices. Missing
 answers are collected interactively; headless runs return a bound intake form.
 Explicit acceptance executes the assessment. For example, from a project with
 `docs/guide.md`, a trusted verification context and a participant registry:
@@ -138,7 +138,7 @@ for installed software evidence and outstanding native-model qualification.
 
 ## Test this change
 
-Install `'attune-harness[review]'` for the existing forms grammar and choose an interpreter with
+Install `attune-harness`, which carries the forms grammar, and choose an interpreter with
 pytest. Supply a changed file or directory relative to Git HEAD. The first command
 saves a preview; accept its returned checkpoint to run the captured inputs:
 

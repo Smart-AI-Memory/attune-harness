@@ -66,7 +66,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m build --wheel 2>&1 | Tee-Object -FilePath "$out/build.log"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-voyage.lock','-c','requirements-mcp.lock','pytest==9.1.1','attune-harness[review,voyage,mcp] @ '+w.resolve().as_uri()],check=True)" 2>&1 | Tee-Object -FilePath "$out/install.log"
+          python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-voyage.lock','-c','requirements-mcp.lock','-c','requirements-tokens.lock','pytest==9.1.1','attune-harness[review,voyage,mcp] @ '+w.resolve().as_uri()],check=True)" 2>&1 | Tee-Object -FilePath "$out/install.log"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pip check 2>&1 | Tee-Object -FilePath "$out/pip-check.log"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

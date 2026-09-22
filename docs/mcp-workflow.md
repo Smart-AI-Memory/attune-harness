@@ -1,7 +1,7 @@
 # Local MCP retrieval profile
 
 Harness's optional `mcp` extra pins MCP Python SDK **2.2.0**. The qualified stdio
-profiles are **2025-11-25** and **2026-07-28**. The core remains dependency-free.
+profiles are **2025-11-25** and **2026-07-28**. The base install carries the review, test and acceptance journeys since 0.4.0.
 The separately installed attune-ai SDK pin is unaffected. Install in a separate
 environment; `requirements-workflow.lock` and `requirements-mcp.lock` record the
 tested dependency closure.

@@ -69,7 +69,7 @@ def test_missing_dependency_is_actionable_even_without_input_files(tmp_path, mon
     assert main(['verify','missing.md','--context','missing.json','--output',str(output)]) == 2
     result = json.loads(capsys.readouterr().out)
     assert result['status'] == 'unavailable'
-    assert 'Reinstall attune-harness with its dependencies; attune-verify is missing' == result['error']['detail']
+    assert result['error']['detail'] == 'attune-verify is missing; reinstall with: pip install --force-reinstall attune-harness'
     assert json.loads(output.read_text()) == result
 
 

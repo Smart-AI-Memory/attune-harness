@@ -73,7 +73,7 @@ independent consumers justify it; the current goal favors integrated ownership.
 
 ## Code-grounded migration constraints
 
-1. Harness's `[rag]`, `[review]` and `[mcp]` extras still include attune-rag.
+1. Harness's base install includes attune-rag since 0.4.0 (before that, its `[rag]`, `[review]` and `[mcp]` extras did).
    Extension activation also checks its exact version unconditionally.
    Installing `[voyage]` does not remove those legacy dependencies. Make that
    boundary backend-aware before claiming a standalone Voyage-only plugin.

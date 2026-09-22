@@ -25,7 +25,7 @@ def require_feature(distribution: str, module: str, expected: str, extra: str):
         installed = version(distribution)
     except PackageNotFoundError as exc:
         if extra in BASE_EXTRAS:
-            hint = f"Reinstall attune-harness with its dependencies; {distribution} is missing"
+            hint = f"{distribution} is missing; reinstall with: pip install --force-reinstall attune-harness"
         else:
             hint = f"Install attune-harness[{extra}]; {distribution} is missing"
         raise FeatureUnavailable(hint) from exc
