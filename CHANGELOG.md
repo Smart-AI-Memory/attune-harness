@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Docs: `docs/plan-1.0.md`, the four phases between 0.4.0 and 1.0.0, twenty
+  tasks with their acceptance receipts, the decisions each needs, and
+  measured cycle estimates; nothing in it is authorized by itself.
 - Pinned: the envelope of every CLI verb, ahead of the 1.0 freeze.
   `tests/test_golden_envelopes.py` runs each verb, and each subcommand of
   `extension`, `index`, `memory redis` and `memory scratch`, in-process on the
