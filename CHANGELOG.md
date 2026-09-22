@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added: `attune_harness.spec_workspace`, the Spec adapter that gives each
+  stage, action and event of a spec its meaning: `SpecWorkspaceAdapter`,
+  `SpecWorkspaceState` and the receipt types, carried from Attune AI as the
+  third step of Task 3 of the spec authority. Every import is now Harness's
+  own, including the test-evidence check by relative import, which ends the
+  one place the two products imported each other. The forms package loads on
+  first use, so importing the module needs nothing installed. One behaviour
+  differs: a resume refuses a plan whose state comment Harness's reader could
+  not use, where the original's parser read it and a later check failed;
+  without the refusal the plan would restart from zero. Comments the reader
+  refuses itself, such as one without a `schema_version`, are refused with
+  the reader's own words, as before. Nothing in Harness calls it yet; the
+  bridge switches to it in the next step.
 - Added: `attune_harness.command_workspace`, the host that turns an adapter's
   state into one rendered, one-shot decision: `CommandWorkspaceHost`, the
   adapter protocol, the projection, transition, record and render types, and
