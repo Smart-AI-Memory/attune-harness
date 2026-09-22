@@ -97,6 +97,12 @@ those limits. No agent can widen them.
 - Branch protection decides what merges: required checks, and the branch up to
   date with `main`. Never bypass it with an admin merge. If a pull request is
   behind, update the branch and wait for the checks to run again.
+- Because of that, every merge marks the other open pull requests behind.
+  Merge the code pull request first and the documentation-only ones after it,
+  one straight after another, so each pays for one short update rather than a
+  full matrix. A merge queue would do this automatically, but the workflows
+  would first have to run on `merge_group` events; that is not set up.
+  `scripts/merge_when_green.sh` is the gate as a script.
 - `main` requires signed commits. GitHub signs the squash commit it creates,
   so what lands on `main` is signed either way. Sign your branch commits if you
   can. If you cannot, say so in the pull request rather than assuming you are
@@ -120,10 +126,15 @@ those limits. No agent can widen them.
   which replays only that pull request's own commits over the squash; re-signs;
   and waits again. This is the one case an agent merges a change under `src/`,
   and only because each already carries its recorded different-model review.
-  A failure stops the stack, with one exception: a failure confined to `tests/`
-  or a fixture may be fixed, noted in the pull request, and rerun. Anything
-  under `src/` is reported and waits. Merged branches are deleted as part of
-  the shepherding, under the gate below.
+  A failure stops the stack, with one exception: a failure confined to a
+  fixture or the environment (a file written in the wrong mode, a missing
+  extra, a path that differs on one platform) may be fixed, noted in the pull
+  request, and rerun. A changed assertion is never that exception, even
+  though it is a `tests/`-only diff: it changes what the tests prove, so it
+  waits like `src/`. The squash message of a shepherded merge cites the
+  review: who reviewed and the verdict. Anything under `src/` is reported
+  and waits. Merged branches are deleted as part of the shepherding, under
+  the gate below.
 - Delete a branch only after the API reports its pull request merged. A spoken
   "I merged it" can be an intention or a click that failed; deleting the head
   branch of an open pull request closes it. Local copies of squash-merged
