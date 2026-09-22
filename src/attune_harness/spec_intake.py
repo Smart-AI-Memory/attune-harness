@@ -13,7 +13,8 @@ One seam is reworked. The original's ``area_candidates`` looked only under
 ``src/attune/``, Attune AI's own package. Here it looks at every package
 under ``src/``: a package's subpackages are the candidates, and a package
 with no subpackages is a candidate itself, so the Harness tree and the Attune
-AI tree both yield sensible areas.
+AI tree both yield sensible areas. Both path functions also accept the root
+as a string, where the original required a ``Path``.
 
 Copyright 2026 Smart AI Memory, LLC
 Licensed under the Apache License, Version 2.0
