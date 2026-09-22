@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Added: `attune_harness.spec_state`, the reader and writer for the execution
+  state a plan file carries in its trailing `<!-- spec-state: ... -->` comment:
+  `SpecState`, `load_state`, `save_state`, `clear_state` and
+  `find_resumable_plans`, carried from Attune AI as the third step of making
+  spec support part of Harness. Three things differ from the original. A
+  `schema_version` other than 1 or 2 is refused with what to do next, where
+  the original loaded any version. The plans directory is an argument with no
+  default. And the comment must be the single trailing one, which is what the
+  Spec bridge already requires, so the writer never produces a file the reader
+  refuses; the writer also refuses a result over the 65,536-byte plan limit
+  rather than writing one the reader would refuse. Nothing in Harness calls it
+  yet.
 - Added: `attune_harness.spec_tasks`, the reader for the `<task>` blocks a plan
   file is written in: `DecomposedTask`, `parse_tasks` and `read_spec`, carried
   from Attune AI as the second step of making spec support part of Harness. It
