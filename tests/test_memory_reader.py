@@ -76,8 +76,9 @@ def test_config_is_validated_in_the_adapters_words_and_bound_by_digest(tmp_path)
         (lambda c: c["roots"][0].update(tier="lessons"), "Tier uses its existing governed path"),
         (lambda c: c["roots"][0].update(scope="elsewhere"), "Memory root is outside host authority"),
         (lambda c: c["roots"][0].update(path="relative/path"), "canonical absolute path without symlinks"),
-        (lambda c: c["roots"][0].update(path="/private/etc"), "system directory"),
     ]
+    if os.name == "posix":  # on Windows the POSIX path resolves under the drive first and fails as non-canonical
+        cases.append((lambda c: c["roots"][0].update(path="/private/etc"), "system directory"))
     for mutate, text in cases:
         bad = json.loads(json.dumps(good))
         mutate(bad)
