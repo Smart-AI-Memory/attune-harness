@@ -1136,3 +1136,119 @@ which the design note sizes at four steps, agree a merge cadence before the
 first step opens, so that no more than one step waits at a time. Done when
 Task 3's plan says who merges when. Effort: none. Nothing is changed or
 authorized by this note.
+
+Unnumbered, 2026-09-22 (fourth pass): the review gate reads the body once. The
+`Classify change` job (#57) fails a pull request that touches `src/` while its
+body still says `REVIEW_PLACEHOLDER`, reading the body from the
+`pull_request` event payload. A body edit is not one of the activity types the
+workflow listens for, so recording the review after the push leaves the gate
+red until the next push; #64 and #66 each sat red with the review recorded.
+Two things clear it without a commit: close and reopen the pull request
+(`reopened` is a default activity type), or record the review before the push
+that carries the fix commits, which is now the author's habit. Candidate
+follow-up: write the habit and the close-and-reopen fallback into AGENTS.md
+beside the review-recording rule, since the runbook does not mention it;
+listening for `edited` would re-run the whole qualification on every body
+edit, which is the wrong trade. Done when the next author does not have to
+rediscover it. Effort: none in code. Nothing is changed or authorized by this
+note.
+
+Unnumbered, 2026-09-22 (fourth pass): a release pull request runs
+qualification twice. The workflow triggers on `push` to `main` and
+`release/**` and on every `pull_request`, and its concurrency group is keyed
+by ref, so a `release/**` branch under a pull request gets a push run and a
+pull-request run of the same commit that do not cancel each other. Both must
+pass and step 4 of the runbook reads both; 0.3.0 paid for two full matrices
+per push to `release/0.3.0`. Candidate follow-up: drop `release/**` from the
+push trigger, since the pull-request run covers every commit the release
+branch will merge, and make the runbook read the pull-request run; or keep
+the push run and skip the pull-request run for `release/**` heads with an
+`if` on the job. Done when one push to a release branch produces one
+qualification run and the runbook names which. Effort: small; it touches the
+workflow the release process depends on, so rehearse on a throwaway branch.
+Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22 (fourth pass): the append lock's necessity is asserted
+only where the tear happens. #61 fixed a JSONL line torn by the Windows C
+runtime's seek-then-write append with a cross-process lock in
+`command_workspace.jsonl_event_writer`. The four-process test proves the lock
+harmless on POSIX; only the Windows job can show it is needed, because POSIX
+`O_APPEND` is atomic. During the review an emulation of the Windows append on
+POSIX, a seek to the end followed by a write with the lock removed, made the
+test fail on all three of its assertions, which is the evidence that the lock
+does the work the test sees. That emulation was a probe and was not kept.
+Candidate follow-up: keep it as a test double, so that removing the lock
+fails a test on macOS and Ubuntu as well as on Windows, and the platform jobs
+stop being the only place the writer's reason for existing is checked. Done
+when `jsonl_event_writer` with its lock removed fails a test on every
+platform. Effort: small, tests only. Nothing is changed or authorized by this
+note.
+
+Unnumbered, 2026-09-22 (fourth pass): a millisecond collision on the run
+store's lease reaches a human. `RunStore.lease` takes the writer lock with
+`LK_NBLCK` or `LOCK_NB` and raises `PersistenceError('Run is busy; another
+owner holds the writer lock')` on the first refusal, with no retry. Ten call
+sites take it, and every one of them turns a collision that would have
+resolved in milliseconds into a refusal the caller must act on: the two-process
+gate tests of #59 and #61 kept finding it, and the simultaneous case now lists
+"Run is busy" as an acceptable outcome for the loser. Elsewhere in the codebase
+a contended resource is retried for a bounded time, `features.replace_file`
+and the event writer's `_LOCK_RETRY_SECONDS` both at two seconds, and then
+refused with the same words. Candidate follow-up: the same bounded retry in
+`lease()`, non-blocking attempts for two seconds and then the existing
+refusal, so a short overlap becomes a grant and a wedged holder still fails
+closed within the deadline; a test that holds the lock briefly sees a grant,
+one that holds it past the deadline sees the refusal, and the refusal's words
+do not change. Effort: small, touches `src/`, so a different-model review.
+Patrick authorized this one on 2026-09-22 as the next `src/` change after the
+`memory serve` verb; the note records the evidence, and the change lands in its
+own reviewed pull request.
+
+Unnumbered, 2026-09-22 (fourth pass): `configure_process` runs twice per
+`memory` invocation and rebinds structlog to the stream of the moment.
+`memory_cli.main` calls it and `memory_cli.execute` calls it again, and each
+call does `structlog.configure(logger_factory=PrintLoggerFactory(file=sys.stderr))`,
+capturing whichever object `sys.stderr` is at that instant. Under pytest that
+is a capture stream the fixture closes when the test ends, and any later
+structlog line in the process raises "I/O operation on closed file", which is
+why every in-process CLI test in `test_memory_redis.py` and
+`test_memory_scratch.py` stubs the function out (the #67 review named it).
+Candidate follow-up: call it once, from the CLI entry that owns process
+start-up, and bind to a writer that resolves `sys.stderr` at log time rather
+than at configure time, so the binding is idempotent and capture-safe; then
+remove the stubs. Done when the CLI tests run with the real
+`configure_process` and the suite is clean under capture. Effort: small,
+touches `src/`, so a different-model review. Nothing is changed or authorized
+by this note.
+
+Unnumbered, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
+extras that no longer add anything. Last changed on 2026-09-15, it installs the
+wheel five times, as `core`, `[verify]`, `[rag]`, `[review]` and `[mcp]`, and
+checks each. Since #64 those four extras are empty and the base carries their
+dependencies, so four of the five installs resolve to the same set and the
+script's differences between them are gone; the #64 review listed the script
+as dead drift. Nothing in a workflow or a script runs it; the only mention is
+the addendum recording that Task 3 dropped it from the list of scripts to
+carry. `scripts/check_installed.py`, which the platform jobs and the release
+gate do run, covers the same journeys with `--mode core|verify|rag|all|redis`
+against the wheel as it is now built. Candidate follow-up: delete the script,
+after checking that none of its assertions is absent from `check_installed`;
+if one is, move it there first. Done when nothing under `scripts/` installs
+an empty extra by name. Effort: small. Nothing is changed or authorized by
+this note.
+
+Unnumbered, 2026-09-22 (fourth pass): the CLI's JSON envelopes are pinned by
+nothing but the tests that happen to read them. Every verb prints one JSON
+object, most with `schema_version`, `operation` and `status`, and the CLI
+guide describes them, but no test asserts the set of top-level keys of any
+verb, so a key can be renamed or dropped and the suite stays green where no
+test read that key. Before 1.0 promises the envelopes stop changing, a change
+to one should be a deliberate diff. Candidate follow-up: one test per verb
+that runs it against a fixture and compares the sorted top-level keys and
+`schema_version` to a checked-in table, with the table doubling as the
+compatibility document the 1.0 changelog can point at. Done when renaming a
+top-level key in any envelope fails exactly one test that names the verb.
+Effort: small to medium, tests only, with the fixtures the existing tests
+already have. Patrick authorized this one on 2026-09-22 as the item after the
+lease wait; the note records the reasoning, and the tests land in their own
+pull request.
