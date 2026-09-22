@@ -264,6 +264,25 @@ the `text` body of a file, lesson or rule pointer is never served. An id is a
 curated node's bare id or a family-qualified pointer id such as
 `file:<corpus>:<stem>`, and every id `search` returns resolves through `node`.
 
+**`serve`** is the same digest as plain text for a session-start hook:
+`memory serve [--limit N] [--chars N]` prints one header line with the count,
+the hydration stamp and the host, one line per curated node (`- id [type]
+name: description`, cut at 240 characters), and one footer line saying the
+memory is untrusted evidence and how to read one node or search. Node lines
+are dropped from the end until the text fits in `--chars` (default 4000) and
+the header then says how many are shown. It is the one memory verb that never
+fails: when there is no digest, because the config has no `redis` section, the
+extra is not installed, the server cannot be reached or is not hydrated, the
+digest is empty, or the config file cannot be read, it prints nothing on
+stdout, one line `[attune-harness memory] skipped: <reason>` on stderr, and
+still exits 0, so a hook cannot block a session. A Claude Code hook that
+serves the digest at session start:
+
+```json
+{"hooks": {"SessionStart": [{"hooks": [{"type": "command", "timeout": 10,
+  "command": "attune-harness memory --config ~/.attune/harness-memory.json serve"}]}]}}
+```
+
 **`scratch`** is working memory: JSON values up to 64 KiB under keys of up to
 128 characters, with an optional time to live, through `memory scratch
 capabilities`, `stash KEY (--value JSON | --value-file PATH) [--ttl SECONDS]`,
@@ -272,15 +291,16 @@ capabilities`, `stash KEY (--value JSON | --value-file PATH) [--ttl SECONDS]`,
 `redis` section and is shared across processes and machines; `namespace`
 separates users of one store. The backend is chosen when the command starts.
 
-Statuses and exit codes follow the other memory verbs: `ok` and `no_results`
-exit 0; `disabled` (the section is absent), `unavailable` (the extra is not
+Statuses and exit codes follow the other memory verbs, except `serve`, which
+exits 0 whatever happened: `ok` and `no_results` exit 0; `disabled` (the section is absent), `unavailable` (the extra is not
 installed, the server cannot be reached, or the keyspace is not hydrated) and
 `failed` (a refused input) exit 2, each with a `detail`. A Redis that cannot
 be reached is reported; it is never replaced by the file store at runtime.
 
 Qualification: every platform job installs the extra and, with no server,
-confirms the reads and a Redis scratch report unreachable, the file scratch
-round-trips, and nothing is written when Redis is refused; the release gate
+confirms the reads and a Redis scratch report unreachable, `serve` exits 0
+with its one stderr line, the file scratch round-trips, and nothing is
+written when Redis is refused; the release gate
 does the same with the extra absent. The path against a hydrated server runs
 only where `ATTUNE_TEST_REDIS_URL` is set.
 

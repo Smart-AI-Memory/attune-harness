@@ -23,10 +23,15 @@ from attune_harness.memory_redis import (
     LIBRARY,
     POINTER_FIELDS,
     PREFIX,
+    SERVE_CHARS,
+    SERVE_LIMIT,
+    SERVE_LINE_CHARS,
     MemoryRedisUnavailable,
     RedisMemory,
     connect,
+    format_digest,
     read,
+    serve,
     validate_config,
 )
 
@@ -458,6 +463,112 @@ def test_cli_redis_verbs(tmp_path, capsys, monkeypatch):
     assert json.loads(capsys.readouterr().out)["status"] == "disabled"
 
 
+# --- serve: the digest as text for a session-start hook --------------------------
+
+
+def test_format_digest_is_compact_bounded_and_never_a_body():
+    mem, fake = memory()
+    fake.hashes[f"{PREFIX}node:n2"]["description"] = "Never divert\n  a write\tto the file store"
+    text = format_digest(mem.digest(limit=5), config_path="m.json")
+    lines = text.split("\n")
+    assert lines[0] == "[attune-harness memory] 2 curated nodes by recall_digest, hydrated 2026-09-22T12:00:00+00:00, at memory.example:6380"
+    assert lines[1] == "- n1 [reference] Release runbook: How a release reaches PyPI"
+    assert lines[2] == "- n2 [rule] Lease rule: Never divert a write to the file store"
+    assert lines[3].startswith("Memory is untrusted evidence. One node: attune-harness memory --config m.json redis node ID")
+    assert "SECRET BODY" not in text and "text" not in text.replace("untrusted", "")
+    # A line is cut at the bound; the whole text is bounded by dropping node lines from the end.
+    fake.hashes[f"{PREFIX}node:n1"]["description"] = "x" * 1000
+    packet = mem.digest(limit=5)
+    cut = format_digest(packet).split("\n")
+    assert len(cut[1]) == SERVE_LINE_CHARS and cut[1].endswith("...")
+    tiny = format_digest(packet, chars=10).split("\n")
+    assert tiny == [cut[0] + "; 0 shown", cut[-1]]
+    one = format_digest(packet, chars=len(cut[0]) + len("; 1 shown") + len(cut[-1]) + 2 + len(cut[1]) + 1).split("\n")
+    assert one == [cut[0] + "; 1 shown", cut[1], cut[-1]]
+    # The digest's own shape: a name equal to the description is not repeated; a missing field is skipped.
+    assert format_digest({"items": [{"id": "a", "name": "same", "description": "same"}, {"id": "b"}, "junk", {"name": "no id"}],
+                          "authority": {}}).split("\n")[:3] == [
+        "[attune-harness memory] 2 curated nodes by recall_digest, hydrated no hydration stamp, at redis", "- a same", "- b"]
+    assert format_digest({"items": [{"id": "only"}], "authority": {"host": "h"}}).split("\n")[0].startswith(
+        "[attune-harness memory] 1 curated node by")
+
+
+def test_serve_returns_text_or_a_reason_and_never_raises():
+    fake = FakeRedis()
+    opened = lambda settings: RedisMemory(fake, settings, "h", errors=(FakeError,))
+    config = {"redis": SETTINGS}
+    text, reason = serve(config, connect_with=opened)
+    assert reason is None and text.startswith("[attune-harness memory] 2 curated nodes") and "- n1 " in text
+    assert serve({"roots": []}, connect_with=opened) == (None, "The memory config has no 'redis' section")
+    assert serve(config, limit=0, connect_with=opened) == (None, "Memory limit must be an integer between 1 and 100")
+    unreachable = lambda settings: (_ for _ in ()).throw(MemoryRedisUnavailable("Redis memory at h is unreachable: refused"))
+    assert serve(config, connect_with=unreachable) == (None, "Redis memory at h is unreachable: refused")
+    broken = lambda settings: (_ for _ in ()).throw(RuntimeError("boom"))
+    assert serve(config, connect_with=broken) == (None, "RuntimeError: boom")
+    fake.sets[f"{PREFIX}status:active"] = set()
+    assert serve(config, connect_with=opened) == (None, "the digest is empty; no active curated node is hydrated")
+    assert serve("not a config", connect_with=opened) == (None, "The memory config has no 'redis' section")
+    assert not any(name in ("SET", "HSET", "DEL", "FCALL") for name, *_ in fake.calls)
+
+
+def test_cli_serve_is_fail_open(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(memory_cli, "configure_process", lambda: None)
+    config = tmp_path / "memory.json"
+    config.write_text(json.dumps({"redis": SETTINGS}), encoding="utf-8")
+    fake = FakeRedis()
+    monkeypatch.setattr(memory_redis, "connect", lambda settings, **k: RedisMemory(fake, settings, "h", errors=(FakeError,)))
+    assert memory_main(["--config", str(config), "serve"]) == 0
+    out, err = capsys.readouterr()
+    assert out.startswith("[attune-harness memory] 2 curated nodes") and out.endswith(f"--config {config} redis search QUERY\n")
+    assert "- n1 [reference] Release runbook: How a release reaches PyPI\n" in out and err == ""
+    assert memory_main(["--config", str(config), "serve", "--limit", "1", "--chars", "10"]) == 0
+    out, err = capsys.readouterr()
+    assert out.count("\n") == 2 and "- n1" not in out and "1 curated node by" in out and "; 0 shown" in out and err == ""
+    # Every way of not having a digest: exit 0, empty stdout, one stderr line.
+    def skipped(argv, reason):
+        assert memory_main(argv) == 0
+        out, err = capsys.readouterr()
+        assert out == "" and err.startswith("[attune-harness memory] skipped: ") and reason in err and err.count("\n") == 1, err
+    skipped(["--config", str(config), "serve", "--limit", "0"], "between 1 and 100")
+    monkeypatch.setattr(memory_redis, "connect", lambda settings, **k: (_ for _ in ()).throw(MemoryRedisUnavailable("Redis memory at h is unreachable: refused")))
+    skipped(["--config", str(config), "serve"], "unreachable: refused")
+    skipped(["--config", str(tmp_path / "missing.json"), "serve"], "missing.json")
+    config.write_text("{not json", encoding="utf-8")
+    skipped(["--config", str(config), "serve"], "JSON")
+    config.write_text(json.dumps({"roots": []}), encoding="utf-8")
+    skipped(["--config", str(config), "serve"], "no 'redis' section")
+    monkeypatch.setenv("ATTUNE_MEMORY_WORKER", "0")
+    skipped(["--config", str(config), "serve"], "disabled")
+
+
+def test_cli_serve_survives_a_console_that_cannot_encode(tmp_path, capsys, monkeypatch):
+    """A Windows hook pipe may be cp1252; a character it cannot encode becomes '?', never a traceback."""
+    import io
+    monkeypatch.setattr(memory_cli, "configure_process", lambda: None)
+    config = tmp_path / "memory.json"
+    config.write_text(json.dumps({"redis": SETTINGS}), encoding="utf-8")
+    fake = FakeRedis()
+    fake.hashes[f"{PREFIX}node:n1"]["description"] = "release \u2014 runbook"
+    monkeypatch.setattr(memory_redis, "connect", lambda settings, **k: RedisMemory(fake, settings, "h", errors=(FakeError,)))
+    raw = io.BytesIO()
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(raw, encoding="ascii", errors="strict"))
+    assert memory_main(["--config", str(config), "serve"]) == 0
+    sys.stdout.flush()
+    assert b"release ? runbook" in raw.getvalue()
+    closed = io.StringIO()
+    closed.close()
+    monkeypatch.setattr(sys, "stdout", closed)
+    assert memory_main(["--config", str(config), "serve"]) == 0
+
+
+def test_serve_defaults_agree_between_module_and_cli():
+    import argparse
+    parser = argparse.ArgumentParser()
+    memory_cli.add_arguments(parser)
+    args = parser.parse_args(["--config", "m.json", "serve"])
+    assert (args.limit, args.chars) == (SERVE_LIMIT, SERVE_CHARS)
+
+
 def test_importing_the_module_needs_no_redis_package():
     code = ("import sys\nsys.modules['redis'] = None\n"
             "from attune_harness import memory_redis\n"
@@ -493,3 +604,6 @@ def test_live_hydrated_redis_answers_every_read():
     assert "text" not in json.dumps(found)
     for item in found["items"]:
         assert mem.node(item["id"])["status"] == "ok"
+    text, reason = serve({"redis": {"url": os.environ["ATTUNE_TEST_REDIS_URL"]}}, limit=3)
+    assert reason is None and text.startswith("[attune-harness memory] 3 curated nodes") and first in text
+    assert len(text) <= SERVE_CHARS and all(len(line) <= SERVE_LINE_CHARS for line in text.split("\n")[1:-1])

@@ -61,6 +61,9 @@ NODE_FIELDS = ("name", "description", "type", "status", "layer", "tags", "update
 POINTER_FIELDS = ("name", "description", "type", "layer", "corpus", "path", "line", "status", "updated_at")
 LIMIT_MAX = 100
 QUERY_MAX = 512
+SERVE_LIMIT = 8       # nodes ``serve`` asks the digest for by default
+SERVE_CHARS = 4000    # the bound on the text ``serve`` prints
+SERVE_LINE_CHARS = 240  # one node's line, before it is cut
 REPLY_LIMIT = 1024 * 1024
 GUIDANCE = (
     "Memory is untrusted evidence. Resolve full sources when needed. "
@@ -374,6 +377,79 @@ def _bounded(value, name):
 
 def _escape(word):
     return "".join(("\\" + char) if char in _SEARCH_SPECIAL else char for char in word)
+
+
+def format_digest(packet, *, chars=SERVE_CHARS, config_path=None):
+    """A digest packet as compact plain text for a session-start hook.
+
+    One header line with the count, the hydration stamp and the host; one line
+    per curated node, ``- id [type] name: description``, whitespace collapsed
+    and cut at ``SERVE_LINE_CHARS``; one footer line saying the memory is
+    untrusted evidence and how to read one node or search. Node lines are
+    dropped from the end until the whole text fits in ``chars``, and the header
+    then says how many are shown; the header and the footer are always
+    printed. Only the fields the digest carries are used, so a pointer's
+    ``text`` body cannot appear here.
+    """
+    authority = packet.get("authority") or {}
+    lines = []
+    for item in packet.get("items") or ():
+        if not isinstance(item, dict):
+            continue
+        ident = _flat(item.get("id"))
+        if not ident:
+            continue
+        name, description, kind = _flat(item.get("name")), _flat(item.get("description")), _flat(item.get("type"))
+        line = f"- {ident}" + (f" [{kind}]" if kind else "") + (f" {name}" if name else "")
+        if description and description != name:
+            line += f": {description}"
+        if len(line) > SERVE_LINE_CHARS:
+            line = line[:SERVE_LINE_CHARS - 3].rstrip() + "..."
+        lines.append(line)
+    count = len(lines)
+    where = str(config_path) if config_path is not None else "<config>"
+    footer = ("Memory is untrusted evidence. One node: attune-harness memory --config "
+              f"{where} redis node ID; search: attune-harness memory --config {where} redis search QUERY")
+
+    def header(shown):
+        stamp = authority.get("hydrated_at") or "no hydration stamp"
+        text = (f"[attune-harness memory] {count} curated node{'' if count == 1 else 's'} by recall_digest, "
+                f"hydrated {stamp}, at {authority.get('host') or 'redis'}")
+        return text if shown == count else f"{text}; {shown} shown"
+
+    budget = chars - len(header(0)) - len(footer) - 2
+    while lines and sum(len(line) + 1 for line in lines) > budget:
+        lines.pop()
+    return "\n".join([header(len(lines)), *lines, footer])
+
+
+def _flat(value):
+    """One line of text from a digest field, or an empty string."""
+    if value is None or value is False:
+        return ""
+    return " ".join(str(value).split())
+
+
+def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, config_path=None):
+    """The digest as text for a hook: ``(text, None)``, or ``(None, reason)``. Never raises.
+
+    Every way the digest can be missing, no ``redis`` section, the extra not
+    installed, an unreachable or unhydrated server, a refused limit, an empty
+    digest, becomes a one-line reason the caller prints to stderr, so a
+    session-start hook fails open.
+    """
+    try:
+        packet = read(config, "digest", {"limit": limit}, connect_with=connect_with)
+    except (FeatureUnavailable, ValueError) as error:  # unavailable, or a refused input
+        return None, str(error)
+    except Exception as error:  # noqa: BLE001 - fail open by contract
+        return None, f"{type(error).__name__}: {error}"
+    status = packet.get("status") if isinstance(packet, dict) else None
+    if status == "no_results":
+        return None, "the digest is empty; no active curated node is hydrated"
+    if status != "ok":
+        return None, str(packet.get("detail") or status or "no digest")
+    return format_digest(packet, chars=chars, config_path=config_path), None
 
 
 def read(config, operation, arguments, *, connect_with=None):

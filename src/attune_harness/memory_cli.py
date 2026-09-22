@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 from .features import FeatureUnavailable, read_text
+from .memory_redis import SERVE_CHARS, SERVE_LIMIT
 from .review_contract import parse_json
 
 
@@ -63,6 +64,10 @@ def add_arguments(parser):
     search.add_argument('query')
     search.add_argument('--layer', choices=REDIS_LAYERS)
     search.add_argument('--k', type=int, default=10)
+    serve = sub.add_parser('serve', help='The recall digest as plain text for a session-start hook; '
+                                         'stdout when Redis answers, one stderr line when not, exit 0 either way')
+    serve.add_argument('--limit', type=int, default=SERVE_LIMIT, help='Curated nodes to print')
+    serve.add_argument('--chars', type=int, default=SERVE_CHARS, help='Bound on the text; node lines are dropped from the end')
     scratch = sub.add_parser('scratch', help='Working memory: bounded JSON under short keys; file store, or Redis with the extra')
     ops = scratch.add_subparsers(dest='scratch_operation', required=True)
     ops.add_parser('capabilities', help='Which backend is configured and what it declares')
@@ -86,8 +91,47 @@ def read_json(path):
     return parse_json(read_text(path, 4 * 1024 * 1024), 4 * 1024 * 1024)
 
 
+def _write(stream, text):
+    """Write for a hook: a console that cannot encode a character shows a replacement, and never a traceback."""
+    try:
+        try:
+            stream.write(text)
+        except UnicodeEncodeError:
+            encoding = getattr(stream, 'encoding', None) or 'utf-8'
+            stream.write(text.encode(encoding, 'replace').decode(encoding))
+        stream.flush()
+    except (OSError, ValueError):
+        pass
+
+
+def serve(args):
+    """``memory serve``: the digest on stdout, or one line on stderr saying why not; exit 0 always.
+
+    A session-start hook must not block a session, so nothing here raises or
+    exits non-zero: a missing config file, a refused limit, no ``redis``
+    section, the extra absent, an unreachable server and an empty digest all
+    become the stderr line, and stdout stays empty.
+    """
+    from .memory_redis import serve as digest_text
+    try:
+        if os.environ.get('ATTUNE_MEMORY_WORKER') == '0':
+            text, reason = None, 'Optional memory worker route is disabled'
+        else:
+            text, reason = digest_text(read_json(args.config), limit=args.limit, chars=args.chars,
+                                       config_path=args.config)
+    except Exception as error:  # noqa: BLE001 - fail open by contract
+        text, reason = None, f'{type(error).__name__}: {error}'
+    if text is None:
+        _write(sys.stderr, f'[attune-harness memory] skipped: {" ".join(str(reason).split())}\n')
+    else:
+        _write(sys.stdout, text + '\n')
+    return 0
+
+
 def execute(args):
     configure_process()
+    if args.memory_operation == 'serve':
+        return serve(args)
     try:
         if os.environ.get('ATTUNE_MEMORY_WORKER') == '0':
             result = dict(status='disabled', detail='Optional memory worker route is disabled')
