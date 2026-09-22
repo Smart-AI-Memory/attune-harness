@@ -10,7 +10,7 @@ accuracy or qualify automatic memory curation.
 
 ## Frozen experiment
 
-The [design](../../experiments/luna_stage_contract/DESIGN.md) compared four new
+The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/luna_stage_contract/DESIGN.md) compared four new
 synthetic tasks, once each under a text-envelope contract and a native contract
 for the current stage. Each pair used the same logical prompt, evidence and
 Codex profile; arm order alternated. Requested model: `gpt-5.6-luna`, high effort,

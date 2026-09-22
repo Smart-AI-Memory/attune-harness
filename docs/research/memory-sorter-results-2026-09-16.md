@@ -18,7 +18,7 @@ complexity or adopting the current implementation.
 
 ## What was tested
 
-The [design](../../experiments/memory_sorter/DESIGN.md),
+The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_sorter/DESIGN.md),
 [cases and rubrics](../../experiments/memory_sorter/cases.json), schemas, controller,
 schedule and host profile were frozen before dispatch. Patrick authorized this
 experiment after discussing Luna as the first-pass sorter and routine worker.

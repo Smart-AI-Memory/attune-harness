@@ -6,7 +6,7 @@ This increment adds a host-controlled lifecycle around the proven citation
 contract; it does not add another router model or enable live memory writes.
 
 Patrick authorized this increment after the eight-case citation repair result.
-The [design note](../../experiments/memory_worker/DESIGN.md) preceded the code.
+The [design note](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_worker/DESIGN.md) preceded the code.
 The [worker](../../experiments/memory_worker/worker.py) imports the frozen repaired
 contract without changing its prompts, schemas, normalizer or prior campaigns.
 

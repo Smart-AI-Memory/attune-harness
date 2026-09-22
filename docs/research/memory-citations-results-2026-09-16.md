@@ -17,7 +17,7 @@ reasoning on these tasks.
 
 ## What changed
 
-The [design](../../experiments/memory_citations/DESIGN.md),
+The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_citations/DESIGN.md),
 [new cases and rubrics](../../experiments/memory_citations/cases.json),
 [adapter](../../experiments/memory_citations/citation_contract.py) and
 [runner](../../experiments/memory_citations/run_citations.py) were frozen before

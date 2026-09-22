@@ -16,7 +16,7 @@ All 27 old malformed raw outputs still fail the new contract. Stale/cross-role I
 
 ## Live comparison
 
-The separate [frozen plan](receipts/passage-review/run-01/freeze.json) covers 12 cases: nine retained regressions plus three fresh cases, repeated three times. Harness uses the new mode on all 12; the original dev5 single-pass baseline runs on the three fresh cases. Maximum 45 trials / 81 local generations / 1,200 seconds. The installed model/tokenizer and 2,048-token ceiling are pinned; failed generations are retained with no retry or fallback. The [grading rule](../experiments/passage_review/GRADING.md) is frozen before inference.
+The separate [frozen plan](receipts/passage-review/run-01/freeze.json) covers 12 cases: nine retained regressions plus three fresh cases, repeated three times. Harness uses the new mode on all 12; the original dev5 single-pass baseline runs on the three fresh cases. Maximum 45 trials / 81 local generations / 1,200 seconds. The installed model/tokenizer and 2,048-token ceiling are pinned; failed generations are retained with no retry or fallback. The [grading rule](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/passage_review/GRADING.md) is frozen before inference.
 
 The campaign finished all **45 planned trials**, using **76 local generations in 697.32 seconds**, with zero paid API calls. The installed `llama3.1:8b` Q4_K_M model, Ollama 0.31.1, seeds and tokenizer are recorded in the frozen protocol. The mechanical audit passed: retained source/input hashes, model identity, prompts, schemas, actual token counts, citation catalogs, rendered text and exact grading quotations match their receipts. This audit validates evidence integrity, not semantic truth.
 

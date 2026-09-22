@@ -32,7 +32,7 @@ atomic current-state check at the storage boundary.
 ## Method and verification
 
 Patrick authorized proceeding after asking whether the earlier recommendations
-had actually been implemented. The [design](../../experiments/memory_routing_v2/DESIGN.md)
+had actually been implemented. The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_routing_v2/DESIGN.md)
 and [seven cases with rubrics](../../experiments/memory_routing_v2/cases.json)
 were frozen before native dispatch. Private expectations and rubrics were not
 sent to participants. A bounded read-only review corrected the initial design

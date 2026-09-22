@@ -10,7 +10,7 @@ memory service or establish general model superiority.
 
 ## Execution and evidence
 
-Patrick authorized the next experiments. The [design](../../experiments/memory_routing/DESIGN.md)
+Patrick authorized the next experiments. The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_routing/DESIGN.md)
 preceded the disposable prototype; cases, schemas, controller and rubric were
 frozen before dispatch. Twenty-seven offline tests passed centrally. Two bounded
 read-only reviews covered design and code, correcting the distinction between
