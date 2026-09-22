@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added: `attune_harness.command_workspace`, the host that turns an adapter's
+  state into one rendered, one-shot decision: `CommandWorkspaceHost`, the
+  adapter protocol, the projection, transition, record and render types, and
+  `jsonl_event_writer`. Carried from Attune AI as the first step of Task 3 of
+  the spec authority. Three things differ. Its two events, a render and an
+  accept, go to a sink the caller names instead of Attune AI's telemetry file,
+  and never carry the action nonce. A workspace that reaches a terminal state
+  is evicted, with its id remembered so a replay is still refused, so a
+  long-lived host no longer grows without bound. The forms package loads on
+  first use at the pinned version, so importing the module needs nothing
+  installed. Nothing in Harness calls it yet.
 - Changed: importing a legacy plan no longer needs Attune AI. `spec_bridge`
   parses the plan's task blocks with Harness's own `spec_tasks` reader, so the
   read path is exercised in CI, where Attune AI is not installed. Output is
