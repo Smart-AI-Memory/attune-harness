@@ -7,7 +7,7 @@ contract; it does not add another router model or enable live memory writes.
 
 Patrick authorized this increment after the eight-case citation repair result.
 The [design note](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_worker/DESIGN.md) preceded the code.
-The [worker](../../experiments/memory_worker/worker.py) imports the frozen repaired
+The [worker](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_worker/worker.py) imports the frozen repaired
 contract without changing its prompts, schemas, normalizer or prior campaigns.
 
 ## Implemented behavior
@@ -85,7 +85,7 @@ also match. Exact replay data retain links and hashes for their original receipt
 
 ## Actual memory-adapter boundary
 
-The [adapter probe](../../experiments/memory_worker/probe_adapter.py) directly
+The [adapter probe](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_worker/probe_adapter.py) directly
 constructed the installed Attune 16.4.0 FileStashBackend with an explicit temporary
 directory and synthetic notes. It passed capture, close/reopen, recall, exact-ID
 forgetting, physical absence verification and preservation of an unrelated note.
@@ -143,7 +143,7 @@ Evidence: [verification and source hashes](../receipts/memory-worker-2026-09-16/
 [persisted replay records](../receipts/memory-worker-2026-09-16/worker-replay.json),
 [real adapter observations](../receipts/memory-worker-2026-09-16/adapter-probe.json),
 [central test output](../receipts/memory-worker-2026-09-16/suite.txt).
-The [receipt collector](../../experiments/memory_worker/verify_worker.py) refuses
+The [receipt collector](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_worker/verify_worker.py) refuses
 to overwrite an existing destination. Production packages and the non-executable
 plan/build outline are unchanged by this increment.
 

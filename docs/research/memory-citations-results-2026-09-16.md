@@ -18,9 +18,9 @@ reasoning on these tasks.
 ## What changed
 
 The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_citations/DESIGN.md),
-[new cases and rubrics](../../experiments/memory_citations/cases.json),
-[adapter](../../experiments/memory_citations/citation_contract.py) and
-[runner](../../experiments/memory_citations/run_citations.py) were frozen before
+[new cases and rubrics](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_citations/cases.json),
+[adapter](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_citations/citation_contract.py) and
+[runner](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_citations/run_citations.py) were frozen before
 native dispatch. Patrick authorized proceeding with the citation repair recommendation.
 
 The repaired model-facing schema requires nonempty reference arrays and limits
