@@ -18,8 +18,10 @@ class-level checks below are cheap and most of those findings were in them.
 
 Read-only. Never edit a file. Work from `git archive <branch>` extracted into
 the scratchpad, never from the working tree, which another session or the
-author may switch under you. Write probe scripts only outside the
-repository. Report findings; the author reproduces each before fixing.
+author may switch under you. `scripts/review_prep.sh <branch>` makes that
+archive, writes the diff against the base beside it and scaffolds the
+mutation table. Write probe scripts only outside the repository. Report
+findings; the author reproduces each before fixing.
 
 ## What to do, in order
 
@@ -39,7 +41,9 @@ repository. Report findings; the author reproduces each before fixing.
    which test could pass with a plausible bug present; what depends on the
    environment (cwd, platform, root, an installed extra).
 5. **Python 3.10 and Windows.** No newer syntax or stdlib; nothing that only
-   POSIX provides without a guard.
+   POSIX provides without a guard. Check the change against each entry of
+   [the Windows traps](windows-traps.md): append, case folding, device
+   names, replace under an open handle, console script paths.
 6. **No `import attune`**, and no dependency on Attune AI, anywhere in the
    new files.
 
@@ -52,3 +56,6 @@ was checked and found fine, so the author knows what not to re-verify.
 
 The author records the review in the pull request under `## Review`: who
 reviewed, the verdict, each finding and what changed, the held list in short.
+Then one row in [the findings log](review-findings.md), with each finding
+sorted into its class; the classes there are what this brief's steps are
+rewritten from.
