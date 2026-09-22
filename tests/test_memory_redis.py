@@ -16,6 +16,7 @@ import pytest
 
 from attune_harness import memory_redis
 from attune_harness.features import FeatureUnavailable
+from attune_harness import memory_cli
 from attune_harness.memory_cli import main as memory_main
 from attune_harness.memory_redis import (
     INDEX,
@@ -333,6 +334,11 @@ def test_read_is_disabled_without_a_redis_section_and_dispatches_with_one():
 
 
 def test_cli_redis_verbs(tmp_path, capsys, monkeypatch):
+    # configure_process points structlog at the sys.stderr of the moment, which
+    # under capture is a stream pytest closes after the test; later tests would
+    # then fail with "I/O operation on closed file". It is process start-up
+    # work, not part of what this test proves.
+    monkeypatch.setattr(memory_cli, "configure_process", lambda: None)
     config = tmp_path / "memory.json"
     config.write_text(json.dumps({"redis": SETTINGS}), encoding="utf-8")
     fake = FakeRedis()
