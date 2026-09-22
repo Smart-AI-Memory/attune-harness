@@ -10,6 +10,10 @@ from .features import FeatureUnavailable, read_text
 from .review_contract import parse_json
 
 
+# The layers the hydration writes; test_memory_redis asserts this equals memory_redis.LAYERS.
+REDIS_LAYERS = ('curated', 'file', 'lesson', 'rule')
+
+
 def configure_process():
     """Disable the usage-ping uploader; preserve accounting and team transports."""
     os.environ['ATTUNE_USAGE_PING'] = '0'
@@ -57,7 +61,7 @@ def add_arguments(parser):
     reads.add_parser('node', help='One curated node by id').add_argument('id')
     search = reads.add_parser('search', help='Full-text search; pointers only, never a body')
     search.add_argument('query')
-    search.add_argument('--layer', choices=('curated', 'file', 'lesson', 'rule'))
+    search.add_argument('--layer', choices=REDIS_LAYERS)
     search.add_argument('--k', type=int, default=10)
 
 

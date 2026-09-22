@@ -7,13 +7,17 @@
   Task 4 (D16, D18). It reads the Redis Stack keyspace a hydration keeps warm,
   `attune:memory:*` with the `idx:attune_memory` index and the `recall_digest`
   and `recall_related` functions, and issues no write. Every answer is an
-  evidence packet with an authority binding (host, index, prefix, hydration
-  stamp) and the untrusted-evidence guidance; `search` returns pointers and
-  never a body. The backend is chosen at startup from the memory config's
+  evidence packet with an authority binding (host, index, hydration stamp)
+  and the untrusted-evidence guidance; the `text` body of a file, lesson or
+  rule pointer is never served, a curated node's own record is what its reads
+  return. Every id `search` hands back is one `node` accepts, bare for a
+  curated node and family-qualified for a pointer; `related` follows the
+  hydration's function and refuses a lesson or rule id rather than answering
+  that it does not exist. The backend is chosen at startup from the memory config's
   `redis` section (a URL or the variable that holds it, an optional password
-  variable); a configured Redis that is unreachable or not yet hydrated is
-  `unavailable` with the reason, nothing is diverted to a file, and no `redis`
-  section means `disabled`.
+  variable); a configured Redis that is unreachable, or without the index or
+  the `attune_memory` function library, is `unavailable` with the reason,
+  nothing is diverted to a file, and no `redis` section means `disabled`.
 - Changed: `pip install attune-harness` now installs what the review, test,
   acceptance and MCP journeys need: `attune-forms`, `attune-verify`,
   `attune-rag`, `mcp` and `tiktoken`, pinned exactly, where before each was an
