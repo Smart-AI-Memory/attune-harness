@@ -10,6 +10,10 @@ from .features import FeatureUnavailable, read_text
 from .review_contract import parse_json
 
 
+# The layers the hydration writes; test_memory_redis asserts this equals memory_redis.LAYERS.
+REDIS_LAYERS = ('curated', 'file', 'lesson', 'rule')
+
+
 def configure_process():
     """Disable the usage-ping uploader; preserve accounting and team transports."""
     os.environ['ATTUNE_USAGE_PING'] = '0'
@@ -48,6 +52,17 @@ def add_arguments(parser):
     execute = sub.add_parser('execute', help='Run one proposal-only native job')
     execute.add_argument('run_id')
     execute.add_argument('job_id')
+    redis = sub.add_parser('redis', help='Read the Redis memory a hydration keeps warm (redis extra); read-only')
+    reads = redis.add_subparsers(dest='redis_operation', required=True)
+    reads.add_parser('status', help='Hydration stamp, active node count and count per layer')
+    digest = reads.add_parser('digest', help='The curated nodes the recall_digest function scores highest')
+    digest.add_argument('--limit', type=int, default=5)
+    reads.add_parser('related', help='One node and the nodes its edges reach').add_argument('id')
+    reads.add_parser('node', help='One curated node by id').add_argument('id')
+    search = reads.add_parser('search', help='Full-text search; pointers only, never a body')
+    search.add_argument('query')
+    search.add_argument('--layer', choices=REDIS_LAYERS)
+    search.add_argument('--k', type=int, default=10)
 
 
 def add_commands(subparsers):
@@ -64,6 +79,11 @@ def execute(args):
     try:
         if os.environ.get('ATTUNE_MEMORY_WORKER') == '0':
             result = dict(status='disabled', detail='Optional memory worker route is disabled')
+        elif args.memory_operation == 'redis':
+            from .memory_redis import read
+            arguments = {key: getattr(args, key) for key in ('limit', 'id', 'query', 'layer', 'k')
+                         if getattr(args, key, None) is not None}
+            result = read(read_json(args.config), args.redis_operation, arguments)
         else:
             from .memory_context import MemoryHost
             native = read_json(args.native_config) if args.native_config is not None else None
