@@ -1016,3 +1016,48 @@ before the RC period; land what passes against `main` unchanged, list what does 
 with its cause, and then delete the branch or leave it with a note. Done when the
 branch is either landed by content or recorded as superseded. Effort: medium.
 Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22 (second pass, after the link closure and the experiment
+removal): nothing checks documentation links, and tonight showed the cost. Four
+pull requests, #35 to #38, existed only to make links under `docs/` resolve, and
+#40 rewrote 26 more after #39 removed their targets. The closure computed
+afterwards leaves 31 links dead in every branch: 11 absolute paths on Patrick's
+machine (`/Users/patrickroebuck/...`, `/private/tmp/...`), 13 into the git-ignored
+`docs/receipts/`, and 7 others (`.pilot/`, two untracked files, `docs/reference.md`).
+No workflow reads a link; the only `path.is_file()` check in `.github/` is the
+publish workflow's wheel check. Candidate follow-up: a job in the docs-classified
+path that resolves every relative `.md` link in the repository and fails on one
+that does not exist, with the 31 known ones listed in the workflow until each is
+fixed or cut; and one line in `AGENTS.md` that a document never links to an
+absolute local path or into `docs/receipts/`. Done when a pull request that adds a
+dead link cannot show green. Effort: small. Nothing is changed or authorized by
+this note.
+
+Unnumbered, 2026-09-22 (second pass): `docs/` on `main` is now mostly dated
+evidence, and nothing tells a reader which files are current. After #38 there are
+191 Markdown files under `docs/`, and 118 of them carry a September 2026 date in
+their first five lines: results, receipts, baselines and design notes carried over
+so that links resolve. They sit beside the living documents (`cli-guide.md`,
+`release-runbook.md`, the spec-authority folder, the opportunity log) with nothing
+to separate them, and several describe Attune AI behaviour that the spec-authority
+direction is removing. Candidate follow-up: a `docs/README.md` with two lists, the
+living documents and the dated evidence by date, each entry one line; or, larger,
+move the dated files under `docs/evidence/` and let the link check above keep the
+paths honest. Done when a newcomer to `main` can find the five documents that
+matter without opening any of the other 186. Effort: small for the index, medium
+for the move. Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22 (second pass): merges were delegated three times tonight,
+and the rule that let it work is not written down. `AGENTS.md` says branch
+protection decides what merges, and every pull request body says "merge is
+Patrick's". For #38, #39 and #40 Patrick wrote "merge it when green and delete the
+branch", and the agent merged by squash after every check had settled (zero
+non-green, skipped allowed for docs-only), then deleted the branch only after
+reading `MERGED` from the API. Earlier the same night the agent deleted an open pull
+request's branch on a spoken "I merged it" and closed #37 by doing so; the gate was
+added after that. Candidate follow-up: two sentences in `AGENTS.md`: an agent may
+merge a docs-only or chore pull request on Patrick's explicit go for that pull
+request, never one that touches `src/`, and only after the checks have settled; and
+a branch is deleted only after the API reports the pull request merged. Done when
+the rule is in the file the agents read. Effort: small. Nothing is changed or
+authorized by this note.
