@@ -85,9 +85,9 @@ attune-harness resume /tmp/my-work --allow-external
 Use the checkpoint returned by the preceding command each time. `--run` asks the
 configured planner for a proposal; `--stage` makes it a new unaccepted draft.
 `--accept` submits the explicit console choice through Harness's own Spec
-collector. It needs the `review` extra (`pip install 'attune-harness[review]'`),
-which supplies the forms package that renders the decision; Attune AI is not
-needed, and core imports and help stay independent of the extra. Until Task 3 of
+collector. The forms package that renders the decision is part of the base
+install since 0.4.0 (before that, the `review` extra); Attune AI is not needed,
+and core imports and help stay independent of it. Until Task 3 of
 the spec authority the collector was Attune AI's; that arrangement is recorded in
 [Task 6's results](plan-build-task6-results.md). Installing Harness does not
 upgrade an active MCP host.

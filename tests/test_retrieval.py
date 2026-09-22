@@ -81,7 +81,7 @@ def test_missing_or_wrong_rag_is_unavailable(corpus,monkeypatch):
     def absent(_):
         raise features.PackageNotFoundError()
     monkeypatch.setattr(features,'version',absent)
-    with pytest.raises(FeatureUnavailable,match=r'attune-harness\[rag\]'):
+    with pytest.raises(FeatureUnavailable,match=r'Reinstall attune-harness with its dependencies; attune-rag is missing'):
         retrieve_sources('quartz',corpus)
 
 

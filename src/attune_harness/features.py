@@ -14,12 +14,21 @@ class FeatureUnavailable(RuntimeError):
     """A selected optional capability is absent or not the qualified version."""
 
 
+# Names that were extras before 0.4.0 and are part of the base install now.
+# A missing one means the package was installed without its dependencies.
+BASE_EXTRAS = frozenset({'tokens', 'verify', 'rag', 'review', 'mcp'})
+
+
 def require_feature(distribution: str, module: str, expected: str, extra: str):
     """Load only the explicitly selected, version-qualified integration."""
     try:
         installed = version(distribution)
     except PackageNotFoundError as exc:
-        raise FeatureUnavailable(f"Install attune-harness[{extra}]; {distribution} is missing") from exc
+        if extra in BASE_EXTRAS:
+            hint = f"Reinstall attune-harness with its dependencies; {distribution} is missing"
+        else:
+            hint = f"Install attune-harness[{extra}]; {distribution} is missing"
+        raise FeatureUnavailable(hint) from exc
     if installed != expected:
         raise FeatureUnavailable(f"{distribution} {installed} is unsupported; install {distribution}=={expected}")
     try:

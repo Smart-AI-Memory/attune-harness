@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Changed: `pip install attune-harness` now installs what the review, test,
+  acceptance and MCP journeys need: `attune-forms`, `attune-verify`,
+  `attune-rag`, `mcp` and `tiktoken`, pinned exactly, where before each was an
+  extra a user had to know to ask for (D15). `voyage` and `memory-native` stay
+  extras because they make paid calls. The old extra names `verify`, `rag`,
+  `review`, `mcp` and `tokens` still install as empty extras until 1.0, so an
+  existing command line keeps working. Every dependency still loads on first
+  use through the same gate, so a wheel installed without its dependencies
+  reports each missing piece instead of failing; the report for a piece of the
+  base now says to reinstall with dependencies rather than naming an extra.
+
 ## 0.3.0
 
 Spec support is Harness's own, alpha. The plan reader, the state reader and
