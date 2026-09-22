@@ -123,9 +123,11 @@ tests and model quality are different claims, and this project keeps them apart.
 
 Harness is the successor I am building to
 [attune-ai](https://pypi.org/project/attune-ai/). It starts from a constraint
-attune-ai never had: the core must run with no provider SDK and nothing else from
-the Attune family installed. The Attune libraries come in as extras, where you can
-see exactly what each one adds.
+attune-ai never had: it runs with no provider SDK and no attune-ai installation.
+The Attune libraries it does use, forms, claim verification and local retrieval,
+are part of the install, pinned exactly, and each loads only when the command that
+needs it runs, so what the install adds is visible and nothing calls a model
+unless you install an extra that does.
 
 attune-ai is still where cross-session memory, the Claude Code plugin and the
 multi-agent workflows live. Harness does not replace those today. If that is what
