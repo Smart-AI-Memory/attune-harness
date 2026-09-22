@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Changed: the run store's writer lease waits a bounded time, two seconds
+  like the record replace and the event writer's lock, before it reports
+  `Run is busy; another owner holds the writer lock`. Two callers touching
+  one run in the same moment no longer turn a millisecond overlap into a
+  refusal a human has to act on; a holder that keeps the lock past the
+  bound is refused in the same words, and nothing runs unlocked. Only a lock
+  another owner holds is retried; a file system that cannot grant one is
+  reported at once, as `Run lock cannot be taken here`, where it used to be
+  called busy. Tests that hold a lease and expect the refusal now see it
+  after the bound; the bound is `review_store.LEASE_RETRY_SECONDS`, read
+  when the lease is taken.
 - Added: `attune-harness memory serve [--limit N] [--chars N]`, the recall
   digest as compact plain text for a session-start hook: a header with the
   count, the hydration stamp and the host, one line per curated node, and a

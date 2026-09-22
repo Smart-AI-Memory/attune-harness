@@ -17,6 +17,9 @@ class PersistenceError(OSError):
 
 
 REPLACE_RETRY_SECONDS = 2.0
+# How long a contender tries for the writer lock before the run is reported
+# busy: the same bound as the record replace and the event writer's lock.
+LEASE_RETRY_SECONDS = 2.0
 
 
 def _replace(source: Path, target: Path) -> None:
@@ -27,6 +30,16 @@ def _replace(source: Path, target: Path) -> None:
     record that cannot be persisted still stops dispatch.
     """
     replace_file(source, target, retry_seconds=REPLACE_RETRY_SECONDS)
+
+
+def _try_lock(fd: int) -> None:
+    """Take the writer lock once, without waiting; OSError when another holder has it."""
+    if os.name == 'nt':
+        import msvcrt
+        msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
 
 class RunStore:
@@ -42,10 +55,20 @@ class RunStore:
         self.path = self.directory / 'record.json'
 
     @contextmanager
-    def lease(self):
-        """One process owns mutation; the OS releases the lock after a crash."""
+    def lease(self, *, retry_seconds=None):
+        """One process owns mutation; the OS releases the lock after a crash.
+
+        The lock is tried without waiting and retried for ``retry_seconds``
+        (``LEASE_RETRY_SECONDS`` unless given), so an overlap of milliseconds,
+        two callers touching one run at the same moment, becomes a grant for
+        the second once the first is done, while a holder that keeps the lock
+        past the bound is still reported, in the same words as before, and
+        nothing runs unlocked.
+        """
         if os.name not in ('posix', 'nt'):
             raise FeatureUnavailable('Review mutation/recovery requires POSIX or Windows file locks')
+        if retry_seconds is None:
+            retry_seconds = LEASE_RETRY_SECONDS
         lock = self.directory / '.writer.lock'
         if os.name == 'nt':
             from .windows import open_lock
@@ -53,15 +76,15 @@ class RunStore:
         else:
             fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
         try:
-            try:
-                if os.name == 'nt':
-                    import msvcrt
-                    msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-                else:
-                    import fcntl
-                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except OSError as exc:
-                raise PersistenceError('Run is busy; another owner holds the writer lock') from exc
+            deadline = time.monotonic() + retry_seconds
+            while True:
+                try:
+                    _try_lock(fd)
+                    break
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise PersistenceError('Run is busy; another owner holds the writer lock') from exc
+                    time.sleep(0.005)
             yield
         finally:
             os.close(fd)
