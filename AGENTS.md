@@ -106,6 +106,16 @@ those limits. No agent can widen them.
 - The author of a change does not review it. Before merging anything that
   touches `src/`, get a review from a different model or from Patrick, and
   record in the pull request who reviewed it and what they found.
+- Merging is Patrick's, with one delegation. On his explicit go for a named
+  pull request ("merge it when green"), an agent may merge a pull request that
+  touches no file under `src/` or `tests/`, by squash, after every check has
+  settled: zero pending, and nothing failed. A go for one pull request is not
+  a go for the next. A pull request that touches `src/` waits for Patrick
+  whatever the checks say.
+- Delete a branch only after the API reports its pull request merged. A spoken
+  "I merged it" can be an intention or a click that failed; deleting the head
+  branch of an open pull request closes it. Local copies of squash-merged
+  branches need `-D`, after comparing the tip to the merged head.
 - Nothing enforces that. Every agent here acts through Patrick's one GitHub
   account, so GitHub cannot tell author from reviewer, and requiring an approval
   would block every pull request. It is on your honour. The enforced
