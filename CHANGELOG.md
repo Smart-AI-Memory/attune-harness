@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
+
+Spec support is Harness's own, alpha. The plan reader, the state reader and
+writer, the path validator, the command workspace host and the Spec adapter
+are carried from Attune AI and adapted, and `plan --accept` runs with the
+`review` extra and no Attune AI installed. The two modules that plugged
+Harness into Attune AI's plugin registry and MCP server are removed;
+`attune-harness mcp-serve` serves repository evidence over MCP. Interfaces
+may still change before 1.0; the README's qualification table says what is
+and is not covered.
 
 - Changed: `plan --accept` no longer needs Attune AI. The bridge hosts the
   decision with Harness's own `command_workspace` and `spec_workspace`, the
