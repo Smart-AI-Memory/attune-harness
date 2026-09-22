@@ -75,13 +75,28 @@ def check(python: Path, mode: str) -> dict:
             before=found['corpus']['version']
             reference.write_text('# Quartz retention policy\nChanged source.\n',encoding='utf-8')
             assert run(retrieval,0,'retrieved')['corpus']['version']!=before
-        console=subprocess.run([str(python.parent/'attune-harness'),'--help'],cwd=root,text=True,capture_output=True)
+        console=subprocess.run([str(console_script(python)),'--help'],cwd=root,text=True,capture_output=True)
         assert console.returncode==0 and all(
             command in console.stdout for command in ('plan', 'review', 'fix', '--help-all'))
-        catalog=subprocess.run([str(python.parent/'attune-harness'),'--help-all'],cwd=root,text=True,capture_output=True)
+        catalog=subprocess.run([str(console_script(python)),'--help-all'],cwd=root,text=True,capture_output=True)
         assert catalog.returncode==0 and all(
             command in catalog.stdout for command in ('verify', 'retrieve', 'memory'))
     return {'mode':mode,'cases':cases,'provider_dependencies_absent':True,'memory':memory}
+
+
+def console_script(python):
+    """The installed ``attune-harness`` entry point beside this interpreter, on any platform.
+
+    POSIX puts it next to ``python`` in ``bin/``. Windows puts ``attune-harness.exe``
+    in ``Scripts\\``, which is beside a venv's ``python.exe`` or, for an
+    interpreter installed at a root such as the hosted tool cache, one level down.
+    """
+    parent = python.parent
+    for candidate in (parent/'attune-harness', parent/'attune-harness.exe',
+                      parent/'Scripts'/'attune-harness.exe', parent/'Scripts'/'attune-harness'):
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f'No attune-harness console script beside {python}')
 
 
 def memory_checks(run, python, root, mode):
