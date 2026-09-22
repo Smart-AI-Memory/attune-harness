@@ -452,10 +452,12 @@ def test_two_simultaneous_processes_never_accept_twice(work, tmp_path):
     Here the store's lease is what decides, and what it decides is safety,
     not liveness. Never two acceptances. Usually one: the loser is told the
     run is busy, by retain_decision or by the bind under the lease, or one of
-    the bridge's unlocked reads refuses it. Sometimes none: the lease is
-    non-blocking, so a loser of a millisecond race for it is told the run is
-    busy and gives up, and when the other child was the one whose display had
-    already been replaced, both are refused. The Windows platform job showed
+    the bridge's unlocked reads refuses it. Sometimes none: the lease waits a
+    bounded two seconds, so a loser of a race for it is usually granted the
+    lock once the winner is done and then refused by the store's own reads;
+    a loser that waits past the bound is told the run is busy and gives up;
+    and when the other child was the one whose display had already been
+    replaced, both are refused. The Windows platform job showed
     that order. Nothing is consumed for good in that case: the draft is
     intact and a fresh opener gets the grant.
     """

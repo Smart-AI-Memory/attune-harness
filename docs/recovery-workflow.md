@@ -43,8 +43,10 @@ credential or spending approval. Completed runs are returned without invoking an
 participants. Inspection and completed-run replay are historical evidence, not a
 fresh verification of external state.
 
-All mutation commands acquire a nonblocking OS file lock. A second owner receives
-busy immediately; a dead process's lock is released by the OS. The lock file is
+All mutation commands acquire an OS file lock without blocking, retrying for a
+bounded two seconds. A second owner that arrives while the first is still
+working is granted the lock when the first is done within that bound, and
+receives busy otherwise; a dead process's lock is released by the OS. The lock file is
 retained, because removing its inode could let competing owners acquire different
 locks. A copied run directory is rejected for mutation. Do not bypass the binding
 by editing record_path or copying a record back over another owner. Record files
