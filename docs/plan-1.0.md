@@ -23,9 +23,8 @@ authority, the non-programmer walkthrough, should not wait either.
 **Where things stand.** 0.3.0 is on PyPI with its tag and Release. `main` is
 at `0.4.0.dev0` and carries the batteries-included install (D15, amended),
 the `redis` extra, `memory redis` and `memory scratch` (Task 4.1 to 4.3,
-D16 to D18), and the review loop as data. Open as this is written: #71
-`memory serve`, #72 the lease's bounded wait, #73 the golden envelope
-table. The last `import attune` under `src/` is `memory_context.py`.
+D16 to D18), and the review loop as data. All three landed the same evening, and 0.4.0 shipped from `9b15502`; Phase 1 below is
+the record of what that took. The last `import attune` under `src/` is `memory_context.py`.
 
 ## How to read the tables
 
@@ -103,7 +102,7 @@ Release: 1.0.0rc1 to TestPyPI through the runbook's `testpypi` target, then
 
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
-| 4.1 | Interface freeze | The envelope table (`docs/envelopes.md`, #73) becomes the compatibility contract, with the gaps #73 recorded settled: `schema_version` on the `plan`, `build`, `status` and `memory scratch` envelopes, `status` on `code-config`, `triage-check`, `repair-economics` and `github-checks`; the config formats (memory config with `redis` and `scratch`, task records, plan state) and the CLI verbs written down with a deprecation path; the empty extra names removed as the changelog promised | Which shapes change before the freeze and which are frozen as they are | 2 |
+| 4.1 | Interface freeze | [The envelope table](envelopes.md) becomes the compatibility contract, with the gaps #73 recorded settled: `schema_version` on the `plan`, `build`, `status` and `memory scratch` envelopes, `status` on `code-config`, `triage-check`, `repair-economics` and `github-checks`; the config formats (memory config with `redis` and `scratch`, task records, plan state) and the CLI verbs written down with a deprecation path; the empty extra names removed as the changelog promised | Which shapes change before the freeze and which are frozen as they are | 2 |
 | 4.2 | Windows | Either `fix` and `test` qualified on Windows for the cases the README names (deletion and renames, ACLs, files over 64 KiB, crash recovery, concurrent writers) or a written decision that Windows is a documented limit at 1.0 with WSL2 as the route to the POSIX profile (D6's Windows note) | This is the one decision that changes the size of the phase by a factor of three | 1, or 4 to 6 |
 | 4.3 | Executable plugins: implementation | The spec from 3.5 implemented and qualified; the README's protocols row no longer lists arbitrary executable plugins as unqualified | none new if 3.5 settled the trust model | 2 to 4 |
 | 4.4 | End the memory transition (ladder 9, N5) | attune-ai memory formats declared frozen; the differential tests and the adapter fallback removed once attune-ai stops writing; the fate of `attune_bridge.py`, the `harness` extra and `attune-redis`'s attune-ai dependency settled | Whether attune-ai stops writing before 1.0 | 1 |

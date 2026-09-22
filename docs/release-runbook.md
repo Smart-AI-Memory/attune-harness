@@ -11,7 +11,7 @@ settings change himself. See [AGENTS.md](../AGENTS.md).
 Nothing in a checkout shows these. Check them before relying on them, and
 update this table when they change.
 
-| Where | Setting | Value on 2026-09-21 |
+| Where | Setting | Value on 2026-09-22 |
 | --- | --- | --- |
 | GitHub environment `pypi` | Branches allowed to deploy | `main` |
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
@@ -106,6 +106,36 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
   concluding the publish failed.
 - **A pull request that was green says it is behind.** Another merge landed
   first. Update the branch and wait for the checks again.
+- **A platform job fails in "Build and install library" with `No matching
+  distribution found for setuptools>=77 (from versions: none)`.** The runner
+  got an empty index page, not a real resolution failure; 0.4.0's reopen saw
+  it once on Windows 3.10. Wait for the run to finish, then
+  `gh run rerun <run-id> --failed`; a rerun request while the run is still
+  going is refused.
+- **`SHA256SUMS` in `release-evidence` names the files as `dist/<name>`.**
+  Check it from the directory that holds `dist/`, and compare basenames
+  against PyPI's `urls[].filename`.
+
+## Automating the steps
+
+0.4.0 ran steps 2 to 9 from scripts, with Patrick's authorization for the
+environment approval ("approve the deployment for me"), which the run's
+approval comment records. What those scripts learned, for the next ones:
+
+- Find a run for a commit with `gh run list --commit <sha>`; `gh run list
+  --jq` takes no `--arg`.
+- `gh pr checks` exits 8 while any check is pending; under `set -e` a
+  `var=$(gh pr checks …)` assignment kills the script.
+- Approving the environment is `POST
+  /repos/{owner}/{repo}/actions/runs/{run}/pending_deployments` with
+  `{"environment_ids": [<id>], "state": "approved", "comment": …}`; the
+  response is a list of environment objects. Read the environment id from
+  `GET /repos/{owner}/{repo}/environments/pypi`.
+- Verify the tag with `git tag -v` into a file, then grep the file; piping
+  into `grep -q` under `pipefail` ends the pipeline with the signal `git`
+  gets when `grep` closes early.
+- Wrap the tag message with `fold -s` and strip the leading space `fold`
+  leaves on continuation lines.
 
 ## TestPyPI rehearsal
 

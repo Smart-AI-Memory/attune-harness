@@ -46,25 +46,28 @@ exact" when the review confirmed a carried module changed nothing.
 | #64 | The base install carries the journeys | request changes | 1/7/5 | install, claim, test | `mcp` 2.2.0 in the base against attune-ai's 1.29.1 (decided, D15 amended); five documents stating the retired constraint |
 | #66 | Read the Redis memory a hydration keeps warm | request changes | 1/7/8 | round-trip, mapping, claim, test | Search ids that `node` would not take, and a test that enshrined it; a `prefix` setting the Lua functions ignored |
 | #67 | Working memory behind one interface | request changes | 2/5/6 | bound, platform, input, fallback, test | A bound on the wrong bytes; case-folded file names; `CON` as a key; no reclaim of expired files |
+| #71 | `memory serve`, the digest as text for a hook | request changes | 2/4/6 | fallback, claim, input, bound, mapping | A pipe whose reader has gone turned exit 0 into exit 120 at the interpreter's exit flush; a `None` stream; ANSI and NUL reaching the banner; an O(n²) trim that could outlast a hook timeout |
+| #72 | The lease waits a bounded time | request changes | 0/3/5 | fallback, claim, input, test | A lock the file system cannot grant waited the whole bound and was called busy; two documents still said the refusal was immediate; `nan` as the bound looped forever; dropping the poll's sleep survived every test |
 
 ## What the log says so far
 
-Fourteen reviews. Every `src/` change since the command workspace host (#54)
+Sixteen reviews. Every `src/` change since the command workspace host (#54)
 had a request-changes verdict except the one pure carry (#58), so a review
 that finds nothing is the exception, not the norm.
 
-By class, over the six reviews with a full record (#58 to #67):
+By class, over the eight reviews with a full record (#58 to #72):
 
 | Class | Findings | Where the author's tests were blind |
 |---|---|---|
-| test | 13 | The author's mutation runs missed the mutations the reviewer chose, or a test's `match` was too wide to fail |
-| claim | 12 | Prose is not executed; the reviewer read every sentence against the code |
-| input | 6 | The seam's own inputs, one past the ones the design note listed |
+| claim | 17 | Prose is not executed; the reviewer read every sentence against the code |
+| test | 14 | The author's mutation runs missed the mutations the reviewer chose, or a test's `match` was too wide to fail |
+| input | 8 | The seam's own inputs, one past the ones the design note listed |
+| fallback | 5 | A degradation nobody made happen: a gone pipe, a `None` stream, a lock no file system grants |
+| mapping | 5 | An error path nobody triggered |
 | platform | 4 | macOS ran the suite; the defect needed NTFS, the C runtime or a Windows runner (a fifth, the console script path, was found by the job itself) |
-| mapping | 4 | An error path nobody triggered |
-| fallback | 2 | A degradation nobody made happen |
+| bound | 3 | A limit measured on the wrong bytes, or a loop quadratic in what the server returns |
 | install | 2 | Metadata resolved in a fresh environment, not the developer's |
-| layer, round-trip, bound, wait | 1 each | Each one a blocker or a should-fix, none caught by a test |
+| layer, round-trip, wait | 1 each | Each one a blocker or a should-fix, none caught by a test |
 
 Two steps of the brief came out of this table: the author runs the brief
 first (after the six carried steps in a row where a review found something

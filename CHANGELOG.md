@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Docs: findings-log rows for the `memory serve` and lease reviews and the
+  tally over eight full records; the 1.0 plan links the envelope table now
+  that it is on `main`; the release runbook records what automating 0.4.0's
+  steps taught, including the empty-index flake on a platform job and the
+  `dist/` prefix in `SHA256SUMS`.
+
 ## 0.4.0
 
 The install is batteries-included and memory is served. `pip install
