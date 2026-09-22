@@ -27,6 +27,7 @@ Licensed under the Apache License, Version 2.0
 from __future__ import annotations
 
 import fnmatch
+import hashlib
 import json
 import os
 import re
@@ -34,7 +35,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Protocol, runtime_checkable
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 from .features import replace_file
 from .memory_redis import MemoryRedisUnavailable, open_client, validate_config as validate_redis
@@ -46,8 +47,16 @@ VALUE_LIMIT = 64 * 1024
 TTL_MAX = 30 * 24 * 3600
 REDIS_PREFIX = "attune:harness:scratch:"
 BACKENDS = ("file", "redis")
+# Room for the record around the value: the key, two stamps and the version.
+RECORD_LIMIT = VALUE_LIMIT + 4096
 _CONFIG_KEYS = frozenset({"backend", "root", "namespace"})
 _SCAN_COUNT = 500
+_RECORD_FIELDS = ("schema_version", "key", "value", "stored_at", "expires_at")
+# Characters a file name keeps as they are; every other one, including an
+# upper-case letter, is percent-encoded, so two keys that differ only in case
+# are two files on a case-insensitive file system.
+_PLAIN = frozenset("abcdefghijklmnopqrstuvwxyz0123456789_.-")
+_NAME_MAX = 200
 
 
 @runtime_checkable
@@ -93,6 +102,46 @@ def _check_pattern(pattern):
 
 def _now():
     return datetime.now(timezone.utc)
+
+
+def _record(key, text, ttl):
+    now = _now()
+    record = {
+        "schema_version": 1,
+        "key": key,
+        "value": json.loads(text),
+        "stored_at": now.isoformat(),
+        "expires_at": (now + timedelta(seconds=ttl)).isoformat() if ttl else None,
+    }
+    # Compact, so what is written is what the bound measured plus the envelope,
+    # and a value inside the limit always reads back.
+    payload = json.dumps(record, ensure_ascii=True, allow_nan=False, sort_keys=True, separators=(",", ":"))
+    if len(payload.encode("utf-8")) > RECORD_LIMIT:
+        raise ValueError(f"Scratch value is limited to {VALUE_LIMIT} bytes as canonical JSON")
+    return record, payload
+
+
+def _well_formed(record, key):
+    """The stored record, or None when it is not a complete record for this key."""
+    if not isinstance(record, dict) or set(record) != set(_RECORD_FIELDS):
+        return None
+    if record["schema_version"] != 1 or record["key"] != key:
+        return None
+    if record["expires_at"] is not None and not isinstance(record["expires_at"], str):
+        return None
+    if not isinstance(record["stored_at"], str):
+        return None
+    return record
+
+
+def _expired(record):
+    expires = record["expires_at"]
+    if expires is None:
+        return False
+    try:
+        return datetime.fromisoformat(expires) <= _now()
+    except ValueError:
+        return True
 
 
 def validate_config(value):
@@ -141,54 +190,68 @@ class FileScratch:
     def capabilities(self):
         return {"backend": "file", "shared": False, "realtime": False, "location": str(self.directory)}
 
+    @staticmethod
+    def _name(key):
+        """A file name that is one-to-one with the key on every file system.
+
+        Lower-case letters, digits, '_', '.' and '-' stay; everything else,
+        including an upper-case letter and ':', is percent-encoded, so keys
+        that differ only in case are different files where names fold case.
+        The 'k-' prefix keeps a name such as CON or NUL from being a Windows
+        device. A name that would pass 200 characters is cut and given the
+        key's digest, since ':' costs three characters encoded and file
+        systems stop near 255; the key itself is kept inside the record.
+        """
+        encoded = "".join(char if char in _PLAIN else f"%{ord(char):02X}" for char in key)
+        if len(encoded) > _NAME_MAX:
+            encoded = encoded[:_NAME_MAX - 17] + "-" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
+        return f"k-{encoded}.json"
+
     def _path(self, key):
-        # Keys may hold ':' and '.', which some file systems refuse or rewrite;
-        # the file name is the key percent-encoded, and the key is kept inside.
-        return self.directory / (quote(_check_key(key), safe="") + ".json")
+        return self.directory / self._name(_check_key(key))
+
+    def _ensure_directory(self):
+        self.directory.mkdir(parents=True, exist_ok=True)
+        if self.directory.resolve() != self.directory:
+            raise ValueError("Scratch directory cannot be, or sit in, a symlink")
 
     def stash(self, key, value, ttl_seconds=None):
         path = self._path(key)
         text = _check_value(value)
         ttl = _check_ttl(ttl_seconds)
-        now = _now()
-        record = {
-            "schema_version": 1,
-            "key": key,
-            "value": json.loads(text),
-            "stored_at": now.isoformat(),
-            "expires_at": (now + timedelta(seconds=ttl)).isoformat() if ttl else None,
-        }
-        self.directory.mkdir(parents=True, exist_ok=True)
+        record, payload = _record(key, text, ttl)
+        self._ensure_directory()
         if path.is_symlink():
             raise ValueError("Scratch entry cannot be a symlink")
-        payload = json.dumps(record, ensure_ascii=True, allow_nan=False, indent=2) + "\n"
         handle, name = tempfile.mkstemp(prefix=".scratch-", suffix=".json", dir=self.directory)
         try:
             with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
-                stream.write(payload)
+                stream.write(payload + "\n")
             replace_file(Path(name), path)
         finally:
             if Path(name).exists():
                 Path(name).unlink()
         return {"key": key, "stored_at": record["stored_at"], "expires_at": record["expires_at"]}
 
-    def _read(self, key):
-        path = self._path(key)
+    def _load(self, path):
+        """(record, state) for one file: state is 'live', 'expired' or 'foreign'."""
         if path.is_symlink() or not path.is_file():
-            return None
+            return None, "foreign"
         try:
-            record = parse_json(path.read_text(encoding="utf-8"), VALUE_LIMIT + 4096)
+            raw = parse_json(path.read_text(encoding="utf-8"), RECORD_LIMIT)
         except (OSError, ValueError):
+            return None, "foreign"
+        if not isinstance(raw, dict) or not isinstance(raw.get("key"), str):
+            return None, "foreign"
+        record = _well_formed(raw, raw["key"])
+        if record is None or path.name != self._name(record["key"]):
+            return None, "foreign"  # a record under another key's name can never be retrieved
+        return record, ("expired" if _expired(record) else "live")
+
+    def _read(self, key):
+        record, state = self._load(self._path(key))
+        if state != "live" or record["key"] != key:
             return None
-        if not isinstance(record, dict) or record.get("schema_version") != 1 or record.get("key") != key:
-            return None
-        expires = record.get("expires_at")
-        if isinstance(expires, str):
-            try:
-                if datetime.fromisoformat(expires) <= _now():
-                    return None
-            except ValueError:
-                return None
         return record
 
     def retrieve(self, key):
@@ -199,10 +262,14 @@ class FileScratch:
 
     def forget(self, key):
         path = self._path(key)
-        if path.is_symlink() or not path.is_file():
+        record, state = self._load(path)
+        if state == "foreign" and not path.is_file():
+            return False
+        if path.is_symlink():
             return False
         path.unlink()
-        return True
+        # A foreign or expired file is removed as housekeeping but was never a live entry.
+        return state == "live" and record["key"] == key
 
     def keys(self, pattern="*"):
         _check_pattern(pattern)
@@ -210,12 +277,15 @@ class FileScratch:
             return []
         found = []
         for entry in sorted(self.directory.iterdir()):
-            if entry.suffix != ".json" or entry.name.startswith(".") or entry.is_symlink():
+            if entry.suffix != ".json" or not entry.name.startswith("k-") or entry.is_symlink():
                 continue
-            key = unquote(entry.stem)
-            if KEY_RE.match(key) and fnmatch.fnmatchcase(key, pattern) and self._read(key) is not None:
-                found.append(key)
-        return found
+            record, state = self._load(entry)
+            if state == "expired":
+                entry.unlink()  # the directory clears itself of what has lapsed
+                continue
+            if state == "live" and fnmatch.fnmatchcase(record["key"], pattern):
+                found.append(record["key"])
+        return sorted(found)
 
 
 class RedisScratch:
@@ -250,15 +320,7 @@ class RedisScratch:
         name = self._name(key)
         text = _check_value(value)
         ttl = _check_ttl(ttl_seconds)
-        now = _now()
-        record = {
-            "schema_version": 1,
-            "key": key,
-            "value": json.loads(text),
-            "stored_at": now.isoformat(),
-            "expires_at": (now + timedelta(seconds=ttl)).isoformat() if ttl else None,
-        }
-        payload = json.dumps(record, ensure_ascii=True, allow_nan=False)
+        record, payload = _record(key, text, ttl)
         if ttl:
             self._call("stash", self.client.set, name, payload, ex=ttl)
         else:
@@ -269,13 +331,15 @@ class RedisScratch:
         raw = self._call("retrieve", self.client.get, self._name(key))
         if raw is None:
             return None
+        text = raw if isinstance(raw, str) else bytes(raw).decode("utf-8", "replace")
         try:
-            record = parse_json(raw if isinstance(raw, str) else str(raw), VALUE_LIMIT + 4096)
+            parsed = parse_json(text, RECORD_LIMIT)
         except ValueError as error:
             raise MemoryRedisUnavailable(f"Redis scratch at {self.host} holds a malformed record: {error}") from error
-        if not isinstance(record, dict) or record.get("schema_version") != 1 or record.get("key") != key:
+        record = _well_formed(parsed, key)
+        if record is None:
             raise MemoryRedisUnavailable(f"Redis scratch at {self.host} holds a record that is not this key's")
-        return {key_: record.get(key_) for key_ in ("key", "value", "stored_at", "expires_at")}
+        return {key_: record[key_] for key_ in ("key", "value", "stored_at", "expires_at")}
 
     def forget(self, key):
         return bool(self._call("forget", self.client.delete, self._name(key)))

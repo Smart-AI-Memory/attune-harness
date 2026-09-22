@@ -130,6 +130,11 @@ def test_round_trip_forget_and_keys(store):
     backend.stash("plan:next", "text value")
     backend.stash("note.1", [1, 2, 3])
     assert backend.keys() == ["note.1", "plan:current", "plan:next"]
+    for key in ("a:b", "a-b", "a.b", "aZ"):
+        backend.stash(key, 0)
+    assert backend.keys("a*") == ["a-b", "a.b", "a:b", "aZ"]  # the same order from both backends
+    for key in ("a:b", "a-b", "a.b", "aZ"):
+        backend.forget(key)
     assert backend.keys("plan:*") == ["plan:current", "plan:next"]
     assert backend.keys("note.?") == ["note.1"]
     assert backend.forget("plan:next") is True
@@ -163,6 +168,16 @@ def test_key_value_ttl_and_pattern_bounds(store):
     with pytest.raises(ValueError, match="limited to 65536 bytes"):
         backend.stash("big", "x" * (VALUE_LIMIT + 1))
     backend.stash("edge", "x" * (VALUE_LIMIT - 2))  # exactly at the limit with its quotes
+    assert backend.retrieve("edge")["value"] == "x" * (VALUE_LIMIT - 2)
+    # A separator-dense value near the limit: the reviewer found the indented
+    # file record and the spaced Redis record grew past what retrieve read.
+    dense = {f"k{i:05d}": i for i in range(5000)}
+    while len(memory_scratch.canonical(dense).encode()) > VALUE_LIMIT:
+        dense.popitem()
+    assert len(memory_scratch.canonical(dense).encode()) > VALUE_LIMIT - 20
+    backend.stash("dense", dense)
+    assert backend.retrieve("dense")["value"] == dense
+    assert "dense" in backend.keys("dens?")
     for bad in (float("nan"), {1: 2}.keys(), object()):
         with pytest.raises(ValueError, match="must be JSON"):
             backend.stash("k", bad)
@@ -191,10 +206,31 @@ def test_file_store_root_rules_and_layout(tmp_path):
     store = FileScratch(str(root), "unit")
     store.stash("plan:a.b", {"v": 1})
     files = sorted(p.name for p in (root / "scratch" / "unit").iterdir())
-    assert files == ["plan%3Aa.b.json"]  # ':' is percent-encoded so the name is valid everywhere
-    record = json.loads((root / "scratch" / "unit" / "plan%3Aa.b.json").read_text(encoding="utf-8"))
+    assert files == ["k-plan%3Aa.b.json"]  # ':' is percent-encoded so the name is valid everywhere
+    record = json.loads((root / "scratch" / "unit" / "k-plan%3Aa.b.json").read_text(encoding="utf-8"))
     assert record["schema_version"] == 1 and record["key"] == "plan:a.b" and record["value"] == {"v": 1}
     assert not [p for p in (root / "scratch" / "unit").iterdir() if p.name.startswith(".scratch-")]  # no temp left
+
+
+def test_file_names_are_one_to_one_with_keys_everywhere(tmp_path):
+    """Case, reserved device names and length: each was a way for two keys to be one file, or none."""
+    name = FileScratch._name
+    assert name("a") == "k-a.json" and name("A") == "k-%41.json"           # case is encoded, never folded
+    assert name("CON") == "k-%43%4F%4E.json" and name("nul") == "k-nul.json"  # the prefix keeps NUL from being a device
+    long_key = "a" + ":" * 127
+    assert len(name(long_key)) <= 207 and name(long_key) != name("a" + ":" * 126)  # 200 encoded + "k-" + ".json"
+    assert name(long_key).endswith(".json") and "-" in name(long_key)[-22:]
+    store = FileScratch(str(tmp_path.resolve()), "unit")
+    store.stash("A", "upper")
+    store.stash("a", "lower")
+    assert store.retrieve("A")["value"] == "upper" and store.retrieve("a")["value"] == "lower"
+    assert store.keys() == ["A", "a"]
+    store.stash(long_key, {"long": True})
+    assert store.retrieve(long_key)["value"] == {"long": True}
+    assert long_key in store.keys("a:*")
+    for reserved in ("CON", "NUL", "com1", "LPT9"):
+        store.stash(reserved, reserved.lower())
+        assert store.retrieve(reserved)["value"] == reserved.lower()
 
 
 def test_file_store_ignores_foreign_or_tampered_files(tmp_path, monkeypatch):
@@ -204,19 +240,67 @@ def test_file_store_ignores_foreign_or_tampered_files(tmp_path, monkeypatch):
     store.stash("good", 1)
     folder = root / "scratch" / "unit"
     (folder / "stray.txt").write_text("x", encoding="utf-8")
-    (folder / "notjson.json").write_text("{", encoding="utf-8")
-    (folder / "wrongkey.json").write_text(json.dumps({"schema_version": 1, "key": "other", "value": 1}), encoding="utf-8")
-    (folder / "future.json").write_text(json.dumps({"schema_version": 2, "key": "future", "value": 1}), encoding="utf-8")
+    (folder / "k-notjson.json").write_text("{", encoding="utf-8")
+    (folder / "k-wrongkey.json").write_text(json.dumps({"schema_version": 1, "key": "other", "value": 1, "stored_at": "x", "expires_at": None}), encoding="utf-8")
+    (folder / "k-future.json").write_text(json.dumps({"schema_version": 2, "key": "future", "value": 1, "stored_at": "x", "expires_at": None}), encoding="utf-8")
+    (folder / "k-novalue.json").write_text(json.dumps({"schema_version": 1, "key": "novalue", "stored_at": "x", "expires_at": None}), encoding="utf-8")
+    (folder / "k-extra.json").write_text(json.dumps({"schema_version": 1, "key": "extra", "value": 1, "stored_at": "x", "expires_at": None, "more": 1}), encoding="utf-8")
     assert store.keys() == ["good"]
-    assert store.retrieve("wrongkey") is None and store.retrieve("notjson") is None and store.retrieve("future") is None
+    for key in ("wrongkey", "notjson", "future", "novalue", "extra", "stray"):
+        assert store.retrieve(key) is None, key
+    assert store.forget("novalue") is False and not (folder / "k-novalue.json").exists()  # housekeeping, never a live entry
+    assert store.retrieve("other") is None  # the record under k-wrongkey.json names "other"; neither name finds it
+    assert store.forget("wrongkey") is False and not (folder / "k-wrongkey.json").exists()
     try:
-        (folder / "link.json").symlink_to(folder / "good.json")
+        (folder / "k-link.json").symlink_to(folder / "k-good.json")
     except OSError as exc:
         pytest.skip(f"symlinks unavailable: {exc}")
     assert store.retrieve("link") is None and "link" not in store.keys()
     with pytest.raises(ValueError, match="symlink"):
         store.stash("link", 2)
-    assert store.forget("link") is False
+    assert store.forget("link") is False and (folder / "k-link.json").is_symlink()
+
+
+def test_file_store_refuses_a_symlinked_scratch_directory(tmp_path):
+    root = (tmp_path / "root").resolve()
+    root.mkdir()
+    elsewhere = (tmp_path / "elsewhere").resolve()
+    elsewhere.mkdir()
+    try:
+        (root / "scratch").symlink_to(elsewhere, target_is_directory=True)
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable: {exc}")
+    store = FileScratch(str(root), "unit")
+    with pytest.raises(ValueError, match="cannot be, or sit in, a symlink"):
+        store.stash("escaped", {"secret": 1})
+    assert not list(elsewhere.rglob("*.json"))
+
+
+def test_expired_entries_are_reclaimed_and_forget_says_so(tmp_path, monkeypatch):
+    clock = Clock(monkeypatch)
+    store = FileScratch(str(tmp_path.resolve()), "unit")
+    folder = tmp_path.resolve() / "scratch" / "unit"
+    store.stash("gone", 1, ttl_seconds=10)
+    store.stash("stays", 2)
+    clock.advance(11)
+    assert store.forget("gone") is False and not (folder / "k-gone.json").exists()
+    store.stash("gone2", 1, ttl_seconds=10)
+    clock.advance(11)
+    assert store.keys() == ["stays"]
+    assert not (folder / "k-gone2.json").exists()  # keys() removed what had lapsed
+
+
+def test_a_failing_write_leaves_no_temporary_file(tmp_path, monkeypatch):
+    store = FileScratch(str(tmp_path.resolve()), "unit")
+    store.stash("seed", 1)
+    def refuse(source, target, **kwargs):
+        raise OSError("disk says no")
+    monkeypatch.setattr(memory_scratch, "replace_file", refuse)
+    with pytest.raises(OSError, match="disk says no"):
+        store.stash("seed", 2)
+    folder = tmp_path.resolve() / "scratch" / "unit"
+    assert sorted(p.name for p in folder.iterdir()) == ["k-seed.json"]
+    assert json.loads((folder / "k-seed.json").read_text(encoding="utf-8"))["value"] == 1
 
 
 # --- the redis store's own edges ------------------------------------------------
@@ -237,9 +321,14 @@ def test_redis_store_uses_ttl_and_scan_never_keys_and_stays_in_its_namespace():
     kv.data[REDIS_PREFIX + "unit:bad"] = ("{not json", None)
     with pytest.raises(MemoryRedisUnavailable, match="malformed record"):
         store.retrieve("bad")
-    kv.data[REDIS_PREFIX + "unit:swap"] = ('{"schema_version": 1, "key": "other", "value": 1}', None)
+    kv.data[REDIS_PREFIX + "unit:swap"] = ('{"schema_version": 1, "key": "other", "value": 1, "stored_at": "x", "expires_at": null}', None)
     with pytest.raises(MemoryRedisUnavailable, match="not this key's"):
         store.retrieve("swap")
+    kv.data[REDIS_PREFIX + "unit:novalue"] = ('{"schema_version": 1, "key": "novalue", "stored_at": "x", "expires_at": null}', None)
+    with pytest.raises(MemoryRedisUnavailable, match="not this key's"):
+        store.retrieve("novalue")
+    kv.data[REDIS_PREFIX + "unit:raw"] = (b'{"schema_version":1,"key":"raw","value":7,"stored_at":"x","expires_at":null}', None)
+    assert store.retrieve("raw")["value"] == 7  # a bytes reply is decoded, not repr'd
 
 
 def test_redis_store_reports_a_failing_server_as_unavailable():
