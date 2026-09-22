@@ -84,3 +84,52 @@ def test_broken_dependency_import_is_unavailable(monkeypatch):
     monkeypatch.setattr('attune_harness.features.importlib.import_module',lambda _: (_ for _ in ()).throw(ImportError('broken dependency')))
     with pytest.raises(FeatureUnavailable,match='cannot load'):
         require_feature('example','example','1.0','example')
+
+
+# --- a co-installed attune-ai and the MCP SDK line ------------------------------
+
+
+def _neighbour(monkeypatch, *, installed, declared):
+    import attune_harness.features as features
+
+    def version(name):
+        if name == 'mcp' and installed is not None:
+            return installed
+        raise features.PackageNotFoundError(name)
+
+    def requires(name):
+        if declared is None:
+            raise features.PackageNotFoundError(name)
+        return list(declared)
+
+    monkeypatch.setattr(features, 'version', version)
+    monkeypatch.setattr(features, 'requires', requires)
+    return features
+
+
+def test_neighbor_conflict_names_the_split_when_attune_ai_pins_another_mcp_line(monkeypatch):
+    features = _neighbour(monkeypatch, installed='2.2.0', declared=['redis>=5.0.0,<9.0.0', 'mcp==1.29.1'])
+    notice = features.neighbor_conflict()
+    assert notice.startswith('attune-ai is installed here and requires mcp==1.29.1, but attune-harness installed mcp 2.2.0')
+    assert 'pipx install attune-harness' in notice
+
+
+@pytest.mark.parametrize('installed,declared', [
+    ('2.2.0', None),                                    # no attune-ai
+    ('2.2.0', ['redis>=5.0.0,<9.0.0']),                 # attune-ai without an mcp requirement
+    ('1.29.1', ['mcp==1.29.1']),                        # the requirement is met
+    ('2.2.0', ['mcp>=1.0,<3']),                         # a range that admits both lines
+    (None, ['mcp==1.29.1']),                            # this install has no mcp at all
+    ('2.2.0', ['mcp~=1.29']),                           # an operator the check does not judge
+    ('2.2.0', ['mcp==1.29.1; extra == "server"']),      # only under an extra
+])
+def test_neighbor_conflict_is_silent_unless_certain(monkeypatch, installed, declared):
+    features = _neighbour(monkeypatch, installed=installed, declared=declared)
+    assert features.neighbor_conflict() is None
+
+
+def test_neighbor_conflict_reads_the_real_metadata_shape():
+    """Against whatever this interpreter holds: the result is a notice or None, never an error."""
+    import attune_harness.features as features
+    result = features.neighbor_conflict()
+    assert result is None or 'cannot share an environment' in result

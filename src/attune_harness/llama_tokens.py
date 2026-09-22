@@ -54,10 +54,10 @@ class LlamaTokenizer:
             raise ValueError('Tokenizer file differs from the qualified profile')
         try:
             if importlib.metadata.version('tiktoken') != '0.12.0':
-                raise ValueError('Token accounting requires tiktoken 0.12.0; install attune-harness[tokens]')
+                raise ValueError('Token accounting requires tiktoken 0.12.0; reinstall with: pip install --force-reinstall attune-harness')
             import tiktoken
         except (ImportError, importlib.metadata.PackageNotFoundError) as exc:
-            raise ValueError('Token accounting unavailable; install attune-harness[tokens]') from exc
+            raise ValueError('Token accounting unavailable; tiktoken is missing; reinstall with: pip install --force-reinstall attune-harness') from exc
         tokenizer = json.loads(raw)['tokenizer']
         # Inverse of GGUF/GPT-2's reversible byte-to-Unicode alphabet.
         visible = list(range(33, 127)) + list(range(161, 173)) + list(range(174, 256))

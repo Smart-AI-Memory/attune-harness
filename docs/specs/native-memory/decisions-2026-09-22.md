@@ -44,3 +44,17 @@ startup-only selection, no divert; an in-process double at the client
 boundary plus a live test gated on `ATTUNE_TEST_REDIS_URL`; three reviewed
 pull requests, 4.1 reads and CLI, 4.2 scratch, 4.3 config and installed
 checks. He also gave the go to merge the design note when green.
+
+## D15, amended: `mcp` stays in the base; the split with attune-ai is documented
+
+The review of #64 showed that `mcp==2.2.0` in the base breaks a co-installed
+attune-ai, which pins `mcp==1.29.1`; pip installs the second anyway and exits
+0. Offered the choice between keeping `mcp` as the one non-paid extra and
+keeping it in the base with the split documented, and shown the trade-offs,
+Patrick chose the base: "option 2". Three mitigations came with it: the
+README leads with an isolated install (`pipx install attune-harness`, `uv
+tool install attune-harness`) and names the split in the install section and
+the attune-ai section; the changelog says the same; and `mcp-serve` prints a
+notice on stderr when it starts beside an attune-ai whose MCP requirement
+this install does not meet (`features.neighbor_conflict`). The notice never
+changes behaviour and stays off stdout, the protocol channel.

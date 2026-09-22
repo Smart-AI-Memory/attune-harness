@@ -37,9 +37,9 @@ adapter/runtime version and probe. A changed version invalidates qualification.
 |---|---|---|---|
 | In-process Participant | Task → Output | Yes | Deterministic execution/check separation |
 | JsonParticipant envelope v1 | Bound Attempt → strict text response | Yes | Identity correlation, malformed response rejection, local single-use dispatch |
-| attune-verify 0.6.0 | Markdown + declared context → strict evidence report | Optional verify extra | Real-library positive/negative/unknown checks and independent installed CLI journeys |
-| attune-rag 1.2.0 | Local corpus + query → ranked source references | Optional rag extra | Real keyword retrieval, no results, source hashes, isolated installed CLI journeys |
-| attune-forms 0.17.0 | Explicit headless review request → validated form response | Optional review extra | Real intake/rendering; missing, declined, stale and invalid submissions rejected |
+| attune-verify 0.6.0 | Markdown + declared context → strict evidence report | Base install since 0.4.0 | Real-library positive/negative/unknown checks and independent installed CLI journeys |
+| attune-rag 1.2.0 | Local corpus + query → ranked source references | Base install since 0.4.0 | Real keyword retrieval, no results, source hashes, isolated installed CLI journeys |
+| attune-forms 0.17.0 | Explicit headless review request → validated form response | Base install since 0.4.0 | Real intake/rendering; missing, declined, stale and invalid submissions rejected |
 | Review turn v1 | Accepted revision → bounded tool/final action | Optional review journey; core contract | Real feature calls from deterministic and independent command peers; native leads tested with injected transports; live qualification pending |
 | Claude native | Candidate lead and reviewer | Experimental CLI translator | Fixture checks pass; live invocation rejected for insufficient credit on the CLI-selected auth source |
 | Codex native | Candidate lead and reviewer | Experimental CLI translator | Live arithmetic/structured response and independent acceptance passed on CLI 0.153.4; broader feature/lifecycle qualification outstanding |

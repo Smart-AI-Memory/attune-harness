@@ -528,7 +528,7 @@ def test_plan_accept_without_the_forms_package_reports_the_extra(work, capsys, m
     directory, record = draft(work)
 
     def missing():
-        raise FeatureUnavailable("Install attune-harness[review]; attune-forms is missing")
+        raise FeatureUnavailable("attune-forms is missing; reinstall with: pip install --force-reinstall attune-harness")
 
     monkeypatch.setattr(command_workspace, "_forms", missing)
     monkeypatch.setattr(spec_workspace, "_forms", missing)
@@ -548,7 +548,7 @@ def test_plan_accept_without_the_forms_package_reports_the_extra(work, capsys, m
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "failed"
     assert result["error"]["type"] == "FeatureUnavailable"
-    assert "attune-harness[review]" in result["error"]["detail"]
+    assert result["error"]["detail"] == "attune-forms is missing; reinstall with: pip install --force-reinstall attune-harness"
     assert read_task(directory)["status"] == "draft"
 
 

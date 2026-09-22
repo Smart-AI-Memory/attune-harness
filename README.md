@@ -20,11 +20,16 @@ of its own work is recorded. It is never the evidence.
 ## A wrong answer comes back rejected
 
 ```sh
-pip install attune-harness
+pipx install attune-harness
 ```
 
-The core has no dependencies and needs Python 3.10 or later. No provider SDK, no
-API key, and no attune-ai installation.
+or `uv tool install attune-harness`, or `pip install attune-harness` into an
+environment of its own. That installs everything the review, test, MCP and
+acceptance journeys need. Python 3.10 or later. No provider SDK, no API key, and
+no attune-ai installation. Harness and attune-ai cannot share one environment:
+they pin different lines of the MCP SDK, and installing Harness over attune-ai
+replaces attune-ai's; an isolated install avoids that, and `mcp-serve` says so
+if it finds the two side by side.
 
 ```python
 from attune_harness import Check, Output, Task, run
@@ -86,22 +91,20 @@ Learning their syntax is not the price of entry, and `attune-harness COMMAND --h
 covers direct use. Full usage, exit codes and recovery controls are in the
 [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/cli-guide.md).
 
-## Install only what you use
+## What the install carries
 
 | You want | Install |
 | --- | --- |
-| The core contracts and CLI, with no dependencies | `pip install attune-harness` |
-| Document claim verification (`attune-verify` 0.6.0) | `pip install 'attune-harness[verify]'` |
-| Local Markdown retrieval with source hashes, no model calls (`attune-rag` 1.2.0) | `pip install 'attune-harness[rag]'` |
-| The evidence-review and test journeys: forms, retrieval and verification together | `pip install 'attune-harness[review]'` |
-| Accepted retrieval grants served over MCP stdio (`mcp` 2.2.0) | `pip install 'attune-harness[mcp]'` |
-| Repository-first retrieval on Voyage embeddings | `pip install 'attune-harness[voyage]'` |
-| Token counting (`tiktoken` 0.12.0) | `pip install 'attune-harness[tokens]'` |
+| The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install attune-harness` |
+| Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]'` |
 | Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]'` |
 
-Extras pin exact versions as of 0.3.0. Keep the quotes: zsh and bash treat square
-brackets as glob characters. When an extra is missing, the command that needs it
-returns an actionable unavailable report instead of a traceback.
+Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`
+and `tokens` were extras. Those names still install, as empty extras, until 1.0.
+Every dependency is pinned exactly and loaded on first use, so a wheel installed
+without its dependencies still returns an actionable unavailable report for each
+missing piece instead of a traceback. Keep the quotes around an extra: zsh and
+bash treat square brackets as glob characters.
 
 ## What is qualified and what is not
 
@@ -116,7 +119,7 @@ tests and model quality are different claims, and this project keeps them apart.
 | `fix` on Windows | Nothing yet. New in 0.2.0 and experimental: `fix` runs on a fixed local NTFS volume instead of refusing, and its native tests pass in CI on windows-2022 and windows-2025 ([design note](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/design-windows-effect-backend.md)) | Everything beyond those tests: deletion and renames, files with their own ACL or nonstandard attributes, files over 64 KiB, crash recovery, concurrent writers, power-loss durability, and any run against a real project. `test` on Windows is unchanged and unqualified |
 | Isolation | Commands and probes run as supervised processes with deadlines and bounded output | **This is not a security sandbox.** Use a dedicated checkout and commands you trust |
 | Receipts | Receipts retain the task, output and check evidence locally | They are local values, not signed attestations. Constructing a `Receipt` directly certifies nothing |
-| Plan acceptance | Core imports, help and the library run standalone. `plan --accept` runs with the `review` extra and no Attune AI; CI exercises its gate with Attune AI blocked | Acceptance through a live MCP host; CI submits the console approval |
+| Plan acceptance | Core imports, help and the library run standalone. `plan --accept` runs from the base install with no Attune AI; CI exercises its gate with Attune AI blocked | Acceptance through a live MCP host; CI submits the console approval |
 | Protocols | MCP (2025-11-25 and 2026-07-28 profiles) and A2A 1.0 have local independent-client receipts | Remote authentication, arbitrary executable plugins and automatic host installation |
 | Memory | A read-only integration plan is accepted and qualified in a temporary install | The memory modules and the `memory-native` extra ship in the wheel but are experimental and not activated for live memories. The native transport is POSIX only, accepts two exact model IDs, refuses any other SDK version, and is never exercised in CI |
 | Roadmap | | `ship` and `reflect` are planned routes and do not exist yet |
@@ -125,13 +128,16 @@ tests and model quality are different claims, and this project keeps them apart.
 
 Harness is the successor I am building to
 [attune-ai](https://pypi.org/project/attune-ai/). It starts from a constraint
-attune-ai never had: the core must run with no provider SDK and nothing else from
-the Attune family installed. The Attune libraries come in as extras, where you can
-see exactly what each one adds.
+attune-ai never had: it runs with no provider SDK and no attune-ai installation.
+The Attune libraries it does use, forms, claim verification and local retrieval,
+are part of the install, pinned exactly, and each loads only when the command that
+needs it runs, so what the install adds is visible and nothing calls a model
+unless you install an extra that does.
 
 attune-ai is still where cross-session memory, the Claude Code plugin and the
 multi-agent workflows live. Harness does not replace those today. If that is what
-you need, install attune-ai.
+you need, install attune-ai, in its own environment: the two pin different lines
+of the MCP SDK and cannot share one.
 
 ## Links
 

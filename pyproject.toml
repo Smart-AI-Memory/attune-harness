@@ -26,7 +26,18 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Environment :: Console",
 ]
-dependencies = []
+# The base install carries what the review, test, MCP and acceptance journeys
+# need, pinned exactly (D15, 2026-09-22). No provider SDK: voyage and
+# memory-native make paid calls and stay extras. Every gate still loads lazily
+# through features.require_feature, so a wheel installed with --no-deps reports
+# each missing piece instead of failing.
+dependencies = [
+    "attune-forms==0.17.0",
+    "attune-verify==0.6.0",
+    "attune-rag==1.2.0",
+    "mcp==2.2.0",
+    "tiktoken==0.12.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/Smart-AI-Memory/attune-harness"
@@ -34,12 +45,15 @@ Repository = "https://github.com/Smart-AI-Memory/attune-harness"
 Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
-tokens = ["tiktoken==0.12.0"]
-verify = ["attune-verify==0.6.0"]
-rag = ["attune-rag==1.2.0"]
+# tokens, verify, rag, review and mcp are in the base since 0.4.0. They stay
+# as empty extras so an existing `pip install 'attune-harness[review]'` keeps
+# working without a warning; they will be removed in 1.0.
+tokens = []
+verify = []
+rag = []
+review = []
+mcp = []
 voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==4.26.0"]
-review = ["attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
-mcp = ["mcp==2.2.0", "attune-forms==0.17.0", "attune-verify==0.6.0", "attune-rag==1.2.0"]
 memory-native = ["anthropic==1.6.0", "httpx2==2.13.0"]
 
 [project.scripts]

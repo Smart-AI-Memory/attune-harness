@@ -85,9 +85,9 @@ attune-harness resume /tmp/my-work --allow-external
 Use the checkpoint returned by the preceding command each time. `--run` asks the
 configured planner for a proposal; `--stage` makes it a new unaccepted draft.
 `--accept` submits the explicit console choice through Harness's own Spec
-collector. It needs the `review` extra (`pip install 'attune-harness[review]'`),
-which supplies the forms package that renders the decision; Attune AI is not
-needed, and core imports and help stay independent of the extra. Until Task 3 of
+collector. The forms package that renders the decision is part of the base
+install since 0.4.0 (before that, the `review` extra); Attune AI is not needed,
+and core imports and help stay independent of it. Until Task 3 of
 the spec authority the collector was Attune AI's; that arrangement is recorded in
 [Task 6's results](plan-build-task6-results.md). Installing Harness does not
 upgrade an active MCP host.
@@ -110,7 +110,7 @@ active integration and release remain separate qualification boundaries.
 
 ## Task-oriented evidence review
 
-Install `'attune-harness[review]'`, then supply one goal and the source/participant choices. Missing
+Install `attune-harness`, then supply one goal and the source/participant choices. Missing
 answers are collected interactively; headless runs return a bound intake form.
 Explicit acceptance executes the assessment. For example, from a project with
 `docs/guide.md`, a trusted verification context and a participant registry:
@@ -138,7 +138,7 @@ for installed software evidence and outstanding native-model qualification.
 
 ## Test this change
 
-Install `'attune-harness[review]'` for the existing forms grammar and choose an interpreter with
+Install `attune-harness`, which carries the forms grammar, and choose an interpreter with
 pytest. Supply a changed file or directory relative to Git HEAD. The first command
 saves a preview; accept its returned checkpoint to run the captured inputs:
 
