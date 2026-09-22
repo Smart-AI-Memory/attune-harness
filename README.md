@@ -2,7 +2,7 @@
 
 **Run an agent's work, check it independently, and keep a receipt of which happened.**
 
-> **Status: 0.3.0, alpha.** Interfaces, configuration formats and CLI commands may
+> **Status: 0.4.0, alpha.** Interfaces, configuration formats and CLI commands may
 > change before 1.0. What is and is not qualified is
 > [listed below](#what-is-qualified-and-what-is-not), not implied.
 
@@ -10,7 +10,7 @@ On September 18, 2026 I ran twelve model-written implementations of a small JSON
 exporter through Harness. Nine behaved correctly under the full check. The other three passed when their serializer
 was tested directly, and failed when run through the real command line, which is the
 only way anyone would ever use them
-([results](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/plan-build-native-results.md)).
+([results](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/plan-build-native-results.md)).
 
 That gap is what Harness is for. A participant produces output: a model, a command,
 or your own code. A check you supply, separate from the participant, decides whether
@@ -89,7 +89,7 @@ participants need `--allow-external`, and native model participants also need
 Many of these commands are there for the agent and its integrations to call.
 Learning their syntax is not the price of entry, and `attune-harness COMMAND --help`
 covers direct use. Full usage, exit codes and recovery controls are in the
-[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/cli-guide.md).
+[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/cli-guide.md).
 
 ## What the install carries
 
@@ -114,10 +114,10 @@ tests and model quality are different claims, and this project keeps them apart.
 
 | Area | Qualified | Not qualified |
 | --- | --- | --- |
-| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
+| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
 | Models | CI calls no model provider. Native Claude and Codex adapters have recorded comparisons | Native planning and building are experimental. In the September 18, 2026 comparison the original reply contract accepted 1 of 24 replies; after the contract was corrected it accepted 12 of 12. Two repetitions per role do not establish a reliability rate |
 | `fix` and `test` | Local POSIX Git checkouts, regular files, default pytest discovery | File creation, deletion and renames, linked worktrees, custom pytest collectors, committed revision ranges |
-| `fix` on Windows | Nothing yet. New in 0.2.0 and experimental: `fix` runs on a fixed local NTFS volume instead of refusing, and its native tests pass in CI on windows-2022 and windows-2025 ([design note](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/design-windows-effect-backend.md)) | Everything beyond those tests: deletion and renames, files with their own ACL or nonstandard attributes, files over 64 KiB, crash recovery, concurrent writers, power-loss durability, and any run against a real project. `test` on Windows is unchanged and unqualified |
+| `fix` on Windows | Nothing yet. New in 0.2.0 and experimental: `fix` runs on a fixed local NTFS volume instead of refusing, and its native tests pass in CI on windows-2022 and windows-2025 ([design note](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/design-windows-effect-backend.md)) | Everything beyond those tests: deletion and renames, files with their own ACL or nonstandard attributes, files over 64 KiB, crash recovery, concurrent writers, power-loss durability, and any run against a real project. `test` on Windows is unchanged and unqualified |
 | Isolation | Commands and probes run as supervised processes with deadlines and bounded output | **This is not a security sandbox.** Use a dedicated checkout and commands you trust |
 | Receipts | Receipts retain the task, output and check evidence locally | They are local values, not signed attestations. Constructing a `Receipt` directly certifies nothing |
 | Plan acceptance | Core imports, help and the library run standalone. `plan --accept` runs from the base install with no Attune AI; CI exercises its gate with Attune AI blocked | Acceptance through a live MCP host; CI submits the console approval |
@@ -142,9 +142,9 @@ of the MCP SDK and cannot share one.
 
 ## Links
 
-- [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/qualification.md)
-- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/cli-guide.md)
-- [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.3.0/docs/portable-contract.md)
+- [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/qualification.md)
+- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/cli-guide.md)
+- [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.4.0/docs/portable-contract.md)
 - [Repository](https://github.com/Smart-AI-Memory/attune-harness) and
   [issues](https://github.com/Smart-AI-Memory/attune-harness/issues)
 
