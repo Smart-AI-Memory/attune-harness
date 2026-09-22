@@ -112,6 +112,18 @@ those limits. No agent can widen them.
   settled: zero pending, and nothing failed. A go for one pull request is not
   a go for the next. A pull request that touches `src/` waits for Patrick
   whatever the checks say.
+- A second delegation, for a stack. When several reviewed pull requests wait
+  on each other, Patrick may say "shepherd #A, #B, #C" for that named set,
+  once. The agent then merges them in order, each only after its rebased head's
+  checks have settled green; rebases the next onto `main` with
+  `git rebase --onto origin/main <last commit of the merged one> <branch>`,
+  which replays only that pull request's own commits over the squash; re-signs;
+  and waits again. This is the one case an agent merges a change under `src/`,
+  and only because each already carries its recorded different-model review.
+  A failure stops the stack, with one exception: a failure confined to `tests/`
+  or a fixture may be fixed, noted in the pull request, and rerun. Anything
+  under `src/` is reported and waits. Merged branches are deleted as part of
+  the shepherding, under the gate below.
 - Delete a branch only after the API reports its pull request merged. A spoken
   "I merged it" can be an intention or a click that failed; deleting the head
   branch of an open pull request closes it. Local copies of squash-merged
