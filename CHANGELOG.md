@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added: `attune_harness.spec_tasks`, the reader for the `<task>` blocks a plan
+  file is written in: `DecomposedTask`, `parse_tasks` and `read_spec`, carried
+  from Attune AI as the second step of making spec support part of Harness. It
+  uses the standard library XML parser and adds no dependency: only the
+  `<task>` region of a file is parsed, never the file, so an entity declaration
+  can never reach the parser, and the hostile cases in its tests show nothing
+  expands. Output is identical to Attune AI's reader for every existing plan.
+  Nothing in Harness calls it yet.
 - Added: `attune_harness.paths.validate_file_path`, carried from Attune AI's
   path validation as the first step of making spec support part of Harness. It
   resolves a path and refuses one that leaves an allowed directory or lands in
