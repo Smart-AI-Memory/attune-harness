@@ -13,9 +13,9 @@ and all five native campaigns remain unchanged.
 
 ## What was built and checked
 
-The [design](../../experiments/memory_journey/DESIGN.md) was written before code.
-The [adapter](../../experiments/memory_journey/managed_stash.py) and
-[coordinator](../../experiments/memory_journey/journey.py) reuse the frozen worker,
+The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_journey/DESIGN.md) was written before code.
+The [adapter](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_journey/managed_stash.py) and
+[coordinator](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_journey/journey.py) reuse the frozen worker,
 citation contract and Harness RunStore. They add:
 
 - Explicit logical note → raw-session note mapping, one target per request,

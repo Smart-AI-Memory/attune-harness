@@ -25,10 +25,10 @@ uses the requested clearly labeled disposable fixtures.
 
 | Case | Claim and required disposition |
 | --- | --- |
-| [Incorrect fixture](../experiments/memory_documentation_journey/fixtures/incorrect.md) | “Other projects cannot appear” contradicts the selected implementation and observed results. Correction is required. Its JSON example incorrectly predicts only Cedar. |
+| [Incorrect fixture](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_documentation_journey/fixtures/incorrect.md) | “Other projects cannot appear” contradicts the selected implementation and observed results. Correction is required. Its JSON example incorrectly predicts only Cedar. |
 | Unsupported assertion in that fixture | “Every alternative memory backend guarantees the same project isolation” has no supplied support. Require qualification, removal or substantiation; other backends' actual behavior remains unknown. |
-| [Correct control](../experiments/memory_documentation_journey/fixtures/control.md) | Describes ranking, permits foreign records and explicitly leaves other backends unknown. Accept without requiring a change. Its example correctly includes Cedar and Elm. |
-| [Example correction](../experiments/memory_documentation_journey/fixtures/corrected.md) | Replaces the guarantee with observed behavior and preserves the unknown. Valid prose paraphrases remain allowed. |
+| [Correct control](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_documentation_journey/fixtures/control.md) | Describes ranking, permits foreign records and explicitly leaves other backends unknown. Accept without requiring a change. Its example correctly includes Cedar and Elm. |
+| [Example correction](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_documentation_journey/fixtures/corrected.md) | Replaces the guarantee with observed behavior and preserves the unknown. Valid prose paraphrases remain allowed. |
 
 The previously tested [assessment contract](../experiments/assessment_quality/correction_v2.json)
 is passed verbatim as the criteria. Optional wording advice stays nonblocking.
@@ -82,7 +82,7 @@ time and Patrick's total wait were not measured by this simulation.
 - [Source-change counterexample](receipts/memory-documentation-journey-2026-09-17/example-backed-prepared/work/spec-stale/stale-decision-counterexample.json)
 - [Durable rendered Spec form](receipts/memory-documentation-journey-2026-09-17/example-backed-prepared/work/spec-fresh/gate.md)
 - [Qualification tests](receipts/memory-documentation-journey-2026-09-17/example-backed-tests.xml)
-- [Preparation design and corrections](../experiments/memory_documentation_journey/DESIGN.md)
+- [Preparation design and corrections](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_documentation_journey/DESIGN.md)
 
 ## Proposed native allocation — not approved or dispatched
 

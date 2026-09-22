@@ -23,8 +23,8 @@ model rescuing its reasoning.
 | Explicit unchanged-reply policy | Accept either empty facts or an exact full snapshot for `no_change`; reject altered fact text, identity, scope or support references. | Both revised unchanged replies actually returned the exact full preview and were accepted without advancing the version. |
 | Distinct unresolved outcomes | `needs_reasoning` can escalate once; `needs_evidence` and `needs_decision` stop with a specific request. Original evidence accompanies escalation. Tests cover one-hop escalation, direct assignment for a known multi-step flag, stale stops and unresolved stronger-model work. | Luna requested the absent attachment and drafted the owner's choice without escalating. It solved the calculation, so native `needs_reasoning` emission and direct assignment from the difficulty flag remain unexercised in this campaign. |
 
-The prototype is [contract_v2.py](../../experiments/memory_routing_v2/contract_v2.py)
-and [run_revised.py](../../experiments/memory_routing_v2/run_revised.py).
+The prototype is [contract_v2.py](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_routing_v2/contract_v2.py)
+and [run_revised.py](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_routing_v2/run_revised.py).
 It produces proposals and synthetic requests, not memory-store writes or an
 installed decision-form integration. A production write still needs its own
 atomic current-state check at the storage boundary.
@@ -32,8 +32,8 @@ atomic current-state check at the storage boundary.
 ## Method and verification
 
 Patrick authorized proceeding after asking whether the earlier recommendations
-had actually been implemented. The [design](../../experiments/memory_routing_v2/DESIGN.md)
-and [seven cases with rubrics](../../experiments/memory_routing_v2/cases.json)
+had actually been implemented. The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_routing_v2/DESIGN.md)
+and [seven cases with rubrics](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_routing_v2/cases.json)
 were frozen before native dispatch. Private expectations and rubrics were not
 sent to participants. A bounded read-only review corrected the initial design
 so the fully evidenced case actually reached Luna, then reviewed the controller.

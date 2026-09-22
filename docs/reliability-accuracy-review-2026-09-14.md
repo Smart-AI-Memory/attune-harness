@@ -43,7 +43,7 @@ The earlier [144-trial collaboration experiment](e3-local-research-receipt.md) f
 
 The fresh targeted run passed **130 tests** across grounded-review validation, recovery and subprocess handling. These were local behavioral checks, not new model evaluations or a full-suite run. [Command and output](receipts/reliability-review-2026-09-14/targeted-tests.json)
 
-Current [process handling](../src/attune_harness/process.py) and the [review-store lease](../src/attune_harness/review_store.py) explicitly reject non-POSIX operation. Windows support for these paths is an implementation gap. The separate [Guardian fixture experiment](../experiments/guardian_v1/RECEIPT.md) passed 20 macOS cases; Windows/Linux native service lifecycle and process containment remain unqualified.
+Current [process handling](../src/attune_harness/process.py) and the [review-store lease](../src/attune_harness/review_store.py) explicitly reject non-POSIX operation. Windows support for these paths is an implementation gap. The separate [Guardian fixture experiment](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/guardian_v1/RECEIPT.md) passed 20 macOS cases; Windows/Linux native service lifecycle and process containment remain unqualified.
 
 ## Prioritized repair plan
 

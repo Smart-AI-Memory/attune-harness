@@ -18,8 +18,8 @@ complexity or adopting the current implementation.
 
 ## What was tested
 
-The [design](../../experiments/memory_sorter/DESIGN.md),
-[cases and rubrics](../../experiments/memory_sorter/cases.json), schemas, controller,
+The [design](https://github.com/Smart-AI-Memory/attune-harness/blob/312e7af/experiments/memory_sorter/DESIGN.md),
+[cases and rubrics](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_sorter/cases.json), schemas, controller,
 schedule and host profile were frozen before dispatch. Patrick authorized this
 experiment after discussing Luna as the first-pass sorter and routine worker.
 
@@ -44,7 +44,7 @@ The logical note/preference/lesson/decision kinds here do not qualify installed
 adapter taxonomies or security sensitivity classification. Consolidation is a
 proposed operation; this trial does not establish an existing consolidation API.
 
-The [prototype](../../experiments/memory_sorter/sorter.py) constructs candidates
+The [prototype](https://github.com/Smart-AI-Memory/attune-harness/blob/c8b3235/experiments/memory_sorter/sorter.py) constructs candidates
 only. The host owns versions, granted IDs/scopes/kinds and current-state checks.
 It rechecks task, record, evidence and grants, including after audits. No live
 memory writes, real forgetting, index changes or decision-form integration occurred.
