@@ -237,3 +237,45 @@ one. Five to seven cycles, each with its review under the brief and a row in
 the findings log. The unknowns that move the estimate are the sanitizer's
 transitive imports (measured in 2.1) and how far PersonalMemory's scoring
 is from a stdlib rewrite (decision 2 caps the cost).
+
+## 2.1 receipt, September 22, 2026
+
+Measured in the adapter checkout (`~/attune-ai-memory-adoption`, head
+`b89f7953f`, its own venv), with Harness's `src` on the path because the
+adapter imports two Harness modules:
+
+| What | Modules | Bytes |
+|---|---|---|
+| Imported when `attune.memory.harness_adapter` loads | 20 | 253,719 |
+| Also loaded when the read path's modules import (`file_stash`, `session_stash`, `personal`, `provenance`, `path_validation`, `short_term.security`) | 20 more | 201,890 |
+| Total attune-ai code the read path needs | 40 | 455,609 |
+
+The six files named above are 95 KB of that; the rest is the security
+package the sanitizer pulls (`secrets_detector` 23,643 bytes, `pii_scrubber`
+21,300, `log_methods` 14,735, `audit_logger`, `reports`, `query`, `events`,
+`secrets_types`), `curated_audit` (31,909), `verdict_log`, `atomic_io` and
+the packages' `__init__` modules. Third-party packages the load pulls in:
+`cryptography`, `redis`, `rich` and `structlog`. So the native controls of
+2.3 replace about 90 KB of sanitizer and 11 KB of provenance, and the
+reader of 2.2 about 70 KB of stash and document code; nothing else on the
+list is needed by the four members Harness calls.
+
+The fixture is on `main`: `tests/fixtures/memory_compatibility.json`, byte
+identical to commit `3230643` (SHA-256 `37ed7a15…4b3bce`, 3,193 bytes),
+pinned by `tests/test_memory_fixture_contract.py` on every platform, with
+the sections `raw` (5), `documents` (5), `curated`, `digest_node`, `working`
+and `pattern`. The success envelopes of `memory capabilities`, `recall`,
+`resolve` and `refresh` are pinned in [the envelope table](../../envelopes.md)
+as the four `-adapter` rows, over an in-process double of the four-member
+contract.
+
+Coverage of the adapter's calls by the fixture, for 2.2: `raw` covers
+`recall_entries` and `recent_entries` over `findings.jsonl` with two `cwd`
+values and five kinds; `documents` covers the five personal kinds through
+`PersonalMemory.query` and full-source resolution; `curated` covers
+frontmatter parsing with links and a review id. Not covered by the fixture,
+and to be added as cases in 2.2: the sidecar-bound handle version
+(`summaries_by_path.json`, `.verdicts.jsonl`), the 4,096-file, 8 MiB and
+64 MiB bounds, the frontmatter `owner`/`scope`/`classification` refusal, the
+30-day raw expiry on `resolve`, and the sanitizer refusal on a surfaced
+string (the compatibility test has one for the write path only).

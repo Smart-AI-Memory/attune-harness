@@ -10,9 +10,9 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 62 rows:
+row pins, in 66 rows:
 
-- **success** (47 rows): the verb did its work offline on a small fixture;
+- **success** (51 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
 - **refusal** (5 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
@@ -23,6 +23,11 @@ row pins, in 62 rows:
   attune-ai adapter, which no base or extra install carries; a configured
   Redis that refuses the connection.
 - **disabled** (1 row): the memory config has no `scratch` section.
+
+The four `-adapter` rows pin the memory host's success shapes over an
+in-process double of the adapter's four-member contract (`binding`,
+`capabilities`, `query`, `resolve`), since no install carries the adapter:
+they are the contract the native reader of Phase 2 must satisfy (D19).
 
 Two verbs are not pinned. `mcp-serve` speaks the MCP protocol on stdout and
 prints no envelope, and `--help`/`--help-all` print text. Three rows,
@@ -87,6 +92,10 @@ envelope has no such key: the feature-work verbs (`plan`, `build` and their
 | `memory-replay` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-inspect` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-execute` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
+| `memory-capabilities-adapter` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `retained_paths` `worker_execution` `worker_mutations` |
+| `memory-recall-adapter` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
+| `memory-resolve-adapter` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
+| `memory-refresh-adapter` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
 | `memory-redis-status` | success | 0 | 1 | `ok` | `active_nodes` `authority` `guidance` `items` `layers` `operation` `schema_version` `status` |
 | `memory-redis-digest` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `limit` `operation` `schema_version` `status` |
 | `memory-redis-related` | success | 0 | 1 | `ok` | `authority` `guidance` `id` `items` `operation` `schema_version` `status` |
@@ -154,6 +163,10 @@ What each case runs, in the order of the table.
 - `memory-replay`: `memory --config replay RUN_ID JOB_ID --replies` without attune-ai
 - `memory-inspect`: `memory --config inspect RUN_ID JOB_ID` without attune-ai
 - `memory-execute`: `memory --config execute RUN_ID JOB_ID` without attune-ai
+- `memory-capabilities-adapter`: `memory --config capabilities` over an in-process double of the adapter's four-member contract
+- `memory-recall-adapter`: `memory --config recall QUERY --k 3` over the double
+- `memory-resolve-adapter`: `memory --config resolve HANDLE` with a handle the double's recall returned
+- `memory-refresh-adapter`: `memory --config refresh CONTEXT` with the packet the double's recall returned
 - `memory-redis-status`: `memory --config redis status` (in-process double of a hydrated keyspace)
 - `memory-redis-digest`: `memory --config redis digest --limit`
 - `memory-redis-related`: `memory --config redis related ID`

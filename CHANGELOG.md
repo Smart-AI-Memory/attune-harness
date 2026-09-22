@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Native memory Phase 2, step 2.1 (D19): the compatibility fixture
+  `tests/fixtures/memory_compatibility.json` is on `main`, byte identical to
+  the accepted one and pinned by digest and shape on every platform; the
+  success envelopes of `memory capabilities|recall|resolve|refresh` are in
+  the golden table over an in-process double of the adapter's four-member
+  contract; the Phase 2 design note carries the measured dependency (40
+  attune-ai modules, 455,609 bytes, on the read path) and the fixture's
+  coverage gaps for 2.2.
 - Docs: findings-log rows for the `memory serve` and lease reviews and the
   tally over eight full records; the 1.0 plan links the envelope table now
   that it is on `main`; the release runbook records what automating 0.4.0's
