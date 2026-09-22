@@ -1,0 +1,39 @@
+# Markdown link targets that were already dead when scripts/check_doc_links.py
+# began, on 2026-09-22. One repository-relative path per line. The list may
+# only shrink: remove a line when its link is fixed or cut. A listed path that
+# exists, or that nothing links to any more, fails the check.
+#
+# Absolute paths on one machine, copied into documents as links:
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/research/agent-harness-communications.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/cross-provider-session-handoff/requirements.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/cross-review/requirements.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/feature-lead-governance/requirements.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/host-surface-parity/tasks.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/product-direction-review/swot-2026-09-13.md
+Users/patrickroebuck/.codex/worktrees/593b/attune-ai/docs/specs/workflow-behavioral-validation/requirements.md
+Users/patrickroebuck/attune-ai/.claude/rules/attune/xml-enhanced-prompts.md
+Users/patrickroebuck/attune-ai/content/collaboration/contract.md
+Users/patrickroebuck/attune-ai/docs/research/parallel-lane-execution.md
+private/tmp/attune-ask-payload-reliability-20260916/docs/handoffs/codex-fix-ask-payload-reliability.md
+# Under the git-ignored docs/receipts/:
+docs/receipts/astra-review/live-01/corpus/guide.md
+docs/receipts/astra-review/live-01/corpus/reference.md
+docs/receipts/memory-documentation-journey-2026-09-17/example-backed-prepared/work/spec-fresh/gate.md
+docs/receipts/memory-routing-2026-09-16/replay-design.md
+docs/receipts/plan-build-repair-contenders-native-2026-09-18/side-pilot/results.md
+docs/receipts/plan-build-repair-contenders-preparation-2026-09-18/decision-form.md
+docs/receipts/plan-build-repair-model-preparation-2026-09-18/decision-form.md
+docs/receipts/plan-build-repair-native-preparation-2026-09-18/decision-form.md
+docs/receipts/plan-build-task1-2026-09-17/task1-gate.md
+docs/receipts/review-quality/grading-method.md
+docs/receipts/spec-test-handoff-2026-09-17/independent-review.md
+docs/receipts/spec-test-handoff-2026-09-17/installed-rehearsal/work/spec-fresh/gate.md
+docs/receipts/test-this-change-implementation/installed-spec-receipt.md
+# Files that exist in no branch:
+.pilot/voyage-100-2026-09-15/questions.md
+.pilot/voyage-answer-accuracy-2026-09-15/grading/rubric-clarifications.md
+.pilot/voyage-answer-accuracy-2026-09-15/native-message-v2-design.md
+.pilot/voyage-full-code-2026-09-15/questions.md
+docs/handoffs/smartaimemory-controls-article.md
+docs/reference.md
+docs/reflections/connected-journey-qualification-2026-09-17.md
