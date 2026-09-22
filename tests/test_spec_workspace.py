@@ -1079,3 +1079,29 @@ def test_test_evidence_is_checked_by_harness_own_policy(tmp_path, monkeypatch):
 def test_state_marker_is_the_readers():
     """The guard looks for exactly the marker the reader owns."""
     assert spec_workspace.STATE_MARKER == "<!-- spec-state:"
+
+
+@pytest.mark.parametrize(
+    "size,tasks,expected",
+    [
+        (65536, True, "resumes"),
+        (65537, True, "Input exceeds its limit of 65536 bytes"),
+        # No task block: only the resume's own read can refuse this by size.
+        # Without the limit on that read, the answer would be "no XML tasks".
+        (65537, False, "Input exceeds its limit of 65536 bytes"),
+    ],
+)
+def test_resume_enforces_the_plan_limit_on_its_own_read(tmp_path, size, tasks, expected):
+    """The one read in ``_resume`` carries ``PLAN_LIMIT``; the reviewer found nothing pinned it."""
+    repo = _repo(tmp_path)
+    plan = repo / ".claude/plans/demo.md"
+    head = _PLAN if tasks else "# No tasks\n"
+    plan.write_bytes((head + "x" * (size - len(head))).encode("ascii"))
+    assert plan.stat().st_size == size
+    adapter = SpecWorkspaceAdapter(repo)
+    if expected == "resumes":
+        state = adapter.create({"route": "resume", "plan_path": ".claude/plans/demo.md"})
+        assert state.task_ids == ("1", "2")
+    else:
+        with pytest.raises(ValueError, match=expected):
+            adapter.create({"route": "resume", "plan_path": ".claude/plans/demo.md"})
