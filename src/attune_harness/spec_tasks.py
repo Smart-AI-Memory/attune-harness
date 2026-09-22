@@ -6,9 +6,12 @@ Carried from Attune AI (branch ``codex/shared-memory-adoption`` at
 ``attune/pipeline/spec_reader.py``. The parser there was a method of the class
 that decomposes work for Attune AI's wizards, reached by building that class
 with no workflow; here it is a function. It uses the standard library parser in
-place of ``defusedxml``: only the ``<task>`` region of a file is ever parsed,
-never the file, so no entity declaration can reach the parser, and the hostile
-cases in the tests prove it.
+place of ``defusedxml``. What makes that safe is the ``<r>`` wrapper: an entity
+declaration is only legal before a document's root element, and the wrapper
+puts the root before anything from the file, so a declaration can never take
+effect; a ``DOCTYPE`` anywhere is a parse error and drops to the regex path,
+which expands nothing. The hostile cases in the tests pin that. The region cut
+is what lets prose and Markdown fences sit around the blocks.
 
 Copyright 2026 Smart AI Memory, LLC
 Licensed under the Apache License, Version 2.0
@@ -112,7 +115,9 @@ def parse_tasks(content: str) -> list[DecomposedTask]:
         return _parse_with_regex(content)
     try:
         root = ET.fromstring(f"<r>{region.group(0)}</r>")
-    except ET.ParseError as exc:
+    except (ET.ParseError, ValueError) as exc:
+        # ValueError covers what the parser raises for text it cannot encode,
+        # such as a lone surrogate, when a caller passes a string directly.
         logger.warning("Task XML is not well-formed (%s) - falling back to regex extraction", exc)
         return _parse_with_regex(content)
     # Direct children only: a <task> nested inside a description is an
@@ -180,25 +185,43 @@ def _inner_xml(element: ET.Element) -> str:
 
 
 def _text_with_tags(element: ET.Element) -> str:
-    parts = [element.text or ""]
-    for child in element:
+    """Rebuild inline child tags around their content, without recursion.
+
+    Iterative, so a plan nested thousands of elements deep, which fits in the
+    size limit, cannot exhaust the stack. As in the original, a child whose
+    content comes out empty is rendered ``<tag />``; any other is rendered
+    ``<tag>content</tag>``.
+    """
+    # Each frame collects one element's inner text; when its children are
+    # exhausted the frame closes and its text is appended to the parent frame.
+    frames: list[tuple[ET.Element, list, list[str]]] = [(element, list(element), [element.text or ""])]
+    while True:
+        node, remaining, parts = frames[-1]
+        if remaining:
+            child = remaining.pop(0)
+            frames.append((child, list(child), [child.text or ""]))
+            continue
+        inner = "".join(parts)
+        if len(frames) == 1:
+            return inner
+        frames.pop()
         # A double quote inside a decoded value is the only character that
         # would break the rebuilt tag's own quoting.
         attrs = "".join(
-            f' {key}="{value.replace(chr(34), "&quot;")}"' for key, value in child.attrib.items()
+            f' {key}="{value.replace(chr(34), "&quot;")}"' for key, value in node.attrib.items()
         )
-        inner = _text_with_tags(child)
-        parts.append(
-            f"<{child.tag}{attrs}>{inner}</{child.tag}>" if inner else f"<{child.tag}{attrs} />"
-        )
-        parts.append(child.tail or "")
-    return "".join(parts)
+        parent_parts = frames[-1][2]
+        parent_parts.append(f"<{node.tag}{attrs}>{inner}</{node.tag}>" if inner else f"<{node.tag}{attrs} />")
+        parent_parts.append(node.tail or "")
 
 
 def _parse_with_regex(content: str) -> list[DecomposedTask]:
     """Fallback for task XML the parser rejects. Warns about what it drops."""
     tasks: list[DecomposedTask] = []
-    for match in _TASK_BLOCK.finditer(content):
+    # One scan, reused for the orphan check below: the pattern is quadratic
+    # on an unclosed block, and one pass halves the cost.
+    matches = list(_TASK_BLOCK.finditer(content))
+    for match in matches:
         task_id, name, body = match.group(1), match.group(2) or match.group(1), match.group(3)
         files_to_create = _extract_files(body, "files-to-create")
         files_to_modify = _extract_files(body, "files-to-modify")
@@ -240,7 +263,7 @@ def _parse_with_regex(content: str) -> list[DecomposedTask]:
     # Runs even when nothing parsed: a lone task with a single-quoted
     # attribute is exactly the case this warning exists for.
     leftovers, cursor = [], 0
-    for match in _TASK_BLOCK.finditer(content):
+    for match in matches:
         leftovers.append(content[cursor : match.start()])
         cursor = match.end()
     leftovers.append(content[cursor:])

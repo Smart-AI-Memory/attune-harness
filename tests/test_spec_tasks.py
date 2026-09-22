@@ -304,6 +304,42 @@ def test_entity_declarations_never_reach_the_parser_and_nothing_expands(caplog, 
     assert any("not well-formed" in m and "falling back" in m for m in messages)
 
 
+def test_the_wrapper_not_the_cut_is_what_keeps_an_entity_from_expanding(caplog):
+    # Parsed as a bare document, an internal subset is legal and the entity
+    # expands. Wrapped in a root element, the same bytes are not well-formed.
+    text = '<!DOCTYPE r [<!ENTITY lol "expanded">]><task id="1"><objective>&lol;</objective></task>'
+    import xml.etree.ElementTree as ET
+    assert ET.fromstring(text).find("objective").text == "expanded"
+    with pytest.raises(ET.ParseError):
+        ET.fromstring(f"<r>{text}</r>")
+    tasks, messages = parse(caplog, text)
+    assert tasks[0].objective == "&lol;"
+    assert any("falling back" in m for m in messages)
+
+
+def test_a_plan_nested_thousands_deep_parses_without_exhausting_the_stack():
+    depth = 9000
+    text = '<task id="1"><objective>' + "<a>" * depth + "x" + "</a>" * depth + "</objective></task>"
+    assert len(text) < spec_tasks.PLAN_LIMIT
+    [task] = parse_tasks(text)
+    assert task.objective.startswith("<a><a>") and task.objective.endswith("</a></a>")
+
+
+def test_a_lone_surrogate_in_a_direct_call_falls_back_instead_of_escaping(caplog):
+    tasks, messages = parse(caplog, '<task id="1"><objective>a\ud800b</objective></task>')
+    assert [t.task_id for t in tasks] == ["1"]
+    assert any("falling back" in m for m in messages)
+
+
+def test_thousands_of_unclosed_blocks_finish_quickly():
+    import time
+    text = '<task id="1">' * 4000
+    start = time.perf_counter()
+    assert parse_tasks(text) == []
+    # About 1 s here; the limit only has to catch the quadratic path doubling.
+    assert time.perf_counter() - start < 10.0
+
+
 def test_a_normal_task_still_parses_beside_the_hostile_cases():
     assert (
         parse_tasks('<task id="1"><objective>Fix &amp; test</objective></task>')[0].objective
