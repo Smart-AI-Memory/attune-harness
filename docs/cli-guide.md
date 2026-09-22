@@ -250,8 +250,16 @@ to three sections, each optional:
 }
 ```
 
-`roots` is the read-only integration the adoption spec accepted; today it
-still needs attune-ai installed. The other two need only Harness.
+`roots` is the read-only integration the adoption spec accepted: `memory
+capabilities|recall|resolve|refresh` over explicit roots of the `raw`,
+`personal` and `curated` tiers. Which code reads them is `reader`: `native`,
+Harness's own reader (Phase 2 of the plan to 1.0, D19), which needs nothing
+from attune-ai and is POSIX-only at 0.5.0; or `adapter`, attune-ai's
+compatibility adapter, which only an environment built from attune-ai's
+`codex/shared-memory-adoption` branch has. The default is still `adapter`
+until step 2.4 switches it. The `redis`, `scratch` and `reader` keys are set
+aside before the roots contract is validated, so one file serves every memory
+verb. The other two sections need only Harness.
 
 **`redis`**, with the `redis` extra, reads the Redis Stack keyspace a hydration
 keeps warm, read-only: `memory redis status`, `digest [--limit N]`,

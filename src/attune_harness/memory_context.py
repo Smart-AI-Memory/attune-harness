@@ -17,9 +17,16 @@ class MemoryHost:
     can produce durable proposals through the same worker boundary.
     """
 
-    def __init__(self, config, jobs=None, native=None):
-        from attune.memory.harness_adapter import CompatibilityAdapter
-        self.adapter = CompatibilityAdapter(config)
+    def __init__(self, config, jobs=None, native=None, reader='adapter'):
+        if reader == 'native':
+            from .memory_reader import NativeReader
+            self.adapter = NativeReader(config)
+        elif reader == 'adapter':
+            # attune-ai's own adapter, the fallback until Task 9 (D19).
+            from attune.memory.harness_adapter import CompatibilityAdapter
+            self.adapter = CompatibilityAdapter(config)
+        else:
+            raise ValueError("Memory reader must be 'native' or 'adapter'")
         self.config = deepcopy(config)
         self.jobs = Path(jobs) if jobs is not None else None
         self.native = None

@@ -168,8 +168,11 @@ def execute(args):
             result = run(read_json(args.config), args.scratch_operation, arguments)
         else:
             from .memory_context import MemoryHost
+            from .memory_reader import roots_config
             native = read_json(args.native_config) if args.native_config is not None else None
-            host = MemoryHost(read_json(args.config), args.jobs, native)
+            config = read_json(args.config)
+            reader = config.get('reader', 'adapter') if isinstance(config, dict) else 'adapter'
+            host = MemoryHost(roots_config(config), args.jobs, native, reader=reader)
             names = {'capabilities': (), 'recall': ('query', 'k', 'max_chars'),
                      'resolve': ('handle',), 'refresh': ('context',),
                      'create': ('run_id', 'envelope', 'policy'),
