@@ -13,7 +13,11 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
+import stat
+import sys
+import time
 
 import pytest
 
@@ -82,8 +86,9 @@ class TestLoadState:
         assert any("Malformed spec-state" in r.message for r in caplog.records)
 
     def test_rejects_non_object_payload(self, tmp_path, monkeypatch, caplog):
-        # The pattern requires {...}; loosen it, keeping the trailing anchor,
-        # so an array reaches the isinstance guard.
+        # A defensive branch production cannot reach: the pattern requires
+        # {...}, so the parser yields a dict or raises. Loosen the pattern,
+        # keeping the trailing anchor, so an array reaches the guard.
         p = plan(tmp_path, "# Plan\n\n<!-- spec-state: [1, 2, 3] -->")
         loosened = re.compile(r"\n?<!-- spec-state:\s*(\S.*?)\s*-->\s*\Z", re.S)
         monkeypatch.setattr(spec_state, "STATE_PATTERN", loosened)
@@ -300,6 +305,107 @@ class TestTrailingComment:
         assert load_state(str(p)).completed == ["1"]
 
 
+STRAY_THEN_BRACE_ARROW = (
+    "# Plan\n\n" + comment(schema_version=2, completed=["1"]) + "\n\n" + TASKS
+    + "\n<!-- TODO: fix the {placeholder} -->\n"
+)
+UNTERMINATED_THEN_TRAILING = (
+    "# Plan\n\nExample in prose: <!-- spec-state: {unfinished\n\n" + TASKS + "\n"
+    + comment(schema_version=2, completed=["1"]) + "\n"
+)
+
+
+class TestPatternIsBounded:
+    """The comment pattern must never span the body. Found by review: with an
+    unbounded lazy payload, a stray marker plus a later ``} -->`` matched the
+    whole document, and save or clear then deleted the tasks."""
+
+    @pytest.mark.parametrize("text", [STRAY_THEN_BRACE_ARROW, UNTERMINATED_THEN_TRAILING])
+    def test_load_refuses_rather_than_reading_the_body_as_state(self, tmp_path, text):
+        p = plan(tmp_path, text)
+        with pytest.raises(ValueError, match="Malformed or misplaced Spec state comment"):
+            load_state(str(p))
+
+    @pytest.mark.parametrize("text", [STRAY_THEN_BRACE_ARROW, UNTERMINATED_THEN_TRAILING])
+    def test_save_refuses_and_writes_nothing(self, tmp_path, text):
+        p = plan(tmp_path, text)
+        state = SpecState(plan_path=str(p), completed=["1"], schema_version=1, last_updated="before")
+        with pytest.raises(ValueError, match="Malformed or misplaced Spec state comment"):
+            save_state(state)
+        assert p.read_text(encoding="utf-8") == text
+        assert (state.last_updated, state.schema_version) == ("before", 1)
+
+    @pytest.mark.parametrize("text", [STRAY_THEN_BRACE_ARROW, UNTERMINATED_THEN_TRAILING])
+    def test_clear_keeps_every_task(self, tmp_path, text):
+        p = plan(tmp_path, text)
+        clear_state(str(p))
+        content = p.read_text(encoding="utf-8")
+        assert content.count("<task id=") == 2
+        assert "Do first" in content and "Do second" in content
+
+    def test_marker_spam_within_the_limit_is_refused_fast(self, tmp_path):
+        text = ("<!-- spec-state: {" * 900) + ("}" * 30000) + " -->"
+        assert len(text.encode()) < PLAN_LIMIT
+        p = plan(tmp_path, text)
+        started = time.perf_counter()
+        with pytest.raises(ValueError, match="Malformed or misplaced"):
+            load_state(str(p))
+        assert time.perf_counter() - started < 1.0
+
+    def test_single_marker_brace_spam_is_refused_fast(self, tmp_path):
+        text = "# Plan\n\n<!-- spec-state: {" + ("} x " * 15000) + "\n" + TASKS + "\n{} -->"
+        assert len(text.encode()) < PLAN_LIMIT
+        p = plan(tmp_path, text)
+        started = time.perf_counter()
+        with pytest.raises(ValueError, match="Malformed or misplaced"):
+            load_state(str(p))
+        assert time.perf_counter() - started < 1.0
+
+
+class TestLineEndingsAndLimits:
+    def test_crlf_plan_stays_crlf_across_saves(self, tmp_path):
+        text = "# Plan\r\n\r\n" + TASKS.replace("\n", "\r\n")
+        p = plan(tmp_path, text)
+        for _ in range(3):
+            save_state(SpecState(plan_path=str(p), completed=["1"]))
+        raw = p.read_bytes()
+        assert b"\r\r" not in raw
+        assert raw.count(b"\r\n") == raw.count(b"\n"), "every newline is CRLF"
+        assert load_state(str(p)).completed == ["1"]
+        clear_state(str(p))
+        raw = p.read_bytes()
+        assert b"spec-state" not in raw and raw.count(b"\r\n") == raw.count(b"\n")
+
+    def test_a_result_exactly_at_the_limit_is_written_and_read(self, tmp_path):
+        p = plan(tmp_path, PLAN_WITHOUT_STATE)
+        state = SpecState(plan_path=str(p), completed=["1"], task_receipts=[{"task_id": "1", "detail": ""}])
+        save_state(state)
+        room = PLAN_LIMIT - len(p.read_bytes())
+        state.task_receipts[0]["detail"] = "x" * room
+        save_state(state)
+        assert len(p.read_bytes()) == PLAN_LIMIT
+        assert load_state(str(p)).task_receipts[0]["detail"] == "x" * room
+        state.task_receipts[0]["detail"] += "x"
+        with pytest.raises(ValueError, match="over the limit"):
+            save_state(state)
+
+    @pytest.mark.skipif(sys.platform == "win32" or os.geteuid() == 0, reason="needs POSIX permissions and a non-root user")
+    def test_unreadable_plan_is_skipped_and_hides_nothing(self, tmp_path, caplog):
+        plans_dir = tmp_path / "plans"
+        plans_dir.mkdir()
+        locked = plan(plans_dir, PLAN_WITH_STATE, "a-locked.md")
+        good = plan(plans_dir, PLAN_WITH_STATE, "b-good.md")
+        locked.chmod(0)
+        try:
+            with caplog.at_level(logging.DEBUG, logger=LOGGER):
+                assert load_state(str(locked)) is None
+                found = find_resumable_plans(str(plans_dir))
+        finally:
+            locked.chmod(stat.S_IRUSR | stat.S_IWUSR)
+        assert [s.plan_path for s in found] == [str(good)]
+        assert "Could not read plan file" in caplog.text
+
+
 class TestAgreementWithBridge:
     """Both modules accept or refuse the same files, so one never writes what
     the other refuses."""
@@ -316,6 +422,11 @@ class TestAgreementWithBridge:
         "version 3": "# Plan\n\n" + TASKS + "\n" + comment(schema_version=3) + "\n",
         "version missing": "# Plan\n\n" + TASKS + "\n" + comment(completed=[]) + "\n",
         "version bool": "# Plan\n\n" + TASKS + "\n" + comment(schema_version=True) + "\n",
+        "malformed json": "# Plan\n\n" + TASKS + "\n<!-- spec-state: {broken} -->\n",
+        "duplicate key": "# Plan\n\n" + TASKS + '\n<!-- spec-state: {"schema_version": 2, "schema_version": 2, "completed": []} -->\n',
+        "non-finite number": "# Plan\n\n" + TASKS + '\n<!-- spec-state: {"schema_version": 2, "completed": [], "x": NaN} -->\n',
+        "stray marker then } -->": STRAY_THEN_BRACE_ARROW,
+        "unterminated then trailing": UNTERMINATED_THEN_TRAILING,
     }
 
     @pytest.mark.parametrize("name", list(CASES))
@@ -325,8 +436,12 @@ class TestAgreementWithBridge:
 
         def outcome(call):
             try:
-                call()
+                value = call()
             except ValueError:
+                return "refused"
+            # load_state answers None, with a warning, for a comment it will
+            # not read; a file with a marker and no state was not accepted.
+            if value is None and "<!-- spec-state:" in text:
                 return "refused"
             return "accepted"
 

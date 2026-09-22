@@ -21,6 +21,13 @@ Three seams are reworked here, from Task 1's verdict on the module:
   size. ``clear_state`` removes every state comment wherever it is, because
   removing the comment is the next action this module names for a misplaced
   or unsupported one.
+- ``find_resumable_plans`` returns plans in file name order; the original
+  returned them in directory order.
+
+The payload pattern admits no ``<`` or ``>``: the writer escapes both, so a
+real comment never contains them, and the bound keeps the pattern from
+spanning prose between a stray marker and a later ``} -->``. The two modules
+share the pattern and the JSON parser, so they refuse the same files.
 
 Copyright 2026 Smart AI Memory, LLC
 Licensed under the Apache License, Version 2.0
@@ -38,6 +45,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .features import read_text
+from .review_contract import parse_json
 from .paths import validate_file_path
 from .spec_tasks import PLAN_LIMIT, read_spec
 
@@ -46,9 +54,9 @@ logger = logging.getLogger(__name__)
 STATE_MARKER = "<!-- spec-state:"
 # The one place a state comment may live: last in the file, at most one.
 # The same expression `spec_bridge.plan_content` uses.
-STATE_PATTERN = re.compile(r"\n?<!-- spec-state:\s*(\{.*?\})\s*-->\s*\Z", re.S)
+STATE_PATTERN = re.compile(r"\n?<!-- spec-state:\s*(\{[^<>]*\})\s*-->\s*\Z", re.S)
 # Any state comment, anywhere. Only `clear_state` uses it, to repair a file.
-_ANY_STATE = re.compile(r"<!-- spec-state:\s*\{.*?\}\s*-->", re.S)
+_ANY_STATE = re.compile(r"<!-- spec-state:\s*\{[^<>]*\}\s*-->")
 
 SUPPORTED_SCHEMA_VERSIONS = (1, 2)
 CURRENT_SCHEMA_VERSION = 2
@@ -98,13 +106,15 @@ def _split(content: str, plan_path: str) -> tuple[str, str | None]:
     """
     if STATE_MARKER not in content:
         return content, None
-    match = STATE_PATTERN.search(content)
-    if content.count(STATE_MARKER) != 1 or not match:
+    # The count comes first: it is cheap, and a file with several markers
+    # never needs the search.
+    match = STATE_PATTERN.search(content) if content.count(STATE_MARKER) == 1 else None
+    if match is None:
         raise ValueError(
             f"Malformed or misplaced Spec state comment in {plan_path}: the state "
             "comment must be the only one and the last thing in the file. Remove "
-            "every spec-state comment to start the plan over, or move the one "
-            "comment to the end of the file."
+            "every spec-state comment to start the plan over, or keep one comment "
+            "and move it to the end of the file."
         )
     return content[: match.start()], match.group(1)
 
@@ -132,10 +142,11 @@ def _check_schema_version(data: dict, plan_path: str) -> int:
 def load_state(plan_path: str) -> SpecState | None:
     """Read the state comment from a plan file.
 
-    Returns ``None`` when the file does not exist or has no state comment,
-    and, with a warning, when the comment's JSON is malformed or a field has
-    the wrong type: callers can observe the failure even though the contract
-    is ``None``.
+    Returns ``None`` when the file does not exist, cannot be read, or has no
+    state comment, and, with a warning, when the comment's JSON is malformed
+    (including a duplicate key or a non-finite number, which the bridge's
+    parser refuses too) or a field has the wrong type: callers can observe
+    the failure even though the contract is ``None``.
 
     Raises ``ValueError`` when the path fails validation, the file is over
     the plan size limit, the comment is not the single trailing one, its
@@ -146,15 +157,19 @@ def load_state(plan_path: str) -> SpecState | None:
     if not validated.is_file():
         logger.debug("No plan file at %s", plan_path)
         return None
-    content = read_text(validated, PLAN_LIMIT)
+    try:
+        content = read_text(validated, PLAN_LIMIT)
+    except OSError as e:
+        logger.debug("Could not read plan file %s: %s", plan_path, e)
+        return None
 
     _, payload = _split(content, plan_path)
     if payload is None:
         return None
 
     try:
-        data = json.loads(payload)
-    except json.JSONDecodeError as e:
+        data = parse_json(payload, PLAN_LIMIT)
+    except ValueError as e:
         logger.warning("Malformed spec-state in %s: %s", plan_path, e)
         return None
 
@@ -207,26 +222,31 @@ def save_state(state: SpecState) -> None:
     """Write the state comment as the last thing in the plan file.
 
     An existing trailing comment is replaced; a file without one gets one
-    appended. The write goes through a sibling temporary file and
-    ``os.replace``, so a reader never sees a half-written plan and a crash
-    mid-write leaves the plan as it was. ``state.last_updated`` and
-    ``state.schema_version`` are set as a side effect.
+    appended, using the file's own line ending. The write goes through a
+    sibling temporary file and ``os.replace``, so a reader never sees a
+    half-written plan and a crash mid-write leaves the plan as it was. After
+    a successful write ``state.last_updated`` and ``state.schema_version``
+    are set to what was written; a refused save leaves the object unchanged.
 
     Raises ``ValueError`` when the path fails validation, the file is not a
     regular file or is over the plan size limit, an existing comment is not
     the single trailing one, or the result would be over the limit; nothing
     is written in any of those cases. Raises ``OSError`` if the write fails.
     """
-    state.last_updated = datetime.now(timezone.utc).isoformat()
-    state.schema_version = CURRENT_SCHEMA_VERSION
     validated = validate_file_path(state.plan_path)
-
     content = read_text(validated, PLAN_LIMIT)
     body, _ = _split(content, state.plan_path)
+
+    written = {
+        **state.to_dict(),
+        "schema_version": CURRENT_SCHEMA_VERSION,
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+    }
     # Evidence may contain comment delimiters. Keep it inside the JSON comment.
-    payload = json.dumps(state.to_dict()).replace("<", "\\u003c").replace(">", "\\u003e")
+    payload = json.dumps(written).replace("<", "\\u003c").replace(">", "\\u003e")
     comment = f"<!-- spec-state: {payload} -->"
-    result = body.rstrip() + f"\n\n{comment}\n"
+    newline = "\r\n" if "\r\n" in body else "\n"
+    result = body.rstrip() + f"{newline}{newline}{comment}{newline}"
 
     size = len(result.encode("utf-8"))
     if size > PLAN_LIMIT:
@@ -237,6 +257,8 @@ def save_state(state: SpecState) -> None:
             "into smaller plan files."
         )
     _atomic_write_text(validated, result)
+    state.last_updated = written["last_updated"]
+    state.schema_version = CURRENT_SCHEMA_VERSION
 
 
 def clear_state(plan_path: str) -> None:
@@ -255,7 +277,8 @@ def clear_state(plan_path: str) -> None:
     if not _ANY_STATE.search(content):
         return
 
-    content = _ANY_STATE.sub("", content).rstrip() + "\n"
+    newline = "\r\n" if "\r\n" in content else "\n"
+    content = _ANY_STATE.sub("", content).rstrip() + newline
     _atomic_write_text(validated, content)
 
 
@@ -299,7 +322,8 @@ def _atomic_write_text(target: Path, content: str) -> None:
     """Write ``content`` to ``target`` through a sibling temporary file.
 
     ``tempfile.mkstemp`` in the same directory, then ``os.replace``, so a
-    concurrent reader never sees a partial file. On failure the temporary
+    concurrent reader never sees a partial file. Line endings are written as
+    given, never translated, so a CRLF plan stays CRLF on every platform. On failure the temporary
     file is removed on a best-effort basis and the original error is raised;
     a failed removal is logged at debug level so it stays observable.
     """
@@ -309,7 +333,7 @@ def _atomic_write_text(target: Path, content: str) -> None:
         dir=str(target.parent),
     )
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(content)
         os.replace(tmp_name, target)
     except OSError:

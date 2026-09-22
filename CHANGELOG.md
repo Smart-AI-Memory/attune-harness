@@ -12,8 +12,9 @@
   default. And the comment must be the single trailing one, which is what the
   Spec bridge already requires, so the writer never produces a file the reader
   refuses; the writer also refuses a result over the 65,536-byte plan limit
-  rather than writing one the reader would refuse. Nothing in Harness calls it
-  yet.
+  rather than writing one the reader would refuse. Plans found by
+  `find_resumable_plans` come back in file name order. Nothing in Harness
+  calls it yet.
 - Added: `attune_harness.spec_tasks`, the reader for the `<task>` blocks a plan
   file is written in: `DecomposedTask`, `parse_tasks` and `read_spec`, carried
   from Attune AI as the second step of making spec support part of Harness. It
