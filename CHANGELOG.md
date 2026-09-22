@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Pinned: the envelope of every CLI verb, ahead of the 1.0 freeze.
+  `tests/test_golden_envelopes.py` runs each verb, and each subcommand of
+  `extension`, `index`, `memory redis` and `memory scratch`, in-process on the
+  cheapest deterministic fixture that yields an envelope and compares the
+  sorted top-level keys, `schema_version`, `status` and exit code to a
+  checked-in table; renaming or dropping a key now fails exactly the case
+  whose id names the verb. Where a success envelope is reachable offline it
+  is the one pinned; `build` before acceptance, `index build|update|inspect`
+  and `retrieval-task` without a generation or `--allow-provider`, and the
+  memory host route without attune-ai pin their refusal or `unavailable`
+  envelope instead, and `mcp-serve` is not pinned because its stdout is the
+  MCP protocol stream. `docs/envelopes.md` carries the same table as the
+  compatibility surface the 1.0 changelog will point at, and a test keeps the
+  two in step. The pass also recorded, without changing them, that the
+  feature-work (`plan`, `build`, their `status`) and `memory scratch`
+  envelopes carry no `schema_version`.
 - Changed: the run store's writer lease waits a bounded time, two seconds
   like the record replace and the event writer's lock, before it reports
   `Run is busy; another owner holds the writer lock`. Two callers touching
