@@ -92,16 +92,34 @@ def read_json(path):
 
 
 def _write(stream, text):
-    """Write for a hook: a console that cannot encode a character shows a replacement, and never a traceback."""
+    """Write for a hook: never a traceback, whatever the stream is.
+
+    A stream that is ``None`` (fd closed at exec, ``pythonw.exe``) is skipped.
+    A console that cannot encode a character shows a replacement. A write or
+    flush that fails, a reader gone from a pipe included, is dropped, and the
+    stream's descriptor is pointed at the null device so the interpreter's
+    exit-time flush of what is still buffered cannot raise again and turn the
+    exit code into 120.
+    """
+    if stream is None:
+        return
     try:
         try:
             stream.write(text)
+            stream.flush()
         except UnicodeEncodeError:
             encoding = getattr(stream, 'encoding', None) or 'utf-8'
             stream.write(text.encode(encoding, 'replace').decode(encoding))
-        stream.flush()
-    except (OSError, ValueError):
-        pass
+            stream.flush()
+    except (OSError, ValueError, LookupError):
+        try:
+            null = os.open(os.devnull, os.O_WRONLY)
+            try:
+                os.dup2(null, stream.fileno())
+            finally:
+                os.close(null)
+        except (OSError, ValueError, AttributeError):
+            pass
 
 
 def serve(args):

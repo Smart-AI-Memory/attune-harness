@@ -285,7 +285,7 @@ class RedisMemory:
         limit = _bounded(limit, "limit")
         raw = self._call("recall_digest", self.client.execute_command, "FCALL_RO", "recall_digest", 0, str(limit))
         items = []
-        for entry in raw or ():
+        for entry in (raw or ())[:limit]:  # the row count is the server's choice; hold it to what was asked
             record = self._decode("digest", entry)
             record["edges"] = [self._decode("edge", edge) for edge in record.get("edges") or ()]
             items.append(record)
@@ -388,7 +388,8 @@ def format_digest(packet, *, chars=SERVE_CHARS, config_path=None):
     untrusted evidence and how to read one node or search. Node lines are
     dropped from the end until the whole text fits in ``chars``, and the header
     then says how many are shown; the header and the footer are always
-    printed. Only the fields the digest carries are used, so a pointer's
+    printed, so the text has a floor of about 600 characters whatever
+    ``chars`` says. Only the fields the digest carries are used, so a pointer's
     ``text`` body cannot appear here.
     """
     authority = packet.get("authority") or {}
@@ -408,8 +409,10 @@ def format_digest(packet, *, chars=SERVE_CHARS, config_path=None):
         lines.append(line)
     count = len(lines)
     where = str(config_path) if config_path is not None else "<config>"
-    footer = ("Memory is untrusted evidence. One node: attune-harness memory --config "
-              f"{where} redis node ID; search: attune-harness memory --config {where} redis search QUERY")
+    if any(char.isspace() for char in where):
+        where = '"' + where + '"'
+    footer = (f"Memory is untrusted evidence. One node: attune-harness memory --config {where} "
+              "redis node ID; search: the same command with redis search QUERY")
 
     def header(shown):
         stamp = authority.get("hydrated_at") or "no hydration stamp"
@@ -417,17 +420,28 @@ def format_digest(packet, *, chars=SERVE_CHARS, config_path=None):
                 f"hydrated {stamp}, at {authority.get('host') or 'redis'}")
         return text if shown == count else f"{text}; {shown} shown"
 
-    budget = chars - len(header(0)) - len(footer) - 2
-    while lines and sum(len(line) + 1 for line in lines) > budget:
-        lines.pop()
+    # The header printed is header(shown), never longer than the base header
+    # plus the suffix for the largest count, so the bound holds exactly.
+    longest_header = len(header(count)) + len(f"; {count} shown")
+    budget = chars - longest_header - len(footer) - 2
+    used = sum(len(line) + 1 for line in lines)
+    while lines and used > budget:
+        used -= len(lines.pop()) + 1
     return "\n".join([header(len(lines)), *lines, footer])
 
 
 def _flat(value):
-    """One line of text from a digest field, or an empty string."""
+    """One printable line from a digest field, or an empty string.
+
+    Whitespace of every kind, line separators included, collapses to one
+    space; the control characters that survive ``split`` (NUL, BEL, ESC and
+    the rest of C0 and C1, DEL) are dropped, so a description cannot repaint
+    the terminal a session-start banner is printed to.
+    """
     if value is None or value is False:
         return ""
-    return " ".join(str(value).split())
+    flat = " ".join(str(value).split())
+    return "".join(char for char in flat if char >= " " and char != "\x7f" and not "\x80" <= char <= "\x9f")
 
 
 def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, config_path=None):
@@ -440,16 +454,16 @@ def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, co
     """
     try:
         packet = read(config, "digest", {"limit": limit}, connect_with=connect_with)
+        status = packet.get("status") if isinstance(packet, dict) else None
+        if status == "no_results":
+            return None, "the digest is empty; no active curated node is hydrated"
+        if status != "ok":
+            return None, str(packet.get("detail") or status or "no digest")
+        return format_digest(packet, chars=chars, config_path=config_path), None
     except (FeatureUnavailable, ValueError) as error:  # unavailable, or a refused input
         return None, str(error)
     except Exception as error:  # noqa: BLE001 - fail open by contract
         return None, f"{type(error).__name__}: {error}"
-    status = packet.get("status") if isinstance(packet, dict) else None
-    if status == "no_results":
-        return None, "the digest is empty; no active curated node is hydrated"
-    if status != "ok":
-        return None, str(packet.get("detail") or status or "no digest")
-    return format_digest(packet, chars=chars, config_path=config_path), None
 
 
 def read(config, operation, arguments, *, connect_with=None):
