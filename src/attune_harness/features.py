@@ -5,7 +5,7 @@ import json
 import os
 import tempfile
 import time
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError, requires, version
 from pathlib import Path
 from uuid import uuid4
 
@@ -76,6 +76,68 @@ def output_path(path: Path, protected: tuple[Path, ...] = ()) -> Path:
     if not target.parent.is_dir() or (target.exists() and not target.is_file()):
         raise ValueError("Output requires an existing directory and regular file destination")
     return target
+
+
+def _version_tuple(text: str):
+    parts = []
+    for piece in text.strip().split('.'):
+        if not piece.isdigit():
+            return None
+        parts.append(int(piece))
+    return tuple(parts)
+
+
+def _satisfied(installed: str, spec: str):
+    """Whether ``installed`` meets one comma-separated PEP 440 spec; None when unsure."""
+    have = _version_tuple(installed)
+    if have is None:
+        return None
+    for clause in spec.split(','):
+        clause = clause.strip()
+        for operator in ('===', '==', '!=', '<=', '>=', '<', '>', '~='):
+            if clause.startswith(operator):
+                wanted = _version_tuple(clause[len(operator):].rstrip('.*'))
+                if wanted is None or operator in ('===', '~=') or clause.endswith('.*'):
+                    return None
+                ok = {'==': have == wanted, '!=': have != wanted, '<=': have <= wanted,
+                      '>=': have >= wanted, '<': have < wanted, '>': have > wanted}[operator]
+                if not ok:
+                    return False
+                break
+        else:
+            return None
+    return True
+
+
+def neighbor_conflict(dependency: str = 'mcp', neighbor: str = 'attune-ai') -> str | None:
+    """A notice when a co-installed neighbour pins ``dependency`` to a line this install replaced.
+
+    Harness and attune-ai pin different lines of the MCP SDK, so one environment
+    cannot hold both working. pip installs the second anyway and exits 0. This
+    names the breakage at the moment it matters; it never changes behaviour.
+    Returns None when the neighbour is absent, its requirement is met, or the
+    requirement cannot be read with certainty.
+    """
+    try:
+        installed = version(dependency)
+        declared = requires(neighbor) or []
+    except PackageNotFoundError:
+        return None
+    for requirement in declared:
+        name, _, rest = requirement.partition(';')
+        head = name.strip()
+        for cut in ('===', '==', '!=', '<=', '>=', '<', '>', '~=', ' ', '['):
+            if cut in head:
+                head = head[:head.index(cut)]
+        if head.strip().lower() != dependency.lower() or ';' in requirement and 'extra' in rest:
+            continue
+        spec = name.strip()[len(head):].strip().strip('()')
+        if spec and _satisfied(installed, spec) is False:
+            return (f"{neighbor} is installed here and requires {dependency}{spec}, but "
+                    f"attune-harness installed {dependency} {installed}; the two cannot share an "
+                    f"environment. Install attune-harness in its own environment "
+                    f"(pipx install attune-harness) and reinstall {neighbor}.")
+    return None
 
 
 REPLACE_RETRY_SECONDS = 2.0

@@ -20,11 +20,16 @@ of its own work is recorded. It is never the evidence.
 ## A wrong answer comes back rejected
 
 ```sh
-pip install attune-harness
+pipx install attune-harness
 ```
 
-That installs everything the review, test, MCP and acceptance journeys need.
-Python 3.10 or later. No provider SDK, no API key, and no attune-ai installation.
+or `uv tool install attune-harness`, or `pip install attune-harness` into an
+environment of its own. That installs everything the review, test, MCP and
+acceptance journeys need. Python 3.10 or later. No provider SDK, no API key, and
+no attune-ai installation. Harness and attune-ai cannot share one environment:
+they pin different lines of the MCP SDK, and installing Harness over attune-ai
+replaces attune-ai's; an isolated install avoids that, and `mcp-serve` says so
+if it finds the two side by side.
 
 ```python
 from attune_harness import Check, Output, Task, run
@@ -131,7 +136,8 @@ unless you install an extra that does.
 
 attune-ai is still where cross-session memory, the Claude Code plugin and the
 multi-agent workflows live. Harness does not replace those today. If that is what
-you need, install attune-ai.
+you need, install attune-ai, in its own environment: the two pin different lines
+of the MCP SDK and cannot share one.
 
 ## Links
 

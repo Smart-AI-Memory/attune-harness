@@ -123,7 +123,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == 'mcp-serve':
         import asyncio
         import sys
+        from .features import neighbor_conflict
         from .mcp_server import serve
+        notice = neighbor_conflict()
+        if notice:
+            print(notice, file=sys.stderr)
         try:
             asyncio.run(serve(args.request, args.config, args.participant, args.session_dir,
                               allow_provider=args.allow_provider))

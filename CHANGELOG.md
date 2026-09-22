@@ -11,7 +11,13 @@
   existing command line keeps working. Every dependency still loads on first
   use through the same gate, so a wheel installed without its dependencies
   reports each missing piece instead of failing; the report for a piece of the
-  base now says to reinstall with dependencies rather than naming an extra.
+  base now gives the reinstall command rather than naming an extra. One
+  consequence, decided with eyes open (D15, amended): Harness pins the MCP
+  SDK's 2.x line and attune-ai its 1.x line, so the two cannot share one
+  environment, and `pip install attune-harness` over attune-ai replaces its
+  SDK and exits 0. The README leads with an isolated install (`pipx`, `uv
+  tool`), and `mcp-serve` prints a notice on stderr when it starts beside an
+  attune-ai whose MCP requirement this install does not meet.
 
 ## 0.3.0
 
