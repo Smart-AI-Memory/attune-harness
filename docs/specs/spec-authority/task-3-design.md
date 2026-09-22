@@ -1,7 +1,7 @@
 # Spec authority, Task 3: design note
 
-September 22, 2026. Task 2 is built and waiting at the merge gate: #34 (2.2),
-#42 (2.3) and #43 (2.4), stacked. Task 3 is "specify and implement approval
+September 22, 2026. Task 2 is complete: #33 (2.1), #34 (2.2), #42 (2.3) and
+#43 (2.4) are merged. Task 3 is "specify and implement approval
 and gate decisions on the task engine", with the evidence "R1 and R3 tests;
 stale and replayed decisions refused". **Status: proposed. It names five
 decisions that are Patrick's. No code starts until he says go.**
@@ -156,8 +156,8 @@ from the GitHub API on September 22:
 | --- | ---: | ---: | --- |
 | 2.1 `paths.py` | 306 | 62 | 4 h 15 min to merge, including one review round |
 | 2.2 `spec_tasks.py` | 753 | 36 | about 1 h 30 min, including one review round |
-| 2.3 `spec_state.py` | 969 | 84 | about 50 min, including one review round with two blockers |
-| 2.4 bridge reader | 91 | 7 | about 20 min, including one review round |
+| 2.3 `spec_state.py` | 969 | 84 | about 50 min, including one review round with two blockers; one Windows-only fixture fix at the merge gate |
+| 2.4 bridge reader | 131 | 7 | about 20 min, including one review round |
 
 Task 3 carries about 1,550 lines with 56 tests and adds the R1 and R3 tests.
 By the Task 2 rate that is two to three sessions of work, if the decisions
