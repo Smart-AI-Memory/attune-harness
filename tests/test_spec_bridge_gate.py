@@ -346,13 +346,15 @@ async def main(directory, gated):
 asyncio.run(main(sys.argv[1], sys.argv[2] == "gated"))
 '''
 
-# What the loser of two processes may be told, and by which check.
+# What the loser of two processes may be told, and by which check. Every
+# message a losing bridge can meet on the open or collect path, in order:
 REFUSALS = (
-    "Work changed after the Spec decision was displayed",  # bridge, unlocked read
-    "reopen the current decision",  # bridge, unlocked read of decision.json
+    "Spec approval requires a complete draft",  # __init__: opened after the acceptance
     "Run is busy",  # the store's lease, taken by retain_decision or the bind
-    "do not replay a decision",  # the store, under the lease
-    "Spec approval requires a complete draft",  # opened after the acceptance
+    "Work changed before retaining the decision",  # retain_decision, under the lease
+    "Work changed after the Spec decision was displayed",  # _fresh, an unlocked read
+    "reopen the current decision",  # require_current_decision, unlocked or under the lease
+    "do not replay a decision",  # bind_work_acceptance, under the lease
 )
 
 
