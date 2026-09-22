@@ -8,9 +8,17 @@ mutation tests and differentials had missed: a Windows bypass, a recursion on
 deep input, a pattern that could delete a plan body, a second read that
 changed task text.
 
+## Before the review
+
+The author runs this brief against their own change first. Six carried steps
+in a row had a review find something the author had called verified; the
+class-level checks below are cheap and most of those findings were in them.
+
 ## The reviewer's position
 
-Read-only. Never edit a file. Write probe scripts only outside the
+Read-only. Never edit a file. Work from `git archive <branch>` extracted into
+the scratchpad, never from the working tree, which another session or the
+author may switch under you. Write probe scripts only outside the
 repository. Report findings; the author reproduces each before fixing.
 
 ## What to do, in order

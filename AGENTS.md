@@ -133,8 +133,11 @@ those limits. No agent can widen them.
   though it is a `tests/`-only diff: it changes what the tests prove, so it
   waits like `src/`. The squash message of a shepherded merge cites the
   review: who reviewed and the verdict. Anything under `src/` is reported
-  and waits. Merged branches are deleted as part of the shepherding, under
-  the gate below.
+  and waits. A rebase conflict stops the stack too, whatever file it is in:
+  the agent reports it and waits rather than resolving it in a job nobody
+  reviewed (ratified after the 2026-09-22 retro, when a background chain
+  rewrote the platform selection and the changelog on its own). Merged
+  branches are deleted as part of the shepherding, under the gate below.
 - Delete a branch only after the API reports its pull request merged. A spoken
   "I merged it" can be an intention or a click that failed; deleting the head
   branch of an open pull request closes it. Local copies of squash-merged
