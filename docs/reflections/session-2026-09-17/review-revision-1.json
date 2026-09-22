@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "workspace_id": "reflect-attune-2026-09-17",
+  "revision": 1,
+  "status": "awaiting_optional_dispositions",
+  "coverage": {
+    "visible_user_messages": true,
+    "earlier_assistant_tool_history": "compacted summary plus selected verified local receipts",
+    "complete_transcript_audited": false
+  },
+  "candidates": [
+    {
+      "id": "1",
+      "category": "Decisions",
+      "title": "Preserve memories as a core product asset",
+      "claim": "Patrick values accumulated memories as one of Attune’s most useful features. Harness adoption must preserve their content and useful behavior, begin with compatible access to existing stores, and qualify new operations individually; it does not authorize a migration or rewriting the corpus.",
+      "basis": "Explicit user preference and accepted shared-memory decision.",
+      "source": "Patrick: “I consider the memories one of the most useful features and I value them a lot.” Shared-memory decisions D1–D3, D6.",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/decisions.md",
+      "value": "Makes preservation part of acceptance, rather than a cleanup task after integration.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "Already represented in the approved spec; Keep adds this synthesis to the selected session collection.",
+      "disposition": null
+    },
+    {
+      "id": "2",
+      "category": "Decisions",
+      "title": "Let people author intent and control consequential gates",
+      "claim": "For complex work, specs are the principal human authoring surface. Use a clear one-shot prompt or XML-enhanced prompt when appropriate; people may still intervene with verbs. Human decisions, hooks and host controls serve different roles and must be assessed for actual reliability rather than assumed interchangeable.",
+      "basis": "Explicit user direction; reliability distinction is the assistant’s synthesis, not a claim that all proposed controls are implemented.",
+      "source": "Patrick: “the principal authoring for more complex constructs or features will be the spec”; “Humans can intercede using the verb commands too.”",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/design-navigation.md",
+      "value": "Avoids forcing people to learn the full internal command catalog while retaining control.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "Direction documented; automatic authoring-form selection remains unqualified.",
+      "disposition": null
+    },
+    {
+      "id": "3",
+      "category": "Lessons and patterns",
+      "title": "Repair interface defects before paying for stronger reasoning",
+      "claim": "When a worker’s answer is semantically correct but fails the host contract, inspect the schema, citation requirements and ownership of control metadata before adding a stronger router. The host should own version binding and validate authority and evidence. In this session, citation-contract repair allowed Luna to pass all eight fresh cases without escalation; this bounded result does not establish production savings.",
+      "basis": "Observed experimental result plus a proposed general lesson.",
+      "source": "The original mixed trial used ten Astra calls to repair metadata; the paired citation repair passed eight fresh cases without escalation.",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/research/memory-citations-results-2026-09-16.md",
+      "value": "Addresses the cause of avoidable escalation while preserving validation.",
+      "destination": "/Users/patrickroebuck/.claude/memory/lesson_interface_defects_before_model_escalation.md",
+      "existing": "New cross-project lesson proposed; no memory write yet.",
+      "disposition": null
+    },
+    {
+      "id": "4",
+      "category": "Decisions",
+      "title": "Use Luna routinely, with explicit escalation and sampled review",
+      "claim": "Keep Luna as the sorter and routine-worker candidate. Route known difficult work directly to a stronger model; use explicit host rules and sampled semantic review to catch confident mistakes. Distinguish missing evidence and pending user decisions from reasoning failures. Stronger agents should receive original relevant evidence when needed, without repeating every successful routine task.",
+      "basis": "Accepted routing direction; live product delegation remains unqualified.",
+      "source": "Patrick approved: “Keep Luna as the sorter and routine-worker candidate, with explicit host routing rules and sampled semantic review.”",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/decisions.md",
+      "value": "Makes delegation savings testable instead of adding a second model to every job.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "The existing global delegation memory uses earlier provider-specific guidance. This candidate records the accepted memory-worker direction without silently changing general delegation rules.",
+      "disposition": null
+    },
+    {
+      "id": "5",
+      "category": "Decisions",
+      "title": "Separate usage collection from team operations",
+      "claim": "Disable unwanted product-usage collection while preserving useful local accounting and explicitly configured team coordination, shared memory and operational reporting. Patrick’s final choice A supersedes the briefly selected entirely-offline option. A team feature that reuses the legacy usage uploader needs its purpose and destination separated before support is claimed.",
+      "basis": "Explicit final user decision, including its correction history.",
+      "source": "Patrick reopened the A/B form and then replied: “A that’s acceptable.” Decision D9 records the supersession.",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/decisions.md",
+      "value": "Prevents a privacy improvement from accidentally disabling collaboration.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "Already recorded as D9; this is a reflection candidate, not a request to approve it again.",
+      "disposition": null
+    },
+    {
+      "id": "6",
+      "category": "Lessons and patterns",
+      "title": "Treat the third review pass as a checkpoint",
+      "claim": "Three review rounds are a default checkpoint, not an absolute prohibition on progress. Surface a concrete remaining question, the bounded additional check that could resolve it, and a stopping condition. Patrick is willing to extend when useful; this is not unlimited review authorization. Task 3’s focused timestamp recheck demonstrated the approach.",
+      "basis": "Explicit user clarification and observed verification closure.",
+      "source": "Patrick: “I am willing to lift the 3 pass rule when there is an opportunity to progress. I like it when you point out opportunities too.”",
+      "source_path": "/Users/patrickroebuck/.claude/memory/feedback_lane_cadence_cap_and_early_stop.md",
+      "value": "Avoids accepting a preventable evidence gap solely because a round counter was reached.",
+      "destination": "/Users/patrickroebuck/.claude/memory/feedback_lane_cadence_cap_and_early_stop.md",
+      "existing": "Already saved in this exact global memory; Keep records its existing reference without duplicating it.",
+      "disposition": null
+    },
+    {
+      "id": "7",
+      "category": "Opportunities",
+      "title": "Measure the wait users actually experience",
+      "claim": "Measure request-to-visible-form and display persistence across preparation, model, transport and rendering phases. Local construction medians of about 2.08 ms cold and 1.84 ms cached do not explain the user’s wait or disappearing forms. Preserve the existing grammar and use a persistent readable fallback when the native form cannot be seen. Compare controlled end-to-end trials before attributing a UX improvement to caching.",
+      "basis": "Proposed experiment informed by local receipts and Patrick’s reports; no root cause established.",
+      "source": "Patrick reported forms disappearing or not appearing. The latest located Codex request-to-visible observation was about 6.5 seconds in one September 7 trial.",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/receipts/unified-task-execution/task2-intake-timing-final/summary.json",
+      "value": "Targets the actual latency and availability problem. Counter-case: persistent fallbacks and lifecycle measurements require work beyond a renderer microbenchmark.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "Opportunity only; Keep does not launch the experiment.",
+      "disposition": null
+    },
+    {
+      "id": "8",
+      "category": "Pushback",
+      "title": "Do not equate experimental success with live adoption",
+      "claim": "The repaired Luna contract has encouraging receipts, but those do not prove live memory management is ready. Keep separate claims for experimental behavior, shared-core implementation, installed integration, native participant qualification and activation. Finish Tasks 4–5 and the support matrix before representing this route as adopted operationally. The counter-case is slower rollout; the benefit is exposing unsupported operations before they affect valued memories.",
+      "basis": "Assistant pushback grounded in the accepted integration boundary.",
+      "source": "Patrick’s approved boundary explicitly leaves concurrency/deletion, adapter taxonomy, security classification, context refresh, representative performance and active-lead delegation for integration qualification.",
+      "source_path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/tasks.md",
+      "value": "Prevents a successful small experiment from carrying an unsupported production claim.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "Tasks 1–3 accepted; Task 4 remains unaccepted. Its independent review did not complete.",
+      "disposition": null
+    },
+    {
+      "id": "9",
+      "category": "Decisions and open questions",
+      "title": "Prioritize the Harness transition without declaring Attune AI retired",
+      "claim": "Prioritize documented Harness release blockers first, then work benefiting both products, then Harness-only work, then optional Attune AI-only enhancements. Patrick is leaning toward deprecating Attune AI and releasing Harness; that leaning is not a final deprecation or release decision. Shared memory adoption preserves value while that direction develops.",
+      "basis": "Accepted priority order plus an explicitly unsettled product decision.",
+      "source": "Patrick: “a documented Harness release blocker should outrank an optional shared enhancement—agreed”; “I’m leaning toward deprecating attune-ai”.",
+      "source_path": null,
+      "value": "Keeps effort aligned with the likely product direction without inventing a retirement decision.",
+      "destination": "/Users/patrickroebuck/attune-harness/docs/reflections/session-2026-09-17/kept.md",
+      "existing": "User statements are present in the visible conversation; no deprecation action is authorized by this candidate.",
+      "disposition": null
+    }
+  ],
+  "presentation": {
+    "type": "local_markdown",
+    "native_render": "blocked_by_automatic_approval_review",
+    "reason": "Unverified connector destination for session details and local paths"
+  },
+  "source_manifest": [
+    {
+      "path": "/Users/patrickroebuck/.claude/memory/feedback_lane_cadence_cap_and_early_stop.md",
+      "sha256": "62eb122761fb5f3589639059b8615f74b1bc49d199cd2d12836beb6e015f2986"
+    },
+    {
+      "path": "/Users/patrickroebuck/attune-harness/docs/design-navigation.md",
+      "sha256": "be022e57fdb89f20529068b8e76eb7a37706ca989befaf5890ee3c2e3298fad7"
+    },
+    {
+      "path": "/Users/patrickroebuck/attune-harness/docs/receipts/unified-task-execution/task2-intake-timing-final/summary.json",
+      "sha256": "003fa460338d005fad2384af8891752e58472f0749c51dc7335a76cadfe25359"
+    },
+    {
+      "path": "/Users/patrickroebuck/attune-harness/docs/research/memory-citations-results-2026-09-16.md",
+      "sha256": "0a7de76d3d3db93be92bbbc31807648a95fffa453ad39504d1c2eb0f4ff36eb8"
+    },
+    {
+      "path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/decisions.md",
+      "sha256": "e37b1e82cde0ba28e2c49130bce2be8de544872d7e52a6b55643957c33759594"
+    },
+    {
+      "path": "/Users/patrickroebuck/attune-harness/docs/specs/shared-memory-adoption/tasks.md",
+      "sha256": "f81fea876d67d1d7bddf115e3636d7167cebdf736891fa46b6eb6a104db4db47"
+    }
+  ],
+  "content_sha256": "c338607b5a612faa96e5fb2fc82e3db0a14a427f833372e9027b73d13051a3f7",
+  "review_markdown_sha256": "1c52d0a53ce6841ca07ab3653858748e4796819b91dbc48a30b9135e19b3dcf0"
+}

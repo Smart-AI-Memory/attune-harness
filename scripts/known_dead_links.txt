@@ -34,6 +34,9 @@ docs/receipts/test-this-change-implementation/installed-spec-receipt.md
 .pilot/voyage-answer-accuracy-2026-09-15/grading/rubric-clarifications.md
 .pilot/voyage-answer-accuracy-2026-09-15/native-message-v2-design.md
 .pilot/voyage-full-code-2026-09-15/questions.md
-docs/handoffs/smartaimemory-controls-article.md
 docs/reference.md
-docs/reflections/connected-journey-qualification-2026-09-17.md
+# Landed 2026-09-22 with the handoffs and reflections; dead in every branch (memory files, receipts):
+Users/patrickroebuck/.claude/memory/feedback_lane_cadence_cap_and_early_stop.md
+Users/patrickroebuck/.claude/memory/lesson_interface_defects_before_model_escalation.md
+docs/handoffs/specs/shared-memory-adoption/task4-gate.md
+docs/handoffs/specs/shared-memory-adoption/verification.md
