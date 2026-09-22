@@ -897,3 +897,122 @@ or named in the README and in packaging, and an installed-environment check with
 attune-ai absent exercises memory context and plan acceptance and records what each
 does. Effort: small for the wording, larger for the cut. Nothing is changed or
 authorized by this note.
+
+Unnumbered, 2026-09-22: the opportunity log, and seven other documents that `main`
+links to, exist only on the wip branch. `docs/cli-guide.md` on `main` at `ded79d5`
+links to `opportunity-log.md`, `documentation-maintenance.md`, `design-navigation.md`,
+`user-guidance-examples.md`, `test-this-change-results.md`,
+`plan-build-task6-results.md` and `connected-journey-qualification-results.md`; none
+is on `main`, all seven are on `wip/local-snapshot-2026-09-19`. An eighth,
+`reference.md` from `docs/opportunities-implementation-report.md`, is on neither.
+Because the log is off the trunk, entries cannot land through a docs pull request;
+they accumulate as drafts in `docs/handoffs/` of the root checkout, which is
+git-ignored by nothing and tracked by nothing: 22 files there are in no branch, three
+of them opportunity-log drafts: two already carried into this log on the wip branch,
+the third being these eight entries. The wip branch is a backup that
+must never be deleted, which is a different role from a place where a living document
+is edited. Candidate follow-up: one docs pull request that copies
+`docs/opportunity-log.md` from the wip branch onto `main` unchanged, then appends the
+pending drafts as a second commit so the two are reviewable apart; either bring the
+seven linked documents with it or cut the links in `cli-guide.md`. Done when every
+link under `docs/` on `main` resolves and an opportunity entry can land by a docs-only
+pull request, which skips qualification. Effort: small. Nothing is changed or
+authorized by this note.
+
+Unnumbered, 2026-09-22: the root checkout is detached and holds work in no branch.
+After the diag branch was deleted on 2026-09-21, `~/attune-harness` sits at `d74d1d1`
+with `HEAD (no branch)`, a commit from the 0.1.0 era; anyone running the CLI or tests
+from that directory exercises code six releases of pull requests behind `main`.
+`main` itself is checked out in the worktree `pypi-publishing-397664`, so the root
+cannot switch to it while that worktree exists. The 22 untracked files under
+`docs/handoffs/` and `docs/reflections/` have no copy anywhere but that directory.
+Candidate follow-up: retire the `pypi-publishing` worktree once its session is over
+and switch the root to `main`; move the untracked files either into a docs pull
+request, into `~/attune-harness-backups/` beside the byte-verified backups, or
+delete them on Patrick's go after a content check. Done when the root checkout is on
+`main` and no file under the repository exists only as an untracked file. Effort:
+small. Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22: merged head branches are deleted by hand, every time, and
+the repository's own setting could do it. Twelve pull requests merged on 2026-09-21
+and each branch was deleted afterwards on Patrick's go after a content check; two
+more waited a day. `gh repo view` shows `deleteBranchOnMerge: false`. Pull requests
+are squash-merged, so `git branch -d` refuses the local copy as "not fully merged"
+and the check that matters is that the branch tip equals the pull request's
+`headRefOid`, which GitHub already guarantees at merge time. Candidate follow-up:
+turn on "Automatically delete head branches" in the repository settings, and add
+one line to the release runbook that local copies are removed with `-D` after
+comparing the tip to the merged head. The wip branch is never a pull request head,
+so the setting cannot touch it. Done when a merged pull request leaves no remote
+branch behind without a deletion step. Effort: small, and it is Patrick's setting.
+Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22: the different-model review that every `src/` change requires
+is a convention in the pull request body, and nothing checks it. `AGENTS.md` and the
+Task 2 plan require it; #19 recorded the enforced option and chose the honour system.
+#33 merged with zero GitHub reviews and the Opus findings written into its body; #34
+is open with the literal text `REVIEW_PLACEHOLDER` in its body, which is the right
+signal for "not yet reviewed" and which nothing would stop from merging. The four
+workflows under `.github/workflows/` read the pull request body nowhere. Candidate
+follow-up: extend the `Classify change` job, which already distinguishes docs-only
+from code changes, to fail a code change whose body contains `REVIEW_PLACEHOLDER`
+or lacks a "Reviewed by" line naming a model; leave docs-only changes alone. This
+is the enforced option #19 named, at its smallest. Done when a pull request that
+touches `src/` cannot show green with the placeholder in place. Effort: small.
+Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22: the TestPyPI receipt pins a script that every ladder step
+edits. `testpypi-candidate-source.json` records the 0.1.0rc1 rehearsal of
+2026-09-18 with per-file hashes, including `scripts/qualify_platform.py`. The Task 2
+plan already noted the pin would go stale at 2.1; 2.2 (#34) edits the same file
+again, and 2.3 will. The pin on `publish-pypi.yml` stopped matching earlier. The
+receipt is not edited by design, so it now records a candidate that no longer
+exists, and each pull request says so in words. Candidate follow-up: either move the
+platform test selection out of the script into a data file the script reads, so the
+script stops changing with every carried module; or accept that the receipt is
+re-cut at the RC rehearsal and say so once in the runbook instead of once per pull
+request. The second is less work and the runbook already requires a rehearsal after
+a runbook change. Done when a ladder step does not need to mention the receipt.
+Effort: small either way. Nothing is changed or authorized by this note.
+
+Unnumbered, 2026-09-22: the cost baseline the Task 2 plan promised does not exist
+yet. The plan says "after 2.1 merges there will be one: what a small step actually
+cost", and Task 1 explains that no estimate exists for the spec-authority work since
+Patrick cut the dependency. 2.1 has merged and nothing records its cost. What the
+API can still show: #33 was opened 2026-09-21 23:28 UTC and merged 03:42 UTC, four
+hours and fourteen minutes of wall time including the Opus review and two fixes;
+306 lines added over 5 files; 62 tests against the plan's estimate of 19 plus
+Windows cases. #34, open, is 753 lines over 4 files with 32 tests. Working tokens
+are known only inside the sessions that did the work and are lost when those
+sessions close. Candidate follow-up: add a two-line "Cost" item to the pull request
+body of each remaining step (wall time, tokens if the session can read them, tests
+against estimate), and copy the 2.1 and 2.2 figures into `task-2-plan.md` now,
+before the sessions that know them are gone. Done when 2.3 can be estimated from
+measured steps rather than from inspection. Effort: small. Nothing is changed or
+authorized by this note.
+
+Unnumbered, 2026-09-22: two carried modules are in the package and nothing calls
+them. `paths.py` (#33) and `spec_tasks.py` (#34) are wired to nothing until step
+2.4 switches `spec_bridge.legacy_plan` to them; the Unreleased changelog says so in
+each entry. That is the plan, and it is correct for the ladder. It also means `main`
+would, if published today, ship two public modules the product does not exercise,
+and the Unreleased section already holds a breaking removal (#29). Candidate
+follow-up: state in `task-2-plan.md` that 0.3.0 is not published before 2.4, so the
+first release after 0.2.0 ships the reader in use rather than in waiting; or, if a
+release is wanted sooner, note which entries the changelog would carry. Done when
+the release boundary is written down where the ladder is. Effort: small. Nothing is
+changed or authorized by this note.
+
+Unnumbered, 2026-09-22: `codex/python-compatibility-20260918` is the last branch
+nobody has examined, and part of it is about releasing. It is 51 files and 12,306
+insertions ahead of `main`, three commits, tip `e096cba` "ci: qualify remaining
+Python versions on pinned Windows". Among the files are `tests/test_release_candidate.py`
+(104 lines) and `tests/test_testpypi_rehearsal.py` (164 lines). The release runbook
+requires a TestPyPI rehearsal before the next release, and the spec-authority
+direction puts an RC period before the first stable. Whether those tests still fit
+`main`, which has moved by 33 pull requests since 2026-09-18, is unknown. Candidate
+follow-up: examine the branch by content the way #25 examined Codex's worktree,
+before the RC period; land what passes against `main` unchanged, list what does not
+with its cause, and then delete the branch or leave it with a note. Done when the
+branch is either landed by content or recorded as superseded. Effort: medium.
+Nothing is changed or authorized by this note.
