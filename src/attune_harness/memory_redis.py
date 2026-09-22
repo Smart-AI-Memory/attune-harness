@@ -131,11 +131,12 @@ def _host(url):
     return f"{parts.hostname}:{parts.port or 6379}"
 
 
-def connect(settings, *, client_factory=None, timeout=2.0):
-    """Open the configured Redis memory, or say why it cannot be used.
+def open_client(settings, *, client_factory=None, timeout=2.0):
+    """A pinging client for the configured Redis, or why it cannot be reached.
 
-    Loads the pinned ``redis`` package, connects with bounded timeouts, pings,
-    and checks the index exists. Returns a ``RedisMemory``.
+    Loads the pinned ``redis`` package and connects with bounded timeouts.
+    Returns ``(client, host, errors)``: the host without credentials, and the
+    exception classes a caller converts to ``MemoryRedisUnavailable``.
     """
     library = require_feature("redis", "redis", REDIS_VERSION, "redis")
     url = resolve_url(settings)
@@ -158,6 +159,16 @@ def connect(settings, *, client_factory=None, timeout=2.0):
         raise MemoryRedisUnavailable(
             f"Redis memory at {host} is unreachable: {type(error).__name__}: {error}"
         ) from error
+    return client, host, errors
+
+
+def connect(settings, *, client_factory=None, timeout=2.0):
+    """Open the configured Redis memory for reading, or say why it cannot be used.
+
+    ``open_client`` plus the hydration check: the index and the function
+    library must exist. Returns a ``RedisMemory``.
+    """
+    client, host, errors = open_client(settings, client_factory=client_factory, timeout=timeout)
     memory = RedisMemory(client, settings, host, errors=errors)
     memory.require_hydration()
     return memory

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added: `attune-harness memory scratch capabilities|stash|retrieve|forget|keys`,
+  working memory behind one small backend interface, the second step of
+  native memory Task 4 (D18). Values are JSON up to 64 KiB under keys of up to
+  128 characters, with an optional time to live. Two backends, chosen once at
+  startup from the memory config's `scratch` section: a stdlib file store in
+  the base, one file per key under a directory the config names, which
+  declares neither sharing nor signals; and, with the `redis` extra, a Redis
+  store under `attune:harness:scratch:<namespace>:`, outside the keyspace a
+  hydration rebuilds, which declares sharing across processes and machines.
+  A configured Redis that cannot be reached makes scratch `unavailable` and
+  is never replaced by the file store; no `scratch` section means `disabled`.
 - Added: `attune-harness memory redis status|digest|related|node|search`,
   behind a new `redis` extra (`redis` 5.3.1), the first step of native memory
   Task 4 (D16, D18). It reads the Redis Stack keyspace a hydration keeps warm,
