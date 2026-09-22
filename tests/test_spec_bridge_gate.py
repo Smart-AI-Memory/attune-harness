@@ -150,6 +150,24 @@ def test_a_failing_event_sink_never_blocks_the_decision(work, tmp_path):
     assert not (outside / "events.jsonl").exists()
 
 
+def test_an_event_file_hard_linked_to_the_record_is_refused(work):
+    """The reviewer found an append through a hard link corrupted record.json."""
+    directory, record = draft(work)
+    try:
+        os.link(directory / "record.json", directory / EVENTS)
+    except OSError as exc:
+        pytest.skip(f"hard links unavailable: {exc}")
+    before = (directory / "record.json").read_bytes()
+    bridge = WorkSpecBridge(directory)
+    view = run(bridge.open())
+    assert bridge.host.dropped_events == 1
+    assert (directory / "record.json").read_bytes() == before
+    receipt, accepted = run(bridge.collect(response(view, "approve_task")))
+    assert accepted["status"] == "accepted"
+    assert bridge.host.dropped_events == 2
+    assert read_task(directory)["status"] == "accepted"  # the record still parses
+
+
 def test_auto_run_grants_nothing_until_explicitly_chosen(work):
     """The bridge opens every decision as a gate; nothing is accepted by display."""
     directory, bridge, view = opened(work)
@@ -178,6 +196,35 @@ def test_every_wired_action_is_refused_without_its_nonce(
     assert (directory / "record.json").read_bytes() == before
     assert retained_decision(read_task(directory))["state"] == "current"
     assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+
+
+@pytest.mark.parametrize("action,severity,needs_confirmed,grants", GATES)
+def test_the_host_refuses_a_wrong_or_missing_nonce_on_its_own(
+    work, action, severity, needs_confirmed, grants
+):
+    """The bridge's template check refuses first; this reaches the host's binding check.
+
+    The reviewer showed a host that trusted the client's nonce passed every
+    bridge-level test, because the retained template already carries the
+    nonce. These cases keep the template out of the way and forge at the host.
+    """
+    directory, bridge, view = opened(work, severity)
+    good = response(view, action, confirmed=needs_confirmed)
+    forged = {**good, "action_nonce": "0" * 32}
+    with pytest.raises(CommandWorkspaceError, match="nonce does not match"):
+        run(bridge.host.collect(forged, expected_adapter_id="spec"))
+    missing = dict(good)
+    del missing["action_nonce"]
+    with pytest.raises(CommandWorkspaceError, match="nonce"):
+        run(bridge.host.collect(missing, expected_adapter_id="spec"))
+    stale = {**good, "revision": good["revision"] + 1}
+    with pytest.raises(CommandWorkspaceError, match="revision does not match"):
+        run(bridge.host.collect(stale, expected_adapter_id="spec"))
+    # Nothing was consumed: the genuine response still goes through.
+    assert bridge.host.get(view.record.workspace_id).revision == view.record.revision
+    assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+    receipt, accepted = run(bridge.collect(good))
+    assert receipt.action == action
 
 
 @pytest.mark.parametrize("action,severity,needs_confirmed,grants", GATES)
@@ -224,8 +271,12 @@ def test_every_wired_action_is_refused_when_replayed(
     )
     with pytest.raises(ValueError, match=expected):
         run(bridge.collect(payload))
-    # Through the host alone: the nonce was consumed with the workspace.
-    with pytest.raises(CommandWorkspaceError):
+    # Through the host alone: an acceptance or a risk acknowledgement ended
+    # the workspace; a redo or retry left it executing with no action to bind.
+    with pytest.raises(
+        CommandWorkspaceError,
+        match="already consumed" if receipt.record.terminal else "not awaiting a bound action",
+    ):
         run(bridge.host.collect(payload, expected_adapter_id="spec"))
     # Through the store alone, for a grant: the store's own refusal.
     if grants:
@@ -267,9 +318,13 @@ import asyncio, json, sys
 sys.modules["attune"] = None
 from attune_harness.spec_bridge import WorkSpecBridge
 
-async def main(directory):
-    bridge = WorkSpecBridge(directory)
-    view = await bridge.open(detail="two processes, one task directory")
+async def main(directory, gated):
+    try:
+        bridge = WorkSpecBridge(directory)
+        view = await bridge.open(detail="two processes, one task directory")
+    except Exception as error:
+        print(json.dumps({"refused": f"{type(error).__name__}: {error}"}), flush=True)
+        return
     payload = {
         "__elicitation_response__": True,
         "title": view.record.view.title,
@@ -279,28 +334,40 @@ async def main(directory):
         **view.record.binding.to_payload(),
     }
     print(json.dumps({"opened": bridge.decision["digest"]}), flush=True)
-    sys.stdin.readline()
+    if gated:
+        sys.stdin.readline()
     try:
         receipt, accepted = await bridge.collect(payload)
-    except ValueError as error:
-        print(json.dumps({"refused": str(error)}), flush=True)
+    except Exception as error:
+        print(json.dumps({"refused": f"{type(error).__name__}: {error}"}), flush=True)
     else:
         print(json.dumps({"accepted": accepted["status"] == "accepted"}), flush=True)
 
-asyncio.run(main(sys.argv[1]))
+asyncio.run(main(sys.argv[1], sys.argv[2] == "gated"))
 '''
 
+# What the loser of two processes may be told, and by which check.
+REFUSALS = (
+    "Work changed after the Spec decision was displayed",  # bridge, unlocked read
+    "reopen the current decision",  # bridge, unlocked read of decision.json
+    "Run is busy",  # the store's lease, taken by retain_decision or the bind
+    "do not replay a decision",  # the store, under the lease
+    "Spec approval requires a complete draft",  # opened after the acceptance
+)
 
-def _child(script, directory):
+
+def _child(script, directory, mode="gated"):
+    package_parent = str(Path(attune_harness.__file__).resolve().parents[1])
+    existing = os.environ.get("PYTHONPATH")
     return subprocess.Popen(
-        [sys.executable, "-u", str(script), str(directory)],
+        [sys.executable, "-u", str(script), str(directory), mode],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
         env={
             **os.environ,
-            "PYTHONPATH": str(Path(attune_harness.__file__).resolve().parents[1]),
+            "PYTHONPATH": os.pathsep.join([package_parent, existing]) if existing else package_parent,
         },
     )
 
@@ -326,35 +393,44 @@ def test_two_processes_end_with_one_acceptance(work, tmp_path, collects_first):
     """Both open the same draft; whichever collects, the store accepts once.
 
     The second opener's display replaces the first's retained decision. If the
-    second collects first, the first's response meets accepted work; if the
-    first collects first, its display is no longer the current one. Either way
-    one acceptance is recorded, and the refusals are the store's, across
-    processes, not the in-process lock's.
+    second collects first, the first's response meets accepted work and the
+    bridge's freshness read refuses it; if the first collects first, its
+    display is no longer the current one and the bridge's read of
+    decision.json refuses it. Both of those reads are unlocked; the store's
+    lease is the backstop behind them, and the simultaneous case below is
+    where it shows. Either way one acceptance is recorded.
     """
     directory, _ = draft(work)
     script = tmp_path / "opener.py"
     script.write_text(CHILD, encoding="utf-8")
     first = _child(script, directory)
-    assert "opened" in _read(first)
-    second = _child(script, directory)
-    assert "opened" in _read(second)
-    assert read_task(directory)["status"] == "draft"
-
-    if collects_first == "second_opener":
-        _go(second)
-        assert _read(second) == {"accepted": True}
-        _go(first)
-        refused = _read(first)["refused"]
-        assert "Work changed after the Spec decision was displayed" in refused
-    else:
-        _go(first)
-        refused = _read(first)["refused"]
-        assert "reopen the current decision" in refused
+    second = None
+    try:
+        assert "opened" in _read(first)
+        second = _child(script, directory)
+        assert "opened" in _read(second)
         assert read_task(directory)["status"] == "draft"
-        _go(second)
-        assert _read(second) == {"accepted": True}
-    _finish(first)
-    _finish(second)
+
+        if collects_first == "second_opener":
+            _go(second)
+            assert _read(second) == {"accepted": True}
+            _go(first)
+            refused = _read(first)["refused"]
+            assert "Work changed after the Spec decision was displayed" in refused
+        else:
+            _go(first)
+            refused = _read(first)["refused"]
+            assert "reopen the current decision" in refused
+            assert read_task(directory)["status"] == "draft"
+            _go(second)
+            assert _read(second) == {"accepted": True}
+        _finish(first)
+        _finish(second)
+    finally:
+        for child in (first, second):
+            if child is not None and child.poll() is None:
+                child.kill()
+                child.wait(timeout=10)
 
     record = read_task(directory)
     assert record["status"] == "accepted"
@@ -365,6 +441,41 @@ def test_two_processes_end_with_one_acceptance(work, tmp_path, collects_first):
     kinds = [e["event"] for e in events(directory)]
     assert kinds.count("workspace_rendered") == 2
     assert kinds.count("workspace_accepted") == 1
+
+
+def test_two_simultaneous_processes_end_with_one_acceptance(work, tmp_path):
+    """No gate: both children open and collect as fast as they can.
+
+    Here the store's lease is what decides. The loser is usually told the run
+    is busy, by retain_decision or by the bind under the lease; when the two
+    interleave instead of colliding, one of the bridge's unlocked reads refuses
+    it. Whatever the order, exactly one acceptance is recorded.
+    """
+    directory, _ = draft(work)
+    script = tmp_path / "opener.py"
+    script.write_text(CHILD, encoding="utf-8")
+    children = [_child(script, directory, "straight") for _ in range(2)]
+    outputs = []
+    try:
+        for child in children:
+            out, err = child.communicate(timeout=60)
+            assert child.returncode == 0, err
+            outputs.append([json.loads(line) for line in out.splitlines()])
+    finally:
+        for child in children:
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=10)
+    finals = [lines[-1] for lines in outputs]
+    accepted = [f for f in finals if f.get("accepted") is True]
+    refused = [f["refused"] for f in finals if "refused" in f]
+    assert len(accepted) == 1, finals
+    assert len(refused) == 1, finals
+    assert any(text in refused[0] for text in REFUSALS), refused[0]
+    record = read_task(directory)
+    assert record["status"] == "accepted"
+    kinds = [e["event"] for e in events(directory)]
+    assert kinds.count("workspace_accepted") <= 1
 
 
 # --- the command line ---------------------------------------------------------
@@ -418,3 +529,30 @@ def test_plan_accept_without_the_forms_package_reports_the_extra(work, capsys, m
     assert result["error"]["type"] == "FeatureUnavailable"
     assert "attune-harness[review]" in result["error"]["detail"]
     assert read_task(directory)["status"] == "draft"
+
+
+
+def test_core_imports_and_help_need_neither_the_extra_nor_attune():
+    """The CLI guide claims it; CI installs the extra everywhere, so pin it here."""
+    code = (
+        "import sys\n"
+        "for name in ('attune_forms', 'attune'):\n"
+        "    sys.modules[name] = None\n"
+        "import attune_harness.spec_bridge, attune_harness.work_cli, attune_harness.cli\n"
+        "import attune_harness.spec_workspace, attune_harness.command_workspace\n"
+        "assert sys.modules['attune_forms'] is None and sys.modules['attune'] is None\n"
+        "from attune_harness.cli import main\n"
+        "try:\n"
+        "    main(['--help'])\n"
+        "except SystemExit as exit:\n"
+        "    raise SystemExit(exit.code or 0)\n"
+    )
+    package_parent = str(Path(attune_harness.__file__).resolve().parents[1])
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        text=True,
+        capture_output=True,
+        env={**os.environ, "PYTHONPATH": package_parent},
+    )
+    assert result.returncode == 0, result.stderr
+    assert "usage:" in result.stdout

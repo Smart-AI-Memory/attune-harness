@@ -8,8 +8,11 @@ Since Task 3 of the spec authority (D14) the host and the Spec adapter are
 Harness's own, ``command_workspace`` and ``spec_workspace``; nothing here
 imports Attune AI. The host's two events, a render and an accept, are written
 beside the task's ``decision.json`` as evidence; they never carry the action
-nonce, and a sink that fails never blocks a decision. Refusal of a stale or
-replayed decision across processes is the task store's, under its lease.
+nonce, and a sink that fails never blocks a decision. An accept line records a
+workspace action the host consumed, not a grant: the grant is the store's
+record, written after it, and under contention the bind can still be refused.
+Refusal of a stale or replayed decision across processes is the task store's,
+under its lease; the bridge's own checks before it are unlocked reads.
 """
 
 import copy

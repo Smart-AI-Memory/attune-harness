@@ -14,6 +14,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -587,3 +588,18 @@ def test_non_terminal_workspaces_are_kept() -> None:
         assert host.get(render.record.workspace_id) == edited.record
 
     run(scenario())
+
+
+def test_writer_refuses_a_hard_link(tmp_path):
+    """An append through a hard link would land in the other file, such as record.json."""
+    other = tmp_path / "record.json"
+    other.write_text("{}\n", encoding="utf-8")
+    target = tmp_path / "events.jsonl"
+    try:
+        os.link(other, target)
+    except OSError as exc:  # a file system without hard links
+        pytest.skip(f"hard links unavailable: {exc}")
+    write = jsonl_event_writer(target)
+    with pytest.raises(ValueError, match="hard link"):
+        write({"event": "probe"})
+    assert other.read_text(encoding="utf-8") == "{}\n"
