@@ -15,6 +15,9 @@ import hashlib
 import json
 import logging
 import os
+import subprocess
+import sys
+from pathlib import Path
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -603,3 +606,48 @@ def test_writer_refuses_a_hard_link(tmp_path):
     with pytest.raises(ValueError, match="hard link"):
         write({"event": "probe"})
     assert other.read_text(encoding="utf-8") == "{}\n"
+
+
+def test_writer_appends_are_whole_across_processes(tmp_path):
+    """Four processes, 500 lines each, one file: every line parses and none is lost.
+
+    On POSIX ``O_APPEND`` already makes this hold; on Windows the C runtime
+    appends by seeking and then writing, so without the writer's lock two
+    processes tear each other's lines, which the Windows platform job showed.
+    """
+    import attune_harness
+
+    path = tmp_path / "events.jsonl"
+    script = tmp_path / "appender.py"
+    script.write_text(
+        "import json, sys\n"
+        "from pathlib import Path\n"
+        "from attune_harness.command_workspace import jsonl_event_writer\n"
+        "write = jsonl_event_writer(Path(sys.argv[1]))\n"
+        "who = sys.argv[2]\n"
+        "for n in range(500):\n"
+        "    write({'event': 'probe', 'who': who, 'n': n, 'pad': 'x' * 200})\n",
+        encoding="utf-8",
+    )
+    env = {**os.environ, "PYTHONPATH": str(Path(attune_harness.__file__).resolve().parents[1])}
+    children = [
+        subprocess.Popen(
+            [sys.executable, str(script), str(path), f"p{i}"],
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for i in range(4)
+    ]
+    for child in children:
+        _, err = child.communicate(timeout=120)
+        assert child.returncode == 0, err
+    lines = path.read_bytes().split(b"\n")
+    assert lines[-1] == b""
+    events = [json.loads(line) for line in lines[:-1]]
+    assert len(events) == 2000
+    seen = {}
+    for event in events:
+        seen.setdefault(event["who"], set()).add(event["n"])
+    assert seen == {f"p{i}": set(range(500)) for i in range(4)}
