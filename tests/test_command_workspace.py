@@ -6,6 +6,7 @@ suite has no async plugin; the test that drove Attune AI's MCP server stayed
 behind; the three telemetry tests are replaced by event-sink tests. New: the
 eviction of terminal workspaces and the bounded memory of consumed ids.
 """
+# qualify: platform
 
 from __future__ import annotations
 

@@ -7,6 +7,7 @@ outright, so they prove that calling the path needs nothing from it. That
 importing ``spec_bridge`` needs nothing from it is proved statically by
 ``test_no_attune_runtime_import.py``.
 """
+# qualify: platform
 
 import sys
 

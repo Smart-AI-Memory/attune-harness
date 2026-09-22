@@ -6,6 +6,7 @@ only ever simulated on POSIX by forcing sys.platform. Here the rules are a pure
 function tested with real Windows path strings on every platform, and the
 end-to-end cases run for real on each platform's own CI job.
 """
+# qualify: platform
 
 import sys
 from pathlib import Path

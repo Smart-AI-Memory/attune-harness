@@ -10,6 +10,7 @@ unpinned: the exact bytes of a collision block, an ``__init__.py`` that is a
 directory, a skip directory inside a package, and files and unsorted names
 under ``docs/specs``.
 """
+# qualify: platform
 
 from __future__ import annotations
 

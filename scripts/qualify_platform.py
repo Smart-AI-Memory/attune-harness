@@ -11,6 +11,7 @@ import sys
 import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
+PLATFORM_MARKER='# qualify: platform'
 
 
 def qualify(output):
@@ -26,7 +27,10 @@ def qualify(output):
         'installed_source':source.as_posix(),'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.glob('*.py')},
         'native_process_and_recovery':'unrun','model_calls':0,'checks':[]}
     tests=['test_contract.py','test_adapters.py','test_operations.py','test_github_checks.py','test_native.py']
-    tests += ['test_paths.py', 'test_spec_tasks.py', 'test_spec_state.py', 'test_spec_bridge_legacy.py', 'test_command_workspace.py', 'test_command_workspace_contract.py', 'test_spec_intake.py']
+    # A carried module's tests declare themselves with PLATFORM_MARKER in their
+    # first lines, so two steps landing in parallel never edit this line.
+    tests += sorted(p.name for p in (ROOT/'tests').glob('test_*.py')
+                    if PLATFORM_MARKER in p.read_text(encoding='utf-8')[:4000] and p.name not in tests)
     tests += ['test_voyage.py', 'test_voyage_integration.py', 'test_mcp.py', 'test_voyage_evaluation.py',
               'test_code_rag.py', 'test_code_rag_host_check.py']
     if os.name in ('posix','nt'):
