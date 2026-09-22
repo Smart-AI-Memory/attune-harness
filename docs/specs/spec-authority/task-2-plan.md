@@ -130,3 +130,25 @@ merged.
 It does not start Task 3, touch memory, change any limit, or publish anything.
 It does not size the work in tokens: Task 1 explains why there is no measured
 baseline. After 2.1 merges there will be one: what a small step actually cost.
+
+## Measured cost, September 22
+
+The plan said a baseline would exist after 2.1. These figures are read from
+the GitHub API and the pull request bodies; wall time runs from a step's first
+commit to its review fix landing, or to its merge where that came first. No
+token figure exists: the sessions did not record one.
+
+| Step | Pull request | Lines added | Tests | Estimate in this plan | Wall time |
+| --- | --- | ---: | ---: | --- | --- |
+| 2.1 `paths.py` | #33, merged | 306 | 62 | small, 93 lines, 19 tests | 4 h 15 min, one review round |
+| 2.2 `spec_tasks.py` | #34, open | 753 | 36 | medium, about 245 lines | about 1 h 30 min, one review round with one blocker |
+| 2.3 `spec_state.py` | #42, open | 969 | 84 | medium, 319 lines, 130 tests to port | about 50 min, one review round with two blockers |
+| 2.4 bridge reader | #43, open | 91 | 7 | small | about 20 min, one review round |
+
+Two corrections to the estimates. The test counts in the plan were counted
+by file name, which overstated 2.3's port (30 direct tests, not 130) and
+understated 2.1's (8 plus 24, not 19). And every step's review found
+something the author's own tests had not: a Windows bypass in 2.1, a
+recursion in 2.2, a pattern that could delete a plan in 2.3, a second read
+that changed task text in 2.4. The review round is not overhead on these
+steps; it is where the defects were found.
