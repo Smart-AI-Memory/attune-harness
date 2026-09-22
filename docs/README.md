@@ -29,6 +29,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Review using host-owned source passages](passage-review.md): Review using host-owned source passages
 - [Agent collaboration: what is in force, and what is planned](agent-collaboration-plan.md): Planned and aspirational items for the agents
 - [Engineering opportunity log](opportunity-log.md): Opportunities noticed and not yet authorized; dated evidence
+- [The standing brief for a different-model review](review-brief.md): What the reviewing agent is told before every `src/` change merges
+- [Review findings log](review-findings.md): What each review found that the author had missed, by class
+- [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
 - [Spec authority: addendum, September 21, 2026](specs/spec-authority/addendum-2026-09-21.md): Rulings on the spec authority, dated
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module

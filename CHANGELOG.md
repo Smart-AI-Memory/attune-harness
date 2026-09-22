@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Tooling and docs for the review loop: `scripts/review_prep.sh <branch>`
+  makes the read-only archive a different-model review works from, the diff
+  against the base and a mutation-table scaffold; `docs/review-findings.md`
+  logs what each of the fourteen reviews so far found that the author had
+  missed, sorted into eleven classes; `docs/windows-traps.md` records the
+  five Windows differences that cost a finding or a failed job in September
+  2026, with the fix for each, and the review brief points at both.
 - Qualified: the memory verbs from an installed wheel, the third and last
   step of native memory Task 4 (D18). Every platform job installs the
   `redis` extra with a new `requirements-redis.lock` and, with no server,
