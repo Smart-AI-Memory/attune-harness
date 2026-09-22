@@ -4,6 +4,7 @@ Carried from Attune AI's tests/unit/wizards/test_wizard_decomposer.py (the
 parsing classes) and tests/unit/pipeline/test_spec_reader.py, at b89f7953f.
 The decomposition tests that drive a model stayed behind with the decomposer.
 """
+# qualify: platform
 
 import logging
 

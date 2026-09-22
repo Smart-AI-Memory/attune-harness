@@ -7,8 +7,14 @@ root=$(git rev-parse --show-toplevel)
 snapshot=$(mktemp -d "${TMPDIR:-/tmp}/attune-harness-suite.XXXXXX")
 git -C "$root" archive --format=tar HEAD | tar -x -C "$snapshot"
 cd "$snapshot"
-python3 -m venv .venv
-.venv/bin/python -m pip install -q -c requirements-workflow.lock -c requirements-voyage.lock \
+# One environment per set of lock files, kept between runs; the editable
+# install is re-pointed at each snapshot, which is seconds once the
+# dependencies are present.
+key=$(python3 -c 'import hashlib,sys; print(hashlib.sha256(b"".join(open(f,"rb").read() for f in sys.argv[1:])).hexdigest()[:16])' \
+  requirements-workflow.lock requirements-voyage.lock requirements-mcp.lock pyproject.toml)
+venv="${TMPDIR:-/tmp}/attune-harness-suite-venv-$key"
+[[ -x "$venv/bin/python" ]] || python3 -m venv "$venv"
+"$venv/bin/python" -m pip install -q -c requirements-workflow.lock -c requirements-voyage.lock \
   -c requirements-mcp.lock "pytest==9.1.1" -e ".[review,voyage,mcp]"
-echo "suite from $(git -C "$root" rev-parse --short HEAD) in $snapshot"
-.venv/bin/python -m pytest -q -p no:cacheprovider tests "$@"
+echo "suite from $(git -C "$root" rev-parse --short HEAD) in $snapshot, environment $venv"
+"$venv/bin/python" -m pytest -q -p no:cacheprovider tests "$@"

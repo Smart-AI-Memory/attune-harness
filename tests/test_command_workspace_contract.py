@@ -10,6 +10,7 @@ apply one collected action. Legal actions, confirmation policy, loops, and
 terminal receipts are adapter-issued; the host never infers them from a view
 name.
 """
+# qualify: platform
 
 from __future__ import annotations
 

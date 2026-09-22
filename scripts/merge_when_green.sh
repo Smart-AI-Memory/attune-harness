@@ -43,5 +43,8 @@ until [[ "$(view state .state)" == MERGED ]]; do sleep 5; done
 branch=$(view headRefName .headRefName)
 # The repository deletes the head branch on merge; this covers a repository that does not.
 git push origin --delete "$branch" >/dev/null 2>&1 || true
+if [[ "$(git branch --show-current 2>/dev/null)" == "$branch" ]]; then
+  git switch --detach -q  # a branch cannot be deleted while it is checked out
+fi
 git branch -D "$branch" >/dev/null 2>&1 || true
 echo "#$number merged as $(view mergeCommit '.mergeCommit.oid[0:7]'); branch $branch deleted"

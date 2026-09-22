@@ -69,6 +69,24 @@ jobs:
           fi
           echo "qualify=$qualify" >> "$GITHUB_OUTPUT"
           echo "qualify=$qualify"
+      # A change under src/ is merged only with its different-model review
+      # recorded (AGENTS.md). The body is data: it reaches the shell through
+      # this variable only, never through template expansion into the script.
+      - name: Refuse a code change whose review is not recorded
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if git diff --name-only -z HEAD^1 HEAD | tr '\0' '\n' | grep -q '^src/'; then
+            if grep -q 'REVIEW_PLACEHOLDER' <<< "$BODY"; then
+              echo "::error title=Review not recorded::This change touches src/ and its pull request body still says REVIEW_PLACEHOLDER. Record the different-model review before merging (AGENTS.md)."
+              exit 1
+            fi
+            echo "review recorded, or no placeholder in the body"
+          else
+            echo "no change under src/"
+          fi
 
   installed-library:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}

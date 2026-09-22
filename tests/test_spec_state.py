@@ -8,6 +8,7 @@ pattern; monkeypatch targets name this module. One test is replaced:
 is now a refusal case. The rest are new: the three seams, and the agreement
 with spec_bridge.plan_content on the same inputs.
 """
+# qualify: platform
 
 from __future__ import annotations
 
