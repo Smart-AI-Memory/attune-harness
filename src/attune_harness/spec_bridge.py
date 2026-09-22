@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .features import OVERSIZE, read_text
 from .review_contract import digest, parse_json
+from .spec_tasks import read_spec
 from .task_contract import read_task
 from .work_contract import (
     SIGNALS,
@@ -49,8 +50,8 @@ def plan_content(raw):
 
 
 def legacy_plan(path):
-    """Use the existing parser; retain its fields and disclose everything ignored."""
-    # Read first, so an oversize plan is reported even where Attune AI is absent.
+    """Read a plan with Harness's own reader; retain its fields and disclose everything ignored."""
+    # Read first, so an oversize plan gets the plan's own message before parsing.
     try:
         raw = read_text(Path(path), 65536)
     except ValueError as error:
@@ -59,13 +60,14 @@ def legacy_plan(path):
         raise ValueError(
             f"{error} Split the plan into smaller plan files and import each one as its own task."
         ) from error
-    from attune.pipeline.spec_reader import read_spec
 
     content = plan_content(raw)
     blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
     if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
         raise ValueError("Legacy plan must contain complete nonempty task blocks")
     nodes = [ET.fromstring(block) for block in blocks]
+    # The reader parses only the <task> region, so the trailing state comment
+    # that plan_content strips never reaches it either.
     parsed = [task.to_dict() for task in read_spec(str(path))]
     if len(parsed) != len(nodes):
         raise ValueError("Legacy parser omitted a malformed task")
