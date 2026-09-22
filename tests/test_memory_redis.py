@@ -248,6 +248,14 @@ def test_connect_reports_each_way_of_being_unusable_distinctly(monkeypatch):
     assert isinstance(connect(SETTINGS), RedisMemory)
 
 
+def test_open_client_returns_the_triple_scratch_relies_on(monkeypatch):
+    fake = FakeRedis()
+    _library(monkeypatch, lambda url, **options: fake)
+    client, host, errors = memory_redis.open_client(SETTINGS, timeout=0.7)
+    assert client is fake and host == "memory.example:6380" and errors == (FakeError, OSError)
+    assert fake.calls == [("PING",)]  # no hydration check: that is connect's
+
+
 def test_connect_injects_a_configured_password_only_when_the_url_has_none(monkeypatch):
     seen = []
     def factory(url, **options):

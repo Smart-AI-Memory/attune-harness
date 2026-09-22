@@ -63,6 +63,18 @@ def add_arguments(parser):
     search.add_argument('query')
     search.add_argument('--layer', choices=REDIS_LAYERS)
     search.add_argument('--k', type=int, default=10)
+    scratch = sub.add_parser('scratch', help='Working memory: bounded JSON under short keys; file store, or Redis with the extra')
+    ops = scratch.add_subparsers(dest='scratch_operation', required=True)
+    ops.add_parser('capabilities', help='Which backend is configured and what it declares')
+    stash = ops.add_parser('stash', help='Store one JSON value, optionally with a time to live')
+    stash.add_argument('key')
+    source = stash.add_mutually_exclusive_group(required=True)
+    source.add_argument('--value', help='The value as JSON text')
+    source.add_argument('--value-file', type=Path, help='A file holding the value as JSON')
+    stash.add_argument('--ttl', type=int, help='Seconds until the value expires')
+    ops.add_parser('retrieve', help='Read one value').add_argument('key')
+    ops.add_parser('forget', help='Remove one value').add_argument('key')
+    ops.add_parser('keys', help='List keys, optionally by a glob pattern').add_argument('pattern', nargs='?', default='*')
 
 
 def add_commands(subparsers):
@@ -84,6 +96,14 @@ def execute(args):
             arguments = {key: getattr(args, key) for key in ('limit', 'id', 'query', 'layer', 'k')
                          if getattr(args, key, None) is not None}
             result = read(read_json(args.config), args.redis_operation, arguments)
+        elif args.memory_operation == 'scratch':
+            from .memory_scratch import VALUE_LIMIT, run
+            arguments = {key: getattr(args, key) for key in ('key', 'ttl', 'pattern')
+                         if getattr(args, key, None) is not None}
+            if args.scratch_operation == 'stash':
+                raw = read_text(args.value_file, VALUE_LIMIT + 4096) if args.value_file is not None else args.value
+                arguments['value'] = parse_json(raw, VALUE_LIMIT + 4096)
+            result = run(read_json(args.config), args.scratch_operation, arguments)
         else:
             from .memory_context import MemoryHost
             native = read_json(args.native_config) if args.native_config is not None else None
