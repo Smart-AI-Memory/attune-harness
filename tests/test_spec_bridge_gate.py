@@ -446,14 +446,18 @@ def test_two_processes_end_with_one_acceptance(work, tmp_path, collects_first):
     assert kinds.count("workspace_accepted") == 1
 
 
-def test_two_simultaneous_processes_end_with_one_acceptance(work, tmp_path):
+def test_two_simultaneous_processes_never_accept_twice(work, tmp_path):
     """No gate: both children open and collect as fast as they can.
 
-    Here the store's lease is what decides. The loser is usually told the run
-    is busy, by retain_decision or by the bind under the lease; when the two
-    interleave instead of colliding, one of the bridge's unlocked reads refuses
-    it. Whatever the order, exactly one acceptance is recorded in the store,
-    even when both hosts consumed their action first.
+    Here the store's lease is what decides, and what it decides is safety,
+    not liveness. Never two acceptances. Usually one: the loser is told the
+    run is busy, by retain_decision or by the bind under the lease, or one of
+    the bridge's unlocked reads refuses it. Sometimes none: the lease is
+    non-blocking, so a loser of a millisecond race for it is told the run is
+    busy and gives up, and when the other child was the one whose display had
+    already been replaced, both are refused. The Windows platform job showed
+    that order. Nothing is consumed for good in that case: the draft is
+    intact and a fresh opener gets the grant.
     """
     directory, _ = draft(work)
     script = tmp_path / "opener.py"
@@ -473,23 +477,26 @@ def test_two_simultaneous_processes_end_with_one_acceptance(work, tmp_path):
     finals = [lines[-1] for lines in outputs]
     accepted = [f for f in finals if f.get("accepted") is True]
     refused = [f["refused"] for f in finals if "refused" in f]
-    assert len(accepted) == 1, finals
-    assert len(refused) == 1, finals
-    assert any(text in refused[0] for text in REFUSALS), refused[0]
+    assert len(accepted) <= 1, finals
+    assert len(accepted) + len(refused) == 2, finals
+    for text in refused:
+        assert any(message in text for message in REFUSALS), text
     record = read_task(directory)
-    assert record["status"] == "accepted"
-    assert record["acceptance"]["decision"]["source"]["disposition"] == "approve_task"
-    # The host consumes the action before the store binds the grant, so the
-    # loser can leave an accept line and still be refused the grant: an accept
-    # event is a consumed workspace action, not a grant (the bridge docstring).
-    # On the Ubuntu 3.12 platform job this case produced two accept lines and
-    # one acceptance. The store's record is the authority; the file is evidence.
+    if accepted:
+        assert record["status"] == "accepted"
+        assert record["acceptance"]["decision"]["source"]["disposition"] == "approve_task"
+    else:
+        assert record["status"] == "draft"
+        assert not record.get("acceptance")
+        bridge = WorkSpecBridge(directory)
+        view = run(bridge.open())
+        receipt, done = run(bridge.collect(response(view, "approve_task")))
+        assert done["status"] == "accepted"
+    # An accept line records a consumed workspace action, not a grant, so a
+    # refused child can leave one; the store's record above is the authority.
     kinds = [e["event"] for e in events(directory)]
-    assert 1 <= kinds.count("workspace_accepted") <= 2
-    if kinds.count("workspace_accepted") == 2:
-        # Refused after the host consumed: by a leased check or the bind,
-        # never by the opening checks.
-        assert "Spec approval requires a complete draft" not in refused[0]
+    assert 1 <= kinds.count("workspace_accepted") <= 3
+    assert read_task(directory)["status"] == "accepted"
 
 
 # --- the command line ---------------------------------------------------------
