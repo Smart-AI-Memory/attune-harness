@@ -212,6 +212,17 @@ ENVELOPES = (
      ('detail', 'error', 'status')),
     ('memory-execute', 'unavailable', 2, None, 'unavailable',
      ('detail', 'error', 'status')),
+    ('memory-capabilities-adapter', 'success', 0, None, None,
+     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'retained_paths',
+      'worker_execution', 'worker_mutations')),
+    ('memory-recall-adapter', 'success', 0, 1, 'available',
+     ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
+      'schema_version', 'status')),
+    ('memory-resolve-adapter', 'success', 0, None, None,
+     ('authority', 'classification', 'id', 'kind', 'locator', 'metadata', 'owner', 'scope',
+      'text', 'version')),
+    ('memory-refresh-adapter', 'success', 0, None, 'available',
+     ('context', 'invalidated_ids', 'replaces', 'status')),
     ('memory-redis-status', 'success', 0, 1, 'ok',
      ('active_nodes', 'authority', 'guidance', 'items', 'layers', 'operation', 'schema_version',
       'status')),
@@ -439,6 +450,47 @@ class World:
         # The current-memory adapter lives in attune-ai, which no base or extra install carries;
         # pin the unavailable report the same way on every machine.
         self.monkeypatch.setitem(sys.modules, "attune", None)
+        return self.memory_config({"roots": []})
+
+    def faked_adapter(self):
+        """The adapter's four-member contract as an in-process double.
+
+        The success envelopes are Harness's own shapes (memory_context.py) over
+        whatever object answers `binding`, `capabilities()`, `query()` and
+        `resolve()`; pinning them here is the contract the native reader of
+        Phase 2 must satisfy, on every platform, with attune-ai absent.
+        """
+        import types
+
+        binding = {"roots": "double", "digest": "0" * 8}
+        item = dict(id="doc-1", locator="root/doc.md", version="v1", authority=binding,
+                    text="Quartz retention policy: keep audit logs ninety days.", kind="reference",
+                    metadata={"path": "root/doc.md"}, scope="project", owner="patrick",
+                    classification="internal")
+
+        class CompatibilityAdapter:
+            def __init__(self, config):
+                self.binding = binding
+
+            def capabilities(self):
+                return dict(read=["raw", "personal", "curated"], worker_mutations=[],
+                            mutation_status="unavailable", retained_paths=[])
+
+            def query(self, query, k=10):
+                return dict(status="available", items=[dict(item)], problems=[],
+                            authority=binding, capabilities=self.capabilities())
+
+            def resolve(self, handle):
+                return dict(item)
+
+        package = types.ModuleType("attune")
+        memory = types.ModuleType("attune.memory")
+        adapter = types.ModuleType("attune.memory.harness_adapter")
+        adapter.CompatibilityAdapter = CompatibilityAdapter
+        package.memory, memory.harness_adapter = memory, adapter
+        for name, module in (("attune", package), ("attune.memory", memory),
+                             ("attune.memory.harness_adapter", adapter)):
+            self.monkeypatch.setitem(sys.modules, name, module)
         return self.memory_config({"roots": []})
 
     def fake_redis(self):
@@ -983,6 +1035,30 @@ def _(w):
 @scenario("memory-refresh")
 def _(w):
     return w.run(w.memory_host() + ["refresh", w.tmp / "context.json"])
+
+
+@scenario("memory-capabilities-adapter")
+def _(w):
+    return w.run(w.faked_adapter() + ["capabilities"])
+
+
+@scenario("memory-recall-adapter")
+def _(w):
+    return w.run(w.faked_adapter() + ["recall", "quartz", "--k", "3"])
+
+
+@scenario("memory-resolve-adapter")
+def _(w):
+    base = w.faked_adapter()
+    _, packet = w.run(base + ["recall", "quartz"])
+    return w.run(base + ["resolve", write_json(w.tmp / "handle.json", packet["items"][0]["handle"])])
+
+
+@scenario("memory-refresh-adapter")
+def _(w):
+    base = w.faked_adapter()
+    _, packet = w.run(base + ["recall", "quartz"])
+    return w.run(base + ["refresh", write_json(w.tmp / "context.json", packet)])
 
 
 @scenario("memory-create")

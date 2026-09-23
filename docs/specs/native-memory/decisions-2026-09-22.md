@@ -58,3 +58,21 @@ the attune-ai section; the changelog says the same; and `mcp-serve` prints a
 notice on stderr when it starts beside an attune-ai whose MCP requirement
 this install does not meet (`features.neighbor_conflict`). The notice never
 changes behaviour and stays off stdout, the protocol channel.
+
+## D19: the eight Phase 2 decisions, all as recommended
+
+Asked the eight decisions in [the Phase 2 design note](phase-2-design.md),
+Patrick answered "all as recommended" on September 22, after 0.4.0 shipped:
+the compatibility fixture lands on `main` from commit `3230643` unchanged,
+with its origin receipted; "matches the adapter" means identical result sets
+and an identical top result, with order below that reported rather than
+failed; a mismatch is ruled per tier and Harness fixes its side by default,
+a case where the adapter is judged wrong being recorded by name; two copies
+of the sanitizer and provenance controls live until Task 9, the differential
+running at every release between; the differential is local-only evidence
+gated by `ATTUNE_TEST_ADAPTER_ROOT`, its receipt attached to each of 2.2,
+2.3 and 2.4; the native reader is POSIX-only at 0.5.0 as the adapter is, and
+Windows waits for the Phase 4 decision; the release gate's `core` mode
+requires the native path from 2.4 on; the switch is `reader` in the memory
+config, `native` by default, `adapter` the only other value, removed in
+Task 9. He had merged the design note (#78) before ruling.
