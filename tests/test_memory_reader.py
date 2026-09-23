@@ -344,8 +344,10 @@ def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys,
                                       redis={"url": "redis://127.0.0.1:1/0"})), encoding="utf-8")
     base = ["--config", str(config)]
     assert memory_main([*base, "capabilities"]) == 0
-    assert sorted(json.loads(capsys.readouterr().out)) == ["context_refresh", "mutation_status", "native_worker",
-                                                          "read", "retained_paths", "worker_execution", "worker_mutations"]
+    capabilities = json.loads(capsys.readouterr().out)
+    assert sorted(capabilities) == ["context_refresh", "mutation_status", "native_worker", "read", "reader",
+                                    "retained_paths", "worker_execution", "worker_mutations"]
+    assert capabilities["reader"] == "native"
     assert memory_main([*base, "recall", "Aurora", "--k", "3"]) == 0
     packet = json.loads(capsys.readouterr().out)
     assert sorted(packet) == ["authority", "guidance", "items", "k", "max_chars", "operation", "problems", "query",

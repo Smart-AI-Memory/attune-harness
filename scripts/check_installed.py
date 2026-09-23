@@ -23,12 +23,14 @@ def check(python: Path, mode: str) -> dict:
         context.write_text(json.dumps({'schema_version':1,'project_root':'project'}),encoding='utf-8')
 
         def run(arguments, expected, status):
+            """Run one verb and record it; ``status=None`` for an envelope that carries no status key."""
             invocation = [str(python),'-I','-m','attune_harness',*arguments]
             result = subprocess.run(invocation,cwd=root,text=True,capture_output=True)
             assert result.returncode == expected, (result.stdout,result.stderr)
             payload = json.loads(result.stdout)
-            assert payload['status'] == status,payload
-            cases.append({'arguments':arguments,'exit':result.returncode,'status':status})
+            if status is not None:
+                assert payload['status'] == status,payload
+            cases.append({'arguments':arguments,'exit':result.returncode,'status':payload.get('status')})
             return payload
 
         assert run([],0,'verified')['output']['text']=='4'
@@ -150,40 +152,59 @@ def memory_checks(run, python, root, mode):
         assert served.stderr.startswith('[attune-harness memory] skipped: ') and reason in served.stderr, served.stderr
         assert served.stderr.count('\n') == 1, served.stderr
     # The native reader (Phase 2, D19) reads a raw root with nothing installed: the core
-    # gate's --no-deps wheel included. The sections coexist in one file. On Windows the
-    # reader refuses in its own words; the receipt records which it was.
+    # gate's --no-deps wheel included; and the document tiers wherever attune-rag is present,
+    # which every mode but core has. The sections coexist in one file. On Windows the reader
+    # refuses in its own words; the receipt records which it was.
+    rag = subprocess.run([str(python),'-I','-c','import importlib.util,sys; sys.exit(0 if importlib.util.find_spec("attune_rag") else 1)']).returncode == 0
     raw_root = root/'raw-root'
     raw_root.mkdir()
     stamp = time.time()  # one stamp, so the two rows tie and keep file order
     rows = [dict(id='a', text='Aurora check row one', topics=['type:note'], cwd='check', ts=stamp),
             dict(id='b', text='Aurora check row two', topics=['type:note'], cwd='check', ts=stamp)]
     (raw_root/'findings.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in rows), encoding='utf-8')
-    roots = {'schema_version': 1, 'actor': 'check', 'owners': ['check'], 'scopes': ['check'],
-             'classifications': ['internal'], 'profiles': ['claude'],
-             'roots': [dict(id='r', path=str(raw_root.resolve()), tier='raw', scope='check', owner='check',
-                            classification='internal')],
-             'redis': unreachable}
+    personal_root, curated_root = root/'personal-root', root/'curated-root'
+    (personal_root/'aurora').mkdir(parents=True)
+    (personal_root/'aurora'/'decision.md').write_text('# Aurora\n\nAurora check reminder is 09:15.\n', encoding='utf-8')
+    curated_root.mkdir()
+    (curated_root/'aurora_policy.md').write_text('---\nname: aurora_policy\ndescription: Aurora check policy\nmetadata:\n  type: reference\n---\n\nAurora check policy body.\n', encoding='utf-8')
+    def roots_config(*roots):
+        return {'schema_version': 1, 'actor': 'check', 'owners': ['check'], 'scopes': ['check'],
+                'classifications': ['internal'], 'profiles': ['claude'],
+                'roots': [dict(id=rid, path=str(path.resolve()), tier=tier, scope='check', owner='check',
+                               classification='internal') for rid, path, tier in roots],
+                'redis': unreachable}
     paths['roots'] = root/'memory-roots.json'
-    paths['roots'].write_text(json.dumps(roots), encoding='utf-8')
+    paths['roots'].write_text(json.dumps(roots_config(('r', raw_root, 'raw'))), encoding='utf-8')
     reads = ['memory','--config',str(paths['roots'])]
-    caps = subprocess.run([str(python),'-I','-m','attune_harness',*reads,'capabilities'],cwd=root,text=True,capture_output=True)
-    assert caps.returncode == 0 and json.loads(caps.stdout)['read'] == ['raw','personal','curated'], (caps.stdout, caps.stderr)
+    capabilities = run([*reads,'capabilities'],0,None)
+    assert capabilities['read'] == ['raw','personal','curated'] and capabilities['reader'] == 'native', capabilities
+    tiers = []
     if os.name == 'posix':
         packet = run([*reads,'recall','Aurora','--k','2'],0,'available')
         assert [i['handle']['id'] for i in packet['items']] == ['r:a','r:b'], packet['items']
         handle = root/'memory-handle.json'
         handle.write_text(json.dumps(packet['items'][0]['handle']), encoding='utf-8')
-        resolved = subprocess.run([str(python),'-I','-m','attune_harness',*reads,'resolve',str(handle)],cwd=root,text=True,capture_output=True)
-        assert resolved.returncode == 0 and json.loads(resolved.stdout)['text'] == 'Aurora check row one', (resolved.stdout, resolved.stderr)
+        assert run([*reads,'resolve',str(handle)],0,None)['text'] == 'Aurora check row one'
         refresh = root/'memory-context.json'  # not context.json, which the verify journey reads
         refresh.write_text(json.dumps(packet), encoding='utf-8')
         assert run([*reads,'refresh',str(refresh)],0,'available')['invalidated_ids'] == []
+        tiers = ['raw']
+        if rag:
+            paths['tiers'] = root/'memory-tiers.json'
+            paths['tiers'].write_text(json.dumps(roots_config(('r', raw_root, 'raw'), ('p', personal_root, 'personal'),
+                                                              ('c', curated_root, 'curated'))), encoding='utf-8')
+            packet = run(['memory','--config',str(paths['tiers']),'recall','Aurora','--k','10'],0,'available')
+            ids = {i['handle']['id'] for i in packet['items']}
+            assert {'r:a','r:b','p:aurora/decision.md','c:aurora_policy.md'} <= ids, sorted(ids)
+            assert packet['problems'] == [], packet['problems']
+            tiers = ['raw','personal','curated']
         native = 'available'
     else:
         packet = run([*reads,'recall','Aurora','--k','2'],2,'unavailable')
         assert 'qualified only on POSIX' in packet['problems'][0]['detail'], packet['problems']
         native = 'posix-only refusal'
-    return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped', 'native_reader': native}
+    return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped',
+            'native_reader': native, 'tiers_read': tiers, 'reader_named': capabilities['reader']}
 
 
 def main():

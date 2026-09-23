@@ -65,19 +65,35 @@ def attune_imports(source):
 
 
 def fallback_lines(source):
-    """Line numbers inside an ``if``/``elif`` body whose test is ``reader == 'adapter'``."""
+    """Line numbers inside an ``if``/``elif`` body whose test is ``reader == 'adapter'``,
+    and only inside ``MemoryHost.__init__``: the one place the fallback is allowed.
+
+    The match is literal: a ``Name`` called ``reader`` compared with the constant
+    ``'adapter'`` by ``==``. ``self.reader``, ``!=`` with an ``else``, a
+    ``match``/``case`` rewrite or a guarded import in any other function all
+    fail closed, so a refactor of the constructor moves this test with it.
+    """
+    tree = ast.parse(source)
+    scopes = [
+        function
+        for cls in ast.walk(tree)
+        if isinstance(cls, ast.ClassDef) and cls.name == "MemoryHost"
+        for function in cls.body
+        if isinstance(function, ast.FunctionDef) and function.name == "__init__"
+    ]
     allowed = set()
-    for node in ast.walk(ast.parse(source)):
-        if not isinstance(node, ast.If):
-            continue
-        test = node.test
-        if not (isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq)):
-            continue
-        sides = [test.left, test.comparators[0]]
-        names = {side.id for side in sides if isinstance(side, ast.Name)}
-        values = {side.value for side in sides if isinstance(side, ast.Constant)}
-        if names == {"reader"} and values == {"adapter"}:
-            allowed.update(range(node.body[0].lineno, node.body[-1].end_lineno + 1))
+    for scope in scopes:
+        for node in ast.walk(scope):
+            if not isinstance(node, ast.If):
+                continue
+            test = node.test
+            if not (isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq)):
+                continue
+            sides = [test.left, test.comparators[0]]
+            names = {side.id for side in sides if isinstance(side, ast.Name)}
+            values = {side.value for side in sides if isinstance(side, ast.Constant)}
+            if names == {"reader"} and values == {"adapter"}:
+                allowed.update(range(node.body[0].lineno, node.body[-1].end_lineno + 1))
     return allowed
 
 
@@ -159,12 +175,18 @@ def test_the_fallback_files_still_import_attune_only_inside_the_adapter_branch()
             f"{name} imports attune outside the reader == 'adapter' branch at {lines}")
 
 
-def test_fallback_lines_only_match_the_adapter_branch():
-    guarded = "def f(reader):\n    if reader == 'native':\n        pass\n    elif reader == 'adapter':\n        from attune.x import Y\n        return Y\n"
-    assert fallback_lines(guarded) == {5, 6}
-    assert fallback_lines("if reader == 'native':\n    from attune.x import Y\n") == set()
-    assert fallback_lines("if mode == 'adapter':\n    from attune.x import Y\n") == set()
-    assert fallback_lines("if reader != 'adapter':\n    from attune.x import Y\n") == set()
+def test_fallback_lines_only_match_the_adapter_branch_in_the_constructor():
+    head = "class MemoryHost:\n    def __init__(self, config, reader='native'):\n"
+    guarded = head + "        if reader == 'native':\n            pass\n        elif reader == 'adapter':\n            from attune.x import Y\n            self.a = Y\n"
+    assert fallback_lines(guarded) == {6, 7}
+    assert fallback_lines(head + "        if reader == 'native':\n            from attune.x import Y\n") == set()
+    assert fallback_lines(head + "        if mode == 'adapter':\n            from attune.x import Y\n") == set()
+    assert fallback_lines(head + "        if reader != 'adapter':\n            from attune.x import Y\n") == set()
+    assert fallback_lines(head + "        if self.reader == 'adapter':\n            from attune.x import Y\n") == set()
+    # The same guard anywhere else is not the fallback: another method, a module-level helper.
+    other = "class MemoryHost:\n    def _invoke(self, reader):\n        if reader == 'adapter':\n            from attune.x import Y\n"
+    assert fallback_lines(other) == set()
+    assert fallback_lines("def helper(reader='adapter'):\n    if reader == 'adapter':\n        from attune.x import Y\n") == set()
 
 
 def test_the_default_host_loads_nothing_from_attune(tmp_path, monkeypatch):
@@ -180,4 +202,15 @@ def test_the_default_host_loads_nothing_from_attune(tmp_path, monkeypatch):
                                                      owner="p", classification="internal")]}
     host = MemoryHost(config)
     assert type(host.adapter).__name__ == "NativeReader"
+    # Every operation, whether it succeeds or refuses: a reachable import would show up here.
+    calls = {"capabilities": {}, "recall": {"query": "x", "k": 1, "max_chars": 100}, "resolve": {"handle": {}},
+             "refresh": {"context": {}}, "create": {"run_id": "r", "envelope": {}, "policy": {}},
+             "replay": {"run_id": "r", "job_id": "j", "replies": []}, "inspect": {"run_id": "r", "job_id": "j"},
+             "execute": {"run_id": "r", "job_id": "j"}}
+    for operation, arguments in calls.items():
+        try:
+            host.invoke(operation, arguments)
+        except Exception:  # noqa: BLE001 - only the imports matter here
+            pass
     assert not any(m == "attune" or m.startswith("attune.") for m in sys.modules)
+    assert host.invoke("capabilities", {})["reader"] == "native"

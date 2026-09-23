@@ -29,6 +29,7 @@ class MemoryHost:
             self.adapter = CompatibilityAdapter(config)
         else:
             raise ValueError("Memory reader must be 'native' or 'adapter'")
+        self.reader = reader
         self.config = deepcopy(config)
         self.jobs = Path(jobs) if jobs is not None else None
         self.native = None
@@ -132,7 +133,7 @@ class MemoryHost:
                     execution = 'native proposal or offline replay; no memory writes'
                 except Exception as error:
                     native = dict(status='unavailable', error=type(error).__name__, detail=str(error))
-            return dict(**self.adapter.capabilities(), native_worker=native,
+            return dict(**self.adapter.capabilities(), reader=self.reader, native_worker=native,
                         worker_execution=execution,
                         context_refresh='explicit full packet replacement before receiving turn')
         if operation == 'recall':

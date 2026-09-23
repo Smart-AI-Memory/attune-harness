@@ -213,7 +213,7 @@ ENVELOPES = (
     ('memory-execute', 'unavailable', 2, None, 'unavailable',
      ('detail', 'error', 'status')),
     ('memory-capabilities-adapter', 'success', 0, None, None,
-     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'retained_paths',
+     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'reader', 'retained_paths',
       'worker_execution', 'worker_mutations')),
     ('memory-recall-adapter', 'success', 0, 1, 'available',
      ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
@@ -224,7 +224,7 @@ ENVELOPES = (
     ('memory-refresh-adapter', 'success', 0, None, 'available',
      ('context', 'invalidated_ids', 'replaces', 'status')),
     ('memory-capabilities-native', 'success', 0, None, None,
-     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'retained_paths',
+     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'reader', 'retained_paths',
       'worker_execution', 'worker_mutations')),
     ('memory-recall-native', 'success', 0, 1, 'available',
      ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
@@ -234,6 +234,8 @@ ENVELOPES = (
       'text', 'version')),
     ('memory-refresh-native', 'success', 0, None, 'available',
      ('context', 'invalidated_ids', 'replaces', 'status')),
+    ('memory-capabilities-invalid', 'refusal', 2, None, 'failed',
+     ('detail', 'error', 'status')),
     ('memory-redis-status', 'success', 0, 1, 'ok',
      ('active_nodes', 'authority', 'guidance', 'items', 'layers', 'operation', 'schema_version',
       'status')),
@@ -469,7 +471,7 @@ class World:
         import time as _time
 
         root = self.tmp / "raw-root"
-        root.mkdir()
+        root.mkdir(exist_ok=True)
         rows = [dict(id="a", text="Quartz retention policy: ninety days.", topics=["type:note"], cwd="s", ts=_time.time()),
                 dict(id="b", text="Quartz audit log rotation.", topics=["type:note"], cwd="s", ts=_time.time())]
         (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
@@ -1109,6 +1111,12 @@ def _(w):
     base = w.native_reader()
     _, packet = w.run(base + ["recall", "quartz"])
     return w.run(base + ["refresh", write_json(w.tmp / "context.json", packet)])
+
+
+@scenario("memory-capabilities-invalid")
+def _(w):
+    # The default reader refuses a config that is not the roots contract, in the reader's words.
+    return w.run(w.memory_config({"roots": []}) + ["capabilities"])
 
 
 @scenario("memory-create")

@@ -88,6 +88,8 @@ jobs:
           python -m venv "$RUNNER_TEMP/release-core"
           "$RUNNER_TEMP/release-core/bin/python" -m pip --isolated --disable-pip-version-check install --no-index --no-deps dist/*.whl
           python scripts/check_installed.py --python "$RUNNER_TEMP/release-core/bin/python" --mode core --report "$RUNNER_TEMP/release-evidence/core.json"
+          # The gate reads memory through the native reader from the --no-deps wheel (Phase 2, D19): the receipt must say so.
+          python -c 'import json,sys; d=json.load(open(sys.argv[1])); m=d["memory"]; assert m["native_reader"]=="available" and m["tiers_read"]==["raw"] and m["reader_named"]=="native", m; verbs={c["arguments"][3] for c in d["cases"] if c["arguments"][:1]==["memory"] and len(c["arguments"])>3}; assert {"recall","resolve","refresh","capabilities"} <= verbs, sorted(verbs)' "$RUNNER_TEMP/release-evidence/core.json"
           sha256sum dist/* > "$RUNNER_TEMP/release-evidence/SHA256SUMS"
           if [[ "$RELEASE_TARGET" == testpypi ]]; then
             python scripts/check_testpypi_rehearsal.py manifest --dist dist --output "$RUNNER_TEMP/release-evidence/artifact-manifest.json"

@@ -69,6 +69,15 @@ def qualify(output):
                            '--mode','redis','--report',str(output/'memory-redis.json')],
                           cwd=output,capture_output=True,text=True)
     (output/'memory-redis.txt').write_text(memory.stdout+memory.stderr,encoding='utf-8')
+    # The native memory reader read what this platform allows (Phase 2, D19): the receipt must say which.
+    if memory.returncode==0:
+        native=json.loads((output/'memory-redis.json').read_text(encoding='utf-8'))['memory']
+        wanted=('available',['raw','personal','curated']) if os.name=='posix' else ('posix-only refusal',[])
+        if (native.get('native_reader'),native.get('tiers_read'))!=wanted or native.get('reader_named')!='native':
+            memory=subprocess.CompletedProcess(memory.args,1)
+            receipt['checks'].append(f'native memory reader receipt unexpected: {native}')
+        receipt['native_memory_reader']=native.get('native_reader')
+        receipt['native_memory_tiers']=native.get('tiers_read')
     receipt['memory_redis']='passed' if memory.returncode==0 else 'failed'
     receipt['checks'].append('memory redis: extra present, server absent, unavailable; file scratch round trip; redis scratch never diverts'
                              if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')

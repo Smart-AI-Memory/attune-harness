@@ -353,7 +353,13 @@ import is allowed only inside the `reader == 'adapter'` branch, checked
 lexically, and a runtime test constructs the default host and finds nothing
 from attune in `sys.modules`. `scripts/check_installed.py` reads a raw root
 through the reader in every mode, so the `--no-deps` release gate reads
-memory with the standard library alone; on Windows it records the reader's
-own refusal, the limit D19 keeps until Phase 4. The golden table pins the
+memory with the standard library alone, and the personal and curated tiers
+too wherever attune-rag is installed, which is every mode but `core`; on
+Windows it records the reader's own refusal, the limit D19 keeps until
+Phase 4. The release gate and the platform script assert on that receipt
+(`native_reader`, `tiers_read`, `reader_named`, and the four verbs
+recorded), so a check that stopped reading would fail the run rather than
+report a label. `memory capabilities` names which reader answered, in a
+`reader` field, so a `reader: adapter` rollback is visible in its answer. The golden table pins the
 four native success envelopes over a raw root, POSIX only. The README's
 memory row says what the reader is and what it does not do.
