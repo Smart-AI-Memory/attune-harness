@@ -85,15 +85,26 @@ def test_invalid_utf8_remains_failure(tmp_path):
     assert result.failure == 'invalid_utf8'
 
 
+# The descendant's effect lands this long after it starts; the parent is
+# stopped well before, and the check waits longer than that. A cold
+# interpreter on a loaded runner can take a few hundred milliseconds to
+# reach its first print, which is why the stop budget is not tighter: with
+# 0.15 s the macOS 3.12 job stopped the parent before it had printed, twice
+# on 2026-09-23, and reported stdout '' for a defect that was not there.
+DESCENDANT_EFFECT_SECONDS = 2.0
+STOP_BUDGET_SECONDS = 0.75
+
+
 def test_timeout_stops_descendant_effect(tmp_path):
     import time
     marker = tmp_path/'late-effect'
-    child_code = f'import time,pathlib;time.sleep(0.4);pathlib.Path({str(marker)!r}).write_text("effect")'
+    child_code = f'import time,pathlib;time.sleep({DESCENDANT_EFFECT_SECONDS});pathlib.Path({str(marker)!r}).write_text("effect")'
     parent_code = f'import subprocess,sys,time;subprocess.Popen([sys.executable,"-c",{child_code!r}]);print("spawned",flush=True);time.sleep(10)'
-    result = invoke(command(parent_code), '', cwd=tmp_path, timeout=0.15)
+    started = time.monotonic()
+    result = invoke(command(parent_code), '', cwd=tmp_path, timeout=STOP_BUDGET_SECONDS)
     assert result.failure == 'timeout_effects_unknown'
-    assert result.stdout == 'spawned\n'
-    time.sleep(0.5)
+    assert result.stdout == 'spawned\n', f'parent not heard from within {STOP_BUDGET_SECONDS} s ({time.monotonic() - started:.2f} s elapsed)'
+    time.sleep(DESCENDANT_EFFECT_SECONDS + 0.5)
     assert not marker.exists()
 
 
