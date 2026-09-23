@@ -26,22 +26,13 @@ class _Stderr:
     """
 
     def write(self, text):
-        stream = sys.stderr
-        if stream is None:  # fd closed at exec, pythonw.exe: a diagnostic is dropped
-            return
-        try:
-            stream.write(text)
-        except (ValueError, OSError):  # a closed or broken stream never fails the command
-            return
+        # _write owns the failure modes: a None stream is skipped, a character
+        # the console cannot encode is replaced, and a broken stream is pointed
+        # at the null device so the interpreter's exit flush cannot fail later.
+        _write(sys.stderr, text)
 
     def flush(self):
-        stream = sys.stderr
-        if stream is None:
-            return
-        try:
-            stream.flush()
-        except (ValueError, OSError):
-            return
+        return
 
 
 _STDERR = _Stderr()
