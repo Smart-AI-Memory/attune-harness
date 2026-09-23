@@ -3,9 +3,9 @@
 Draft of September 23, 2026, the evening [D25](addendum-2026-09-23.md) ruled
 what the freeze covers and when, for [the plan's task 4.1](../../plan-1.0.md).
 Like the design notes before it, it puts what was read from the code first,
-then the design, then the decisions that are Patrick's. Nothing here is
-authorized until he rules; the rulings go in the release addendum, numbered
-on from D26.
+then the design, then the decisions that are Patrick's. He ruled the same
+evening, "all seven as recommended": [D27](addendum-2026-09-23.md), which
+also says which cycle can start now.
 
 ## What D25.2 already settled
 
