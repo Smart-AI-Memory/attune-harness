@@ -52,6 +52,16 @@ exact" when the review confirmed a carried module changed nothing.
 | #80 | The native memory reader | request changes | 3/9/8 | bound, carry, input, mapping, fallback, test | A bare-key rule quadratic in a long key-shaped run; nine strings the adapter's gate blocks that the transcribed patterns let through, and eleven it passes that they blocked; a raw row with no `topics` key refused; eleven controls whose mutants survived |
 | #81 | Provenance and staleness on document items | approve with should-fixes | 0/5/6 | claim, bound, test | A docstring naming a `None` contract the code did not have; the verdict log re-read per hit; three volatility rows, the tombstone-before-verified order and the quote stripping unpinned |
 | #82 | The native reader as the default | request changes | 0/3/7 | test, claim | A lexical guard that allowed the fallback import anywhere in the file and a runtime test that never invoked a verb; two acceptance criteria narrowed without a ruling; a release-gate label that survived skipping the read |
+| #93 | One qualification run per release branch; the Node 24 pins; the approval script | fix first | 3/1/2 | input, fallback, layer | The release-branch skip keyed on the branch name alone, which a fork controls; the approval script exited 0 on a reply with no environment; the required check's pass branch never consulted the classifier, the shape #82 had shown |
+| #94 | The MCP receipt deadline named; a miss reports its wait | fix first | 2/0/3 | test, claim | The second observe passed no task, so a miss after cancellation reported the call as still pending; the comment credited this test's Windows timings to its sibling |
+| #95 | The Windows append emulated, so the lock's removal fails everywhere | merge | 0/1/2 | claim, test | The docstring said the children were released together; the overlap was host timing, measured at 98 percent; a real barrier now |
+| #98 | The task reader parses each top-level block on its own | fix first | 2/2/1 | input, test, claim | Found by fuzzing 4,000 plans: a block closed `</task >` vanished, and a self-closing task beside a comment mis-split and dropped a task; the orphan warning lost; three mutations survived, one test did not fail under its own mutation |
+| #99 | One retrying replace for the plan-state and Voyage writers | fix first | 1/5/1 | test, platform | A guard a space or a pathlib spelling escaped; the retry never asserted on POSIX; a refusing stub that finished with `Path.rename`, which fails only on the Windows job, reproduced by emulation; an import alias that evaded the guard |
+| #100 | The memory CLI binds structlog once, to a stream resolved at write time | fix first | 0/4/2 | fallback, test, claim | A `None` stderr and a gone pipe, the two degradations the old binding had survived by accident, the second turning exit 0 into 120 at the interpreter's flush; a stub that kept O-67's condition unmet; structlog left configured after a test |
+| #106 | The acceptance host and the plan import move to `work_accept` | fix first | 1/1/8 | test, claim | The two re-pointed CLI paths had no test, so a broken import left the suite green; five of six guard mutations survived, on main too; a differential with no mutation sensitivity of its own; counts that did not reproduce |
+| #107 | `spec_bridge` is `spec_legacy`; the gate tests take the host's name | merge | 0/0/3 | claim | Three citations in the live design note to files the rename removed; a retargeted `.py` link the link checker never sees |
+| #108 | The R2 journey as a test, a gate section and a document | fix first | 0/4/5 | claim, platform, test, fallback | Three receipt fields the gate asserted on were literals that could not be false; a Windows refusal from any module naming the platform would have passed as the sanctioned one; a journey failure would have been filed as a memory failure; a whole file skipped when a base dependency was absent |
+| #110 | `plan --accept` walks the execution stages | merge | 0/2/5 | claim, test | The walked accept was indistinguishable from the human's in the evidence file; the design note still called `gate_running` dormant; the one new user-visible string had no source and no test |
 
 ## What the log says so far
 
@@ -59,6 +69,18 @@ Nineteen reviews. Every `src/` change since the command workspace host (#54)
 had a request-changes verdict except the one pure carry (#58) and the
 provenance port (#81), so a review that finds nothing is the exception, not
 the norm.
+
+Twenty-nine by the evening of September 23. The overnight run and Task 4
+added ten: five fix-first verdicts and five merge, and every merge verdict
+still carried something fixed before the merge. The classes recur: claim in
+nine of the ten, test in eight, fallback and platform in three each, input in
+two, layer in one. Three of the ten reviewed no `src/` at all, tests, scripts
+and workflow assertions (#94, #95, #108), and found the same classes as the
+rest; #108's three receipt fields that the gate asserted on but that could
+not be false are the plainest claim finding in the log, an assertion with
+nothing to fail. The one platform finding no macOS run could show, #99's
+stub finishing with `Path.rename`, was reproduced by emulating the Windows
+refusal, the shape the brief now asks for.
 
 By class, over the eleven reviews with a full record (#58 to #82):
 
