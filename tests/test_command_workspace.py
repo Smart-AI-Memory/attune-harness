@@ -613,8 +613,12 @@ def test_writer_refuses_a_hard_link(tmp_path):
 def _appended_by_four_processes(tmp_path, prelude=""):
     """Four children, released together, each append 500 lines through the writer.
 
-    Returns the parsed events. ``prelude`` is source the child runs before it
-    imports the writer, so a test can change how the child opens the file.
+    Each child reports ready on stdout once its imports are done and then
+    waits on stdin; the parent releases all four only after it has read all
+    four ready lines, so the overlap is the test's doing, not the host's
+    timing. Returns the parsed events; a line that does not parse fails with
+    the bytes shown. ``prelude`` is source the child runs before it imports
+    the writer, so a test can change how the child opens the file.
     """
     import attune_harness
 
@@ -627,6 +631,8 @@ def _appended_by_four_processes(tmp_path, prelude=""):
         "from attune_harness.command_workspace import jsonl_event_writer\n"
         "write = jsonl_event_writer(Path(sys.argv[1]))\n"
         "who = sys.argv[2]\n"
+        "sys.stdout.write('ready\\n')\n"
+        "sys.stdout.flush()\n"
         "sys.stdin.readline()\n"
         "for n in range(500):\n"
         "    write({'event': 'probe', 'who': who, 'n': n, 'pad': 'x' * 200})\n",
@@ -651,6 +657,8 @@ def _appended_by_four_processes(tmp_path, prelude=""):
     ]
     try:
         for child in children:
+            assert child.stdout.readline() == "ready\n"
+        for child in children:
             child.stdin.write("go\n")
             child.stdin.flush()
         for child in children:
@@ -663,7 +671,13 @@ def _appended_by_four_processes(tmp_path, prelude=""):
                 child.wait(timeout=10)
     lines = path.read_bytes().split(b"\n")
     assert lines[-1] == b""
-    return [json.loads(line) for line in lines[:-1]]
+    events = []
+    for number, line in enumerate(lines[:-1], 1):
+        try:
+            events.append(json.loads(line))
+        except ValueError as exc:  # a torn or overwritten line
+            raise AssertionError(f"line {number} does not parse ({exc}): {line[:120]!r}") from None
+    return events
 
 
 def _every_line_from_every_child(events):
@@ -680,7 +694,7 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
     On POSIX ``O_APPEND`` already makes this hold; on Windows the C runtime
     appends by seeking and then writing, so without the writer's lock two
     processes tear each other's lines, which the Windows platform job showed.
-    The children wait on stdin and are released together, so the overlap is
+    The children report ready and are released together, so the overlap is
     the test's doing, not the host's timing.
     """
     _every_line_from_every_child(_appended_by_four_processes(tmp_path))
