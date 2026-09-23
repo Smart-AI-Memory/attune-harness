@@ -15,16 +15,51 @@ from .review_contract import parse_json
 REDIS_LAYERS = ('curated', 'file', 'lesson', 'rule')
 
 
+class _Stderr:
+    """A writer that resolves ``sys.stderr`` on every call.
+
+    structlog's print logger keeps the stream it is given. Given ``sys.stderr``
+    itself, it kept whichever object that was at configure time: under pytest a
+    capture stream the fixture closes when the test ends, after which any
+    later log line raised "I/O operation on closed file". This resolves the
+    current stream each time instead.
+    """
+
+    def write(self, text):
+        # _write owns the failure modes: a None stream is skipped, a character
+        # the console cannot encode is replaced, and a broken stream is pointed
+        # at the null device so the interpreter's exit flush cannot fail later.
+        _write(sys.stderr, text)
+
+    def flush(self):
+        return
+
+
+_STDERR = _Stderr()
+_configured = False
+
+
 def configure_process():
-    """Disable the usage-ping uploader; preserve accounting and team transports."""
+    """Disable the usage-ping uploader; bind structlog to stderr, once.
+
+    RAG diagnostics must not corrupt JSON or MCP stdout, so structlog prints to
+    stderr. The binding resolves ``sys.stderr`` on every write rather than at
+    configure time, and it is made once per process: a second call rebinds
+    nothing (the usage-ping variable is set every time), so the entry point
+    that owns start-up (``main``) calls it and nothing else needs to (O-67).
+    A stream that is ``None`` or closed drops the diagnostic; it never fails
+    the command. Accounting and team transports are untouched.
+    """
+    global _configured
     os.environ['ATTUNE_USAGE_PING'] = '0'
-    # RAG diagnostics must not corrupt JSON or MCP stdout. Do this at host
-    # startup, never via process-wide stdout redirection during concurrent calls.
+    if _configured:
+        return
     try:
         import structlog
     except ImportError:
         return
-    structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=sys.stderr))
+    structlog.configure(logger_factory=structlog.PrintLoggerFactory(file=_STDERR))
+    _configured = True
 
 
 def add_arguments(parser):
@@ -147,7 +182,6 @@ def serve(args):
 
 
 def execute(args):
-    configure_process()
     if args.memory_operation == 'serve':
         return serve(args)
     try:
