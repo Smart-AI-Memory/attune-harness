@@ -176,11 +176,12 @@ run about 30 seconds, the TestPyPI publish about 2 minutes plus approval wait.
   0.1.0 publishes.
 - Delete the scratch branch `diag/windows-record-replace` once the fix is on the
   release line.
-- `docs/handoffs/` is **not** gitignored, contrary to what this note and the
-  2026-09-19 note said. It is untracked (`??` in `git status`) on the release branch
-  and in the main checkout. It stays out of commits only because files are added by
-  name. Either add it to `.gitignore` after the release or keep never using
-  `git add -A`.
+- `docs/handoffs/` was **not** gitignored when this was written, contrary to
+  what this note and the 2026-09-19 note said; it stayed out of commits only
+  because files were added by name. The rule is on `main` since the pull
+  request that closed O-43 (September 23, 2026): the directory and
+  `docs/reflections/` are ignored, files already tracked stay tracked, and a new
+  note is added by name with `git add -f`.
 - The Claude session of 2026-09-21 ran in the worktree
   `.claude/worktrees/windows-pypi-release-handoff-dba493`, now switched to
   `release/0.1.0rc1-packaging`. The session could not edit files in the main
