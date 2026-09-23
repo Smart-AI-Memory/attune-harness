@@ -126,6 +126,8 @@ morning. The notes the run itself produced follow in the dated evidence
 section, unnumbered until the next review. The plan's Phase 4 hygiene row
 (4.5) is now five items in pull requests, two of them merged.
 
+Follow-through, the afternoon of September 23: all ten merged, #93 to #100 under Patrick's named delegation for each, and #103, a flake fix that two of their runs made necessary, beside them. The notes from those merges and from Task 4 step c are appended below the overnight ones, unnumbered until the October 1 review.
+
 ## Deferred review — October 1, 2026
 
 Patrick wants to revisit all remaining opportunity groups when budget allows.
@@ -626,6 +628,8 @@ by this note.
 
 **Status, September 23, 2026 (overnight run): in #93 (open, reviewed): the three Node 20 pins become checkout v7.0.1, setup-python v7.0.0 and upload-artifact v7.0.1 in all four workflows, 21 pins; `publish-pypi.yml`'s copies need a `publish=false` rehearsal before the next real publish, which the runbook's step 4 now says.**
 
+**Status, September 23, 2026 (afternoon): #93 merged (`1dd10a5`); the three pins are on their Node 24 releases. The publish workflow's copies of the pins still owe a `publish=false` rehearsal before the next real publish; that is an unnumbered note below.**
+
 O-39, 2026-09-19:
 `ubuntu-latest` moves to Ubuntu 26. The same rehearsal run 35476747591 carried a
 notice on `build`, `publish_testpypi` and `verify_testpypi` that the
@@ -755,6 +759,8 @@ is changed or authorized by this note.
 **Status, September 23, 2026: open.** `tests/test_mcp.py` still holds the bare ten-second literal.
 
 **Status, September 23, 2026 (overnight run): in #94 (open, reviewed): the deadline is `RECEIPT_DEADLINE_SECONDS = 5 * REPLACE_RETRY_SECONDS` with its reasoning, and a miss reports how long it waited. Not raised.**
+
+**Status, September 23, 2026 (afternoon): #94 merged (`e9be36a`). The junit collector the note's decision needs is an unnumbered note below.**
 
 O-43, 2026-09-21:
 `docs/handoffs/` is ignored on one branch only. Both release handoff notes
@@ -1196,6 +1202,8 @@ this note.
 
 **Status, September 23, 2026 (overnight run): in #98 (open, reviewed): each top-level block is parsed on its own, a rejected block falls back alone, and the split is refused where it cannot be trusted (unbalanced tags, a comment or CDATA in the region). The reviewer's fuzz over 12,000 plans: zero cases where the new reader drops a task the old returned.**
 
+**Status, September 23, 2026 (afternoon): #98 merged (`ab0648e`).**
+
 O-59, 2026-09-22 (third pass): three atomic writers, one with the
 Windows retry. `review_store._replace` retries `os.replace` for two seconds
 when a reader holds the file, which is the fix that unblocked 0.1.0 on
@@ -1213,6 +1221,8 @@ a different-model review. Nothing is changed or authorized by this note.
 **Status, September 23, 2026: open.** Three `os.replace` call sites outside `features.py` remain; `features.replace_file` carries the retry for two of them.
 
 **Status, September 23, 2026 (overnight run): in #99 (open, reviewed): the plan-state and Voyage index writers go through `features.replace_file`; an AST guard pins every spelling of a replace under `src/` to `features.py` and the effects host's `dir_fd` replace in `repair.py`, which is POSIX-only by design with `windows_effects.replace_file` as its twin; the retry is exercised on every platform through `RETRY_REFUSED_REPLACE`.**
+
+**Status, September 23, 2026 (afternoon): #99 merged (`5a73aa6`).**
 
 O-60, 2026-09-22 (third pass): the documentation index is generated
 once and nothing keeps it complete. #47 added `docs/README.md` with a row for
@@ -1303,6 +1313,8 @@ Nothing is changed or authorized by this note.
 
 **Status, September 23, 2026 (overnight run): in #93 (open, reviewed): a pull request whose head is a `release/` branch of this repository stops at the classifier and the link check; the push run is the record; the verdict names the reason. The review found the skip spoofable from a fork and the verdict blind to a failed classifier; both fixed there.**
 
+**Status, September 23, 2026 (afternoon): #93 merged (`1dd10a5`); one qualification run per release branch, the verdict consults the classifier, and the skip is repository-bound. `scripts/merge_when_green.sh` still cannot merge a release pull request; that is an unnumbered note below.**
+
 O-65, 2026-09-22 (fourth pass): the append lock's necessity is asserted
 only where the tear happens. #61 fixed a JSONL line torn by the Windows C
 runtime's seek-then-write append with a cross-process lock in
@@ -1322,6 +1334,8 @@ note.
 **Status, September 23, 2026: open.** Phase 4, 4.5.
 
 **Status, September 23, 2026 (overnight run): in #95 (open, reviewed): the seek-then-write emulation is a test that fails on every platform with the lock removed; with the lock, 2,000 whole lines; the children are released by a real barrier.**
+
+**Status, September 23, 2026 (afternoon): #95 merged (`7805db2`).**
 
 O-66, 2026-09-22 (fourth pass): a millisecond collision on the run
 store's lease reaches a human. `RunStore.lease` takes the writer lock with
@@ -1365,6 +1379,8 @@ by this note.
 **Status, September 23, 2026: open.** Three test files still stub `configure_process`. Phase 4, 4.5.
 
 **Status, September 23, 2026 (overnight run): in #100 (open, reviewed): `configure_process` binds structlog once to a writer that resolves `sys.stderr` at write time and drops a diagnostic on a missing or closed stream; called from `main` only; the six stubs are gone; the full suite passed from a snapshot.**
+
+**Status, September 23, 2026 (afternoon): #100 merged (`9e086b3`).**
 
 O-68, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
 extras that no longer add anything. Last changed on 2026-09-15, it installs the
@@ -1427,3 +1443,21 @@ Unnumbered, 2026-09-23 (overnight run): the required check did not consult the c
 Unnumbered, 2026-09-23 (overnight run): a name-based skip in a public repository is a fork's to spoof. The first version of the release-branch skip keyed on `head_ref` alone; a fork's `release/x` branch would have skipped the matrix with no push run anywhere. The fix requires the head repository to be this one. Rule worth keeping: every skip in `qualification.yml` is content-based or repository-bound, never name-based alone.
 
 Unnumbered, 2026-09-23 (overnight run): a mutation undone with `git checkout -- file` discards the uncommitted change in that file too. The O-59 branch's second commit lost `features.py`'s new flag that way: the mutation probe edited the file, the clean-up restored it from HEAD, and the commit that followed carried the tests without the code they switch. Two rules the shepherd scripts now follow: mutate a copy or commit first, and gate every commit on the test command's own exit status (`set -o pipefail` when it is piped through `tail`). Candidate follow-up: `scripts/review_prep.sh` could offer a `--mutate FILE` helper that copies the tree before editing. Effort: small.
+
+Unnumbered, 2026-09-23 (morning merges): `tests/test_process.py::test_timeout_stops_descendant_effect` lost a timing race once on the macOS 3.12 platform job (run 35870023849 for #94, a tests-only change to a different file): `assert '' == 'spawned\n'`, the descendant's marker not yet written when the parent was stopped. One of six jobs; the sibling macOS 3.10 job passed. It recurred eight minutes earlier on #95's run (35867154429), the same job, the same assertion: twice in half an hour on macOS 3.12, never elsewhere that day. Each halted a shepherded merge chain, which is what a failing check should do. Candidate follow-up: read the test's wait for the descendant's write; if it polls a file with a fixed budget, give it the same shape as the MCP receipt deadline (a named constant, a message that says how long it waited) and decide from junit timings whether the budget is tight. Done when the test's miss reports its wait and a month of runs shows no repeat. Effort: small, tests only.
+
+Follow-through, 2026-09-23 (afternoon): #103, merged the same day as `cc12ae2`, gives the parent a named 0.75 s stop budget, five times the one that expired, moves the descendant's effect to 2 s and makes a miss report how long the parent took. The flake did not reproduce locally under load, so the platform runs since #103 are the evidence; the month of runs is still to be read.
+
+Unnumbered, 2026-09-23 (morning merges): O-41 has a reproduction now. On #93's morning run (35867142411, windows-latest / Python 3.10) `tests/test_mcp.py::test_sdk_cancellation_retains_started_call_receipt` failed with `PermissionError(13)` inside `features.read_text` opening `record.json`: the test's `observe` polls `read_record` while the server's `save` replaces the file, and on Windows a reader that opens during the replace is refused. The writer has the bounded retry since 0.1.0 (`features.replace_file`); the reader has none. One failure in 966 passing tests, and it halted a shepherded merge for a change to the workflows. Candidate follow-up, which is O-41's: give `read_text` and `read_record` the same bounded retry on `PermissionError` on Windows that the writer has, with the seek-then-write shape of test (an emulated refusal) so it fails on every platform when the retry is removed. Done when a reader polling a record under replacement never sees EACCES on the Windows jobs. Effort: small, touches `src/`, so a different-model review.
+
+Unnumbered, 2026-09-23 (Task 4 step c): no command line verb freezes an effects manifest. The R2 journey freezes it in-process in the test and, in the gate, through a `-c` program run by the checked interpreter, because `plan --request` accepts a frozen `effects` manifest and nothing on the command line produces one; a user following the CLI guide has to write Python for that step. Candidate follow-up: a `plan --freeze-effects` (or `freeze` verb) that takes the scope, parents, protected files, controls and verification probes as a JSON file and writes the manifest, so the journey is the CLI end to end. Done when `docs/journeys/r2-clean-environment.md` has no Python in it. Effort: small, touches `src/`, so a different-model review.
+
+Unnumbered, 2026-09-23 (Task 4 step c): the design note's "from `--no-deps`, `plan --request` and `build` run" was wrong on the build. `build` refuses "Effects require current accepted work authority" until a draft is accepted, and acceptance is the step that needs attune-forms, so from the `--no-deps` wheel the build never starts; the gate asserts that refusal, which is the authority rule doing its job, beside the two install-hint refusals. Corrected in the note's 4.4 by the step c pull request. Lesson: a claim about what runs in a degraded install is checked by running it there, not by reading imports.
+
+Unnumbered, 2026-09-23 (Task 4 step c): from the `--no-deps` wheel, `review` refuses naming attune-verify, not attune-forms. The intake checks the verifier before the forms package, so the first missing base dependency is the one named; the gate therefore asserts the hint's suffix, not the distribution. Candidate follow-up: none; the hint is the same either way ("reinstall with: pip install --force-reinstall attune-harness"). Recorded so that a future reader of `core.json` is not surprised.
+
+Unnumbered, 2026-09-23 (Task 4 step c): Windows completed the R2 build on the first run. Both windows-latest jobs (Python 3.10 and 3.12) record `build completed` in `r2_journey` for #108, through the `windows-feature-effects-v1` profile that `work_effects.freeze` produces on `nt`. Meanwhile `tests/test_golden_envelopes.py:40` skips the build verb off POSIX with "the verb qualifies the POSIX execution profile only", a reason string now narrower than the evidence, and `tests/test_work_build.py` is not in the platform selection at all. Candidate follow-up: decide whether the build verb's golden rows are qualified on Windows (lift the skip and record any envelope differences the Windows profile produces) or keep the skip with a reason that matches what CI shows. Done when the skip's reason string is true. Effort: small, tests only, one Windows run to read.
+
+Unnumbered, 2026-09-23 (Task 4 step c review): the R2 journey cannot tell a required host control from an optional one. The reviewer's M15 made `baseline` optional and the test still passed; after the fix commit pinned that the control ran, it still passes, because an optional control runs too and differs only when it fails. Candidate follow-up: a second journey variant whose protected check fails (`baseline.py` asserting the wrong value), asserting the required build refuses and the optional one completes with the failure recorded. Done when flipping `required` fails a test. Effort: small, tests only.
+
+Unnumbered, 2026-09-23 (Task 4 merges): #106 landed on main with an empty subject line, "  (#106)". The merge queue was built in the tool shell, which is zsh, with `set -- $spec` to split "<pr> <branch>" pairs; zsh does not word-split an unquoted variable, so `$1` was the whole pair, `gh pr view` found no such pull request, and every queue line's subject was empty. The chain merged #106 before the mistake was seen; main is protected, so the subject stays. The body and the review cite are intact. Same lesson as the overnight harness (run helpers under bash; never split with `set --` in zsh), missed a second time. Mechanical fix, done: `shepherd_merge.sh` and `overnight_chain.sh` now refuse an empty subject. Candidate follow-up: the queue builder itself should be a script that reads the titles, not a shell one-liner; and `scripts/merge_when_green.sh` in the repository should take the subject from the pull request title when none is given. Effort: small, scripts only.
