@@ -15,11 +15,13 @@ from test_extensions import bundle, installed, extended
 
 # How long a test waits for a durable receipt. The writer may spend up to
 # REPLACE_RETRY_SECONDS (2.0 s) per save while a reader holds the record on
-# Windows, and the sibling SDK test measured spawn plus real calls at 2.1 to
-# 3.0 s on the Windows runners, so this is several contended saves, not a
-# tight budget. Change it from junit timings, never pre-emptively: a longer
-# wait would have made the 0.1.0 record-replace defect slower to notice, not
-# easier to diagnose (O-42). A miss reports how long it waited.
+# Windows; after the 0.1.0 fix this test took 2.1 to 3.0 s across four
+# Windows jobs and the sibling SDK test spends about 2.5 s on spawn plus
+# real calls, so this is several contended saves, not a tight budget. Change
+# it from junit timings, never pre-emptively: a longer wait would have made
+# the 0.1.0 record-replace defect slower to notice, not easier to diagnose
+# (O-42), and the child's boot script gives itself 15 s before 'fixture
+# release missing', which would fail first. A miss reports how long it waited.
 RECEIPT_DEADLINE_SECONDS = 5 * REPLACE_RETRY_SECONDS
 
 
@@ -203,7 +205,7 @@ def test_sdk_cancellation_retains_started_call_receipt(mcp_case):
                     return saved
                 waited = loop.time() - started
                 assert waited < RECEIPT_DEADLINE_SECONDS, (
-                    f'no receipt after {waited:.1f} s of {RECEIPT_DEADLINE_SECONDS:.0f} s',
+                    f'no receipt after {waited:.1f} s of {RECEIPT_DEADLINE_SECONDS:g} s',
                     outcome(task), saved)
                 await asyncio.sleep(.02)
 
@@ -228,7 +230,7 @@ def test_sdk_cancellation_retains_started_call_receipt(mcp_case):
                         with pytest.raises(asyncio.CancelledError):
                             await call
                 # Retrieval takes >1s after release, exceeding the old poll budget.
-                saved = await observe(lambda events: events and events[0]['state'] != 'pending')
+                saved = await observe(lambda events: events and events[0]['state'] != 'pending', call)
                 assert len(saved['events']) == 1, saved
                 assert saved['events'][0]['state'] == 'completed', saved
                 assert saved['events'][0]['result']['status'] == 'retrieved'
