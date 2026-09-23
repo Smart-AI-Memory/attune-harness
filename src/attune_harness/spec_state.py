@@ -44,7 +44,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .features import read_text, replace_file
+from .features import REPLACE_RETRY_SECONDS, read_text, replace_file
 from .review_contract import parse_json
 from .paths import validate_file_path
 from .spec_tasks import PLAN_LIMIT, read_spec
@@ -223,7 +223,9 @@ def save_state(state: SpecState) -> None:
 
     An existing trailing comment is replaced; a file without one gets one
     appended, using the file's own line ending. The write goes through a
-    sibling temporary file and ``os.replace``, so a reader never sees a
+    sibling temporary file and ``features.replace_file``, which on Windows
+    retries for up to ``REPLACE_RETRY_SECONDS`` while a reader holds the plan
+    open, so a reader never sees a
     half-written plan and a crash mid-write leaves the plan as it was. After
     a successful write ``state.last_updated`` and ``state.schema_version``
     are set to what was written; a refused save leaves the object unchanged.
@@ -337,7 +339,7 @@ def _atomic_write_text(target: Path, content: str) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(content)
-        replace_file(Path(tmp_name), target)
+        replace_file(Path(tmp_name), target, retry_seconds=REPLACE_RETRY_SECONDS)
     except OSError:
         try:
             os.unlink(tmp_name)
