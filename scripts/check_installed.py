@@ -23,10 +23,15 @@ def check(python: Path, mode: str) -> dict:
         context.write_text(json.dumps({'schema_version':1,'project_root':'project'}),encoding='utf-8')
 
         def run(arguments, expected, status):
-            """Run one verb and record it; ``status=None`` for an envelope that carries no status key."""
+            """Run one verb and record it.
+
+            ``expected`` is one exit code or a tuple of the codes allowed;
+            ``status=None`` for an envelope that carries no status key.
+            """
             invocation = [str(python),'-I','-m','attune_harness',*arguments]
             result = subprocess.run(invocation,cwd=root,text=True,capture_output=True)
-            assert result.returncode == expected, (result.stdout,result.stderr)
+            allowed = expected if isinstance(expected, tuple) else (expected,)
+            assert result.returncode in allowed, (result.stdout,result.stderr)
             payload = json.loads(result.stdout)
             if status is not None:
                 assert payload['status'] == status,payload
@@ -46,6 +51,7 @@ def check(python: Path, mode: str) -> dict:
         document.write_text('[reference](reference.md)',encoding='utf-8')
         args=['verify',str(document),'--context',str(context)]
         memory = memory_checks(run, python, root, mode)
+        journey = journey_checks(run, python, root, mode)
         if mode in ('core','rag'):
             run(args,2,'unavailable')
         else:
@@ -85,7 +91,7 @@ def check(python: Path, mode: str) -> dict:
         catalog=subprocess.run([str(console_script(python)),'--help-all'],cwd=root,text=True,capture_output=True)
         assert catalog.returncode==0 and all(
             command in catalog.stdout for command in ('verify', 'retrieve', 'memory'))
-    return {'mode':mode,'cases':cases,'provider_dependencies_absent':True,'memory':memory}
+    return {'mode':mode,'cases':cases,'provider_dependencies_absent':True,'memory':memory,'journey':journey}
 
 
 def console_script(python):
@@ -205,6 +211,161 @@ def memory_checks(run, python, root, mode):
         native = 'posix-only refusal'
     return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped',
             'native_reader': native, 'tiers_read': tiers, 'reader_named': capabilities['reader']}
+
+
+INSTALL_HINT = 'is missing; reinstall with: pip install --force-reinstall attune-harness'
+
+# The build's worker and reviewer: one local script run as two command
+# participants. The worker proposes the files each step names; the reviewer
+# returns an empty critique. One JSON request on stdin, one JSON reply on stdout.
+PEER = (
+    "import json,sys,hashlib\n"
+    "w=json.load(sys.stdin);t=w['turn']\n"
+    "if t['role']=='reviewer':p={'kind':'critique','findings':[],'notes':['Synthetic command fixture']}\n"
+    "else:\n"
+    " texts={'pkg/export.py':'def answer():\\n    return 42\\n','tests/generated/test_app.py':'def test_generated():\\n    assert True\\n','source.py':'from pkg.export import answer\\ndef value():\\n    return answer()\\n'}\n"
+    " p={'schema_version':1,'task_id':t['step']['id'],'dependencies':t['step']['dependencies'],'files':[{'path':n,'before_sha256':hashlib.sha256(t['source_evidence'][n].encode()).hexdigest() if n in t['source_evidence'] else None,'text':texts[n]} for n in t['step']['outputs']]}\n"
+    "print(json.dumps({'schema_version':1,'request_digest':w['request_digest'],'action':{'kind':'final','text':json.dumps(p)}}))\n"
+)
+
+# Freezes the effects manifest and writes the work request. No command line
+# verb freezes a manifest, so this runs inside the checked interpreter, with
+# the installed package; argv: project root, task directory, request path.
+FREEZE = r"""
+import json, os, sys
+from pathlib import Path
+from attune_harness import work_effects
+root, directory, request_path = (Path(a) for a in sys.argv[1:4])
+EXPORT, GENERATED = "pkg/export.py", "tests/generated/test_app.py"
+BUDGET = {"max_operations": 30, "max_attempts": 1, "max_output_bytes": 32768}
+
+
+def probe(argv, oracle):
+    environment = {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"}
+    if os.name == "nt":  # the Windows probe contract wants one frozen SystemRoot
+        environment["SystemRoot"] = os.environ.get("SystemRoot", r"C:\Windows")
+    return {"argv": [sys.executable, "-B", *argv], "cwd": ".", "timeout": 10,
+            "max_output_bytes": 2048, "environment": environment, "oracle_paths": [oracle]}
+
+
+def assignment(role, participant, contract):
+    return {"role": role, "participant": participant, "output_contract": contract, "budgets": BUDGET}
+
+
+control = {"id": "baseline", "kind": "check", "owner": "host", "version": 1, "required": True, "phases": ["build"]}
+scope = [EXPORT, GENERATED, "source.py"]
+effects = work_effects.freeze(
+    root, scope, ["pkg", "tests", "tests/generated"], ["baseline.py", "oracle.py", "plan.md", "pytest.ini"],
+    [{"control": work_effects.identity(control), "probe": probe(["baseline.py"], "baseline.py")}], directory,
+    verification=[{"task_id": "export", "probe": probe(["-c", "from pkg.export import answer;assert answer()==42"], "oracle.py")},
+                  *[{"task_id": n, "probe": probe(["oracle.py"], "oracle.py")} for n in ("wire", "final")]])
+acceptance = ["value returns 42 without changing protected checks"]
+request = {
+    "intent": {"goal": "Export every finding", "context": ["Default JSON must survive"], "scope": scope,
+               "constraints": ["Preserve unknown claims"], "acceptance": acceptance, "questions": []},
+    "assignments": [assignment("planner", "local", "Ordered task plan"), assignment("worker", "local", "Scoped file proposal"),
+                    assignment("reviewer", "critic", "Evidence-backed critique")],
+    "controls": [control],
+    "tasks": [{"id": "export", "objective": "Create exporter and supplemental test", "dependencies": [],
+               "outputs": [EXPORT, GENERATED], "checks": ["answer returns 42"]},
+              {"id": "wire", "objective": "Use exporter in the existing function", "dependencies": ["export"],
+               "outputs": ["source.py"], "checks": acceptance}],
+    "inputs": ["source.py"], "artifact": "plan.md", "budget": BUDGET, "effects": effects}
+request_path.write_text(json.dumps(request), encoding="utf-8")
+"""
+
+
+def journey_checks(run, python, root, mode):
+    """R2 from the installed wheel: plan, accept, build, review and status with ``attune`` absent.
+
+    Where attune-forms is installed, which the base install carries, the whole
+    journey runs, with two command participants (one local script) as the
+    build's worker and reviewer and a deterministic assessor for the review, so
+    no model is called (spec authority Task 4, D23.1 and D23.4). From the
+    ``--no-deps`` wheel, ``plan --request`` still drafts and ``status`` still
+    reads the draft; ``plan --accept`` and ``review`` refuse with the install
+    hint; ``build`` refuses for want of accepted authority, since nothing could
+    accept it. On Windows the build may refuse in the platform's own words; the
+    receipt records which of the two outcomes it saw rather than skipping. The
+    ``attune`` package is asserted absent by the caller, in every mode.
+    """
+    forms = subprocess.run([str(python),'-I','-c','import importlib.util,sys; sys.exit(0 if importlib.util.find_spec("attune_forms") else 1)']).returncode == 0
+    if mode == 'core':
+        assert not forms, 'the core mode checks the package alone'
+    if mode in ('all', 'redis'):
+        assert forms, f'the {mode} mode checks the install a user gets, attune-forms included'
+    root = root.resolve()  # the task store refuses to traverse a symlink, and macOS's temporary root is one
+    project = root/'journey'
+    project.mkdir()
+    (project/'source.py').write_text('def value():\n    return 1\n', encoding='utf-8')
+    (project/'plan.md').write_text('Preserve all findings and default JSON.\n', encoding='utf-8')
+    (project/'baseline.py').write_text('from source import value\nassert value()==1\n', encoding='utf-8')
+    (project/'oracle.py').write_text('from source import value\nassert value()==42\n', encoding='utf-8')
+    (project/'pytest.ini').write_text('[pytest]\n', encoding='utf-8')
+    (project/'docs').mkdir()
+    (project/'docs'/'guide.md').write_text('The exporter answers 42. See [reference](reference.md).\n', encoding='utf-8')
+    (project/'docs'/'reference.md').write_text('# Reference\nThe exporter returns 42.\n', encoding='utf-8')
+    hooks = root/'no-hooks'  # an empty hooks directory, which Git reads the same on every platform
+    hooks.mkdir()
+    git = ['git','-C',str(project),'-c','commit.gpgsign=false','-c',f'core.hooksPath={hooks}',
+           '-c','user.name=Check','-c','user.email=check@example.invalid']
+    subprocess.run(['git','init','-q',str(project)], check=True)
+    subprocess.run([*git,'add','source.py','plan.md','baseline.py','oracle.py','pytest.ini','docs'], check=True, capture_output=True)
+    subprocess.run([*git,'commit','-qm','Journey baseline'], check=True, capture_output=True)
+    # The review's verification context lives inside the project, as its intake requires.
+    context = project/'context.json'
+    context.write_text(json.dumps({'schema_version': 1, 'project_root': '.'}), encoding='utf-8')
+    peer = root/'journey-peer.py'
+    peer.write_text(PEER, encoding='utf-8')
+    command = {'adapter': 'command', 'command': [str(python), '-B', str(peer)], 'timeout': 30,
+               'tools': [], 'max_turns': 1, 'max_tool_calls': 0}
+    deterministic = {'adapter': 'deterministic', 'tools': [], 'max_turns': 1, 'max_tool_calls': 0}
+    participants = root/'journey-participants.json'
+    participants.write_text(json.dumps({'schema_version': 1, 'participants': {
+        'local': command, 'critic': command, 'assessor': deterministic}}), encoding='utf-8')
+    directory, request = root/'journey-work', root/'journey-request.json'
+    subprocess.run([str(python),'-I','-c',FREEZE,str(project),str(directory),str(request)], check=True)
+
+    plan = run(['plan','--task-dir',str(directory),'--project',str(project),'--config',str(participants),'--request',str(request)],0,'draft')
+    assert not plan['questions']['missing'], plan
+    accept = ['plan','--task-dir',str(directory),'--accept','--checkpoint',plan['checkpoint_digest']]
+    build = ['build',str(directory),'--allow-external']
+    review = ['review','--goal',"Check the guide against the exporter's evidence",'--project',str(project),
+              '--config',str(participants),'--document','docs/guide.md','--context',str(context),'--corpus','docs',
+              '--query','exporter','--criteria','Identify unsupported claims and preserve uncertainty',
+              '--assessor','assessor','--accept','--task-dir',str(root/'journey-review')]
+    receipt = {'forms_installed': forms, 'model_calls': 0, 'plan': 'draft',
+               'participants': 'two command participants running one local script; a deterministic assessor'}
+    if not forms:
+        detail = run(accept,2,'failed')['error']['detail']
+        assert detail == f'attune-forms {INSTALL_HINT}', detail
+        receipt['accept'] = f'refused: {detail}'
+        detail = run(build,2,'failed')['error']['detail']
+        assert detail == 'Effects require current accepted work authority', detail
+        receipt['build'] = f'refused: {detail}'
+        detail = run(review,2,'failed')['error']['detail']
+        assert detail.endswith(INSTALL_HINT), detail
+        receipt['review'] = f'refused: {detail}'
+        receipt['status'] = run(['status',str(directory)],0,'draft')['status']
+        return receipt
+    accepted = run(accept,0,'accepted')
+    assert accepted['receipt']['disposition'] == 'approve_task', accepted
+    receipt['accept'] = 'accepted'
+    built = run(build,(0,2),None)
+    if built['status'] == 'completed':
+        assert built['blocking'] is False and built['execution_evidence']['runs'], built
+        assert (project/'pkg'/'export.py').read_text(encoding='utf-8').startswith('def answer():')
+        receipt['build'] = 'completed'
+    else:
+        # Recorded, not skipped: the Windows effects profile refused, in its own words.
+        error = built.get('error') or {}
+        assert os.name == 'nt' and error.get('type') == 'FeatureUnavailable' and 'Windows' in error.get('detail',''), built
+        receipt['build'] = f"refused: {error['detail']}"
+    reviewed = run(review,0,'completed')
+    assert reviewed['operation'] == 'task', reviewed
+    receipt['review'] = 'completed'
+    receipt['status'] = run(['status',str(directory)],0,'completed' if receipt['build'] == 'completed' else 'accepted')['status']
+    return receipt
 
 
 def main():
