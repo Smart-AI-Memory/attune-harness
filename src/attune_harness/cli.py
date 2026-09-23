@@ -92,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
             result = check_suggestions(parse_json(read_text(args.input, 1_048_576), 1_048_576),
                                        repository=args.repository, revision=args.revision)
         except Exception as exc:
-            print(json.dumps({'status':'failed','error':{'type':type(exc).__name__,'detail':str(exc)}}))
+            print(json.dumps({'schema_version':1,'status':'failed','error':{'type':type(exc).__name__,'detail':str(exc)}}))
             return 2
         print(json.dumps({**result, 'status': 'completed'}, indent=2, allow_nan=False))
         return 0
@@ -108,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 result = repair_economics(value)
         except Exception as exc:
-            print(json.dumps({'status': 'failed', 'error': {'type': type(exc).__name__, 'detail': str(exc)}}))
+            print(json.dumps({'schema_version': 1, 'status': 'failed', 'error': {'type': type(exc).__name__, 'detail': str(exc)}}))
             return 2
         print(json.dumps({**result, 'status': 'completed'}, indent=2, allow_nan=False))
         return 0

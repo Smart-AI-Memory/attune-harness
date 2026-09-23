@@ -163,11 +163,10 @@ ENVELOPES = (
     ('extension-remove', 'success', 0, 1, 'removed',
      ('artifact_digest', 'id', 'manifest', 'operation', 'revision', 'schema_version',
       'state_digest', 'status')),
-    ('code-config', 'success', 0, 1, 'completed',
+    ('code-config', 'success', 0, 1, None,
      ('allow_overlays', 'allow_untracked', 'batch_size', 'candidates', 'exclude', 'include',
       'index_dir', 'max_bytes', 'max_file_bytes', 'max_files', 'max_provider_calls',
-      'max_request_bytes', 'passage_bytes', 'roots', 'schema_version', 'status',
-      'structured_paths')),
+      'max_request_bytes', 'passage_bytes', 'roots', 'schema_version', 'structured_paths')),
     ('index-plan', 'success', 0, 1, 'ready',
      ('config_digest', 'embedding_input_bytes', 'estimate_scope', 'estimated_embedding_cost_usd',
       'estimated_tokens', 'generation', 'manifest', 'operation', 'passages',
@@ -189,6 +188,10 @@ ENVELOPES = (
     ('github-checks', 'success', 0, 1, 'completed',
      ('all_checks_passed', 'checks', 'note', 'repair_verified', 'repository', 'revision',
       'schema_version', 'status')),
+    ('triage-check-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'schema_version', 'status')),
+    ('github-checks-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'schema_version', 'status')),
     ('mcp-inspect', 'success', 0, 1, 'completed',
      ('accepted', 'completion_scope', 'events', 'identity_scope', 'max_calls', 'operation',
       'participant_id', 'profile', 'record_path', 'registry', 'request_id', 'requirement_revision',
@@ -994,6 +997,19 @@ def _(w):
     )
 
 
+@scenario("triage-check-refusal")
+def _(w):
+    return w.run(
+        [
+            "triage-check",
+            write_json(
+                w.tmp / "event.json",
+                {},
+            ),
+        ]
+    )
+
+
 @scenario("repair-economics")
 def _(w):
     return w.run(["repair-economics", write_json(w.tmp / "ledger.json", repair_ledger())])
@@ -1005,6 +1021,20 @@ def _(w):
         [
             "github-checks",
             write_json(w.tmp / "checks.json", github_payload()),
+            "--repository",
+            "fixture/project",
+            "--revision",
+            FORTY,
+        ]
+    )
+
+
+@scenario("github-checks-refusal")
+def _(w):
+    return w.run(
+        [
+            "github-checks",
+            write_json(w.tmp / "checks.json", {}),
             "--repository",
             "fixture/project",
             "--revision",
@@ -1247,6 +1277,9 @@ def test_envelope(drive, request, tmp_path, monkeypatch, capsys, case, bundle):
         envelope.get("schema_version"),
         envelope.get("status"),
         tuple(sorted(envelope)),
+    )
+    assert type(envelope.get("schema_version")) in (int, type(None)), (
+        f"{case_id}: schema_version must be an integer, not {envelope.get('schema_version')!r}"
     )
     expected = TABLE[case_id][2:]
     assert observed == expected, (

@@ -26,6 +26,12 @@ def test_all_is_the_union_of_the_qualified_extras_and_nothing_experimental():
 
 def test_the_retired_extras_are_gone():
     """Empty from 0.4.0 to 0.5.0; removed by the first freeze cycle (D27.6)."""
+    retired = {"tokens", "verify", "rag", "review", "mcp"}
     found = extras()
-    assert not {"tokens", "verify", "rag", "review", "mcp"} & set(found)
+    assert not retired & set(found)
     assert set(found) == {"voyage", "memory-native", "redis", "all"}
+    # Any spelling of a declaration: a multi-line list or a quoted key escapes extras().
+    block = PYPROJECT.read_text(encoding="utf-8").split("[project.optional-dependencies]", 1)[1].split("\n[", 1)[0]
+    for line in block.splitlines():
+        name = line.split("=", 1)[0].strip().strip('"')
+        assert name not in retired, line

@@ -103,7 +103,8 @@ covers direct use. Full usage, exit codes and recovery controls are in the
 
 Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`
 and `tokens` were extras; they were empty from 0.4.0 and are gone since 0.6.0,
-so an install that still names one fails at pip and should drop the bracket.
+so an install that still names one gets pip's warning that the extra does not
+exist and the base install; drop the bracket.
 Every dependency is pinned exactly and loaded on first use, so a wheel installed
 without its dependencies still returns an actionable unavailable report for each
 missing piece instead of a traceback. Keep the quotes around an extra: zsh and

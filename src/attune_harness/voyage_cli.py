@@ -42,7 +42,9 @@ def execute(args):
             from .voyage_sources import code_config
             result = code_config(args.repo, args.index_dir, repo_id=args.repo_id,
                                  include_docs=args.include_docs, structured_paths=args.structured_path)
-            print(json.dumps({**result, 'status': 'completed'}, indent=2, ensure_ascii=False, allow_nan=False))
+            # The prepared config is the envelope and the input `index plan --config` reads
+            # back; load_config refuses unknown keys, so no status is added here (D27.2 amended).
+            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
             return 0
         cfg = load_config(args.config)
         if args.command == 'retrieval-task':

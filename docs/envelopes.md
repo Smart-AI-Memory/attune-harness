@@ -10,15 +10,16 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 71 rows:
+row pins, in 73 rows:
 
 - **success** (55 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (6 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (8 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
   built; `memory capabilities` with a config that is not the roots contract,
-  refused by the default reader in its own words. Voyage is never called.
+  refused by the default reader in its own words; `triage-check` and
+  `github-checks` on an empty object. Voyage is never called.
 - **unavailable** (9 rows): a dependency or server this install does not
   have. The memory host route (`capabilities` through `execute`) with
   `reader: adapter` needs the attune-ai adapter, which no base or extra
@@ -36,12 +37,19 @@ prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
 POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
 verb qualifies the POSIX execution profile and the repair probe fixture is a
 POSIX one; and the four `-native` rows, because the native memory reader's
-descriptor walk is POSIX-only at 0.5.0 (D19). Every row carries a
-`schema_version` and a `status` since 0.6.0: the feature-work verbs (`plan`,
-`build` and their `status`) and `memory scratch` gained `schema_version: 1`,
-and `code-config`, `triage-check`, `repair-economics` and `github-checks`
-gained `status: completed`, the eight gaps this page recorded, closed by the
-first freeze cycle (4.1, D27.2).
+descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version`
+or `status` column means the envelope has no such key. The first freeze cycle
+(4.1, D27.2) closed the gaps this page used to list: the feature-work verbs
+(`plan`, `build` and their `status`, their refusals included) and every
+result `memory scratch` returns gained `schema_version: 1`, and
+`triage-check`, `repair-economics` and `github-checks` gained
+`status: completed` on success and `schema_version: 1` on their refusals,
+which the two refusal rows pin. `code-config` keeps no `status` on purpose:
+its envelope is the retrieval config itself, which `index plan --config`
+reads back and would refuse with a key it does not know. The `-` cells that
+remain, the `demo` receipt, the memory host route's packets and refusals, and
+the Redis reader's unreachable report, are the second freeze cycle's to close
+or to rule exempt; the eight adapter-bound rows among them go with D28.
 
 ## Table
 
@@ -77,7 +85,7 @@ first freeze cycle (4.1, D27.2).
 | `extension-disable` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-replace` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-remove` | success | 0 | 1 | `removed` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
-| `code-config` | success | 0 | 1 | `completed` | `allow_overlays` `allow_untracked` `batch_size` `candidates` `exclude` `include` `index_dir` `max_bytes` `max_file_bytes` `max_files` `max_provider_calls` `max_request_bytes` `passage_bytes` `roots` `schema_version` `status` `structured_paths` |
+| `code-config` | success | 0 | 1 | - | `allow_overlays` `allow_untracked` `batch_size` `candidates` `exclude` `include` `index_dir` `max_bytes` `max_file_bytes` `max_files` `max_provider_calls` `max_request_bytes` `passage_bytes` `roots` `schema_version` `structured_paths` |
 | `index-plan` | success | 0 | 1 | `ready` | `config_digest` `embedding_input_bytes` `estimate_scope` `estimated_embedding_cost_usd` `estimated_tokens` `generation` `manifest` `operation` `passages` `planned_embedding_calls` `profile` `provider_calls` `rate_snapshot` `request_id` `schema_version` `status` |
 | `index-build` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `index-update` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
@@ -86,6 +94,8 @@ first freeze cycle (4.1, D27.2).
 | `triage-check` | success | 0 | 1 | `completed` | `action` `atomic_claim_required` `dispatch_authorized` `key` `reason` `schema_version` `status` |
 | `repair-economics` | success | 0 | 1 | `completed` | `eligible_cost_ranking` `note` `schema_version` `scope` `status` `strategies` |
 | `github-checks` | success | 0 | 1 | `completed` | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` `status` |
+| `triage-check-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
+| `github-checks-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `mcp-inspect` | success | 0 | 1 | `completed` | `accepted` `completion_scope` `events` `identity_scope` `max_calls` `operation` `participant_id` `profile` `record_path` `registry` `request_id` `requirement_revision` `schema_version` `source_snapshot` `status` `tools` |
 | `verify` | success | 0 | 1 | `verified` | `artifacts` `dependency` `operation` `passed` `request_id` `result` `schema_version` `status` |
 | `retrieve` | success | 0 | 1 | `retrieved` | `corpus` `dependency` `k` `operation` `query` `request_id` `retriever` `schema_version` `sources` `status` |
@@ -162,6 +172,8 @@ What each case runs, in the order of the table.
 - `triage-check`: `triage-check INPUT`
 - `repair-economics`: `repair-economics INPUT`
 - `github-checks`: `github-checks INPUT --repository --revision`
+- `triage-check-refusal`: `triage-check INPUT` on an empty object
+- `github-checks-refusal`: `github-checks INPUT --repository --revision` on an empty object
 - `mcp-inspect`: `mcp-inspect SESSION_DIR` on a finished retrieval session
 - `verify`: `verify DOCUMENT --context`
 - `retrieve`: `retrieve QUERY --corpus`
