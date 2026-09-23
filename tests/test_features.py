@@ -45,7 +45,7 @@ def test_reported_size_is_never_smaller_than_what_was_read(tmp_path,monkeypatch)
 
 
 def test_oversize_plan_says_to_split_it_without_needing_attune_ai(tmp_path):
-    from attune_harness.spec_bridge import legacy_plan
+    from attune_harness.spec_legacy import legacy_plan
     plan = tmp_path/'plan.md'
     plan.write_text('<task id="1"><objective>'+'x'*65536+'</objective></task>\n',encoding='utf-8')
     with pytest.raises(ValueError) as refused:
