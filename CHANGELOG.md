@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+Three `src/` changes from the overnight run of September 23, 2026, each with
+its different-model review recorded in its pull request; their changelog
+lines land together here so that three sibling pull requests do not conflict
+on this section.
+
+- Fixed: the task reader parses each top-level `<task>` block on its own, so
+  prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan
+  to the regex path where entities stop being decoded; a block the parser
+  rejects falls back alone and is reported as dropped if neither path can
+  read it; orphaned content between blocks is still reported; a plan whose
+  task tags do not balance, or that carries a comment or CDATA section in
+  the task region, keeps the whole-plan path as before. The regex path also
+  accepts `</task >` (O-58, #98).
+- Fixed: the plan-state writer and the Voyage index writer replace their
+  target through `features.replace_file`, which retries for a bounded time
+  on Windows while a reader holds the file, as the run store already did; a
+  reader holding a plan open no longer fails `save_state` there. A guard
+  test pins every spelling of a replace under `src/` to `features.py` and
+  the effects host's `dir_fd` replace in `repair.py` (O-59, #99).
+- Changed: the `memory` command binds structlog to stderr once per process,
+  through a writer that resolves the current stream on every line and drops
+  a diagnostic on a missing or closed stream instead of failing the command;
+  `main` owns the binding and `execute` no longer rebinds it (O-67, #100).
+
 ## 0.5.0
 
 Memory is native. `attune-harness memory recall`, `resolve` and `refresh`
