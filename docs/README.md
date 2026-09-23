@@ -204,6 +204,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/native-memory/scoping.md](specs/native-memory/scoping.md) | Native memory — scoping note | 2026-09-19 |
+| [specs/native-memory/task-4-design.md](specs/native-memory/task-4-design.md) | Native memory, Task 4: design note | 2026-09-22 |
+| [specs/native-memory/decisions-2026-09-22.md](specs/native-memory/decisions-2026-09-22.md) | Native memory: decisions, September 22, 2026 | 2026-09-22 |
 
 ### specs/plan-build
 
@@ -232,6 +234,13 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [specs/shared-memory-adoption/task4-gate.md](specs/shared-memory-adoption/task4-gate.md) | Historical Task 4 gate — superseded |  |
 | [specs/shared-memory-adoption/verification.md](specs/shared-memory-adoption/verification.md) | Shared memory adoption — verification and support | 2026-09-17 |
 
+### specs/spec-authority
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [specs/spec-authority/task-3-design.md](specs/spec-authority/task-3-design.md) | Spec authority, Task 3: design note | 2026-09-22 |
+| [specs/spec-authority/addendum-2026-09-22.md](specs/spec-authority/addendum-2026-09-22.md) | Spec authority: addendum, September 22, 2026 | 2026-09-22 |
+
 ### specs/unified-task-execution
 
 | File | Title | Dated |
@@ -256,12 +265,42 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | --- | --- | --- |
 | [blog/controls-savings-user-journey.md](blog/controls-savings-user-journey.md) | What better controls can save in an AI workflow | September 18, 2026 |
 
+### handoffs/
+
+Session handoffs and starters, kept as written. The directory is ignored on
+`main` since O-43 closed; these files were added by name.
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [handoffs/2026-09-22-autonomous-run.md](handoffs/2026-09-22-autonomous-run.md) | Handoff: autonomous run of September 22, 2026 | 2026-09-22 |
+| [handoffs/README-draft-0.1.0.md](handoffs/README-draft-0.1.0.md) | README draft for 0.1.0 (historical) |  |
+| [handoffs/README-independence-wording-draft-2026-09-21.md](handoffs/README-independence-wording-draft-2026-09-21.md) | Draft: README independence wording, corrected | 2026-09-21 |
+| [handoffs/archive/shared-memory-before-bounded-review.md](handoffs/archive/shared-memory-before-bounded-review.md) | Shared memory adoption handoff (archived) |  |
+| [handoffs/codex-update-session-starter.md](handoffs/codex-update-session-starter.md) | Completed: next bounded assessment correction |  |
+| [handoffs/first-pypi-release-2026-09-19.md](handoffs/first-pypi-release-2026-09-19.md) | Handoff: attune-harness first PyPI release | 2026-09-19 |
+| [handoffs/function-body-controls-e.md](handoffs/function-body-controls-e.md) | Item E — implementation handoff |  |
+| [handoffs/release-0.1.0-windows-fix-2026-09-21.md](handoffs/release-0.1.0-windows-fix-2026-09-21.md) | Handoff: attune-harness 0.1.0, Windows record-replace fix, then release | 2026-09-21 |
+| [handoffs/session-starter-2026-09-19.md](handoffs/session-starter-2026-09-19.md) | Session starter: attune-harness, after 2026-09-19 | 2026-09-19 |
+| [handoffs/session-starter-cut-attune-ai-dependency-2026-09-21.md](handoffs/session-starter-cut-attune-ai-dependency-2026-09-21.md) | Session starter: make attune-harness run without attune-ai | 2026-09-21 |
+| [handoffs/smartaimemory-controls-article.md](handoffs/smartaimemory-controls-article.md) | Website integration: controls article and supporting examples |  |
+| [handoffs/spec-test-handoff-review.md](handoffs/spec-test-handoff-review.md) | Local review of Spec evidence handoff |  |
+| [handoffs/status-guidance-a.md](handoffs/status-guidance-a.md) | Implement A — plan/build status and next-action guidance |  |
+
 ### receipts/
 
 | File | Title | Dated |
 | --- | --- | --- |
 | [receipts/phase5/e1-run-02/26/project/guide.md](receipts/phase5/e1-run-02/26/project/guide.md) | docs/receipts/phase5/e1-run-02/26/project/guide.md |  |
 | [receipts/phase5/e1-run-02/26/project/reference.md](receipts/phase5/e1-run-02/26/project/reference.md) | docs/receipts/phase5/e1-run-02/26/project/reference.md |  |
+
+### reflections/
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [reflections/connected-journey-qualification-2026-09-17.md](reflections/connected-journey-qualification-2026-09-17.md) | Connected journey reflection — 2026-09-17 | 2026-09-17 |
+| [reflections/session-2026-09-17/kept.md](reflections/session-2026-09-17/kept.md) | Kept session insights — 2026-09-17 | 2026-09-17 |
+| [reflections/session-2026-09-17/review-revision-1.md](reflections/session-2026-09-17/review-revision-1.md) | Reflect — Attune session, September 16–17 | 2026-09-17 |
+| [reflections/session-2026-09-17/review.md](reflections/session-2026-09-17/review.md) | Reflection review — revision 2 | 2026-09-17 |
 
 ### research/
 
