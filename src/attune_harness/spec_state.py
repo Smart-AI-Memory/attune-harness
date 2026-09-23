@@ -44,7 +44,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .features import read_text
+from .features import read_text, replace_file
 from .review_contract import parse_json
 from .paths import validate_file_path
 from .spec_tasks import PLAN_LIMIT, read_spec
@@ -321,8 +321,10 @@ def find_resumable_plans(plans_dir: str) -> list[SpecState]:
 def _atomic_write_text(target: Path, content: str) -> None:
     """Write ``content`` to ``target`` through a sibling temporary file.
 
-    ``tempfile.mkstemp`` in the same directory, then ``os.replace``, so a
-    concurrent reader never sees a partial file. Line endings are written as
+    ``tempfile.mkstemp`` in the same directory, then ``features.replace_file``,
+    the one atomic replace, which retries for a bounded time on Windows while a
+    reader holds the plan open (O-59), so a concurrent reader never sees a
+    partial file and a reader does not fail the writer. Line endings are written as
     given, never translated, so a CRLF plan stays CRLF on every platform. On failure the temporary
     file is removed on a best-effort basis and the original error is raised;
     a failed removal is logged at debug level so it stays observable.
@@ -335,7 +337,7 @@ def _atomic_write_text(target: Path, content: str) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(content)
-        os.replace(tmp_name, target)
+        replace_file(Path(tmp_name), target)
     except OSError:
         try:
             os.unlink(tmp_name)
