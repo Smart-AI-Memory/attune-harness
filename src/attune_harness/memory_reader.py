@@ -49,7 +49,7 @@ import time
 
 from .features import FeatureUnavailable, require_feature
 from .memory_contract import CLASSIFICATIONS, bounded_json, strings
-from .memory_controls import AUTHOR_CURATED, guard, provenance_fields, staleness
+from .memory_controls import AUTHOR_CURATED, guard, latest_verdicts, provenance_fields, staleness
 from .paths import validate_file_path
 from .review_contract import bounded_text, digest, fields, parse_json, versioned
 
@@ -434,8 +434,9 @@ def _rank_documents(snapshot, query, k):
     # The annotations PersonalMemory.query adds, in its order: staleness from the snapshot's
     # preserved mtimes and the .verdicts.jsonl sidecar, then the provenance fields. Every
     # document tier is "curated" to the adapter, personal roots included.
+    verdicts = latest_verdicts(snapshot)  # one read of the sidecar for every hit
     for entry in ordered:
-        annotated = staleness(snapshot / entry["path"], snapshot)
+        annotated = staleness(snapshot / entry["path"], snapshot, verdicts=verdicts)
         if annotated is not None:
             entry.update(annotated)
         entry["provenance"] = provenance_fields(tier="curated", source=str(entry.get("path", "curated")),

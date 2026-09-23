@@ -21,6 +21,10 @@ Licensed under the Apache License, Version 2.0
 
 from __future__ import annotations
 
+from datetime import date as _date, datetime as _datetime
+import hashlib as _hashlib
+import json as _json
+from pathlib import Path as _Path
 import re
 
 REFUSAL = "Source is unsafe or requires redaction; governed exposure refused"
@@ -215,11 +219,6 @@ def provenance_fields(*, tier, source, author_class, text=""):
 # Carried from attune/memory/curated_audit.py and verdict_log.py on the same branch: the closed
 # frontmatter schema, the substance digest, the verdict log, the age basis, the tiers and the labels.
 
-import hashlib as _hashlib
-import json as _json
-from datetime import date as _date, datetime as _datetime
-from pathlib import Path as _Path
-
 VERDICTS_FILENAME = ".verdicts.jsonl"
 VERDICT_VALUES = frozenset({"keep", "wrong", "sharper"})
 VOLATILITY_BY_TYPE = {"project": 1.00, "reference": 0.60, "lesson": 0.40, "feedback": 0.15, "user": 0.10}
@@ -355,17 +354,22 @@ def format_status_annotation(mem_type, basis, days):
     return label
 
 
-def staleness(path, root, *, today=None):
+def staleness(path, root, *, today=None, verdicts=None):
     """``{unverified_days, staleness, status}`` for the memory file at ``path`` under ``root``.
 
     The basis is the audit's: a ``wrong`` verdict tombstones; no ``verified:``
     ages from the file's mtime (local date, as the audit compares with a local
     today); a ``verified:`` with no verdict stands unbound; one whose verdict
     digest matches the current substance is bound; otherwise the edit voided
-    it. Returns ``None`` where the audit's own guard would have skipped the
-    hit (an unreadable file, a broken date), so no keys are added.
+    it. An unreadable file reads as empty and is still annotated, as the
+    audit's loader does. Returns ``None`` only where ``PersonalMemory`` adds no
+    keys: a path that is not a regular file. ``verdicts`` is the stem-keyed
+    map ``latest_verdicts(root)`` returns; pass it when annotating many hits
+    under one root, since the log is a sidecar that can be megabytes.
     """
     path = _Path(path)
+    if not path.is_file():
+        return None
     try:
         try:
             text = path.read_text(encoding="utf-8")
@@ -379,7 +383,7 @@ def staleness(path, root, *, today=None):
         mem_type = fields.get("metadata.type")
         verified = _parse_date(fields.get("verified"))
         digest = canonical_digest(fields.get("description"), body)
-        latest = latest_verdicts(root).get(path.stem)
+        latest = (latest_verdicts(root) if verdicts is None else verdicts).get(path.stem)
         if latest is not None and latest["verdict"] == "wrong":
             basis_date, basis = mtime_date, "tombstoned"
         elif verified is None:

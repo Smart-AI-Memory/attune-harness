@@ -501,6 +501,8 @@ def test_the_retriever_is_asked_for_twice_k(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_reader, "require_feature", spying)
     reader.query("Aurora procedure", k=4)
     assert asked == [8]
+    monkeypatch.undo()
+    assert len(reader.query("Aurora", k=1)["items"]) == 1  # five documents match; the tier keeps k
 
 
 @posix_only
@@ -582,6 +584,21 @@ def adversarial_roots(tmp_path):
     (docs / "aurora" / "pattern.md").write_text("﻿---\nname: 'quoted: colon'\n---\r\n\r\nAurora procedure with CRLF and a BOM.\r\n", encoding="utf-8")
     (docs / "notes" / "reference.md").write_text("# Aurora\n\nAurora manual END_OF_SOURCE with punctuation!!! and ✨ unicode.\n\n---\n\nA rule inside the body.\n", encoding="utf-8")
     (docs / "notes" / "troubleshooting.md").write_text("---\nlinks:\n  - one\n  - two\ndescription: |\n  Aurora recovery\n  block scalar\n---\n\nAurora recovery text.\n", encoding="utf-8")
+    verified_on = time.strftime("%Y-%m-%d", time.localtime(time.time() - 3 * 86400))
+    (docs / "aurora" / "verified.md").write_text(f"---\nname: verified\ndescription: Aurora verified reminder\nmetadata:\n  type: project\nverified: {verified_on}\n---\n\nAurora reminder bound by a verdict.\n", encoding="utf-8")
+    (docs / "aurora" / "voided.md").write_text(f"---\nname: voided\ndescription: Aurora voided reminder\nmetadata:\n  type: reference\nverified: {verified_on}\n---\n\nAurora reminder whose verdict digest is stale.\n", encoding="utf-8")
+    (docs / "aurora" / "tombstone.md").write_text("---\nname: tombstone\ndescription: Aurora judged wrong\nmetadata:\n  type: feedback\n---\n\nAurora reminder judged wrong.\n", encoding="utf-8")
+    from attune_harness.memory_controls import canonical_digest
+    bound = canonical_digest("Aurora verified reminder", "\nAurora reminder bound by a verdict.\n")
+    (docs / ".verdicts.jsonl").write_text(
+        "not json\n"
+        + json.dumps(dict(stem="verified", verdict="keep", digest=bound, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="voided", verdict="keep", digest="0" * 64, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="tombstone", verdict="sharper", digest="1" * 64, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="tombstone", verdict="wrong", digest="1" * 64, who="p", at="t")) + "\n", encoding="utf-8")
+    old = time.time() - 61 * 86400
+    for name in ("verified.md", "voided.md", "tombstone.md"):  # under aurora/: the path token lifts them over the floor
+        os.utime(docs / "aurora" / name, (old, old))
     (docs / "summaries_by_path.json").write_text(json.dumps({"notes/reference.md": "Aurora manual summary"}), encoding="utf-8")
     return raw, docs
 
@@ -607,6 +624,10 @@ def test_adversarial_differential_against_the_adapter(tmp_path, monkeypatch):
             assert (mine["text"], mine["kind"], mine["version"], mine["locator"], mine["scope"]) == (
                 its["text"], its["kind"], its["version"], its["locator"], its["scope"]), (query, mine["id"])
             if mine["metadata"] != its["metadata"]:
-                metadata_gaps[mine["id"]] = sorted(set(its["metadata"]) ^ set(mine["metadata"]))
+                keys = set(its["metadata"]) | set(mine["metadata"])
+                metadata_gaps[mine["id"]] = sorted(k for k in keys if its["metadata"].get(k) != mine["metadata"].get(k))
     print("\nMETADATA GAPS:", json.dumps(metadata_gaps, sort_keys=True))
     assert metadata_gaps == {}, "item metadata differs from the adapter's"
+    statuses = {i["metadata"]["status"] for i in native.query("Aurora reminder", k=10)["items"] if "status" in i["metadata"]}
+    assert any("verified 3d ago⟩" in s for s in statuses) and any("voided by edit" in s for s in statuses) \
+        and any("judged WRONG" in s for s in statuses), statuses

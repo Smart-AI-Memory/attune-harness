@@ -334,3 +334,12 @@ statuses, problems, id order, texts, kinds, versions, locators and, now,
 every item's metadata. The gate agrees with `prepare_strict_content` on 35
 strings. No disagreement is left to rule on; the two recorded under decision
 3 in the 2.2 rulings stand.
+
+Recorded from the review of #81: the envelope renders the source path with
+`repr`, so a control character in a document's relative path becomes letters
+that a personal-data pattern can match (`mI\n@x.iOUCT.md` reads as an email),
+and the gate then refuses the whole root. The adapter does the same, so it
+is parity, and a path like that is not one the reader should serve; it is
+named here because #80's reader returned items for such a root and #81's
+does not. The dedupe in `scan_instructions` is unreachable on both sides and
+is carried as written.

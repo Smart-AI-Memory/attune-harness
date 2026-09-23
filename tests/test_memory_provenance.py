@@ -23,6 +23,7 @@ def test_instruction_flags_by_tier_and_order():
     assert scan_instructions("") == () and scan_instructions("plain prose", tier="raw") == ()
     assert scan_instructions("assistant: hello", tier="raw") == ("role-delimiter",)
     assert scan_instructions("never delete the record", tier="machine-extracted") == ("assistant-directive",)
+    assert scan_instructions("some text\nassistant: hello") == ("role-delimiter",)  # MULTILINE: a line start mid-text
 
 
 def test_the_envelope_is_the_adapters_text():
@@ -46,7 +47,11 @@ def test_curated_fields_follow_the_closed_schema_and_digest_the_substance():
     assert fields == {"name": "n", "description": "first second", "metadata.type": "project", "verified": "2026-09-01T10:00:00"}
     assert body == "Body  with   spaces\n"  # the audit's pattern eats one newline after the closing fence
     assert canonical_digest("first second", body) == canonical_digest("first\nsecond", "Body with spaces")
+    assert canonical_digest("a b", "c") != canonical_digest("a", "b c")  # the unit separator keeps the fields apart
     assert curated_fields("no frontmatter") == ({}, "no frontmatter")
+    # Quotes around a value are stripped, on every field the annotation reads.
+    quoted, _ = curated_fields('---\ndescription: "Aurora policy"\nmetadata:\n  type: "project"\nverified: "2026-09-01"\n---\nbody\n')
+    assert quoted == {"description": "Aurora policy", "metadata.type": "project", "verified": "2026-09-01"}
 
 
 def test_tiers_and_labels():
@@ -55,6 +60,10 @@ def test_tiers_and_labels():
     assert epistemic_tier("project", "mtime", 46) == "suspect"
     assert epistemic_tier(None, "mtime", 14) == "check-before-acting" and epistemic_tier(None, "mtime", 61) == "suspect"
     assert epistemic_tier("user", "mtime", 400) == "check-before-acting"
+    assert epistemic_tier("reference", "mtime", 16) == "settled" and epistemic_tier("reference", "mtime", 17) == "check-before-acting"
+    assert epistemic_tier("lesson", "mtime", 25) == "settled" and epistemic_tier("lesson", "mtime", 113) == "suspect"
+    assert epistemic_tier("feedback", "mtime", 66) == "settled" and epistemic_tier("feedback", "mtime", 301) == "suspect"
+    assert epistemic_tier("mystery", "mtime", 14) == "check-before-acting"  # unknown type: the default volatility
     assert epistemic_tier("feedback", "invalidated", 0) == "suspect"
     assert format_age_annotation(0) == "⟨verified today⟩" and format_age_annotation(1) == "⟨1 day unverified⟩"
     assert format_age_annotation(61) == "⟨61 days unverified⟩"
@@ -93,9 +102,32 @@ def test_staleness_follows_the_age_basis(tmp_path):
     assert out["status"].startswith("⟨suspect · project · judged WRONG") and out["unverified_days"] == 61
     (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="maybe", digest=digest, who="p", at="t")) + "\n")
     assert latest_verdicts(root) == {}
-    # A future mtime is zero days; a missing file still annotates from today, as the audit does.
+    # The last record for a stem wins.
+    (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="wrong", digest=digest, who="p", at="t")) + "\n"
+                                          + json.dumps(dict(stem="policy", verdict="keep", digest=digest, who="p", at="t")) + "\n")
+    assert latest_verdicts(root)["policy"]["verdict"] == "keep"
+    # A tombstone applies whether or not the file carries verified: (the audit checks it first).
+    doc.write_text("---\nname: policy\ndescription: Aurora policy\nmetadata:\n  type: project\n---" + body, encoding="utf-8")
+    (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="wrong", digest=digest, who="p", at="t")) + "\n")
+    assert staleness(doc, root)["status"] == "⟨suspect · project · judged WRONG — kept as tombstone⟩ — verify against the repo before acting"
+    # A quoted verified: date binds like an unquoted one.
+    (root / ".verdicts.jsonl").unlink()
+    doc.write_text(f'---\nname: policy\ndescription: "Aurora policy"\nmetadata:\n  type: "project"\nverified: "{verified_on}"\n---' + body, encoding="utf-8")
+    assert staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago, unbound⟩"
+    # A passed-in verdict map is used instead of reading the sidecar.
+    assert staleness(doc, root, verdicts={"policy": dict(verdict="keep", digest=canonical_digest("Aurora policy", body))})["status"] == "⟨settled · project · verified 3d ago⟩"
+    # A future mtime is zero days; a missing file gets no keys, as PersonalMemory adds none.
     future = time.time() + 5 * 86400
     doc.write_text("no frontmatter", encoding="utf-8")
     os.utime(doc, (future, future))
     assert staleness(doc, root)["unverified_days"] == 0
-    assert staleness(root / "absent.md", root)["staleness"] == "⟨verified today⟩"
+    assert staleness(root / "absent.md", root) is None
+    assert staleness(root, root) is None  # a directory
+    # The mtime date is local, as the audit compares it with a local today (the Anchorage trap upstream).
+    import datetime as dt
+    midnight = dt.datetime.combine(date.today(), dt.time.min).timestamp()
+    doc.write_text("no frontmatter", encoding="utf-8")
+    os.utime(doc, (midnight - 1, midnight - 1))
+    assert staleness(doc, root, today=date.today())["unverified_days"] == 1
+    os.utime(doc, (midnight + 1, midnight + 1))
+    assert staleness(doc, root, today=date.today())["unverified_days"] == 0
