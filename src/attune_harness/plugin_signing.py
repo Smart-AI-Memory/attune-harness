@@ -241,12 +241,20 @@ def probe_gpg(gpg: str, cwd: Path) -> dict:
     ``/``-rooted one is an MSYS or Cygwin build (Git for Windows), which needs
     POSIX-styled paths; anything else is native. The user's keyring is not read.
     """
+    if gpg in PROBED:
+        return dict(PROBED[gpg])
     result = _run((gpg, "--batch", "--no-tty", "--version"), cwd)
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if not lines or not lines[0].startswith("gpg"):
         raise FeatureUnavailable(VERIFIER_FAILED.format(failure="no version line"))
-    home = next((line[len("Home:"):].strip() for line in lines if line.startswith("Home:")), "")
-    return {"version": lines[0], "path_style": "posix" if home.startswith("/") else "native"}
+    home = next((line[len("Home:") :].strip() for line in lines if line.startswith("Home:")), "")
+    PROBED[gpg] = {"version": lines[0], "path_style": "posix" if home.startswith("/") else "native"}
+    return dict(PROBED[gpg])
+
+
+# One probe per gpg binary per process: the build does not change between calls,
+# and a platform job's budget counts every subprocess (D29.1's third finding).
+PROBED: dict = {}
 
 
 def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
@@ -292,12 +300,19 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
             (home / "signers.asc").write_bytes(
                 b"".join(entry["public_key"].strip().encode("utf-8") + b"\n" for entry in signers)
             )
-            imported = _status(_run(base + ("--import", gpg_path(home / "signers.asc", style)), home).stdout)
+            imported = _status(
+                _run(base + ("--import", gpg_path(home / "signers.asc", style)), home).stdout
+            )
             keywords = [tokens[0] for tokens in imported]
             if "IMPORT_PROBLEM" in keywords or keywords.count("IMPORT_OK") < len(signers):
                 raise FeatureUnavailable(KEY_IMPORT)
         verified = _run(
-            base + ("--verify", gpg_path(home / SIGNATURE_NAME, style), gpg_path(home / "artifact.digest", style)),
+            base
+            + (
+                "--verify",
+                gpg_path(home / SIGNATURE_NAME, style),
+                gpg_path(home / "artifact.digest", style),
+            ),
             home,
         )
         lines = _status(verified.stdout)

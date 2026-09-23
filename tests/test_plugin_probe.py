@@ -27,13 +27,14 @@ import platform
 import shutil
 import sys
 import sysconfig
+import time
 from pathlib import Path
 
 import pytest
 
 from attune_harness import plugin_signing as signing
 from attune_harness.process import invoke
-from test_plugin_signing import signers  # noqa: F401  (fixture)
+from test_plugin_signing import base_signer, signers  # noqa: F401  (fixtures)
 
 RECEIPT_NAME = 'plugin-probe.json'
 # The declared import is a base dependency, so every install has it; the
@@ -47,9 +48,10 @@ class Receipt:
     """The probe's receipt, rewritten after every step so a failure keeps what was found."""
 
     def __init__(self, tmp_path):
+        self.started = time.perf_counter()
         self.value = {'schema_version': 1, 'ruling': 'D29.1', 'system': platform.system(),
                       'machine': platform.machine(), 'python': platform.python_version(),
-                      'executable': sys.executable, 'steps': {}}
+                      'executable': sys.executable, 'elapsed_seconds': 0.0, 'steps': {}}
         self.targets = [tmp_path / RECEIPT_NAME]
         output = os.environ.get('HARNESS_QUALIFICATION_OUTPUT')
         if output:
@@ -62,7 +64,10 @@ class Receipt:
             target.write_text(json.dumps(self.value, indent=2) + '\n', encoding='utf-8')
 
     def record(self, step, outcome='passed', **fields):
-        self.value['steps'][step] = {'outcome': outcome, **fields}
+        # Each step's time since the receipt began: the platform job's budget is finite.
+        elapsed = round(time.perf_counter() - self.started, 3)
+        self.value['steps'][step] = {'outcome': outcome, 'at_seconds': elapsed, **fields}
+        self.value['elapsed_seconds'] = elapsed
         self.write()
 
     def fail(self, step, message, **fields):

@@ -23,6 +23,7 @@ import os
 import re
 import shutil
 import stat
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -91,6 +92,21 @@ def run_gpg(home, *args):
     return result
 
 
+def launch_agent(home):
+    """One gpg-agent for a scratch home, started outside the tests' bounded calls.
+
+    Every gpg call here runs under process.invoke, whose Job Object on Windows
+    ends the agent that gpg autostarts with it, so each key generation and each
+    signing paid an agent start and the platform job ran past its budget
+    (D29.1's third finding). gpgconf launches the agent detached, with no pipe
+    it could inherit; close() kills it.
+    """
+    if GPGCONF is None:
+        return
+    subprocess.run([GPGCONF, '--homedir', spelled(home), '--launch', 'gpg-agent'], cwd=home, check=False,
+                   stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+
+
 class Signer:
     """One scratch key in a short temporary home directory, deleted with it; never the user's."""
 
@@ -98,11 +114,13 @@ class Signer:
         # Short on purpose: the agent's socket path in the home has a length limit on macOS.
         self.home = Path(tempfile.mkdtemp(prefix='hs-'))
         os.chmod(self.home, 0o700)
+        launch_agent(self.home)
         self.faked = ('--faked-system-time', at) if at else ()
-        run_gpg(self.home, *self.faked, '--passphrase', '', '--pinentry-mode', 'loopback',
-                '--quick-generate-key', f'{name} <{name}@example.invalid>', 'default', 'default', expire)
-        listing = run_gpg(self.home, '--with-colons', '--list-keys').stdout
-        self.fingerprint = next(line.split(':')[9] for line in listing.splitlines() if line.startswith('fpr:'))
+        created = run_gpg(self.home, '--status-fd', '1', *self.faked, '--passphrase', '', '--pinentry-mode', 'loopback',
+                          '--quick-generate-key', f'{name} <{name}@example.invalid>', 'default', 'default', expire)
+        # The status line names the new key; a listing call is not needed.
+        self.fingerprint = next(line.split()[3] for line in created.stdout.splitlines()
+                                if line.startswith('[GNUPG:] KEY_CREATED'))
         self.public_key = self._export()
 
     def _export(self):
@@ -138,11 +156,24 @@ class Signer:
         shutil.rmtree(self.home, ignore_errors=True)
 
 
+@pytest.fixture(scope='module')
+def base_signer():
+    # The one listed key most tests need, generated once per module and deleted with it;
+    # a test that needs a key of its own (another signer, an expired or a revoked one)
+    # still generates that key itself. What each test asserts is unchanged; the
+    # platform job's budget on Windows is what this fits (D29.1's third finding).
+    signer = Signer('scratch')
+    yield signer
+    signer.close()
+
+
 @pytest.fixture
-def signers():
+def signers(base_signer):
     made = []
 
     def make(name='scratch', **kwargs):
+        if name == 'scratch' and not kwargs:
+            return base_signer
         signer = Signer(name, **kwargs)
         made.append(signer)
         return signer
@@ -509,6 +540,7 @@ def test_verifier_home_is_private_built_from_the_registry_and_removed(case, plug
         seen.append((argv, kwargs, home))
         return real(argv, prompt, **kwargs)
     monkeypatch.setattr(signing, 'invoke', spy)
+    monkeypatch.setattr(signing, 'PROBED', {})  # so the build probe runs again and is observed
     monkeypatch.setenv('GNUPGHOME', str(tmp_path / 'users-keyring'))  # a canary the verifier must not see
     verified = signing.verify_bundle(w.manifest.parent, w.digest, [w.signer.entry])
     assert verified['signer'] == w.signer.fingerprint and verified['verifier']['gpg'] == GPG

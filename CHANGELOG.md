@@ -42,7 +42,9 @@ requests did not conflict on this section.
   path style and status keywords used. First findings: Git for Windows'
   MSYS gpg treats a backslashed or a `C:/` path as relative, so the
   verifier reads the build's style from `gpg --version`'s `Home:` line and
-  hands such a build `/c/...` paths.
+  hands such a build `/c/...` paths; and every gpg call on Windows costs a
+  worker, a Job Object and an agent start, so the verifier probes a build
+  once per process and the tests start one agent per scratch home.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan

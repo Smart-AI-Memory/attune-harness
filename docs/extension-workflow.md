@@ -285,9 +285,16 @@ asserts that an undeclared installed one (`redis`) fails, with the repair
 probe's environment allow-list, `SystemRoot` on Windows. Nothing skips: a
 runner without gpg fails with the discovery receipt in the message. The
 receipt, `plugin-probe.json`, is written step by step into the qualification
-output directory and copied by `scripts/qualify_platform.py` into
-`platform.json` as `plugin_probe`, in the artifact each platform job
-uploads; a missing receipt fails the qualification.
+output directory, each step with the second at which it completed, and
+copied by `scripts/qualify_platform.py` into `platform.json` as
+`plugin_probe`, in the artifact each platform job uploads; a missing receipt
+fails the qualification. The first three runs found, in turn, that Git for
+Windows' gpg treats a backslashed path as relative, then a `C:/` one too,
+then that every gpg call on Windows pays a worker, a Job Object and, for a
+key generation or a signing, a fresh agent start, which put the platform
+job past its 600 s budget with every plugin test passed; the tests now start
+one agent per scratch home outside the bounded calls and share one listed
+key where a test needs only that.
 
 ### What each refusal means
 
