@@ -62,9 +62,14 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    characters everywhere below.
 3. **Wait for qualification on that SHA.** The push to `main` starts it. The
    publish workflow refuses a SHA without a passing Library qualification run.
+   A release branch under a pull request has one full run, the push run: its
+   pull-request run stops at the classifier and the link check (O-64), so
+   there is one run to read per push, and it is the push run.
 4. **Rehearse the gate.** Dispatch `publish-pypi.yml` from `main` with
    `publish=false`. It runs the whole release gate and never touches the
-   environment, so it cannot upload anything.
+   environment, so it cannot upload anything. A change to that workflow's
+   own action pins or steps is exercised nowhere else, so a rehearsal is
+   owed after any such change, before the next `publish=true`.
 5. **Publish.** Dispatch again with `publish=true`:
 
    ```bash
@@ -130,7 +135,11 @@ approval comment records. What those scripts learned, for the next ones:
   /repos/{owner}/{repo}/actions/runs/{run}/pending_deployments` with
   `{"environment_ids": [<id>], "state": "approved", "comment": …}`; the
   response is a list of environment objects. Read the environment id from
-  `GET /repos/{owner}/{repo}/environments/pypi`.
+  `GET /repos/{owner}/{repo}/environments/pypi`. Do not pipe that response
+  through `--jq` expecting an object: the parse error stopped the 0.4.0 and
+  0.5.0 finish scripts after the approval had already succeeded, and steps 7
+  to 9 ran by hand both times. `scripts/release_approve.sh <run> "<comment>"`
+  does the call, checks the exit status and prints the environment names.
 - Verify the tag with `git tag -v` into a file, then grep the file; piping
   into `grep -q` under `pipefail` ends the pipeline with the signal `git`
   gets when `grep` closes early.

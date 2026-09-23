@@ -610,25 +610,29 @@ def test_writer_refuses_a_hard_link(tmp_path):
     assert other.read_text(encoding="utf-8") == "{}\n"
 
 
-def test_writer_appends_are_whole_across_processes(tmp_path):
-    """Four processes, 500 lines each, one file: every line parses and none is lost.
+def _appended_by_four_processes(tmp_path, prelude=""):
+    """Four children, released together, each append 500 lines through the writer.
 
-    On POSIX ``O_APPEND`` already makes this hold; on Windows the C runtime
-    appends by seeking and then writing, so without the writer's lock two
-    processes tear each other's lines, which the Windows platform job showed.
-    The children wait on stdin and are released together, so the overlap is
-    the test's doing, not the host's timing.
+    Each child reports ready on stdout once its imports are done and then
+    waits on stdin; the parent releases all four only after it has read all
+    four ready lines, so the overlap is the test's doing, not the host's
+    timing. Returns the parsed events; a line that does not parse fails with
+    the bytes shown. ``prelude`` is source the child runs before it imports
+    the writer, so a test can change how the child opens the file.
     """
     import attune_harness
 
     path = tmp_path / "events.jsonl"
     script = tmp_path / "appender.py"
     script.write_text(
-        "import json, sys\n"
+        prelude
+        + "import json, sys\n"
         "from pathlib import Path\n"
         "from attune_harness.command_workspace import jsonl_event_writer\n"
         "write = jsonl_event_writer(Path(sys.argv[1]))\n"
         "who = sys.argv[2]\n"
+        "sys.stdout.write('ready\\n')\n"
+        "sys.stdout.flush()\n"
         "sys.stdin.readline()\n"
         "for n in range(500):\n"
         "    write({'event': 'probe', 'who': who, 'n': n, 'pad': 'x' * 200})\n",
@@ -653,6 +657,8 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
     ]
     try:
         for child in children:
+            assert child.stdout.readline() == "ready\n"
+        for child in children:
             child.stdin.write("go\n")
             child.stdin.flush()
         for child in children:
@@ -665,12 +671,58 @@ def test_writer_appends_are_whole_across_processes(tmp_path):
                 child.wait(timeout=10)
     lines = path.read_bytes().split(b"\n")
     assert lines[-1] == b""
-    events = [json.loads(line) for line in lines[:-1]]
+    events = []
+    for number, line in enumerate(lines[:-1], 1):
+        try:
+            events.append(json.loads(line))
+        except ValueError as exc:  # a torn or overwritten line
+            raise AssertionError(f"line {number} does not parse ({exc}): {line[:120]!r}") from None
+    return events
+
+
+def _every_line_from_every_child(events):
     assert len(events) == 2000
     seen = {}
     for event in events:
         seen.setdefault(event["who"], set()).add(event["n"])
     assert seen == {f"p{i}": set(range(500)) for i in range(4)}
+
+
+def test_writer_appends_are_whole_across_processes(tmp_path):
+    """Four processes, 500 lines each, one file: every line parses and none is lost.
+
+    On POSIX ``O_APPEND`` already makes this hold; on Windows the C runtime
+    appends by seeking and then writing, so without the writer's lock two
+    processes tear each other's lines, which the Windows platform job showed.
+    The children report ready and are released together, so the overlap is
+    the test's doing, not the host's timing.
+    """
+    _every_line_from_every_child(_appended_by_four_processes(tmp_path))
+
+
+# The Windows append, emulated: the child opens the file without O_APPEND, so
+# each write lands where the descriptor points, which is the writer's own
+# seek to the end. Two steps another process can land between, as on Windows.
+SEEK_THEN_WRITE = (
+    "import os\n"
+    "_open = os.open\n"
+    "def _seek_then_write_open(path, flags, *rest, **named):\n"
+    "    return _open(path, flags & ~os.O_APPEND, *rest, **named)\n"
+    "os.open = _seek_then_write_open\n"
+)
+
+
+def test_writer_appends_stay_whole_when_append_is_seek_then_write(tmp_path):
+    """The lock's reason for existing, checked on every platform, not only on Windows.
+
+    The test above passes on macOS and Ubuntu with the lock removed, because
+    ``O_APPEND`` is atomic there; only the Windows job could show the lock does
+    work. Here the children append the Windows way, a seek to the end and then
+    a write, and with the lock removed lines are lost or torn on every platform
+    (the #61 review ran this as a probe; O-65 keeps it). With the lock, 2,000
+    whole lines.
+    """
+    _every_line_from_every_child(_appended_by_four_processes(tmp_path, prelude=SEEK_THEN_WRITE))
 
 
 def test_writer_gives_up_on_a_held_lock_within_the_deadline(tmp_path, monkeypatch):

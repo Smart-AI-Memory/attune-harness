@@ -44,7 +44,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .features import read_text
+from .features import REPLACE_RETRY_SECONDS, read_text, replace_file
 from .review_contract import parse_json
 from .paths import validate_file_path
 from .spec_tasks import PLAN_LIMIT, read_spec
@@ -223,7 +223,9 @@ def save_state(state: SpecState) -> None:
 
     An existing trailing comment is replaced; a file without one gets one
     appended, using the file's own line ending. The write goes through a
-    sibling temporary file and ``os.replace``, so a reader never sees a
+    sibling temporary file and ``features.replace_file``, which on Windows
+    retries for up to ``REPLACE_RETRY_SECONDS`` while a reader holds the plan
+    open, so a reader never sees a
     half-written plan and a crash mid-write leaves the plan as it was. After
     a successful write ``state.last_updated`` and ``state.schema_version``
     are set to what was written; a refused save leaves the object unchanged.
@@ -321,8 +323,10 @@ def find_resumable_plans(plans_dir: str) -> list[SpecState]:
 def _atomic_write_text(target: Path, content: str) -> None:
     """Write ``content`` to ``target`` through a sibling temporary file.
 
-    ``tempfile.mkstemp`` in the same directory, then ``os.replace``, so a
-    concurrent reader never sees a partial file. Line endings are written as
+    ``tempfile.mkstemp`` in the same directory, then ``features.replace_file``,
+    the one atomic replace, which retries for a bounded time on Windows while a
+    reader holds the plan open (O-59), so a concurrent reader never sees a
+    partial file and a reader does not fail the writer. Line endings are written as
     given, never translated, so a CRLF plan stays CRLF on every platform. On failure the temporary
     file is removed on a best-effort basis and the original error is raised;
     a failed removal is logged at debug level so it stays observable.
@@ -335,7 +339,7 @@ def _atomic_write_text(target: Path, content: str) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
             f.write(content)
-        os.replace(tmp_name, target)
+        replace_file(Path(tmp_name), target, retry_seconds=REPLACE_RETRY_SECONDS)
     except OSError:
         try:
             os.unlink(tmp_name)

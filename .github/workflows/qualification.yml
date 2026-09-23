@@ -5,7 +5,11 @@ name: Library qualification
 # and a release candidate is built from a release/ branch, so those must keep
 # their push runs. Every other branch is qualified by its pull request. Running
 # on every branch push doubled the work: a documentation branch got a 14 second
-# pull request run and, for the same commit, a five minute full matrix.
+# pull request run and, for the same commit, a five minute full matrix. The
+# mirror image held for release branches until O-64 closed: a release/ branch
+# under a pull request got a push run and a pull-request run of the same
+# commit. The classifier now skips the matrix for a pull request whose head is
+# a release/ branch; the push run on that branch, and then on main, is the record.
 on:
   push:
     branches: [main, 'release/**']
@@ -41,8 +45,9 @@ jobs:
     timeout-minutes: 5
     outputs:
       qualify: ${{ steps.classify.outputs.qualify }}
+      reason: ${{ steps.classify.outputs.reason }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 2
@@ -51,24 +56,38 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           # Anything unexpected leaves qualify=true. File names are data: they
           # are only ever matched against the patterns below.
           qualify=true
-          if [[ "$EVENT_NAME" == pull_request ]]; then
+          reason=code
+          if [[ "$EVENT_NAME" == pull_request && "$HEAD_REF" == release/* \
+                && "$HEAD_REPO" == "$GITHUB_REPOSITORY" ]]; then
+            # The release branch's own push run qualifies every commit it
+            # carries, and the release gate reads only push and dispatch runs;
+            # a second full matrix for the pull request proved nothing (O-64).
+            # This repository's branches only: a fork's release/ branch has no
+            # push run here, so it takes the content-based path below.
+            qualify=false
+            reason=release-branch
+          elif [[ "$EVENT_NAME" == pull_request ]]; then
             # HEAD is the merge of the pull request into its base, so HEAD^1 is the base.
             if files=$(git diff --name-only -z HEAD^1 HEAD | tr '\0' '\n') && [[ -n "$files" ]]; then
               qualify=false
+              reason=docs-only
               while IFS= read -r file; do
                 case "$file" in
                   docs/*|AGENTS.md|CHANGELOG.md|.github/pull_request_template.md) ;;
-                  *) qualify=true; break ;;
+                  *) qualify=true; reason=code; break ;;
                 esac
               done <<< "$files"
             fi
           fi
           echo "qualify=$qualify" >> "$GITHUB_OUTPUT"
-          echo "qualify=$qualify"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "qualify=$qualify reason=$reason"
       # A change under src/ is merged only with its different-model review
       # recorded (AGENTS.md). The body is data: it reaches the shell through
       # this variable only, never through template expansion into the script.
@@ -102,10 +121,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ['3.10', '3.12']
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
       - name: Build and install library
@@ -125,7 +144,7 @@ jobs:
         run: python -I experiments/platform/check_windows_environment_guard.py --output qualification/environment-guard
       - name: Keep qualification evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: qualification-${{ matrix.os }}-${{ matrix.python }}
           path: |
@@ -145,10 +164,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           # The oldest supported version, where newer syntax fails first.
           python-version: '3.10'
@@ -166,10 +185,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.10'
       - name: Resolve every Markdown link
@@ -193,11 +212,12 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           CLASSIFIED: ${{ needs.changes.result }}
           QUALIFY: ${{ needs.changes.outputs.qualify }}
+          REASON: ${{ needs.changes.outputs.reason }}
           PLATFORMS: ${{ needs.installed-library.result }}
           SUITE: ${{ needs.full-suite.result }}
           LINKS: ${{ needs.doc-links.result }}
         run: |
-          state="platform jobs: ${PLATFORMS:-none}; full suite: ${SUITE:-none}; documentation links: ${LINKS:-none}; classification: ${CLASSIFIED:-none}; qualify: ${QUALIFY:-unset}; event: ${EVENT_NAME:-none}"
+          state="platform jobs: ${PLATFORMS:-none}; full suite: ${SUITE:-none}; documentation links: ${LINKS:-none}; classification: ${CLASSIFIED:-none}; qualify: ${QUALIFY:-unset}; reason: ${REASON:-unset}; event: ${EVENT_NAME:-none}"
           verdict=fail
           if [[ "$LINKS" != success ]]; then
             # A dead link fails every change, documentation-only or not.
@@ -209,12 +229,19 @@ jobs:
                   && ( "$SUITE" == success || "$SUITE" == skipped ) ]]; then
               verdict=skipped
             fi
-          elif [[ "$PLATFORMS" == success && "$SUITE" == success ]]; then
+          elif [[ "$CLASSIFIED" == success && "$PLATFORMS" == success && "$SUITE" == success ]]; then
+            # The classifier's failure is the review gate refusing; the platform
+            # jobs run regardless (!cancelled()), so it must count here too.
             verdict=pass
           fi
           case "$verdict" in
             pass) message="All six platform jobs, the full test suite and the documentation link check passed. ($state)" ;;
-            skipped) message="Documentation-only pull request: every Markdown link resolves; nothing was built, installed or tested, so this passes without qualifying any platform. Every push to main runs the full qualification. ($state)" ;;
+            skipped)
+              if [[ "$REASON" == release-branch ]]; then
+                message="Release-branch pull request: every Markdown link resolves; the matrix was not run here because the branch's own push run qualifies this commit and the release gate reads only push and dispatch runs. ($state)"
+              else
+                message="Documentation-only pull request: every Markdown link resolves; nothing was built, installed or tested, so this passes without qualifying any platform. Every push to main runs the full qualification. ($state)"
+              fi ;;
             *) message="Qualification did not pass. ($state)" ;;
           esac
           echo "$message" >> "$GITHUB_STEP_SUMMARY"

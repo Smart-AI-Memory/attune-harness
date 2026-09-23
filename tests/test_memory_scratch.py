@@ -410,7 +410,6 @@ def test_run_envelopes(tmp_path):
 
 
 def test_cli_scratch_verbs(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr(memory_cli, "configure_process", lambda: None)
     root = str((tmp_path / "root").resolve())
     Path(root).mkdir()
     config = tmp_path / "memory.json"
