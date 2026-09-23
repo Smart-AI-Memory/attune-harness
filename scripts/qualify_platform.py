@@ -71,13 +71,24 @@ def qualify(output):
     (output/'memory-redis.txt').write_text(memory.stdout+memory.stderr,encoding='utf-8')
     # The native memory reader read what this platform allows (Phase 2, D19): the receipt must say which.
     if memory.returncode==0:
-        native=json.loads((output/'memory-redis.json').read_text(encoding='utf-8'))['memory']
+        report=json.loads((output/'memory-redis.json').read_text(encoding='utf-8'))
+        native=report['memory']
         wanted=('available',['raw','personal','curated']) if os.name=='posix' else ('posix-only refusal',[])
         if (native.get('native_reader'),native.get('tiers_read'))!=wanted or native.get('reader_named')!='native':
             memory=subprocess.CompletedProcess(memory.args,1)
             receipt['checks'].append(f'native memory reader receipt unexpected: {native}')
         receipt['native_memory_reader']=native.get('native_reader')
         receipt['native_memory_tiers']=native.get('tiers_read')
+        # The R2 journey from this installed wheel (spec authority Task 4, D23.1): the
+        # receipt carries the build's outcome in the platform's own words, never a skip.
+        journey=report['journey']
+        receipt['checks'].append(f"r2 journey with attune absent: accept {journey['accept']}, build {journey['build']}, review {journey['review']}")
+    else:
+        # The check writes its report only when every section passed; the transcript names the section that did not.
+        transcript=(output/'memory-redis.txt').read_text(encoding='utf-8')
+        journey='failed; see memory-redis.txt' if 'journey_checks' in transcript else 'not run: an earlier section failed; see memory-redis.txt'
+        receipt['checks'].append(f'r2 journey {journey}')
+    receipt['r2_journey']=journey
     receipt['memory_redis']='passed' if memory.returncode==0 else 'failed'
     receipt['checks'].append('memory redis: extra present, server absent, unavailable; file scratch round trip; redis scratch never diverts'
                              if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')

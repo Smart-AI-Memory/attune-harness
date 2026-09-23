@@ -90,7 +90,9 @@ install since 0.4.0 (before that, the `review` extra); Attune AI is not needed,
 and core imports and help stay independent of it. Until Task 3 of
 the spec authority the collector was Attune AI's; that arrangement is recorded in
 [Task 6's results](plan-build-task6-results.md). Installing Harness does not
-upgrade an active MCP host.
+upgrade an active MCP host. The whole sequence as it runs from a fresh install
+with Attune AI absent, the envelope each step returns, and the refusals the
+`--no-deps` wheel gives instead, is [the R2 journey](journeys/r2-clean-environment.md).
 
 Commands return durable record locations and JSON results. Missing intent uses the
 existing question grammar. Use `plan --answers` for bound answers or `--revise`

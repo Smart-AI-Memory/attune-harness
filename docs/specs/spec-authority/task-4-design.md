@@ -194,6 +194,19 @@ whole ladder.
   `--mode all`, the whole journey runs. `publish-pypi.yml:92` asserts on both
   reports, beside the memory assertions.
 
+  *Correction, step (c), September 23:* from the `--no-deps` wheel the build
+  does not run. `build` refuses with "Effects require current accepted work
+  authority" until the draft is accepted, and acceptance is the step that
+  needs attune-forms, so the gate section asserts that refusal, the authority
+  rule doing its job, beside the install-hint refusals of `plan --accept` and
+  `review`; `review`'s hint names attune-verify, the first base dependency its
+  intake finds missing. The whole journey runs where the base dependencies are
+  installed, as D23.1 rules: the platform jobs and the gate's with-deps venv.
+  Two more words above are wrong as written: the test asserts no sentinel,
+  only each envelope's status and pins, since `attune` is blocked in the child
+  and any import of it fails the step; and the gate section runs in every
+  mode of `check_installed.py`, not from `--mode core` alone.
+
 ### 4.5 The differential, as Phase 2 had one
 
 Before the switch lands, the seven plans and the gate suite's task

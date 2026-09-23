@@ -13,6 +13,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 ## Start here
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
+- [R2: the clean-environment journey](journeys/r2-clean-environment.md): Plan, accept, build, review and status from a fresh install with Attune AI absent, the envelope each step returns, and where the gate proves it
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not

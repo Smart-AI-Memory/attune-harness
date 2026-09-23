@@ -22,6 +22,13 @@ test from the source tree with plain `pytest`, so a test outside that selection
 cannot break unnoticed. It qualifies no platform. The required `Qualification`
 check passes only when the platform jobs and that job pass.
 
+Each platform job also runs the R2 clean-environment journey from the installed
+wheel, through `scripts/check_installed.py`: plan, accept, build, review and
+status with `attune` absent and no model called. The platform receipt's
+`r2_journey` records each step's outcome; on Windows the build's refusal, if it
+refuses, is recorded in the platform's own words rather than skipped. The
+sequence is in [the R2 journey](journeys/r2-clean-environment.md).
+
 The installed-wheel selection also includes Voyage budget/replay checks,
 evaluator CLI status checks, plugin lifecycle tests and host qualification
 boundary fixtures. `tests/test_code_rag_host_check.py` compiles the actual host
