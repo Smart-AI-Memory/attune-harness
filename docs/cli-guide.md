@@ -303,18 +303,38 @@ session start:
 
 **`scratch`** is working memory: JSON values up to 64 KiB under keys of up to
 128 characters, with an optional time to live, through `memory scratch
-capabilities`, `stash KEY (--value JSON | --value-file PATH) [--ttl SECONDS]`,
-`retrieve KEY`, `forget KEY` and `keys [PATTERN]`. `backend` is `file`, with a
-`root` directory the config names and no sharing, or `redis`, which uses the
-`redis` section and is shared across processes and machines; `namespace`
-separates users of one store. The backend is chosen when the command starts.
+capabilities`, `stash KEY (--value JSON | --value-file PATH) [--ttl SECONDS]
+[--expected-version N]`, `retrieve KEY`, `forget KEY` and `keys [PATTERN]`.
+`backend` is `file`, with a `root` directory the config names and no sharing,
+or `redis`, which uses the `redis` section and is shared across processes and
+machines; `namespace` separates users of one store. The backend is chosen
+when the command starts.
+
+Each stored record is a versioned format (native memory Task 5, D21.6):
+`stash` and `retrieve` report `format` (`attune-harness/scratch`),
+`format_version` (2), `writer` (the package and version that wrote it) and
+`version`, the count of successful stashes since the key was last absent,
+from 1. `--expected-version N` is a compare-and-set: the stash lands only
+when the stored record is at version `N` (`0` means no record) and is
+otherwise refused with `failed`, a `detail` saying what was expected and
+what was found, and nothing written; retrieve the key and stash with the
+version it reports. A record 0.4.0 or 0.5.0 wrote is read in place and
+reported with `format_version` 1 and no `version`; the first plain stash
+over it writes the current format. A stash whose effect cannot be known,
+the record written and the replace raised, or the write sent to Redis and
+its reply lost, is reported as `uncertain` with the `version` the write
+carried: retrieve the key, and a record at that version means it landed;
+nothing is retried and nothing is diverted. `docs/envelopes.md` lists the
+record under "Stored formats".
 
 Statuses and exit codes follow the other memory verbs, except `serve`, which
 exits 0 once its command line has parsed: `ok` and `no_results` exit 0;
 `disabled` (the section is absent), `unavailable` (the extra is not installed,
 the server cannot be reached, or the keyspace is not hydrated) and `failed` (a
-refused input) exit 2, each with a `detail`. A Redis that cannot be reached is
-reported; it is never replaced by the file store at runtime.
+refused input, or a `stash` whose expected version is not the stored one)
+exit 2, each with a `detail`; `uncertain` (a scratch stash whose effect
+cannot be known) exits 2 with what is known. A Redis that cannot be reached
+is reported; it is never replaced by the file store at runtime.
 
 Qualification: every platform job installs the extra and, with no server,
 confirms the reads and a Redis scratch report unreachable, `serve` exits 0

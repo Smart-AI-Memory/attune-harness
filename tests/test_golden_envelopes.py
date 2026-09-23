@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 from attune_harness import extensions as ext
-from attune_harness import memory_redis
+from attune_harness import memory_redis, memory_scratch
 from attune_harness.cli import main
 from attune_harness.memory_redis import MemoryRedisUnavailable, RedisMemory
 from attune_harness.review import review
@@ -253,9 +253,15 @@ ENVELOPES = (
     ('memory-scratch-capabilities', 'success', 0, None, 'ok',
      ('backend', 'location', 'operation', 'realtime', 'shared', 'status')),
     ('memory-scratch-stash', 'success', 0, None, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'status', 'stored_at')),
+     ('backend', 'expires_at', 'format', 'format_version', 'key', 'operation', 'status', 'stored_at',
+      'version', 'writer')),
+    ('memory-scratch-stash-refused', 'refusal', 2, None, 'failed',
+     ('backend', 'detail', 'error', 'expected_version', 'key', 'operation', 'status', 'version')),
+    ('memory-scratch-stash-uncertain', 'uncertain', 2, None, 'uncertain',
+     ('backend', 'detail', 'error', 'key', 'operation', 'status', 'version')),
     ('memory-scratch-retrieve', 'success', 0, None, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'status', 'stored_at', 'value')),
+     ('backend', 'expires_at', 'format', 'format_version', 'key', 'operation', 'status', 'stored_at',
+      'value', 'version', 'writer')),
     ('memory-scratch-forget', 'success', 0, None, 'ok',
      ('backend', 'forgotten', 'key', 'operation', 'status')),
     ('memory-scratch-keys', 'success', 0, None, 'ok',
@@ -1196,6 +1202,25 @@ def _(w):
         w.file_scratch()
         + ["stash", "plan:current", "--value", '{"task": "golden"}', "--ttl", "120"]
     )
+
+
+@scenario("memory-scratch-stash-refused")
+def _(w):
+    base = w.file_scratch()
+    w.run(base + ["stash", "plan:current", "--value", "1"])
+    return w.run(base + ["stash", "plan:current", "--value", "2", "--expected-version", "7"])
+
+
+@scenario("memory-scratch-stash-uncertain")
+def _(w):
+    base = w.file_scratch()
+    w.run(base + ["stash", "plan:current", "--value", "1"])
+
+    def refuse(source, target, **kwargs):
+        raise PermissionError("the replace was refused after the record was written")
+
+    w.monkeypatch.setattr(memory_scratch, "replace_file", refuse)
+    return w.run(base + ["stash", "plan:current", "--value", "2"])
 
 
 @scenario("memory-scratch-retrieve")

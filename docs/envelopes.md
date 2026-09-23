@@ -10,20 +10,25 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 71 rows:
+row pins, in 73 rows:
 
 - **success** (55 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (6 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (7 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
   built; `memory capabilities` with a config that is not the roots contract,
-  refused by the default reader in its own words. Voyage is never called.
+  refused by the default reader in its own words; `memory scratch stash`
+  with an `--expected-version` the stored record is not at, nothing written.
+  Voyage is never called.
 - **unavailable** (9 rows): a dependency or server this install does not
   have. The memory host route (`capabilities` through `execute`) with
   `reader: adapter` needs the attune-ai adapter, which no base or extra
   install carries; a configured Redis that refuses the connection.
 - **disabled** (1 row): the memory config has no `scratch` section.
+- **uncertain** (1 row): a write whose effect cannot be known. `memory scratch
+  stash` when the record was written and the replace raised; the receipt
+  says what is known and that nothing was retried or diverted.
 
 The four `-adapter` rows pin the memory host's success shapes over an
 in-process double of the adapter's four-member contract (`binding`,
@@ -112,8 +117,10 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `memory-redis-search` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `k` `layer` `operation` `query` `schema_version` `status` `total` |
 | `memory-redis-unreachable` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-scratch-capabilities` | success | 0 | - | `ok` | `backend` `location` `operation` `realtime` `shared` `status` |
-| `memory-scratch-stash` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` |
-| `memory-scratch-retrieve` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` `value` |
+| `memory-scratch-stash` | success | 0 | - | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `status` `stored_at` `version` `writer` |
+| `memory-scratch-stash-refused` | refusal | 2 | - | `failed` | `backend` `detail` `error` `expected_version` `key` `operation` `status` `version` |
+| `memory-scratch-stash-uncertain` | uncertain | 2 | - | `uncertain` | `backend` `detail` `error` `key` `operation` `status` `version` |
+| `memory-scratch-retrieve` | success | 0 | - | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `status` `stored_at` `value` `version` `writer` |
 | `memory-scratch-forget` | success | 0 | - | `ok` | `backend` `forgotten` `key` `operation` `status` |
 | `memory-scratch-keys` | success | 0 | - | `ok` | `backend` `keys` `operation` `pattern` `status` |
 | `memory-scratch-disabled` | disabled | 2 | - | `disabled` | `detail` `status` |
@@ -189,7 +196,52 @@ What each case runs, in the order of the table.
 - `memory-redis-unreachable`: `memory --config redis status` with a configured Redis that refuses
 - `memory-scratch-capabilities`: `memory --config scratch capabilities` (file backend)
 - `memory-scratch-stash`: `memory --config scratch stash KEY --value --ttl`
+- `memory-scratch-stash-refused`: `memory --config scratch stash KEY --value --expected-version` with a version the stored record is not at
+- `memory-scratch-stash-uncertain`: `memory --config scratch stash KEY --value` with the replace refused after the record was written (in-process)
 - `memory-scratch-retrieve`: `memory --config scratch retrieve KEY`
 - `memory-scratch-forget`: `memory --config scratch forget KEY`
 - `memory-scratch-keys`: `memory --config scratch keys PATTERN`
 - `memory-scratch-disabled`: `memory --config scratch capabilities` with no `scratch` section
+
+## Stored formats
+
+The envelopes above are what the verbs print. What the stores write is a
+second surface: a record that another writer, or a later Harness, must
+read. Each stored format is listed here with its name, its version, its
+fields and what a reader must accept; a change to one is a deliberate diff,
+and Phase 4's freeze (4.1) points the 1.0 changelog at this list. The
+scratch record is its first entry (native memory Task 5, plan task 3.4,
+D21.6).
+
+### `attune-harness/scratch`, version 2
+
+One record per key, written by `memory scratch stash`: the file
+`k-<encoded key>.json` under `<root>/scratch/<namespace>/` on the file
+backend, the key `attune:harness:scratch:<namespace>:<key>` on Redis, the
+same bytes on both. The record is one line of compact JSON, ASCII only, no
+NaN, with its fields in this order, so the header opens the record:
+
+| Field | Value |
+|---|---|
+| `format` | `"attune-harness/scratch"` |
+| `format_version` | `2` |
+| `writer` | `"<distribution> <version>"` read from the package metadata, for example `"attune-harness 0.6.0.dev0"`; the bare distribution name when the metadata cannot be read |
+| `version` | an integer from 1: the successful stashes since the key was last absent. `stash --expected-version N` writes only when the stored record is at `N`; `0` means no record |
+| `key` | the key: 1 to 128 characters of `[A-Za-z0-9_.:-]` |
+| `value` | the value as canonical JSON (keys sorted, finite numbers), up to 64 KiB |
+| `stored_at` | an ISO 8601 UTC stamp |
+| `expires_at` | an ISO 8601 UTC stamp, or `null` |
+
+What a reader must accept: version 2 as above, and **version 1**, the record
+0.4.0 and 0.5.0 wrote, which has exactly the fields `schema_version` (`1`),
+`key`, `value`, `stored_at` and `expires_at`, keys sorted, and no header. A
+version 1 record is read in place: `retrieve` reports it with
+`format_version` 1 and `writer` and `version` `null`; a read never rewrites
+it; a `stash --expected-version` over it is refused, since it carries no
+version to compare; and the first plain `stash` over it writes version 2 at
+record version 1. A record of any other shape, including a later
+`format_version`, is foreign: it is not served and nothing is inferred from
+it, and a plain `stash` writes over it, as before. The files in
+`tests/fixtures/scratch_legacy_v1/` are version 1 records as 0.5.0's code
+wrote them; `tests/test_memory_scratch.py` pins them by digest and reads
+them through this code.
