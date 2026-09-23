@@ -440,6 +440,12 @@ async def _accept(directory, checkpoint):
     view = await acceptance.open(
         detail="Explicit console approval of the current work intent."
     )
+    state = view.record.state
+    if state.stage != "task_gate":
+        # The execution gate did not pass (D24): the first blocking receipt's
+        # words are the refusal, the words the bind refused with before.
+        blocked = [r.detail for r in state.lifecycle_receipts if r.state in ("BLOCKED", "REVISE")]
+        raise ValueError(blocked[0] if blocked else "Spec execution gate awaits the chair")
     response = {
         "__elicitation_response__": True,
         "title": view.record.view.title,

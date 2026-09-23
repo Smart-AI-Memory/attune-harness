@@ -177,6 +177,19 @@ dormant, tested by its 32 tests, with a Phase 4 decision on deletion once
 4.4 ends the transition. Decision 2 asks whether Patrick wants that or the
 whole ladder.
 
+*Correction, step (b), September 23 ([D24](addendum-2026-09-23.md)):* no
+build result raises a lifecycle gate; a high-severity build result becomes
+the run status `needs_revision` and never reaches the workspace. The
+execution boundary's receipts are Harness's readiness checks, the planner
+assignment and the required controls, `PASS` or `BLOCKED`; the walk is
+`approval`, `start_execution`, `gate_running` with the gate's receipts,
+`executing`, `task_started`, the task's result and its gate, then `receipt`.
+So `gate_running` is not dormant, every accept transits it, and the dormant
+half is `preview`, `intake`, `creating` and `review`. Nothing in Harness produces
+`CHAIR_REQUIRED` yet; that stage stays wired and tested by the workspace
+tests, and mapping 1's gate after the build is the later decision that would
+feed it.
+
 ### 4.4 The R2 journey, three times
 
 - **As a test:** `tests/test_r2_journey.py`, a subprocess journey with

@@ -53,6 +53,18 @@ did not conflict on this section.
   authority Task 4, step a and step b's rename; D20.1, D23). The gate tests
   are `tests/test_work_accept_gate.py` and the reader's
   `tests/test_spec_legacy.py`.
+- Changed: `plan --accept` and `plan --decision` walk the workspace's
+  execution stages instead of opening at the task gate: `approval`, then
+  `start_execution`, then the execution boundary's lifecycle gate with
+  Harness's readiness checks as its receipts (the planner assignment and the
+  required controls), then the task and its result, which is the gate the
+  human decides at, as before. A draft whose required control no runner
+  supports now stops at the blocked gate: `plan --decision` retains that gate
+  as the decision, and `plan --accept` refuses with the receipt's words, the
+  same words the bind refused with. The refusal for missing intent is
+  unchanged and still precedes the walk; every accept and decision envelope
+  keeps its keys. `chair_required` is wired and has no Harness source yet
+  (spec authority Task 4, step b, second half; D23.2, D24).
 
 ## 0.5.0
 

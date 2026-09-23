@@ -6,13 +6,27 @@ operations grants nothing; reopen a current form instead of replaying a nonce.
 
 The host and the Spec adapter are Harness's own, ``command_workspace`` and
 ``spec_workspace``, since Task 3 of the spec authority (D14); nothing here
-imports Attune AI. The host's two events, a render and an accept, are written
-beside the task's ``decision.json`` as evidence; they never carry the action
-nonce, and a sink that fails never blocks a decision. An accept line records a
-workspace action the host consumed, not a grant: the grant is the store's
-record, written after it, and under contention the bind can still be refused.
-Refusal of a stale or replayed decision across processes is the task store's,
-under its lease; the checks here before it are unlocked reads.
+imports Attune AI. The host's events, a render and an accept for each stage
+the acceptance walks, are written beside the task's ``decision.json`` as
+evidence; they never carry the action nonce, and a sink that fails never
+blocks a decision. An accept line records a workspace action the host
+consumed, not a grant: the grant is the store's record, written after it, and
+under contention the bind can still be refused. Refusal of a stale or replayed
+decision across processes is the task store's, under its lease; the checks
+here before it are unlocked reads.
+
+Step (b) of Task 4 (D23.2, D24) walks the workspace's execution stages
+instead of opening at ``executing``: the host opens at ``approval``; ``open``
+takes ``start_execution``, publishes Harness's readiness checks as the
+execution boundary's lifecycle receipts and, on ``PASS``, starts the task and
+publishes its result, which is the task gate the human decides at, as
+before. A ``BLOCKED`` receipt leaves the workspace at ``blocked``, retained
+as the decision; the caller refuses with the receipt's words, which are the
+words the bind refused with before. No Harness check produces
+``CHAIR_REQUIRED`` yet; that stage stays wired for the later mapping (D24).
+In the evidence file, the render and the accept of a stage the acceptance
+walked itself carry ``origin: walk``; a line without it is a view the human
+was shown or an action the human took.
 
 Task 4's first step (D20.1, D23) moved this module out of the bridge, whose
 remainder is the legacy plan reader, ``spec_legacy``. The class was
@@ -37,6 +51,7 @@ from .spec_workspace import SpecWorkspaceAdapter, SpecWorkspaceState
 from .task_contract import read_task
 from .work_contract import (
     SIGNALS,
+    _supported,
     bind_work_acceptance,
     check_work_fresh,
     create_work,
@@ -46,6 +61,11 @@ from .work_contract import (
 )
 
 SPEC_APPROVAL = {"id": "spec-approval", "kind": "human", "owner": "spec", "version": 1}
+BOUNDARY = "execution"
+
+
+def _receipt(gate_id, state, detail):
+    return {"gate_id": gate_id, "boundary": BOUNDARY, "state": state, "detail": detail}
 
 
 def import_plan(
@@ -137,12 +157,15 @@ class WorkAcceptance:
         if SPEC_APPROVAL not in self.supported:
             self.supported.append(SPEC_APPROVAL.copy())
         # Evidence of who saw what, when: one JSON line per render and per
-        # accepted action, beside decision.json. Never the nonce (D14).
-        self.host = CommandWorkspaceHost(
-            record_event=jsonl_event_writer(
-                Path(record["record_path"]).with_name("workspace-events.jsonl")
-            )
-        )
+        # accepted action, beside decision.json. Never the nonce (D14). A line
+        # for a stage the acceptance walks itself says so: ``origin: walk``.
+        sink = jsonl_event_writer(Path(record["record_path"]).with_name("workspace-events.jsonl"))
+        self._origin = None
+
+        def record_event(event):
+            sink({**event, "origin": self._origin} if self._origin else event)
+
+        self.host = CommandWorkspaceHost(record_event=record_event)
         self.decision = None
         acceptance = self
         request = record["request"]
@@ -178,9 +201,8 @@ class WorkAcceptance:
                     contract=digest(acceptance.binding),
                     area_options=(),
                     taken_slugs=(),
-                    stage="executing",
+                    stage="approval",
                     task_ids=(request["task_id"],),
-                    current=request["task_id"],
                     probes=(record["record_path"],),
                 )
 
@@ -208,6 +230,69 @@ class WorkAcceptance:
             raise ValueError("Work changed after the Spec decision was displayed")
         check_work_fresh(record)
         return record
+
+    def readiness(self, request):
+        """Harness's checks at the execution boundary, as the lifecycle gate's receipts (D24).
+
+        ``PASS`` or ``BLOCKED``; a ``BLOCKED`` detail is the text the bind
+        refuses with, so the words a user sees do not change. No Harness check
+        produces ``CHAIR_REQUIRED`` yet.
+        """
+        # In the bind's order, so the first blocking receipt is the bind's first refusal.
+        planner = any(a["role"] == "planner" for a in request["assignments"])
+        receipts = [
+            _receipt("planner-assignment", "PASS", "A planner is assigned")
+            if planner
+            else _receipt("planner-assignment", "BLOCKED", "A planner assignment is required")
+        ]
+        try:
+            _supported(request["controls"], self.supported)
+        except ValueError as exc:
+            receipts.append(_receipt("required-controls", "BLOCKED", str(exc)))
+        else:
+            receipts.append(
+                _receipt(
+                    "required-controls", "PASS", "Every required control has a supporting runner"
+                )
+            )
+        return receipts
+
+    @staticmethod
+    def _walk(render, action):
+        """The response for a stage the acceptance walks itself; the human's is the caller's."""
+        return {
+            "__elicitation_response__": True,
+            "title": render.record.view.title,
+            "view": render.record.view.id.value,
+            "action": action,
+            "confirmed": True,
+            **render.record.binding.to_payload(),
+        }
+
+    @staticmethod
+    def _display(result):
+        return {
+            "kind": "spec",
+            "title": result.record.view.title,
+            "markdown": result.render.markdown,
+            "actions": [
+                {
+                    "id": action.id,
+                    "label": action.label,
+                    "consequence": action.consequence,
+                    "requires_explicit_choice": action.requires_explicit_choice,
+                }
+                for action in result.record.view.actions
+            ],
+            "response_template": {
+                "__elicitation_response__": True,
+                "title": result.record.view.title,
+                "view": result.record.view.id.value,
+                "action": None,
+                "confirmed": False,
+                **result.record.binding.to_payload(),
+            },
+        }
 
     async def open(
         self,
@@ -242,7 +327,27 @@ class WorkAcceptance:
             )
             if notes:
                 review_detail += "\nPlanning review advice: " + " | ".join(notes)
-        view = await self.host.open("spec", {})
+        from .work_decisions import retain_decision
+
+        # The walk (D24): approval, start_execution, the execution boundary's
+        # gate with Harness's readiness checks as its receipts, then the task.
+        self._origin = "walk"
+        try:
+            view = await self.host.open("spec", {})
+            workspace = view.record.workspace_id
+            await self.host.collect(self._walk(view, "start_execution"), expected_adapter_id="spec")
+        finally:
+            self._origin = None
+        gated = await self.host.publish(
+            workspace,
+            {"kind": "lifecycle_gate", "boundary": BOUNDARY, "receipts": self.readiness(request)},
+        )
+        if gated.record.state.stage != "executing":
+            # Blocked (or chair-required, which nothing raises yet): the gate's
+            # view is the decision; its words are the caller's refusal.
+            self.decision = retain_decision(record, self._display(gated))
+            return gated
+        await self.host.publish(workspace, {"kind": "task_started", "task_id": request["task_id"]})
         event = {
             "kind": "task_result",
             "task_id": request["task_id"],
@@ -261,34 +366,8 @@ class WorkAcceptance:
         }
         if test_evidence is not None:
             event["test_evidence"] = test_evidence
-        result = await self.host.publish(view.record.workspace_id, event)
-        from .work_decisions import retain_decision
-
-        self.decision = retain_decision(
-            record,
-            {
-                "kind": "spec",
-                "title": result.record.view.title,
-                "markdown": result.render.markdown,
-                "actions": [
-                    {
-                        "id": action.id,
-                        "label": action.label,
-                        "consequence": action.consequence,
-                        "requires_explicit_choice": action.requires_explicit_choice,
-                    }
-                    for action in result.record.view.actions
-                ],
-                "response_template": {
-                    "__elicitation_response__": True,
-                    "title": result.record.view.title,
-                    "view": result.record.view.id.value,
-                    "action": None,
-                    "confirmed": False,
-                    **result.record.binding.to_payload(),
-                },
-            },
-        )
+        result = await self.host.publish(workspace, event)
+        self.decision = retain_decision(record, self._display(result))
         return result
 
     async def collect(self, payload):
