@@ -30,6 +30,8 @@ from attune_harness.spec_state import (
     clear_state,
     find_resumable_plans,
     load_state,
+    read_state,
+    read_state_report,
     save_state,
 )
 from attune_harness.spec_tasks import PLAN_LIMIT, read_spec
@@ -606,3 +608,74 @@ def test_invalid_receipt_container_is_visible_and_does_not_hide_other_plans(tmp_
     assert [s.plan_path for s in found] == [str(good)]
     assert "broken.md" in caplog.text
 
+
+# --- read_state_report: the comment read or ignored (spec authority Task 5) -----
+
+
+class TestReadStateReport:
+    """``read_state`` with an account of the comment; ``read_state`` itself is unchanged."""
+
+    def test_no_comment(self):
+        assert read_state_report(PLAN_WITHOUT_STATE, "plan.md") == {
+            "state": None,
+            "comment": False,
+            "schema_version": None,
+            "ignored": None,
+        }
+
+    def test_a_read_comment_is_the_state_read_state_returns(self):
+        report = read_state_report(PLAN_WITH_STATE, "plan.md")
+        assert report["state"] == read_state(PLAN_WITH_STATE, "plan.md")
+        assert report["state"].completed == ["1"]
+        assert (report["comment"], report["schema_version"], report["ignored"]) == (True, 1, None)
+
+    @pytest.mark.parametrize(
+        "fields, reason",
+        [
+            (dict(schema_version=2, completed="1,2"), "'completed' is not list[str]"),
+            (dict(schema_version=2, completed=[1, 2]), "'completed' is not list[str]"),
+            (dict(schema_version=2, completed=[], current=42), "'current' is not str|None"),
+        ],
+    )
+    def test_an_ignored_comment_names_its_reason_and_its_version(self, caplog, fields, reason):
+        text = "# Plan\n\n" + comment(**fields)
+        with caplog.at_level(logging.WARNING, logger=LOGGER):
+            report = read_state_report(text, "plan.md")
+        assert report == {"state": None, "comment": True, "schema_version": 2, "ignored": reason}
+        assert any("ignoring" in r.message for r in caplog.records)  # the warning is still given
+
+    def test_malformed_json_is_ignored_without_a_version(self, caplog):
+        text = "# Plan\n\n<!-- spec-state: {broken json here} -->"
+        with caplog.at_level(logging.WARNING, logger=LOGGER):
+            report = read_state_report(text, "plan.md")
+        assert report == {
+            "state": None,
+            "comment": True,
+            "schema_version": None,
+            "ignored": "malformed JSON",
+        }
+        assert any("Malformed spec-state" in r.message for r in caplog.records)
+
+    def test_a_non_object_payload_is_ignored(self, monkeypatch, caplog):
+        # As in TestLoadState: the pattern requires {...}, so loosen it to reach the guard.
+        loosened = re.compile(r"\n?<!-- spec-state:\s*(\S.*?)\s*-->\s*\Z", re.S)
+        monkeypatch.setattr(spec_state, "STATE_PATTERN", loosened)
+        with caplog.at_level(logging.WARNING, logger=LOGGER):
+            report = read_state_report("# Plan\n\n<!-- spec-state: [1, 2, 3] -->", "plan.md")
+        assert report == {
+            "state": None,
+            "comment": True,
+            "schema_version": None,
+            "ignored": "not a JSON object",
+        }
+
+    def test_the_refusals_are_read_state_s(self):
+        with pytest.raises(ValueError, match="newer than this Harness reads"):
+            read_state_report("# Plan\n\n" + comment(schema_version=3, completed=["1"]), "plan.md")
+        with pytest.raises(ValueError, match="task_receipts"):
+            read_state_report(
+                "# Plan\n\n" + comment(schema_version=2, completed=["1"], task_receipts=False),
+                "plan.md",
+            )
+        with pytest.raises(ValueError, match="Malformed or misplaced Spec state comment"):
+            read_state_report(comment(schema_version=2) + "\n" + TASKS, "plan.md")

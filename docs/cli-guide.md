@@ -73,11 +73,16 @@ D4): the plan is read once through `spec_state` (schema versions 1 and 2; any
 other is refused with the next action) and `spec_legacy`, converted exactly
 as the implicit import is, and the conversion leaves a receipt, one JSON line
 per conversion in `import-receipts.jsonl` beside `record.json`, with the path
-as given and resolved, the file's SHA-256, the schema version and state
-comment read, what was mapped, what was not, and the time; a `--reimport` of
-such a task appends a second line. The plan is only read. Without the flag a
-plan outside the project, or behind a symlink, is refused as before. The
-sequence with its envelope, its receipt and its refusals is
+as given (in the command line's normalised spelling) and as resolved, the
+file's SHA-256, the state comment read, or whether one was present and
+ignored, what was mapped, what was not, and the time. A `--reimport` of such
+a task, one whose bound plan lies outside the project, appends a second line;
+a receipts file that cannot take the line, full, linked or not a regular
+file, refuses the conversion before anything is saved, with the next action.
+A plan the flag names that resolves inside the project is refused: import it
+without the flag. The plan is only read. Without the flag a plan outside the
+project, or behind a symlink, is refused as before. The sequence with its
+envelope, its receipt and its refusals is
 [the R4 journey](journeys/r4-legacy-spec-state.md).
 For construction, freeze the supported effect manifest and protected verification
 commands before accepting the work. See [the contract](specs/plan-build/work-contract.md)

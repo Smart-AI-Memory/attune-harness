@@ -5,9 +5,12 @@ with ``--allow-outside-project`` accepts a plan file outside the project when
 it is named explicitly, reads it once through ``spec_state`` (schema versions
 1 and 2; anything else refused with the next action) and ``spec_legacy``,
 converts it exactly as the implicit import does, and appends one receipt line
-to ``import-receipts.jsonl`` beside the record. The originals are only read;
-the tests prove it by digest, by modification time and by the modes the
-readers open them with.
+to ``import-receipts.jsonl`` beside the record, its room checked before the
+record is saved. A plan the flag names that resolves inside the project is
+refused, so whether a task's conversions leave receipts follows the record,
+the bound plan outside the project, and never a file on disk. The originals
+are only read; the tests prove it by digest, by modification time and by the
+modes the readers open them with.
 
 The fixtures under ``tests/fixtures/plans`` are one plan from attune-ai's own
 ``.claude/plans`` and the seven Harness plans of the Task 2 differential, each
@@ -16,7 +19,9 @@ plans name their outputs as absolute paths into a second checkout, which the
 work store's intent rule can never scope, on either path; both readers read
 them, and the conversion is refused in the store's own words, the same words
 the implicit import refuses them with. Every test that edits a plan works on a
-copy.
+copy. The tests on the receipts file's obstacles, the landed-but-unreceipted
+revision, the deleted and the planted receipts file and the ignored state
+comment come from the different-model review of #115.
 """
 
 # qualify: platform
@@ -26,21 +31,25 @@ import hashlib
 import json
 import os
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
+from attune_harness import work_accept
 from attune_harness.cli import main
+from attune_harness.review_contract import digest
 from attune_harness.spec_legacy import legacy_plan, read_plan
 from attune_harness.spec_state import load_state, read_state
 from attune_harness.task_contract import read_task
-from attune_harness.work_accept import RECEIPTS, import_plan
+from attune_harness.work_accept import RECEIPT_LIMIT, RECEIPTS, import_plan
 from test_work_cli_plan_import import PLAN, edit_before_the_state_comment
 from test_work_contract import work  # noqa: F401  (fixture)
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "plans"
 PLANS = sorted(FIXTURES.glob("*/*.md"))
 IDS = [f"{p.parent.name}/{p.stem}" for p in PLANS]
+EXTERNAL = FIXTURES / "attune-ai" / "chart-widget-kernel.md"
 ORIGIN_KEYS = {
     "repository",
     "branch",
@@ -58,6 +67,7 @@ ORIGIN_KEYS = {
 UNSCOPED = {"release-readiness-follow-through", "shared-memory-adoption"}
 UNSCOPED_TEXT = "Expected a canonical relative file path outside metadata"
 STATE_PLACEHOLDER = '{"schema_version": 2, "completed": []}'
+PROBE_SCOPE = ["alpha.py", "source.py"]
 
 
 def origin(plan):
@@ -68,13 +78,16 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def outputs(plan):
-    return {
-        f["path"]
+def outputs_by_task(plan):
+    """Each task's outputs as the store should hold them: files to create, then to modify."""
+    return [
+        [f["path"] for key in ("files_to_create", "files_to_modify") for f in task[key]]
         for task in legacy_plan(plan)["tasks"]
-        for key in ("files_to_create", "files_to_modify")
-        for f in task[key]
-    }
+    ]
+
+
+def outputs(plan):
+    return {path for paths in outputs_by_task(plan) for path in paths}
 
 
 def request_file(tmp_path, data, scope):
@@ -122,11 +135,33 @@ def imported(work, tmp_path, capsys, plan, *flags, scope=None, name="work"):
     return directory, run(import_argv(work, request, directory, plan, *flags), capsys)
 
 
+def reimported(directory, capsys):
+    checkpoint = read_task(directory)["checkpoint_digest"]
+    return run(["plan", "--task-dir", directory, "--reimport", "--checkpoint", checkpoint], capsys)
+
+
 def written_plan(tmp_path, state, name="plan.md"):
     """The two-task probe plan of the import tests, with its state comment replaced."""
     target = tmp_path / "elsewhere" / name
     target.parent.mkdir(exist_ok=True)
     target.write_text(PLAN.replace(STATE_PLACEHOLDER, state), encoding="utf-8")
+    return target
+
+
+def inside_plan(work, name="probe.md"):
+    """The probe plan written inside the project, where the implicit import takes it."""
+    root, _, _ = work
+    target = root / "plans" / name
+    target.parent.mkdir(exist_ok=True)
+    target.write_text(PLAN, encoding="utf-8")
+    return target
+
+
+def external_copy(tmp_path):
+    """A copy of the attune-ai fixture outside the project, for the tests that edit it."""
+    target = tmp_path / "elsewhere" / EXTERNAL.name
+    target.parent.mkdir(exist_ok=True)
+    shutil.copyfile(EXTERNAL, target)
     return target
 
 
@@ -184,9 +219,11 @@ def test_r4_receipt_for_every_fixture_plan(work, tmp_path, capsys, monkeypatch, 
     # Named as typed: a bare file name from the plan's own directory, which the
     # import resolves; the receipt records both spellings.
     monkeypatch.chdir(plan.parent)
+    before = datetime.now(timezone.utc)
     directory, (code, envelope) = imported(
         work, tmp_path, capsys, Path(plan.name), "--allow-outside-project"
     )
+    after = datetime.now(timezone.utc)
     if plan.stem in UNSCOPED:
         assert code == 2 and envelope["status"] == "failed"
         assert envelope["error"]["detail"] == UNSCOPED_TEXT
@@ -197,25 +234,37 @@ def test_r4_receipt_for_every_fixture_plan(work, tmp_path, capsys, monkeypatch, 
     record = read_task(directory)
     assert record["status"] == "draft" and record["acceptance"] is None  # completed grants nothing
     assert [t["id"] for t in record["request"]["tasks"]] == recorded["tasks"]
-    assert envelope["import_disclosures"] == record["request"]["legacy"]["unsupported"]
+    # Every task's outputs are its files to create and its files to modify, in that order.
+    expected = outputs_by_task(plan)
+    assert [t["outputs"] for t in record["request"]["tasks"]] == expected
+    unsupported = record["request"]["legacy"]["unsupported"]
+    assert envelope["import_disclosures"] == unsupported
 
     [receipt] = receipts(directory)
     assert receipt["receipt"] == "legacy-plan-conversion" and receipt["schema_version"] == 1
     assert receipt["conversion"] == "import"
-    assert receipt["source"]["sha256"] == sha256(plan) == recorded["sha256"]
+    # The receipt against the file; the origin test ties the file to its sidecar.
+    assert receipt["source"]["sha256"] == sha256(plan)
     assert receipt["source"]["content_sha256"] == record["request"]["legacy"]["content_sha256"]
     assert receipt["source"]["given"] == plan.name
     assert (
         receipt["source"]["resolved"] == str(plan.resolve()) == record["request"]["legacy"]["path"]
     )
-    assert receipt["source"]["bytes"] == plan.stat().st_size == recorded["bytes"]
-    assert receipt["source"]["inside_project"] is False
+    assert receipt["source"]["bytes"] == plan.stat().st_size
+    assert set(receipt["source"]) == {"given", "resolved", "sha256", "content_sha256", "bytes"}
+    assert receipt["state_comment"] == {
+        "present": True,
+        "schema_version": recorded["schema_version"],
+        "ignored": None,
+    }
     assert receipt["spec_state"]["schema_version"] == recorded["schema_version"]
     assert receipt["spec_state"]["completed"] == load_state(str(plan)).completed
     assert [m["id"] for m in receipt["mapped"]] == recorded["tasks"]
-    assert len(receipt["mapped"]) == len(record["request"]["tasks"])
+    assert [m["outputs"] for m in receipt["mapped"]] == [len(paths) for paths in expected]
     assert all(m["checks"] >= 1 and m["objective"] for m in receipt["mapped"])
-    assert receipt["unmapped"]["disclosures"] == record["request"]["legacy"]["unsupported"]
+    disclosures = receipt["unmapped"]["disclosures"]
+    assert disclosures["count"] == len(unsupported) == sum(disclosures["kinds"].values())
+    assert disclosures["sha256"] == digest(unsupported)
     assert receipt["approval_imported"] is False
     assert receipt["task"] == {
         "task_id": record["request"]["task_id"],
@@ -223,7 +272,7 @@ def test_r4_receipt_for_every_fixture_plan(work, tmp_path, capsys, monkeypatch, 
         "record_path": record["record_path"],
         "checkpoint_digest": record["checkpoint_digest"],
     }
-    assert receipt["time"].endswith("+00:00")
+    assert before <= datetime.fromisoformat(receipt["time"]) <= after
 
 
 def test_the_receipt_names_what_the_store_has_no_place_for(work, tmp_path, capsys):
@@ -245,6 +294,33 @@ def test_the_receipt_names_what_the_store_has_no_place_for(work, tmp_path, capsy
         "last_updated": load_state(str(plan)).last_updated,
         "task_receipts": 7,
     }
+
+
+def test_the_receipt_counts_the_disclosures_by_kind_and_digests_them(work, tmp_path, capsys):
+    """The record keeps the disclosures in full; the receipt keeps their count, kinds and digest."""
+    plan = tmp_path / "elsewhere" / "plan.md"
+    plan.parent.mkdir()
+    plan.write_text(
+        "# Prose before the task\n\n"
+        '<task id="1" name="t" priority="high"><objective>x</objective>'
+        '<files-to-create><file path="alpha.py">m</file></files-to-create>'
+        "<validation><check>c</check></validation><notes>keep</notes>"
+        '<risks><risk severity="low"><b>nested</b></risk></risks></task>\n',
+        encoding="utf-8",
+    )
+    directory, (code, _) = imported(
+        work, tmp_path, capsys, plan, "--allow-outside-project", scope=PROBE_SCOPE
+    )
+    assert code == 0
+    unsupported = read_task(directory)["request"]["legacy"]["unsupported"]
+    assert len(unsupported) == 4
+    [receipt] = receipts(directory)
+    assert receipt["unmapped"]["disclosures"] == {
+        "count": 4,
+        "kinds": {"surrounding": 1, "nested": 1, "attributes": 1, "elements": 1},
+        "sha256": digest(unsupported),
+    }
+    assert receipt["unmapped"]["fields"] == {"1": ["name", "risks", "file descriptions"]}
 
 
 @pytest.mark.parametrize("plan", PLANS, ids=IDS)
@@ -306,6 +382,20 @@ def test_the_explicit_import_reads_the_plan_once(work, tmp_path, monkeypatch, pl
     assert opened == ["rb"], opened
 
 
+def test_the_given_path_is_recorded_as_typed_and_normalised(work, tmp_path, capsys, monkeypatch):
+    """The command line's Path normalises what was typed; the receipt records that spelling."""
+    plan = external_copy(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    typed = "./elsewhere//" + plan.name
+    directory, (code, _) = imported(
+        work, tmp_path, capsys, typed, "--allow-outside-project", scope=outputs(plan)
+    )
+    assert code == 0
+    [receipt] = receipts(directory)
+    assert receipt["source"]["given"] == str(Path(typed))
+    assert receipt["source"]["resolved"] == str(plan.resolve())
+
+
 # --- the refusals ----------------------------------------------------------------
 
 
@@ -328,7 +418,7 @@ def test_an_unknown_schema_version_is_refused_with_a_next_action_and_no_task(
 ):
     plan = written_plan(tmp_path, state)
     directory, (code, envelope) = imported(
-        work, tmp_path, capsys, plan, "--allow-outside-project", scope=["alpha.py", "source.py"]
+        work, tmp_path, capsys, plan, "--allow-outside-project", scope=PROBE_SCOPE
     )
     assert code == 2 and envelope["status"] == "failed"
     detail = envelope["error"]["detail"]
@@ -339,15 +429,11 @@ def test_an_unknown_schema_version_is_refused_with_a_next_action_and_no_task(
 
 def test_the_implicit_import_keeps_its_own_refusal_for_an_unknown_version(work, tmp_path, capsys):
     """Inside the project, without the flag, the reader's contract text is unchanged (D20.1)."""
-    root, _, _ = work
-    inside = root / "plans" / "probe.md"
-    inside.parent.mkdir(exist_ok=True)
+    inside = inside_plan(work)
     inside.write_text(
         PLAN.replace(STATE_PLACEHOLDER, '{"schema_version": 3, "completed": []}'), encoding="utf-8"
     )
-    directory, (code, envelope) = imported(
-        work, tmp_path, capsys, inside, scope=["alpha.py", "source.py"]
-    )
+    directory, (code, envelope) = imported(work, tmp_path, capsys, inside, scope=PROBE_SCOPE)
     assert code == 2
     assert envelope["error"]["detail"] == "Unsupported Spec state comment"
     assert not directory.exists()
@@ -358,9 +444,7 @@ def test_the_implicit_refusals_for_outside_and_symlinked_plans_are_unchanged(
 ):
     root, _, _ = work
     outside = written_plan(tmp_path, STATE_PLACEHOLDER)
-    directory, (code, envelope) = imported(
-        work, tmp_path, capsys, outside, scope=["alpha.py", "source.py"]
-    )
+    directory, (code, envelope) = imported(work, tmp_path, capsys, outside, scope=PROBE_SCOPE)
     assert code == 2
     assert envelope["error"]["detail"] == "Legacy plan must be a regular file inside the project"
     assert not directory.exists()
@@ -372,28 +456,54 @@ def test_the_implicit_refusals_for_outside_and_symlinked_plans_are_unchanged(
     except (OSError, NotImplementedError) as exc:  # no symlink privilege here
         pytest.skip(f"symlinks unavailable: {exc}")
     directory, (code, envelope) = imported(
-        work, tmp_path, capsys, link, scope=["alpha.py", "source.py"], name="linked"
+        work, tmp_path, capsys, link, scope=PROBE_SCOPE, name="linked"
     )
     assert code == 2
     assert envelope["error"]["detail"] == "Legacy plan must be a regular file inside the project"
     assert not directory.exists()
 
 
-def test_the_explicit_path_follows_a_symlink_and_records_both_paths(work, tmp_path, capsys):
-    target = FIXTURES / "attune-ai" / "chart-widget-kernel.md"
+def test_the_flag_on_a_plan_inside_the_project_is_refused(work, tmp_path, capsys):
+    """The flag names a plan outside the project; one inside it is the implicit import's."""
+    inside = inside_plan(work)
+    directory, (code, envelope) = imported(
+        work, tmp_path, capsys, inside, "--allow-outside-project", scope=PROBE_SCOPE
+    )
+    assert code == 2 and envelope["status"] == "failed"
+    assert envelope["error"]["detail"] == (
+        f"Legacy plan resolves inside the project: {inside.resolve()}. "
+        "Import that path without --allow-outside-project."
+    )
+    assert not directory.exists()
+    # A symlink outside the project to a plan inside it resolves inside it too;
+    # the refusal names the target, the path the implicit import takes.
     link = tmp_path / "link.md"
     try:
-        link.symlink_to(target)
+        link.symlink_to(inside)
+    except (OSError, NotImplementedError) as exc:  # no symlink privilege here
+        pytest.skip(f"symlinks unavailable: {exc}")
+    directory, (code, envelope) = imported(
+        work, tmp_path, capsys, link, "--allow-outside-project", scope=PROBE_SCOPE, name="linked"
+    )
+    assert code == 2
+    assert str(inside.resolve()) in envelope["error"]["detail"]
+    assert not directory.exists()
+
+
+def test_the_explicit_path_follows_a_symlink_and_records_both_paths(work, tmp_path, capsys):
+    link = tmp_path / "link.md"
+    try:
+        link.symlink_to(EXTERNAL)
     except (OSError, NotImplementedError) as exc:  # no symlink privilege here
         pytest.skip(f"symlinks unavailable: {exc}")
     directory, (code, _) = imported(
-        work, tmp_path, capsys, link, "--allow-outside-project", scope=outputs(target)
+        work, tmp_path, capsys, link, "--allow-outside-project", scope=outputs(EXTERNAL)
     )
     assert code == 0
     [receipt] = receipts(directory)
     assert receipt["source"]["given"] == str(link)
-    assert receipt["source"]["resolved"] == str(target.resolve())
-    assert read_task(directory)["request"]["legacy"]["path"] == str(target.resolve())
+    assert receipt["source"]["resolved"] == str(EXTERNAL.resolve())
+    assert read_task(directory)["request"]["legacy"]["path"] == str(EXTERNAL.resolve())
 
 
 def test_the_flag_without_import_plan_is_refused(work, tmp_path, capsys):
@@ -419,14 +529,49 @@ def test_the_flag_without_import_plan_is_refused(work, tmp_path, capsys):
     assert not (tmp_path / "work").exists()
 
 
+# --- the state comment, read, ignored or absent -----------------------------------
+
+
+@pytest.mark.parametrize(
+    "comment, expected",
+    [
+        (
+            '{"schema_version": 2, "completed": "T1"}',
+            {"present": True, "schema_version": 2, "ignored": "'completed' is not list[str]"},
+        ),
+        (
+            '{"schema_version": 2, "completed": [], "current": 5}',
+            {"present": True, "schema_version": 2, "ignored": "'current' is not str|None"},
+        ),
+        (None, {"present": False, "schema_version": None, "ignored": None}),
+    ],
+)
+def test_a_comment_the_reader_ignores_and_a_plan_without_one_are_told_apart(
+    work, tmp_path, capsys, comment, expected
+):
+    """``spec_state`` is null in both cases, as the carried reader has it; the receipt says which."""
+    plan = tmp_path / "elsewhere" / "plan.md"
+    plan.parent.mkdir()
+    body = PLAN.split("<!-- spec-state:")[0]
+    plan.write_text(
+        body + (f"<!-- spec-state: {comment} -->\n" if comment is not None else ""),
+        encoding="utf-8",
+    )
+    directory, (code, _) = imported(
+        work, tmp_path, capsys, plan, "--allow-outside-project", scope=PROBE_SCOPE
+    )
+    assert code == 0
+    [receipt] = receipts(directory)
+    assert receipt["spec_state"] is None
+    assert receipt["state_comment"] == expected
+
+
 # --- the conversion, twice ---------------------------------------------------------
 
 
 def test_a_second_conversion_appends_a_second_receipt(work, tmp_path, capsys):
-    """A reimport of a receipted task is a second line; the first line is untouched."""
-    plan = tmp_path / "elsewhere" / "chart-widget-kernel.md"
-    plan.parent.mkdir()
-    shutil.copyfile(FIXTURES / "attune-ai" / "chart-widget-kernel.md", plan)
+    """A reimport of an outside-project plan is a second line; the first line is untouched."""
+    plan = external_copy(tmp_path)
     directory, (code, _) = imported(work, tmp_path, capsys, plan, "--allow-outside-project")
     assert code == 0
     first = (directory / RECEIPTS).read_text(encoding="utf-8")
@@ -434,9 +579,7 @@ def test_a_second_conversion_appends_a_second_receipt(work, tmp_path, capsys):
 
     edit_before_the_state_comment(plan, "<!-- edited after import -->\n")
     edited = sha256(plan)
-    code, envelope = run(
-        ["plan", "--task-dir", directory, "--reimport", "--checkpoint", checkpoint], capsys
-    )
+    code, envelope = reimported(directory, capsys)
     assert code == 0, envelope
     text = (directory / RECEIPTS).read_text(encoding="utf-8")
     assert text.startswith(first)  # appended, never overwritten
@@ -447,48 +590,160 @@ def test_a_second_conversion_appends_a_second_receipt(work, tmp_path, capsys):
     assert (
         two["source"]["given"] == two["source"]["resolved"] == record["request"]["legacy"]["path"]
     )
+    # The state was read again, on the edited bytes, through spec_state.
+    state = load_state(str(plan))
+    assert two["spec_state"] == {
+        "schema_version": state.schema_version,
+        "completed": state.completed,
+        "current": state.current,
+        "auto_run": state.auto_run,
+        "last_updated": state.last_updated,
+        "task_receipts": len(state.task_receipts),
+    }
+    assert two["state_comment"] == {"present": True, "schema_version": 1, "ignored": None}
     assert two["task"]["revision"] == record["request"]["revision"] == 2
     assert two["task"]["checkpoint_digest"] == record["checkpoint_digest"] != checkpoint
     assert sha256(plan) == edited  # the reimport only read it
 
 
-def test_a_reimport_of_an_implicit_import_leaves_no_receipt(work, tmp_path, capsys):
-    """The receipt file marks a receipted task; the implicit import is as before."""
-    root, _, _ = work
-    inside = root / "plans" / "probe.md"
-    inside.parent.mkdir(exist_ok=True)
-    inside.write_text(PLAN, encoding="utf-8")
-    directory, (code, _) = imported(work, tmp_path, capsys, inside, scope=["alpha.py", "source.py"])
-    assert code == 0
-    assert not (directory / RECEIPTS).exists()
-    edit_before_the_state_comment(inside, "<!-- edited after import -->\n")
-    checkpoint = read_task(directory)["checkpoint_digest"]
-    code, _ = run(
-        ["plan", "--task-dir", directory, "--reimport", "--checkpoint", checkpoint], capsys
-    )
-    assert code == 0
-    assert not (directory / RECEIPTS).exists()
-
-
-def test_a_receipt_the_writer_refuses_is_reported_after_the_conversion_landed(
-    work, tmp_path, capsys
-):
-    """The record is the authority and is saved first; a refused receipt is an error, never silent."""
-    plan = tmp_path / "elsewhere" / "chart-widget-kernel.md"
-    plan.parent.mkdir()
-    shutil.copyfile(FIXTURES / "attune-ai" / "chart-widget-kernel.md", plan)
+def test_a_reimport_refuses_an_unknown_schema_version_in_spec_state_s_words(work, tmp_path, capsys):
+    """The reimport reads the state through spec_state too: exit 2, nothing changed."""
+    plan = external_copy(tmp_path)
     directory, (code, _) = imported(work, tmp_path, capsys, plan, "--allow-outside-project")
     assert code == 0
     checkpoint = read_task(directory)["checkpoint_digest"]
-    os.remove(directory / RECEIPTS)
-    (directory / RECEIPTS).mkdir()  # the writer's open fails on every platform
-    edit_before_the_state_comment(plan, "<!-- edited after import -->\n")
-    code, envelope = run(
-        ["plan", "--task-dir", directory, "--reimport", "--checkpoint", checkpoint], capsys
-    )
+    text = plan.read_text(encoding="utf-8")
+    assert text.count('"schema_version": 1') == 1
+    plan.write_text(text.replace('"schema_version": 1', '"schema_version": 3'), encoding="utf-8")
+    code, envelope = reimported(directory, capsys)
     assert code == 2 and envelope["status"] == "failed"
-    assert RECEIPTS in envelope["error"]["detail"]
+    detail = envelope["error"]["detail"]
+    assert detail.startswith("Unsupported Spec state comment in ")
+    assert "newer than this Harness reads" in detail
+    record = read_task(directory)
+    assert record["request"]["revision"] == 1 and record["checkpoint_digest"] == checkpoint
+    assert len(receipts(directory)) == 1
+
+
+def test_a_reimport_recreates_a_deleted_receipts_file(work, tmp_path, capsys):
+    """The record decides: a bound plan outside the project is receipted, file or no file."""
+    plan = external_copy(tmp_path)
+    directory, (code, _) = imported(work, tmp_path, capsys, plan, "--allow-outside-project")
+    assert code == 0
+    os.remove(directory / RECEIPTS)
+    edit_before_the_state_comment(plan, "<!-- edited after import -->\n")
+    code, envelope = reimported(directory, capsys)
+    assert code == 0, envelope
+    [receipt] = receipts(directory)
+    assert receipt["conversion"] == "reimport"
+    assert receipt["task"]["revision"] == read_task(directory)["request"]["revision"] == 2
+
+
+def test_a_planted_receipts_file_gives_an_implicit_reimport_no_receipt(work, tmp_path, capsys):
+    """The record decides the other way too: a plan inside the project is never receipted."""
+    inside = inside_plan(work)
+    directory, (code, _) = imported(work, tmp_path, capsys, inside, scope=PROBE_SCOPE)
+    assert code == 0
+    (directory / RECEIPTS).write_bytes(b"")
+    edit_before_the_state_comment(inside, "<!-- edited after import -->\n")
+    code, envelope = reimported(directory, capsys)
+    assert code == 0, envelope
     assert read_task(directory)["request"]["revision"] == 2
+    assert (directory / RECEIPTS).read_bytes() == b""
+
+
+def test_a_reimport_of_an_implicit_import_leaves_no_receipt(work, tmp_path, capsys):
+    inside = inside_plan(work)
+    directory, (code, _) = imported(work, tmp_path, capsys, inside, scope=PROBE_SCOPE)
+    assert code == 0
+    assert not (directory / RECEIPTS).exists()
+    edit_before_the_state_comment(inside, "<!-- edited after import -->\n")
+    code, _ = reimported(directory, capsys)
+    assert code == 0
+    assert not (directory / RECEIPTS).exists()
+
+
+# --- the receipts file's obstacles ---------------------------------------------------
+
+
+@pytest.mark.parametrize("obstacle", ["a directory", "a full file", "a symlink", "a hard link"])
+def test_a_receipts_file_that_cannot_take_the_line_refuses_before_the_record_is_saved(
+    work, tmp_path, capsys, obstacle
+):
+    plan = external_copy(tmp_path)
+    directory, (code, _) = imported(work, tmp_path, capsys, plan, "--allow-outside-project")
+    assert code == 0
+    target = directory / RECEIPTS
+    first = target.read_bytes()
+    checkpoint = read_task(directory)["checkpoint_digest"]
+    kept = target
+    if obstacle == "a directory":
+        os.remove(target)
+        target.mkdir()
+        expected = "is not a regular file"
+    elif obstacle == "a full file":
+        # Room for less than one line: the first line, then a padding line to
+        # sixteen bytes short of the bound.
+        room = RECEIPT_LIMIT - 16 - len(first) - 12
+        target.write_bytes(first + b'{"pad": "' + b"x" * room + b'"}\n')
+        assert target.stat().st_size == RECEIPT_LIMIT - 16
+        expected = "would pass"
+    elif obstacle == "a symlink":
+        kept = target.with_name("elsewhere.jsonl")
+        target.rename(kept)
+        try:
+            target.symlink_to(kept)
+        except (OSError, NotImplementedError) as exc:  # no symlink privilege here
+            pytest.skip(f"symlinks unavailable: {exc}")
+        expected = "is, or sits in, a symlink"
+    else:
+        try:
+            os.link(target, target.with_name("other.jsonl"))
+        except (OSError, NotImplementedError, AttributeError) as exc:
+            pytest.skip(f"hard links unavailable: {exc}")
+        expected = "has more than one link"
+    edit_before_the_state_comment(plan, "<!-- edited after import -->\n")
+    code, envelope = reimported(directory, capsys)
+    assert code == 2 and envelope["status"] == "failed"
+    detail = envelope["error"]["detail"]
+    assert detail.startswith("Conversion receipt") and expected in detail, detail
+    assert "Nothing was changed" in detail
+    record = read_task(directory)
+    assert record["request"]["revision"] == 1 and record["checkpoint_digest"] == checkpoint
+    if obstacle == "a full file":
+        assert target.stat().st_size == RECEIPT_LIMIT - 16
+    elif obstacle != "a directory":
+        assert kept.read_bytes() == first
+
+
+def test_a_receipt_refused_after_the_save_names_the_landed_revision(
+    work, tmp_path, capsys, monkeypatch
+):
+    """What the room check cannot foresee, a race or the lock, is reported with the revision."""
+    plan = external_copy(tmp_path)
+    directory, (code, _) = imported(work, tmp_path, capsys, plan, "--allow-outside-project")
+    assert code == 0
+    checkpoint = read_task(directory)["checkpoint_digest"]
+
+    def refusing_writer(path, **kwargs):
+        def write(event):
+            raise OSError("the lock timed out")
+
+        return write
+
+    monkeypatch.setattr(work_accept, "jsonl_event_writer", refusing_writer)
+    edit_before_the_state_comment(plan, "<!-- edited after import -->\n")
+    code, envelope = reimported(directory, capsys)
+    assert code == 2 and envelope["status"] == "failed"
+    record = read_task(directory)
+    assert record["request"]["revision"] == 2 and record["checkpoint_digest"] != checkpoint
+    detail = envelope["error"]["detail"]
+    assert detail.startswith(
+        f"The conversion landed as revision 2 with checkpoint {record['checkpoint_digest']}, "
+        "but its receipt was not written: the lock timed out."
+    )
+    assert "reimport with this checkpoint" in detail
+    assert len(receipts(directory)) == 1
 
 
 # --- the differential: explicit against implicit -----------------------------------

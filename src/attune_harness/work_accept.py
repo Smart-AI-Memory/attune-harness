@@ -37,21 +37,23 @@ changelog line renames it.
 """
 
 import copy
+import json
 import os
 from collections.abc import Mapping
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .command_workspace import (
+    EVENT_FILE_LIMIT,
     CommandWorkspaceHost,
     CommandWorkspaceProjection,
     jsonl_event_writer,
 )
 from .review_contract import digest
 from .spec_legacy import legacy_plan, read_plan
-from .spec_state import read_state
+from .spec_state import read_state_report
 from .spec_workspace import SpecWorkspaceAdapter, SpecWorkspaceState
-from .task_contract import read_task
+from .task_contract import read_task, safe_storage
 from .work_contract import (
     SIGNALS,
     _supported,
@@ -65,8 +67,16 @@ from .work_contract import (
 
 SPEC_APPROVAL = {"id": "spec-approval", "kind": "human", "owner": "spec", "version": 1}
 BOUNDARY = "execution"
-# One JSON line per conversion of a plan named explicitly, beside record.json.
+# One JSON line per conversion of a plan outside the project, beside record.json,
+# through the workspace events' writer and under its bound.
 RECEIPTS = "import-receipts.jsonl"
+RECEIPT_LIMIT = EVENT_FILE_LIMIT
+# What a receipt learns only from the saved record, each value at its longest,
+# so the room check before the save bounds the line the writer will see.
+_LONGEST = {
+    "task": {"task_id": "0" * 36, "revision": 32, "checkpoint_digest": "0" * 64},
+    "time": "0" * 32,
+}
 
 
 def _receipt(gate_id, state, detail):
@@ -102,8 +112,154 @@ def _read_for_receipt(path):
     then the tasks through ``spec_legacy``, on the same text.
     """
     raw = read_plan(path)
-    state = read_state(raw, str(path))
-    return raw, state, legacy_plan(path, raw=raw)
+    report = read_state_report(raw, str(path))
+    return raw, report, legacy_plan(path, raw=raw)
+
+
+def _outside(path, project_root):
+    """Whether a bound plan lies outside the project, which only the explicit path allows."""
+    return not Path(path).is_relative_to(project_root)
+
+
+def _line(receipt):
+    # As the writer serializes a line, so the room check measures what it will see.
+    return (json.dumps(receipt, ensure_ascii=True, allow_nan=False, sort_keys=True) + "\n").encode(
+        "ascii"
+    )
+
+
+def _conversion(conversion, *, given, raw, report, legacy, tasks):
+    """The receipt of one conversion, before the record's identity and the time.
+
+    What was read: the path as given (normalised by the command line) and as
+    resolved, the file's digest and the content digest the record binds, the
+    state comment as ``spec_state`` reads it, and whether a comment was
+    present and, if the reader ignored it, why. What it became: each task in
+    the store's shape, by count. What was left out: per task, the parsed
+    fields the shape has no place for, which stay in the record's ``legacy``
+    block; and the reader's disclosures by count, kind and digest, since the
+    record keeps them in full in ``legacy.unsupported`` and a receipt that
+    repeated them would grow with the plan's prose.
+    """
+    left_out = {}
+    for task in legacy["tasks"]:
+        fields = []
+        if task["name"] != task["task_id"]:
+            fields.append("name")
+        if task["risks"]:
+            fields.append("risks")
+        if any(
+            f["description"]
+            for key in ("files_to_create", "files_to_modify")
+            for f in task[key]
+        ):
+            fields.append("file descriptions")
+        if fields:
+            left_out[task["task_id"]] = fields
+    disclosures = legacy["unsupported"]
+    kinds = {"surrounding": 0, "nested": 0, "attributes": 0, "elements": 0}
+    for item in disclosures:
+        if item.startswith("Unmapped surrounding content: "):
+            kinds["surrounding"] += 1
+        elif item.startswith("Unmapped nested content: "):
+            kinds["nested"] += 1
+        elif item.startswith("Unsupported task attributes: "):
+            kinds["attributes"] += 1
+        else:
+            kinds["elements"] += 1
+    state = report["state"]
+    spec_state = None
+    if state is not None:
+        spec_state = {
+            "schema_version": state.schema_version,
+            "completed": state.completed,
+            "current": state.current,
+            "auto_run": state.auto_run,
+            "last_updated": state.last_updated,
+            "task_receipts": len(state.task_receipts),
+        }
+    return {
+        "schema_version": 1,
+        "receipt": "legacy-plan-conversion",
+        "conversion": conversion,
+        "source": {
+            "given": given,
+            "resolved": legacy["path"],
+            "sha256": legacy["source_sha256"],
+            "content_sha256": legacy["content_sha256"],
+            "bytes": len(raw.encode("utf-8")),
+        },
+        "state_comment": {
+            "present": report["comment"],
+            "schema_version": report["schema_version"],
+            "ignored": report["ignored"],
+        },
+        "spec_state": spec_state,
+        "mapped": [
+            {
+                "id": task["id"],
+                "objective": bool(task["objective"]),
+                "dependencies": len(task["dependencies"]),
+                "outputs": len(task["outputs"]),
+                "checks": len(task["checks"]),
+            }
+            for task in tasks
+        ],
+        "unmapped": {
+            "fields": left_out,
+            "disclosures": {
+                "count": len(disclosures),
+                "kinds": kinds,
+                "sha256": digest(disclosures),
+            },
+        },
+        "approval_imported": legacy["approval_imported"],
+    }
+
+
+def _receipt_room(task_directory, receipt):
+    """Refuse, before the record is saved, a receipt the writer would refuse after it.
+
+    The writer refuses a symlinked or hard-linked file and a line that would
+    pass its bound, and its open fails on a file that is not regular. Each is
+    checked here first, with the receipt's unknown values at their longest,
+    so the common case is refused with nothing written. What can still fail
+    after the save, a race or the lock, ``_record_conversion`` reports.
+    """
+    target = Path(task_directory) / RECEIPTS
+    if target.is_symlink() or target.parent.is_symlink():
+        raise ValueError(
+            f"Conversion receipt cannot be written: {target} is, or sits in, a symlink. "
+            "Nothing was changed. Remove the link; the next conversion starts a new "
+            "receipts file."
+        )
+    size = 0
+    if target.exists():
+        if not target.is_file():
+            raise ValueError(
+                f"Conversion receipt cannot be written: {target} is not a regular file. "
+                "Nothing was changed. Move it aside; the next conversion starts a new "
+                "receipts file."
+            )
+        detail = target.stat()
+        if detail.st_nlink > 1:
+            raise ValueError(
+                f"Conversion receipt cannot be written: {target} has more than one link. "
+                "Nothing was changed. Remove the other link, or move the file aside; the "
+                "next conversion starts a new receipts file."
+            )
+        size = detail.st_size
+    longest = {
+        **receipt,
+        "time": _LONGEST["time"],
+        "task": {**_LONGEST["task"], "record_path": str(target.with_name("record.json"))},
+    }
+    if size + len(_line(longest)) > RECEIPT_LIMIT:
+        raise ValueError(
+            f"Conversion receipt would not fit: {target} would pass {RECEIPT_LIMIT} bytes. "
+            "Nothing was changed. Move the receipts file aside to archive it; the next "
+            "conversion starts a new one."
+        )
 
 
 def import_plan(
@@ -121,21 +277,36 @@ def import_plan(
     """Import supported legacy task fields as a draft; old approval grants nothing.
 
     The plan is a regular file inside the project, unless
-    ``allow_outside_project`` names it explicitly (spec authority Task 5; D4,
-    D20.3): then it may be any regular file, a symlink followed and recorded,
-    read once through ``spec_state`` and ``spec_legacy``, and the conversion
-    leaves a receipt beside the record. Either way the plan is only read.
+    ``allow_outside_project`` names one outside it explicitly (spec authority
+    Task 5; D4, D20.3): then it is read once through ``spec_state`` and
+    ``spec_legacy``, a symlink followed and both spellings recorded, and the
+    conversion leaves a receipt beside the record, its room checked before
+    the record is saved. A plan the flag names that resolves inside the
+    project is refused, so that a receipt follows the record, the bound plan
+    outside the project, and never the flag. Either way the plan is only read.
     """
     root = Path(project_root).resolve()
     source = Path(path).absolute()
     if allow_outside_project:
-        raw, state, legacy = _read_for_receipt(source)
+        resolved = source.resolve()
+        if resolved.is_relative_to(root):
+            raise ValueError(
+                f"Legacy plan resolves inside the project: {resolved}. "
+                "Import that path without --allow-outside-project."
+            )
+        raw, report, legacy = _read_for_receipt(source)
+        tasks = _tasks(legacy)
+        receipt = _conversion(
+            "import", given=os.fspath(path), raw=raw, report=report, legacy=legacy, tasks=tasks
+        )
+        _receipt_room(safe_storage(directory), receipt)
     else:
         if any(
             p.is_symlink() for p in (source, *source.parents)
         ) or not source.resolve().is_relative_to(root):
             raise ValueError("Legacy plan must be a regular file inside the project")
         legacy = legacy_plan(source)
+        tasks = _tasks(legacy)
     record = create_work(
         root,
         config_path,
@@ -144,19 +315,12 @@ def import_plan(
         signals={**dict.fromkeys(SIGNALS, False), "existing_artifact": "spec"},
         assignments=assignments,
         controls=controls,
-        tasks=_tasks(legacy),
+        tasks=tasks,
         budget=budget,
         legacy=legacy,
     )
     if allow_outside_project:
-        _record_conversion(
-            record,
-            "import",
-            given=os.fspath(path),
-            raw=raw,
-            state=state,
-            legacy=legacy,
-        )
+        _record_conversion(record, receipt)
     return record
 
 
@@ -165,90 +329,43 @@ def reimport_plan(directory, *, checkpoint):
     record = read_task(directory)
     if record["checkpoint_digest"] != checkpoint or "legacy" not in record["request"]:
         raise ValueError("Reimport requires the current legacy work checkpoint")
-    path = record["request"]["legacy"]["path"]
-    # A task whose import left a receipt gets one for every conversion after it.
-    receipted = Path(record["record_path"]).with_name(RECEIPTS).exists()
+    request = record["request"]
+    path = request["legacy"]["path"]
+    # The record decides: only the explicit path binds a plan outside the
+    # project, and every conversion of such a task leaves a receipt, whatever
+    # is beside the record on disk (D4).
+    receipted = _outside(path, request["project_root"])
     if receipted:
-        raw, state, legacy = _read_for_receipt(Path(path))
+        raw, report, legacy = _read_for_receipt(Path(path))
+        tasks = _tasks(legacy)
+        receipt = _conversion(
+            "reimport", given=path, raw=raw, report=report, legacy=legacy, tasks=tasks
+        )
+        _receipt_room(Path(record["record_path"]).parent, receipt)
     else:
         legacy = legacy_plan(path)
+        tasks = _tasks(legacy)
     revised = revise_work(
-        directory,
-        checkpoint=checkpoint,
-        changes={"legacy": legacy, "tasks": _tasks(legacy)},
+        directory, checkpoint=checkpoint, changes={"legacy": legacy, "tasks": tasks}
     )
     if receipted:
-        _record_conversion(
-            revised, "reimport", given=path, raw=raw, state=state, legacy=legacy
-        )
+        _record_conversion(revised, receipt)
     return revised
 
 
-def _record_conversion(record, conversion, *, given, raw, state, legacy):
-    """Append the receipt of one conversion beside the record.
+def _record_conversion(record, receipt):
+    """Append the receipt beside the record, with the record's identity and the time.
 
-    What was read (the path as given and resolved, the file's digest, the
-    state comment and its schema version), what it became (the tasks in the
-    store's shape), what was left out (the parsed fields the shape has no
-    place for, which stay in the record's ``legacy`` block, and the reader's
-    disclosures), and the time. One JSON line through the same locked writer
-    as the workspace events, so a second conversion is a second line, never an
-    overwrite. The plan itself is never written (D4).
+    One JSON line through the same locked writer as the workspace events, so a
+    second conversion is a second line, never an overwrite. The room was
+    checked before the save; a failure that still happens here is reported
+    with the revision that landed and the way to get its receipt. The plan
+    itself is never written (D4).
     """
     request = record["request"]
-    left_out = {}
-    for task in legacy["tasks"]:
-        fields = []
-        if task["name"] != task["task_id"]:
-            fields.append("name")
-        if task["risks"]:
-            fields.append("risks")
-        if any(
-            f["description"]
-            for key in ("files_to_create", "files_to_modify")
-            for f in task[key]
-        ):
-            fields.append("file descriptions")
-        if fields:
-            left_out[task["task_id"]] = fields
-    spec_state = None
-    if state is not None:
-        spec_state = {
-            "schema_version": state.schema_version,
-            "completed": state.completed,
-            "current": state.current,
-            "auto_run": state.auto_run,
-            "last_updated": state.last_updated,
-            "task_receipts": len(state.task_receipts),
-        }
-    receipt = {
-        "schema_version": 1,
-        "receipt": "legacy-plan-conversion",
-        "conversion": conversion,
+    line = {
+        **receipt,
         "time": datetime.now(timezone.utc).isoformat(),
-        "source": {
-            "given": given,
-            "resolved": legacy["path"],
-            "sha256": legacy["source_sha256"],
-            "content_sha256": legacy["content_sha256"],
-            "bytes": len(raw.encode("utf-8")),
-            "inside_project": Path(legacy["path"]).is_relative_to(
-                request["project_root"]
-            ),
-        },
-        "spec_state": spec_state,
-        "mapped": [
-            {
-                "id": task["id"],
-                "objective": bool(task["objective"]),
-                "dependencies": len(task["dependencies"]),
-                "outputs": len(task["outputs"]),
-                "checks": len(task["checks"]),
-            }
-            for task in request["tasks"]
-        ],
-        "unmapped": {"fields": left_out, "disclosures": legacy["unsupported"]},
-        "approval_imported": legacy["approval_imported"],
         "task": {
             "task_id": request["task_id"],
             "revision": request["revision"],
@@ -256,7 +373,15 @@ def _record_conversion(record, conversion, *, given, raw, state, legacy):
             "checkpoint_digest": record["checkpoint_digest"],
         },
     }
-    jsonl_event_writer(Path(record["record_path"]).with_name(RECEIPTS))(receipt)
+    try:
+        jsonl_event_writer(Path(record["record_path"]).with_name(RECEIPTS))(line)
+    except (ValueError, OSError) as exc:
+        raise ValueError(
+            f"The conversion landed as revision {request['revision']} with checkpoint "
+            f"{record['checkpoint_digest']}, but its receipt was not written: {exc}. "
+            f"Inspect {RECEIPTS} beside the record and remove or move it aside, then "
+            "reimport with this checkpoint to record the receipt."
+        ) from exc
 
 
 class WorkAcceptance:
