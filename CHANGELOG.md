@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-Three `src/` changes from the overnight run of September 23, 2026, each with
-its different-model review recorded in its pull request; their changelog
-lines land together here so that three sibling pull requests do not conflict
-on this section.
+Changes since 0.5.0, each `src/` change with its different-model review
+recorded in its pull request. The first three lines landed together after
+the overnight run of September 23, 2026, so that three sibling pull requests
+did not conflict on this section.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan

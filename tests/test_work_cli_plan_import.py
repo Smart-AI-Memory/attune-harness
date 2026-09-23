@@ -8,8 +8,6 @@ refusals that stand in front of them, with a plan written here.
 # qualify: platform
 
 import json
-import shutil
-from pathlib import Path
 
 import pytest
 
@@ -95,10 +93,11 @@ def test_reimport_with_a_stale_checkpoint_is_refused_in_the_bridge_s_words(work,
         capsys,
     )
     assert code == 0
+    unchanged = read_task(directory)
     code, envelope = run(["plan", "--task-dir", str(directory), "--reimport", "--checkpoint", "0" * 64], capsys)
     assert code == 2
     assert "Reimport requires the current legacy work checkpoint" in json.dumps(envelope)
-    assert read_task(directory)["request"]["legacy"]["content_sha256"] == read_task(directory)["request"]["legacy"]["content_sha256"]
+    assert read_task(directory) == unchanged  # a refused reimport leaves the record alone
 
 
 def test_a_plan_outside_the_project_is_refused_before_anything_is_written(work, tmp_path, capsys):
