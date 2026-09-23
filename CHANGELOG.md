@@ -66,7 +66,6 @@ did not conflict on this section.
   keeps its keys. `chair_required` is wired and has no Harness source yet
   (spec authority Task 4, step b, second half; D23.2, D24).
 
-
 ## 0.5.0
 
 Memory is native. `attune-harness memory recall`, `resolve` and `refresh`

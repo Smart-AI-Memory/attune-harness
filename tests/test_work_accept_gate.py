@@ -10,7 +10,9 @@ Harness's ``review`` extra, renders the decision and is required.
 R1: the task store is the only authority, and its refusals hold across
 processes. R3: every wired action passes through a human, and is refused
 without its nonce, on a drifted view, when replayed, and without confirmation
-where the view requires it.
+where the view requires it. The one exception is the walk D24 authorised: the
+acceptance takes ``start_execution`` itself before the human's gate, and the
+evidence file marks that render and that accept ``origin: walk``.
 """
 # qualify: platform
 
@@ -30,7 +32,7 @@ from attune_harness import command_workspace, spec_workspace  # noqa: E402
 from attune_harness.cli import main  # noqa: E402
 from attune_harness.command_workspace import CommandWorkspaceError  # noqa: E402
 from attune_harness.features import FeatureUnavailable  # noqa: E402
-from attune_harness.work_accept import WorkAcceptance  # noqa: E402
+from attune_harness.work_accept import WorkAcceptance, _receipt  # noqa: E402
 from attune_harness.task_contract import read_task  # noqa: E402
 from attune_harness.work_contract import bind_work_acceptance, create_work  # noqa: E402
 from attune_harness.work_decisions import retained_decision  # noqa: E402
@@ -134,6 +136,8 @@ def test_console_approval_is_accepted_and_recorded_without_attune(work):
     accepted_actions = [e["action"] for e in recorded if e["event"] == "workspace_accepted"]
     assert accepted_actions == ["start_execution", "approve_task"]
     assert recorded[1]["terminal"] is False and recorded[3]["terminal"] is True
+    # The walked stage's lines say so; the human's do not.
+    assert [e.get("origin") for e in recorded] == ["walk", "walk", None, None]
     text = (directory / EVENTS).read_text(encoding="utf-8")
     assert view.record.action_nonce not in text
     assert "action_nonce" not in text
@@ -522,14 +526,19 @@ def test_the_acceptance_walks_the_execution_stages_to_the_gate(work):
     recorded = events(directory)
     assert [e["event"] for e in recorded] == OPENED
     assert recorded[1]["action"] == "start_execution" and recorded[1]["terminal"] is False
+    assert [e.get("origin") for e in recorded] == ["walk", "walk", None]
 
 
-def test_an_unsupported_required_control_blocks_the_execution_gate(work, capsys):
+def blocked_draft(work):
+    """A complete draft with a required control no runner supports."""
     root, config, data = work
     record = create_work(root, config, **{**data, "controls": [control()]})
-    directory = Path(record["record_path"]).parent
-    bridge = WorkAcceptance(directory)  # no runner supports independent-tests
-    view = run(bridge.open())
+    return Path(record["record_path"]).parent, record
+
+
+def test_an_unsupported_required_control_blocks_the_execution_gate(work):
+    directory, _ = blocked_draft(work)
+    view = run(WorkAcceptance(directory).open())  # no runner supports independent-tests
     state = view.record.state
     assert state.stage == "blocked"
     assert [(r.gate_id, r.state, r.detail) for r in state.lifecycle_receipts] == [
@@ -542,7 +551,12 @@ def test_an_unsupported_required_control_blocks_the_execution_gate(work, capsys)
     assert saved["display"]["title"] == "Spec lifecycle blocked"
     assert "Unavailable required control: independent-tests" in saved["display"]["markdown"]
     assert [e["event"] for e in events(directory)] == OPENED
-    # The command line refuses with the receipt's words, the bind's words before the walk.
+    assert read_task(directory)["status"] == "draft"
+
+
+def test_the_command_line_refuses_a_blocked_gate_with_the_receipts_words(work, capsys):
+    directory, record = blocked_draft(work)
+    # The refusal is the receipt's detail, the words the bind refused with before the walk.
     accept = ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]]
     assert main(accept) == 2
     result = json.loads(capsys.readouterr().out)
@@ -554,6 +568,22 @@ def test_an_unsupported_required_control_blocks_the_execution_gate(work, capsys)
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == "draft"
     assert result["decision"]["display"]["title"] == "Spec lifecycle blocked"
+
+
+def test_a_chair_required_receipt_stops_the_walk_at_the_acknowledgment(work, capsys, monkeypatch):
+    """No Harness check produces CHAIR_REQUIRED yet (D24); the branch is covered with a receipt fed in."""
+    directory, record = draft(work)
+    chair = _receipt("planning-review", "CHAIR_REQUIRED", "A high planning finding awaits the chair")
+    monkeypatch.setattr(WorkAcceptance, "readiness", lambda self, request: [chair])
+    view = run(WorkAcceptance(directory).open())
+    assert view.record.state.stage == "chair_required"
+    assert [a.id for a in view.record.view.actions] == ["acknowledge_gate"]
+    assert retained_decision(read_task(directory))["display"]["title"] == "Spec lifecycle acknowledgment"
+    accept = ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]]
+    assert main(accept) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result["error"]["detail"] == "Spec execution gate awaits the chair"
+    assert read_task(directory)["status"] == "draft"
 
 
 def test_missing_intent_is_refused_before_the_walk(work, capsys):

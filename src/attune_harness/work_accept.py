@@ -24,6 +24,9 @@ before. A ``BLOCKED`` receipt leaves the workspace at ``blocked``, retained
 as the decision; the caller refuses with the receipt's words, which are the
 words the bind refused with before. No Harness check produces
 ``CHAIR_REQUIRED`` yet; that stage stays wired for the later mapping (D24).
+In the evidence file, the render and the accept of a stage the acceptance
+walked itself carry ``origin: walk``; a line without it is a view the human
+was shown or an action the human took.
 
 Task 4's first step (D20.1, D23) moved this module out of the bridge, whose
 remainder is the legacy plan reader, ``spec_legacy``. The class was
@@ -154,12 +157,15 @@ class WorkAcceptance:
         if SPEC_APPROVAL not in self.supported:
             self.supported.append(SPEC_APPROVAL.copy())
         # Evidence of who saw what, when: one JSON line per render and per
-        # accepted action, beside decision.json. Never the nonce (D14).
-        self.host = CommandWorkspaceHost(
-            record_event=jsonl_event_writer(
-                Path(record["record_path"]).with_name("workspace-events.jsonl")
-            )
-        )
+        # accepted action, beside decision.json. Never the nonce (D14). A line
+        # for a stage the acceptance walks itself says so: ``origin: walk``.
+        sink = jsonl_event_writer(Path(record["record_path"]).with_name("workspace-events.jsonl"))
+        self._origin = None
+
+        def record_event(event):
+            sink({**event, "origin": self._origin} if self._origin else event)
+
+        self.host = CommandWorkspaceHost(record_event=record_event)
         self.decision = None
         acceptance = self
         request = record["request"]
@@ -225,14 +231,13 @@ class WorkAcceptance:
         check_work_fresh(record)
         return record
 
-    def readiness(self):
+    def readiness(self, request):
         """Harness's checks at the execution boundary, as the lifecycle gate's receipts (D24).
 
         ``PASS`` or ``BLOCKED``; a ``BLOCKED`` detail is the text the bind
         refuses with, so the words a user sees do not change. No Harness check
         produces ``CHAIR_REQUIRED`` yet.
         """
-        request = read_task(self.directory)["request"]
         # In the bind's order, so the first blocking receipt is the bind's first refusal.
         planner = any(a["role"] == "planner" for a in request["assignments"])
         receipts = [
@@ -324,13 +329,18 @@ class WorkAcceptance:
                 review_detail += "\nPlanning review advice: " + " | ".join(notes)
         from .work_decisions import retain_decision
 
-        view = await self.host.open("spec", {})
-        workspace = view.record.workspace_id
         # The walk (D24): approval, start_execution, the execution boundary's
         # gate with Harness's readiness checks as its receipts, then the task.
-        await self.host.collect(self._walk(view, "start_execution"), expected_adapter_id="spec")
+        self._origin = "walk"
+        try:
+            view = await self.host.open("spec", {})
+            workspace = view.record.workspace_id
+            await self.host.collect(self._walk(view, "start_execution"), expected_adapter_id="spec")
+        finally:
+            self._origin = None
         gated = await self.host.publish(
-            workspace, {"kind": "lifecycle_gate", "boundary": BOUNDARY, "receipts": self.readiness()}
+            workspace,
+            {"kind": "lifecycle_gate", "boundary": BOUNDARY, "receipts": self.readiness(request)},
         )
         if gated.record.state.stage != "executing":
             # Blocked (or chair-required, which nothing raises yet): the gate's

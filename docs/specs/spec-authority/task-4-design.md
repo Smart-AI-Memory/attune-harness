@@ -182,8 +182,10 @@ build result raises a lifecycle gate; a high-severity build result becomes
 the run status `needs_revision` and never reaches the workspace. The
 execution boundary's receipts are Harness's readiness checks, the planner
 assignment and the required controls, `PASS` or `BLOCKED`; the walk is
-`approval`, `start_execution`, the gate, `executing`, `task_started`, the
-task's result and its gate, then `receipt`. Nothing in Harness produces
+`approval`, `start_execution`, `gate_running` with the gate's receipts,
+`executing`, `task_started`, the task's result and its gate, then `receipt`.
+So `gate_running` is not dormant, every accept transits it, and the dormant
+half is `preview`, `intake`, `creating` and `review`. Nothing in Harness produces
 `CHAIR_REQUIRED` yet; that stage stays wired and tested by the workspace
 tests, and mapping 1's gate after the build is the later decision that would
 feed it.

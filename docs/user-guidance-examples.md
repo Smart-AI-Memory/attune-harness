@@ -74,8 +74,9 @@ wording are outside these implementations.
 
 ## Implemented in source: durable decision text (B)
 
-`plan --decision` retains the current planning questions or a complete draft's
-Spec approval view in `decision.json` beside the work record. It returns the
+`plan --decision` retains the current planning questions, a complete draft's
+Spec approval view, or the blocked execution gate of a draft whose readiness
+check fails (D24), in `decision.json` beside the work record. It returns the
 usual JSON presentation with an additional `decision` object; it grants no
 approval and dispatches no participant. Plan mutations that display missing
 questions also retain their text. The in-process `WorkAcceptance.open()` (then `WorkSpecBridge.open()`) saves
