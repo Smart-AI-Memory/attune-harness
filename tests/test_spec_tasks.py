@@ -312,6 +312,29 @@ def test_an_unbalanced_plan_still_reports_orphans_outside_the_region(caplog):
     assert any("outside any <task> block" in m and "<file>" in m for m in messages)
 
 
+def test_a_tasks_tag_inside_a_body_does_not_defeat_the_per_block_fix(caplog):
+    # Review mutation: without the word boundary in the edge scan, "<tasks>"
+    # in a body counts as an opening and the region stops splitting.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>see <tasks/> list</objective></task>\nR&D\n'
+        '<task id="2"><objective>B &amp; C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "see <tasks /> list"), ("2", "B & C")]
+    assert messages == []
+
+
+def test_the_unsplit_guard_keeps_comment_text_out_of_the_parser(caplog):
+    # Review mutation: with the guard removed, a comment holding "<task >"
+    # becomes a block and the parser warns about a task with no id.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task><!-- <task > </task> --><task id="2"><objective>B</objective></task>',
+    )
+    assert [t.task_id for t in tasks] == ["1", "2"]
+    assert not any("no id attribute" in m for m in messages)
+
+
 def test_top_level_blocks_keep_a_nested_example_inside_its_block():
     nested = '<task id="1"><objective>See <task id="x">ex</task></objective></task>'
     assert spec_tasks._top_level_blocks(nested + '\nprose\n<task id="2">B</task>') == [

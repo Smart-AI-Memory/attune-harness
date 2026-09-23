@@ -120,8 +120,8 @@ def parse_tasks(content: str) -> list[DecomposedTask]:
     region = _TASK_REGION.search(content)
     if region is None:
         return _parse_with_regex(content)
-    blocks = _top_level_blocks(region.group(0))
-    if blocks is None:
+    spans = _top_level_spans(region.group(0))
+    if spans is None:
         # The split cannot be trusted: parse the region as one document, as
         # before, so the fallback and its warnings describe the whole plan.
         return _parse_xml(region.group(0), content)
@@ -129,14 +129,21 @@ def parse_tasks(content: str) -> list[DecomposedTask]:
     # note between two tasks) cannot change how any task is read, and a block
     # the parser rejects drops to the regex path alone.
     tasks: list[DecomposedTask] = []
-    for block in blocks:
+    for start, end in spans:
+        block = region.group(0)[start:end]
         tasks.extend(_parse_xml(block, block, whole=False))
-    _warn_orphans_between(region.group(0), blocks, len(tasks))
+    _warn_orphans_between(region.group(0), spans, len(tasks))
     return tasks
 
 
 def _top_level_blocks(region: str) -> list[str] | None:
-    """Split a task region into its top-level ``<task>…</task>`` blocks.
+    """The text of each top-level block; see ``_top_level_spans``."""
+    spans = _top_level_spans(region)
+    return None if spans is None else [region[start:end] for start, end in spans]
+
+
+def _top_level_spans(region: str) -> list[tuple[int, int]] | None:
+    """Split a task region into the spans of its top-level ``<task>…</task>`` blocks.
 
     A ``<task>`` inside another's body (an example in a description) stays in
     its block; a self-closing ``<task … />`` is a block of its own. Returns
@@ -148,7 +155,7 @@ def _top_level_blocks(region: str) -> list[str] | None:
     """
     if any(marker in region for marker in _UNSPLIT_MARKUP):
         return None
-    blocks: list[str] = []
+    spans: list[tuple[int, int]] = []
     depth, start = 0, 0
     for match in _TASK_EDGE.finditer(region):
         token = match.group(0)
@@ -157,15 +164,15 @@ def _top_level_blocks(region: str) -> list[str] | None:
                 return None
             depth -= 1
             if depth == 0:
-                blocks.append(region[start : match.end()])
+                spans.append((start, match.end()))
         elif token.endswith("/>"):
             if depth == 0:
-                blocks.append(token)
+                spans.append((match.start(), match.end()))
         else:
             if depth == 0:
                 start = match.start()
             depth += 1
-    return blocks if depth == 0 else None
+    return spans if depth == 0 else None
 
 
 def _parse_xml(xml: str, fallback: str, *, whole: bool = True) -> list[DecomposedTask]:
@@ -195,13 +202,12 @@ def _parse_xml(xml: str, fallback: str, *, whole: bool = True) -> list[Decompose
     return [task for task in tasks if task is not None]
 
 
-def _warn_orphans_between(region: str, blocks: list[str], parsed: int) -> None:
+def _warn_orphans_between(region: str, spans: list[tuple[int, int]], parsed: int) -> None:
     """Warn once about task content that sits between the top-level blocks."""
     leftovers, cursor = [], 0
-    for block in blocks:
-        at = region.index(block, cursor)
-        leftovers.append(region[cursor:at])
-        cursor = at + len(block)
+    for start, end in spans:
+        leftovers.append(region[cursor:start])
+        cursor = end
     leftovers.append(region[cursor:])
     orphaned = sorted(
         {f"<{m.group(1)}>" for chunk in leftovers for m in _ORPHAN_TAG.finditer(chunk)}
