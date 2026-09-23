@@ -42,7 +42,7 @@ def execute(args):
             from .voyage_sources import code_config
             result = code_config(args.repo, args.index_dir, repo_id=args.repo_id,
                                  include_docs=args.include_docs, structured_paths=args.structured_path)
-            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+            print(json.dumps({**result, 'status': 'completed'}, indent=2, ensure_ascii=False, allow_nan=False))
             return 0
         cfg = load_config(args.config)
         if args.command == 'retrieval-task':

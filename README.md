@@ -102,7 +102,8 @@ covers direct use. Full usage, exit codes and recovery controls are in the
 | Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]'` |
 
 Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`
-and `tokens` were extras. Those names still install, as empty extras, until 1.0.
+and `tokens` were extras; they were empty from 0.4.0 and are gone since 0.6.0,
+so an install that still names one fails at pip and should drop the bracket.
 Every dependency is pinned exactly and loaded on first use, so a wheel installed
 without its dependencies still returns an actionable unavailable report for each
 missing piece instead of a traceback. Keep the quotes around an extra: zsh and

@@ -36,11 +36,12 @@ prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
 POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
 verb qualifies the POSIX execution profile and the repair probe fixture is a
 POSIX one; and the four `-native` rows, because the native memory reader's
-descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
-`status` column means the envelope has no such key: the feature-work verbs
-(`plan`, `build` and their `status`) and `memory scratch` carry no
-`schema_version`, and `code-config`, `triage-check`, `repair-economics` and
-`github-checks` carry no `status`.
+descriptor walk is POSIX-only at 0.5.0 (D19). Every row carries a
+`schema_version` and a `status` since 0.6.0: the feature-work verbs (`plan`,
+`build` and their `status`) and `memory scratch` gained `schema_version: 1`,
+and `code-config`, `triage-check`, `repair-economics` and `github-checks`
+gained `status: completed`, the eight gaps this page recorded, closed by the
+first freeze cycle (4.1, D27.2).
 
 ## Table
 
@@ -65,10 +66,10 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `fix-intake` | success | 0 | 1 | `accepted` | `answers` `defaults_origin` `definition` `execution_status` `intake_metrics` `markdown` `note` `operation` `repair_contract` `revision` `schema_version` `status` `submission` `task_directory` `task_id` |
 | `test-preview` | success | 1 | 1 | `draft` | `checkpoint_digest` `execution_evidence` `operation` `presentation` `record_path` `schema_version` `status` `task_profile` |
 | `status-test` | success | 0 | 1 | `draft` | `checkpoint_digest` `execution_evidence` `operation` `presentation` `record_path` `schema_version` `status` `task_profile` |
-| `plan-request` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `plan-decision` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `decision` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `status-work` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `build-draft` | refusal | 2 | - | `failed` | `blocking` `error` `evidence` `next_action` `record_path` `status` `summary` |
+| `plan-request` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `plan-decision` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `decision` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `status-work` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `build-draft` | refusal | 2 | 1 | `failed` | `blocking` `error` `evidence` `next_action` `record_path` `schema_version` `status` `summary` |
 | `extension-discover` | success | 0 | 1 | `ready` | `bundle` `operation` `request_id` `schema_version` `status` |
 | `extension-install` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-enable` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
@@ -76,15 +77,15 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `extension-disable` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-replace` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-remove` | success | 0 | 1 | `removed` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
-| `code-config` | success | 0 | 1 | - | `allow_overlays` `allow_untracked` `batch_size` `candidates` `exclude` `include` `index_dir` `max_bytes` `max_file_bytes` `max_files` `max_provider_calls` `max_request_bytes` `passage_bytes` `roots` `schema_version` `structured_paths` |
+| `code-config` | success | 0 | 1 | `completed` | `allow_overlays` `allow_untracked` `batch_size` `candidates` `exclude` `include` `index_dir` `max_bytes` `max_file_bytes` `max_files` `max_provider_calls` `max_request_bytes` `passage_bytes` `roots` `schema_version` `status` `structured_paths` |
 | `index-plan` | success | 0 | 1 | `ready` | `config_digest` `embedding_input_bytes` `estimate_scope` `estimated_embedding_cost_usd` `estimated_tokens` `generation` `manifest` `operation` `passages` `planned_embedding_calls` `profile` `provider_calls` `rate_snapshot` `request_id` `schema_version` `status` |
 | `index-build` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `index-update` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `index-inspect` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `retrieval-task` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
-| `triage-check` | success | 0 | 1 | - | `action` `atomic_claim_required` `dispatch_authorized` `key` `reason` `schema_version` |
-| `repair-economics` | success | 0 | 1 | - | `eligible_cost_ranking` `note` `schema_version` `scope` `strategies` |
-| `github-checks` | success | 0 | 1 | - | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` |
+| `triage-check` | success | 0 | 1 | `completed` | `action` `atomic_claim_required` `dispatch_authorized` `key` `reason` `schema_version` `status` |
+| `repair-economics` | success | 0 | 1 | `completed` | `eligible_cost_ranking` `note` `schema_version` `scope` `status` `strategies` |
+| `github-checks` | success | 0 | 1 | `completed` | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` `status` |
 | `mcp-inspect` | success | 0 | 1 | `completed` | `accepted` `completion_scope` `events` `identity_scope` `max_calls` `operation` `participant_id` `profile` `record_path` `registry` `request_id` `requirement_revision` `schema_version` `source_snapshot` `status` `tools` |
 | `verify` | success | 0 | 1 | `verified` | `artifacts` `dependency` `operation` `passed` `request_id` `result` `schema_version` `status` |
 | `retrieve` | success | 0 | 1 | `retrieved` | `corpus` `dependency` `k` `operation` `query` `request_id` `retriever` `schema_version` `sources` `status` |
@@ -111,12 +112,12 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `memory-redis-node` | success | 0 | 1 | `ok` | `authority` `guidance` `id` `items` `operation` `schema_version` `status` |
 | `memory-redis-search` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `k` `layer` `operation` `query` `schema_version` `status` `total` |
 | `memory-redis-unreachable` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-scratch-capabilities` | success | 0 | - | `ok` | `backend` `location` `operation` `realtime` `shared` `status` |
-| `memory-scratch-stash` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` |
-| `memory-scratch-retrieve` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` `value` |
-| `memory-scratch-forget` | success | 0 | - | `ok` | `backend` `forgotten` `key` `operation` `status` |
-| `memory-scratch-keys` | success | 0 | - | `ok` | `backend` `keys` `operation` `pattern` `status` |
-| `memory-scratch-disabled` | disabled | 2 | - | `disabled` | `detail` `status` |
+| `memory-scratch-capabilities` | success | 0 | 1 | `ok` | `backend` `location` `operation` `realtime` `schema_version` `shared` `status` |
+| `memory-scratch-stash` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` |
+| `memory-scratch-retrieve` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` `value` |
+| `memory-scratch-forget` | success | 0 | 1 | `ok` | `backend` `forgotten` `key` `operation` `schema_version` `status` |
+| `memory-scratch-keys` | success | 0 | 1 | `ok` | `backend` `keys` `operation` `pattern` `schema_version` `status` |
+| `memory-scratch-disabled` | disabled | 2 | 1 | `disabled` | `detail` `schema_version` `status` |
 
 ## Invocations
 

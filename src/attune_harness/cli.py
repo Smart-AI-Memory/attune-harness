@@ -94,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(json.dumps({'status':'failed','error':{'type':type(exc).__name__,'detail':str(exc)}}))
             return 2
-        print(json.dumps(result, indent=2, allow_nan=False))
+        print(json.dumps({**result, 'status': 'completed'}, indent=2, allow_nan=False))
         return 0
     if args.command in ('triage-check', 'repair-economics'):
         from .features import read_text
@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(json.dumps({'status': 'failed', 'error': {'type': type(exc).__name__, 'detail': str(exc)}}))
             return 2
-        print(json.dumps(result, indent=2, allow_nan=False))
+        print(json.dumps({**result, 'status': 'completed'}, indent=2, allow_nan=False))
         return 0
     if args.command == 'mcp-inspect':
         from .mcp_server import inspect_session

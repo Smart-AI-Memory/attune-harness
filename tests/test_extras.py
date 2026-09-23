@@ -24,6 +24,8 @@ def test_all_is_the_union_of_the_qualified_extras_and_nothing_experimental():
     assert "memory-native" in found and "memory-native" not in found["all"][0]
 
 
-def test_the_retired_extras_stay_empty_until_1_0():
+def test_the_retired_extras_are_gone():
+    """Empty from 0.4.0 to 0.5.0; removed by the first freeze cycle (D27.6)."""
     found = extras()
-    assert all(found[name] == [] for name in ("tokens", "verify", "rag", "review", "mcp"))
+    assert not {"tokens", "verify", "rag", "review", "mcp"} & set(found)
+    assert set(found) == {"voyage", "memory-native", "redis", "all"}

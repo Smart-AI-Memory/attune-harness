@@ -65,6 +65,21 @@ did not conflict on this section.
   unchanged and still precedes the walk; every accept and decision envelope
   keeps its keys. `chair_required` is wired and has no Harness source yet
   (spec authority Task 4, step b, second half; D23.2, D24).
+- Changed: every envelope now carries `schema_version` and `status`. The
+  feature-work verbs, `plan`, `build` and `status` on work, and every
+  `memory scratch` envelope gained `schema_version: 1`; `code-config`,
+  `triage-check`, `repair-economics` and `github-checks` gained
+  `status: completed` on success, `failed` on their exception path as
+  before. Fourteen golden rows and the envelope table change with them: the
+  eight gaps the table recorded are closed (the first freeze cycle, 4.1;
+  D27.2).
+- Removed: the five empty extras, `tokens`, `verify`, `rag`, `review` and
+  `mcp`, kept since 0.4.0 so that an existing `pip install
+  'attune-harness[review]'` went on working. The README promised their
+  removal at 1.0 and D27.6 put it in the first freeze cycle, so the release
+  candidate ships without them; an install that still names one fails at
+  pip, and the base carries everything they installed.
+
 
 ## 0.5.0
 
