@@ -92,7 +92,7 @@ recommended: [D20](specs/spec-authority/addendum-2026-09-23.md) and
 
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
-| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding. Ruled (D20.1, D20.2): the user-visible words are the contract, the names are not; the R2 journey runs in the release gate; the six Task 4 decisions ruled September 23 (D23): the journey runs in the install a user gets, the `--no-deps` check kept beside it | 2 to 3 |
+| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding. Ruled (D20.1, D20.2): the user-visible words are the contract, the names are not; the R2 journey runs in the release gate; the six Task 4 decisions ruled September 23 (D23): the journey runs in the install a user gets, the `--no-deps` check kept beside it. Done September 23: four pull requests, #106, #107, #108 and #110, the stage mapping ruled as D24; the row is closed | 2 to 3 |
 | 3.2 | Spec authority Task 5: read other projects' Attune AI spec state | An R4 receipt for every cited plan, fixtures from at least one other project; read and convert, never write back (D4), originals untouched, a receipt per conversion | Which projects' fixtures are the evidence. Ruled (D20.3): one plan from attune-ai's own `.claude/plans/`, origin recorded, plus the seven Harness plans | 1 to 2 |
 | 3.3 | Serving path (ladder 6, N7) | A fresh Claude Code or Codex session receives relevant memory without an explicit command; the model's disclosure of a memory's influence is preserved as a requirement; corrected or forgotten memories stop being served. Starts from the week of 1.4 | Hook or plugin; what "relevant" means at session start; the disclosure form. Ruled (D21.4, D21.5): the SessionStart hook first and a prompt hook second, no MCP memory tool yet; a node absent from `status:active` or with a `wrong` verdict stops being served | 2 to 3 |
 | 3.4 | Versioned store and writer protocol (ladder 5) | Versioned serialization designed natively; the file scratch store is the first tenant; legacy stores stay read-in-place, no conversion without a separate proposal | Whether this lands before the format freeze (this plan says yes: the freeze cannot pin a format that is about to change). Ruled (D21.6): yes; the scratch format's version opens the compatibility list | 1 to 2 |
@@ -150,9 +150,9 @@ plugins spec, because both are design first and neither touches the memory
 modules. The Windows decision (4.2) was made on September 23, at the start
 of Phase 3 (D20.8): 4.2 is one cycle.
 
-Counted: 20 tasks, between 26 and 35 cycles at today's pace now that D20.8
-fixes 4.2 at one. On September 23, nine are done, three in progress and
-eight not started; [the release 1.0.0 note](specs/release-1.0/README.md)
+Counted: 21 tasks with 4.8, between 27 and 36 cycles at today's pace now that
+D20.8 fixes 4.2 at one. On September 23, ten are done, two in progress and
+nine not started; [the release 1.0.0 note](specs/release-1.0/README.md)
 counts eighteen to twenty-one cycles left with the migration page; its
 rulings are [D25 and D26](specs/release-1.0/addendum-2026-09-23.md). Each cycle carries a different-model review under
 [the brief](review-brief.md) and lands in [the findings log](review-findings.md).

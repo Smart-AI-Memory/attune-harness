@@ -37,6 +37,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
 - [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds
+- [The interface freeze (4.1): design note](specs/release-1.0/freeze-design.md): The six frozen surfaces turned into guards, the saved-state fixture, the deprecation mechanism, and seven decisions for Patrick
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick
 - [Phase 3: design note](specs/phase-3-design.md): The journey native and memory served, with ten decisions for Patrick
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
@@ -240,6 +241,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | --- | --- | --- |
 | [specs/release-1.0/README.md](specs/release-1.0/README.md) | Release 1.0.0: the requirements, and what waits | 2026-09-23 |
 | [specs/release-1.0/addendum-2026-09-23.md](specs/release-1.0/addendum-2026-09-23.md) | Release 1.0.0: addendum, September 23, 2026 | 2026-09-23 |
+| [specs/release-1.0/freeze-design.md](specs/release-1.0/freeze-design.md) | The interface freeze (4.1): design note | 2026-09-23 |
 
 ### specs/shared-memory-adoption
 
