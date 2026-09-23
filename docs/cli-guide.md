@@ -85,10 +85,13 @@ attune-harness resume /tmp/my-work --allow-external
 Use the checkpoint returned by the preceding command each time. `--run` asks the
 configured planner for a proposal; `--stage` makes it a new unaccepted draft.
 `--accept` submits the explicit console choice through Harness's own Spec
-collector. The forms package that renders the decision is part of the base
-install since 0.4.0 (before that, the `review` extra); Attune AI is not needed,
-and core imports and help stay independent of it. Until Task 3 of
-the spec authority the collector was Attune AI's; that arrangement is recorded in
+collector, after walking the workspace's execution stages: the approval, the
+execution gate whose receipts are the draft's readiness checks, then the task
+gate the choice decides; a draft the gate blocks is refused in the gate's
+words. The forms package that renders the decision is part of the base install
+since 0.4.0 (before that, the `review` extra); Attune AI is not needed, and
+core imports and help stay independent of it. Until Task 3 of the spec
+authority the collector was Attune AI's; that arrangement is recorded in
 [Task 6's results](plan-build-task6-results.md). Installing Harness does not
 upgrade an active MCP host. The whole sequence as it runs from a fresh install
 with Attune AI absent, the envelope each step returns, and the refusals the
