@@ -331,6 +331,19 @@ extensions, retrieval, verification and protocol operations remain directly
 available to the AI, integrations and direct callers when needed. Their use stays
 within the accepted task scope and existing authorizations.
 
+`extension enable` takes `--registry PATH` for a plugin bundle, one whose
+manifest carries `grants` or `declares`: the accepted registry whose `signers`
+vouch for the bundle's `artifact.sig`, whose `revoked` list it is checked
+against, and whose registration carries the grant. Without it a plugin refuses
+to enable; a data-only bundle enables as before, with no registry and no
+signature. The enable receipt and every contributed call then carry `plugin`:
+the signer's fingerprint, the effective grant and the acknowledged declarations,
+with the words that the signature means this exact bundle was reviewed by the
+signer under the brief and that declarations are recorded, not enforced. The
+signed bytes, the registry's fields and every refusal are in
+[the extension workflow](extension-workflow.md). No plugin code runs yet; the
+`run` binding is a later cycle of plan task 4.3.
+
 All 18 original command routes remain callable, including positional
 `review request.json --config ... --run-dir ...` and the older review controls.
 They preserve their original arguments, output and exit behavior. These are

@@ -1,4 +1,4 @@
-"""Lifecycle CLI for explicit, local data-only extension bundles."""
+"""Lifecycle CLI for explicit, local data-only extension bundles and signed plugin bundles."""
 
 import json
 from pathlib import Path
@@ -21,6 +21,9 @@ def add_commands(sub):
             parser.add_argument('--checkpoint', required=True, help='state_digest from extension inspect')
         if action == 'replace':
             parser.add_argument('--manifest', type=Path, required=True)
+        if action == 'enable':
+            parser.add_argument('--registry', type=Path,
+                                help='accepted registry whose signers and grant a plugin bundle enables against')
 
 
 def execute(args):
@@ -34,7 +37,8 @@ def execute(args):
             result = extensions.inspect_extension(args.state_dir)
         else:
             result = extensions.mutate(args.state_dir, args.checkpoint, args.action,
-                                       manifest=getattr(args, 'manifest', None))
+                                       manifest=getattr(args, 'manifest', None),
+                                       registry=getattr(args, 'registry', None))
     except Exception as exc:
         result = report('extension', 'unavailable' if isinstance(exc, FeatureUnavailable) else 'failed',
                         error={'type': type(exc).__name__, 'detail': str(exc)})

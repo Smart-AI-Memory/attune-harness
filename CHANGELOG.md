@@ -3,9 +3,36 @@
 ## Unreleased
 
 Changes since 0.5.0, each `src/` change with its different-model review
-recorded in its pull request. The first three lines landed together after
-the overnight run of September 23, 2026, so that three sibling pull requests
-did not conflict on this section.
+recorded in its pull request. The three lines after the first landed together
+after the overnight run of September 23, 2026, so that three sibling pull
+requests did not conflict on this section.
+
+- Added: plugin bundles, the first of plan task 4.3's four cycles under the
+  approved executable plugins spec (D22, decisions 1 to 3): a manifest with
+  `grants` (`secrets`, `paths`, `scratch`, `time`, `output`) or `declares`
+  (`imports`, `network`, `reads`, `writes`, `subprocess`, `vendored`) is a
+  plugin, any other name in either field refused as manifest schema version 2
+  material. A plugin enables and is called only against the accepted
+  registry, whose `extensions` section gains `signers` (fingerprints and
+  public key blocks) and `revoked` (artifact digests) beside the
+  registrations, and whose registration may carry a `grant`, checked to be a
+  subset of the manifest's grants. The bundle carries `artifact.sig`, a
+  detached OpenPGP signature over the artifact digest's 64 hex characters,
+  verified inside the lease at `enable` (`extension enable --registry`) and
+  before and after every call by `gpg --verify` in a bounded subprocess, in a
+  private home the host creates and removes, against the registry's key
+  blocks only, with the verdict read from the status lines and never from
+  the exit status; unsigned, unlisted, no public key, tampered, revoked
+  artifact, expired key, revoked key, absent `gpg` and a verifier that fails
+  or says nothing are each their own refusal. Enable and call receipts carry
+  `plugin`: the signer, the effective grant, the acknowledged declarations,
+  and the words that a signature means this exact bundle was reviewed under
+  the brief and that declarations are recorded, not enforced. Data-only
+  bundles are unchanged. No plugin code runs yet: the `run` binding, the
+  bootstrap and Voyage are the later cycles, and the README's protocols row
+  still lists executable plugins as unqualified. Tested with scratch keys on
+  all three platforms (`tests/test_plugin_signing.py`, in the platform
+  selection); the envelope table gains `extension-enable-plugin`.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan
