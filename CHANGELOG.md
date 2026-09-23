@@ -13,8 +13,8 @@
   and exact `cwd` scope, the document tiers' ranking over a snapshot that
   keeps mtimes, the frontmatter authority check, the strict content gate
   carried into `memory_controls.py` (the sanitizer's blocking secret and
-  personal-data patterns; a match refuses in the adapter's words), the four
-  statuses and every refusal text. The provenance fields and staleness
+  personal-data patterns, verbatim; a match refuses in the adapter's words),
+  the four statuses and the refusal texts the differential covers. The provenance fields and staleness
   annotations follow in 2.3 with the differential harness; the default stays
   `adapter` until 2.4. A differential test against the adapter runs where
   `ATTUNE_TEST_ADAPTER_ROOT` names the checkout.

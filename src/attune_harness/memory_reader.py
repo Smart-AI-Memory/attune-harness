@@ -194,9 +194,10 @@ class NativeReader:
     # -- items ---------------------------------------------------------------------
 
     def _item(self, root, locator, text, version, kind, metadata):
+        guard(text, metadata)  # the adapter guards before it reads the labels
         labels = metadata
         if root["tier"] != "raw":
-            body = text[1:] if text.startswith("﻿") else text
+            body = text[1:] if text.startswith("\ufeff") else text
             body = body.replace("\r\n", "\n").replace("\r", "\n")
             if re.match(r"^---[ \t]*\n", body):
                 parts = re.split(r"(?m)^---[ \t]*$", body, maxsplit=2)
@@ -209,19 +210,17 @@ class NativeReader:
         for key in ("owner", "scope", "classification"):
             if key in labels and labels[key] != root[key]:
                 raise ValueError("Source security metadata conflicts with root authority")
-        guard(text, metadata)
         first = next(iter(locator.values()))
         return dict(id=f"{root['id']}:{first}", locator={"root_id": root["id"], **locator}, version=version,
-                    authority=self.binding, text=text, kind=kind, metadata=metadata,
+                    authority=self.binding, text=text, kind=kind, metadata=deepcopy(metadata),
                     scope=root["scope"], owner=root["owner"], classification=root["classification"])
 
     # -- the raw tier -----------------------------------------------------------------
 
     def _raw(self, root):
-        try:
-            content, version, _ = self._capture(root, "findings.jsonl")
-        except FileNotFoundError:
+        if not (Path(root["path"]) / "findings.jsonl").exists():  # a dangling symlink is absent, as in the adapter
             return b"", {}, "absent"
+        content, version, _ = self._capture(root, "findings.jsonl")
         rows = {}
         for line in content.decode("utf-8").splitlines():
             if not line.strip():
@@ -229,7 +228,7 @@ class NativeReader:
             row = parse_json(line, FILE_LIMIT)
             if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"] or row["id"] in rows:
                 raise ValueError("Malformed or duplicate raw identity; exact retrieval unavailable")
-            if not isinstance(row.get("text"), str) or not isinstance(row.get("topics"), list):
+            if not isinstance(row.get("text"), str) or not isinstance(row.get("topics", []), list):
                 raise ValueError("Malformed raw record")
             rows[row["id"]] = row
         return content, rows, version
@@ -244,9 +243,7 @@ class NativeReader:
             row = rows.get(hit["id"])
             if row is None or row.get("cwd") != root["scope"]:
                 continue
-            kinds = [topic[len("type:"):] for topic in row["topics"] if isinstance(topic, str) and topic.startswith("type:")]
-            kind = kinds[0] if len(kinds) == 1 else "unknown"
-            items.append(self._item(root, {"record_id": row["id"]}, row["text"], version, kind, row))
+            items.append(self._item(root, {"record_id": row["id"]}, row["text"], version, _kind(row), row))
         if self._raw(root)[2] != version:
             raise ValueError("Raw source changed during retrieval")
         return items
@@ -281,7 +278,8 @@ class NativeReader:
                 os.utime(target, ns=(mtime_ns, mtime_ns))
                 captured[relative.as_posix()] = (content, version)
             hits = _rank_documents(snapshot, query, k)
-        if any(self._capture(root, name)[1] != token for name, (_, token, _) in sidecars.items() if token != "absent"):
+        if {name: token for name, (_, token, _) in self._sidecars(root).items()} != {
+                name: token for name, (_, token, _) in sidecars.items()}:
             raise ValueError("Retrieval metadata changed; refresh context")
         items = []
         for hit in hits:
@@ -295,11 +293,12 @@ class NativeReader:
 
     # -- the reads ------------------------------------------------------------------
 
-    def query(self, query, k=10):
+    def query(self, query, *, k=10):
         if not isinstance(query, str) or type(k) is not int or not 1 <= k <= 100:
             raise ValueError("Invalid memory query or result bound")
         items, problems = [], []
-        for root in self.config["roots"]:
+        for declared in self.config["roots"]:
+            root = self._root(declared["id"])  # re-checks the binding on every root, as the adapter does
             try:
                 if not Path(root["path"]).is_dir():
                     raise FileNotFoundError("Explicit memory root is unavailable")
@@ -332,13 +331,12 @@ class NativeReader:
             fields(locator, ("root_id", "record_id"))
             _, rows, version = self._raw(root)
             row = rows[locator["record_id"]]
-            if _timestamp(row) < time.time() - RAW_TTL_SECONDS:
+            ts = _timestamp(row)
+            if ts is None or ts < time.time() - RAW_TTL_SECONDS:
                 raise ValueError("Raw source expired; refresh context")
             if row.get("cwd") != root["scope"]:
                 raise ValueError("Raw source scope changed")
-            kinds = [t[len("type:"):] for t in row["topics"] if isinstance(t, str) and t.startswith("type:")]
-            item = self._item(root, {"record_id": row["id"]}, row["text"], version,
-                              kinds[0] if len(kinds) == 1 else "unknown", row)
+            item = self._item(root, {"record_id": row["id"]}, row["text"], version, _kind(row), row)
         else:
             fields(locator, ("root_id", "path"))
             content, version, _ = self._capture(root, locator["path"])
@@ -363,6 +361,12 @@ def _posix():
 def _tokenize(text):
     """The file stash's tokens: lower-cased alphanumeric runs of two or more characters, as a set."""
     return {token for token in _TOKEN.findall(str(text).lower()) if len(token) >= 2}
+
+
+def _kind(row):
+    """The kind a raw row declares: exactly one ``type:`` topic, else ``unknown``."""
+    kinds = [t[len("type:"):] for t in row.get("topics", []) if isinstance(t, str) and t.startswith("type:")]
+    return kinds[0] if len(kinds) == 1 else "unknown"
 
 
 def _timestamp(row):
@@ -430,7 +434,13 @@ def _rank_documents(snapshot, query, k):
 
 
 def _frontmatter(block):
-    """The frontmatter as a dict: PyYAML when the install has it, a small subset parser otherwise."""
+    """The frontmatter as a dict: PyYAML when the install has it, a subset parser otherwise.
+
+    The subset, for a ``--no-deps`` install: ``key: scalar`` with an unquoted
+    ``#`` comment stripped, inline ``[a, b]`` lists, ``- item`` lists, ``|`` and
+    ``>`` block scalars, YAML 1.1 booleans and nulls. A nested mapping reads as
+    absent, which is never an ``owner``, ``scope`` or ``classification`` label.
+    """
     try:
         import yaml  # a transitive dependency of the base install, absent from a --no-deps one
     except ImportError:
@@ -440,7 +450,12 @@ def _frontmatter(block):
             return yaml.safe_load(block)
         except yaml.YAMLError as error:
             raise ValueError("Unreadable source security metadata") from error
-    result, key = {}, None
+    result, key, block_join = {}, None, None
+
+    def close_block():  # YAML's clip chomping keeps one trailing newline on a block scalar
+        if block_join is not None and key is not None and result.get(key):
+            result[key] = result[key] + "\n"
+
     for raw in block.splitlines():
         line = raw.rstrip()
         if not line.strip() or line.lstrip().startswith("#"):
@@ -449,32 +464,49 @@ def _frontmatter(block):
             if key is None:
                 raise ValueError("Unreadable source security metadata")
             item = line.strip()
+            if block_join is not None:
+                result[key] = (result[key] + block_join + item) if result[key] else item
+                continue
             if item.startswith("- "):
                 result.setdefault(key, [])
                 if isinstance(result[key], list):
                     result[key].append(_scalar(item[2:]))
-                continue
             continue  # a nested mapping; not a label the check reads
+        close_block()
+        block_join = None
         name, sep, value = line.partition(":")
         if not sep or not name.strip():
             raise ValueError("Unreadable source security metadata")
         key = name.strip()
-        value = value.strip()
-        if value.startswith("[") and value.endswith("]"):
+        value = _uncommented(value.strip())
+        if value in ("|", ">", "|-", ">-", "|+", ">+"):
+            result[key], block_join = "", ("\n" if value.startswith("|") else " ")
+        elif value.startswith("[") and value.endswith("]"):
             result[key] = [_scalar(part.strip()) for part in value[1:-1].split(",") if part.strip()]
         elif value:
             result[key] = _scalar(value)
         else:
             result[key] = None
+    close_block()
     return result
+
+
+def _uncommented(value):
+    """Drop an unquoted `` #`` comment, as YAML does."""
+    if value[:1] in "\"'":
+        return value
+    at = value.find(" #")
+    return value[:at].rstrip() if at >= 0 else value
 
 
 def _scalar(value):
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
         return value[1:-1]
     lowered = value.lower()
-    if lowered in ("true", "false"):
-        return lowered == "true"
+    if lowered in ("true", "yes", "on"):
+        return True
+    if lowered in ("false", "no", "off"):
+        return False
     if lowered in ("null", "~"):
         return None
     try:

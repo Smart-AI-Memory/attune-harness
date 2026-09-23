@@ -164,6 +164,10 @@ def test_raw_resolve_round_trips_and_refuses_change_expiry_and_scope(tmp_path):
     with pytest.raises(ValueError, match="Raw source expired"):
         reader.resolve(handle)
     assert reader.query("Aurora", k=5)["status"] == "empty"  # all expired
+    # An unreadable timestamp is expired too, in the adapter's words, never a TypeError.
+    (root / "findings.jsonl").write_text(json.dumps(dict(id="N1", text="Aurora", cwd="project-a", topics=[], ts=None)) + "\n")
+    with pytest.raises(ValueError, match="Raw source expired"):
+        reader.resolve(handle)
 
 
 @posix_only
@@ -178,6 +182,16 @@ def test_raw_refusals_become_root_problems(tmp_path):
                                    "detail": "Malformed or duplicate raw identity; exact retrieval unavailable"}]
     (root / "findings.jsonl").write_text('{"id": "N1", "topics": []}\n')
     assert reader.query("Aurora", k=5)["problems"][0]["detail"] == "Malformed raw record"
+    # A row with no topics key is legal in the adapter; a row with two type topics has kind unknown.
+    (root / "findings.jsonl").write_text(json.dumps(dict(id="N1", text="Aurora", cwd="project-a", ts=time.time())) + "\n"
+                                         + json.dumps(dict(id="N2", text="Aurora", cwd="project-a", ts=time.time(),
+                                                           topics=["type:a", "type:b"])) + "\n")
+    packet = reader.query("Aurora", k=5)
+    assert packet["status"] == "available" and [i["kind"] for i in packet["items"]] == ["unknown", "unknown"]
+    # A dangling findings.jsonl symlink is an absent file, not a refusal.
+    (root / "findings.jsonl").unlink()
+    (root / "findings.jsonl").symlink_to(root / "nowhere.jsonl")
+    assert reader.query("Aurora", k=5) ["status"] == "empty"
     missing = NativeReader(config_for(("r", tmp_path / "absent", "raw", "project-a")))
     assert missing.query("Aurora", k=5)["problems"][0]["detail"] == "Explicit memory root is unavailable"
     empty = tmp_path / "empty"
@@ -204,8 +218,8 @@ def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path):
         assert len(found[relative]["metadata"]["excerpt"]) <= 200
     long = next(i for i in reader.query("Aurora manual", k=5)["items"] if i["locator"]["path"] == "manual/reference.md")
     assert long["text"].endswith("rollback requires the original record and operation identity.")
-    with pytest.raises(ValueError, match="query must be a non-empty string") if False else pytest.raises(AssertionError):
-        assert reader.query("   ", k=5)["status"] != "unavailable"
+    blank = reader.query("   ", k=5)
+    assert blank["status"] == "unavailable" and blank["problems"][0]["detail"] == "query must be a non-empty string"
 
 
 @posix_only
@@ -310,7 +324,8 @@ def test_partial_status_and_nothing_from_attune_ai(tmp_path):
     reader = NativeReader(config_for(("r", raw, "raw", "project-a"), ("p", docs, "personal", "global")))
     packet = reader.query("Aurora reminder", k=10)
     assert packet["status"] == "partial" and len(packet["items"]) == 4 and packet["problems"][0]["root_id"] == "p"
-    assert not any(name == "attune" or name.startswith("attune.") for name in sys.modules)
+    if not os.environ.get("ATTUNE_TEST_ADAPTER_ROOT"):  # the differential imports the adapter on purpose
+        assert not any(name == "attune" or name.startswith("attune.") for name in sys.modules)
 
 
 # --- through the host and the CLI ---------------------------------------------------------
@@ -383,3 +398,147 @@ def test_differential_against_the_adapter(tmp_path, monkeypatch):
             assert native.resolve(handle)["text"] == adapter.resolve(handle)["text"]
     (tmp_path / "differential.json").write_text(json.dumps({"adapter_checkout": str(checkout), "order_identical": dict(report)}, indent=2))
     print("\nORDER IDENTICAL BELOW THE TOP:", dict(report))
+
+
+# --- the controls the reviewer found untested ---------------------------------------------
+
+
+@posix_only
+def test_capture_refuses_symlinks_hard_links_and_a_read_race(tmp_path, monkeypatch):
+    root = tmp_path / "personal"
+    seed_documents(root, "global")
+    reader = NativeReader(config_for(("p", root, "personal", "global")))
+    real = root / "manual" / "reference.md"
+    (root / "alias.md").symlink_to(real)
+    with pytest.raises(ValueError, match="Symlink source is not authorized"):
+        reader._capture(reader.config["roots"][0], "alias.md")
+    (root / "alias.md").unlink()
+    os.link(real, root / "twin.md")
+    with pytest.raises(ValueError, match="regular file without hard links"):
+        reader._capture(reader.config["roots"][0], "twin.md")
+    (root / "twin.md").unlink()
+    with pytest.raises(ValueError, match="Source must be a regular file"):
+        reader._capture(reader.config["roots"][0], "manual")  # a directory
+    real_fstat, calls = os.fstat, []
+
+    def racing(fd):
+        result = real_fstat(fd)
+        calls.append(fd)
+        if len(calls) % 2 == 0:  # the second look sees a different size
+            return os.stat_result((result.st_mode, result.st_ino, result.st_dev, result.st_nlink, result.st_uid,
+                                   result.st_gid, result.st_size + 1, result.st_atime, result.st_mtime, result.st_ctime))
+        return result
+
+    monkeypatch.setattr(memory_reader.os, "fstat", racing)
+    with pytest.raises(ValueError, match="Source changed while being read"):
+        reader._capture(reader.config["roots"][0], "manual/reference.md")
+
+
+@posix_only
+def test_documents_detect_changes_during_the_query_and_keep_mtimes(tmp_path, monkeypatch):
+    root = tmp_path / "personal"
+    seed_documents(root, "global")
+    reader = NativeReader(config_for(("p", root, "personal", "global")))
+    source = root / "safety" / "pattern.md"
+    real_rank = memory_reader._rank_documents
+    seen = {}
+
+    def snapshot_keeps_mtimes(snapshot, query, k):
+        seen["k"] = k
+        seen["mtime_equal"] = (snapshot / "safety" / "pattern.md").stat().st_mtime_ns == source.stat().st_mtime_ns
+        return real_rank(snapshot, query, k)
+
+    monkeypatch.setattr(memory_reader, "_rank_documents", snapshot_keeps_mtimes)
+    assert reader.query("Aurora procedure", k=3)["status"] == "available"
+    assert seen["mtime_equal"] and seen["k"] == 3
+
+    def sidecar_appears(snapshot, query, k):
+        (root / "summaries_by_path.json").write_text("{}")
+        return real_rank(snapshot, query, k)
+
+    monkeypatch.setattr(memory_reader, "_rank_documents", sidecar_appears)
+    assert reader.query("Aurora procedure", k=3)["problems"][0]["detail"] == "Retrieval metadata changed; refresh context"
+    (root / "summaries_by_path.json").unlink()
+
+    def source_changes(snapshot, query, k):
+        hits = real_rank(snapshot, query, k)
+        source.write_text("# Aurora\n\nAurora procedure rewritten mid-query\n", encoding="utf-8")
+        return hits
+
+    monkeypatch.setattr(memory_reader, "_rank_documents", source_changes)
+    assert reader.query("Aurora procedure", k=3)["problems"][0]["detail"] == "Source changed during retrieval; refresh context"
+    monkeypatch.undo()
+    monkeypatch.setattr(memory_reader, "SNAPSHOT_BYTES", 100)
+    assert reader.query("Aurora", k=3)["problems"][0]["detail"] == "Corpus exceeds 64 MiB query snapshot limit; narrow the root"
+
+
+@posix_only
+def test_the_retriever_is_asked_for_twice_k(tmp_path, monkeypatch):
+    root = tmp_path / "personal"
+    seed_documents(root, "global")
+    reader = NativeReader(config_for(("p", root, "personal", "global")))
+    asked = []
+    real_require = memory_reader.require_feature
+
+    def spying(distribution, module, expected, extra):
+        loaded = real_require(distribution, module, expected, extra)
+        if module.endswith("retrieval"):
+            import types
+            real_cls = loaded.KeywordRetriever
+
+            class Spy(real_cls):
+                def retrieve(self, query, corpus, k=3):
+                    asked.append(k)
+                    return super().retrieve(query, corpus, k=k)
+
+            return types.SimpleNamespace(KeywordRetriever=Spy)
+        return loaded
+
+    monkeypatch.setattr(memory_reader, "require_feature", spying)
+    reader.query("Aurora procedure", k=4)
+    assert asked == [8]
+
+
+@posix_only
+def test_raw_reread_after_ranking_catches_a_rewrite(tmp_path, monkeypatch):
+    root = tmp_path / "raw"
+    seed_raw(root)
+    reader = NativeReader(config_for(("r", root, "raw", "project-a")))
+    real_rank = memory_reader._rank_raw
+
+    def rewriting(content, query, *, limit):
+        hits = real_rank(content, query, limit=limit)
+        seed_raw(root, ts=time.time() + 1)
+        return hits
+
+    monkeypatch.setattr(memory_reader, "_rank_raw", rewriting)
+    assert reader.query("Aurora", k=5)["problems"][0]["detail"] == "Raw source changed during retrieval"
+
+
+@posix_only
+def test_a_conflicting_label_and_a_secret_refuse_in_the_gates_words_first(tmp_path):
+    root = tmp_path / "curated"
+    root.mkdir()
+    (root / "doc.md").write_text("---\nowner: other\n---\nAurora policy api_key = " + "A1b2" * 6 + "\n", encoding="utf-8")
+    reader = NativeReader(config_for(("c", root, "curated", "global")))
+    assert reader.query("Aurora policy", k=5)["problems"][0]["detail"] == "Source is unsafe or requires redaction; governed exposure refused"
+
+
+def test_the_subset_parser_strips_comments_and_reads_block_scalars():
+    block = "owner: patrick # the owner\nnote: |\n  first\n  second\nflag: yes\nquoted: 'a # b'\nfolded: >\n  one\n  two\n"
+    import builtins
+    real_import = builtins.__import__
+
+    def no_yaml(name, *args, **kwargs):
+        if name == "yaml":
+            raise ImportError("blocked")
+        return real_import(name, *args, **kwargs)
+
+    builtins.__import__ = no_yaml
+    try:
+        parsed = memory_reader._frontmatter(block)
+    finally:
+        builtins.__import__ = real_import
+    assert parsed == {"owner": "patrick", "note": "first\nsecond\n", "flag": True, "quoted": "a # b", "folded": "one two\n"}
+    yaml = pytest.importorskip("yaml")
+    assert parsed == yaml.safe_load(block)
