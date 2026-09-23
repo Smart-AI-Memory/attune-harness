@@ -141,6 +141,10 @@ def neighbor_conflict(dependency: str = 'mcp', neighbor: str = 'attune-ai') -> s
 
 
 REPLACE_RETRY_SECONDS = 2.0
+# Whether a replace refused with PermissionError is retried: the Windows
+# sharing refusal. A module flag rather than os.name at call time, so a test
+# can exercise the retry on every platform without touching os.name.
+RETRY_REFUSED_REPLACE = os.name == 'nt'
 
 
 def replace_file(source: Path, target: Path, *, retry_seconds: float = REPLACE_RETRY_SECONDS) -> None:
@@ -150,7 +154,7 @@ def replace_file(source: Path, target: Path, *, retry_seconds: float = REPLACE_R
     reader of the same record, an indexer, antivirus). Retry for a bounded
     period, then fail as before. POSIX replaces over an open file at once.
     """
-    if os.name != 'nt':
+    if not RETRY_REFUSED_REPLACE:
         os.replace(source, target)
         return
     deadline = time.monotonic() + retry_seconds
