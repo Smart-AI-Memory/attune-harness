@@ -83,6 +83,23 @@ did not conflict on this section.
   unchanged and still precedes the walk; every accept and decision envelope
   keeps its keys. `chair_required` is wired and has no Harness source yet
   (spec authority Task 4, step b, second half; D23.2, D24).
+- Changed: the envelope table's recorded gaps are closed, additively. The
+  feature-work envelopes, `plan`, `build`, `status`, `resume` and
+  `reconcile-task` on work and their refusals, and every result
+  `memory scratch` returns, carry `schema_version: 1`; `triage-check`,
+  `repair-economics` and `github-checks` carry `status: completed` on
+  success and `schema_version: 1` on their refusals, which the table now
+  pins as two refusal rows. `code-config` keeps no `status`: its envelope is
+  the retrieval config that `index plan --config` reads back, and a test now
+  runs that round trip. Fifteen golden rows change or are added; nothing is
+  renamed or removed (the first freeze cycle, 4.1; D27.2, with `code-config`
+  the one exception it did not foresee).
+- Removed: the five empty extras, `tokens`, `verify`, `rag`, `review` and
+  `mcp`, kept since 0.4.0 so that an existing `pip install
+  'attune-harness[review]'` went on working. The README promised their
+  removal at 1.0 and D27.6 put it in the first freeze cycle. An install that
+  still names one gets pip's warning that the extra does not exist and the
+  base install, which carries everything they installed; drop the bracket.
 
 ## 0.5.0
 

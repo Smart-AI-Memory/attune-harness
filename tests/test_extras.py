@@ -24,6 +24,14 @@ def test_all_is_the_union_of_the_qualified_extras_and_nothing_experimental():
     assert "memory-native" in found and "memory-native" not in found["all"][0]
 
 
-def test_the_retired_extras_stay_empty_until_1_0():
+def test_the_retired_extras_are_gone():
+    """Empty from 0.4.0 to 0.5.0; removed by the first freeze cycle (D27.6)."""
+    retired = {"tokens", "verify", "rag", "review", "mcp"}
     found = extras()
-    assert all(found[name] == [] for name in ("tokens", "verify", "rag", "review", "mcp"))
+    assert not retired & set(found)
+    assert set(found) == {"voyage", "memory-native", "redis", "all"}
+    # Any spelling of a declaration: a multi-line list or a quoted key escapes extras().
+    block = PYPROJECT.read_text(encoding="utf-8").split("[project.optional-dependencies]", 1)[1].split("\n[", 1)[0]
+    for line in block.splitlines():
+        name = line.split("=", 1)[0].strip().strip('"')
+        assert name not in retired, line

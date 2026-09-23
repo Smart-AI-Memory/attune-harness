@@ -394,13 +394,15 @@ def test_open_scratch_uses_the_shared_client_opener(monkeypatch):
 def test_run_envelopes(tmp_path):
     root = str(tmp_path.resolve())
     config = {"scratch": {"backend": "file", "root": root}}
-    assert run({"roots": []}, "capabilities", {}) == {"status": "disabled", "detail": "The memory config has no 'scratch' section"}
+    # Every scratch envelope carries schema_version 1 since the first freeze cycle (D27.2).
+    assert run({"roots": []}, "capabilities", {}) == {"schema_version": 1, "status": "disabled", "detail": "The memory config has no 'scratch' section"}
     caps = run(config, "capabilities", {})
     assert caps["status"] == "ok" and caps["backend"] == "file" and caps["shared"] is False
     stored = run(config, "stash", {"key": "k", "value": {"a": 1}, "ttl": 60})
     assert stored["status"] == "ok" and stored["backend"] == "file" and stored["expires_at"]
     assert run(config, "retrieve", {"key": "k"})["value"] == {"a": 1}
-    assert run(config, "retrieve", {"key": "missing"}) == {"status": "no_results", "operation": "memory_scratch_retrieve", "backend": "file", "key": "missing"}
+    assert run(config, "retrieve", {"key": "missing"}) == {"schema_version": 1, "status": "no_results", "operation": "memory_scratch_retrieve", "backend": "file", "key": "missing"}
+    assert all(run(config, op, args)["schema_version"] == 1 for op, args in (("capabilities", {}), ("keys", {}), ("retrieve", {"key": "k"})))
     assert run(config, "keys", {})["keys"] == ["k"]
     assert run(config, "forget", {"key": "k"})["forgotten"] is True
     assert run(config, "forget", {"key": "k"})["status"] == "no_results"

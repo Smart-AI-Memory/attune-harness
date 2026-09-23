@@ -10,15 +10,16 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 71 rows:
+row pins, in 73 rows:
 
 - **success** (55 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (6 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (8 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
   built; `memory capabilities` with a config that is not the roots contract,
-  refused by the default reader in its own words. Voyage is never called.
+  refused by the default reader in its own words; `triage-check` and
+  `github-checks` on an empty object. Voyage is never called.
 - **unavailable** (9 rows): a dependency or server this install does not
   have. The memory host route (`capabilities` through `execute`) with
   `reader: adapter` needs the attune-ai adapter, which no base or extra
@@ -36,11 +37,19 @@ prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
 POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
 verb qualifies the POSIX execution profile and the repair probe fixture is a
 POSIX one; and the four `-native` rows, because the native memory reader's
-descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
-`status` column means the envelope has no such key: the feature-work verbs
-(`plan`, `build` and their `status`) and `memory scratch` carry no
-`schema_version`, and `code-config`, `triage-check`, `repair-economics` and
-`github-checks` carry no `status`.
+descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version`
+or `status` column means the envelope has no such key. The first freeze cycle
+(4.1, D27.2) closed the gaps this page used to list: the feature-work verbs
+(`plan`, `build` and their `status`, their refusals included) and every
+result `memory scratch` returns gained `schema_version: 1`, and
+`triage-check`, `repair-economics` and `github-checks` gained
+`status: completed` on success and `schema_version: 1` on their refusals,
+which the two refusal rows pin. `code-config` keeps no `status` on purpose:
+its envelope is the retrieval config itself, which `index plan --config`
+reads back and would refuse with a key it does not know. The `-` cells that
+remain, the `demo` receipt, the memory host route's packets and refusals, and
+the Redis reader's unreachable report, are the second freeze cycle's to close
+or to rule exempt; the eight adapter-bound rows among them go with D28.
 
 ## Table
 
@@ -65,10 +74,10 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `fix-intake` | success | 0 | 1 | `accepted` | `answers` `defaults_origin` `definition` `execution_status` `intake_metrics` `markdown` `note` `operation` `repair_contract` `revision` `schema_version` `status` `submission` `task_directory` `task_id` |
 | `test-preview` | success | 1 | 1 | `draft` | `checkpoint_digest` `execution_evidence` `operation` `presentation` `record_path` `schema_version` `status` `task_profile` |
 | `status-test` | success | 0 | 1 | `draft` | `checkpoint_digest` `execution_evidence` `operation` `presentation` `record_path` `schema_version` `status` `task_profile` |
-| `plan-request` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `plan-decision` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `decision` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `status-work` | success | 0 | - | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `status` `summary` `task_directory` `task_id` `tasks` |
-| `build-draft` | refusal | 2 | - | `failed` | `blocking` `error` `evidence` `next_action` `record_path` `status` `summary` |
+| `plan-request` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `plan-decision` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `decision` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `status-work` | success | 0 | 1 | `draft` | `advisory` `authoring` `authority` `blocking` `checkpoint_digest` `completed` `controls` `evidence` `execution_evidence` `intent` `missing` `next_action` `note` `phase` `preserved_completion` `questions` `record_path` `revision` `schema_version` `status` `summary` `task_directory` `task_id` `tasks` |
+| `build-draft` | refusal | 2 | 1 | `failed` | `blocking` `error` `evidence` `next_action` `record_path` `schema_version` `status` `summary` |
 | `extension-discover` | success | 0 | 1 | `ready` | `bundle` `operation` `request_id` `schema_version` `status` |
 | `extension-install` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-enable` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
@@ -82,9 +91,11 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `index-update` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `index-inspect` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
 | `retrieval-task` | refusal | 2 | 1 | `failed` | `error` `operation` `request_id` `schema_version` `status` |
-| `triage-check` | success | 0 | 1 | - | `action` `atomic_claim_required` `dispatch_authorized` `key` `reason` `schema_version` |
-| `repair-economics` | success | 0 | 1 | - | `eligible_cost_ranking` `note` `schema_version` `scope` `strategies` |
-| `github-checks` | success | 0 | 1 | - | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` |
+| `triage-check` | success | 0 | 1 | `completed` | `action` `atomic_claim_required` `dispatch_authorized` `key` `reason` `schema_version` `status` |
+| `repair-economics` | success | 0 | 1 | `completed` | `eligible_cost_ranking` `note` `schema_version` `scope` `status` `strategies` |
+| `github-checks` | success | 0 | 1 | `completed` | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` `status` |
+| `triage-check-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
+| `github-checks-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `mcp-inspect` | success | 0 | 1 | `completed` | `accepted` `completion_scope` `events` `identity_scope` `max_calls` `operation` `participant_id` `profile` `record_path` `registry` `request_id` `requirement_revision` `schema_version` `source_snapshot` `status` `tools` |
 | `verify` | success | 0 | 1 | `verified` | `artifacts` `dependency` `operation` `passed` `request_id` `result` `schema_version` `status` |
 | `retrieve` | success | 0 | 1 | `retrieved` | `corpus` `dependency` `k` `operation` `query` `request_id` `retriever` `schema_version` `sources` `status` |
@@ -111,12 +122,12 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `memory-redis-node` | success | 0 | 1 | `ok` | `authority` `guidance` `id` `items` `operation` `schema_version` `status` |
 | `memory-redis-search` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `k` `layer` `operation` `query` `schema_version` `status` `total` |
 | `memory-redis-unreachable` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-scratch-capabilities` | success | 0 | - | `ok` | `backend` `location` `operation` `realtime` `shared` `status` |
-| `memory-scratch-stash` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` |
-| `memory-scratch-retrieve` | success | 0 | - | `ok` | `backend` `expires_at` `key` `operation` `status` `stored_at` `value` |
-| `memory-scratch-forget` | success | 0 | - | `ok` | `backend` `forgotten` `key` `operation` `status` |
-| `memory-scratch-keys` | success | 0 | - | `ok` | `backend` `keys` `operation` `pattern` `status` |
-| `memory-scratch-disabled` | disabled | 2 | - | `disabled` | `detail` `status` |
+| `memory-scratch-capabilities` | success | 0 | 1 | `ok` | `backend` `location` `operation` `realtime` `schema_version` `shared` `status` |
+| `memory-scratch-stash` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` |
+| `memory-scratch-retrieve` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` `value` |
+| `memory-scratch-forget` | success | 0 | 1 | `ok` | `backend` `forgotten` `key` `operation` `schema_version` `status` |
+| `memory-scratch-keys` | success | 0 | 1 | `ok` | `backend` `keys` `operation` `pattern` `schema_version` `status` |
+| `memory-scratch-disabled` | disabled | 2 | 1 | `disabled` | `detail` `schema_version` `status` |
 
 ## Invocations
 
@@ -161,6 +172,8 @@ What each case runs, in the order of the table.
 - `triage-check`: `triage-check INPUT`
 - `repair-economics`: `repair-economics INPUT`
 - `github-checks`: `github-checks INPUT --repository --revision`
+- `triage-check-refusal`: `triage-check INPUT` on an empty object
+- `github-checks-refusal`: `github-checks INPUT --repository --revision` on an empty object
 - `mcp-inspect`: `mcp-inspect SESSION_DIR` on a finished retrieval session
 - `verify`: `verify DOCUMENT --context`
 - `retrieve`: `retrieve QUERY --corpus`

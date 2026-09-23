@@ -125,23 +125,24 @@ ENVELOPES = (
     ('status-test', 'success', 0, 1, 'draft',
      ('checkpoint_digest', 'execution_evidence', 'operation', 'presentation', 'record_path',
       'schema_version', 'status', 'task_profile')),
-    ('plan-request', 'success', 0, None, 'draft',
+    ('plan-request', 'success', 0, 1, 'draft',
      ('advisory', 'authoring', 'authority', 'blocking', 'checkpoint_digest', 'completed',
       'controls', 'evidence', 'execution_evidence', 'intent', 'missing', 'next_action', 'note',
-      'phase', 'preserved_completion', 'questions', 'record_path', 'revision', 'status', 'summary',
-      'task_directory', 'task_id', 'tasks')),
-    ('plan-decision', 'success', 0, None, 'draft',
+      'phase', 'preserved_completion', 'questions', 'record_path', 'revision',
+      'schema_version', 'status', 'summary', 'task_directory', 'task_id', 'tasks')),
+    ('plan-decision', 'success', 0, 1, 'draft',
      ('advisory', 'authoring', 'authority', 'blocking', 'checkpoint_digest', 'completed',
-      'controls', 'decision', 'evidence', 'execution_evidence', 'intent', 'missing', 'next_action',
-      'note', 'phase', 'preserved_completion', 'questions', 'record_path', 'revision', 'status',
-      'summary', 'task_directory', 'task_id', 'tasks')),
-    ('status-work', 'success', 0, None, 'draft',
+      'controls', 'decision', 'evidence', 'execution_evidence', 'intent', 'missing',
+      'next_action', 'note', 'phase', 'preserved_completion', 'questions', 'record_path',
+      'revision', 'schema_version', 'status', 'summary', 'task_directory', 'task_id', 'tasks')),
+    ('status-work', 'success', 0, 1, 'draft',
      ('advisory', 'authoring', 'authority', 'blocking', 'checkpoint_digest', 'completed',
       'controls', 'evidence', 'execution_evidence', 'intent', 'missing', 'next_action', 'note',
-      'phase', 'preserved_completion', 'questions', 'record_path', 'revision', 'status', 'summary',
-      'task_directory', 'task_id', 'tasks')),
-    ('build-draft', 'refusal', 2, None, 'failed',
-     ('blocking', 'error', 'evidence', 'next_action', 'record_path', 'status', 'summary')),
+      'phase', 'preserved_completion', 'questions', 'record_path', 'revision',
+      'schema_version', 'status', 'summary', 'task_directory', 'task_id', 'tasks')),
+    ('build-draft', 'refusal', 2, 1, 'failed',
+     ('blocking', 'error', 'evidence', 'next_action', 'record_path', 'schema_version',
+      'status', 'summary')),
     ('extension-discover', 'success', 0, 1, 'ready',
      ('bundle', 'operation', 'request_id', 'schema_version', 'status')),
     ('extension-install', 'success', 0, 1, 'disabled',
@@ -179,13 +180,18 @@ ENVELOPES = (
      ('error', 'operation', 'request_id', 'schema_version', 'status')),
     ('retrieval-task', 'refusal', 2, 1, 'failed',
      ('error', 'operation', 'request_id', 'schema_version', 'status')),
-    ('triage-check', 'success', 0, 1, None,
-     ('action', 'atomic_claim_required', 'dispatch_authorized', 'key', 'reason', 'schema_version')),
-    ('repair-economics', 'success', 0, 1, None,
-     ('eligible_cost_ranking', 'note', 'schema_version', 'scope', 'strategies')),
-    ('github-checks', 'success', 0, 1, None,
+    ('triage-check', 'success', 0, 1, 'completed',
+     ('action', 'atomic_claim_required', 'dispatch_authorized', 'key', 'reason',
+      'schema_version', 'status')),
+    ('repair-economics', 'success', 0, 1, 'completed',
+     ('eligible_cost_ranking', 'note', 'schema_version', 'scope', 'status', 'strategies')),
+    ('github-checks', 'success', 0, 1, 'completed',
      ('all_checks_passed', 'checks', 'note', 'repair_verified', 'repository', 'revision',
-      'schema_version')),
+      'schema_version', 'status')),
+    ('triage-check-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'schema_version', 'status')),
+    ('github-checks-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'schema_version', 'status')),
     ('mcp-inspect', 'success', 0, 1, 'completed',
      ('accepted', 'completion_scope', 'events', 'identity_scope', 'max_calls', 'operation',
       'participant_id', 'profile', 'record_path', 'registry', 'request_id', 'requirement_revision',
@@ -250,18 +256,19 @@ ENVELOPES = (
       'status', 'total')),
     ('memory-redis-unreachable', 'unavailable', 2, None, 'unavailable',
      ('detail', 'error', 'status')),
-    ('memory-scratch-capabilities', 'success', 0, None, 'ok',
-     ('backend', 'location', 'operation', 'realtime', 'shared', 'status')),
-    ('memory-scratch-stash', 'success', 0, None, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'status', 'stored_at')),
-    ('memory-scratch-retrieve', 'success', 0, None, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'status', 'stored_at', 'value')),
-    ('memory-scratch-forget', 'success', 0, None, 'ok',
-     ('backend', 'forgotten', 'key', 'operation', 'status')),
-    ('memory-scratch-keys', 'success', 0, None, 'ok',
-     ('backend', 'keys', 'operation', 'pattern', 'status')),
-    ('memory-scratch-disabled', 'disabled', 2, None, 'disabled',
-     ('detail', 'status')),
+    ('memory-scratch-capabilities', 'success', 0, 1, 'ok',
+     ('backend', 'location', 'operation', 'realtime', 'schema_version', 'shared', 'status')),
+    ('memory-scratch-stash', 'success', 0, 1, 'ok',
+     ('backend', 'expires_at', 'key', 'operation', 'schema_version', 'status', 'stored_at')),
+    ('memory-scratch-retrieve', 'success', 0, 1, 'ok',
+     ('backend', 'expires_at', 'key', 'operation', 'schema_version', 'status', 'stored_at',
+      'value')),
+    ('memory-scratch-forget', 'success', 0, 1, 'ok',
+     ('backend', 'forgotten', 'key', 'operation', 'schema_version', 'status')),
+    ('memory-scratch-keys', 'success', 0, 1, 'ok',
+     ('backend', 'keys', 'operation', 'pattern', 'schema_version', 'status')),
+    ('memory-scratch-disabled', 'disabled', 2, 1, 'disabled',
+     ('detail', 'schema_version', 'status')),
 )
 # fmt: on
 
@@ -990,6 +997,19 @@ def _(w):
     )
 
 
+@scenario("triage-check-refusal")
+def _(w):
+    return w.run(
+        [
+            "triage-check",
+            write_json(
+                w.tmp / "event.json",
+                {},
+            ),
+        ]
+    )
+
+
 @scenario("repair-economics")
 def _(w):
     return w.run(["repair-economics", write_json(w.tmp / "ledger.json", repair_ledger())])
@@ -1001,6 +1021,20 @@ def _(w):
         [
             "github-checks",
             write_json(w.tmp / "checks.json", github_payload()),
+            "--repository",
+            "fixture/project",
+            "--revision",
+            FORTY,
+        ]
+    )
+
+
+@scenario("github-checks-refusal")
+def _(w):
+    return w.run(
+        [
+            "github-checks",
+            write_json(w.tmp / "checks.json", {}),
             "--repository",
             "fixture/project",
             "--revision",
@@ -1243,6 +1277,9 @@ def test_envelope(drive, request, tmp_path, monkeypatch, capsys, case, bundle):
         envelope.get("schema_version"),
         envelope.get("status"),
         tuple(sorted(envelope)),
+    )
+    assert type(envelope.get("schema_version")) in (int, type(None)), (
+        f"{case_id}: schema_version must be an integer, not {envelope.get('schema_version')!r}"
     )
     expected = TABLE[case_id][2:]
     assert observed == expected, (
