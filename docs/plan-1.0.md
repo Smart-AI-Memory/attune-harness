@@ -33,7 +33,8 @@ list is empty, the release gate reads memory, and the README's memory row
 says native. The last `import attune` under `src/` is `memory_context.py`.
 Phase 3 began on September 23: 3.5 is approved (D22), 3.1 has three of its
 four pull requests merged (#106, #107, #108) and the release gate runs the R2
-journey; 4.5's nine pull requests all merged the same day.
+journey; 4.5's nine pull requests all merged the same day. 3.1 completed
+the same evening with #110, step (b)'s stages under D24.
 
 ## How to read the tables
 
@@ -122,6 +123,7 @@ Release: 1.0.0rc1 to TestPyPI through the runbook's `testpypi` target, then
 | 4.5 | Hygiene from the opportunity log | Built in the overnight run of September 23, one pull request each: `configure_process` idempotent and the CLI tests unstubbed (O-67, #100); one qualification run per release branch (O-64, #93); the review-gate habit in AGENTS.md (O-63, #90, merged); `qualify_pilot.py` deleted (O-68, #92, merged); the append lock's necessity asserted on every platform (O-65, #95); `docs/handoffs/` in `.gitignore` (O-43, #89, merged); one atomic writer with the Windows retry (O-59, #99); the index completeness check (O-60, #91, merged); the MCP test's deadline named (O-42, #94). All nine merged on September 23; the row is closed, and new hygiene candidates go to the log's October 1 review | none | 1 to 2 |
 | 4.6 | The non-programmer walkthrough (spec authority Task 6) | R6 observed, not inferred: a person who does not program installs from PyPI, runs the installed journey and is watched doing it, during the release-candidate period | Who walks through | 1 |
 | 4.7 | 1.0.0 | The README status line reads stable; the qualification table lists what is and is not covered; the runbook's steps with receipts; the tag; the Release | Patrick approves the environment and signs the tag | 1 |
+| 4.8 | The migration page (D26) | During the candidate period, before 4.7: a page listing, per journey, what Harness carries at 1.0.0, what it does not (the plugin's skills and hooks, the hydrate writer, the multi-agent workflows, attune-ai's MCP tools) and what a user does about each; linked from the README's "Harness and attune-ai" section, rewritten at 1.0.0 | Ruled (D26): the deprecation is a notice, not parity | 1 |
 
 Exit: 1.0.0 on PyPI, and a change to any envelope, config format or verb
 after it is a deliberate diff with a deprecation, because a test fails
@@ -133,7 +135,10 @@ By ruling, not by omission: remote A2A authentication (deferred by Patrick,
 the local profile ships labeled local-only); the Voyage validation reuse spec
 (retained in full, runs on its own track); native memory proposals (the
 `memory-native` extra stays experimental and POSIX-only); the corrections
-lifecycle (ladder 7), by D21.9, unless the dogfooding week brings it back.
+lifecycle (ladder 7), by D21.9, unless the dogfooding week brings it back;
+the Claude Code plugin's skills and the hydrate writer, whose Harness
+successors are the deprecation milestone's first rows (D26), the
+deprecation itself being a notice that may follow 1.0.0 within days.
 
 ## Order, and what can overlap
 
@@ -148,6 +153,6 @@ of Phase 3 (D20.8): 4.2 is one cycle.
 Counted: 20 tasks, between 26 and 35 cycles at today's pace now that D20.8
 fixes 4.2 at one. On September 23, nine are done, three in progress and
 eight not started; [the release 1.0.0 note](specs/release-1.0/README.md)
-counts seventeen to twenty cycles left; its rulings are
-[D25](specs/release-1.0/addendum-2026-09-23.md). Each cycle carries a different-model review under
+counts eighteen to twenty-one cycles left with the migration page; its
+rulings are [D25 and D26](specs/release-1.0/addendum-2026-09-23.md). Each cycle carries a different-model review under
 [the brief](review-brief.md) and lands in [the findings log](review-findings.md).
