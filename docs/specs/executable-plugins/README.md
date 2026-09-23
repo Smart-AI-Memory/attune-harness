@@ -6,9 +6,11 @@ executable plugins "need it", required for stable, with their own spec, a
 threat model, and sandboxing or signing before implementation. D7 made
 Voyage the first real consumer. D20.7 ruled the shape: signing plus a
 capability list plus a subprocess, stated as such and not as a sandbox claim.
-This document is reviewed as `src/` is, by a different model under
-[the brief](../../review-brief.md), before Patrick approves it; the
-implementation is Phase 4's 4.3. Nothing here authorizes code.
+This document was reviewed as `src/` is, by a different model under
+[the brief](../../review-brief.md), in four passes recorded in its pull
+request, and Patrick approved it as recommended on September 23, 2026
+([D22](../spec-authority/addendum-2026-09-23.md)); the implementation is
+Phase 4's 4.3. Nothing here authorizes code before that task starts.
 
 ## What exists: the data-only extension system
 
