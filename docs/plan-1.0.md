@@ -78,23 +78,26 @@ release gate's `core` mode reads memory, and the README's memory row says
 Goal: plan, build, review and memory all run with nothing from Attune AI
 installed, other projects' spec state is still readable, and a fresh session
 receives memory without a command. Release: 0.6.0. Four pieces from two
-ladders, plus the spec that D6 says a stable release needs.
+ladders, plus the spec that D6 says a stable release needs. Design note:
+[phase-3-design.md](specs/phase-3-design.md); rulings on September 23, all as
+recommended: [D20](specs/spec-authority/addendum-2026-09-23.md) and
+[D21](specs/native-memory/decisions-2026-09-23.md).
 
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
-| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding | 2 to 3 |
-| 3.2 | Spec authority Task 5: read other projects' Attune AI spec state | An R4 receipt for every cited plan, fixtures from at least one other project; read and convert, never write back (D4), originals untouched, a receipt per conversion | Which projects' fixtures are the evidence | 1 to 2 |
-| 3.3 | Serving path (ladder 6, N7) | A fresh Claude Code or Codex session receives relevant memory without an explicit command; the model's disclosure of a memory's influence is preserved as a requirement; corrected or forgotten memories stop being served. Starts from the week of 1.4 | Hook or plugin; what "relevant" means at session start; the disclosure form | 2 to 3 |
-| 3.4 | Versioned store and writer protocol (ladder 5) | Versioned serialization designed natively; the file scratch store is the first tenant; legacy stores stay read-in-place, no conversion without a separate proposal | Whether this lands before the format freeze (this plan says yes: the freeze cannot pin a format that is about to change) | 1 to 2 |
-| 3.5 | Executable plugins: the spec | A spec with a threat model and a sandboxing or signing design, reviewed before any implementation (D6: "need it", required for stable) | The trust model: who may sign, what a plugin may touch | 1 to 2 |
+| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding. Ruled (D20.1, D20.2): the user-visible words are the contract, the names are not; the R2 journey runs in the release gate | 2 to 3 |
+| 3.2 | Spec authority Task 5: read other projects' Attune AI spec state | An R4 receipt for every cited plan, fixtures from at least one other project; read and convert, never write back (D4), originals untouched, a receipt per conversion | Which projects' fixtures are the evidence. Ruled (D20.3): one plan from attune-ai's own `.claude/plans/`, origin recorded, plus the seven Harness plans | 1 to 2 |
+| 3.3 | Serving path (ladder 6, N7) | A fresh Claude Code or Codex session receives relevant memory without an explicit command; the model's disclosure of a memory's influence is preserved as a requirement; corrected or forgotten memories stop being served. Starts from the week of 1.4 | Hook or plugin; what "relevant" means at session start; the disclosure form. Ruled (D21.4, D21.5): the SessionStart hook first and a prompt hook second, no MCP memory tool yet; a node absent from `status:active` or with a `wrong` verdict stops being served | 2 to 3 |
+| 3.4 | Versioned store and writer protocol (ladder 5) | Versioned serialization designed natively; the file scratch store is the first tenant; legacy stores stay read-in-place, no conversion without a separate proposal | Whether this lands before the format freeze (this plan says yes: the freeze cannot pin a format that is about to change). Ruled (D21.6): yes; the scratch format's version opens the compatibility list | 1 to 2 |
+| 3.5 | Executable plugins: the spec | A spec with a threat model and a sandboxing or signing design, reviewed before any implementation (D6: "need it", required for stable) | The trust model: who may sign, what a plugin may touch. Ruled (D20.7): signing, a capability list and a subprocess, stated as such and not as a sandbox | 1 to 2 |
 
 Exit: the connected journey qualification runs end to end with attune-ai
 absent; the legacy reader has receipts from another project; Patrick's
 sessions receive memory from Harness alone; the plugin spec is approved.
 
-Candidate to defer, Patrick's call: ladder 7, the corrections lifecycle and
-review (N8). D6 does not list it among what cannot wait; the plan leaves it
-out of 1.0 unless the week of dogfooding shows corrections coming back.
+Ladder 7, the corrections lifecycle and review (N8), stays outside 1.0 by
+ruling (D21.9, September 23) unless the week of dogfooding shows corrections
+coming back; D6 does not list it among what cannot wait.
 
 ## Phase 4 — The 1.0.0 candidate
 
@@ -106,10 +109,10 @@ Release: 1.0.0rc1 to TestPyPI through the runbook's `testpypi` target, then
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
 | 4.1 | Interface freeze | [The envelope table](envelopes.md) becomes the compatibility contract, with the gaps #73 recorded settled: `schema_version` on the `plan`, `build`, `status` and `memory scratch` envelopes, `status` on `code-config`, `triage-check`, `repair-economics` and `github-checks`; the config formats (memory config with `redis` and `scratch`, task records, plan state) and the CLI verbs written down with a deprecation path; the empty extra names removed as the changelog promised | Which shapes change before the freeze and which are frozen as they are | 2 |
-| 4.2 | Windows | Either `fix` and `test` qualified on Windows for the cases the README names (deletion and renames, ACLs, files over 64 KiB, crash recovery, concurrent writers) or a written decision that Windows is a documented limit at 1.0 with WSL2 as the route to the POSIX profile (D6's Windows note) | This is the one decision that changes the size of the phase by a factor of three | 1, or 4 to 6 |
+| 4.2 | Windows | Either `fix` and `test` qualified on Windows for the cases the README names (deletion and renames, ACLs, files over 64 KiB, crash recovery, concurrent writers) or a written decision that Windows is a documented limit at 1.0 with WSL2 as the route to the POSIX profile (D6's Windows note) | Made on September 23 (D20.8): Windows is a documented limit at 1.0, `fix` and `test` unqualified there, the memory reader refusing, WSL2 the route; the work is the written decision and the qualification table | 1 |
 | 4.3 | Executable plugins: implementation | The spec from 3.5 implemented and qualified; the README's protocols row no longer lists arbitrary executable plugins as unqualified | none new if 3.5 settled the trust model | 2 to 4 |
 | 4.4 | End the memory transition (ladder 9, N5) | attune-ai memory formats declared frozen; the differential tests and the adapter fallback removed once attune-ai stops writing; the fate of `attune_bridge.py`, the `harness` extra and `attune-redis`'s attune-ai dependency settled | Whether attune-ai stops writing before 1.0 | 1 |
-| 4.5 | Hygiene from the opportunity log | `configure_process` idempotent and the CLI tests unstubbed (O-67); one qualification run per release branch (O-64); the review-gate habit in AGENTS.md (O-63); `qualify_pilot.py` deleted or folded into `check_installed.py` (O-68); the append lock's necessity asserted on every platform (O-65); `docs/handoffs/` in `.gitignore` (O-43); one atomic writer for the three `os.replace` sites (O-59); a docs-index completeness check (O-60); the MCP test's deadline named (O-42) | none | 2 |
+| 4.5 | Hygiene from the opportunity log | Built in the overnight run of September 23, one pull request each: `configure_process` idempotent and the CLI tests unstubbed (O-67, #100); one qualification run per release branch (O-64, #93); the review-gate habit in AGENTS.md (O-63, #90, merged); `qualify_pilot.py` deleted (O-68, #92, merged); the append lock's necessity asserted on every platform (O-65, #95); `docs/handoffs/` in `.gitignore` (O-43, #89, merged); one atomic writer with the Windows retry (O-59, #99); the index completeness check (O-60, #91, merged); the MCP test's deadline named (O-42, #94). The row closes when the five open ones merge | none | 1 to 2 |
 | 4.6 | The non-programmer walkthrough (spec authority Task 6) | R6 observed, not inferred: a person who does not program installs from PyPI, runs the installed journey and is watched doing it, during the release-candidate period | Who walks through | 1 |
 | 4.7 | 1.0.0 | The README status line reads stable; the qualification table lists what is and is not covered; the runbook's steps with receipts; the tag; the Release | Patrick approves the environment and signs the tag | 1 |
 
@@ -122,8 +125,8 @@ otherwise.
 By ruling, not by omission: remote A2A authentication (deferred by Patrick,
 the local profile ships labeled local-only); the Voyage validation reuse spec
 (retained in full, runs on its own track); native memory proposals (the
-`memory-native` extra stays experimental and POSIX-only). By this plan's
-recommendation, pending Patrick's call: the corrections lifecycle (ladder 7).
+`memory-native` extra stays experimental and POSIX-only); the corrections
+lifecycle (ladder 7), by D21.9, unless the dogfooding week brings it back.
 
 ## Order, and what can overlap
 
@@ -132,9 +135,9 @@ needs 2.1, 2.4 needs 2.3, 3.3 starts from 1.4's week, 4.3 needs 3.5, 4.4
 needs 2.4 and 3.3. Two things may run beside the memory work in Phase 2
 without waiting: the spec authority's Task 4 design note, and the executable
 plugins spec, because both are design first and neither touches the memory
-modules. The Windows decision (4.2) should be made early, in Phase 2, even
-though its work is Phase 4: it sets whether 4.2 is one cycle or six.
+modules. The Windows decision (4.2) was made on September 23, at the start
+of Phase 3 (D20.8): 4.2 is one cycle.
 
-Counted: 20 tasks, between 26 and 40 cycles at today's pace, with 4.2 the
-widest range. Each cycle carries a different-model review under
+Counted: 20 tasks, between 26 and 35 cycles at today's pace now that D20.8
+fixes 4.2 at one. Each cycle carries a different-model review under
 [the brief](review-brief.md) and lands in [the findings log](review-findings.md).
