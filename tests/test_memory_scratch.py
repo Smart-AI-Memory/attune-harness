@@ -402,7 +402,7 @@ def test_run_envelopes(tmp_path):
     assert stored["status"] == "ok" and stored["backend"] == "file" and stored["expires_at"]
     assert run(config, "retrieve", {"key": "k"})["value"] == {"a": 1}
     assert run(config, "retrieve", {"key": "missing"}) == {"schema_version": 1, "status": "no_results", "operation": "memory_scratch_retrieve", "backend": "file", "key": "missing"}
-    assert all(run(config, op, args)["schema_version"] == 1 for op, args in (("capabilities", {}), ("keys", {}), ("stash", {"key": "s", "value": 1})))
+    assert all(run(config, op, args)["schema_version"] == 1 for op, args in (("capabilities", {}), ("keys", {}), ("retrieve", {"key": "k"})))
     assert run(config, "keys", {})["keys"] == ["k"]
     assert run(config, "forget", {"key": "k"})["forgotten"] is True
     assert run(config, "forget", {"key": "k"})["status"] == "no_results"
