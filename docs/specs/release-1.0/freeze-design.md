@@ -219,6 +219,19 @@ of dogfooding are where a `pip install 'attune-harness[review]'` still in
 someone's script would show. `test_extras.py` and the README's install
 paragraph change with it. Decision 6.
 
+*Correction, the first cycle, September 23:* three things this note got wrong
+in the building. `code-config`'s envelope is also an input, the retrieval
+config that `index plan --config` reads back and refuses with a key it does
+not know, so it keeps no `status` and a round-trip test says so; D27.2's
+"four report verbs" are three. Naming a removed extra does not fail at pip:
+pip warns that the extra does not exist and installs the base, so the
+candidate period surfaces a stale script by a warning line, not a failure.
+And the eight gaps were the ones the envelope page listed, not all the
+table has: seventeen rows lacked `schema_version` and four lacked `status`;
+after the eight adapter-bound rows go with D28, the `demo` receipt, the
+memory host route's packets and its refusals, and the Redis reader's
+unreachable report remain, for the second cycle to close or to rule exempt.
+
 ### 4.1.8 The two moments, in the runbook and the tests
 
 The content freeze at `rc1` needs no new machinery: the guards above fail on
