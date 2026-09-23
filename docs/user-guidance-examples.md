@@ -78,7 +78,7 @@ wording are outside these implementations.
 Spec approval view in `decision.json` beside the work record. It returns the
 usual JSON presentation with an additional `decision` object; it grants no
 approval and dispatches no participant. Plan mutations that display missing
-questions also retain their text. The in-process `WorkSpecBridge.open()` saves
+questions also retain their text. The in-process `WorkAcceptance.open()` (then `WorkSpecBridge.open()`) saves
 the actual rendered Spec view before returning it for response collection.
 
 The retained display contains the question/goal, complete choices and their

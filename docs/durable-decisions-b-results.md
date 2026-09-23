@@ -7,7 +7,7 @@ not upgraded. No native/provider calls, publication, C–F or release work ran.
 
 ## Result
 
-- `WorkSpecBridge.open()` retains the exact existing renderer's Markdown,
+- `WorkAcceptance.open()` (then `WorkSpecBridge.open()`) retains the exact existing renderer's Markdown,
   choices, consequences and bound response template **before returning the form
   for collection**. A delayed response must match that retained current display
   and still pass the original Spec collector's checks.
