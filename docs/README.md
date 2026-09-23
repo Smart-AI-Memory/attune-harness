@@ -209,7 +209,6 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | --- | --- | --- |
 | [specs/native-memory/scoping.md](specs/native-memory/scoping.md) | Native memory — scoping note | 2026-09-19 |
 | [specs/native-memory/task-4-design.md](specs/native-memory/task-4-design.md) | Native memory, Task 4: design note | 2026-09-22 |
-| [specs/native-memory/decisions-2026-09-22.md](specs/native-memory/decisions-2026-09-22.md) | Native memory: decisions, September 22, 2026 | 2026-09-22 |
 
 ### specs/plan-build
 
@@ -243,7 +242,6 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/spec-authority/task-3-design.md](specs/spec-authority/task-3-design.md) | Spec authority, Task 3: design note | 2026-09-22 |
-| [specs/spec-authority/addendum-2026-09-22.md](specs/spec-authority/addendum-2026-09-22.md) | Spec authority: addendum, September 22, 2026 | 2026-09-22 |
 
 ### specs/unified-task-execution
 
