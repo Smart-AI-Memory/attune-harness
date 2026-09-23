@@ -179,7 +179,10 @@ namespace package spans several distributions), and requirements come from
 requirements join only when the declaration names the extra; a closure the
 host cannot decide (`packaging` absent, a marker it cannot evaluate, a
 distribution without metadata) refuses the `enable` with the reason. The
-resolved set, with versions, is in every receipt.
+resolved set, with versions, is in every receipt. Evaluating markers makes
+`packaging` a base dependency, pinned as the others are: the one new
+dependency this spec adds, and the only one, since the signing scheme adds
+none.
 
 The registry's grant for a plugin is a subset of its `grants`; the effective
 set is the grant; `declares` cannot be granted, only acknowledged, and an
@@ -257,9 +260,9 @@ them. First, **the paid stage journal is the host's.** Today `StageJournal`
 writes `prepared`, then `completed`, per stage under the caller's lease, and
 a missing ledger beside stage files is itself `PaidStageUnresolved`; a
 scratch directory the host deletes cannot hold a billing ledger, and an
-exception does not cross a process boundary. So the host assigns the stage
-key, writes `prepared` before the child starts, and writes `completed` or
-nothing from the child's result or its absence. The order matters and
+exception does not cross a process boundary. So the host owns the stage: it assigns the key, writes the stage's states
+around the child in the order `perform` writes them, and writes `completed`
+from the child's result or nothing from its absence. The order matters and
 mirrors `perform` exactly: `prepared` when the stage is assigned, then
 `dispatching` immediately before the child starts, because a `prepared`
 stage is re-dispatched on the next run while a `dispatching` one raises
@@ -327,7 +330,8 @@ install unit; D7's package boundary is unchanged.
 1. **Signing scheme.** Recommended: GPG through `gpg --verify` in a bounded
    subprocess against a keyring built from the public key blocks the
    accepted registry carries, with the maintainer's key as the first entry;
-   no new dependency, and the tool the release already signs with. Its
+   no new dependency for signing (the closure's `packaging` is the spec's
+   one addition), and the tool the release already signs with. Its
    costs are named: `gpg` must be present or the plugin refuses, and the
    implementation must prove the verifier on all three runners. Alternative:
    an ed25519 library, which adds a dependency to the base install for one
