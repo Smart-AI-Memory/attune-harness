@@ -97,6 +97,35 @@ hygiene row already, and four more belong there (O-42, O-43, O-59, O-60); the
 plan's row is widened in the same pull request. O-53 closes with Phase 3.
 The rest are watch items or judgment calls for the October 1 review.
 
+## Overnight run of September 23, 2026
+
+Patrick asked for a plan to realize opportunities from this log, up to ten
+pull requests, built autonomously overnight with the merge delegation for
+four of them and a different-model review for the rest. Ten were built. The
+slate, in the order they were built, with what each closed:
+
+| PR | Opportunity | Kind | State by morning |
+|---|---|---|---|
+| #89 | O-43, the ignore rule for session notes | config, docs | merged |
+| #90 | O-63, the review-gate habit in AGENTS.md | docs | merged |
+| #91 | O-60, the index completeness check, plus the untracked-file hint from the retro | scripts, docs | merged |
+| #92 | O-68, `qualify_pilot.py` deleted | scripts | merged |
+| #93 | O-64 one run per release branch, O-38 Node 24 pins, the approval script from the retro | CI, scripts, docs | open, reviewed |
+| #94 | O-42, the MCP receipt deadline named | tests | open, reviewed |
+| #95 | O-65, the append lock's necessity on every platform | tests | open, reviewed |
+| #98 | O-58, the task reader parses each block on its own | `src/` | open, reviewed |
+| #99 | O-59, one atomic replace with the Windows retry | `src/` | open, reviewed |
+| #100 | O-67, `configure_process` once, capture-safe | `src/` | open, reviewed |
+
+Every `src/` and CI change carried an Opus review under the brief, recorded
+in its pull request; the reviews found two blockers in the task reader (by
+fuzzing), a fork-spoofable skip and a verdict blind to a failed classifier
+in the workflow, and a lost `features.py` change in the atomic-replace
+branch, all fixed before the pull requests were opened or before the
+morning. The notes the run itself produced follow in the dated evidence
+section, unnumbered until the next review. The plan's Phase 4 hygiene row
+(4.5) is now five items in pull requests, two of them merged.
+
 ## Deferred review — October 1, 2026
 
 Patrick wants to revisit all remaining opportunity groups when budget allows.
@@ -595,6 +624,8 @@ by this note.
 
 **Status, September 23, 2026: open.** The Node 20 deprecation warning still prints on every job; the pinned action SHAs are unchanged.
 
+**Status, September 23, 2026 (overnight run): in #93 (open, reviewed): the three Node 20 pins become checkout v7.0.1, setup-python v7.0.0 and upload-artifact v7.0.1 in all four workflows, 21 pins; `publish-pypi.yml`'s copies need a `publish=false` rehearsal before the next real publish, which the runbook's step 4 now says.**
+
 O-39, 2026-09-19:
 `ubuntu-latest` moves to Ubuntu 26. The same rehearsal run 35476747591 carried a
 notice on `build`, `publish_testpypi` and `verify_testpypi` that the
@@ -723,6 +754,8 @@ is changed or authorized by this note.
 
 **Status, September 23, 2026: open.** `tests/test_mcp.py` still holds the bare ten-second literal.
 
+**Status, September 23, 2026 (overnight run): in #94 (open, reviewed): the deadline is `RECEIPT_DEADLINE_SECONDS = 5 * REPLACE_RETRY_SECONDS` with its reasoning, and a miss reports how long it waited. Not raised.**
+
 O-43, 2026-09-21:
 `docs/handoffs/` is ignored on one branch only. Both release handoff notes
 (`first-pypi-release-2026-09-19.md` and `release-0.1.0-windows-fix-2026-09-21.md`)
@@ -748,6 +781,8 @@ shows a clean tree, and the two handoff notes no longer make the general claim
 is changed or authorized by this note.
 
 **Status, September 23, 2026: open.** `docs/handoffs/` is still not in `.gitignore` on `main`; the drafts stay untracked by hand.
+
+**Status, September 23, 2026 (overnight run): closed by #89 (merged): `docs/handoffs/` and `docs/reflections/` are ignored on `main`; 22 files under them were already tracked and stay so; a new note is added with `git add -f`; both handoff notes record when the rule landed.**
 
 O-44, 2026-09-21: the
 published 0.1.0 source is on no line that future work starts from. Three lines
@@ -1159,6 +1194,8 @@ this note.
 
 **Status, September 23, 2026: open.** Unchanged; the differential against the seven plans has not been rerun since Task 2.
 
+**Status, September 23, 2026 (overnight run): in #98 (open, reviewed): each top-level block is parsed on its own, a rejected block falls back alone, and the split is refused where it cannot be trusted (unbalanced tags, a comment or CDATA in the region). The reviewer's fuzz over 12,000 plans: zero cases where the new reader drops a task the old returned.**
+
 O-59, 2026-09-22 (third pass): three atomic writers, one with the
 Windows retry. `review_store._replace` retries `os.replace` for two seconds
 when a reader holds the file, which is the fix that unblocked 0.1.0 on
@@ -1175,6 +1212,8 @@ a different-model review. Nothing is changed or authorized by this note.
 
 **Status, September 23, 2026: open.** Three `os.replace` call sites outside `features.py` remain; `features.replace_file` carries the retry for two of them.
 
+**Status, September 23, 2026 (overnight run): in #99 (open, reviewed): the plan-state and Voyage index writers go through `features.replace_file`; an AST guard pins every spelling of a replace under `src/` to `features.py` and the effects host's `dir_fd` replace in `repair.py`, which is POSIX-only by design with `windows_effects.replace_file` as its twin; the retry is exercised on every platform through `RETRY_REFUSED_REPLACE`.**
+
 O-60, 2026-09-22 (third pass): the documentation index is generated
 once and nothing keeps it complete. #47 added `docs/README.md` with a row for
 each of 191 files. The link check from #44 proves every row's link resolves,
@@ -1187,6 +1226,8 @@ without an index row cannot show green. Effort: small. Nothing is changed or
 authorized by this note.
 
 **Status, September 23, 2026: open.** No completeness check yet; `docs/README.md` gained its rows by hand in #69, #74 and #82.
+
+**Status, September 23, 2026 (overnight run): closed by #91 (merged): `scripts/check_doc_links.py` fails the Documentation links job for any tracked `docs/**/*.md` without an index row, names an untracked link target, and the 21 missing rows were added.**
 
 O-61, 2026-09-22 (third pass): each step's independent review found a
 defect the author's tests had not, and the reviewer's brief is rewritten each
@@ -1241,6 +1282,8 @@ note.
 
 **Status, September 23, 2026: open.** The runbook records the close-and-reopen fallback (#77); AGENTS.md does not yet name the habit. Phase 4, 4.5.
 
+**Status, September 23, 2026 (overnight run): closed by #90 (merged): AGENTS.md carries the habit and the close-and-reopen fallback beside the review-recording rule.**
+
 O-64, 2026-09-22 (fourth pass): a release pull request runs
 qualification twice. The workflow triggers on `push` to `main` and
 `release/**` and on every `pull_request`, and its concurrency group is keyed
@@ -1257,6 +1300,8 @@ workflow the release process depends on, so rehearse on a throwaway branch.
 Nothing is changed or authorized by this note.
 
 **Status, September 23, 2026: open.** 0.5.0 paid two qualification runs per push to `release/0.5.0` again. Phase 4, 4.5.
+
+**Status, September 23, 2026 (overnight run): in #93 (open, reviewed): a pull request whose head is a `release/` branch of this repository stops at the classifier and the link check; the push run is the record; the verdict names the reason. The review found the skip spoofable from a fork and the verdict blind to a failed classifier; both fixed there.**
 
 O-65, 2026-09-22 (fourth pass): the append lock's necessity is asserted
 only where the tear happens. #61 fixed a JSONL line torn by the Windows C
@@ -1275,6 +1320,8 @@ platform. Effort: small, tests only. Nothing is changed or authorized by this
 note.
 
 **Status, September 23, 2026: open.** Phase 4, 4.5.
+
+**Status, September 23, 2026 (overnight run): in #95 (open, reviewed): the seek-then-write emulation is a test that fails on every platform with the lock removed; with the lock, 2,000 whole lines; the children are released by a real barrier.**
 
 O-66, 2026-09-22 (fourth pass): a millisecond collision on the run
 store's lease reaches a human. `RunStore.lease` takes the writer lock with
@@ -1317,6 +1364,8 @@ by this note.
 
 **Status, September 23, 2026: open.** Three test files still stub `configure_process`. Phase 4, 4.5.
 
+**Status, September 23, 2026 (overnight run): in #100 (open, reviewed): `configure_process` binds structlog once to a writer that resolves `sys.stderr` at write time and drops a diagnostic on a missing or closed stream; called from `main` only; the six stubs are gone; the full suite passed from a snapshot.**
+
 O-68, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
 extras that no longer add anything. Last changed on 2026-09-15, it installs the
 wheel five times, as `core`, `[verify]`, `[rag]`, `[review]` and `[mcp]`, and
@@ -1334,6 +1383,8 @@ an empty extra by name. Effort: small. Nothing is changed or authorized by
 this note.
 
 **Status, September 23, 2026: open.** `scripts/qualify_pilot.py` still installs four empty extras and nothing runs it. Phase 4, 4.5.
+
+**Status, September 23, 2026 (overnight run): closed by #92 (merged): `scripts/qualify_pilot.py` deleted; each of its assertions has a current home in the platform jobs or the release gate, listed in the pull request. `check_review_installed.py`, `check_recovery_installed.py` and `check_attune_bridge.py` lost their only caller; see the note below.**
 
 O-69, 2026-09-22 (fourth pass): the CLI's JSON envelopes are pinned by
 nothing but the tests that happen to read them. Every verb prints one JSON
@@ -1353,3 +1404,26 @@ pull request.
 
 **Status, September 23, 2026: closed.** #73: `tests/test_golden_envelopes.py` and `docs/envelopes.md` pin 71 rows; #79 and #82 added the memory host's success rows.
 
+Unnumbered, 2026-09-23 (overnight run): O-43's premise had moved. When the ignore rule for `docs/handoffs/` landed (#89), 22 files under it and `docs/reflections/` were already tracked, added by name for releases and the log. The rule protects the untracked rest; tracked files stay tracked; a new note needs `git add -f`. Nothing to do; recorded so the next reader of O-43 does not think the directory is untracked.
+
+Unnumbered, 2026-09-23 (overnight run): the index gains every document, and two files are listed twice for a while. #91 (O-60) added table rows for `specs/native-memory/decisions-2026-09-22.md` and `specs/spec-authority/addendum-2026-09-22.md`; #88 gave the same two files "Start here" bullets. After both merge each has a bullet and a row; the table rows go in the next docs pull request. Candidate follow-up: none beyond that removal. Effort: trivial.
+
+Unnumbered, 2026-09-23 (overnight run): three scripts lost their only caller when `qualify_pilot.py` was deleted (#92, O-68): `scripts/check_review_installed.py`, `scripts/check_recovery_installed.py` and `scripts/check_attune_bridge.py` (D8 dropped the bridges it checks). They still run by hand. Candidate follow-up: delete the bridge check, and either fold the review and recovery checks into `check_installed.py --mode all` or delete them once their journeys are covered there. Done when every `scripts/check_*_installed.py` has a caller in a workflow or the runbook. Effort: small.
+
+Unnumbered, 2026-09-23 (overnight run): the action pins moved three majors at once (#O-38 PR). `checkout` v4 to v7.0.1, `setup-python` v5 to v7.0.0, `upload-artifact` v4 to v7.0.1, chosen because each release's `action.yml` says `using: node24`. The pull request's own run exercises them in `qualification.yml`; `publish-pypi.yml`'s copies are exercised only by a `publish=false` rehearsal, which is a dispatch and Patrick's. Candidate follow-up: a rehearsal before the next real publish, and a note in the runbook that a pin change on the publish workflow needs one. Done when the rehearsal run passes on the new pins. Effort: one click and one line.
+
+Unnumbered, 2026-09-23 (overnight run): the approval POST's reply is a list. Both release finish scripts died parsing it as an object after the approval had succeeded; `scripts/release_approve.sh` now reads the reply from a file. Its first real use is the next release. Done when a release's approval step runs it without a hand step after. Effort: none further.
+
+Unnumbered, 2026-09-23 (overnight run): sibling docs pull requests go BEHIND under branch protection. #86 needed two rebases in one night (after #85, after #87). The merge helper now calls `gh pr update-branch` when the state is BEHIND. Candidate follow-up: nothing in the repository; a merge queue would need the workflows to run on `merge_group`, which AGENTS.md already notes is not set up. Effort: none now.
+
+Unnumbered, 2026-09-23 (overnight run): the lock's reason for existing now fails a test on macOS. O-65's probe is kept as `test_writer_appends_stay_whole_when_append_is_seek_then_write` (PR for O-65): with `_try_lock` made a no-op the O_APPEND test still passes here and the emulation fails, which is the shape every "only Windows shows it" test should take. Candidate follow-up: apply the same shape to the other place the Windows job is the only witness, `features.replace_file`'s retry (a reader holding the target), by emulating the sharing refusal on POSIX. Done when removing the retry fails a test on every platform. Effort: small, tests only.
+
+Unnumbered, 2026-09-23 (overnight run): the MCP receipt deadline is now a named constant tied to the replace retry (PR for O-42). Nothing records junit timings for it yet; the note's "decide from a few weeks of timings" has no collector. Candidate follow-up: keep the junit XML from the platform jobs as an artifact for 30 days, so the decision can be made from data. Done when a run's junit is downloadable. Effort: small, workflow only.
+
+Unnumbered, 2026-09-23 (overnight run): `scripts/merge_when_green.sh` cannot merge a release pull request. It requires exactly one successful `Qualification` check on the head SHA, and a release branch has two, the push run's and the pull-request run's; the O-64 change halves the work, not the count (the review of the O-64 PR found it). Candidate follow-up: take the newest `Qualification` check, or accept one or more successes and no failures. Done when the helper merges a release pull request whose runs both passed. Effort: small, scripts only.
+
+Unnumbered, 2026-09-23 (overnight run): the required check did not consult the classifier. The verdict's pass branch read only the platform jobs and the full suite, which run whether or not `Classify change` failed, so a `src/` pull request whose review gate refused could still pass `Qualification`; #82 had that shape on September 23 (classifier red, merge state clean). Fixed in the O-64 PR by requiring the classifier's success in the pass branch. Lesson for the log: a gate that is not on the path of the required check is advice.
+
+Unnumbered, 2026-09-23 (overnight run): a name-based skip in a public repository is a fork's to spoof. The first version of the release-branch skip keyed on `head_ref` alone; a fork's `release/x` branch would have skipped the matrix with no push run anywhere. The fix requires the head repository to be this one. Rule worth keeping: every skip in `qualification.yml` is content-based or repository-bound, never name-based alone.
+
+Unnumbered, 2026-09-23 (overnight run): a mutation undone with `git checkout -- file` discards the uncommitted change in that file too. The O-59 branch's second commit lost `features.py`'s new flag that way: the mutation probe edited the file, the clean-up restored it from HEAD, and the commit that followed carried the tests without the code they switch. Two rules the shepherd scripts now follow: mutate a copy or commit first, and gate every commit on the test command's own exit status (`set -o pipefail` when it is piped through `tail`). Candidate follow-up: `scripts/review_prep.sh` could offer a `--mutate FILE` helper that copies the tree before editing. Effort: small.
