@@ -7,6 +7,10 @@ was read from the code first, then the design, then the decisions that are
 Patrick's; nothing here is authorized until he rules. The rulings go in a dated
 decisions file beside the spec they belong to, the spec authority's addendum
 for 3.1, 3.2 and 3.5 and the native-memory decisions for 3.3 and 3.4.
+Ruled the same day, all as recommended:
+[D20](spec-authority/addendum-2026-09-23.md) for decisions 1, 2, 3, 7, 8
+and 10, [D21](native-memory/decisions-2026-09-23.md) for 4, 5, 6 and 9. Two
+sentences below were corrected then; D21's file says which.
 
 Phase 3 spans two ladders and adds one spec. Its five pieces, in the plan's
 words: 3.1 spec authority Task 4, switch `plan` and `build` to the native
@@ -49,12 +53,14 @@ from another project exists, and nothing writes a conversion receipt.
 failing open, with a fixed footer; it uses none of the provenance envelope
 that `memory_controls.wrap_recalled` produces for the recall path, and it
 applies no filter of its own: the digest is what `FCALL_RO recall_digest`
-returns, and Harness never reads `status:active`. The file tiers' tombstones
+returns; `status:active` is read only by `memory redis status`, which counts
+its members, never by the serve path. The file tiers' tombstones
 (`.verdicts.jsonl`, a `wrong` verdict) live in `memory_controls.staleness`
 and never reach the Redis path. The only surface is the Claude Code
 SessionStart hook; the MCP server serves retrieval only, with a read-only
-annotation and a finite call budget, and no memory tool; Codex is named in
-the scoping note and nowhere in `src/`. Patrick's own session has run the
+annotation and a finite call budget, and no memory tool; no Codex surface
+exists in `src/`, where the word appears only as `repair`'s protected
+`.codex` directory and as a branch name in a docstring. Patrick's own session has run the
 hook since September 22; his observations are the input this section waits
 on.
 
