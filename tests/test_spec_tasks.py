@@ -244,6 +244,74 @@ def test_a_stray_close_tag_keeps_the_whole_plan_fallback_and_its_warnings(caplog
     assert any("not well-formed" in m for m in messages)
 
 
+def test_a_spaced_close_tag_on_a_rejected_block_still_recovers_the_task(caplog):
+    # Review finding: _TASK_EDGE accepted "</task >" but the block regex did
+    # not, so a rejected block closed that way vanished. Both accept it now.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A & B</objective></task >\n<task id="2"><objective>C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "A & B"), ("2", "C")]
+    assert not any("No <task> elements" in m for m in messages)
+
+
+def test_a_comment_in_the_region_keeps_the_whole_plan_path(caplog):
+    # Review finding: the edge scan does not read comments, so a self-closing
+    # task plus a comment containing </task> mis-split. Any comment or CDATA
+    # in the region now takes the whole-region path, as before this change.
+    text = (
+        '<task id="1"/>\n<!-- reviewer: the close is </task> -->\n'
+        '<task id="2"><objective>B</objective></task>'
+    )
+    assert spec_tasks._top_level_blocks(text) is None
+    tasks, _ = parse(caplog, text)
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", ""), ("2", "B")]
+
+
+def test_a_self_closing_task_is_a_block_of_its_own(caplog):
+    tasks, messages = parse(caplog, '<task id="1"/>\nR&D\n<task id="2"><objective>B &amp; C</objective></task>')
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", ""), ("2", "B & C")]
+    assert messages == []
+
+
+def test_orphaned_task_content_between_blocks_is_still_reported(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task>\n<objective>lost</objective>\n'
+        '<task id="2"><objective>B</objective></task>',
+    )
+    assert [t.task_id for t in tasks] == ["1", "2"]
+    assert any("outside any <task> block (<objective>) - 2 task(s) parsed" in m for m in messages)
+
+
+def test_a_block_neither_path_can_read_is_reported_as_dropped_not_as_an_empty_plan(caplog):
+    tasks, messages = parse(
+        caplog,
+        "<task id='1'><objective>A & B</objective></task>\n<task id=\"2\"><objective>C</objective></task>",
+    )
+    assert [t.task_id for t in tasks] == ["2"]
+    assert any(m.startswith("Task block rejected by the parser and unmatched by the fallback - dropped: <task id='1'>") for m in messages)
+    assert not any("No <task> elements" in m or "0 task(s) parsed" in m for m in messages)
+
+
+def test_a_tasks_wrapper_does_not_defeat_the_per_block_fix(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<tasks>\n<task id="1"><objective>R&amp;D</objective></task>\nNotes & caveats.\n'
+        '<task id="2"><objective>B</objective></task>\n</tasks>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "R&D"), ("2", "B")]
+    assert messages == []
+
+
+def test_an_unbalanced_plan_still_reports_orphans_outside_the_region(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<file path="x">lost</file>\n<task id="1"><objective>A</objective>\n<task id="2"><objective>B</objective></task>',
+    )
+    assert any("outside any <task> block" in m and "<file>" in m for m in messages)
+
+
 def test_top_level_blocks_keep_a_nested_example_inside_its_block():
     nested = '<task id="1"><objective>See <task id="x">ex</task></objective></task>'
     assert spec_tasks._top_level_blocks(nested + '\nprose\n<task id="2">B</task>') == [

@@ -96,12 +96,15 @@ class DecomposedTask:
 # prose, Markdown fences and anything else around the blocks never have to be
 # well-formed, and a DOCTYPE before the first <task> is never seen.
 _TASK_REGION = re.compile(r"<task[\s>].*</task\s*>", re.DOTALL)
-_TASK_BLOCK = re.compile(r'<task\s+id="([^"]*)"(?:\s+name="([^"]*)")?\s*>(.*?)</task>', re.DOTALL)
+_TASK_BLOCK = re.compile(r'<task\s+id="([^"]*)"(?:\s+name="([^"]*)")?\s*>(.*?)</task\s*>', re.DOTALL)
 # Opening tags that only appear inside a <task> body. One found between blocks
 # means a task lost its wrapper and was dropped.
 _ORPHAN_TAG = re.compile(r"<(objective|file|check|risk|dep)[\s>]")
-# The edges of task blocks, for splitting a region into its top-level blocks.
-_TASK_EDGE = re.compile(r"<task[\s>]|</task\s*>")
+# The edges of task blocks, for splitting a region into its top-level blocks:
+# an opening tag (self-closing or not; never <tasks>) or a closing tag.
+_TASK_EDGE = re.compile(r"<task\b[^>]*>|</task\s*>")
+# Markup the edge scan does not understand; a region carrying it is not split.
+_UNSPLIT_MARKUP = ("<!--", "<![CDATA[")
 
 
 def parse_tasks(content: str) -> list[DecomposedTask]:
@@ -119,7 +122,7 @@ def parse_tasks(content: str) -> list[DecomposedTask]:
         return _parse_with_regex(content)
     blocks = _top_level_blocks(region.group(0))
     if blocks is None:
-        # A missing or stray </task>: parse the region as one document, as
+        # The split cannot be trusted: parse the region as one document, as
         # before, so the fallback and its warnings describe the whole plan.
         return _parse_xml(region.group(0), content)
     # Each block on its own, so prose between blocks (a bare & or < in a
@@ -127,7 +130,8 @@ def parse_tasks(content: str) -> list[DecomposedTask]:
     # the parser rejects drops to the regex path alone.
     tasks: list[DecomposedTask] = []
     for block in blocks:
-        tasks.extend(_parse_xml(block, block))
+        tasks.extend(_parse_xml(block, block, whole=False))
+    _warn_orphans_between(region.group(0), blocks, len(tasks))
     return tasks
 
 
@@ -135,18 +139,28 @@ def _top_level_blocks(region: str) -> list[str] | None:
     """Split a task region into its top-level ``<task>…</task>`` blocks.
 
     A ``<task>`` inside another's body (an example in a description) stays in
-    its block. Returns None when the tags do not balance, a missing or a stray
-    ``</task>``, so the caller keeps the whole-region path and its warnings.
+    its block; a self-closing ``<task … />`` is a block of its own. Returns
+    None when the split cannot be trusted: the tags do not balance (a missing
+    or a stray ``</task>``), or the region carries a comment or a CDATA
+    section, which the edge scan does not read. The caller then keeps the
+    whole-region path and its warnings, so the per-block fix does not apply
+    to such a plan.
     """
+    if any(marker in region for marker in _UNSPLIT_MARKUP):
+        return None
     blocks: list[str] = []
     depth, start = 0, 0
     for match in _TASK_EDGE.finditer(region):
-        if match.group(0).startswith("</"):
+        token = match.group(0)
+        if token.startswith("</"):
             if depth == 0:
                 return None
             depth -= 1
             if depth == 0:
                 blocks.append(region[start : match.end()])
+        elif token.endswith("/>"):
+            if depth == 0:
+                blocks.append(token)
         else:
             if depth == 0:
                 start = match.start()
@@ -154,19 +168,51 @@ def _top_level_blocks(region: str) -> list[str] | None:
     return blocks if depth == 0 else None
 
 
-def _parse_xml(xml: str, fallback: str) -> list[DecomposedTask]:
-    """Parse ``xml`` wrapped in one root; on rejection, regex-parse ``fallback``."""
+def _parse_xml(xml: str, fallback: str, *, whole: bool = True) -> list[DecomposedTask]:
+    """Parse ``xml`` wrapped in one root; on rejection, regex-parse ``fallback``.
+
+    ``whole`` says the fallback text is the whole plan, so the regex path
+    reports an empty result and orphaned content itself; for one block those
+    reports would describe the block as if it were the plan, so the block's
+    own loss is reported here and orphans are scanned once by the caller.
+    """
     try:
         root = ET.fromstring(f"<r>{xml}</r>")
     except (ET.ParseError, ValueError) as exc:
         # ValueError covers what the parser raises for text it cannot encode,
         # such as a lone surrogate, when a caller passes a string directly.
         logger.warning("Task XML is not well-formed (%s) - falling back to regex extraction", exc)
-        return _parse_with_regex(fallback)
+        tasks = _parse_with_regex(fallback, report=whole)
+        if not tasks and not whole:
+            logger.warning(
+                "Task block rejected by the parser and unmatched by the fallback - dropped: %.80s",
+                fallback,
+            )
+        return tasks
     # Direct children only: a <task> nested inside a description is an
     # example, not a task.
     tasks = [_task_from_element(element) for element in root.findall("task")]
     return [task for task in tasks if task is not None]
+
+
+def _warn_orphans_between(region: str, blocks: list[str], parsed: int) -> None:
+    """Warn once about task content that sits between the top-level blocks."""
+    leftovers, cursor = [], 0
+    for block in blocks:
+        at = region.index(block, cursor)
+        leftovers.append(region[cursor:at])
+        cursor = at + len(block)
+    leftovers.append(region[cursor:])
+    orphaned = sorted(
+        {f"<{m.group(1)}>" for chunk in leftovers for m in _ORPHAN_TAG.finditer(chunk)}
+    )
+    if orphaned:
+        logger.warning(
+            "Found task content outside any <task> block (%s) - "
+            "%d task(s) parsed; check for a malformed or unclosed <task> tag",
+            ", ".join(orphaned),
+            parsed,
+        )
 
 
 def _task_from_element(element: ET.Element) -> DecomposedTask | None:
@@ -258,8 +304,12 @@ def _text_with_tags(element: ET.Element) -> str:
         parent_parts.append(node.tail or "")
 
 
-def _parse_with_regex(content: str) -> list[DecomposedTask]:
-    """Fallback for task XML the parser rejects. Warns about what it drops."""
+def _parse_with_regex(content: str, *, report: bool = True) -> list[DecomposedTask]:
+    """Fallback for task XML the parser rejects. Warns about what it drops.
+
+    With ``report`` false the empty-result and orphan warnings are left to
+    the caller, which is parsing one block of a larger plan.
+    """
     tasks: list[DecomposedTask] = []
     # One scan, reused for the orphan check below: the pattern is quadratic
     # on an unclosed block, and one pass halves the cost.
@@ -301,6 +351,8 @@ def _parse_with_regex(content: str) -> list[DecomposedTask]:
                 dependencies=dependencies,
             )
         )
+    if not report:
+        return tasks
     if not tasks:
         logger.warning("No <task> elements found in decomposition response")
     # Runs even when nothing parsed: a lone task with a single-quoted
