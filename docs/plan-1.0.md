@@ -8,7 +8,10 @@ the spec authority's rulings on what may wait (D6 in
 [its README](specs/spec-authority/README.md)), the native-memory
 [candidate ladder](specs/native-memory/scoping.md), the
 [decisions of September 22](specs/native-memory/decisions-2026-09-22.md) and
-the [opportunity log](opportunity-log.md).
+the [opportunity log](opportunity-log.md). Which of the repository's promises
+are requirements of 1.0.0 and which wait for a later milestone is
+[the release 1.0.0 note](specs/release-1.0/README.md), written September 23
+with the count of what remains.
 
 **What 1.0.0 means.** The README says it in one sentence: interfaces,
 configuration formats and CLI commands may change before 1.0, and what is and
@@ -28,6 +31,9 @@ the record of what that took. Phase 2 landed on September 23 as #79 to #82,
 four reviewed pull requests in a day, and its exit holds: the known-import
 list is empty, the release gate reads memory, and the README's memory row
 says native. The last `import attune` under `src/` is `memory_context.py`.
+Phase 3 began on September 23: 3.5 is approved (D22), 3.1 has three of its
+four pull requests merged (#106, #107, #108) and the release gate runs the R2
+journey; 4.5's nine pull requests all merged the same day.
 
 ## How to read the tables
 
@@ -113,7 +119,7 @@ Release: 1.0.0rc1 to TestPyPI through the runbook's `testpypi` target, then
 | 4.2 | Windows | Either `fix` and `test` qualified on Windows for the cases the README names (deletion and renames, ACLs, files over 64 KiB, crash recovery, concurrent writers) or a written decision that Windows is a documented limit at 1.0 with WSL2 as the route to the POSIX profile (D6's Windows note) | Made on September 23 (D20.8): Windows is a documented limit at 1.0, `fix` and `test` unqualified there, the memory reader refusing, WSL2 the route; the work is the written decision and the qualification table | 1 |
 | 4.3 | Executable plugins: implementation | The spec from 3.5 implemented and qualified; the README's protocols row no longer lists arbitrary executable plugins as unqualified | none new if 3.5 settled the trust model | 2 to 4 |
 | 4.4 | End the memory transition (ladder 9, N5) | attune-ai memory formats declared frozen; the differential tests and the adapter fallback removed once attune-ai stops writing; the fate of `attune_bridge.py`, the `harness` extra and `attune-redis`'s attune-ai dependency settled | Whether attune-ai stops writing before 1.0 | 1 |
-| 4.5 | Hygiene from the opportunity log | Built in the overnight run of September 23, one pull request each: `configure_process` idempotent and the CLI tests unstubbed (O-67, #100); one qualification run per release branch (O-64, #93); the review-gate habit in AGENTS.md (O-63, #90, merged); `qualify_pilot.py` deleted (O-68, #92, merged); the append lock's necessity asserted on every platform (O-65, #95); `docs/handoffs/` in `.gitignore` (O-43, #89, merged); one atomic writer with the Windows retry (O-59, #99); the index completeness check (O-60, #91, merged); the MCP test's deadline named (O-42, #94). The row closes when the five open ones merge | none | 1 to 2 |
+| 4.5 | Hygiene from the opportunity log | Built in the overnight run of September 23, one pull request each: `configure_process` idempotent and the CLI tests unstubbed (O-67, #100); one qualification run per release branch (O-64, #93); the review-gate habit in AGENTS.md (O-63, #90, merged); `qualify_pilot.py` deleted (O-68, #92, merged); the append lock's necessity asserted on every platform (O-65, #95); `docs/handoffs/` in `.gitignore` (O-43, #89, merged); one atomic writer with the Windows retry (O-59, #99); the index completeness check (O-60, #91, merged); the MCP test's deadline named (O-42, #94). All nine merged on September 23; the row is closed, and new hygiene candidates go to the log's October 1 review | none | 1 to 2 |
 | 4.6 | The non-programmer walkthrough (spec authority Task 6) | R6 observed, not inferred: a person who does not program installs from PyPI, runs the installed journey and is watched doing it, during the release-candidate period | Who walks through | 1 |
 | 4.7 | 1.0.0 | The README status line reads stable; the qualification table lists what is and is not covered; the runbook's steps with receipts; the tag; the Release | Patrick approves the environment and signs the tag | 1 |
 
@@ -140,5 +146,7 @@ modules. The Windows decision (4.2) was made on September 23, at the start
 of Phase 3 (D20.8): 4.2 is one cycle.
 
 Counted: 20 tasks, between 26 and 35 cycles at today's pace now that D20.8
-fixes 4.2 at one. Each cycle carries a different-model review under
+fixes 4.2 at one. On September 23, nine are done, three in progress and
+eight not started; [the release 1.0.0 note](specs/release-1.0/README.md)
+counts sixteen to nineteen cycles left. Each cycle carries a different-model review under
 [the brief](review-brief.md) and lands in [the findings log](review-findings.md).

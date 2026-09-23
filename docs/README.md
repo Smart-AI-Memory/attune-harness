@@ -35,6 +35,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
+- [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick
 - [Phase 3: design note](specs/phase-3-design.md): The journey native and memory served, with ten decisions for Patrick
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
@@ -231,6 +232,12 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [specs/plan-build/routing-eligibility-experiment.md](specs/plan-build/routing-eligibility-experiment.md) | Narrow Luna eligibility — experiment design | September 18, 2026 |
 | [specs/plan-build/tasks.md](specs/plan-build/tasks.md) | Task outline — plan and build |  |
 | [specs/plan-build/work-contract.md](specs/plan-build/work-contract.md) | Task 2 — shared work contract |  |
+
+### specs/release-1.0
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [specs/release-1.0/README.md](specs/release-1.0/README.md) | Release 1.0.0: the requirements, and what waits | 2026-09-23 |
 
 ### specs/shared-memory-adoption
 
