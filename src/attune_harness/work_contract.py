@@ -688,7 +688,7 @@ def check_work_fresh(record: dict) -> None:
     """Check captured inputs, artifact and selected configuration before authority."""
     request = record["request"]
     if "legacy" in request:
-        from .spec_bridge import legacy_plan
+        from .spec_legacy import legacy_plan
 
         current = legacy_plan(request["legacy"]["path"])
         if current["content_sha256"] != request["legacy"]["content_sha256"]:
@@ -809,7 +809,7 @@ def revise_work(
         )
         request["evidence"] = _capture(request, store.directory)
         if "legacy" in request:
-            from .spec_bridge import legacy_plan
+            from .spec_legacy import legacy_plan
 
             current = legacy_plan(request["legacy"]["path"])
             if current["content_sha256"] != request["legacy"]["content_sha256"]:

@@ -15,7 +15,7 @@ Three seams are reworked here, from Task 1's verdict on the module:
 - The plans directory is an argument. The original defaulted to the relative
   path ``.claude/plans``, which depends on the working directory.
 - The comment is the single trailing comment of the file. That is what
-  ``spec_bridge.plan_content`` accepts, so one module never writes what the
+  ``spec_legacy.plan_content`` accepts, so one module never writes what the
   other refuses. The original replaced a comment wherever it found it.
   ``save_state`` also refuses to write a plan the reader would refuse for
   size. ``clear_state`` removes every state comment wherever it is, because
@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 STATE_MARKER = "<!-- spec-state:"
 # The one place a state comment may live: last in the file, at most one.
-# The same expression `spec_bridge.plan_content` uses.
+# The same expression `spec_legacy.plan_content` uses.
 STATE_PATTERN = re.compile(r"\n?<!-- spec-state:\s*(\{[^<>]*\})\s*-->\s*\Z", re.S)
 # Any state comment, anywhere. Only `clear_state` uses it, to repair a file.
 _ANY_STATE = re.compile(r"<!-- spec-state:\s*\{[^<>]*\}\s*-->")
@@ -101,7 +101,7 @@ def _split(content: str, plan_path: str) -> tuple[str, str | None]:
     """The plan body and the JSON text of its state comment, if it has one.
 
     Raises ``ValueError`` when the comment is not the single trailing one:
-    that is the case ``spec_bridge.plan_content`` refuses, and this module
+    that is the case ``spec_legacy.plan_content`` refuses, and this module
     refuses it the same way rather than reading or rewriting it.
     """
     if STATE_MARKER not in content:

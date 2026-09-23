@@ -28,7 +28,7 @@ not upgraded. No native/provider calls, publication, C–F or release work ran.
 
 Production changes are confined to
 [work_decisions.py](../src/attune_harness/work_decisions.py),
-[spec_bridge.py](../src/attune_harness/spec_bridge.py) and
+[spec_legacy.py](../src/attune_harness/spec_legacy.py) (then `spec_bridge.py`) and
 [work_cli.py](../src/attune_harness/work_cli.py). Work request/record schemas,
 checkpoint calculation, planning answer validation and build execution were not
 changed. [Design note](design-durable-decisions-b.md);

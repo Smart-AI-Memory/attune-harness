@@ -69,8 +69,10 @@ stages: `preview`, `intake`, `creating`, `gate_running`, `review`,
 places in `tests/test_connected_journey.py` exercise them.
 
 **Tests and the block.** Four files import the bridge or its names:
-`test_spec_bridge_gate.py` (14 tests, `WorkSpecBridge`),
-`test_spec_bridge_legacy.py` (7, `legacy_plan`), `test_spec_state.py` (55,
+`test_spec_bridge_gate.py` (14 tests, `WorkSpecBridge`; step b renamed it
+`test_work_accept_gate.py`),
+`test_spec_bridge_legacy.py` (7, `legacy_plan`; now `test_spec_legacy.py`),
+`test_spec_state.py` (55,
 `plan_content`) and `test_features.py` (1 of 10, `legacy_plan`); 139
 collected. `import_plan` and `reimport_plan` have no direct test and are
 exercised through `work_cli` only. There is no `conftest.py`; the block is a
@@ -113,7 +115,8 @@ The release gate installs the wheel with `pip install --no-index --no-deps`
 (`publish-pypi.yml:88`, `:211`, `:216`). In that environment `attune_forms`
 is absent, so `plan --accept` exits 2 with the install hint and `review`
 refuses the same way; both are tested behaviours
-(`test_spec_bridge_gate.py:529`). The R2 journey therefore cannot run from
+(`test_spec_bridge_gate.py:529`, now `test_work_accept_gate.py:529`). The R2
+journey therefore cannot run from
 the `--no-deps` wheel as D20.2 says. What the gate can prove there is the
 half that needs no forms, `plan --request` and `build`, plus the exact
 refusal texts for accept and review; the full journey has to run where the
