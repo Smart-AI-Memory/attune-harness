@@ -9,6 +9,7 @@ goes through it now, and this file keeps it that way.
 
 import ast
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -26,16 +27,18 @@ def _replace_calls(tree):
     bare ``replace``/``rename`` imported from os, or a one-argument
     ``.replace(target)`` on a value, which is pathlib's, since str.replace
     takes two."""
-    imported = {}
+    imported, modules = {}, {"os"}
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.module == "os":
             imported.update({alias.asname or alias.name: alias.name for alias in node.names if alias.name in ("replace", "rename")})
+        if isinstance(node, ast.Import):
+            modules |= {alias.asname or alias.name for alias in node.names if alias.name == "os"}
     found = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         func = node.func
-        if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "os" \
+        if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id in modules \
                 and func.attr in ("replace", "rename"):
             found.append(f"os.{func.attr}")
         elif isinstance(func, ast.Name) and func.id in imported:
@@ -58,25 +61,27 @@ def test_every_replace_under_src_goes_through_replace_file():
 
 def test_the_guard_reads_every_spelling(tmp_path):
     source = (
-        "import os\nfrom os import replace as move\nfrom pathlib import Path\n"
-        "os.replace(a, b)\nos . rename(a, b)\nmove(a, b)\nPath(a).replace(b)\n"
+        "import os\nimport os as _os\nfrom os import replace as move\nfrom pathlib import Path\n"
+        "os.replace(a, b)\nos . rename(a, b)\nmove(a, b)\nPath(a).replace(b)\n_os.replace(a, b)\n"
         "text.replace('x', 'y')\n"
     )
-    assert _replace_calls(ast.parse(source)) == ["os.replace", "os.rename", "os.replace", "Path.replace"]
+    assert _replace_calls(ast.parse(source)) == ["os.replace", "os.rename", "os.replace", "Path.replace", "os.replace"]
 
 
 class _Refuses:
     """os.replace that refuses ``times`` calls with PermissionError, as Windows
-    does while another handle holds the target, then succeeds."""
+    does while another handle holds the target, then succeeds with the real
+    replace, captured before the monkeypatch (a rename would refuse an
+    existing target on Windows, and Path.replace would recurse into this)."""
 
     def __init__(self, times):
-        self.times, self.calls = times, 0
+        self.times, self.calls, self.real = times, 0, os.replace
 
     def __call__(self, source, target):
         self.calls += 1
         if self.calls <= self.times:
             raise PermissionError(32, "The process cannot access the file")
-        return Path(source).rename(target)
+        return self.real(source, target)
 
 
 @pytest.fixture
