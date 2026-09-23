@@ -85,15 +85,16 @@ recommended: [D20](specs/spec-authority/addendum-2026-09-23.md) and
 
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
-| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding. Ruled (D20.1, D20.2): the user-visible words are the contract, the names are not; the R2 journey runs in the release gate | 2 to 3 |
+| 3.1 | Spec authority Task 4: switch `plan` and `build` to the native authority and retire the bridge | The R2 clean-environment journey: plan, accept, build, review in a fresh install with attune-ai absent; `spec_bridge.py` gone or reduced to the legacy reader's shim | What of the bridge's behaviour is a contract to keep and what was scaffolding. Ruled (D20.1, D20.2): the user-visible words are the contract, the names are not; the R2 journey runs in the release gate; the six Task 4 decisions ruled September 23 (D23): the journey runs in the install a user gets, the `--no-deps` check kept beside it | 2 to 3 |
 | 3.2 | Spec authority Task 5: read other projects' Attune AI spec state | An R4 receipt for every cited plan, fixtures from at least one other project; read and convert, never write back (D4), originals untouched, a receipt per conversion | Which projects' fixtures are the evidence. Ruled (D20.3): one plan from attune-ai's own `.claude/plans/`, origin recorded, plus the seven Harness plans | 1 to 2 |
 | 3.3 | Serving path (ladder 6, N7) | A fresh Claude Code or Codex session receives relevant memory without an explicit command; the model's disclosure of a memory's influence is preserved as a requirement; corrected or forgotten memories stop being served. Starts from the week of 1.4 | Hook or plugin; what "relevant" means at session start; the disclosure form. Ruled (D21.4, D21.5): the SessionStart hook first and a prompt hook second, no MCP memory tool yet; a node absent from `status:active` or with a `wrong` verdict stops being served | 2 to 3 |
 | 3.4 | Versioned store and writer protocol (ladder 5) | Versioned serialization designed natively; the file scratch store is the first tenant; legacy stores stay read-in-place, no conversion without a separate proposal | Whether this lands before the format freeze (this plan says yes: the freeze cannot pin a format that is about to change). Ruled (D21.6): yes; the scratch format's version opens the compatibility list | 1 to 2 |
-| 3.5 | Executable plugins: the spec | A spec with a threat model and a sandboxing or signing design, reviewed before any implementation (D6: "need it", required for stable) | The trust model: who may sign, what a plugin may touch. Ruled (D20.7): signing, a capability list and a subprocess, stated as such and not as a sandbox | 1 to 2 |
+| 3.5 | Executable plugins: the spec | A spec with a threat model and a sandboxing or signing design, reviewed before any implementation (D6: "need it", required for stable) | The trust model: who may sign, what a plugin may touch. Ruled (D20.7): signing, a capability list and a subprocess, stated as such and not as a sandbox. Approved September 23 (D22), all six decisions as recommended | 1 to 2 |
 
 Exit: the connected journey qualification runs end to end with attune-ai
 absent; the legacy reader has receipts from another project; Patrick's
-sessions receive memory from Harness alone; the plugin spec is approved.
+sessions receive memory from Harness alone; the plugin spec is approved
+(done: D22, September 23).
 
 Ladder 7, the corrections lifecycle and review (N8), stays outside 1.0 by
 ruling (D21.9, September 23) unless the week of dogfooding shows corrections

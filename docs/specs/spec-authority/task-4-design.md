@@ -7,8 +7,10 @@ authority and retire the bridge; done when the R2 clean-environment journey,
 plan, accept, build and review with attune-ai absent, runs and
 `spec_bridge.py` is gone or reduced to the legacy reader's shim. Like the
 Task 3 note, this one puts what was read from the code first, then the
-design, then the decisions that are Patrick's. Nothing here is authorized
-until he rules; the rulings go in this directory's next addendum.
+design, then the decisions that are Patrick's. He ruled on all six on September 23
+([D23](addendum-2026-09-23.md)): decision 1 in his own words, the journey
+runs in the install a user gets, with the `--no-deps` check kept beside it;
+2 to 6 as recommended.
 
 ## What D20 already settled
 
