@@ -436,8 +436,8 @@ async def _accept(directory, checkpoint):
     supported = [c["control"] for c in runners]
     # The forms package renders the decision; without the review extra the
     # host's loader raises FeatureUnavailable with the install hint.
-    bridge = WorkAcceptance(directory, supported_controls=supported)
-    view = await bridge.open(
+    acceptance = WorkAcceptance(directory, supported_controls=supported)
+    view = await acceptance.open(
         detail="Explicit console approval of the current work intent."
     )
     response = {
@@ -448,7 +448,7 @@ async def _accept(directory, checkpoint):
         "confirmed": False,
         **view.record.binding.to_payload(),
     }
-    receipt, accepted = await bridge.collect(response)
+    receipt, accepted = await acceptance.collect(response)
     if accepted is None:
         raise ValueError("Spec did not grant work authority")
     return {"decision_markdown": view.render.markdown, "receipt": dict(receipt.result)}

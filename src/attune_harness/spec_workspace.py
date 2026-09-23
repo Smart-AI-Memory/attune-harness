@@ -5,7 +5,7 @@ Carried from Attune AI (branch ``codex/shared-memory-adoption`` at
 Task 3 (D14). The adapter owns Spec's canonical state and what each stage,
 action and event means; the host in ``command_workspace`` owns identity,
 nonces, storage and at-most-once publication. Nothing in the state machine
-changes here. The bridge (``spec_bridge``) subclasses the adapter for the task
+changes here. ``work_accept`` subclasses the adapter for the task
 gate; the spec-creation stages are carried with it and stay unwired until Task
 4 (D14, decision 4).
 

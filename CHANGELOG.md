@@ -32,6 +32,12 @@ on this section.
   explicit because it is experimental and POSIX-only. The base install is
   unchanged.
 
+- Changed: the work-acceptance host and the plan import moved from
+  `spec_bridge` to `work_accept`; `WorkSpecBridge` is `WorkAcceptance`. Every
+  refusal text, the readiness check and the import receipts are unchanged,
+  and `spec_bridge` keeps the legacy plan reader until the next step renames
+  it (spec authority Task 4, step a; D20.1, D23).
+
 ## 0.5.0
 
 Memory is native. `attune-harness memory recall`, `resolve` and `refresh`
