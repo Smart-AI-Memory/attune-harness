@@ -215,5 +215,12 @@ The Windows platform jobs run the test and the gate section like the others.
 Freezing the manifest there produces the `windows-feature-effects-v1` profile,
 and the build either completes through it or refuses with a
 `FeatureUnavailable` whose detail names Windows; the test and the receipt
-record which of the two it saw rather than skipping. The first Windows run of
-this journey is the pull request that adds it; its `r2_journey` says which.
+record which of the two it saw rather than skipping. On the first run, in the
+pull request that added the journey (#108, September 23, 2026), both Windows
+jobs completed the whole journey, the build included: `windows-latest` with
+Python 3.10 and with 3.12 each record `accept accepted, build completed, review
+completed` in `platform.json`'s `r2_journey`, and the test passed there in
+under six seconds. The build ran through the Windows effects profile, which
+has its own qualification workflow; the golden envelope tests still skip the
+`build` verb off POSIX, a reason string that now reads narrower than the
+evidence.
