@@ -96,7 +96,7 @@ could violate.
 |---|---|---|
 | T1 | The code that runs is not the code that was reviewed: a bundle replaced or edited on disk, before or during a call | Enforced. The artifact digest already covers the manifest and the skill and is checked before and after every call; it now covers the code archive too, and a signature over that digest by a listed signer is required to enable and to run. The check runs against the checkpoint the host holds in memory, not against a digest read back from disk |
 | T2 | A plugin reads or writes outside what it was given | Recorded. The host passes paths and never discovers them for the plugin, and the working directory is plugin-private; but the child is the same user with no sandbox, so a read or a write elsewhere is not prevented. It is declared, recorded, and detectable only where the host already compares digests |
-| T3 | Secrets or data leave over the network without the user knowing | Enforced in part: secrets reach the child only by name, from the grant, and the child's `sys.path` is the standard library and the bundle, so a network client the bundle did not vendor is not importable. Recorded for the rest: network use is declared per host name, acknowledged in the grant, attested by the signer, and not blocked; a bundle that vendors a client can reach anything |
+| T3 | Secrets or data leave over the network without the user knowing | Enforced in part: secrets reach the child only by name, from the grant, and the child can import only the standard library, the bundle, and the host-installed distributions its `imports` grant names, so a network client that is neither vendored nor granted is not importable. Recorded for the rest: network use is declared per host name, acknowledged in the grant, attested by the signer, and not blocked; a bundle that vendors a client, or is granted one, can reach anything |
 | T4 | Runs forever, floods output, or leaves children behind | Enforced. `process.invoke`'s timeout, output cap, process group or Job Object, and descendant teardown, as for every other subprocess |
 | T5 | Forges evidence: writes the run record, the task record, the event file, or a receipt | Recorded and detected. Those paths are never passed and the host holds the writer lease for the call's duration. A record's self-digest proves nothing against a writer who recomputes it; what detects a rewrite is the host comparing the record on disk after the call with the checkpoint it read before, which is what `mutate` already requires of its callers. A mismatch discards the result and records the call as `unresolved` |
 | T6 | Corrupts a protocol stream | Enforced. The plugin's stdout and stderr are captured diagnostics, never a protocol; the result is a file; the host's stdout stays the host's |
@@ -121,7 +121,12 @@ key's fingerprint and its public key block, so the registry is also the key
 distribution: an accepted, checkpointed artifact whose every change is a
 receipt. Verification is `gpg --verify` in a bounded subprocess against a
 keyring the host builds from those blocks and nothing else, so the user's
-own keyring plays no part. The maintainer already signs release tags with
+own keyring plays no part; the verifier runs with a private, mode 0700
+`--homedir` the host creates for the call and with `--status-fd`, and the
+verdict is read from the status lines (`GOODSIG` with the listed
+fingerprint and nothing else), never from the exit status alone, which is
+how an expired or revoked key is caught. The maintainer already signs
+release tags with
 GPG; nothing verifies them in CI today, and this spec adds the first
 verification, so the CI runners' `gpg` and a user's are both assumptions
 the implementation must prove on all three platforms. An absent `gpg`, a
@@ -148,20 +153,26 @@ difference between what the host enforces and what it only records:
   will name in the request), `scratch` (a plugin-private writable directory
   the host creates and removes), `time` (a timeout, at most 300 seconds, as
   for command participants), `output` (a result cap, at most 1 MiB, and 64
-  KiB of diagnostics).
+  KiB of diagnostics), `imports` (top-level distributions already installed
+  in the host's environment that the child may import, closed over their
+  declared requirements by the host, pinned by `require_feature` where a pin
+  exists, and resolved through a finder the bootstrap installs, so a name
+  outside the closure raises `ModuleNotFoundError` even though the
+  distribution is on the host's disk).
 - `declares`, recorded and attested: `network` (host names the plugin will
   contact), `reads` and `writes` (paths outside what it was given it intends
   to touch, expected empty; the host cannot make a passed path read-only for
   a same-user child), `subprocess` (whether it spawns children; it runs in a
   process group either way), `vendored` (the third-party packages the bundle
-  carries, since nothing else is importable).
+  carries in its own archive, within the archive bound).
 
 The registry's grant for a plugin is a subset of its `grants`; the effective
 set is the grant; `declares` cannot be granted, only acknowledged, and an
 acknowledged `network` declaration is what puts `open_world_hint` on the
 tool. The check that the grant is a subset of the declaration runs where the
-manifest is open: inside the lease, at `enable` and before every call. That
-is a new disk read at those points, accepted.
+manifest is open: inside the lease, at `enable` and before every call,
+where `_current` already re-reads the manifest today to compare the
+artifact digest, so the check adds a comparison, not a read.
 
 **Principal.** Launcher-selected, as today; MCP client identity is not
 authentication.
@@ -177,10 +188,16 @@ authentication.
   to the bundle directory plus the standard library entries of the host's
   path and nothing else (no site-packages, no user site, no `PYTHONPATH`,
   which `-I` ignores in any case; `-P` would help but is 3.11 and the floor
-  is 3.10), then runs the plugin's `entry` module as `__main__`. The
-  bootstrap text is part of the receipt's argument digest. The environment
-  is passed, always: the allow-list the repair probe requires (with
-  `SystemRoot` on Windows) plus the granted secrets, nothing inherited. The
+  is 3.10); installs a meta path finder that resolves a top-level name from
+  the host's site-packages only when it is in the `imports` grant's closure,
+  and returns nothing otherwise, so the default finders never see that
+  directory; then runs the plugin's `entry` module as `__main__`. The
+  bootstrap text, which embeds this machine's library paths, is part of the
+  receipt's argument digest, so that digest is machine-specific by design.
+  The environment is passed, always: the allow-list the repair probe
+  requires (with `SystemRoot` on Windows; its two `PYTHON*` entries are
+  inert under `-I -S -B` and stay for the receipt's sake) plus the granted
+  secrets, nothing inherited. The
   working directory is the scratch directory; the request is a file, the
   result is a file, stdout and stderr are diagnostics. Python only in this
   version; another language is a later binding, not a manifest flag.
@@ -204,11 +221,20 @@ authentication.
 ## Voyage, the first consumer (D7)
 
 Voyage is the integration that already makes paid network calls behind an
-explicit flag, so it is the one to prove the boundary on. As a plugin its
-manifest grants `secrets: [VOYAGE_API_KEY]`, `scratch`, `time` and
-`output`, and declares `network: [api.voyageai.com]` and `vendored:
-[voyageai, lancedb, pyarrow]`; its `run` tools are the embed, rerank and
-index operations `voyage_provider` and `voyage_index` expose today.
+explicit flag, so it is the one to prove the boundary on. Its dependencies
+are the reason `imports` exists: `pyarrow` alone is over a hundred
+megabytes installed, `numpy` fifty, both compiled per platform, and
+`requests` is load-bearing (`voyage_provider` mounts an adapter on it), so
+they can be neither vendored under the archive bound nor signed as one
+bundle for three platforms. As a plugin its manifest grants `secrets:
+[VOYAGE_API_KEY]`, `scratch`, `time`, `output` and `imports: [voyageai,
+lancedb]`, which the host closes to the lock's set (`pyarrow`, `numpy`,
+`requests`, `httpx` and their requirements), and declares `network:
+[api.voyageai.com]`; its `run` tools are the embed, rerank and index
+operations `voyage_provider` and `voyage_index` expose today. The `voyage`
+extra therefore stays the install unit, and D7's package boundary holds,
+because an extra installs into the host's environment and the grant is
+what makes it reachable from the child.
 
 Two things stay with the host, because the boundary would otherwise break
 them. First, **the paid stage journal is the host's.** Today `StageJournal`
@@ -217,9 +243,10 @@ a missing ledger beside stage files is itself `PaidStageUnresolved`; a
 scratch directory the host deletes cannot hold a billing ledger, and an
 exception does not cross a process boundary. So the host assigns the stage
 key, writes `prepared` before the child starts, and writes `completed` or
-`unresolved` from the child's result or its absence; a child killed at the
-`time` bound mid-call leaves a `prepared` stage the host marks `unresolved`,
-which is the case the journal exists for. Second, **`--allow-provider`
+nothing from the child's result or its absence: a child killed at the
+`time` bound mid-call leaves the stage at `prepared`, exactly as an
+interrupted in-process call does today, and the next run turns that into
+`PaidStageUnresolved`, which is the case the journal exists for. Second, **`--allow-provider`
 stays what it is**, the per-invocation authorization for a new paid stage
 (a completed stage replays without it); it is not the acknowledgement of
 the network declaration, which lives in the accepted registry as part of
@@ -228,8 +255,9 @@ from that acknowledgement, which for Voyage is always present.
 
 The differential 4.3 owes is that a Voyage journey through the plugin
 produces the same journal, stage by stage, as the in-process path did, and
-that a child killed mid-call leaves the same `unresolved` stage the
-in-process path leaves for an interrupted call. The `voyage` extra stays the
+that a child killed mid-call leaves the same `prepared` stage, refused as
+unresolved on the next run, that the in-process path leaves for an
+interrupted call. The `voyage` extra stays the
 install unit; D7's package boundary is unchanged.
 
 ## Requirements
@@ -243,11 +271,12 @@ install unit; D7's package boundary is unchanged.
   the platform with `gpg` removed from the path.
 - **R2, only what was granted.** The child sees exactly the environment
   keys, the named paths and the scratch directory of the effective grant,
-  and can import only the standard library and the bundle; a canary variable
-  set in the host's environment is absent in the child; an `import` of a
-  package that is installed in the host's site-packages but not vendored
-  fails; the receipt lists what was passed. Tested by a plugin that prints
-  its environment and its `sys.path`.
+  and can import only the standard library, the bundle and the `imports`
+  grant's closure; a canary variable set in the host's environment is absent
+  in the child; an `import` of a distribution that is installed in the
+  host's site-packages but neither vendored nor granted fails; the receipt
+  lists what was passed and the versions resolved. Tested by a plugin that
+  prints its environment, its `sys.path` and the outcome of both imports.
 - **R3, bounded.** Timeout, output cap, process group teardown and orphan
   cleanup hold for a plugin as `tests/test_process.py` proves them for
   every other subprocess, on all three platforms.
@@ -262,7 +291,8 @@ install unit; D7's package boundary is unchanged.
   plugin result that reads as an instruction and asserts the wrapper is
   present around it.
 - **R6, Voyage unchanged in meaning.** The Voyage journey through the plugin
-  yields the same journal and the same `unresolved` behaviour as before, in
+  yields the same journal, and a kill mid-call the same `prepared` stage
+  refused as unresolved on the next run, as before, in
   a differential run once with a live key and recorded, and offline with the
   recorded stages in CI, including the kill case.
 - **R7, the README changes last.** The protocols row stops listing
@@ -283,14 +313,17 @@ install unit; D7's package boundary is unchanged.
    with the rule that a grant is a host action and a declaration is
    anything the child could violate, so the spec cannot be read as
    promising more than the host does.
-3. **The vocabulary of version 1.** Recommended: the five grants and the
+3. **The vocabulary of version 1.** Recommended: the six grants and the
    five declarations above, plus `revoked` and `signers` in the registry;
    anything else is a manifest schema version 2.
-4. **The child's import path.** Recommended: the standard library and the
-   bundle only, through the host's interpreter with `-I -S -B` and a
-   bootstrap the receipt digests; a bundle vendors what it needs and
-   declares it. Alternative: the host's site-packages visible, which makes
-   T3's recording claim empty for any bundle that imports a network client.
+4. **The child's import path.** Recommended: the standard library, the
+   bundle, and the closure of an `imports` grant resolved by a finder the
+   bootstrap installs, through the host's interpreter with `-I -S -B`; a
+   bundle vendors what is small and is granted what is installed. This is
+   what lets Voyage be the first consumer under D7 (its compiled dependencies
+   cannot be vendored or signed once for three platforms). Alternative: the
+   host's site-packages visible, which makes T3's recording claim empty for
+   any bundle that imports a network client; or Voyage not first.
 5. **The paid stage journal stays with the host.** Recommended: yes; it is
    the only way the kill case keeps its meaning, and it is the first thing
    4.3's Voyage pull request builds.
@@ -303,7 +336,7 @@ install unit; D7's package boundary is unchanged.
 
 4.3 at four cycles, the plan's upper bound, if the decisions above hold:
 one for signing, revocation and the capability fields with their tests on
-three platforms; one for the `run` binding, the bootstrap and the child's
-environment; one for Voyage behind the boundary with the host-side journal
-and its differential; one for the platform traps the child's environment
-and `gpg` will meet on Windows.
+three platforms; one for the `run` binding, the bootstrap with its finder,
+and the child's environment; one for Voyage behind the boundary with the
+host-side journal and its differential; one for the platform traps the
+child's environment and `gpg` will meet on Windows.
