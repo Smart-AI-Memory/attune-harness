@@ -75,9 +75,10 @@ property of those two plans, not of the reader; the test pins it.
 ## The sequence
 
 **1. Import the plan by name.** Exit 0, `status: draft`. The envelope has the
-same keys as an implicit import's, including `import_disclosures`, the
-reader's account of what it could not map; nothing about the envelope changes
-with the flag, so the golden table is untouched.
+same keys as an implicit import's, `schema_version` (every envelope's since
+the first freeze cycle, 4.1) and `import_disclosures`, the reader's account
+of what it could not map, included; nothing about the envelope changes with
+the flag, so the golden table is untouched.
 
 ```bash
 attune-harness plan --task-dir work --project project \
@@ -87,8 +88,8 @@ attune-harness plan --task-dir work --project project \
 ```
 
 ```json
-{"status": "draft", "authority": "draft", "phase": "draft", "revision": 1,
- "checkpoint_digest": "3d69cd47…8fd73",
+{"schema_version": 1, "status": "draft", "authority": "draft", "phase": "draft",
+ "revision": 1, "checkpoint_digest": "0230872e…9ff6d",
  "summary": "Draft ready for review; work is not yet accepted.",
  "next_action": "Review this work record; use plan --accept with this exact --checkpoint.",
  "import_disclosures": ["Unmapped surrounding content: # Chart-widget kernel\n\n**Outcome:** …"],
@@ -107,7 +108,7 @@ ASCII, 1,982 bytes for this plan. Shown here indented and shortened.
 
 ```json
 {"schema_version": 1, "receipt": "legacy-plan-conversion", "conversion": "import",
- "time": "2026-09-23T22:06:35.959894+00:00",
+ "time": "2026-09-23T22:18:41.796251+00:00",
  "source": {"given": "tests/fixtures/plans/attune-ai/chart-widget-kernel.md",
             "resolved": "/…/tests/fixtures/plans/attune-ai/chart-widget-kernel.md",
             "sha256": "afd414bc5d5de98035f54b3b6266ba6450163b19dc430ce3d23eaab049d11d5b",
@@ -122,8 +123,8 @@ ASCII, 1,982 bytes for this plan. Shown here indented and shortened.
               "disclosures": {"count": 1, "sha256": "a4ef22ed…64ca0",
                               "kinds": {"surrounding": 1, "nested": 0, "attributes": 0, "elements": 0}}},
  "approval_imported": false,
- "task": {"task_id": "745b3493-…", "revision": 1,
-          "record_path": "…/work/record.json", "checkpoint_digest": "fbb03359…e8f71"}}
+ "task": {"task_id": "ce8d704c-…", "revision": 1,
+          "record_path": "…/work/record.json", "checkpoint_digest": "0230872e…9ff6d"}}
 ```
 
 The fields, in the design note's order. `source`: the path as given, in the
@@ -160,7 +161,7 @@ again by the next conversion, and a task imported the implicit way is never
 receipted, whatever is planted beside its record.
 
 ```bash
-attune-harness plan --task-dir work --reimport --checkpoint fbb03359…e8f71
+attune-harness plan --task-dir work --reimport --checkpoint 0230872e…9ff6d
 ```
 
 Before the record is saved, the conversion checks that the receipts file can
