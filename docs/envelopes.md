@@ -10,33 +10,37 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 66 rows:
+row pins, in 71 rows:
 
-- **success** (51 rows): the verb did its work offline on a small fixture;
+- **success** (55 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (5 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (6 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
-  built. Voyage is never called.
+  built; `memory capabilities` with a config that is not the roots contract,
+  refused by the default reader in its own words. Voyage is never called.
 - **unavailable** (9 rows): a dependency or server this install does not
-  have. The memory host route (`capabilities` through `execute`) needs the
-  attune-ai adapter, which no base or extra install carries; a configured
-  Redis that refuses the connection.
+  have. The memory host route (`capabilities` through `execute`) with
+  `reader: adapter` needs the attune-ai adapter, which no base or extra
+  install carries; a configured Redis that refuses the connection.
 - **disabled** (1 row): the memory config has no `scratch` section.
 
 The four `-adapter` rows pin the memory host's success shapes over an
 in-process double of the adapter's four-member contract (`binding`,
-`capabilities`, `query`, `resolve`), since no install carries the adapter:
-they are the contract the native reader of Phase 2 must satisfy (D19).
+`capabilities`, `query`, `resolve`), since no install carries the adapter;
+the four `-native` rows pin the same shapes through Harness's own reader,
+the default since Phase 2 step 2.4 (D19), over a raw root.
 
 Two verbs are not pinned. `mcp-serve` speaks the MCP protocol on stdout and
-prints no envelope, and `--help`/`--help-all` print text. Three rows,
-`fix-intake`, `test-preview` and `status-test`, run on POSIX only: the `test`
-verb qualifies the POSIX execution profile, and the repair probe fixture is a
-POSIX one. A `-` in the `schema_version` or `status` column means the
-envelope has no such key: the feature-work verbs (`plan`, `build` and their
-`status`) and `memory scratch` carry no `schema_version`, and `code-config`,
-`triage-check`, `repair-economics` and `github-checks` carry no `status`.
+prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
+POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
+verb qualifies the POSIX execution profile and the repair probe fixture is a
+POSIX one; and the four `-native` rows, because the native memory reader's
+descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
+`status` column means the envelope has no such key: the feature-work verbs
+(`plan`, `build` and their `status`) and `memory scratch` carry no
+`schema_version`, and `code-config`, `triage-check`, `repair-economics` and
+`github-checks` carry no `status`.
 
 ## Table
 
@@ -92,10 +96,15 @@ envelope has no such key: the feature-work verbs (`plan`, `build` and their
 | `memory-replay` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-inspect` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-execute` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-capabilities-adapter` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `retained_paths` `worker_execution` `worker_mutations` |
+| `memory-capabilities-adapter` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `reader` `retained_paths` `worker_execution` `worker_mutations` |
 | `memory-recall-adapter` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
 | `memory-resolve-adapter` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
 | `memory-refresh-adapter` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
+| `memory-capabilities-native` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `reader` `retained_paths` `worker_execution` `worker_mutations` |
+| `memory-recall-native` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
+| `memory-resolve-native` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
+| `memory-refresh-native` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
+| `memory-capabilities-invalid` | refusal | 2 | - | `failed` | `detail` `error` `status` |
 | `memory-redis-status` | success | 0 | 1 | `ok` | `active_nodes` `authority` `guidance` `items` `layers` `operation` `schema_version` `status` |
 | `memory-redis-digest` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `limit` `operation` `schema_version` `status` |
 | `memory-redis-related` | success | 0 | 1 | `ok` | `authority` `guidance` `id` `items` `operation` `schema_version` `status` |
@@ -167,6 +176,11 @@ What each case runs, in the order of the table.
 - `memory-recall-adapter`: `memory --config recall QUERY --k 3` over the double
 - `memory-resolve-adapter`: `memory --config resolve HANDLE` with a handle the double's recall returned
 - `memory-refresh-adapter`: `memory --config refresh CONTEXT` with the packet the double's recall returned
+- `memory-capabilities-native`: `memory --config capabilities` with the default reader over a raw root (POSIX only)
+- `memory-recall-native`: `memory --config recall QUERY --k 2` over the raw root (POSIX only)
+- `memory-resolve-native`: `memory --config resolve HANDLE` with a handle the native recall returned (POSIX only)
+- `memory-refresh-native`: `memory --config refresh CONTEXT` with the packet the native recall returned (POSIX only)
+- `memory-capabilities-invalid`: `memory --config capabilities` with the default reader and a config that is not the roots contract
 - `memory-redis-status`: `memory --config redis status` (in-process double of a hydrated keyspace)
 - `memory-redis-digest`: `memory --config redis digest --limit`
 - `memory-redis-related`: `memory --config redis related ID`
