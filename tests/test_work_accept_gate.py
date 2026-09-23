@@ -3,7 +3,7 @@
 Step 3.4 of the spec authority's Task 3 (D14). Before it, ``WorkSpecBridge``
 imported Attune AI's host and Spec adapter at the point of use, so nothing here
 ran in CI and ``plan --accept`` needed Attune AI installed. An autouse fixture
-blocks the ``attune`` package outright, as ``test_spec_bridge_legacy.py`` does,
+blocks the ``attune`` package outright, as ``test_spec_legacy.py`` does,
 so every test proves the gate needs nothing from it (R2). The forms package,
 Harness's ``review`` extra, renders the decision and is required.
 
@@ -561,7 +561,7 @@ def test_core_imports_and_help_need_neither_the_extra_nor_attune():
         "import sys\n"
         "for name in ('attune_forms', 'attune'):\n"
         "    sys.modules[name] = None\n"
-        "import attune_harness.spec_bridge, attune_harness.work_accept, attune_harness.work_cli, attune_harness.cli\n"
+        "import attune_harness.spec_legacy, attune_harness.work_accept, attune_harness.work_cli, attune_harness.cli\n"
         "import attune_harness.spec_workspace, attune_harness.command_workspace\n"
         "assert sys.modules['attune_forms'] is None and sys.modules['attune'] is None\n"
         "from attune_harness.cli import main\n"

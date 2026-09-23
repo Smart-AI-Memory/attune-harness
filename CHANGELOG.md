@@ -35,8 +35,10 @@ did not conflict on this section.
 - Changed: the work-acceptance host and the plan import moved from
   `spec_bridge` to `work_accept`; `WorkSpecBridge` is `WorkAcceptance`. Every
   refusal text, the readiness check and the import receipts are unchanged,
-  and `spec_bridge` keeps the legacy plan reader until the next step renames
-  it (spec authority Task 4, step a; D20.1, D23).
+  and the legacy plan reader that remained is now `spec_legacy` (spec
+  authority Task 4, step a and step b's rename; D20.1, D23). The gate tests
+  are `tests/test_work_accept_gate.py` and the reader's
+  `tests/test_spec_legacy.py`.
 
 ## 0.5.0
 

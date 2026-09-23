@@ -8,8 +8,8 @@ discloses everything it does not map. The reader consumes exactly the shape
 refuses the same state comments, which ``tests/test_spec_state.py`` pins.
 
 The work-acceptance host that used to live beside the reader moved to
-``work_accept`` in Task 4's first step (D20.1, D23); this module is renamed
-``spec_legacy`` in the second. Nothing here imports Attune AI.
+``work_accept`` in Task 4's first step (D20.1, D23), and the second step
+renamed this module from ``spec_bridge``. Nothing here imports Attune AI.
 """
 
 import hashlib

@@ -47,7 +47,7 @@ class DecomposedTask:
     dependencies: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-safe form; ``spec_bridge.legacy_plan`` consumes exactly this shape."""
+        """JSON-safe form; ``spec_legacy.legacy_plan`` consumes exactly this shape."""
         return {
             "task_id": self.task_id,
             "name": self.name,

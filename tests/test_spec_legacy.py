@@ -4,7 +4,7 @@ Step 2.4 of the spec authority's Task 2. Before it, ``legacy_plan`` imported
 Attune AI's reader at the point of use, so its parse path never ran in CI,
 where Attune AI is not installed. These tests block the ``attune`` package
 outright, so they prove that calling the path needs nothing from it. That
-importing ``spec_bridge`` needs nothing from it is proved statically by
+importing ``spec_legacy`` needs nothing from it is proved statically by
 ``test_no_attune_runtime_import.py``.
 """
 # qualify: platform
@@ -13,7 +13,7 @@ import sys
 
 import pytest
 
-from attune_harness.spec_bridge import legacy_plan
+from attune_harness.spec_legacy import legacy_plan
 
 TWO_TASKS = (
     '<task id="1" name="first"><objective>Do first</objective>'

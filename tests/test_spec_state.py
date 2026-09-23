@@ -6,7 +6,7 @@ Harness refuses one without it; the loosened-regex test loosens the trailing
 pattern; monkeypatch targets name this module. One test is replaced:
 `test_defaults_schema_version_when_missing` (a missing version loaded as 0)
 is now a refusal case. The rest are new: the three seams, and the agreement
-with spec_bridge.plan_content on the same inputs.
+with spec_legacy.plan_content on the same inputs.
 """
 # qualify: platform
 
@@ -23,7 +23,7 @@ import time
 import pytest
 
 from attune_harness import spec_state
-from attune_harness.spec_bridge import plan_content
+from attune_harness.spec_legacy import plan_content
 from attune_harness.spec_state import (
     CURRENT_SCHEMA_VERSION,
     SpecState,
