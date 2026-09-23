@@ -26,10 +26,10 @@ def _replace_calls(tree):
     bare ``replace``/``rename`` imported from os, or a one-argument
     ``.replace(target)`` on a value, which is pathlib's, since str.replace
     takes two."""
-    imported = set()
+    imported = {}
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.module == "os":
-            imported |= {alias.asname or alias.name for alias in node.names if alias.name in ("replace", "rename")}
+            imported.update({alias.asname or alias.name: alias.name for alias in node.names if alias.name in ("replace", "rename")})
     found = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -39,7 +39,7 @@ def _replace_calls(tree):
                 and func.attr in ("replace", "rename"):
             found.append(f"os.{func.attr}")
         elif isinstance(func, ast.Name) and func.id in imported:
-            found.append(f"os.{func.id}")
+            found.append(f"os.{imported[func.id]}")
         elif isinstance(func, ast.Attribute) and func.attr == "replace" and len(node.args) == 1 and not node.keywords:
             found.append("Path.replace")
     return found
