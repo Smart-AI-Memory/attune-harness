@@ -115,7 +115,7 @@ Release: 1.0.0rc1 to TestPyPI through the runbook's `testpypi` target, then
 
 | # | Task | Done when | Decision | Cycles |
 |---|---|---|---|---|
-| 4.1 | Interface freeze | [The envelope table](envelopes.md) becomes the compatibility contract, with the gaps #73 recorded settled: `schema_version` on the `plan`, `build`, `status` and `memory scratch` envelopes, `status` on `code-config`, `triage-check`, `repair-economics` and `github-checks`; the config formats (memory config with `redis` and `scratch`, task records, plan state) and the CLI verbs written down with a deprecation path; the empty extra names removed as the changelog promised | Which shapes change before the freeze and which are frozen as they are | 2 |
+| 4.1 | Interface freeze | [The envelope table](envelopes.md) becomes the compatibility contract, with the gaps #73 recorded settled: `schema_version` on the `plan`, `build`, `status` and `memory scratch` envelopes, `status` on `code-config`, `triage-check`, `repair-economics` and `github-checks`; the config formats (memory config with `redis` and `scratch`, task records, plan state) and the CLI verbs written down with a deprecation path; the empty extra names removed as the changelog promised | Which shapes change before the freeze and which are frozen as they are. Ruled (D25.2): the list, the deprecation rule and the two moments; the saved-state fixture is the third cycle | 3 |
 | 4.2 | Windows | Either `fix` and `test` qualified on Windows for the cases the README names (deletion and renames, ACLs, files over 64 KiB, crash recovery, concurrent writers) or a written decision that Windows is a documented limit at 1.0 with WSL2 as the route to the POSIX profile (D6's Windows note) | Made on September 23 (D20.8): Windows is a documented limit at 1.0, `fix` and `test` unqualified there, the memory reader refusing, WSL2 the route; the work is the written decision and the qualification table | 1 |
 | 4.3 | Executable plugins: implementation | The spec from 3.5 implemented and qualified; the README's protocols row no longer lists arbitrary executable plugins as unqualified | none new if 3.5 settled the trust model | 2 to 4 |
 | 4.4 | End the memory transition (ladder 9, N5) | attune-ai memory formats declared frozen; the differential tests and the adapter fallback removed once attune-ai stops writing; the fate of `attune_bridge.py`, the `harness` extra and `attune-redis`'s attune-ai dependency settled | Whether attune-ai stops writing before 1.0 | 1 |
@@ -148,5 +148,6 @@ of Phase 3 (D20.8): 4.2 is one cycle.
 Counted: 20 tasks, between 26 and 35 cycles at today's pace now that D20.8
 fixes 4.2 at one. On September 23, nine are done, three in progress and
 eight not started; [the release 1.0.0 note](specs/release-1.0/README.md)
-counts sixteen to nineteen cycles left. Each cycle carries a different-model review under
+counts seventeen to twenty cycles left; its rulings are
+[D25](specs/release-1.0/addendum-2026-09-23.md). Each cycle carries a different-model review under
 [the brief](review-brief.md) and lands in [the findings log](review-findings.md).

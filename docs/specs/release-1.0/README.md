@@ -9,7 +9,10 @@ requirements of 1.0.0, and which are aspirations that belong to a later
 milestone. Like the design notes before it, it puts what was read from the
 code first, then the requirements, then the decisions that are Patrick's.
 Nothing here is authorized until he rules; the rulings go in a dated addendum
-beside this file, numbered on from D24.
+beside this file, numbered on from D24. Ruled the same evening:
+[D25](addendum-2026-09-23.md), the ten decisions, with the freeze's list and
+October as the month; the deprecation's distance from 1.0.0 is raised there
+and not yet ruled.
 
 ## Two readings of 1.0.0
 
@@ -51,14 +54,14 @@ or one reviewed pull request with its suite, review and platform runs.
 | 3.2 other projects' spec state | Not started; no fixture from another project exists, nothing writes a conversion receipt | 1 to 2 |
 | 3.3 the serving path | Not started; gated on 1.4's observations (D20.10); `memory serve` has no `--for` mode and applies no `status:active` filter | 2 to 3 |
 | 3.4 the versioned store | Not started; the scratch record is `schema_version` 1 with no `format`, `writer` or `expected_version` | 1 to 2 |
-| 4.1 the interface freeze | Not started; the golden table (#73) is the precursor; the five empty extras are still declared | 2 |
+| 4.1 the interface freeze | Not started; the golden table (#73) is the precursor; the five empty extras are still declared; the saved-state fixture (D25.2) is the third cycle | 3 |
 | 4.2 Windows | Ruled (D20.8); the README's table already states the limit; the written decision and the qualification table are the cycle | 1 |
 | 4.3 executable plugins, implementation | Not started; the spec is approved (D22), four cycles by its own count | 4 |
 | 4.4 end the memory transition | Not started; `memory_context.py` still imports the adapter inside `reader == 'adapter'`, the one allowed exception | 1 |
 | 4.6 the non-programmer walkthrough | Not started; nobody named | 1 |
 | 4.7 the release | Not started; `main` is `0.6.0.dev0` | 1 |
 
-Fifteen to eighteen cycles, before the loose ends in S8 and the release
+Sixteen to nineteen cycles, before the loose ends in S8 and the release
 candidate period. Done and not in the table: Phase 1 entire, Phase 2 entire,
 3.5 (the plugins spec, D22) and 4.5 (the hygiene row: all nine pull requests
 merged on September 23, #89 to #100 without #96, #97 and #98).
@@ -139,7 +142,8 @@ versions 1 and 2), and the scratch record with its `format`, version and
 `writer` (D21.6); the twenty-eight verbs listed; the five empty extras
 removed; and a deprecation path written down, what a change to any of these
 after 1.0.0 requires before it ships. The Python API's place in the
-contract is decision 2. Three to four cycles; not started.
+contract is decision 2. Four to five cycles, the saved-state fixture
+counted (D25.2); not started.
 
 **S2, nothing from attune-ai on any path, and its formats read natively.**
 Delivered by the rest of 3.1, by 3.2 and by 4.4. Evidence: the R2 journey
@@ -189,7 +193,7 @@ three check scripts that lost their caller when `qualify_pilot.py` was
 deleted, folded into `check_installed.py` or removed; O-51's TestPyPI
 receipt no longer naming a deleted script; O-53 closed by 3.1. One cycle.
 
-Sixteen to nineteen cycles in all, then the release candidate period.
+Seventeen to twenty cycles in all, then the release candidate period.
 
 ## What waits, and why
 
@@ -240,10 +244,10 @@ observations.
 **A calendar, stated as an assumption.** Phase 2 took four reviewed pull
 requests in a day and the overnight run of September 23 built ten; with
 Patrick merging, three to four cycles a day is the measured pace. Sixteen to
-nineteen cycles are five to seven working days of building. Spread over the
-sessions he can give it, a release candidate in the middle of October and
-1.0.0 in November fit D1's window. This is an assumption until decision 3
-gives it a budget.
+twenty cycles are five to seven working days of building. Spread over the
+sessions he can give it, 1.0.0 in October fits D1's window; decision 3
+rules the month and nothing finer, and the sessions a week are still his to
+name.
 
 ## Decisions for Patrick
 
@@ -266,10 +270,10 @@ gives it a budget.
    `1.0.0rc1` when S1, S2, S4, S5, S7 and S8 have their evidence and S3 has
    at least the SessionStart filter; the period ends when 4.6 has been
    observed, two weeks of dogfooding from the candidate have produced no
-   change to a frozen surface, and the findings-log rows are in; 1.0.0
-   then, in November if the candidate is mid-October. Patrick names the
-   sessions a week he will give it in October, which turns the assumption
-   into a plan.
+   change to a frozen surface, and the findings-log rows are in; 1.0.0 in
+   the month D1 names, October, with no finer date written anywhere.
+   Patrick names the sessions a week he will give it, which turns the
+   assumption into a plan.
 4. **4.3 stays on the 1.0.0 path and precedes the freeze.** Recommended:
    yes, as D6 ruled. 4.1 follows 4.3's manifest and `run` binding cycles, so
    the frozen manifest is the one that ships; if 4.3 slips, 1.0.0 slips with
@@ -311,7 +315,7 @@ gives it a budget.
 
 ## Size
 
-Sixteen to nineteen cycles and two dispatches before the release candidate,
+Seventeen to twenty cycles and two dispatches before the release candidate,
 then a period whose length decision 3 sets. Measured against Phase 2 (one
 design note, four reviewed pull requests in a day) and the spec authority's
 Task 4 (one note, three pull requests merged in a day, the fourth in flight),
