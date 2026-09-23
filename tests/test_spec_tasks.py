@@ -315,12 +315,20 @@ def test_an_unbalanced_plan_still_reports_orphans_outside_the_region(caplog):
 def test_a_tasks_tag_inside_a_body_does_not_defeat_the_per_block_fix(caplog):
     # Review mutation: without the word boundary in the edge scan, "<tasks>"
     # in a body counts as an opening and the region stops splitting.
+    # A self-closing <tasks/> would not show it: the mutated scan reads that as
+    # a nested self-closing block and ignores it. An open <tasks> with its own
+    # close does: the mutated scan counts the open, never sees the close, and
+    # the region stops splitting, so the prose between the blocks reaches the
+    # parser and both tasks drop to the regex path.
     tasks, messages = parse(
         caplog,
-        '<task id="1"><objective>see <tasks/> list</objective></task>\nR&D\n'
+        '<task id="1"><objective>see <tasks>the list</tasks> below</objective></task>\nR&D\n'
         '<task id="2"><objective>B &amp; C</objective></task>',
     )
-    assert [(t.task_id, t.objective) for t in tasks] == [("1", "see <tasks /> list"), ("2", "B & C")]
+    assert [(t.task_id, t.objective) for t in tasks] == [
+        ("1", "see <tasks>the list</tasks> below"),
+        ("2", "B & C"),
+    ]
     assert messages == []
 
 
