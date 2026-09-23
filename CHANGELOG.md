@@ -1,6 +1,23 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
+
+Memory is native. `attune-harness memory recall`, `resolve` and `refresh`
+read explicit `raw`, `personal` and `curated` roots with Harness's own
+reader by default, nothing from attune-ai on the path: the standard library
+for the raw tier and attune-rag's keyword retriever, already in the base
+install, for the document tiers (native memory Phase 2, D19). The reader
+reproduces the adapter's contract, its refusal texts, the strict content
+gate carried verbatim from the sanitizer's patterns, and the provenance and
+staleness metadata on document items; a differential against attune-ai's
+adapter, run where its checkout exists, agrees on statuses, result order,
+texts, versions and every item's metadata. `"reader": "adapter"` keeps that
+adapter selectable as the rollback until the transition ends. The import
+guard's known list is empty; the release gate reads a raw root from the
+`--no-deps` wheel and asserts on the receipt; the golden envelope table pins
+the native shapes. The reader is POSIX-only until the Phase 4 decision; on
+Windows it reports the refusal. Interfaces may still change before 1.0; the
+README's qualification table says what is and is not covered.
 
 - Changed: the native reader is the default, Phase 2 step 2.4 (D19).
   `memory capabilities|recall|resolve|refresh` read the roots with Harness's
