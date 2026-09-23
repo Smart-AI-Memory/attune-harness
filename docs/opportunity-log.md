@@ -5,7 +5,9 @@ The current register separates open work, completed improvements, experiments an
 release follow-through. Dated notes below retain the evidence and reasoning;
 their former next steps are not automatically current assignments.
 
-Last reviewed: **September 18, 2026**, against current source and retained results.
+Last reviewed: **September 23, 2026** for the dated notes and the two register
+rows named below; the register's other rows were last reviewed **September 18,
+2026**, against current source and retained results.
 Patrick selected **A — better status and next-action guidance** and **B — durable
 decisions** as the affordable scope (estimated 25–40k working tokens together).
 **A and B are implemented and verified in the current CLI/Spec source**; see
@@ -63,6 +65,38 @@ dispatch, recovery and exit-code contracts are preserved. The
   Prompt enhancement has a reported clarity benefit; effects on rework and
   technical debt still need evidence. This is not an automatic cleanup feature.
 
+## Review of September 23, 2026
+
+Done after 0.5.0 shipped, ahead of the October 1 reminder below, at Patrick's
+request. The thirty-three dated notes from September 19 to 22 now carry
+numbers O-37 to O-69 and a status line each, checked against `main` at
+`31e1d90` (the 0.5.0 release) and the pull requests that landed since. The
+register rows O-04 and O-07 were refreshed; the other rows were not
+re-examined.
+
+| Closed | Open |
+|---|---|
+| O-40 Redis as the recommended install (D15, D16, 0.4.0) | O-37 test-named product modules |
+| O-44 one line carries the releases (0.2.0 to 0.5.0) | O-38 Node 20 action pins; O-39 Ubuntu 26 watch |
+| O-45 memory without the unreleased adapter (Phase 2, 0.5.0) | O-41 Windows delete-sharing readers |
+| O-46 the README claims what a clean environment shows (#64, #82) | O-42 the MCP test's ten-second literal |
+| O-47 the log and the documents on `main` (#35 to #47) | O-43 `docs/handoffs/` in `.gitignore`; O-48 reduced |
+| O-49 branch deletion on merge (setting on; helpers) | O-51 the receipt names a script; O-54 the unexamined branch |
+| O-50 the review gate (#57) | O-53 the unwired spec stages, until Phase 3 |
+| O-52 Task 2's measured cost (#48) | O-58 the task reader's single region |
+| O-55 the dead-link check (#44) | O-59 one atomic writer; O-60 the index completeness check |
+| O-56 the documentation index (#47) | O-63, O-64, O-65, O-67, O-68: Phase 4's hygiene row (4.5) |
+| O-57 the merge delegations (#45, #50) | |
+| O-61 the standing review brief and the findings log (#56, #69) | |
+| O-62 one step waits at a time (#50) | |
+| O-66 the lease's bounded wait (#72) | |
+| O-69 the golden envelope table (#73) | |
+
+Fifteen closed, eighteen open. Of the eighteen, five sit in the plan's Phase 4
+hygiene row already, and four more belong there (O-42, O-43, O-59, O-60); the
+plan's row is widened in the same pull request. O-53 closes with Phase 3.
+The rest are watch items or judgment calls for the October 1 review.
+
 ## Deferred review — October 1, 2026
 
 Patrick wants to revisit all remaining opportunity groups when budget allows.
@@ -110,10 +144,10 @@ complete native journey passed. Original experimental grades remain unchanged.
 | O-01 | Durable decisions and form visibility | **B verified locally.** [Plan/Spec text now persists before collection](durable-decisions-b-results.md), and delayed/replaced/stale response behavior is checked. The [UI probe](research/form-visibility-2026-09-17.md) identified display limits; the original disappearance incident remains unreproduced and the host timer is unchanged. |
 | O-02 | Ownership, relevance and sharing authority | **Deferred by Patrick.** Project matching ranks memories; it does not establish sharing permission. Retain the [access questions](specs/shared-memory-adoption/design.md). |
 | O-03 | Active memory delegation | **Future live qualification.** [Citation evidence](research/memory-citations-results-2026-09-16.md) supports a candidate. Define one complete receiving-agent journey before live activation. |
-| O-04 | Map capabilities to complete journeys | **Map and testing slice completed; current-state refresh needed.** [Connected testing](connected-journey-qualification-results.md) and [plan/build Tasks 1–7](plan-build-task7-results.md) now exist. Older maps still describe plan/build as absent. Native completion remains open. |
+| O-04 | Map capabilities to complete journeys | **Map and testing slice completed; refresh due after Phase 3.** Since September 18: `plan --accept` runs without Attune AI (spec authority Task 3, 0.3.0) and memory reads natively (Phase 2, 0.5.0); the plan/build journey switches to the native authority in Phase 3 (3.1), which is when the maps should be rewritten once. [Connected testing](connected-journey-qualification-results.md) and [plan/build Tasks 1–7](plan-build-task7-results.md) now exist. Older maps still describe plan/build as absent. Native completion remains open. |
 | O-05 | Attune AI packaging metadata warnings | **Open; low priority.** License-table metadata remains in Attune AI. Make a bounded packaging compatibility cleanup when that package is next maintained. |
 | O-06 | Earlier repository quality checks | **Open process improvement.** Evaluate the existing full gates in the relevant preflight mode and measure added waiting time before changing the default. |
-| O-07 | Fresh installation and platform coverage | **Partly qualified.** The [fresh macOS/Python 3.12 combination](fresh-installation-results.md) passes. Other intended combined profiles and optional Spec-owner availability remain open. Earlier core platform checks do not qualify every newer integration. |
+| O-07 | Fresh installation and platform coverage | **Qualified in CI since 0.3.0.** Every platform job installs the built wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12 and runs the installed journeys, the memory verbs included; the release gate does the same from a `--no-deps` install ([qualification guide](qualification.md)). The [fresh macOS/Python 3.12 combination](fresh-installation-results.md) was the first. Other intended combined profiles and optional Spec-owner availability remain open. Earlier core platform checks do not qualify every newer integration. |
 | O-08 | Accurate Spec completion summaries | **Candidate repair verified; rollout remains.** [Accepted task evidence now survives resume](spec-completion-repair-results.md). The active installed plugin was not replaced by that qualification. |
 | O-09 | Complete evidence of what ran | **Open; F.** [Closeout](release-readiness-follow-through-results.md) required transcript/runtime reconstruction. Add missing input references and origins to existing receipts, without duplicating current test metadata. |
 | O-10 | Reliable specialist testing backends | **Testing journey implemented; legacy backend work remains.** [Selection, execution and receipts](test-this-change-results.md) are connected. Maintenance placeholders, generation/write contracts, generic verifier behavior and aliases need their own bounded repairs. |
@@ -527,7 +561,7 @@ That approval is pending. Website integration and publication have not started.
 The [integration handoff](handoffs/smartaimemory-controls-article.md) identifies the
 two working drafts, the approval condition and the public-link/content checks.
 
-Unnumbered, 2026-09-19 (assign the next O-number at the next log review): product
+O-37, 2026-09-19: product
 modules named like tests. While inspecting the source distribution before a first
 PyPI publication, Patrick noticed `test_change.py`, `test_cli.py`,
 `test_execution.py` and `test_scope.py` inside `src/attune_harness/`. They are
@@ -541,7 +575,9 @@ changes module hashes that existing receipts bind, and needs its own regression
 pass, so it is recorded separately and does not block publication. Effort: small
 to medium. Nothing is renamed or authorized by this note.
 
-Unnumbered, 2026-09-19 (assign the next O-number at the next log review): pinned
+**Status, September 23, 2026: open.** Four `src/attune_harness/test_*.py` product modules remain; unchanged.
+
+O-38, 2026-09-19: pinned
 GitHub Actions target Node.js 20. The TestPyPI rehearsal run 35476747591 raised a
 deprecation annotation on its `build` and `verify_testpypi` jobs: three pinned
 actions target Node.js 20 and are being forced to run on Node.js 24. The pins are
@@ -557,7 +593,9 @@ on a release branch, so qualification and a `publish=false` dry run must pass
 again before the next real publish. Effort: small. Nothing is bumped or authorized
 by this note.
 
-Unnumbered, 2026-09-19 (assign the next O-number at the next log review):
+**Status, September 23, 2026: open.** The Node 20 deprecation warning still prints on every job; the pinned action SHAs are unchanged.
+
+O-39, 2026-09-19:
 `ubuntu-latest` moves to Ubuntu 26. The same rehearsal run 35476747591 carried a
 notice on `build`, `publish_testpypi` and `verify_testpypi` that the
 `ubuntu-latest` label will migrate to Ubuntu 26 beginning October 19, 2026
@@ -572,7 +610,9 @@ first qualification run on Ubuntu 26 as evidence to read before relying on it fo
 a publish. The macOS and Windows `-latest` labels float the same way and deserve
 the same decision. Effort: small. Nothing is pinned or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): make
+**Status, September 23, 2026: open.** Watch item; `ubuntu-latest` has not moved yet.
+
+O-40, 2026-09-21: make
 Redis-backed memory the recommended install for 0.2.0. After 0.1.0 was published
 (run 35564794974, commit `8fc26a4`), Patrick observed that the README should have
 recommended a `[redis]` extra as the default install. It could not have: 0.1.0
@@ -618,7 +658,9 @@ result, and working memory does not obviously consume the file-tier readers, but
 that is an inference to confirm in the successor spec, not a finding. Nothing is
 built, renamed, scheduled or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): open the
+**Status, September 23, 2026: closed.** D15 and D16 (September 22): the base install carries the journeys and `[redis]` delivers the Redis backend; shipped in 0.4.0 (#64, #66, #67).
+
+O-41, 2026-09-21: open the
 harness's own run-record readers with Windows delete-sharing. 0.1.0 shipped a bounded
 fix (`8fc26a4`) for the defect that blocked the release: `RunStore.save()` replaced
 `record.json` once with no retry, Windows refuses to replace a file another handle
@@ -651,7 +693,9 @@ small to medium; the change is a few lines but it is Windows-only file-handle co
 in a fail-closed persistence path, and CI is the only place it can be verified.
 Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the 10 s
+**Status, September 23, 2026: open.** The readers still open without delete sharing; `features.replace_file` retries the writer instead. Windows trap 4 records it.
+
+O-42, 2026-09-21: the 10 s
 `observe` deadline in the MCP cancellation test.
 `tests/test_mcp.py::test_sdk_cancellation_retains_started_call_receipt` polls for a
 pending receipt through a local `observe` helper with a fixed deadline of 10 seconds
@@ -677,7 +721,9 @@ made this defect slower to notice, not easier to diagnose. Done when the constan
 message are in place and qualification is six of six green. Effort: small. Nothing
 is changed or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review):
+**Status, September 23, 2026: open.** `tests/test_mcp.py` still holds the bare ten-second literal.
+
+O-43, 2026-09-21:
 `docs/handoffs/` is ignored on one branch only. Both release handoff notes
 (`first-pypi-release-2026-09-19.md` and `release-0.1.0-windows-fix-2026-09-21.md`)
 state that `docs/handoffs/` is gitignored. That is true only on
@@ -701,7 +747,9 @@ shows a clean tree, and the two handoff notes no longer make the general claim
 (the 2026-09-21 note's worktree copy is already corrected). Effort: small. Nothing
 is changed or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
+**Status, September 23, 2026: open.** `docs/handoffs/` is still not in `.gitignore` on `main`; the drafts stay untracked by hand.
+
+O-44, 2026-09-21: the
 published 0.1.0 source is on no line that future work starts from. Three lines
 diverge from the same merge base, `7eabe58`, and none contains another. `main` is 3
 commits ahead of the base (`da99bb3`, `3607e4f`, `82efb27`, all CI registration) and
@@ -798,7 +846,9 @@ scoping ladder Tasks 1 to 3), a decision and plan for the Spec tie, which no spe
 covers, and an installed-environment CI check with attune-ai absent that exercises
 memory context and plan acceptance. Nothing is started or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): harness
+**Status, September 23, 2026: closed.** `main` has carried every release since 0.2.0; 0.3.0, 0.4.0 and 0.5.0 all cut from it through the runbook.
+
+O-45, 2026-09-21: harness
 memory depends on an attune-ai module that was never released. While sizing the
 dependency cut, the module that `memory_context.py` imports,
 `attune.memory.harness_adapter`, was looked for in `~/attune-ai`. It is not on
@@ -832,7 +882,9 @@ in a fresh environment containing only attune-harness, under a CI job that runs 
 attune-ai absent. Effort: unknown until the four modules are measured. Nothing is
 ported, merged or authorized by this note.
 
-Unnumbered, 2026-09-21 (assign the next O-number at the next log review): the
+**Status, September 23, 2026: closed.** Native memory Phase 2 (#79 to #82, 0.5.0): the reader is Harness's own and the default; `memory capabilities` succeeds from a `--no-deps` wheel under the release gate, with attune-ai absent.
+
+O-46, 2026-09-21: the
 published 0.1.0 README overstates the harness's independence, and attune-ai is an
 undeclared runtime tie. Patrick read the README on the PyPI page after the release
 and found it inaccurate. His position, stated 2026-09-21: attune-ai should not be a
@@ -898,7 +950,9 @@ attune-ai absent exercises memory context and plan acceptance and records what e
 does. Effort: small for the wording, larger for the cut. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22: the opportunity log, and seven other documents that `main`
+**Status, September 23, 2026: closed.** The README's memory and Harness-and-attune-ai paragraphs were rewritten in #64 and #82; the import guard's known list is empty since #82.
+
+O-47, 2026-09-22: the opportunity log, and seven other documents that `main`
 links to, exist only on the wip branch. `docs/cli-guide.md` on `main` at `ded79d5`
 links to `opportunity-log.md`, `documentation-maintenance.md`, `design-navigation.md`,
 `user-guidance-examples.md`, `test-this-change-results.md`,
@@ -919,7 +973,9 @@ link under `docs/` on `main` resolves and an opportunity entry can land by a doc
 pull request, which skips qualification. Effort: small. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22: the root checkout is detached and holds work in no branch.
+**Status, September 23, 2026: closed.** #35 to #38 and #47 brought the documents onto `main`; the log has landed by docs-only pull requests ever since.
+
+O-48, 2026-09-22: the root checkout is detached and holds work in no branch.
 After the diag branch was deleted on 2026-09-21, `~/attune-harness` sits at `d74d1d1`
 with `HEAD (no branch)`, a commit from the 0.1.0 era; anyone running the CLI or tests
 from that directory exercises code six releases of pull requests behind `main`.
@@ -933,7 +989,9 @@ delete them on Patrick's go after a content check. Done when the root checkout i
 `main` and no file under the repository exists only as an untracked file. Effort:
 small. Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22: merged head branches are deleted by hand, every time, and
+**Status, September 23, 2026: open.** Reduced: the wip branch is a backup and the root checkout is not where work happens; two drafts under `docs/handoffs/` remain untracked by Patrick's choice (see O-43).
+
+O-49, 2026-09-22: merged head branches are deleted by hand, every time, and
 the repository's own setting could do it. Twelve pull requests merged on 2026-09-21
 and each branch was deleted afterwards on Patrick's go after a content check; two
 more waited a day. `gh repo view` shows `deleteBranchOnMerge: false`. Pull requests
@@ -947,7 +1005,9 @@ so the setting cannot touch it. Done when a merged pull request leaves no remote
 branch behind without a deletion step. Effort: small, and it is Patrick's setting.
 Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22: the different-model review that every `src/` change requires
+**Status, September 23, 2026: closed.** The repository setting `delete_branch_on_merge` is on, and the shepherd helpers delete the local branch after the API confirms the merge.
+
+O-50, 2026-09-22: the different-model review that every `src/` change requires
 is a convention in the pull request body, and nothing checks it. `AGENTS.md` and the
 Task 2 plan require it; #19 recorded the enforced option and chose the honour system.
 #33 merged with zero GitHub reviews and the Opus findings written into its body; #34
@@ -961,7 +1021,9 @@ is the enforced option #19 named, at its smallest. Done when a pull request that
 touches `src/` cannot show green with the placeholder in place. Effort: small.
 Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22: the TestPyPI receipt pins a script that every ladder step
+**Status, September 23, 2026: closed.** #57: the `Classify change` job fails a `src/` pull request whose body still says `REVIEW_PLACEHOLDER`.
+
+O-51, 2026-09-22: the TestPyPI receipt pins a script that every ladder step
 edits. `testpypi-candidate-source.json` records the 0.1.0rc1 rehearsal of
 2026-09-18 with per-file hashes, including `scripts/qualify_platform.py`. The Task 2
 plan already noted the pin would go stale at 2.1; 2.2 (#34) edits the same file
@@ -975,7 +1037,9 @@ request. The second is less work and the runbook already requires a rehearsal af
 a runbook change. Done when a ladder step does not need to mention the receipt.
 Effort: small either way. Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22: the cost baseline the Task 2 plan promised does not exist
+**Status, September 23, 2026: open.** The receipt still names the script; the script itself is O-68's.
+
+O-52, 2026-09-22: the cost baseline the Task 2 plan promised does not exist
 yet. The plan says "after 2.1 merges there will be one: what a small step actually
 cost", and Task 1 explains that no estimate exists for the spec-authority work since
 Patrick cut the dependency. 2.1 has merged and nothing records its cost. What the
@@ -991,7 +1055,9 @@ before the sessions that know them are gone. Done when 2.3 can be estimated from
 measured steps rather than from inspection. Effort: small. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22: two carried modules are in the package and nothing calls
+**Status, September 23, 2026: closed.** #48 recorded what Task 2's steps actually cost; Phase estimates since then are measured against Tasks 3 and 4 in `docs/plan-1.0.md`.
+
+O-53, 2026-09-22: two carried modules are in the package and nothing calls
 them. `paths.py` (#33) and `spec_tasks.py` (#34) are wired to nothing until step
 2.4 switches `spec_bridge.legacy_plan` to them; the Unreleased changelog says so in
 each entry. That is the plan, and it is correct for the ladder. It also means `main`
@@ -1003,7 +1069,9 @@ release is wanted sooner, note which entries the changelog would carry. Done whe
 the release boundary is written down where the ladder is. Effort: small. Nothing is
 changed or authorized by this note.
 
-Unnumbered, 2026-09-22: `codex/python-compatibility-20260918` is the last branch
+**Status, September 23, 2026: open.** The spec-creation stages carried in `spec_workspace.py` stay unwired until spec authority Task 4 (Phase 3, 3.1).
+
+O-54, 2026-09-22: `codex/python-compatibility-20260918` is the last branch
 nobody has examined, and part of it is about releasing. It is 51 files and 12,306
 insertions ahead of `main`, three commits, tip `e096cba` "ci: qualify remaining
 Python versions on pinned Windows". Among the files are `tests/test_release_candidate.py`
@@ -1017,7 +1085,9 @@ with its cause, and then delete the branch or leave it with a note. Done when th
 branch is either landed by content or recorded as superseded. Effort: medium.
 Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22 (second pass, after the link closure and the experiment
+**Status, September 23, 2026: open.** The branch has not been examined.
+
+O-55, 2026-09-22 (second pass, after the link closure and the experiment
 removal): nothing checks documentation links, and tonight showed the cost. Four
 pull requests, #35 to #38, existed only to make links under `docs/` resolve, and
 #40 rewrote 26 more after #39 removed their targets. The closure computed
@@ -1033,7 +1103,9 @@ absolute local path or into `docs/receipts/`. Done when a pull request that adds
 dead link cannot show green. Effort: small. Nothing is changed or authorized by
 this note.
 
-Unnumbered, 2026-09-22 (second pass): `docs/` on `main` is now mostly dated
+**Status, September 23, 2026: closed.** #44: `scripts/check_doc_links.py` fails a pull request that adds a dead link, with a shrinking known-dead list.
+
+O-56, 2026-09-22 (second pass): `docs/` on `main` is now mostly dated
 evidence, and nothing tells a reader which files are current. After #38 there are
 191 Markdown files under `docs/`, and 118 of them carry a September 2026 date in
 their first five lines: results, receipts, baselines and design notes carried over
@@ -1047,7 +1119,9 @@ paths honest. Done when a newcomer to `main` can find the five documents that
 matter without opening any of the other 186. Effort: small for the index, medium
 for the move. Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22 (second pass): merges were delegated three times tonight,
+**Status, September 23, 2026: closed.** #47: `docs/README.md` separates the living documents from dated evidence; kept current by hand since.
+
+O-57, 2026-09-22 (second pass): merges were delegated three times tonight,
 and the rule that let it work is not written down. `AGENTS.md` says branch
 protection decides what merges, and every pull request body says "merge is
 Patrick's". For #38, #39 and #40 Patrick wrote "merge it when green and delete the
@@ -1062,7 +1136,9 @@ a branch is deleted only after the API reports the pull request merged. Done whe
 the rule is in the file the agents read. Effort: small. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22 (third pass, after Task 2 steps 2.3 and 2.4 and the
+**Status, September 23, 2026: closed.** #45 and #50: the merge delegations are in AGENTS.md; #62, #64 to #68 and #71 to #74 merged under them.
+
+O-58, 2026-09-22 (third pass, after Task 2 steps 2.3 and 2.4 and the
 four log items): the task reader parses one region, so prose between task
 blocks changes how tasks are read. `spec_tasks.parse_tasks` cuts from the first
 `<task` to the last `</task>` and parses that span as one XML document. A bare
@@ -1081,7 +1157,9 @@ with no warning, and the 36 existing tests and the differential against the
 seven plans still pass. Effort: small. Nothing is changed or authorized by
 this note.
 
-Unnumbered, 2026-09-22 (third pass): three atomic writers, one with the
+**Status, September 23, 2026: open.** Unchanged; the differential against the seven plans has not been rerun since Task 2.
+
+O-59, 2026-09-22 (third pass): three atomic writers, one with the
 Windows retry. `review_store._replace` retries `os.replace` for two seconds
 when a reader holds the file, which is the fix that unblocked 0.1.0 on
 Windows. `spec_state._atomic_write_text`, carried in #42, and `repair.py`'s
@@ -1095,7 +1173,9 @@ with the run store's existing Windows test moved beside it. Done when every
 `os.replace` under `src/` goes through it. Effort: small, touches `src/`, so
 a different-model review. Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22 (third pass): the documentation index is generated
+**Status, September 23, 2026: open.** Three `os.replace` call sites outside `features.py` remain; `features.replace_file` carries the retry for two of them.
+
+O-60, 2026-09-22 (third pass): the documentation index is generated
 once and nothing keeps it complete. #47 added `docs/README.md` with a row for
 each of 191 files. The link check from #44 proves every row's link resolves,
 and nothing proves that every file has a row: the next results document
@@ -1106,7 +1186,9 @@ Documentation links job with its path. Done when adding a file under `docs/`
 without an index row cannot show green. Effort: small. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22 (third pass): each step's independent review found a
+**Status, September 23, 2026: open.** No completeness check yet; `docs/README.md` gained its rows by hand in #69, #74 and #82.
+
+O-61, 2026-09-22 (third pass): each step's independent review found a
 defect the author's tests had not, and the reviewer's brief is rewritten each
 time. 2.1: a Windows bypass. 2.2: recursion on deep nesting. 2.3: a pattern
 that could delete a plan body, twice. 2.4: a second read that changed task
@@ -1123,7 +1205,9 @@ adds only what is specific to the step. Done when the next step's review is
 run from the file. Effort: small. Nothing is changed or authorized by this
 note.
 
-Unnumbered, 2026-09-22 (third pass): the ladder stacks three deep while it
+**Status, September 23, 2026: closed.** #56: `docs/review-brief.md`; #69: `docs/review-findings.md` records what nineteen reviews found, by class.
+
+O-62, 2026-09-22 (third pass): the ladder stacks three deep while it
 waits for one merge. #34 (2.2) has been green and reviewed since the morning;
 #42 (2.3) is stacked on it and #43 (2.4) on that. Each merge Patrick makes
 costs the next branch a rebase, a re-sign and a full CI round, and a review
@@ -1137,7 +1221,9 @@ first step opens, so that no more than one step waits at a time. Done when
 Task 3's plan says who merges when. Effort: none. Nothing is changed or
 authorized by this note.
 
-Unnumbered, 2026-09-22 (fourth pass): the review gate reads the body once. The
+**Status, September 23, 2026: closed.** #50's shepherd delegation and the practice since: one step waits at a time, and a rebase conflict outside the changelog stops the stack.
+
+O-63, 2026-09-22 (fourth pass): the review gate reads the body once. The
 `Classify change` job (#57) fails a pull request that touches `src/` while its
 body still says `REVIEW_PLACEHOLDER`, reading the body from the
 `pull_request` event payload. A body edit is not one of the activity types the
@@ -1153,7 +1239,9 @@ edit, which is the wrong trade. Done when the next author does not have to
 rediscover it. Effort: none in code. Nothing is changed or authorized by this
 note.
 
-Unnumbered, 2026-09-22 (fourth pass): a release pull request runs
+**Status, September 23, 2026: open.** The runbook records the close-and-reopen fallback (#77); AGENTS.md does not yet name the habit. Phase 4, 4.5.
+
+O-64, 2026-09-22 (fourth pass): a release pull request runs
 qualification twice. The workflow triggers on `push` to `main` and
 `release/**` and on every `pull_request`, and its concurrency group is keyed
 by ref, so a `release/**` branch under a pull request gets a push run and a
@@ -1168,7 +1256,9 @@ qualification run and the runbook names which. Effort: small; it touches the
 workflow the release process depends on, so rehearse on a throwaway branch.
 Nothing is changed or authorized by this note.
 
-Unnumbered, 2026-09-22 (fourth pass): the append lock's necessity is asserted
+**Status, September 23, 2026: open.** 0.5.0 paid two qualification runs per push to `release/0.5.0` again. Phase 4, 4.5.
+
+O-65, 2026-09-22 (fourth pass): the append lock's necessity is asserted
 only where the tear happens. #61 fixed a JSONL line torn by the Windows C
 runtime's seek-then-write append with a cross-process lock in
 `command_workspace.jsonl_event_writer`. The four-process test proves the lock
@@ -1184,7 +1274,9 @@ when `jsonl_event_writer` with its lock removed fails a test on every
 platform. Effort: small, tests only. Nothing is changed or authorized by this
 note.
 
-Unnumbered, 2026-09-22 (fourth pass): a millisecond collision on the run
+**Status, September 23, 2026: open.** Phase 4, 4.5.
+
+O-66, 2026-09-22 (fourth pass): a millisecond collision on the run
 store's lease reaches a human. `RunStore.lease` takes the writer lock with
 `LK_NBLCK` or `LOCK_NB` and raises `PersistenceError('Run is busy; another
 owner holds the writer lock')` on the first refusal, with no retry. Thirty-nine functions across eighteen modules take it (the #72 review's
@@ -1204,7 +1296,9 @@ Patrick authorized this one on 2026-09-22 as the next `src/` change after the
 `memory serve` verb; the note records the evidence, and the change lands in its
 own reviewed pull request.
 
-Unnumbered, 2026-09-22 (fourth pass): `configure_process` runs twice per
+**Status, September 23, 2026: closed.** #72: `RunStore.lease` retries for two seconds before it reports busy, and a lock no file system grants is reported at once.
+
+O-67, 2026-09-22 (fourth pass): `configure_process` runs twice per
 `memory` invocation and rebinds structlog to the stream of the moment.
 `memory_cli.main` calls it and `memory_cli.execute` calls it again, and each
 call does `structlog.configure(logger_factory=PrintLoggerFactory(file=sys.stderr))`,
@@ -1221,7 +1315,9 @@ remove the stubs. Done when the CLI tests run with the real
 touches `src/`, so a different-model review. Nothing is changed or authorized
 by this note.
 
-Unnumbered, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
+**Status, September 23, 2026: open.** Three test files still stub `configure_process`. Phase 4, 4.5.
+
+O-68, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
 extras that no longer add anything. Last changed on 2026-09-15, it installs the
 wheel five times, as `core`, `[verify]`, `[rag]`, `[review]` and `[mcp]`, and
 checks each. Since #64 those four extras are empty and the base carries their
@@ -1237,7 +1333,9 @@ if one is, move it there first. Done when nothing under `scripts/` installs
 an empty extra by name. Effort: small. Nothing is changed or authorized by
 this note.
 
-Unnumbered, 2026-09-22 (fourth pass): the CLI's JSON envelopes are pinned by
+**Status, September 23, 2026: open.** `scripts/qualify_pilot.py` still installs four empty extras and nothing runs it. Phase 4, 4.5.
+
+O-69, 2026-09-22 (fourth pass): the CLI's JSON envelopes are pinned by
 nothing but the tests that happen to read them. Every verb prints one JSON
 object, most with `schema_version`, `operation` and `status`, and the CLI
 guide describes them, but no test asserts the set of top-level keys of any
@@ -1252,3 +1350,6 @@ Effort: small to medium, tests only, with the fixtures the existing tests
 already have. Patrick authorized this one on 2026-09-22 as the item after the
 lease wait; the note records the reasoning, and the tests land in their own
 pull request.
+
+**Status, September 23, 2026: closed.** #73: `tests/test_golden_envelopes.py` and `docs/envelopes.md` pin 71 rows; #79 and #82 added the memory host's success rows.
+
