@@ -38,9 +38,11 @@ requests did not conflict on this section.
   then the known install locations, Git for Windows' among them), verifies
   by status line, produces the refusals, and launches the child bootstrap
   with its finder; its receipt lands in the platform artifact as
-  `plugin_probe`. Every receipt carries `verifier`, the gpg path, version
-  and status keywords used. First finding: Git for Windows' MSYS gpg needs
-  forward-slash paths, which the verifier now hands it.
+  `plugin_probe`. Every receipt carries `verifier`, the gpg path, version,
+  path style and status keywords used. First findings: Git for Windows'
+  MSYS gpg treats a backslashed or a `C:/` path as relative, so the
+  verifier reads the build's style from `gpg --version`'s `Home:` line and
+  hands such a build `/c/...` paths.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan

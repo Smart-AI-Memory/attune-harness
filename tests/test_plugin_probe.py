@@ -81,20 +81,26 @@ def shared_receipt(tmp_path_factory):
     return Receipt(tmp_path_factory.mktemp('plugin-probe'))
 
 
-def test_probe_gpg_discovery_and_signature_verdicts(shared_receipt, signers):
+def test_probe_gpg_discovery_and_signature_verdicts(shared_receipt, signers, tmp_path):
     receipt = shared_receipt
     gpg, searched = signing.find_gpg()
     receipt.record('discovery', gpg=gpg, searched=searched, on_path=shutil.which('gpg'),
                    path_entries=len(os.environ.get('PATH', '').split(os.pathsep)))
     if gpg is None:
         receipt.fail('discovery', f'gpg was not found on this runner after searching {searched}')
+    # The build's version and how it spells a path, before any home is opened: Git for
+    # Windows' MSYS build reports a /-rooted Home and needs /c/... paths.
+    probed = signing.probe_gpg(gpg, tmp_path)
+    receipt.record('build', **probed, home_spelling=signing.gpg_path(tmp_path, probed['path_style']))
+    assert probed['path_style'] in ('posix', 'native'), probed
     signer = signers('probe')
     digest = hashlib.sha256(b'the plugin probe').hexdigest()
     signature = signer.sign(signing.signed_bytes(digest))
     good = signing.inspect_signature(digest, signature, [signer.entry])
     receipt.record('verified', **good, fingerprint=signer.fingerprint)
     assert good['refusal'] is None and good['signer'] == signer.fingerprint, good
-    assert good['verifier']['gpg'] == gpg and good['verifier']['version'].startswith('gpg')
+    assert good['verifier']['gpg'] == gpg and good['verifier']['version'] == probed['version']
+    assert good['verifier']['path_style'] == probed['path_style']
     assert 'GOODSIG' in good['verifier']['status'] and 'VALIDSIG' in good['verifier']['status'], good
     # The verdict is the status lines, never the exit status: an unlisted signer
     # and a revoked key both verify with exit status 0 and are refused; a

@@ -240,10 +240,14 @@ else; the user's own keyring, options and agent play no part, and
 the known install locations, on Windows Git for Windows' `usr\bin` and
 `mingw64\bin` and GnuPG's `bin` under each Program Files root, elsewhere
 `/usr/bin`, `/usr/local/bin` and `/opt/homebrew/bin`; the absent-gpg refusal
-names what was searched. Every path is handed to gpg with forward slashes,
-because Git for Windows' gpg is an MSYS build whose lock files split a path
-on `/` only and a backslashed `--homedir` left it unable to start its agent
-(D29.1's first finding, windows-latest). The verdict is read from the status lines alone,
+names what was searched. Before any home is opened, `gpg --version` alone
+tells the build's path style from its `Home:` line: a `/`-rooted home is an
+MSYS or Cygwin build, Git for Windows' among them, which treats any path
+not starting with `/` as relative (a backslashed or a `C:/` `--homedir`
+left it composing its lock file under the working directory and unable to
+start its agent: D29.1's first two findings, windows-latest), so such a
+build is given `/c/Users/...`; a native gpg is given forward slashes. The
+verdict is read from the status lines alone,
 a `GOODSIG` and a `VALIDSIG` whose primary-key fingerprint is listed and no
 expiry, revocation, bad, error or no-data line, never from the exit status,
 which gpg sets to 0 for a signature by an expired or a revoked key. The
@@ -253,8 +257,9 @@ same function will run before the `run` binding's child starts.
 
 The enable receipt, and the `extension` block of every contributed call,
 gain `plugin`: `signer`, the fingerprint that vouched; `verifier`, the gpg
-path used, its version line, the status keywords it reported in order and
-its exit status, recorded and never consulted (D29.1); `grant`, the
+path used, its version line, its path style, the status keywords it
+reported in order and its exit status, recorded and never consulted
+(D29.1); `grant`, the
 effective grant; `declares`, the acknowledged declarations exactly as the
 manifest states them; `signature_scope`, which says that the signature means
 this exact bundle was reviewed by the signer under the brief and not that it

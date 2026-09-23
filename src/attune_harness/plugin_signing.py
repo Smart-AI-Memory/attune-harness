@@ -214,16 +214,39 @@ def verdict(lines: list, listed: set) -> str:
     return primaries[0]
 
 
-def gpg_path(path: Path) -> str:
-    """A path as gpg is given it: forward slashes on every platform.
+def gpg_path(path: Path, style: str = "native") -> str:
+    """A path as this gpg spells it: forward slashes, and ``/c/Users/...`` for a POSIX-styled build.
 
-    Git for Windows' gpg is an MSYS build whose lock-file code splits a path on
-    '/' only; given ``C:\\Users\\...`` as ``--homedir`` it composed the lock name
-    from the working directory and the whole backslashed string and could not
-    start its agent (windows-latest, September 23, 2026). ``C:/Users/...`` is
-    understood by that build and by a native gpg alike.
+    Git for Windows' gpg is an MSYS build whose lock-file code treats any path
+    that does not start with ``/`` as relative: given ``C:\\Users\\...`` or
+    ``C:/Users/...`` as ``--homedir`` it composed the lock name from the working
+    directory plus the whole string and could not start its agent (the first
+    two D29.1 findings, windows-latest, September 23, 2026). Such a build is
+    told by ``probe_gpg``; it is given the drive as ``/c/`` and the rest with
+    forward slashes, which is how that runtime spells the same directory. A
+    native gpg keeps ``C:/Users/...``; on POSIX the path is unchanged.
     """
-    return Path(path).as_posix()
+    spelled = Path(path).as_posix()
+    if style == "posix" and os.name == "nt":
+        drive, rest = os.path.splitdrive(spelled)
+        if len(drive) == 2 and drive[1] == ":":
+            return "/" + drive[0].lower() + rest
+    return spelled
+
+
+def probe_gpg(gpg: str, cwd: Path) -> dict:
+    """This gpg's version line and path style, from ``--version`` alone: no home directory is opened.
+
+    The ``Home:`` line names the default home as the build spells it: a
+    ``/``-rooted one is an MSYS or Cygwin build (Git for Windows), which needs
+    POSIX-styled paths; anything else is native. The user's keyring is not read.
+    """
+    result = _run((gpg, "--batch", "--no-tty", "--version"), cwd)
+    lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if not lines or not lines[0].startswith("gpg"):
+        raise FeatureUnavailable(VERIFIER_FAILED.format(failure="no version line"))
+    home = next((line[len("Home:"):].strip() for line in lines if line.startswith("Home:")), "")
+    return {"version": lines[0], "path_style": "posix" if home.startswith("/") else "native"}
 
 
 def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
@@ -239,7 +262,7 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
     signers = list(signers)
     data = signed_bytes(artifact_digest)
     gpg, searched = find_gpg()
-    verifier = {"gpg": gpg, "version": None, "status": [], "exit_status": None}
+    verifier = {"gpg": gpg, "version": None, "path_style": None, "status": [], "exit_status": None}
     if gpg is None:
         refusal = GPG_ABSENT.format(searched=", ".join(searched[1:]) or "none known")
         return {"signer": None, "refusal": refusal, "verifier": verifier}
@@ -252,30 +275,30 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
         (home / "common.conf").write_bytes(b"")
         (home / "artifact.digest").write_bytes(data)
         (home / SIGNATURE_NAME).write_bytes(signature)
+        probed = probe_gpg(gpg, home)
+        verifier.update(probed)
         base = (
             gpg,
             "--batch",
             "--no-tty",
             "--no-autostart",
             "--homedir",
-            gpg_path(home),
+            gpg_path(home, probed["path_style"]),
             "--status-fd",
             "1",
         )
-        version = _run(base + ("--version",), home).stdout.strip().splitlines()
-        if not version:
-            raise FeatureUnavailable(VERIFIER_FAILED.format(failure="no version line"))
-        verifier["version"] = version[0]
+        style = probed["path_style"]
         if signers:
             (home / "signers.asc").write_bytes(
                 b"".join(entry["public_key"].strip().encode("utf-8") + b"\n" for entry in signers)
             )
-            imported = _status(_run(base + ("--import", gpg_path(home / "signers.asc")), home).stdout)
+            imported = _status(_run(base + ("--import", gpg_path(home / "signers.asc", style)), home).stdout)
             keywords = [tokens[0] for tokens in imported]
             if "IMPORT_PROBLEM" in keywords or keywords.count("IMPORT_OK") < len(signers):
                 raise FeatureUnavailable(KEY_IMPORT)
         verified = _run(
-            base + ("--verify", gpg_path(home / SIGNATURE_NAME), gpg_path(home / "artifact.digest")), home
+            base + ("--verify", gpg_path(home / SIGNATURE_NAME, style), gpg_path(home / "artifact.digest", style)),
+            home,
         )
         lines = _status(verified.stdout)
         verifier["status"] = [tokens[0] for tokens in lines]
