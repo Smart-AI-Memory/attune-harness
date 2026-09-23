@@ -39,7 +39,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
 - [Spec authority: addendum, September 21, 2026](specs/spec-authority/addendum-2026-09-21.md): Rulings on the spec authority, dated
 - [Spec authority: addendum, September 22, 2026](specs/spec-authority/addendum-2026-09-22.md): D14, Task 3's five decisions, and a same-day correction
-- [Spec authority: addendum, September 23, 2026](specs/spec-authority/addendum-2026-09-23.md): D20, the Phase 3 rulings on the journey, the plugins, Windows and the order; D22, the plugins spec approved
+- [Spec authority: addendum, September 23, 2026](specs/spec-authority/addendum-2026-09-23.md): D20, the Phase 3 rulings on the journey, the plugins, Windows and the order; D22, the plugins spec approved; D23, the six Task 4 decisions
 - [Native memory: decisions, September 22, 2026](specs/native-memory/decisions-2026-09-22.md): D15 to D19, the base install, the Redis backend and the Phase 2 rulings
 - [Native memory: decisions, September 23, 2026](specs/native-memory/decisions-2026-09-23.md): D21, the Phase 3 rulings on serving and the store, and a correction to the note
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
