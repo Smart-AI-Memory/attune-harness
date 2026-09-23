@@ -256,8 +256,9 @@ capabilities|recall|resolve|refresh` over explicit roots of the `raw`,
 Harness's own reader (Phase 2 of the plan to 1.0, D19), which needs nothing
 from attune-ai and is POSIX-only at 0.5.0; or `adapter`, attune-ai's
 compatibility adapter, which only an environment built from attune-ai's
-`codex/shared-memory-adoption` branch has. The default is still `adapter`
-until step 2.4 switches it. The `redis`, `scratch` and `reader` keys are set
+`codex/shared-memory-adoption` branch has. `native` is the default; `adapter`
+is the rollback, a config edit with no data conversion, until Task 9 removes
+it. The `redis`, `scratch` and `reader` keys are set
 aside before the roots contract is validated, so one file serves every memory
 verb. The other two sections need only Harness.
 

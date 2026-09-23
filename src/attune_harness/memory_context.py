@@ -17,12 +17,14 @@ class MemoryHost:
     can produce durable proposals through the same worker boundary.
     """
 
-    def __init__(self, config, jobs=None, native=None, reader='adapter'):
+    def __init__(self, config, jobs=None, native=None, reader='native'):
         if reader == 'native':
             from .memory_reader import NativeReader
             self.adapter = NativeReader(config)
         elif reader == 'adapter':
-            # attune-ai's own adapter, the fallback until Task 9 (D19).
+            # attune-ai's own adapter, selectable as the fallback until Task 9 (D19).
+            # The one place the package names attune at runtime; the import guard
+            # test allows it only inside this branch.
             from attune.memory.harness_adapter import CompatibilityAdapter
             self.adapter = CompatibilityAdapter(config)
         else:

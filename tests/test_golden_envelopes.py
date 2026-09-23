@@ -223,6 +223,17 @@ ENVELOPES = (
       'text', 'version')),
     ('memory-refresh-adapter', 'success', 0, None, 'available',
      ('context', 'invalidated_ids', 'replaces', 'status')),
+    ('memory-capabilities-native', 'success', 0, None, None,
+     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'retained_paths',
+      'worker_execution', 'worker_mutations')),
+    ('memory-recall-native', 'success', 0, 1, 'available',
+     ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
+      'schema_version', 'status')),
+    ('memory-resolve-native', 'success', 0, None, None,
+     ('authority', 'classification', 'id', 'kind', 'locator', 'metadata', 'owner', 'scope',
+      'text', 'version')),
+    ('memory-refresh-native', 'success', 0, None, 'available',
+     ('context', 'invalidated_ids', 'replaces', 'status')),
     ('memory-redis-status', 'success', 0, 1, 'ok',
      ('active_nodes', 'authority', 'guidance', 'items', 'layers', 'operation', 'schema_version',
       'status')),
@@ -447,11 +458,25 @@ class World:
         return ["memory", "--config", write_json(self.tmp / "memory.json", value)]
 
     def memory_host(self):
-        # The current-memory adapter lives in attune-ai, which no base or extra install carries;
-        # pin the unavailable report the same way on every machine.
+        # The adapter fallback (reader: adapter) lives in attune-ai, which no base or extra install
+        # carries; pin its unavailable report the same way on every machine.
         for name in ("attune", "attune.memory", "attune.memory.harness_adapter"):
             self.monkeypatch.setitem(sys.modules, name, None)  # also when a differential imported it earlier
-        return self.memory_config({"roots": []})
+        return self.memory_config({"roots": [], "reader": "adapter"})
+
+    def native_reader(self):
+        """The default reader over a raw root: no attune-ai, no reader key, one findings file."""
+        import time as _time
+
+        root = self.tmp / "raw-root"
+        root.mkdir()
+        rows = [dict(id="a", text="Quartz retention policy: ninety days.", topics=["type:note"], cwd="s", ts=_time.time()),
+                dict(id="b", text="Quartz audit log rotation.", topics=["type:note"], cwd="s", ts=_time.time())]
+        (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+        return self.memory_config({"schema_version": 1, "actor": "p", "owners": ["p"], "scopes": ["s"],
+                                   "classifications": ["internal"], "profiles": ["claude"],
+                                   "roots": [dict(id="r", path=str(root.resolve()), tier="raw", scope="s",
+                                                  owner="p", classification="internal")]})
 
     def faked_adapter(self):
         """The adapter's four-member contract as an in-process double.
@@ -492,7 +517,7 @@ class World:
         for name, module in (("attune", package), ("attune.memory", memory),
                              ("attune.memory.harness_adapter", adapter)):
             self.monkeypatch.setitem(sys.modules, name, module)
-        return self.memory_config({"roots": []})
+        return self.memory_config({"roots": [], "reader": "adapter"})  # the fallback, by name since 2.4
 
     def fake_redis(self):
         self.monkeypatch.setattr(
@@ -1058,6 +1083,30 @@ def _(w):
 @scenario("memory-refresh-adapter")
 def _(w):
     base = w.faked_adapter()
+    _, packet = w.run(base + ["recall", "quartz"])
+    return w.run(base + ["refresh", write_json(w.tmp / "context.json", packet)])
+
+
+@scenario("memory-capabilities-native", POSIX_ONLY)
+def _(w):
+    return w.run(w.native_reader() + ["capabilities"])
+
+
+@scenario("memory-recall-native", POSIX_ONLY)
+def _(w):
+    return w.run(w.native_reader() + ["recall", "quartz", "--k", "2"])
+
+
+@scenario("memory-resolve-native", POSIX_ONLY)
+def _(w):
+    base = w.native_reader()
+    _, packet = w.run(base + ["recall", "quartz"])
+    return w.run(base + ["resolve", write_json(w.tmp / "handle.json", packet["items"][0]["handle"])])
+
+
+@scenario("memory-refresh-native", POSIX_ONLY)
+def _(w):
+    base = w.native_reader()
     _, packet = w.run(base + ["recall", "quartz"])
     return w.run(base + ["refresh", write_json(w.tmp / "context.json", packet)])
 

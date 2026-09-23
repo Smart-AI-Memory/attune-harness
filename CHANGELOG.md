@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Changed: the native reader is the default, Phase 2 step 2.4 (D19).
+  `memory capabilities|recall|resolve|refresh` read the roots with Harness's
+  own code unless the memory config says `"reader": "adapter"`, which keeps
+  attune-ai's adapter selectable as the rollback until Task 9. The import
+  guard's known list is empty; the adapter import is allowed only inside
+  that branch, and a test constructs the default host and shows nothing from
+  attune loads. The installed checks read a raw root through the reader in
+  every mode, the `--no-deps` release gate included, and record the POSIX
+  refusal on Windows; the golden table pins the native success envelopes.
 - Added: the native reader's document items carry the adapter's provenance
   and staleness metadata, Phase 2 step 2.3 (D19): `provenance` (tier,
   source, author class, the instruction-shape flags and the

@@ -171,7 +171,7 @@ def execute(args):
             from .memory_reader import roots_config
             native = read_json(args.native_config) if args.native_config is not None else None
             config = read_json(args.config)
-            reader = config.get('reader', 'adapter') if isinstance(config, dict) else 'adapter'
+            reader = config.get('reader', 'native') if isinstance(config, dict) else 'native'
             host = MemoryHost(roots_config(config), args.jobs, native, reader=reader)
             names = {'capabilities': (), 'recall': ('query', 'k', 'max_chars'),
                      'resolve': ('handle',), 'refresh': ('context',),

@@ -3,8 +3,10 @@
 import argparse
 import importlib.metadata
 import json
+import os
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -147,7 +149,41 @@ def memory_checks(run, python, root, mode):
         assert served.returncode == 0 and served.stdout == '', (served.stdout, served.stderr)
         assert served.stderr.startswith('[attune-harness memory] skipped: ') and reason in served.stderr, served.stderr
         assert served.stderr.count('\n') == 1, served.stderr
-    return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped'}
+    # The native reader (Phase 2, D19) reads a raw root with nothing installed: the core
+    # gate's --no-deps wheel included. The sections coexist in one file. On Windows the
+    # reader refuses in its own words; the receipt records which it was.
+    raw_root = root/'raw-root'
+    raw_root.mkdir()
+    stamp = time.time()  # one stamp, so the two rows tie and keep file order
+    rows = [dict(id='a', text='Aurora check row one', topics=['type:note'], cwd='check', ts=stamp),
+            dict(id='b', text='Aurora check row two', topics=['type:note'], cwd='check', ts=stamp)]
+    (raw_root/'findings.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in rows), encoding='utf-8')
+    roots = {'schema_version': 1, 'actor': 'check', 'owners': ['check'], 'scopes': ['check'],
+             'classifications': ['internal'], 'profiles': ['claude'],
+             'roots': [dict(id='r', path=str(raw_root.resolve()), tier='raw', scope='check', owner='check',
+                            classification='internal')],
+             'redis': unreachable}
+    paths['roots'] = root/'memory-roots.json'
+    paths['roots'].write_text(json.dumps(roots), encoding='utf-8')
+    reads = ['memory','--config',str(paths['roots'])]
+    caps = subprocess.run([str(python),'-I','-m','attune_harness',*reads,'capabilities'],cwd=root,text=True,capture_output=True)
+    assert caps.returncode == 0 and json.loads(caps.stdout)['read'] == ['raw','personal','curated'], (caps.stdout, caps.stderr)
+    if os.name == 'posix':
+        packet = run([*reads,'recall','Aurora','--k','2'],0,'available')
+        assert [i['handle']['id'] for i in packet['items']] == ['r:a','r:b'], packet['items']
+        handle = root/'memory-handle.json'
+        handle.write_text(json.dumps(packet['items'][0]['handle']), encoding='utf-8')
+        resolved = subprocess.run([str(python),'-I','-m','attune_harness',*reads,'resolve',str(handle)],cwd=root,text=True,capture_output=True)
+        assert resolved.returncode == 0 and json.loads(resolved.stdout)['text'] == 'Aurora check row one', (resolved.stdout, resolved.stderr)
+        refresh = root/'memory-context.json'  # not context.json, which the verify journey reads
+        refresh.write_text(json.dumps(packet), encoding='utf-8')
+        assert run([*reads,'refresh',str(refresh)],0,'available')['invalidated_ids'] == []
+        native = 'available'
+    else:
+        packet = run([*reads,'recall','Aurora','--k','2'],2,'unavailable')
+        assert 'qualified only on POSIX' in packet['problems'][0]['detail'], packet['problems']
+        native = 'posix-only refusal'
+    return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped', 'native_reader': native}
 
 
 def main():

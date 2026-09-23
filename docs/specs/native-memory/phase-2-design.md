@@ -343,3 +343,17 @@ is parity, and a path like that is not one the reader should serve; it is
 named here because #80's reader returned items for such a root and #81's
 does not. The dedupe in `scan_instructions` is unreachable on both sides and
 is carried as written.
+
+## 2.4 receipt, September 23, 2026
+
+Decisions 7 and 8 applied: `reader` defaults to `native`; `adapter` is the
+only other value and the rollback, a config edit with no data conversion.
+`tests/test_no_attune_runtime_import.py`'s known list is empty; the adapter
+import is allowed only inside the `reader == 'adapter'` branch, checked
+lexically, and a runtime test constructs the default host and finds nothing
+from attune in `sys.modules`. `scripts/check_installed.py` reads a raw root
+through the reader in every mode, so the `--no-deps` release gate reads
+memory with the standard library alone; on Windows it records the reader's
+own refusal, the limit D19 keeps until Phase 4. The golden table pins the
+four native success envelopes over a raw root, POSIX only. The README's
+memory row says what the reader is and what it does not do.
