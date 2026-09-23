@@ -242,6 +242,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/spec-authority/task-3-design.md](specs/spec-authority/task-3-design.md) | Spec authority, Task 3: design note | 2026-09-22 |
+| [specs/spec-authority/task-4-design.md](specs/spec-authority/task-4-design.md) | Spec authority, Task 4: design note | 2026-09-23 |
 
 ### specs/unified-task-execution
 

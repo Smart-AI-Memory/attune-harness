@@ -210,13 +210,147 @@ def test_no_task_block_at_all(caplog):
 # ---- the regex fallback and its warnings -----------------------------------
 
 
-def test_a_bare_ampersand_between_blocks_falls_back_to_regex(caplog):
+def test_prose_between_blocks_is_never_parsed_so_both_tasks_stay_on_the_parser_path(caplog):
+    # O-58: a bare & in a note between two tasks used to drop the whole plan to
+    # the regex path, where entities stop being decoded. Each block is parsed
+    # on its own now, so the prose is never seen and both tasks decode.
     tasks, messages = parse(
         caplog,
-        '<task id="1"><objective>A</objective></task>\nNotes & caveats.\n<task id="2"><objective>B</objective></task>',
+        '<task id="1"><objective>R&amp;D</objective></task>\nNotes & caveats: R&D <next>.\n'
+        '<task id="2"><objective>B &amp; C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "R&D"), ("2", "B & C")]
+    assert messages == []
+
+
+def test_a_rejected_block_falls_back_alone_and_the_other_block_still_decodes(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A & B</objective></task>\n<task id="2"><objective>C &amp; D</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "A & B"), ("2", "C & D")]
+    assert [m for m in messages if "not well-formed" in m and "falling back" in m]
+    assert len(messages) == 1
+
+
+def test_a_stray_close_tag_keeps_the_whole_plan_fallback_and_its_warnings(caplog):
+    # The tags do not balance, so the region is parsed as one document as
+    # before and the fallback describes the whole plan.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task></task>\n<task id="2"><objective>B</objective></task>',
     )
     assert [t.task_id for t in tasks] == ["1", "2"]
     assert any("not well-formed" in m for m in messages)
+
+
+def test_a_spaced_close_tag_on_a_rejected_block_still_recovers_the_task(caplog):
+    # Review finding: _TASK_EDGE accepted "</task >" but the block regex did
+    # not, so a rejected block closed that way vanished. Both accept it now.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A & B</objective></task >\n<task id="2"><objective>C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "A & B"), ("2", "C")]
+    assert not any("No <task> elements" in m for m in messages)
+
+
+def test_a_comment_in_the_region_keeps_the_whole_plan_path(caplog):
+    # Review finding: the edge scan does not read comments, so a self-closing
+    # task plus a comment containing </task> mis-split. Any comment or CDATA
+    # in the region now takes the whole-region path, as before this change.
+    text = (
+        '<task id="1"/>\n<!-- reviewer: the close is </task> -->\n'
+        '<task id="2"><objective>B</objective></task>'
+    )
+    assert spec_tasks._top_level_blocks(text) is None
+    tasks, _ = parse(caplog, text)
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", ""), ("2", "B")]
+
+
+def test_a_self_closing_task_is_a_block_of_its_own(caplog):
+    tasks, messages = parse(caplog, '<task id="1"/>\nR&D\n<task id="2"><objective>B &amp; C</objective></task>')
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", ""), ("2", "B & C")]
+    assert messages == []
+
+
+def test_orphaned_task_content_between_blocks_is_still_reported(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task>\n<objective>lost</objective>\n'
+        '<task id="2"><objective>B</objective></task>',
+    )
+    assert [t.task_id for t in tasks] == ["1", "2"]
+    assert any("outside any <task> block (<objective>) - 2 task(s) parsed" in m for m in messages)
+
+
+def test_a_block_neither_path_can_read_is_reported_as_dropped_not_as_an_empty_plan(caplog):
+    tasks, messages = parse(
+        caplog,
+        "<task id='1'><objective>A & B</objective></task>\n<task id=\"2\"><objective>C</objective></task>",
+    )
+    assert [t.task_id for t in tasks] == ["2"]
+    assert any(m.startswith("Task block rejected by the parser and unmatched by the fallback - dropped: <task id='1'>") for m in messages)
+    assert not any("No <task> elements" in m or "0 task(s) parsed" in m for m in messages)
+
+
+def test_a_tasks_wrapper_does_not_defeat_the_per_block_fix(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<tasks>\n<task id="1"><objective>R&amp;D</objective></task>\nNotes & caveats.\n'
+        '<task id="2"><objective>B</objective></task>\n</tasks>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "R&D"), ("2", "B")]
+    assert messages == []
+
+
+def test_an_unbalanced_plan_still_reports_orphans_outside_the_region(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<file path="x">lost</file>\n<task id="1"><objective>A</objective>\n<task id="2"><objective>B</objective></task>',
+    )
+    assert any("outside any <task> block" in m and "<file>" in m for m in messages)
+
+
+def test_a_tasks_tag_inside_a_body_does_not_defeat_the_per_block_fix(caplog):
+    # Review mutation: without the word boundary in the edge scan, "<tasks>"
+    # in a body counts as an opening and the region stops splitting.
+    # A self-closing <tasks/> would not show it: the mutated scan reads that as
+    # a nested self-closing block and ignores it. An open <tasks> with its own
+    # close does: the mutated scan counts the open, never sees the close, and
+    # the region stops splitting, so the prose between the blocks reaches the
+    # parser and both tasks drop to the regex path.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>see <tasks>the list</tasks> below</objective></task>\nR&D\n'
+        '<task id="2"><objective>B &amp; C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [
+        ("1", "see <tasks>the list</tasks> below"),
+        ("2", "B & C"),
+    ]
+    assert messages == []
+
+
+def test_the_unsplit_guard_keeps_comment_text_out_of_the_parser(caplog):
+    # Review mutation: with the guard removed, a comment holding "<task >"
+    # becomes a block and the parser warns about a task with no id.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task><!-- <task > </task> --><task id="2"><objective>B</objective></task>',
+    )
+    assert [t.task_id for t in tasks] == ["1", "2"]
+    assert not any("no id attribute" in m for m in messages)
+
+
+def test_top_level_blocks_keep_a_nested_example_inside_its_block():
+    nested = '<task id="1"><objective>See <task id="x">ex</task></objective></task>'
+    assert spec_tasks._top_level_blocks(nested + '\nprose\n<task id="2">B</task>') == [
+        nested,
+        '<task id="2">B</task>',
+    ]
+    assert spec_tasks._top_level_blocks('<task id="1"><objective>A</objective>') is None
+    assert spec_tasks._top_level_blocks('</task><task id="1"><objective>A</objective></task>') is None
 
 
 def test_well_formed_tasks_on_the_regex_path_emit_no_warnings(caplog):

@@ -5,7 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from .features import read_text, report, require_feature
+from .features import REPLACE_RETRY_SECONDS, read_text, replace_file, report, require_feature
 from .review_contract import canonical, digest, fields, parse_json
 from .review_store import RunStore, read_record
 from .voyage_provider import LANCEDB_VERSION, StageJournal, embeddings, RATES
@@ -25,7 +25,7 @@ def write_json(path, value):
             f.write(payload)
             f.flush()
             os.fsync(f.fileno())
-        os.replace(temporary, path)
+        replace_file(temporary, path, retry_seconds=REPLACE_RETRY_SECONDS)
         if os.name == 'posix':
             fd = os.open(path.parent, os.O_RDONLY)
             try:
