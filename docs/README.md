@@ -35,6 +35,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick
+- [Phase 3: design note](specs/phase-3-design.md): The journey native and memory served, with ten decisions for Patrick
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
 - [Spec authority: addendum, September 21, 2026](specs/spec-authority/addendum-2026-09-21.md): Rulings on the spec authority, dated
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
