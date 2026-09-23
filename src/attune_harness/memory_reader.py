@@ -24,9 +24,10 @@ the frontmatter authority check; the strict content gate; the statuses
 text. D19 asks for identical result sets and an identical top result; order
 below the top is reported by the differential, not enforced.
 
-Not reproduced here, by design: the provenance fields and the staleness
-annotations the adapter's metadata carries (step 2.3, with the differential
-that proves both sides agree), and anything that writes. The adapter stays
+Not reproduced here, by design: the telemetry line the adapter's document
+query appends under the user's home (a write), and anything else that
+writes. The provenance fields and the staleness annotations the adapter's
+document metadata carries are produced by ``memory_controls`` (step 2.3). The adapter stays
 selectable with ``"reader": "adapter"`` until Task 9.
 
 Copyright 2026 Smart AI Memory, LLC
@@ -48,7 +49,7 @@ import time
 
 from .features import FeatureUnavailable, require_feature
 from .memory_contract import CLASSIFICATIONS, bounded_json, strings
-from .memory_controls import guard
+from .memory_controls import AUTHOR_CURATED, guard, provenance_fields, staleness
 from .paths import validate_file_path
 from .review_contract import bounded_text, digest, fields, parse_json, versioned
 
@@ -429,8 +430,18 @@ def _rank_documents(snapshot, query, k):
         entry = {"path": path, "summary": excerpt, "excerpt": excerpt, "score": float(hit.score)}
         if path not in best or entry["score"] > best[path]["score"]:
             best[path] = entry
-    ordered = sorted(best.values(), key=lambda entry: entry["score"], reverse=True)
-    return ordered[:k]
+    ordered = sorted(best.values(), key=lambda entry: entry["score"], reverse=True)[:k]
+    # The annotations PersonalMemory.query adds, in its order: staleness from the snapshot's
+    # preserved mtimes and the .verdicts.jsonl sidecar, then the provenance fields. Every
+    # document tier is "curated" to the adapter, personal roots included.
+    for entry in ordered:
+        annotated = staleness(snapshot / entry["path"], snapshot)
+        if annotated is not None:
+            entry.update(annotated)
+        entry["provenance"] = provenance_fields(tier="curated", source=str(entry.get("path", "curated")),
+                                                author_class=AUTHOR_CURATED,
+                                                text=str(entry.get("excerpt") or entry.get("summary") or ""))
+    return ordered
 
 
 def _frontmatter(block):

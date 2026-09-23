@@ -303,3 +303,34 @@ Recorded from the differential and the review of #80, September 22, 2026.
 - **Gate parity:** the sanitizer's patterns are carried verbatim, and a
   comparison against `prepare_strict_content` itself on 35 strings, the
   reviewer's twenty disagreements included, finds none.
+
+## 2.3 receipt, September 22, 2026
+
+The controls the adapter's document metadata carries are in
+`memory_controls.py`, carried from `provenance.py`, `curated_audit.py` and
+`verdict_log.py` on the same branch: the three high-signal instruction
+patterns and the untrusted-tier directive pattern; the `<recalled_memory>`
+envelope byte for byte; the closed two-level curated frontmatter parser and
+the substance digest the verdict log binds to; the verdict loader (stem-keyed,
+last append wins, a malformed line skipped); the age basis in the audit's
+order (tombstoned, mtime, verified-unbound, verified, invalidated); the
+volatility table, the tier thresholds and the two labels. The reader
+attaches them to each document hit in the adapter's key order, with
+`tier="curated"` for personal and curated roots alike, as `PersonalMemory`
+does.
+
+Deliberately omitted: the telemetry line the adapter's document query
+appends to `$ATTUNE_HOME/telemetry/memory_events.jsonl`. It is a write, and
+the native reader writes nothing; the differential sets `ATTUNE_HOME` to a
+temporary directory so the adapter's side lands there.
+
+Differential, adapter head `b89f7953f`: the fixture corpus (eight queries,
+three roots) and an adversarial corpus (twelve queries with punctuation,
+unicode, tabs, repetition and a single character, over ten raw rows with
+fresh, old, edge, expired, future, string and missing timestamps, a second
+scope and two `type:` topics, and four documents with a BOM, CRLF, a quoted
+colon, block scalars, dash lists and a `---` inside the body) agree on
+statuses, problems, id order, texts, kinds, versions, locators and, now,
+every item's metadata. The gate agrees with `prepare_strict_content` on 35
+strings. No disagreement is left to rule on; the two recorded under decision
+3 in the 2.2 rulings stand.
