@@ -24,7 +24,10 @@ authority, the non-programmer walkthrough, should not wait either.
 at `0.4.0.dev0` and carries the batteries-included install (D15, amended),
 the `redis` extra, `memory redis` and `memory scratch` (Task 4.1 to 4.3,
 D16 to D18), and the review loop as data. All three landed the same evening, and 0.4.0 shipped from `9b15502`; Phase 1 below is
-the record of what that took. The last `import attune` under `src/` is `memory_context.py`.
+the record of what that took. Phase 2 landed on September 23 as #79 to #82,
+four reviewed pull requests in a day, and its exit holds: the known-import
+list is empty, the release gate reads memory, and the README's memory row
+says native. The last `import attune` under `src/` is `memory_context.py`.
 
 ## How to read the tables
 
