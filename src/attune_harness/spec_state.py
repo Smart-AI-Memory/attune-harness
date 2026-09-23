@@ -162,7 +162,19 @@ def load_state(plan_path: str) -> SpecState | None:
     except OSError as e:
         logger.debug("Could not read plan file %s: %s", plan_path, e)
         return None
+    return read_state(content, plan_path)
 
+
+def read_state(content: str, plan_path: str) -> SpecState | None:
+    """The state comment in a plan's text, read as ``load_state`` reads the file.
+
+    The half of ``load_state`` after the read, for a caller that has read the
+    plan once for more than one reader: the plan import hands the same text
+    here and to ``spec_legacy`` (spec authority Task 5). ``plan_path`` names
+    the plan in messages and in the returned state. From the comment on, the
+    ``None`` and ``ValueError`` contracts are ``load_state``'s; a text with no
+    comment gives ``None``.
+    """
     _, payload = _split(content, plan_path)
     if payload is None:
         return None

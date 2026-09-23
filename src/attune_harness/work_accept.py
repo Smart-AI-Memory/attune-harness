@@ -37,7 +37,9 @@ changelog line renames it.
 """
 
 import copy
+import os
 from collections.abc import Mapping
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .command_workspace import (
@@ -46,7 +48,8 @@ from .command_workspace import (
     jsonl_event_writer,
 )
 from .review_contract import digest
-from .spec_legacy import legacy_plan
+from .spec_legacy import legacy_plan, read_plan
+from .spec_state import read_state
 from .spec_workspace import SpecWorkspaceAdapter, SpecWorkspaceState
 from .task_contract import read_task
 from .work_contract import (
@@ -62,10 +65,45 @@ from .work_contract import (
 
 SPEC_APPROVAL = {"id": "spec-approval", "kind": "human", "owner": "spec", "version": 1}
 BOUNDARY = "execution"
+# One JSON line per conversion of a plan named explicitly, beside record.json.
+RECEIPTS = "import-receipts.jsonl"
 
 
 def _receipt(gate_id, state, detail):
     return {"gate_id": gate_id, "boundary": BOUNDARY, "state": state, "detail": detail}
+
+
+def _tasks(legacy):
+    """The task store's shape of the plan's tasks.
+
+    What the shape has no place for stays in the record's ``legacy`` block.
+    """
+    return [
+        {
+            "id": task["task_id"],
+            "objective": task["objective"],
+            "dependencies": task["dependencies"],
+            "outputs": [
+                f["path"]
+                for key in ("files_to_create", "files_to_modify")
+                for f in task[key]
+            ],
+            "checks": task["validation_checks"],
+        }
+        for task in legacy["tasks"]
+    ]
+
+
+def _read_for_receipt(path):
+    """One read for both readers.
+
+    The state goes through ``spec_state`` first, so a schema version this
+    Harness does not read (1 and 2 only, R4) is refused with its next action;
+    then the tasks through ``spec_legacy``, on the same text.
+    """
+    raw = read_plan(path)
+    state = read_state(raw, str(path))
+    return raw, state, legacy_plan(path, raw=raw)
 
 
 def import_plan(
@@ -78,31 +116,27 @@ def import_plan(
     assignments,
     controls=(),
     budget=None,
+    allow_outside_project=False,
 ):
-    """Import supported legacy task fields as a draft; old approval grants nothing."""
+    """Import supported legacy task fields as a draft; old approval grants nothing.
+
+    The plan is a regular file inside the project, unless
+    ``allow_outside_project`` names it explicitly (spec authority Task 5; D4,
+    D20.3): then it may be any regular file, a symlink followed and recorded,
+    read once through ``spec_state`` and ``spec_legacy``, and the conversion
+    leaves a receipt beside the record. Either way the plan is only read.
+    """
     root = Path(project_root).resolve()
     source = Path(path).absolute()
-    if any(
-        p.is_symlink() for p in (source, *source.parents)
-    ) or not source.resolve().is_relative_to(root):
-        raise ValueError("Legacy plan must be a regular file inside the project")
-    legacy = legacy_plan(source)
-    tasks = []
-    for task in legacy["tasks"]:
-        tasks.append(
-            {
-                "id": task["task_id"],
-                "objective": task["objective"],
-                "dependencies": task["dependencies"],
-                "outputs": [
-                    f["path"]
-                    for key in ("files_to_create", "files_to_modify")
-                    for f in task[key]
-                ],
-                "checks": task["validation_checks"],
-            }
-        )
-    return create_work(
+    if allow_outside_project:
+        raw, state, legacy = _read_for_receipt(source)
+    else:
+        if any(
+            p.is_symlink() for p in (source, *source.parents)
+        ) or not source.resolve().is_relative_to(root):
+            raise ValueError("Legacy plan must be a regular file inside the project")
+        legacy = legacy_plan(source)
+    record = create_work(
         root,
         config_path,
         directory=directory,
@@ -110,10 +144,20 @@ def import_plan(
         signals={**dict.fromkeys(SIGNALS, False), "existing_artifact": "spec"},
         assignments=assignments,
         controls=controls,
-        tasks=tasks,
+        tasks=_tasks(legacy),
         budget=budget,
         legacy=legacy,
     )
+    if allow_outside_project:
+        _record_conversion(
+            record,
+            "import",
+            given=os.fspath(path),
+            raw=raw,
+            state=state,
+            legacy=legacy,
+        )
+    return record
 
 
 def reimport_plan(directory, *, checkpoint):
@@ -121,22 +165,98 @@ def reimport_plan(directory, *, checkpoint):
     record = read_task(directory)
     if record["checkpoint_digest"] != checkpoint or "legacy" not in record["request"]:
         raise ValueError("Reimport requires the current legacy work checkpoint")
-    legacy = legacy_plan(record["request"]["legacy"]["path"])
-    tasks = [
-        {
-            "id": t["task_id"],
-            "objective": t["objective"],
-            "dependencies": t["dependencies"],
-            "outputs": [
-                f["path"] for k in ("files_to_create", "files_to_modify") for f in t[k]
-            ],
-            "checks": t["validation_checks"],
-        }
-        for t in legacy["tasks"]
-    ]
-    return revise_work(
-        directory, checkpoint=checkpoint, changes={"legacy": legacy, "tasks": tasks}
+    path = record["request"]["legacy"]["path"]
+    # A task whose import left a receipt gets one for every conversion after it.
+    receipted = Path(record["record_path"]).with_name(RECEIPTS).exists()
+    if receipted:
+        raw, state, legacy = _read_for_receipt(Path(path))
+    else:
+        legacy = legacy_plan(path)
+    revised = revise_work(
+        directory,
+        checkpoint=checkpoint,
+        changes={"legacy": legacy, "tasks": _tasks(legacy)},
     )
+    if receipted:
+        _record_conversion(
+            revised, "reimport", given=path, raw=raw, state=state, legacy=legacy
+        )
+    return revised
+
+
+def _record_conversion(record, conversion, *, given, raw, state, legacy):
+    """Append the receipt of one conversion beside the record.
+
+    What was read (the path as given and resolved, the file's digest, the
+    state comment and its schema version), what it became (the tasks in the
+    store's shape), what was left out (the parsed fields the shape has no
+    place for, which stay in the record's ``legacy`` block, and the reader's
+    disclosures), and the time. One JSON line through the same locked writer
+    as the workspace events, so a second conversion is a second line, never an
+    overwrite. The plan itself is never written (D4).
+    """
+    request = record["request"]
+    left_out = {}
+    for task in legacy["tasks"]:
+        fields = []
+        if task["name"] != task["task_id"]:
+            fields.append("name")
+        if task["risks"]:
+            fields.append("risks")
+        if any(
+            f["description"]
+            for key in ("files_to_create", "files_to_modify")
+            for f in task[key]
+        ):
+            fields.append("file descriptions")
+        if fields:
+            left_out[task["task_id"]] = fields
+    spec_state = None
+    if state is not None:
+        spec_state = {
+            "schema_version": state.schema_version,
+            "completed": state.completed,
+            "current": state.current,
+            "auto_run": state.auto_run,
+            "last_updated": state.last_updated,
+            "task_receipts": len(state.task_receipts),
+        }
+    receipt = {
+        "schema_version": 1,
+        "receipt": "legacy-plan-conversion",
+        "conversion": conversion,
+        "time": datetime.now(timezone.utc).isoformat(),
+        "source": {
+            "given": given,
+            "resolved": legacy["path"],
+            "sha256": legacy["source_sha256"],
+            "content_sha256": legacy["content_sha256"],
+            "bytes": len(raw.encode("utf-8")),
+            "inside_project": Path(legacy["path"]).is_relative_to(
+                request["project_root"]
+            ),
+        },
+        "spec_state": spec_state,
+        "mapped": [
+            {
+                "id": task["id"],
+                "objective": bool(task["objective"]),
+                "dependencies": len(task["dependencies"]),
+                "outputs": len(task["outputs"]),
+                "checks": len(task["checks"]),
+            }
+            for task in request["tasks"]
+        ],
+        "unmapped": {"fields": left_out, "disclosures": legacy["unsupported"]},
+        "approval_imported": legacy["approval_imported"],
+        "task": {
+            "task_id": request["task_id"],
+            "revision": request["revision"],
+            "record_path": record["record_path"],
+            "checkpoint_digest": record["checkpoint_digest"],
+        },
+    }
+    jsonl_event_writer(Path(record["record_path"]).with_name(RECEIPTS))(receipt)
 
 
 class WorkAcceptance:
