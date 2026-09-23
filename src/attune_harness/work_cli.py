@@ -400,7 +400,7 @@ def _guidance(record, result):
             True,
             "Supply the missing answers against this checkpoint using plan --answers.",
         )
-    from .spec_bridge import SPEC_APPROVAL
+    from .work_accept import SPEC_APPROVAL
     from .work_contract import _supported
 
     supported = [SPEC_APPROVAL] + [
@@ -427,7 +427,7 @@ def _guidance(record, result):
 
 
 async def _accept(directory, checkpoint):
-    from .spec_bridge import WorkSpecBridge
+    from .work_accept import WorkAcceptance
 
     record = read_task(directory)
     if checkpoint != record["checkpoint_digest"]:
@@ -436,8 +436,8 @@ async def _accept(directory, checkpoint):
     supported = [c["control"] for c in runners]
     # The forms package renders the decision; without the review extra the
     # host's loader raises FeatureUnavailable with the install hint.
-    bridge = WorkSpecBridge(directory, supported_controls=supported)
-    view = await bridge.open(
+    acceptance = WorkAcceptance(directory, supported_controls=supported)
+    view = await acceptance.open(
         detail="Explicit console approval of the current work intent."
     )
     response = {
@@ -448,14 +448,14 @@ async def _accept(directory, checkpoint):
         "confirmed": False,
         **view.record.binding.to_payload(),
     }
-    receipt, accepted = await bridge.collect(response)
+    receipt, accepted = await acceptance.collect(response)
     if accepted is None:
         raise ValueError("Spec did not grant work authority")
     return {"decision_markdown": view.render.markdown, "receipt": dict(receipt.result)}
 
 
 async def _preview_decision(directory, checkpoint):
-    from .spec_bridge import WorkSpecBridge
+    from .work_accept import WorkAcceptance
     from .work_decisions import retain_questions
 
     record = read_task(directory)
@@ -474,7 +474,7 @@ async def _preview_decision(directory, checkpoint):
         supported = [
             c["control"] for c in record["request"].get("effects", {}).get("checks", [])
         ]
-        await WorkSpecBridge(directory, supported_controls=supported).open()
+        await WorkAcceptance(directory, supported_controls=supported).open()
 
 
 def execute(args):
@@ -535,7 +535,7 @@ def execute(args):
                         "Request must contain intent and supported authoring fields"
                     )
                 if args.import_plan:
-                    from .spec_bridge import import_plan
+                    from .work_accept import import_plan
 
                     if set(data) - {"intent", "assignments", "controls", "budget"}:
                         raise ValueError(
@@ -588,7 +588,7 @@ def execute(args):
                 elif args.accept:
                     extra = asyncio.run(_accept(args.task_dir, args.checkpoint))
                 elif args.reimport:
-                    from .spec_bridge import reimport_plan
+                    from .work_accept import reimport_plan
 
                     reimport_plan(args.task_dir, checkpoint=args.checkpoint)
                 else:

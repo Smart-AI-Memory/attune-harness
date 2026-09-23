@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-Three `src/` changes from the overnight run of September 23, 2026, each with
-its different-model review recorded in its pull request; their changelog
-lines land together here so that three sibling pull requests do not conflict
-on this section.
+Changes since 0.5.0, each `src/` change with its different-model review
+recorded in its pull request. The first three lines landed together after
+the overnight run of September 23, 2026, so that three sibling pull requests
+did not conflict on this section.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan
@@ -31,6 +31,12 @@ on this section.
   self-referential so the pins stay where they are. `memory-native` stays
   explicit because it is experimental and POSIX-only. The base install is
   unchanged.
+
+- Changed: the work-acceptance host and the plan import moved from
+  `spec_bridge` to `work_accept`; `WorkSpecBridge` is `WorkAcceptance`. Every
+  refusal text, the readiness check and the import receipts are unchanged,
+  and `spec_bridge` keeps the legacy plan reader until the next step renames
+  it (spec authority Task 4, step a; D20.1, D23).
 
 ## 0.5.0
 

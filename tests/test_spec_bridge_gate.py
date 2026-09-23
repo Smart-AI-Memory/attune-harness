@@ -30,7 +30,7 @@ from attune_harness import command_workspace, spec_workspace  # noqa: E402
 from attune_harness.cli import main  # noqa: E402
 from attune_harness.command_workspace import CommandWorkspaceError  # noqa: E402
 from attune_harness.features import FeatureUnavailable  # noqa: E402
-from attune_harness.spec_bridge import WorkSpecBridge  # noqa: E402
+from attune_harness.work_accept import WorkAcceptance  # noqa: E402
 from attune_harness.task_contract import read_task  # noqa: E402
 from attune_harness.work_contract import bind_work_acceptance  # noqa: E402
 from attune_harness.work_decisions import retained_decision  # noqa: E402
@@ -94,7 +94,7 @@ def events(directory):
 
 def opened(work, severity="low"):
     directory, _ = draft(work)
-    bridge = WorkSpecBridge(directory)
+    bridge = WorkAcceptance(directory)
     view = run(bridge.open(severity=severity, detail="Explicit console approval."))
     return directory, bridge, view
 
@@ -142,7 +142,7 @@ def test_a_failing_event_sink_never_blocks_the_decision(work, tmp_path):
         (directory / EVENTS).symlink_to(outside / "events.jsonl")
     except OSError as exc:  # Windows without the symlink privilege
         pytest.skip(f"symlinks unavailable: {exc}")
-    bridge = WorkSpecBridge(directory)
+    bridge = WorkAcceptance(directory)
     view = run(bridge.open())
     receipt, accepted = run(bridge.collect(response(view, "approve_task")))
     assert accepted["status"] == "accepted"
@@ -158,7 +158,7 @@ def test_an_event_file_hard_linked_to_the_record_is_refused(work):
     except OSError as exc:
         pytest.skip(f"hard links unavailable: {exc}")
     before = (directory / "record.json").read_bytes()
-    bridge = WorkSpecBridge(directory)
+    bridge = WorkAcceptance(directory)
     view = run(bridge.open())
     assert bridge.host.dropped_events == 1
     assert (directory / "record.json").read_bytes() == before
@@ -316,11 +316,11 @@ def test_confirmation_is_required_where_the_view_says_so(work, action, severity,
 CHILD = '''
 import asyncio, json, sys
 sys.modules["attune"] = None
-from attune_harness.spec_bridge import WorkSpecBridge
+from attune_harness.work_accept import WorkAcceptance
 
 async def main(directory, gated):
     try:
-        bridge = WorkSpecBridge(directory)
+        bridge = WorkAcceptance(directory)
         view = await bridge.open(detail="two processes, one task directory")
     except Exception as error:
         print(json.dumps({"refused": f"{type(error).__name__}: {error}"}), flush=True)
@@ -490,7 +490,7 @@ def test_two_simultaneous_processes_never_accept_twice(work, tmp_path):
     else:
         assert record["status"] == "draft"
         assert not record.get("acceptance")
-        bridge = WorkSpecBridge(directory)
+        bridge = WorkAcceptance(directory)
         view = run(bridge.open())
         receipt, done = run(bridge.collect(response(view, "approve_task")))
         assert done["status"] == "accepted"
@@ -561,7 +561,7 @@ def test_core_imports_and_help_need_neither_the_extra_nor_attune():
         "import sys\n"
         "for name in ('attune_forms', 'attune'):\n"
         "    sys.modules[name] = None\n"
-        "import attune_harness.spec_bridge, attune_harness.work_cli, attune_harness.cli\n"
+        "import attune_harness.spec_bridge, attune_harness.work_accept, attune_harness.work_cli, attune_harness.cli\n"
         "import attune_harness.spec_workspace, attune_harness.command_workspace\n"
         "assert sys.modules['attune_forms'] is None and sys.modules['attune'] is None\n"
         "from attune_harness.cli import main\n"
