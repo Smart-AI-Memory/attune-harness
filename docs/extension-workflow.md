@@ -271,7 +271,7 @@ in the words above before any signature is checked.
 - *Plugin signature was made by a key that has expired ...* and *... that has been revoked ...*: `EXPKEYSIG` and `REVKEYSIG`, which gpg reports with exit status 0; this is why the exit status is never the verdict.
 - *Plugin signature has expired ...* and *Plugin signature could not be checked by gpg ...*: `EXPSIG`, and an `ERRSIG` that is not a missing key.
 - *Plugin artifact is on the registry revocation list and never runs again ...*: the digest is under `revoked`.
-- *gpg is absent from PATH ...*: no verifier on this machine; install GnuPG. The three platform jobs prove their runners have one.
+- *gpg is absent from PATH ...*: no verifier on this machine; install GnuPG. The platform jobs run the plugin tests, so a runner without gpg fails them by name rather than skipping.
 - *Plugin signature verifier failed to run (...)* and *... reported no verdict ...*: the subprocess did not run, or ran and produced no `GOODSIG` with a `VALIDSIG`; a silent exit 0 is a refusal.
 - *Plugin signature verifier could not import a registry key block ...*: a `public_key` entry gpg cannot read.
 - *Grant names NAME, a capability the plugin manifest does not declare ...* and *Grant of NAME exceeds what the plugin manifest declares ...*: the registration's grant is not a subset of `grants`.
