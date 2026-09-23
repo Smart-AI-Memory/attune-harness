@@ -336,7 +336,6 @@ def test_partial_status_and_nothing_from_attune_ai(tmp_path):
 
 @posix_only
 def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr(memory_cli, "configure_process", lambda: None)
     root = tmp_path / "raw"
     seed_raw(root)
     config = tmp_path / "memory.json"

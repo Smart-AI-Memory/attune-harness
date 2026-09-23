@@ -26,10 +26,22 @@ class _Stderr:
     """
 
     def write(self, text):
-        return sys.stderr.write(text)
+        stream = sys.stderr
+        if stream is None:  # fd closed at exec, pythonw.exe: a diagnostic is dropped
+            return
+        try:
+            stream.write(text)
+        except (ValueError, OSError):  # a closed or broken stream never fails the command
+            return
 
     def flush(self):
-        return sys.stderr.flush()
+        stream = sys.stderr
+        if stream is None:
+            return
+        try:
+            stream.flush()
+        except (ValueError, OSError):
+            return
 
 
 _STDERR = _Stderr()
@@ -41,9 +53,11 @@ def configure_process():
 
     RAG diagnostics must not corrupt JSON or MCP stdout, so structlog prints to
     stderr. The binding resolves ``sys.stderr`` on every write rather than at
-    configure time, and it is made once per process: a second call changes
-    nothing, so the entry point that owns start-up (``main``) calls it and
-    nothing else needs to (O-67). Accounting and team transports are untouched.
+    configure time, and it is made once per process: a second call rebinds
+    nothing (the usage-ping variable is set every time), so the entry point
+    that owns start-up (``main``) calls it and nothing else needs to (O-67).
+    A stream that is ``None`` or closed drops the diagnostic; it never fails
+    the command. Accounting and team transports are untouched.
     """
     global _configured
     os.environ['ATTUNE_USAGE_PING'] = '0'

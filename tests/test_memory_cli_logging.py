@@ -11,8 +11,17 @@ from attune_harness import memory_cli
 structlog = pytest.importorskip("structlog")
 
 
-def test_configure_process_binds_structlog_once(monkeypatch):
+@pytest.fixture
+def unconfigured(monkeypatch):
+    """Start unconfigured and leave nothing behind: structlog's configuration is
+    process-global, and the module flag must agree with it afterwards."""
+    structlog.reset_defaults()
     monkeypatch.setattr(memory_cli, "_configured", False)
+    yield
+    structlog.reset_defaults()
+
+
+def test_configure_process_binds_structlog_once(monkeypatch, unconfigured):
     calls = []
     monkeypatch.setattr(structlog, "configure", lambda **named: calls.append(named))
     memory_cli.configure_process()
@@ -28,8 +37,7 @@ def test_configure_process_disables_the_usage_ping_every_time(monkeypatch):
     assert memory_cli.os.environ["ATTUNE_USAGE_PING"] == "0"
 
 
-def test_log_lines_follow_the_current_stderr_not_the_one_at_configure_time(monkeypatch):
-    monkeypatch.setattr(memory_cli, "_configured", False)
+def test_log_lines_follow_the_current_stderr_not_the_one_at_configure_time(monkeypatch, unconfigured):
     first, second = io.StringIO(), io.StringIO()
     monkeypatch.setattr(sys, "stderr", first)
     memory_cli.configure_process()
@@ -45,6 +53,17 @@ def test_log_lines_follow_the_current_stderr_not_the_one_at_configure_time(monke
     assert "three" in third.getvalue()
 
 
+def test_a_missing_or_closed_stderr_drops_the_line_and_never_raises(monkeypatch, unconfigured):
+    memory_cli.configure_process()
+    monkeypatch.setattr(sys, "stderr", None)
+    structlog.get_logger("probe").warning("dropped")
+    closed = io.StringIO()
+    closed.close()
+    monkeypatch.setattr(sys, "stderr", closed)
+    structlog.get_logger("probe").warning("dropped too")
+    memory_cli._STDERR.flush()
+
+
 def test_execute_no_longer_configures_the_process(monkeypatch, tmp_path):
     # main owns start-up; execute is what tests drive in-process.
     called = []
@@ -56,5 +75,7 @@ def test_execute_no_longer_configures_the_process(monkeypatch, tmp_path):
     memory_cli.add_arguments(parser)
     memory_cli.execute(parser.parse_args(["--config", str(config), "capabilities"]))
     assert called == []
-    assert memory_cli.main(["--config", str(config), "capabilities"]) in (0, 2)
+    # An empty config is refused, so main exits 2 here; what this asserts is
+    # that main, and only main, configured the process on the way.
+    assert memory_cli.main(["--config", str(config), "capabilities"]) == 2
     assert called == [True]
