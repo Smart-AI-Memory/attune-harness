@@ -33,8 +33,8 @@ cat work/import-receipts.jsonl
 that is not a regular file inside the project; it is a `store_true` flag in the
 style of `--allow-external`, meaningful only beside `--import-plan`, and
 refused alone. The request's `intent.scope` must list the plan's outputs, as
-the store requires of every import, implicit or explicit; the request file
-below lists the seven tasks' nineteen paths.
+the store requires of every import, implicit or explicit; for this plan that
+is fifteen distinct paths across the seven tasks.
 
 ## The fixtures
 
