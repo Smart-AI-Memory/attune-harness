@@ -199,6 +199,12 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | --- | --- | --- |
 | [specs/cross-review/receipts.md](specs/cross-review/receipts.md) | Cross-review advisory receipts |  |
 
+### specs/executable-plugins
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [specs/executable-plugins/README.md](specs/executable-plugins/README.md) | Executable plugins: the spec | 2026-09-23 |
+
 ### specs/native-memory
 
 | File | Title | Dated |
