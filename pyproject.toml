@@ -45,14 +45,9 @@ Repository = "https://github.com/Smart-AI-Memory/attune-harness"
 Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
-# tokens, verify, rag, review and mcp are in the base since 0.4.0. They stay
-# as empty extras so an existing `pip install 'attune-harness[review]'` keeps
-# working without a warning; they will be removed in 1.0.
-tokens = []
-verify = []
-rag = []
-review = []
-mcp = []
+# tokens, verify, rag, review and mcp moved into the base in 0.4.0 and stayed
+# as empty extras until 0.6.0, when the first freeze cycle removed them as the
+# README had promised for 1.0 (D27.6).
 voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==4.26.0"]
 memory-native = ["anthropic==1.6.0", "httpx2==2.13.0"]
 redis = ["redis==5.3.1"]

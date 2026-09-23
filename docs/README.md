@@ -35,6 +35,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
+- [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
+- [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path
+- [The interface freeze (4.1): design note](specs/release-1.0/freeze-design.md): The six frozen surfaces turned into guards, the saved-state fixture, the deprecation mechanism, and seven decisions, ruled as D27
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick
 - [Phase 3: design note](specs/phase-3-design.md): The journey native and memory served, with ten decisions for Patrick
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
@@ -43,6 +46,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Spec authority: addendum, September 23, 2026](specs/spec-authority/addendum-2026-09-23.md): D20, the Phase 3 rulings on the journey, the plugins, Windows and the order; D22, the plugins spec approved; D23, the six Task 4 decisions; D24, the stage mapping for step (b)
 - [Native memory: decisions, September 22, 2026](specs/native-memory/decisions-2026-09-22.md): D15 to D19, the base install, the Redis backend and the Phase 2 rulings
 - [Native memory: decisions, September 23, 2026](specs/native-memory/decisions-2026-09-23.md): D21, the Phase 3 rulings on serving and the store, and a correction to the note
+- [Native memory, ladder 9 (plan 4.4): ending the transition, design note](specs/native-memory/transition-end-design.md): The formats frozen as read, the adapter and the differential removed, the golden table re-pinned, and five decisions ruled as D28
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
 - [Spec authority, Task 2: plan](specs/spec-authority/task-2-plan.md): Task 2's four steps
 - [Attune Harness — phased delivery plan](harness-phased-plan.md): The earlier phased plan, superseded in part
@@ -215,6 +219,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/native-memory/scoping.md](specs/native-memory/scoping.md) | Native memory — scoping note | 2026-09-19 |
+| [specs/native-memory/transition-end-design.md](specs/native-memory/transition-end-design.md) | Native memory, ladder 9 (plan 4.4): ending the transition, design note | 2026-09-23 |
 | [specs/native-memory/task-4-design.md](specs/native-memory/task-4-design.md) | Native memory, Task 4: design note | 2026-09-22 |
 
 ### specs/plan-build
@@ -231,6 +236,14 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [specs/plan-build/routing-eligibility-experiment.md](specs/plan-build/routing-eligibility-experiment.md) | Narrow Luna eligibility — experiment design | September 18, 2026 |
 | [specs/plan-build/tasks.md](specs/plan-build/tasks.md) | Task outline — plan and build |  |
 | [specs/plan-build/work-contract.md](specs/plan-build/work-contract.md) | Task 2 — shared work contract |  |
+
+### specs/release-1.0
+
+| File | Title | Dated |
+| --- | --- | --- |
+| [specs/release-1.0/README.md](specs/release-1.0/README.md) | Release 1.0.0: the requirements, and what waits | 2026-09-23 |
+| [specs/release-1.0/addendum-2026-09-23.md](specs/release-1.0/addendum-2026-09-23.md) | Release 1.0.0: addendum, September 23, 2026 | 2026-09-23 |
+| [specs/release-1.0/freeze-design.md](specs/release-1.0/freeze-design.md) | The interface freeze (4.1): design note | 2026-09-23 |
 
 ### specs/shared-memory-adoption
 

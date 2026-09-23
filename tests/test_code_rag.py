@@ -55,6 +55,16 @@ def test_code_config_cli(tmp_path, capsys):
     assert result['structured_paths'] == ['pyproject.toml']
 
 
+def test_code_config_output_is_the_config_index_plan_reads(tmp_path, capsys):
+    """The envelope is an input file too (docs/code-first-rag.md): no key load_config refuses may join it."""
+    root = repository(tmp_path / 'app', {'app.py': 'def save_cart():\n    return True\n'})
+    assert main(['code-config', '--repo', str(root), '--index-dir', str(tmp_path / 'index')]) == 0
+    saved = tmp_path / 'retrieval-config.json'
+    saved.write_text(capsys.readouterr().out, encoding='utf-8')
+    assert main(['index', 'plan', '--config', str(saved)]) == 0
+    assert json.loads(capsys.readouterr().out)['status'] != 'failed'
+
+
 def test_ranked_candidates_never_claim_answer_verification(built, tmp_path):
     _, selected, provider = built
     result = retrieve_voyage(selected, 'Where is the nonexistent Stripe webhook?',

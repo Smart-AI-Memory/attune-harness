@@ -758,32 +758,33 @@ def run(config, operation, arguments, *, open_with=None):
     """One scratch operation from a memory config, as the CLI's envelope."""
     store = (open_with or open_scratch)(config)
     if store is None:
-        return dict(status="disabled", detail="The memory config has no 'scratch' section")
+        return dict(schema_version=1, status="disabled", detail="The memory config has no 'scratch' section")
     if operation == "capabilities":
-        return dict(status="ok", operation="memory_scratch_capabilities", **store.capabilities())
+        return dict(schema_version=1, status="ok", operation="memory_scratch_capabilities", **store.capabilities())
     if operation == "stash":
         try:
             stored = store.stash(arguments["key"], arguments["value"], arguments.get("ttl"),
                                  expected_version=arguments.get("expected_version"))
         except ScratchRefused as refusal:
-            return dict(status="failed", operation="memory_scratch_stash", backend=store.backend, key=refusal.key,
-                        expected_version=refusal.expected_version, version=refusal.found,
+            return dict(schema_version=1, status="failed", operation="memory_scratch_stash", backend=store.backend,
+                        key=refusal.key, expected_version=refusal.expected_version, version=refusal.found,
                         error=type(refusal).__name__, detail=str(refusal))
         except ScratchUncertain as receipt:
-            return dict(status="uncertain", operation="memory_scratch_stash", backend=store.backend, key=receipt.key,
-                        version=receipt.version, stored_at=receipt.stored_at, error=receipt.error, detail=str(receipt))
-        return dict(status="ok", operation="memory_scratch_stash", backend=store.backend, **stored)
+            return dict(schema_version=1, status="uncertain", operation="memory_scratch_stash", backend=store.backend,
+                        key=receipt.key, version=receipt.version, stored_at=receipt.stored_at, error=receipt.error,
+                        detail=str(receipt))
+        return dict(schema_version=1, status="ok", operation="memory_scratch_stash", backend=store.backend, **stored)
     if operation == "retrieve":
         found = store.retrieve(arguments["key"])
         if found is None:
-            return dict(status="no_results", operation="memory_scratch_retrieve", backend=store.backend, key=arguments["key"])
-        return dict(status="ok", operation="memory_scratch_retrieve", backend=store.backend, **found)
+            return dict(schema_version=1, status="no_results", operation="memory_scratch_retrieve", backend=store.backend, key=arguments["key"])
+        return dict(schema_version=1, status="ok", operation="memory_scratch_retrieve", backend=store.backend, **found)
     if operation == "forget":
         gone = store.forget(arguments["key"])
-        return dict(status="ok" if gone else "no_results", operation="memory_scratch_forget", backend=store.backend,
+        return dict(schema_version=1, status="ok" if gone else "no_results", operation="memory_scratch_forget", backend=store.backend,
                     key=arguments["key"], forgotten=gone)
     if operation == "keys":
         found = store.keys(arguments.get("pattern", "*"))
-        return dict(status="ok" if found else "no_results", operation="memory_scratch_keys", backend=store.backend,
+        return dict(schema_version=1, status="ok" if found else "no_results", operation="memory_scratch_keys", backend=store.backend,
                     pattern=arguments.get("pattern", "*"), keys=found)
     raise ValueError(f"Unknown scratch operation {operation!r}")

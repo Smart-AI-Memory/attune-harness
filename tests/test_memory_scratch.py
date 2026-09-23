@@ -402,7 +402,7 @@ def test_run_reports_a_refusal_as_failed_with_what_was_expected_and_found(store)
     assert run(config, "stash", {"key": "k", "value": 1}, open_with=opener)["version"] == 1
     envelope = run(config, "stash", {"key": "k", "value": 2, "expected_version": 7}, open_with=opener)
     assert envelope == {
-        "status": "failed", "operation": "memory_scratch_stash", "backend": backend.backend, "key": "k",
+        "schema_version": 1, "status": "failed", "operation": "memory_scratch_stash", "backend": backend.backend, "key": "k",
         "expected_version": 7, "version": 1, "error": "ScratchRefused",
         "detail": "Scratch stash of key 'k' was refused: expected version 7, found version 1; "
                   "nothing was written. Retrieve the key and stash with the version it reports.",
@@ -494,7 +494,7 @@ def test_a_replace_that_raises_after_the_record_was_written_is_uncertain_and_not
     assert json.loads((folder / "k-seed.json").read_text(encoding="utf-8"))["value"] == 2  # and this time it did not
     envelope = run({"scratch": {"backend": "file"}}, "stash", {"key": "seed", "value": 4}, open_with=lambda c: store)
     assert envelope == {
-        "status": "uncertain", "operation": "memory_scratch_stash", "backend": "file", "key": "seed", "version": 3,
+        "schema_version": 1, "status": "uncertain", "operation": "memory_scratch_stash", "backend": "file", "key": "seed", "version": 3,
         "stored_at": STAMP, "error": "OSError", "detail": (
             "Scratch stash of key 'seed' may or may not have landed: the record was written and the replace raised "
             f"(OSError: disk says no). Retrieve the key; a record at version 3 stored at {STAMP} means it did. "
@@ -542,7 +542,8 @@ def test_a_lost_redis_reply_is_uncertain_and_not_retried_or_diverted(tmp_path, m
     envelope = run({"scratch": {"backend": "redis"}}, "stash", {"key": "k", "value": 3}, open_with=lambda c: store)
     assert envelope["status"] == "uncertain" and envelope["version"] == 3 and envelope["error"] == "FakeError"
     assert envelope["stored_at"] == STAMP
-    assert set(envelope) == {"status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
+    assert set(envelope) == {"schema_version", "status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
+    assert envelope["schema_version"] == 1
 
 
 def test_a_redis_failure_before_the_write_is_unavailable_not_uncertain():
@@ -1033,16 +1034,18 @@ def test_open_scratch_uses_the_shared_client_opener(monkeypatch):
 def test_run_envelopes(tmp_path):
     root = str(tmp_path.resolve())
     config = {"scratch": {"backend": "file", "root": root}}
-    assert run({"roots": []}, "capabilities", {}) == {"status": "disabled", "detail": "The memory config has no 'scratch' section"}
+    # Every scratch envelope carries schema_version 1 since the first freeze cycle (D27.2).
+    assert run({"roots": []}, "capabilities", {}) == {"schema_version": 1, "status": "disabled", "detail": "The memory config has no 'scratch' section"}
     caps = run(config, "capabilities", {})
     assert caps["status"] == "ok" and caps["backend"] == "file" and caps["shared"] is False
     stored = run(config, "stash", {"key": "k", "value": {"a": 1}, "ttl": 60})
     assert stored["status"] == "ok" and stored["backend"] == "file" and stored["expires_at"]
     assert stored["format"] == FORMAT and stored["format_version"] == 2 and stored["version"] == 1
-    assert stored["writer"] == memory_scratch.writer()
+    assert stored["writer"] == memory_scratch.writer() and stored["schema_version"] == 1
     found = run(config, "retrieve", {"key": "k"})
     assert found["value"] == {"a": 1} and found["version"] == 1 and found["writer"] == stored["writer"]
-    assert run(config, "retrieve", {"key": "missing"}) == {"status": "no_results", "operation": "memory_scratch_retrieve", "backend": "file", "key": "missing"}
+    assert run(config, "retrieve", {"key": "missing"}) == {"schema_version": 1, "status": "no_results", "operation": "memory_scratch_retrieve", "backend": "file", "key": "missing"}
+    assert all(run(config, op, args)["schema_version"] == 1 for op, args in (("capabilities", {}), ("keys", {}), ("retrieve", {"key": "k"})))
     assert run(config, "keys", {})["keys"] == ["k"]
     assert run(config, "forget", {"key": "k"})["forgotten"] is True
     assert run(config, "forget", {"key": "k"})["status"] == "no_results"
@@ -1076,7 +1079,7 @@ def test_cli_scratch_verbs(tmp_path, capsys, monkeypatch):
     assert json.loads(capsys.readouterr().out)["version"] == 2
     assert memory_main([*base, "stash", "plan:list", "--value", "3", "--expected-version", "1"]) == 2
     out = json.loads(capsys.readouterr().out)
-    assert out["status"] == "failed" and out["error"] == "ScratchRefused"
+    assert out["status"] == "failed" and out["error"] == "ScratchRefused" and out["schema_version"] == 1
     assert out["expected_version"] == 1 and out["version"] == 2 and "found version 2; nothing was written" in out["detail"]
     assert memory_main([*base, "stash", "plan:list", "--value", "3", "--expected-version", "0"]) == 2
     assert "expected no record (version 0), found version 2" in json.loads(capsys.readouterr().out)["detail"]
@@ -1127,7 +1130,8 @@ def test_cli_reports_an_uncertain_stash_with_exit_2(tmp_path, capsys, monkeypatc
     assert out["status"] == "uncertain" and out["version"] == 2 and out["error"] == "PermissionError"
     assert out["stored_at"].endswith("+00:00") and f"stored at {out['stored_at']} means it did" in out["detail"]
     assert out["detail"].startswith("Scratch stash of key 'k' may or may not have landed")
-    assert set(out) == {"status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
+    assert set(out) == {"schema_version", "status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
+    assert out["schema_version"] == 1
 
 
 def test_importing_the_module_needs_no_redis_package():
