@@ -14,6 +14,7 @@ holds in memory. No plugin code runs in this cycle: the ``run`` binding is a
 later one (executable plugins spec; D22).
 """
 
+import copy
 import hashlib
 import re
 from pathlib import Path
@@ -41,6 +42,9 @@ MAX_TIME = 300
 MAX_RESULT = 1_048_576
 MAX_DIAGNOSTICS = 65_536
 ENVIRONMENT_NAME = r'[A-Za-z_][A-Za-z0-9_]{0,63}'
+# What the run binding's child environment carries of its own (the repair probe's
+# allow-list, SystemRoot on Windows): a grant cannot name one, in any case.
+RESERVED_ENVIRONMENT = ('PATH', 'LANG', 'LC_ALL', 'PYTHONDONTWRITEBYTECODE', 'PYTHONNOUSERSITE', 'SystemRoot')
 DISTRIBUTION = r'[A-Za-z0-9](?:[A-Za-z0-9._-]{0,98}[A-Za-z0-9])?'
 EXTRAS = r'(?:\[[A-Za-z0-9](?:[A-Za-z0-9._-]{0,62}[A-Za-z0-9])?(?:,[A-Za-z0-9](?:[A-Za-z0-9._-]{0,62}[A-Za-z0-9])?){0,7}\])?'
 HOST = r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*'
@@ -107,6 +111,10 @@ def _validate_grants(value):
                      _pattern(ENVIRONMENT_NAME, 'secrets must name environment variables'))
         if len({name.casefold() for name in value['secrets']}) != len(value['secrets']):
             raise ValueError('secrets must be distinct ignoring case')
+        reserved = {name.casefold() for name in RESERVED_ENVIRONMENT}
+        for name in value['secrets']:
+            if name.casefold() in reserved:
+                raise ValueError(f'secrets cannot name an environment variable the host sets itself: {name}')
     if 'paths' in value:
         _unique_list(value['paths'], 'paths', 8,
                      _pattern(NAME, 'paths must be lowercase identifiers of at most 24 characters'))
@@ -161,7 +169,7 @@ def discover(manifest: Path) -> dict:
     fields(value, ('schema_version', 'id', 'version', 'skill', 'tools', *optional))
     versioned(value)
     _name(value['id'])
-    if value['id'] in ('retrieve', 'verify'):
+    if value['id'] in ('retrieve', 'verify', *TRUST_KEYS):
         raise ValueError('Reserved extension identity')
     if not isinstance(value['version'], str) or not re.fullmatch(r'\d{1,4}\.\d{1,4}\.\d{1,4}', value['version']):
         raise ValueError('Extension version must be major.minor.patch')
@@ -256,7 +264,7 @@ def effective_grant(grant, declared: dict) -> dict:
             within = all(wanted[key] <= have[key] for key in ('result', 'diagnostics'))
         if not within:
             raise FeatureUnavailable(EXCESS_GRANT.format(name=name))
-    return grant
+    return copy.deepcopy(grant)
 
 
 def check_trust(bundle: dict, grant, trust: dict):
@@ -374,7 +382,8 @@ def _validate_signers(value):
         fields(entry, ('fingerprint', 'public_key'))
         _pattern(FINGERPRINT, 'fingerprint must be 40 uppercase hexadecimal characters')(entry['fingerprint'])
         block = bounded_text(entry['public_key'], 'public_key', KEY_BLOCK_LIMIT).strip()
-        if not block.startswith(KEY_BLOCK_BEGIN) or not block.endswith(KEY_BLOCK_END):
+        if (not block.startswith(KEY_BLOCK_BEGIN) or not block.endswith(KEY_BLOCK_END)
+                or block.count(KEY_BLOCK_BEGIN) != 1 or block.count(KEY_BLOCK_END) != 1):
             raise ValueError('public_key must be one ASCII-armoured PGP public key block')
         if entry['fingerprint'] in seen:
             raise ValueError('signers must list each fingerprint once')

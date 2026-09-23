@@ -181,9 +181,9 @@ def top_level_names(distributions):
             first = file.parts[0]
             if first.endswith(('.dist-info', '.data', '.pth')) or first.startswith('__'):
                 continue
-            if first.endswith('.py') and len(file.parts) == 1:
+            if first.endswith('.py') and len(file.parts) == 1 and first[:-3].isidentifier():
                 names.add(first[:-3])
-            elif len(file.parts) > 1:
+            elif len(file.parts) > 1 and first.isidentifier():  # never '..' from a script's RECORD entry
                 names.add(first)
     return sorted(names)
 
@@ -223,7 +223,8 @@ def bootstrap_text(bundle, stdlib, site, allowed, imports):
         "        outcomes[name] = 'imported'\n"
         '    except Exception as error:\n'
         "        outcomes[name] = type(error).__name__ + ': ' + str(error)\n"
-        "print(json.dumps({'sys_path': sys.path, 'outcomes': outcomes, 'flags': sys.flags.isolated}))\n"
+        "print(json.dumps({'sys_path': sys.path, 'outcomes': outcomes, 'flags': {'isolated': sys.flags.isolated, "
+        "'no_site': sys.flags.no_site, 'dont_write_bytecode': sys.flags.dont_write_bytecode}}))\n"
     )
 
 
@@ -245,6 +246,9 @@ def test_probe_child_bootstrap_with_finder(shared_receipt, tmp_path):
                    stdlib=stdlib, site=site, environment_keys=sorted(environment),
                    bootstrap_sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(), flags=['-I', '-S', '-B'])
     assert DECLARED in allowed, allowed
+    # The refusal half proves something only if the undeclared distribution is installed in the host.
+    assert importlib.util.find_spec(UNDECLARED) is not None, f'{UNDECLARED} is not installed here; the refusal would be vacuous'
+    assert '..' not in allowed and all(name.isidentifier() for name in allowed), allowed
     result = invoke((sys.executable, '-I', '-S', '-B', '-c', text), '', cwd=bundle, timeout=60,
                     max_output_bytes=65_536, environment=environment)
     payload = json.loads(result.stdout) if result.stdout.strip() else None
@@ -257,6 +261,7 @@ def test_probe_child_bootstrap_with_finder(shared_receipt, tmp_path):
     assert outcomes['bundle_module'] == 'imported', outcomes
     assert outcomes[DECLARED] == 'imported', outcomes
     assert outcomes[UNDECLARED].startswith('ModuleNotFoundError'), outcomes
-    assert payload['sys_path'][0] == str(bundle) and payload['flags'] == 1
+    assert payload['sys_path'][0] == str(bundle)
+    assert payload['flags'] == {'isolated': 1, 'no_site': 1, 'dont_write_bytecode': 1}, payload['flags']
     assert not any('site-packages' in entry or 'dist-packages' in entry for entry in payload['sys_path']), payload
     receipt.record('bootstrap', exit_status=result.returncode, outcomes=outcomes, sys_path=payload['sys_path'])

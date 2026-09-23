@@ -18,6 +18,8 @@ requests did not conflict on this section.
   registrations, and whose registration may carry a `grant`, checked to be a
   subset of the manifest's grants. The bundle carries `artifact.sig`, a
   detached OpenPGP signature over the artifact digest's 64 hex characters,
+  its packets walked before gpg runs so that only Signature packets of
+  definite length reach the verifier,
   verified inside the lease at `enable` (`extension enable --registry`) and
   before and after every call by `gpg --verify` in a bounded subprocess, in a
   private home the host creates and removes, against the registry's key

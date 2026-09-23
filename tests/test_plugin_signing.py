@@ -18,6 +18,7 @@ wrote at its creation; only the verifier-not-running refusals use a stub.
 # qualify: platform
 
 import copy
+import glob
 import json
 import os
 import re
@@ -25,6 +26,7 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import pytest
@@ -132,13 +134,25 @@ class Signer:
     def entry(self):
         return {'fingerprint': self.fingerprint, 'public_key': self.public_key}
 
-    def sign(self, data: bytes, *, at=None) -> bytes:
-        source, target = self.home / 'signed.bin', self.home / 'signed.sig'
+    def sign(self, data: bytes, *, at=None, armor=True) -> bytes:
+        return self.produce(data, '--detach-sign', at=at, armor=armor)
+
+    def produce(self, data: bytes, *flags, at=None, armor=True) -> bytes:
+        """gpg's output over ``data`` for the given flags: a detached signature, or an inline or clearsigned message."""
+        source, target = self.home / 'signed.bin', self.home / 'signed.out'
         source.write_bytes(data)
         faked = ('--faked-system-time', at) if at else self.faked
-        run_gpg(self.home, *faked, '--passphrase', '', '--pinentry-mode', 'loopback', '--armor', '--yes',
-                '--output', spelled(target), '--detach-sign', spelled(source))
+        run_gpg(self.home, *faked, '--passphrase', '', '--pinentry-mode', 'loopback', *(['--armor'] if armor else []),
+                '--yes', '--output', spelled(target), *flags, spelled(source))
         return target.read_bytes()
+
+    def block_with(self, other) -> str:
+        """One armoured block, one BEGIN line, carrying this key's and another's public key."""
+        (self.home / 'other.asc').write_text(other.public_key, encoding='ascii')
+        run_gpg(self.home, '--import', spelled(self.home / 'other.asc'))
+        target = self.home / 'both.asc'
+        run_gpg(self.home, '--armor', '--yes', '--output', spelled(target), '--export', self.fingerprint, other.fingerprint)
+        return target.read_bytes().decode('ascii')
 
     def revoke(self):
         """Apply the revocation certificate gpg wrote at creation; the exported block then carries it."""
@@ -276,6 +290,30 @@ def unlisted_signer(w):
     return signing.UNLISTED
 
 
+def two_signatures_one_unlisted(w):
+    # Both keys are in the keyring, through one block under a's fingerprint; b's signature is unlisted.
+    a, b = w.signers('two-a'), w.signers('two-b')
+    w.signature(a.sign(signing.signed_bytes(w.digest), armor=False) + b.sign(signing.signed_bytes(w.digest), armor=False))
+    w.section['signers'] = [{'fingerprint': a.fingerprint, 'public_key': a.block_with(b)}]
+    return signing.UNLISTED
+
+
+def inline_signed(w):
+    w.signature(w.signer.produce(signing.signed_bytes(w.digest), '--sign', armor=False))
+    return signing.NOT_A_SIGNATURE
+
+
+def clearsigned(w):
+    w.signature(w.signer.produce(signing.signed_bytes(w.digest), '--clearsign'))
+    return signing.NOT_A_SIGNATURE
+
+
+def compressed_message(w):
+    # gpg --store: a literal packet in a compressed one, no signature; refused before gpg runs.
+    w.signature(w.signer.produce(b'\0' * 65_536, '--store', '-z', '9', armor=False))
+    return signing.NOT_A_SIGNATURE
+
+
 def no_public_key(w):
     w.section['signers'] = [w.signers('other').entry]
     return signing.NO_PUBKEY
@@ -313,7 +351,12 @@ def time_beyond_declared(w):
 
 
 AT_ENABLE = [unsigned, not_a_signature, stale_signature, signed_with_a_newline, unlisted_signer,
-             no_public_key, revoked_artifact, expired_key, revoked_key, secret_not_declared, time_beyond_declared]
+             two_signatures_one_unlisted, inline_signed, clearsigned, compressed_message, no_public_key,
+             revoked_artifact, expired_key, revoked_key, secret_not_declared, time_beyond_declared]
+
+
+def verifier_homes():
+    return set(glob.glob(os.path.join(tempfile.gettempdir(), 'harness-plugin-verify-*')))
 BEFORE_CALL = [unsigned, stale_signature, unlisted_signer, revoked_artifact, revoked_key, secret_not_declared]
 
 
@@ -344,6 +387,9 @@ def test_signed_plugin_enables_runs_and_is_receipted(case, plugin, tmp_path, sig
     result = ext.invoke_tool(bindings, 'evidence.search', QUERY, retrieve)
     assert calls == ['quartz policy'] and result['status'] == 'retrieved' and result['sources']
     assert result['extension']['plugin'] == receipt and result['extension']['artifact_digest'] == w.digest
+    assert result['extension']['plugin']['grant'] is not bindings['evidence']['grant']
+    result['extension']['plugin']['grant']['time'] = 999  # a caller's edit never reaches the registry
+    assert bindings['evidence']['grant'] == GRANT
     # The review path: every contributed call carries the receipt.
     outcome = review(*case)
     assert outcome['status'] == 'completed' and outcome['document_outcome'] == 'verified'
@@ -379,11 +425,13 @@ def test_refused_at_enable(case, plugin, tmp_path, signers, condition):
     w = World(case, plugin, tmp_path, signers)
     expected = condition(w)
     first = w.install()
+    homes = verifier_homes()
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         w.enable(first)
     assert ext.inspect_extension(w.directory)['status'] == 'disabled'
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         ext.catalog(w.section)
+    assert verifier_homes() == homes  # the private home is removed on a refusal too
 
 
 @pytest.mark.parametrize('condition', BEFORE_CALL, ids=lambda c: c.__name__)
@@ -424,19 +472,23 @@ def test_artifact_edited_after_signing_is_refused(case, plugin, tmp_path, signer
 
 
 def test_grant_names_only_what_the_manifest_declares(case, bundle, tmp_path, signers):
-    change(bundle, lambda d: d.update(grants={'time': 120, 'secrets': ['ONE']}))
+    change(bundle, lambda d: d.update(grants={'time': 120, 'secrets': ['ONE'], 'paths': ['corpus'], 'scratch': False,
+                                              'output': {'result': 100, 'diagnostics': 10}}))
     w = World(case, bundle, tmp_path, signers)
     first = w.install()
-    for grant, expected in [({'scratch': True}, ext.OVER_GRANT.format(name='scratch')),
-                            ({'output': {'result': 1, 'diagnostics': 1}}, ext.OVER_GRANT.format(name='output')),
-                            ({'time': 121}, ext.EXCESS_GRANT.format(name='time')),
-                            ({'secrets': ['ONE', 'TWO']}, ext.EXCESS_GRANT.format(name='secrets'))]:
+    for grant, expected in [({'time': 121}, ext.EXCESS_GRANT.format(name='time')),
+                            ({'secrets': ['ONE', 'TWO']}, ext.EXCESS_GRANT.format(name='secrets')),
+                            ({'paths': ['corpus', 'other']}, ext.EXCESS_GRANT.format(name='paths')),
+                            ({'scratch': True}, ext.EXCESS_GRANT.format(name='scratch')),
+                            ({'output': {'result': 101, 'diagnostics': 10}}, ext.EXCESS_GRANT.format(name='output')),
+                            ({'output': {'result': 100, 'diagnostics': 11}}, ext.EXCESS_GRANT.format(name='output'))]:
         w.section['evidence']['grant'] = grant
         with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
             w.enable(first)
-    w.section['evidence']['grant'] = {'time': 120, 'secrets': ['ONE']}
+    w.section['evidence']['grant'] = {'time': 120, 'secrets': ['ONE'], 'paths': ['corpus'], 'scratch': False,
+                                      'output': {'result': 100, 'diagnostics': 10}}
     state = w.enable(first)
-    assert state['plugin']['grant'] == {'time': 120, 'secrets': ['ONE']} and state['plugin']['declares'] == {}
+    assert state['plugin']['grant'] == w.section['evidence']['grant'] and state['plugin']['declares'] == {}
     state = ext.mutate(w.directory, state['state_digest'], 'disable')
     del w.section['evidence']['grant']
     assert w.enable(state)['plugin']['grant'] == {}  # nothing granted is a valid grant
@@ -448,8 +500,7 @@ def test_gpg_absent_from_path_is_a_named_refusal(case, plugin, tmp_path, signers
     empty = tmp_path / 'no-gpg'
     empty.mkdir()
     monkeypatch.setenv('PATH', str(empty))
-    monkeypatch.setattr(signing, 'KNOWN_GPG_POSIX', ())
-    monkeypatch.setattr(signing, 'KNOWN_GPG_WINDOWS', ())
+    monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [])
     monkeypatch.setattr(signing, 'invoke', lambda *a, **k: pytest.fail('a verifier was launched with no gpg on PATH'))
     expected = signing.GPG_ABSENT.format(searched='none known')
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
@@ -466,9 +517,11 @@ def test_gpg_absent_from_path_is_a_named_refusal(case, plugin, tmp_path, signers
     (ProcessResult(('gpg',), None, '', '', 'timeout_effects_unknown'),
      signing.VERIFIER_FAILED.format(failure='timeout_effects_unknown')),
     (ProcessResult(('gpg',), 0, '', '', None), signing.NO_VERDICT),
-    (ProcessResult(('gpg',), 0, '[GNUPG:] GOODSIG 0123456789ABCDEF Someone\n', '', None), signing.NO_VERDICT),
+    (ProcessResult(('gpg',), 0, '[GNUPG:] NEWSIG\n[GNUPG:] GOODSIG 0123456789ABCDEF Someone\n', '', None), signing.NO_VERDICT),
     (ProcessResult(('gpg',), 2, '', 'gpg: fatal', 'nonzero_exit'), signing.NO_VERDICT),
-], ids=['launch_failed', 'timeout', 'exit_0_silent', 'goodsig_without_validsig', 'exit_2_silent'])
+    (ProcessResult(('gpg',), 2, '[GNUPG:] FAILURE gpg-exit 33554434\n', 'not a detached signature', 'nonzero_exit'),
+     signing.NOT_A_SIGNATURE),
+], ids=['launch_failed', 'timeout', 'exit_0_silent', 'goodsig_without_validsig', 'exit_2_silent', 'failure_without_newsig'])
 def test_verifier_that_does_not_run_or_says_nothing_never_passes(case, plugin, tmp_path, signers, monkeypatch,
                                                                  outcome, expected):
     """A stub stands in for gpg here: these are the outcomes a real gpg cannot be made to produce on demand."""
@@ -499,9 +552,13 @@ def test_verdict_is_read_from_status_lines_never_from_exit_status():
     good = ['GOODSIG', fpr[-16:], 'Scratch <scratch@example.invalid>']
     assert signing.verdict([['NEWSIG'], good, valid, ['TRUST_UNDEFINED', '0', 'pgp']], {fpr}) == fpr
     # A subkey signature reports the subkey first and the primary key last; the primary is what is listed.
-    assert signing.verdict([good, ['VALIDSIG', other, '2026-09-23', '1', '0', '4', '0', '22', '10', '00', fpr]], {fpr}) == fpr
+    assert signing.verdict([['NEWSIG'], good, ['VALIDSIG', other, '2026-09-23', '1', '0', '4', '0', '22', '10', '00', fpr]], {fpr}) == fpr
     for lines, refusal in [
-        ([good, valid], signing.UNLISTED),
+        ([['NEWSIG'], good, valid], signing.UNLISTED),
+        ([['NEWSIG'], good, valid, ['NEWSIG'], good, ['VALIDSIG', other, '2026-09-23', '1', '0', '4', '0', '22', '10', '00', other]],
+         signing.UNLISTED),
+        ([good, valid], signing.NOT_A_SIGNATURE),  # gpg reported without checking a signature
+        ([['FAILURE', 'gpg-exit', '33554434']], signing.NOT_A_SIGNATURE),
         ([['NEWSIG'], ['KEYEXPIRED', '1577836860'], ['EXPKEYSIG', fpr[-16:], 'x'], valid], signing.EXPIRED_KEY),
         ([['REVKEYSIG', fpr[-16:], 'x'], valid, ['KEYREVOKED']], signing.REVOKED_KEY),
         ([good, valid, ['EXPSIG', fpr[-16:], 'x']], signing.EXPIRED_SIGNATURE),
@@ -519,6 +576,118 @@ def test_verdict_is_read_from_status_lines_never_from_exit_status():
     assert signing.signed_bytes('a' * 64) == b'a' * 64
     with pytest.raises(ValueError, match='SHA-256'):
         signing.signed_bytes('A' * 64)
+    # Status lines are split on newlines only: a user ID may carry U+2028 (finding 7).
+    parsed = signing._status('[GNUPG:] GOODSIG 0123456789ABCDEF x\u2028[GNUPG:] KEYEXPIRED 1\n[GNUPG:] NEWSIG\n')
+    assert [tokens[0] for tokens in parsed] == ['GOODSIG', 'NEWSIG']
+
+
+def test_only_definite_signature_packets_reach_gpg(signer, monkeypatch):
+    """Finding 1: a compressed message inside the 16 KiB bound cost 27 s of gpg on every check."""
+    digest = 'a' * 64
+    data = signing.signed_bytes(digest)
+    armoured, binary = signer.sign(data), signer.sign(data, armor=False)
+    assert signing.signature_packets(armoured) == 1 and signing.signature_packets(binary) == 1
+    assert signing.signature_packets(binary + binary) == 2
+    stored = signer.produce(b'\0' * 65_536, '--store', '-z', '9', armor=False)
+    refused = [stored, signer.produce(data, '--sign', armor=False), signer.produce(data, '--sign'),
+               signer.produce(data, '--clearsign'),
+               bytes([0xC8, 0x05, 0x01, 0x78, 0x9C, 0x03, 0x00]),  # a compressed packet, new format
+               bytes([0xCB, 0x03, 0x62, 0x00, 0x00]),  # a literal packet
+               bytes([0xC2, 0xE0]) + b'x' * 32,  # a signature packet with a partial body length
+               bytes([0x8B]) + b'x' * 8,  # an old-format signature packet of indeterminate length
+               bytes([0xCA, 0x03]) + b'PGP' + binary,  # a marker packet before a real signature
+               binary[:-1],  # a truncated signature
+               b'', b'\x00', b'-----BEGIN PGP SIGNATURE-----\n\n!!!!\n-----END PGP SIGNATURE-----\n']
+    monkeypatch.setattr(signing, 'invoke', lambda *a, **k: pytest.fail('gpg ran for a file that is not a detached signature'))
+    for raw in refused:
+        with pytest.raises(FeatureUnavailable, match=re.escape(signing.NOT_A_SIGNATURE)):
+            signing.signature_packets(raw)
+    started = time.perf_counter()
+    outcome = signing.inspect_signature(digest, stored, [signer.entry])
+    assert outcome['refusal'] == signing.NOT_A_SIGNATURE and outcome['verifier']['gpg'] is None
+    assert time.perf_counter() - started < 1.0
+
+
+def test_signature_file_bounds(case, plugin, tmp_path, signers):
+    """Finding 2: the symlink refusal and the 16 KiB bound on artifact.sig."""
+    w = World(case, plugin, tmp_path, signers)
+    first = w.install()
+    path = w.manifest.parent / signing.SIGNATURE_NAME
+    path.write_bytes(b'x' * (signing.SIGNATURE_LIMIT + 1))
+    with pytest.raises(ValueError, match='exceeds its limit of 16384 bytes; it is 16385 bytes'):
+        w.enable(first)
+    path.write_bytes(b'x' * signing.SIGNATURE_LIMIT)  # within the bound: read, then refused as not a signature
+    with pytest.raises(FeatureUnavailable, match=re.escape(signing.NOT_A_SIGNATURE)):
+        w.enable(first)
+    real = w.signer.sign(signing.signed_bytes(w.digest))
+    (w.manifest.parent / 'elsewhere.sig').write_bytes(real)
+    path.unlink()
+    try:
+        path.symlink_to(w.manifest.parent / 'elsewhere.sig')
+    except OSError as error:  # Windows without the symlink privilege (Windows traps): the bound above still holds
+        path.write_bytes(real)
+        assert os.name == 'nt', error
+    else:
+        with pytest.raises(ValueError, match='artifact.sig cannot be a symlink'):
+            w.enable(first)
+        path.unlink()
+        path.write_bytes(real)
+    assert w.enable(first)['status'] == 'enabled'
+
+
+def test_declares_only_bundle_is_a_plugin_that_needs_a_signature(case, bundle, tmp_path, signers):
+    """Finding 2: either capability field makes a plugin; R1 covers a declares-only bundle."""
+    change(bundle, lambda d: d.update(declares={'network': ['api.example.com']}))
+    assert ext.is_plugin(ext.discover(bundle)['declaration'])
+    w = World(case, bundle, tmp_path, signers)
+    del w.section['evidence']['grant']
+    first = w.install()
+    (w.manifest.parent / signing.SIGNATURE_NAME).unlink()
+    with pytest.raises(FeatureUnavailable, match=re.escape(signing.UNSIGNED)):
+        w.enable(first)
+    with pytest.raises(FeatureUnavailable, match=re.escape(ext.PLUGIN_NEEDS_REGISTRY)):
+        ext.mutate(w.directory, first['state_digest'], 'enable')
+    sign_bundle(w.manifest, w.signer)
+    state = w.enable(first)
+    assert state['plugin']['declares'] == {'network': ['api.example.com']} and state['plugin']['grant'] == {}
+
+
+def test_known_install_locations_are_searched_after_path(case, plugin, tmp_path, signers, monkeypatch):
+    """Finding 12: the fallback past PATH, and finding 6: a present gpg that cannot run is named."""
+    w = World(case, plugin, tmp_path, signers)
+    first = w.install()
+    empty = tmp_path / 'no-gpg'
+    empty.mkdir()
+    monkeypatch.setenv('PATH', str(empty))
+    monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [str(tmp_path / 'missing-gpg'), GPG])
+    monkeypatch.setattr(signing, 'PROBED', {})
+    assert signing.find_gpg() == (GPG, ['PATH', str(tmp_path / 'missing-gpg'), GPG])
+    state = w.enable(first)
+    assert state['plugin']['verifier']['gpg'] == GPG
+    stub = empty / 'gpg'
+    stub.write_text('#!/bin/sh\necho hi\n', encoding='utf-8')
+    os.chmod(stub, 0o644)
+    monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [])
+    with pytest.raises(FeatureUnavailable) as refused:
+        signing.find_gpg()
+    if os.name == 'nt':  # a bare file is not an executable candidate on Windows, so nothing was found
+        pytest.fail('find_gpg raised on Windows where a bare gpg is no candidate')
+    assert str(refused.value) == signing.GPG_NOT_EXECUTABLE.format(path=str(stub))
+    monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [GPG])
+    assert signing.find_gpg() == (GPG, ['PATH', GPG])  # a present but unusable gpg does not stop the search
+
+
+def test_state_with_a_plugin_receipt_must_be_enabled(case, plugin, tmp_path, signers):
+    """Finding 12 (M40): a plugin block on a disabled or removed state is not a valid state."""
+    from attune_harness.review_contract import digest as state_digest
+    w = World(case, plugin, tmp_path, signers)
+    state = w.enable(w.install())
+    for status in ('disabled', 'removed'):
+        broken = {**{k: v for k, v in state.items() if k != 'state_digest'}, 'status': status}
+        broken['state_digest'] = state_digest(broken)
+        (w.directory / 'record.json').write_text(json.dumps(broken), encoding='utf-8')
+        with pytest.raises(ValueError, match='Unsupported extension state'):
+            ext.inspect_extension(w.directory)
 
 
 def test_verifier_home_is_private_built_from_the_registry_and_removed(case, plugin, tmp_path, signers, monkeypatch):
@@ -528,6 +697,7 @@ def test_verifier_home_is_private_built_from_the_registry_and_removed(case, plug
 
     def spy(argv, prompt, **kwargs):
         home = kwargs['cwd']
+        assert '--no-options' in argv  # the invoking user's option files play no part (finding 3)
         if '--version' in argv:
             assert '--homedir' not in argv  # the build's own spelling of a path, before any home is named
         else:
@@ -643,6 +813,11 @@ def test_cli_enable_takes_the_registry(case, plugin, tmp_path, signers, capsys):
     ('grants', {'secrets': ['Key', 'KEY']}, 'ignoring case'),
     ('grants', {'secrets': ['KEY', 'KEY']}, 'unique list'),
     ('grants', {'secrets': ['K%d' % i for i in range(9)]}, 'at most 8'),
+    ('grants', {'secrets': ['PATH']}, 'host sets itself: PATH'),
+    ('grants', {'secrets': ['systemroot']}, 'host sets itself: systemroot'),
+    ('grants', {'secrets': ['PYTHONNOUSERSITE']}, 'host sets itself'),
+    ('id', 'signers', 'Reserved extension identity'),
+    ('id', 'revoked', 'Reserved extension identity'),
     ('grants', {'paths': ['Corpus']}, 'lowercase identifiers'),
     ('grants', {'scratch': 'yes'}, 'true or false'),
     ('declares', {'network': ['Api.Example.Com']}, 'lowercase host names'),
@@ -680,6 +855,7 @@ def test_manifest_fields_are_bound_into_the_artifact(bundle):
     ({'signers': [{'fingerprint': 'a' * 40, 'public_key': FAKE_ENTRY['public_key']}]}, '40 uppercase'),
     ({'signers': [{'fingerprint': 'A' * 40, 'public_key': 'not a block'}]}, 'armoured'),
     ({'signers': [{'fingerprint': 'A' * 40, 'public_key': 'x' * 16_385}]}, 'public_key'),
+    ({'signers': [{'fingerprint': 'A' * 40, 'public_key': FAKE_ENTRY['public_key'] * 2}]}, 'one ASCII-armoured'),
     ({'signers': [FAKE_ENTRY, FAKE_ENTRY]}, 'once'),
     ({'signers': [{'fingerprint': 'A' * 40}]}, 'Expected fields'),
     ({'revoked': ['short']}, 'SHA-256'),

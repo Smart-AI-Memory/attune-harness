@@ -12,6 +12,9 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 PLATFORM_MARKER='# qualify: platform'
+# The plugin probe's ten steps (tests/test_plugin_probe.py); fewer is a failed qualification.
+PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest','revoked_key','signature',
+             'bootstrap_prepared','bootstrap_launched','bootstrap')
 
 
 def qualify(output):
@@ -101,10 +104,16 @@ def qualify(output):
     # step, so a failed step is in it. A missing receipt is a failed qualification, never a skip.
     probe=output/'plugin-probe.json'
     if probe.is_file():
-        receipt['plugin_probe']=json.loads(probe.read_text(encoding='utf-8'))
-        steps=receipt['plugin_probe'].get('steps',{})
-        receipt['checks'].append('plugin probe: '+('; '.join(f"{name} {step.get('outcome','recorded')}" for name,step in steps.items()) or 'no steps recorded'))
-        if any(str(step.get('outcome','')).startswith('failed') for step in steps.values()) and run.returncode==0:
+        try:
+            receipt['plugin_probe']=json.loads(probe.read_text(encoding='utf-8'))
+            steps=receipt['plugin_probe'].get('steps',{})
+        except (ValueError,UnicodeDecodeError) as error:
+            # A write cut by the suite budget leaves a partial file: keep the fact, fail the qualification.
+            receipt['plugin_probe']=f'unreadable: {error}';steps={}
+        missing=[name for name in PROBE_STEPS if name not in steps]
+        receipt['checks'].append('plugin probe: '+('; '.join(f"{name} {step.get('outcome','recorded')}" for name,step in steps.items()) or 'no steps recorded')
+                                 +(f"; missing {', '.join(missing)}" if missing else ''))
+        if (missing or any(str(step.get('outcome','')).startswith('failed') for step in steps.values())) and run.returncode==0:
             run=subprocess.CompletedProcess(argv,1)
     else:
         receipt['plugin_probe']='missing: tests/test_plugin_probe.py wrote no receipt; see tests.txt'

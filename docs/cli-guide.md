@@ -332,9 +332,11 @@ available to the AI, integrations and direct callers when needed. Their use stay
 within the accepted task scope and existing authorizations.
 
 `extension enable` takes `--registry PATH` for a plugin bundle, one whose
-manifest carries `grants` or `declares`: the accepted registry whose `signers`
-vouch for the bundle's `artifact.sig`, whose `revoked` list it is checked
-against, and whose registration carries the grant. Without it a plugin refuses
+manifest carries `grants` or `declares`: a registry file whose `extensions`
+section lists the `signers` that vouch for the bundle's `artifact.sig`, the
+`revoked` list it is checked against, and the registration that carries the
+grant (the accepted registry's, or one written for the enable; every call
+checks the registry the run accepted). Without it a plugin refuses
 to enable; a data-only bundle enables as before, with no registry and no
 signature. The enable receipt and every contributed call then carry `plugin`:
 the signer's fingerprint, the effective grant and the acknowledged declarations,

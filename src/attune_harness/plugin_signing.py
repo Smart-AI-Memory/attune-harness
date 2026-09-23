@@ -6,15 +6,20 @@ manifest, a detached OpenPGP signature, armoured or binary. Verification runs
 ``gpg --verify`` through ``process.invoke``, bounded, in a private home
 directory the host creates for the call with mode 0700 and removes after it,
 with a keyring built from the accepted registry's public key blocks and
-nothing else: the user's own keyring, options and agent play no part. The
-verdict is read from the ``--status-fd`` lines alone, never from the exit
-status, which gpg sets to 0 for a signature by an expired or a revoked key
-(executable plugins spec, trust model; D22.1). ``gpg`` is found on PATH first
-and then at the known install locations, Git for Windows' among them, and
-every receipt records the path used and the version line (D29.1). No
-dependency is added.
+nothing else: the user's own keyring, option files and agent play no part
+(``--no-options`` on every call). Before gpg runs, the file is dearmoured and
+its packet headers walked: only Signature packets of definite length reach
+the verifier, so a compressed message inside the size bound cannot cost
+seconds of gpg on every check. The verdict is read from the ``--status-fd``
+lines alone, never from the exit status, which gpg sets to 0 for a signature
+by an expired or a revoked key (executable plugins spec, trust model; D22.1).
+``gpg`` is found on PATH first and then at the known install locations, Git
+for Windows' among them, and every receipt records the path used and the
+version line (D29.1). No dependency is added.
 """
 
+import binascii
+import copy
 import os
 import re
 import shutil
@@ -27,7 +32,8 @@ from .process import invoke
 SIGNATURE_NAME = "artifact.sig"
 SIGNATURE_LIMIT = 16_384
 KEY_BLOCK_LIMIT = 16_384
-VERIFIER_TIMEOUT = 30
+# A real verification takes well under a second on every runner; the bound is for a hung gpg.
+VERIFIER_TIMEOUT = 10
 VERIFIER_OUTPUT = 65_536
 FINGERPRINT = r"[A-F0-9]{40}"
 KEY_BLOCK_BEGIN = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
@@ -37,13 +43,15 @@ KEY_BLOCK_END = "-----END PGP PUBLIC KEY BLOCK-----"
 # Windows tails are joined to each Program Files root the environment names.
 KNOWN_GPG_WINDOWS = (r"Git\usr\bin\gpg.exe", r"Git\mingw64\bin\gpg.exe", r"GnuPG\bin\gpg.exe")
 KNOWN_GPG_POSIX = ("/usr/bin/gpg", "/usr/local/bin/gpg", "/opt/homebrew/bin/gpg")
+SIGNATURE_ARMOUR_BEGIN = "-----BEGIN PGP SIGNATURE-----"
+SIGNATURE_ARMOUR_END = "-----END PGP SIGNATURE-----"
 
 # What the receipt says a signature means, and what a declaration is.
 SIGNATURE_SCOPE = (
     "This exact bundle, manifest and skill, was reviewed by the signer under the brief; "
     "not that it is safe in general"
 )
-DECLARATIONS_SCOPE = "Recorded and not enforced; the host enforces the grant only"
+DECLARATIONS_SCOPE = "Recorded and not enforced; the grant is checked against the manifest and recorded"
 
 # Refusals, each what happened and a plain next action (D20.1 style).
 UNSIGNED = (
@@ -69,6 +77,10 @@ TAMPERED = (
 GPG_ABSENT = (
     "gpg is absent from PATH and from the known install locations ({searched}), so the "
     "plugin signature cannot be verified; install GnuPG and put gpg on PATH"
+)
+GPG_NOT_EXECUTABLE = (
+    "gpg at {path} is present but cannot run (not executable), so the plugin signature cannot be "
+    "verified; make it executable or put a working gpg on PATH"
 )
 VERIFIER_FAILED = "Plugin signature verifier failed to run ({failure}); check the gpg installation"
 NO_VERDICT = (
@@ -132,28 +144,116 @@ def read_signature(directory: Path) -> bytes:
     return raw
 
 
+def dearmour(raw: bytes) -> bytes:
+    """The packet bytes of ``artifact.sig``: a PGP SIGNATURE armour decoded, or the bytes as they are."""
+    if not raw.lstrip().startswith(SIGNATURE_ARMOUR_BEGIN.encode("ascii")):
+        return raw
+    lines = raw.decode("ascii", errors="replace").splitlines()
+    try:
+        begin = next(index for index, line in enumerate(lines) if line.strip() == SIGNATURE_ARMOUR_BEGIN)
+        end = next(index for index, line in enumerate(lines) if line.strip() == SIGNATURE_ARMOUR_END)
+    except StopIteration:
+        raise FeatureUnavailable(NOT_A_SIGNATURE) from None
+    body = lines[begin + 1:end]
+    while body and body[0].strip():
+        body.pop(0)  # armour headers end at the first blank line
+    encoded = "".join(line.strip() for line in body if line.strip() and not line.startswith("="))
+    try:
+        return binascii.a2b_base64(encoded)
+    except (binascii.Error, ValueError):
+        raise FeatureUnavailable(NOT_A_SIGNATURE) from None
+
+
+def signature_packets(raw: bytes) -> int:
+    """The number of packets in ``artifact.sig``, refused unless every one is a Signature packet of definite length.
+
+    Walked before gpg runs (finding 1 of the review): a compressed or a literal
+    packet inside the 16 KiB bound cost up to 27 seconds of gpg on every
+    check before ``NODATA`` refused it; an inline-signed, clearsigned or
+    marker-led file is refused here too, as not a detached signature.
+    """
+    data = dearmour(raw)
+    offset, count = 0, 0
+    while offset < len(data):
+        head = data[offset]
+        if not head & 0x80:
+            raise FeatureUnavailable(NOT_A_SIGNATURE)
+        if head & 0x40:  # new format
+            tag = head & 0x3F
+            if offset + 1 >= len(data):
+                raise FeatureUnavailable(NOT_A_SIGNATURE)
+            first = data[offset + 1]
+            if first < 192:
+                length, used = first, 2
+            elif first < 224:
+                if offset + 2 >= len(data):
+                    raise FeatureUnavailable(NOT_A_SIGNATURE)
+                length, used = ((first - 192) << 8) + data[offset + 2] + 192, 3
+            elif first == 255:
+                if offset + 5 >= len(data):
+                    raise FeatureUnavailable(NOT_A_SIGNATURE)
+                length, used = int.from_bytes(data[offset + 2:offset + 6], "big"), 6
+            else:
+                raise FeatureUnavailable(NOT_A_SIGNATURE)  # a partial body length is not definite
+        else:  # old format
+            tag, kind = (head >> 2) & 0x0F, head & 0x03
+            if kind == 3:
+                raise FeatureUnavailable(NOT_A_SIGNATURE)  # indeterminate length
+            width = (1, 2, 4)[kind]
+            if offset + width >= len(data):
+                raise FeatureUnavailable(NOT_A_SIGNATURE)
+            length, used = int.from_bytes(data[offset + 1:offset + 1 + width], "big"), 1 + width
+        if tag != 2 or length == 0 or offset + used + length > len(data):
+            raise FeatureUnavailable(NOT_A_SIGNATURE)
+        offset += used + length
+        count += 1
+    if count == 0:
+        raise FeatureUnavailable(NOT_A_SIGNATURE)
+    return count
+
+
+def known_gpg_locations() -> list:
+    """Where gpg is looked for after PATH, absolute, in order."""
+    if os.name != "nt":
+        return list(KNOWN_GPG_POSIX)
+    roots = []
+    for variable in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+        value = os.environ.get(variable)
+        if value and value not in roots:
+            roots.append(value)
+    for fallback in (r"C:\Program Files", r"C:\Program Files (x86)"):
+        if fallback not in roots:
+            roots.append(fallback)
+    return [os.path.join(root, tail) for root in roots for tail in KNOWN_GPG_WINDOWS]
+
+
 def find_gpg():
-    """The gpg to run, PATH first and then the known install locations; and what was searched."""
+    """The gpg to run, the PATH entries first and then the known install locations; and what was searched.
+
+    The PATH entries are searched directly, absolute ones only, so a gpg in the
+    working directory is never chosen (Python 3.10's ``shutil.which`` prefers
+    the working directory on Windows) and the result is always absolute. A
+    file that is present but not executable is reported as such, not as
+    absent.
+    """
     searched = ["PATH"]
-    found = shutil.which("gpg")
-    if found:
-        return found, searched
-    if os.name == "nt":
-        roots = []
-        for variable in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
-            value = os.environ.get(variable)
-            if value and value not in roots:
-                roots.append(value)
-        for fallback in (r"C:\Program Files", r"C:\Program Files (x86)"):
-            if fallback not in roots:
-                roots.append(fallback)
-        candidates = [os.path.join(root, tail) for root in roots for tail in KNOWN_GPG_WINDOWS]
-    else:
-        candidates = list(KNOWN_GPG_POSIX)
-    for candidate in candidates:
+    # A Windows executable needs an extension to run, so a bare ``gpg`` is not a candidate there.
+    names = ["gpg.exe", "gpg.cmd", "gpg.bat"] if os.name == "nt" else ["gpg"]
+    entries = [entry for entry in os.environ.get("PATH", "").split(os.pathsep) if entry and os.path.isabs(entry)]
+    present = None
+    for candidate in [os.path.join(entry, name) for entry in entries for name in names]:
+        if os.path.isfile(candidate):
+            if os.access(candidate, os.X_OK):
+                return candidate, searched
+            present = present or candidate
+    for candidate in known_gpg_locations():
         searched.append(candidate)
-        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-            return candidate, searched
+        if os.path.isfile(candidate):
+            if os.access(candidate, os.X_OK):
+                return candidate, searched
+            present = present or candidate
+    if present is not None:
+        raise FeatureUnavailable(GPG_NOT_EXECUTABLE.format(path=present))
     return None, searched
 
 
@@ -183,7 +283,7 @@ def _run(argv: tuple, home: Path):
 def _status(stdout: str) -> list:
     """gpg's status lines as token lists, keyword first; everything else on stdout is ignored."""
     lines = []
-    for line in stdout.splitlines():
+    for line in stdout.split("\n"):
         if line.startswith("[GNUPG:] "):
             tokens = line.split()[1:]
             if tokens:
@@ -202,6 +302,8 @@ def verdict(lines: list, listed: set) -> str:
     for keyword, refusal in REFUSING_STATUS:
         if keyword in keywords:
             raise FeatureUnavailable(refusal)
+    if keywords and "NEWSIG" not in keywords:
+        raise FeatureUnavailable(NOT_A_SIGNATURE)  # gpg reported, but checked no signature
     primaries = [
         tokens[10] if len(tokens) > 10 else tokens[1]
         for tokens in lines
@@ -223,8 +325,9 @@ def gpg_path(path: Path, style: str = "native") -> str:
     directory plus the whole string and could not start its agent (the first
     two D29.1 findings, windows-latest, September 23, 2026). Such a build is
     told by ``probe_gpg``; it is given the drive as ``/c/`` and the rest with
-    forward slashes, which is how that runtime spells the same directory. A
-    native gpg keeps ``C:/Users/...``; on POSIX the path is unchanged.
+    forward slashes, which is how the MSYS runtime spells the same directory
+    (a Cygwin build would want ``/cygdrive/c/`` and is not handled). A native
+    gpg keeps ``C:/Users/...``; on POSIX the path is unchanged.
     """
     spelled = Path(path).as_posix()
     if style == "posix" and os.name == "nt":
@@ -238,12 +341,13 @@ def probe_gpg(gpg: str, cwd: Path) -> dict:
     """This gpg's version line and path style, from ``--version`` alone: no home directory is opened.
 
     The ``Home:`` line names the default home as the build spells it: a
-    ``/``-rooted one is an MSYS or Cygwin build (Git for Windows), which needs
-    POSIX-styled paths; anything else is native. The user's keyring is not read.
+    ``/``-rooted one is an MSYS build (Git for Windows), which needs POSIX-styled
+    paths; anything else is native. ``--no-options`` keeps the invoking user's
+    option file out of it; no keyring is read.
     """
     if gpg in PROBED:
         return dict(PROBED[gpg])
-    result = _run((gpg, "--batch", "--no-tty", "--version"), cwd)
+    result = _run((gpg, "--batch", "--no-tty", "--no-options", "--version"), cwd)
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if not lines or not lines[0].startswith("gpg"):
         raise FeatureUnavailable(VERIFIER_FAILED.format(failure="no version line"))
@@ -269,8 +373,13 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
     """
     signers = list(signers)
     data = signed_bytes(artifact_digest)
-    gpg, searched = find_gpg()
-    verifier = {"gpg": gpg, "version": None, "path_style": None, "status": [], "exit_status": None}
+    verifier = {"gpg": None, "version": None, "path_style": None, "status": [], "exit_status": None, "packets": None}
+    try:
+        verifier["packets"] = signature_packets(signature)
+        gpg, searched = find_gpg()
+    except FeatureUnavailable as refused:
+        return {"signer": None, "refusal": str(refused), "verifier": verifier}
+    verifier["gpg"] = gpg
     if gpg is None:
         refusal = GPG_ABSENT.format(searched=", ".join(searched[1:]) or "none known")
         return {"signer": None, "refusal": refusal, "verifier": verifier}
@@ -289,6 +398,7 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
             gpg,
             "--batch",
             "--no-tty",
+            "--no-options",
             "--no-autostart",
             "--homedir",
             gpg_path(home, probed["path_style"]),
