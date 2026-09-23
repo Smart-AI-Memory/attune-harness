@@ -98,6 +98,7 @@ covers direct use. Full usage, exit codes and recovery controls are in the
 | The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install attune-harness` |
 | Read the Redis memory a hydration keeps warm: the recall digest, related nodes, one record, full-text search over the index (`redis` 5.3.1); read-only, the `text` body of a file, lesson or rule pointer is never served; needs a reachable Redis Stack with the hydration's index and function library. Also the Redis backend for working memory (`memory scratch`), shared across processes and machines; the file backend is in the base | `pip install 'attune-harness[redis]'` |
 | Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]'` |
+| Both of the above in one word: the Redis reader and Voyage retrieval. The experimental extra below stays explicit | `pip install 'attune-harness[all]'` |
 | Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]'` |
 
 Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`

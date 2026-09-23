@@ -26,6 +26,12 @@ on this section.
   a diagnostic on a missing or closed stream instead of failing the command;
   `main` owns the binding and `execute` no longer rebinds it (O-67, #100).
 
+- Added: the `all` extra, `pip install 'attune-harness[all]'`, installs the
+  two qualified extras, `redis` and `voyage`, in one word; it is
+  self-referential so the pins stay where they are. `memory-native` stays
+  explicit because it is experimental and POSIX-only. The base install is
+  unchanged.
+
 ## 0.5.0
 
 Memory is native. `attune-harness memory recall`, `resolve` and `refresh`
