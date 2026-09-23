@@ -112,6 +112,15 @@ those limits. No agent can widen them.
 - The author of a change does not review it. Before merging anything that
   touches `src/`, get a review from a different model or from Patrick, and
   record in the pull request who reviewed it and what they found.
+- Record the review in the body before the push that carries the fix
+  commits. The `Classify change` gate reads the body once, from the event
+  that started its run, and fails a `src/` pull request whose body still says
+  `REVIEW_PLACEHOLDER`; a body edit starts no run, so a review recorded after
+  the last push leaves the gate red. Two things clear it without a commit:
+  close and reopen the pull request (`reopened` starts a run; the cancelled
+  duplicate it leaves is cosmetic), or push again. Listening for `edited`
+  would rerun the whole qualification on every title change, which is the
+  wrong trade; the habit is cheaper.
 - Merging is Patrick's, with one delegation. On his explicit go for a named
   pull request ("merge it when green"), an agent may merge a pull request that
   touches no file under `src/` or `tests/`, by squash, after every check has

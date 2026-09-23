@@ -90,8 +90,11 @@ Failed runs for the record: 35462095551 (environment branch rule), 35462519274
   `docs/cli-guide.md`.
 - attune-ai: stray usage-signals snapshot committed as `e15576fa7` on
   `chore/usage-signals-snapshot-2026-09-11`, pushed; PR not yet opened.
-- `docs/handoffs/` is gitignored: this file, the session starter and the README
-  draft live only on disk unless backed up by tarball.
+- `docs/handoffs/` was not gitignored when this was written; the claim below
+  was true only on the wip snapshot branch. Since the pull request that closed
+  O-43 (September 23, 2026) the rule is on `main`, tracked files stay tracked,
+  and a new note is added by name with `git add -f`. This file, the session
+  starter and the README draft were on disk only, until they were added by name.
 
 ## Known content gap in the README plan
 
