@@ -32,9 +32,9 @@ from attune_harness.command_workspace import CommandWorkspaceError  # noqa: E402
 from attune_harness.features import FeatureUnavailable  # noqa: E402
 from attune_harness.work_accept import WorkAcceptance  # noqa: E402
 from attune_harness.task_contract import read_task  # noqa: E402
-from attune_harness.work_contract import bind_work_acceptance  # noqa: E402
+from attune_harness.work_contract import bind_work_acceptance, create_work  # noqa: E402
 from attune_harness.work_decisions import retained_decision  # noqa: E402
-from test_work_contract import correction, make, work  # noqa: E402,F401
+from test_work_contract import control, correction, make, work  # noqa: E402,F401
 
 # (action, severity of the gate that offers it, needs confirmed, grants work authority).
 # Only approve_task and auto_run_remaining bind acceptance; a redo, a retry and a
@@ -47,6 +47,10 @@ GATES = [
     ("acknowledge_risk", "high", True, False),
 ]
 EVENTS = "workspace-events.jsonl"
+# The stages the acceptance walks before the human's gate (D24): the approval
+# render, the walked start_execution, the task gate's render; then the human's action.
+OPENED = ["workspace_rendered", "workspace_accepted", "workspace_rendered"]
+ACCEPTED = [*OPENED, "workspace_accepted"]
 
 
 @pytest.fixture(autouse=True)
@@ -122,12 +126,14 @@ def test_console_approval_is_accepted_and_recorded_without_attune(work):
     saved = retained_decision(read_task(directory))
     assert saved["response"]["action"] == "approve_task"
 
-    # D14: the render and the accept are evidence beside decision.json.
+    # D14: the renders and the accepts are evidence beside decision.json; the
+    # walked start_execution is one of them (D24), the human's approve_task the last.
     recorded = events(directory)
-    assert [e["event"] for e in recorded] == ["workspace_rendered", "workspace_accepted"]
+    assert [e["event"] for e in recorded] == ACCEPTED
     assert {e["workspace_id"] for e in recorded} == {view.record.workspace_id}
-    assert recorded[1]["action"] == "approve_task"
-    assert recorded[1]["terminal"] is True
+    accepted_actions = [e["action"] for e in recorded if e["event"] == "workspace_accepted"]
+    assert accepted_actions == ["start_execution", "approve_task"]
+    assert recorded[1]["terminal"] is False and recorded[3]["terminal"] is True
     text = (directory / EVENTS).read_text(encoding="utf-8")
     assert view.record.action_nonce not in text
     assert "action_nonce" not in text
@@ -146,7 +152,7 @@ def test_a_failing_event_sink_never_blocks_the_decision(work, tmp_path):
     view = run(bridge.open())
     receipt, accepted = run(bridge.collect(response(view, "approve_task")))
     assert accepted["status"] == "accepted"
-    assert bridge.host.dropped_events == 2
+    assert bridge.host.dropped_events == len(ACCEPTED)
     assert not (outside / "events.jsonl").exists()
 
 
@@ -160,11 +166,11 @@ def test_an_event_file_hard_linked_to_the_record_is_refused(work):
     before = (directory / "record.json").read_bytes()
     bridge = WorkAcceptance(directory)
     view = run(bridge.open())
-    assert bridge.host.dropped_events == 1
+    assert bridge.host.dropped_events == len(OPENED)  # every walked stage's event met the sink
     assert (directory / "record.json").read_bytes() == before
     receipt, accepted = run(bridge.collect(response(view, "approve_task")))
     assert accepted["status"] == "accepted"
-    assert bridge.host.dropped_events == 2
+    assert bridge.host.dropped_events == len(ACCEPTED)
     assert read_task(directory)["status"] == "accepted"  # the record still parses
 
 
@@ -195,7 +201,7 @@ def test_every_wired_action_is_refused_without_its_nonce(
         run(bridge.collect(forged))
     assert (directory / "record.json").read_bytes() == before
     assert retained_decision(read_task(directory))["state"] == "current"
-    assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+    assert [e["event"] for e in events(directory)] == OPENED
 
 
 @pytest.mark.parametrize("action,severity,needs_confirmed,grants", GATES)
@@ -222,7 +228,7 @@ def test_the_host_refuses_a_wrong_or_missing_nonce_on_its_own(
         run(bridge.host.collect(stale, expected_adapter_id="spec"))
     # Nothing was consumed: the genuine response still goes through.
     assert bridge.host.get(view.record.workspace_id).revision == view.record.revision
-    assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+    assert [e["event"] for e in events(directory)] == OPENED
     receipt, accepted = run(bridge.collect(good))
     assert receipt.action == action
 
@@ -240,7 +246,7 @@ def test_every_wired_action_is_refused_on_a_drifted_view(
     assert record["status"] == "draft"
     assert not record.get("acceptance")
     assert retained_decision(record)["state"] == "historical"
-    assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+    assert [e["event"] for e in events(directory)] == OPENED
 
 
 @pytest.mark.parametrize("action,severity,needs_confirmed,grants", GATES)
@@ -283,10 +289,7 @@ def test_every_wired_action_is_refused_when_replayed(
         with pytest.raises(ValueError, match="do not replay a decision"):
             bind_work_acceptance(directory, accepted["acceptance"]["decision"])
     assert (directory / "record.json").read_bytes() == after
-    assert [e["event"] for e in events(directory)] == [
-        "workspace_rendered",
-        "workspace_accepted",
-    ]
+    assert [e["event"] for e in events(directory)] == ACCEPTED
 
 
 @pytest.mark.parametrize(
@@ -300,7 +303,7 @@ def test_confirmation_is_required_where_the_view_says_so(work, action, severity,
     record = read_task(directory)
     assert record["status"] == "draft"
     assert retained_decision(record)["state"] == "current"  # nothing was collected
-    assert [e["event"] for e in events(directory)] == ["workspace_rendered"]
+    assert [e["event"] for e in events(directory)] == OPENED
     receipt, accepted = run(bridge.collect(response(view, action, confirmed=True)))
     assert receipt.action == action
     assert receipt.result["disposition"] == action
@@ -440,10 +443,12 @@ def test_two_processes_end_with_one_acceptance(work, tmp_path, collects_first):
     assert record["acceptance"]["decision"]["source"]["disposition"] == "approve_task"
     saved = retained_decision(record)
     assert saved["response"]["action"] == "approve_task"
-    # Two renders (one per opener) and exactly one accept.
+    # Each opener renders twice and walks start_execution once (D24); one human accept.
     kinds = [e["event"] for e in events(directory)]
-    assert kinds.count("workspace_rendered") == 2
-    assert kinds.count("workspace_accepted") == 1
+    assert kinds.count("workspace_rendered") == 4
+    assert kinds.count("workspace_accepted") == 3
+    actions = [e["action"] for e in events(directory) if e["event"] == "workspace_accepted"]
+    assert actions.count("approve_task") == 1
 
 
 def test_two_simultaneous_processes_never_accept_twice(work, tmp_path):
@@ -496,9 +501,73 @@ def test_two_simultaneous_processes_never_accept_twice(work, tmp_path):
         assert done["status"] == "accepted"
     # An accept line records a consumed workspace action, not a grant, so a
     # refused child can leave one; the store's record above is the authority.
-    kinds = [e["event"] for e in events(directory)]
-    assert 1 <= kinds.count("workspace_accepted") <= 3
+    # Each opener also walks start_execution (D24), one accept line apiece.
+    actions = [e["action"] for e in events(directory) if e["event"] == "workspace_accepted"]
+    assert 1 <= actions.count("approve_task") <= 3
     assert read_task(directory)["status"] == "accepted"
+
+
+# --- the execution stages, walked (D23.2, D24) --------------------------------
+
+
+def test_the_acceptance_walks_the_execution_stages_to_the_gate(work):
+    directory, bridge, view = opened(work)
+    state = view.record.state
+    assert state.stage == "task_gate"
+    assert state.current == read_task(directory)["request"]["task_id"]
+    assert [(r.gate_id, r.boundary, r.state) for r in state.lifecycle_receipts] == [
+        ("planner-assignment", "execution", "PASS"),
+        ("required-controls", "execution", "PASS"),
+    ]
+    recorded = events(directory)
+    assert [e["event"] for e in recorded] == OPENED
+    assert recorded[1]["action"] == "start_execution" and recorded[1]["terminal"] is False
+
+
+def test_an_unsupported_required_control_blocks_the_execution_gate(work, capsys):
+    root, config, data = work
+    record = create_work(root, config, **{**data, "controls": [control()]})
+    directory = Path(record["record_path"]).parent
+    bridge = WorkAcceptance(directory)  # no runner supports independent-tests
+    view = run(bridge.open())
+    state = view.record.state
+    assert state.stage == "blocked"
+    assert [(r.gate_id, r.state, r.detail) for r in state.lifecycle_receipts] == [
+        ("planner-assignment", "PASS", "A planner is assigned"),
+        ("required-controls", "BLOCKED", "Unavailable required control: independent-tests"),
+    ]
+    assert [a.id for a in view.record.view.actions] == ["retry_gate"]
+    saved = retained_decision(read_task(directory))
+    assert saved["state"] == "current"
+    assert saved["display"]["title"] == "Spec lifecycle blocked"
+    assert "Unavailable required control: independent-tests" in saved["display"]["markdown"]
+    assert [e["event"] for e in events(directory)] == OPENED
+    # The command line refuses with the receipt's words, the bind's words before the walk.
+    accept = ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]]
+    assert main(accept) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "failed"
+    assert result["error"]["detail"] == "Unavailable required control: independent-tests"
+    assert read_task(directory)["status"] == "draft"
+    # The preview shows the blocked gate, not an approvable one.
+    assert main(["plan", "--task-dir", str(directory), "--decision"]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["status"] == "draft"
+    assert result["decision"]["display"]["title"] == "Spec lifecycle blocked"
+
+
+def test_missing_intent_is_refused_before_the_walk(work, capsys):
+    root, config, data = work
+    question = {"id": "stream", "question": "How should export stream?", "answer": None, "material": True}
+    record = create_work(root, config, **{**data, "intent": {**data["intent"], "questions": [question]}})
+    directory = Path(record["record_path"]).parent
+    with pytest.raises(ValueError, match="Spec approval requires a complete draft"):
+        WorkAcceptance(directory)
+    assert not (directory / EVENTS).exists()  # no workspace was opened
+    accept = ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]]
+    assert main(accept) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result["error"]["detail"] == "Spec approval requires a complete draft"
 
 
 # --- the command line ---------------------------------------------------------
