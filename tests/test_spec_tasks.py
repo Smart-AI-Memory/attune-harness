@@ -210,13 +210,48 @@ def test_no_task_block_at_all(caplog):
 # ---- the regex fallback and its warnings -----------------------------------
 
 
-def test_a_bare_ampersand_between_blocks_falls_back_to_regex(caplog):
+def test_prose_between_blocks_is_never_parsed_so_both_tasks_stay_on_the_parser_path(caplog):
+    # O-58: a bare & in a note between two tasks used to drop the whole plan to
+    # the regex path, where entities stop being decoded. Each block is parsed
+    # on its own now, so the prose is never seen and both tasks decode.
     tasks, messages = parse(
         caplog,
-        '<task id="1"><objective>A</objective></task>\nNotes & caveats.\n<task id="2"><objective>B</objective></task>',
+        '<task id="1"><objective>R&amp;D</objective></task>\nNotes & caveats: R&D <next>.\n'
+        '<task id="2"><objective>B &amp; C</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "R&D"), ("2", "B & C")]
+    assert messages == []
+
+
+def test_a_rejected_block_falls_back_alone_and_the_other_block_still_decodes(caplog):
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A & B</objective></task>\n<task id="2"><objective>C &amp; D</objective></task>',
+    )
+    assert [(t.task_id, t.objective) for t in tasks] == [("1", "A & B"), ("2", "C & D")]
+    assert [m for m in messages if "not well-formed" in m and "falling back" in m]
+    assert len(messages) == 1
+
+
+def test_a_stray_close_tag_keeps_the_whole_plan_fallback_and_its_warnings(caplog):
+    # The tags do not balance, so the region is parsed as one document as
+    # before and the fallback describes the whole plan.
+    tasks, messages = parse(
+        caplog,
+        '<task id="1"><objective>A</objective></task></task>\n<task id="2"><objective>B</objective></task>',
     )
     assert [t.task_id for t in tasks] == ["1", "2"]
     assert any("not well-formed" in m for m in messages)
+
+
+def test_top_level_blocks_keep_a_nested_example_inside_its_block():
+    nested = '<task id="1"><objective>See <task id="x">ex</task></objective></task>'
+    assert spec_tasks._top_level_blocks(nested + '\nprose\n<task id="2">B</task>') == [
+        nested,
+        '<task id="2">B</task>',
+    ]
+    assert spec_tasks._top_level_blocks('<task id="1"><objective>A</objective>') is None
+    assert spec_tasks._top_level_blocks('</task><task id="1"><objective>A</objective></task>') is None
 
 
 def test_well_formed_tasks_on_the_regex_path_emit_no_warnings(caplog):

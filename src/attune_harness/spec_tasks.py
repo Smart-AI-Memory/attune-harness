@@ -100,26 +100,69 @@ _TASK_BLOCK = re.compile(r'<task\s+id="([^"]*)"(?:\s+name="([^"]*)")?\s*>(.*?)</
 # Opening tags that only appear inside a <task> body. One found between blocks
 # means a task lost its wrapper and was dropped.
 _ORPHAN_TAG = re.compile(r"<(objective|file|check|risk|dep)[\s>]")
+# The edges of task blocks, for splitting a region into its top-level blocks.
+_TASK_EDGE = re.compile(r"<task[\s>]|</task\s*>")
 
 
 def parse_tasks(content: str) -> list[DecomposedTask]:
     """Parse the ``<task>`` elements in a plan file or a model's reply.
 
     Well-formed XML goes through the parser, so quoting style, attribute
-    order and whitespace cannot drop a task. Anything the parser rejects, a
-    bare ``&`` in prose, an unclosed tag, a ``<`` in a description, falls back
-    to the regex path, which warns about what it cannot see.
+    order and whitespace cannot drop a task. Each top-level block is parsed
+    on its own, so prose between blocks is never parsed at all. A block the
+    parser rejects, an unclosed tag or a ``<`` in a description, falls back
+    to the regex path for that block, which warns about what it cannot see;
+    a plan whose task tags do not balance falls back as a whole.
     """
     region = _TASK_REGION.search(content)
     if region is None:
         return _parse_with_regex(content)
+    blocks = _top_level_blocks(region.group(0))
+    if blocks is None:
+        # A missing or stray </task>: parse the region as one document, as
+        # before, so the fallback and its warnings describe the whole plan.
+        return _parse_xml(region.group(0), content)
+    # Each block on its own, so prose between blocks (a bare & or < in a
+    # note between two tasks) cannot change how any task is read, and a block
+    # the parser rejects drops to the regex path alone.
+    tasks: list[DecomposedTask] = []
+    for block in blocks:
+        tasks.extend(_parse_xml(block, block))
+    return tasks
+
+
+def _top_level_blocks(region: str) -> list[str] | None:
+    """Split a task region into its top-level ``<task>…</task>`` blocks.
+
+    A ``<task>`` inside another's body (an example in a description) stays in
+    its block. Returns None when the tags do not balance, a missing or a stray
+    ``</task>``, so the caller keeps the whole-region path and its warnings.
+    """
+    blocks: list[str] = []
+    depth, start = 0, 0
+    for match in _TASK_EDGE.finditer(region):
+        if match.group(0).startswith("</"):
+            if depth == 0:
+                return None
+            depth -= 1
+            if depth == 0:
+                blocks.append(region[start : match.end()])
+        else:
+            if depth == 0:
+                start = match.start()
+            depth += 1
+    return blocks if depth == 0 else None
+
+
+def _parse_xml(xml: str, fallback: str) -> list[DecomposedTask]:
+    """Parse ``xml`` wrapped in one root; on rejection, regex-parse ``fallback``."""
     try:
-        root = ET.fromstring(f"<r>{region.group(0)}</r>")
+        root = ET.fromstring(f"<r>{xml}</r>")
     except (ET.ParseError, ValueError) as exc:
         # ValueError covers what the parser raises for text it cannot encode,
         # such as a lone surrogate, when a caller passes a string directly.
         logger.warning("Task XML is not well-formed (%s) - falling back to regex extraction", exc)
-        return _parse_with_regex(content)
+        return _parse_with_regex(fallback)
     # Direct children only: a <task> nested inside a description is an
     # example, not a task.
     tasks = [_task_from_element(element) for element in root.findall("task")]
