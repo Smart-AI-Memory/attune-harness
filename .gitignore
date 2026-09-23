@@ -25,3 +25,6 @@ CLAUDE.md
 # Local workflow history and SQLite sidecars.
 /.attune/history.db*
 # Local session notes; never published. Same rules as the wip snapshot branch.
+# Files already tracked there stay tracked; a new one is added by name with git add -f.
+docs/handoffs/
+docs/reflections/
