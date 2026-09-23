@@ -449,7 +449,8 @@ class World:
     def memory_host(self):
         # The current-memory adapter lives in attune-ai, which no base or extra install carries;
         # pin the unavailable report the same way on every machine.
-        self.monkeypatch.setitem(sys.modules, "attune", None)
+        for name in ("attune", "attune.memory", "attune.memory.harness_adapter"):
+            self.monkeypatch.setitem(sys.modules, name, None)  # also when a differential imported it earlier
         return self.memory_config({"roots": []})
 
     def faked_adapter(self):

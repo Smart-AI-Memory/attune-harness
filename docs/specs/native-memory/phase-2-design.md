@@ -279,3 +279,27 @@ and to be added as cases in 2.2: the sidecar-bound handle version
 64 MiB bounds, the frontmatter `owner`/`scope`/`classification` refusal, the
 30-day raw expiry on `resolve`, and the sanitizer refusal on a surfaced
 string (the compatibility test has one for the write path only).
+
+## 2.2 rulings under decision 3
+
+Recorded from the differential and the review of #80, September 22, 2026.
+
+- **Adapter wrong, excluded by name:** a raw row whose `topics` list holds a
+  non-string element. The adapter's tokenizer raises inside `recall_entries`'
+  blanket `except`, so the whole root answers `empty`; the native reader
+  tokenizes the string topics and ranks the row. Harness keeps its behaviour.
+- **Native fixed to the adapter:** a raw row with no `topics` key is legal;
+  an empty or blank string passes the gate (the candidate is `label=value`,
+  never blank); the gate runs before the frontmatter check, so a document
+  that is both mislabelled and unsafe refuses in the gate's words; an
+  unreadable raw `ts` is "expired", never a `TypeError`; a dangling
+  `findings.jsonl` symlink is an absent file; a sidecar that appears during a
+  query is a change; the binding is re-checked per root during a query.
+- **Declared seams kept:** the provenance fields and staleness annotations
+  in document metadata (2.3); `resolve` on a malformed handle refuses with a
+  `ValueError` where the adapter raises `AttributeError` or `KeyError`; a
+  directory locator refuses with the regular-file text where the adapter
+  raises `IsADirectoryError`.
+- **Gate parity:** the sanitizer's patterns are carried verbatim, and a
+  comparison against `prepare_strict_content` itself on 35 strings, the
+  reviewer's twenty disagreements included, finds none.
