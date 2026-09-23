@@ -57,15 +57,19 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
         run: |
           # Anything unexpected leaves qualify=true. File names are data: they
           # are only ever matched against the patterns below.
           qualify=true
           reason=code
-          if [[ "$EVENT_NAME" == pull_request && "$HEAD_REF" == release/* ]]; then
+          if [[ "$EVENT_NAME" == pull_request && "$HEAD_REF" == release/* \
+                && "$HEAD_REPO" == "$GITHUB_REPOSITORY" ]]; then
             # The release branch's own push run qualifies every commit it
             # carries, and the release gate reads only push and dispatch runs;
             # a second full matrix for the pull request proved nothing (O-64).
+            # This repository's branches only: a fork's release/ branch has no
+            # push run here, so it takes the content-based path below.
             qualify=false
             reason=release-branch
           elif [[ "$EVENT_NAME" == pull_request ]]; then
@@ -225,7 +229,9 @@ jobs:
                   && ( "$SUITE" == success || "$SUITE" == skipped ) ]]; then
               verdict=skipped
             fi
-          elif [[ "$PLATFORMS" == success && "$SUITE" == success ]]; then
+          elif [[ "$CLASSIFIED" == success && "$PLATFORMS" == success && "$SUITE" == success ]]; then
+            # The classifier's failure is the review gate refusing; the platform
+            # jobs run regardless (!cancelled()), so it must count here too.
             verdict=pass
           fi
           case "$verdict" in

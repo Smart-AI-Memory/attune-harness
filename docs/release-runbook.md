@@ -67,7 +67,9 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    there is one run to read per push, and it is the push run.
 4. **Rehearse the gate.** Dispatch `publish-pypi.yml` from `main` with
    `publish=false`. It runs the whole release gate and never touches the
-   environment, so it cannot upload anything.
+   environment, so it cannot upload anything. A change to that workflow's
+   own action pins or steps is exercised nowhere else, so a rehearsal is
+   owed after any such change, before the next `publish=true`.
 5. **Publish.** Dispatch again with `publish=true`:
 
    ```bash
