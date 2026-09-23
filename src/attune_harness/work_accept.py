@@ -15,10 +15,11 @@ Refusal of a stale or replayed decision across processes is the task store's,
 under its lease; the checks here before it are unlocked reads.
 
 Task 4's first step (D20.1, D23) moved this module out of the bridge, whose
-remainder is the legacy plan reader, ``spec_legacy``. The class was ``WorkSpecBridge``; every
-refusal text, the readiness check and the import receipts are contracts and
-are unchanged, including the text "Reopen the bridge for a different work
-revision", until a deliberate diff with a changelog line renames it.
+remainder is the legacy plan reader, ``spec_legacy``. The class was
+``WorkSpecBridge``; every refusal text, the readiness check and the import
+receipts are contracts and are unchanged, including the text "Reopen the
+bridge for a different work revision", until a deliberate diff with a
+changelog line renames it.
 """
 
 import copy
