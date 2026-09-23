@@ -214,7 +214,10 @@ def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path):
         assert relative in found, (query, sorted(found))
         assert found[relative]["text"].encode("utf-8") == source  # the excerpt is bounded, the source is not
         assert found[relative]["kind"] == Path(relative).stem
-        assert set(found[relative]["metadata"]) == {"path", "summary", "excerpt", "score"}
+        assert list(found[relative]["metadata"]) == ["path", "summary", "excerpt", "score", "unverified_days",
+                                                     "staleness", "status", "provenance"]
+        assert found[relative]["metadata"]["provenance"]["tier"] == "curated"
+        assert found[relative]["metadata"]["staleness"] == "⟨verified today⟩"
         assert len(found[relative]["metadata"]["excerpt"]) <= 200
     long = next(i for i in reader.query("Aurora manual", k=5)["items"] if i["locator"]["path"] == "manual/reference.md")
     assert long["text"].endswith("rollback requires the original record and operation identity.")
@@ -392,6 +395,7 @@ def test_differential_against_the_adapter(tmp_path, monkeypatch):
             assert ours["items"][0]["id"] == theirs["items"][0]["id"], query
             for mine, its in zip(ours["items"], theirs["items"]):
                 assert (mine["text"], mine["kind"], mine["version"], mine["locator"]) == (its["text"], its["kind"], its["version"], its["locator"])
+                assert mine["metadata"] == its["metadata"], (query, mine["id"])
         report.append((query, [i["id"] for i in ours["items"]] == [i["id"] for i in theirs["items"]]))
         for item in theirs["items"]:
             handle = {k: item[k] for k in ("id", "locator", "version", "authority")}
@@ -497,6 +501,8 @@ def test_the_retriever_is_asked_for_twice_k(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_reader, "require_feature", spying)
     reader.query("Aurora procedure", k=4)
     assert asked == [8]
+    monkeypatch.undo()
+    assert len(reader.query("Aurora", k=1)["items"]) == 1  # five documents match; the tier keeps k
 
 
 @posix_only
@@ -542,3 +548,86 @@ def test_the_subset_parser_strips_comments_and_reads_block_scalars():
     assert parsed == {"owner": "patrick", "note": "first\nsecond\n", "flag": True, "quoted": "a # b", "folded": "one two\n"}
     yaml = pytest.importorskip("yaml")
     assert parsed == yaml.safe_load(block)
+
+
+# --- the adversarial differential (2.3): odd inputs through both readers, metadata included ---------
+
+
+ADVERSARIAL_QUERIES = [
+    "Aurora", "aurora!!! reminder???", "AURORA-REMINDER", "Aurora, reminder; 09:15", "reminder", "ré-minder Aurora",
+    "Aurora " * 40, "a", "09:15", "Aurora\treminder\nprocedure", "✨ Aurora ✨", "manual END_OF_SOURCE",
+]
+
+
+def adversarial_roots(tmp_path):
+    """Roots built to exercise the seams: odd timestamps, frontmatter variants, punctuation in bodies."""
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    now = time.time()
+    rows = [
+        dict(id="fresh", text="Aurora reminder at 09:15", topics=["type:note"], cwd="project-a", ts=now),
+        dict(id="older", text="Aurora reminder, older", topics=["type:note"], cwd="project-a", ts=now - 4 * 86400),
+        dict(id="edge", text="Aurora reminder at the edge", topics=["type:note"], cwd="project-a", ts=now - 29.9 * 86400),
+        dict(id="gone", text="Aurora reminder expired", topics=["type:note"], cwd="project-a", ts=now - 31 * 86400),
+        dict(id="future", text="Aurora reminder from the future", topics=["type:note"], cwd="project-a", ts=now + 86400),
+        dict(id="notopics", text="Aurora reminder without topics", cwd="project-a", ts=now),
+        dict(id="twotypes", text="Aurora reminder twice typed", topics=["type:a", "type:b"], cwd="project-a", ts=now),
+        dict(id="strts", text="Aurora reminder string ts", topics=["type:note"], cwd="project-a", ts=str(now)),
+        dict(id="other", text="Aurora reminder elsewhere", topics=["type:note"], cwd="project-b", ts=now),
+        dict(id="unicode", text="Aurora ré-minder ✨ 09:15", topics=["type:note", "cwd:project-a"], cwd="project-a", ts=now),
+    ]
+    (raw / "findings.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    docs = tmp_path / "docs"
+    (docs / "aurora").mkdir(parents=True)
+    (docs / "notes").mkdir()
+    (docs / "aurora" / "decision.md").write_text("---\nowner: patrick\nscope: global\ntags: [a, b]\n---\n\n# Aurora\n\nAurora reminder is 09:15; see the manual.\n", encoding="utf-8")
+    (docs / "aurora" / "pattern.md").write_text("﻿---\nname: 'quoted: colon'\n---\r\n\r\nAurora procedure with CRLF and a BOM.\r\n", encoding="utf-8")
+    (docs / "notes" / "reference.md").write_text("# Aurora\n\nAurora manual END_OF_SOURCE with punctuation!!! and ✨ unicode.\n\n---\n\nA rule inside the body.\n", encoding="utf-8")
+    (docs / "notes" / "troubleshooting.md").write_text("---\nlinks:\n  - one\n  - two\ndescription: |\n  Aurora recovery\n  block scalar\n---\n\nAurora recovery text.\n", encoding="utf-8")
+    verified_on = time.strftime("%Y-%m-%d", time.localtime(time.time() - 3 * 86400))
+    (docs / "aurora" / "verified.md").write_text(f"---\nname: verified\ndescription: Aurora verified reminder\nmetadata:\n  type: project\nverified: {verified_on}\n---\n\nAurora reminder bound by a verdict.\n", encoding="utf-8")
+    (docs / "aurora" / "voided.md").write_text(f"---\nname: voided\ndescription: Aurora voided reminder\nmetadata:\n  type: reference\nverified: {verified_on}\n---\n\nAurora reminder whose verdict digest is stale.\n", encoding="utf-8")
+    (docs / "aurora" / "tombstone.md").write_text("---\nname: tombstone\ndescription: Aurora judged wrong\nmetadata:\n  type: feedback\n---\n\nAurora reminder judged wrong.\n", encoding="utf-8")
+    from attune_harness.memory_controls import canonical_digest
+    bound = canonical_digest("Aurora verified reminder", "\nAurora reminder bound by a verdict.\n")
+    (docs / ".verdicts.jsonl").write_text(
+        "not json\n"
+        + json.dumps(dict(stem="verified", verdict="keep", digest=bound, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="voided", verdict="keep", digest="0" * 64, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="tombstone", verdict="sharper", digest="1" * 64, who="p", at="t")) + "\n"
+        + json.dumps(dict(stem="tombstone", verdict="wrong", digest="1" * 64, who="p", at="t")) + "\n", encoding="utf-8")
+    old = time.time() - 61 * 86400
+    for name in ("verified.md", "voided.md", "tombstone.md"):  # under aurora/: the path token lifts them over the floor
+        os.utime(docs / "aurora" / name, (old, old))
+    (docs / "summaries_by_path.json").write_text(json.dumps({"notes/reference.md": "Aurora manual summary"}), encoding="utf-8")
+    return raw, docs
+
+
+@posix_only
+@pytest.mark.skipif(not os.environ.get("ATTUNE_TEST_ADAPTER_ROOT"), reason="ATTUNE_TEST_ADAPTER_ROOT names no adapter checkout")
+def test_adversarial_differential_against_the_adapter(tmp_path, monkeypatch):
+    """Odd inputs through both readers: same statuses, id sets, top results, texts, and item metadata (2.3)."""
+    checkout = Path(os.environ["ATTUNE_TEST_ADAPTER_ROOT"]).resolve()
+    monkeypatch.syspath_prepend(str(checkout / "src"))
+    adapter_module = pytest.importorskip("attune.memory.harness_adapter")
+    monkeypatch.setenv("ATTUNE_HOME", str(tmp_path / "attune-home"))
+    raw, docs = adversarial_roots(tmp_path)
+    config = config_for(("r", raw, "raw", "project-a"), ("p", docs, "personal", "global"))
+    native, adapter = NativeReader(config), adapter_module.CompatibilityAdapter(config)
+    metadata_gaps = {}
+    for query in ADVERSARIAL_QUERIES:
+        ours, theirs = native.query(query, k=10), adapter.query(query, k=10)
+        assert ours["status"] == theirs["status"], (query, ours["problems"], theirs["problems"])
+        assert ours["problems"] == theirs["problems"], query
+        assert [i["id"] for i in ours["items"]] == [i["id"] for i in theirs["items"]], query
+        for mine, its in zip(ours["items"], theirs["items"]):
+            assert (mine["text"], mine["kind"], mine["version"], mine["locator"], mine["scope"]) == (
+                its["text"], its["kind"], its["version"], its["locator"], its["scope"]), (query, mine["id"])
+            if mine["metadata"] != its["metadata"]:
+                keys = set(its["metadata"]) | set(mine["metadata"])
+                metadata_gaps[mine["id"]] = sorted(k for k in keys if its["metadata"].get(k) != mine["metadata"].get(k))
+    print("\nMETADATA GAPS:", json.dumps(metadata_gaps, sort_keys=True))
+    assert metadata_gaps == {}, "item metadata differs from the adapter's"
+    statuses = {i["metadata"]["status"] for i in native.query("Aurora reminder", k=10)["items"] if "status" in i["metadata"]}
+    assert any("verified 3d ago⟩" in s for s in statuses) and any("voided by edit" in s for s in statuses) \
+        and any("judged WRONG" in s for s in statuses), statuses

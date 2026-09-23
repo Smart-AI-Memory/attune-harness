@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added: the native reader's document items carry the adapter's provenance
+  and staleness metadata, Phase 2 step 2.3 (D19): `provenance` (tier,
+  source, author class, the instruction-shape flags and the
+  `<recalled_memory>` envelope) and `unverified_days`, `staleness` and
+  `status` from the file's age, its `verified:` date and the `.verdicts.jsonl`
+  sidecar, computed as the curated audit computes them. `memory_controls`
+  carries the patterns, the digest, the verdict loader, the age basis, the
+  tiers and the labels from attune-ai's source. The differential against
+  the adapter now compares item metadata and adds an adversarial corpus;
+  both agree completely. The adapter's telemetry write is not reproduced.
 - Added: the native memory reader, Phase 2 step 2.2 (D19). With `"reader":
   "native"` in the memory config, `memory capabilities|recall|resolve|refresh`
   read the `raw`, `personal` and `curated` roots with nothing from attune-ai:
