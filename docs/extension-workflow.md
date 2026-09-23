@@ -236,7 +236,14 @@ Verification is `gpg --verify` in a bounded subprocess with `--status-fd`,
 in a private home directory created with mode 0700 for the call and removed
 after it, holding a keyring built from the registry's key blocks and nothing
 else; the user's own keyring, options and agent play no part, and
-`GNUPGHOME` is not passed. The verdict is read from the status lines alone,
+`GNUPGHOME` is not passed. `gpg` is looked for on `PATH` first and then at
+the known install locations, on Windows Git for Windows' `usr\bin` and
+`mingw64\bin` and GnuPG's `bin` under each Program Files root, elsewhere
+`/usr/bin`, `/usr/local/bin` and `/opt/homebrew/bin`; the absent-gpg refusal
+names what was searched. Every path is handed to gpg with forward slashes,
+because Git for Windows' gpg is an MSYS build whose lock files split a path
+on `/` only and a backslashed `--homedir` left it unable to start its agent
+(D29.1's first finding, windows-latest). The verdict is read from the status lines alone,
 a `GOODSIG` and a `VALIDSIG` whose primary-key fingerprint is listed and no
 expiry, revocation, bad, error or no-data line, never from the exit status,
 which gpg sets to 0 for a signature by an expired or a revoked key. The
@@ -245,7 +252,9 @@ same function will run before the `run` binding's child starts.
 ### The receipts
 
 The enable receipt, and the `extension` block of every contributed call,
-gain `plugin`: `signer`, the fingerprint that vouched; `grant`, the
+gain `plugin`: `signer`, the fingerprint that vouched; `verifier`, the gpg
+path used, its version line, the status keywords it reported in order and
+its exit status, recorded and never consulted (D29.1); `grant`, the
 effective grant; `declares`, the acknowledged declarations exactly as the
 manifest states them; `signature_scope`, which says that the signature means
 this exact bundle was reviewed by the signer under the brief and not that it
@@ -253,6 +262,27 @@ is safe in general; and `declarations_scope`, which says the declarations
 were recorded and not enforced. Disabling drops `plugin` from the state,
 since it ends the grant. The envelope is pinned as `extension-enable-plugin`
 in [the envelope table](envelopes.md).
+
+### The probe on every platform job (D29.1)
+
+`tests/test_plugin_probe.py`, in the platform selection, is the ruling's
+probe: on each of the six platform jobs it finds gpg, generates a scratch
+key, verifies a detached signature and asserts that the verdict came from
+`GOODSIG` and a `VALIDSIG` with the listed fingerprint, produces the
+unlisted-signer, tampered-digest and revoked-key refusals (the first and the
+last with exit status 0), and launches the `run` binding's child ahead of its
+cycle: the host's interpreter with `-I -S -B`, `sys.path` set to a bundle
+directory plus the standard library entries of the host's path, and a meta
+path finder that resolves a top-level name from site-packages only inside a
+declared closure; it imports a standard library module, a bundle module and
+one declared installed distribution (`tiktoken`, a base dependency), and
+asserts that an undeclared installed one (`redis`) fails, with the repair
+probe's environment allow-list, `SystemRoot` on Windows. Nothing skips: a
+runner without gpg fails with the discovery receipt in the message. The
+receipt, `plugin-probe.json`, is written step by step into the qualification
+output directory and copied by `scripts/qualify_platform.py` into
+`platform.json` as `plugin_probe`, in the artifact each platform job
+uploads; a missing receipt fails the qualification.
 
 ### What each refusal means
 
@@ -271,7 +301,7 @@ in the words above before any signature is checked.
 - *Plugin signature was made by a key that has expired ...* and *... that has been revoked ...*: `EXPKEYSIG` and `REVKEYSIG`, which gpg reports with exit status 0; this is why the exit status is never the verdict.
 - *Plugin signature has expired ...* and *Plugin signature could not be checked by gpg ...*: `EXPSIG`, and an `ERRSIG` that is not a missing key.
 - *Plugin artifact is on the registry revocation list and never runs again ...*: the digest is under `revoked`.
-- *gpg is absent from PATH ...*: no verifier on this machine; install GnuPG. The platform jobs run the plugin tests, so a runner without gpg fails them by name rather than skipping.
+- *gpg is absent from PATH and from the known install locations (...) ...*: no verifier on this machine; install GnuPG. The platform jobs run the plugin tests and the probe, so a runner without gpg fails them by name rather than skipping.
 - *Plugin signature verifier failed to run (...)* and *... reported no verdict ...*: the subprocess did not run, or ran and produced no `GOODSIG` with a `VALIDSIG`; a silent exit 0 is a refusal.
 - *Plugin signature verifier could not import a registry key block ...*: a `public_key` entry gpg cannot read.
 - *Grant names NAME, a capability the plugin manifest does not declare ...* and *Grant of NAME exceeds what the plugin manifest declares ...*: the registration's grant is not a subset of `grants`.

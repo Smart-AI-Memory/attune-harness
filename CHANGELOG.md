@@ -32,7 +32,15 @@ requests did not conflict on this section.
   bootstrap and Voyage are the later cycles, and the README's protocols row
   still lists executable plugins as unqualified. Tested with scratch keys on
   all three platforms (`tests/test_plugin_signing.py`, in the platform
-  selection); the envelope table gains `extension-enable-plugin`.
+  selection); the envelope table gains `extension-enable-plugin`. Under
+  D29.1 the Windows unknowns are probed inside this cycle:
+  `tests/test_plugin_probe.py` finds gpg on each platform job (PATH first,
+  then the known install locations, Git for Windows' among them), verifies
+  by status line, produces the refusals, and launches the child bootstrap
+  with its finder; its receipt lands in the platform artifact as
+  `plugin_probe`. Every receipt carries `verifier`, the gpg path, version
+  and status keywords used. First finding: Git for Windows' MSYS gpg needs
+  forward-slash paths, which the verifier now hands it.
 
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan

@@ -275,9 +275,10 @@ def check_trust(bundle: dict, grant, trust: dict):
     if not is_plugin(declaration):
         effective_grant(grant, {})
         return None
-    signer = verify_bundle(Path(bundle['manifest']).parent, bundle['artifact_digest'], trust.get('signers', ()))
+    verified = verify_bundle(Path(bundle['manifest']).parent, bundle['artifact_digest'], trust.get('signers', ()))
     granted = effective_grant(grant, declaration.get('grants', {}))
-    return {'signer': signer, 'grant': granted, 'declares': declaration.get('declares', {}),
+    return {'signer': verified['signer'], 'verifier': verified['verifier'], 'grant': granted,
+            'declares': declaration.get('declares', {}),
             'signature_scope': SIGNATURE_SCOPE, 'declarations_scope': DECLARATIONS_SCOPE}
 
 

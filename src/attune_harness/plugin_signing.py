@@ -9,7 +9,10 @@ with a keyring built from the accepted registry's public key blocks and
 nothing else: the user's own keyring, options and agent play no part. The
 verdict is read from the ``--status-fd`` lines alone, never from the exit
 status, which gpg sets to 0 for a signature by an expired or a revoked key
-(executable plugins spec, trust model; D22.1). No dependency is added.
+(executable plugins spec, trust model; D22.1). ``gpg`` is found on PATH first
+and then at the known install locations, Git for Windows' among them, and
+every receipt records the path used and the version line (D29.1). No
+dependency is added.
 """
 
 import os
@@ -29,6 +32,11 @@ VERIFIER_OUTPUT = 65_536
 FINGERPRINT = r"[A-F0-9]{40}"
 KEY_BLOCK_BEGIN = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 KEY_BLOCK_END = "-----END PGP PUBLIC KEY BLOCK-----"
+# Where gpg is looked for after PATH, in order. Git for Windows ships gpg.exe
+# under usr\bin, outside the default PATH of a service or a runner step; the
+# Windows tails are joined to each Program Files root the environment names.
+KNOWN_GPG_WINDOWS = (r"Git\usr\bin\gpg.exe", r"Git\mingw64\bin\gpg.exe", r"GnuPG\bin\gpg.exe")
+KNOWN_GPG_POSIX = ("/usr/bin/gpg", "/usr/local/bin/gpg", "/opt/homebrew/bin/gpg")
 
 # What the receipt says a signature means, and what a declaration is.
 SIGNATURE_SCOPE = (
@@ -59,8 +67,8 @@ TAMPERED = (
     "current artifact digest"
 )
 GPG_ABSENT = (
-    "gpg is absent from PATH, so the plugin signature cannot be verified; install GnuPG "
-    "and put gpg on PATH"
+    "gpg is absent from PATH and from the known install locations ({searched}), so the "
+    "plugin signature cannot be verified; install GnuPG and put gpg on PATH"
 )
 VERIFIER_FAILED = "Plugin signature verifier failed to run ({failure}); check the gpg installation"
 NO_VERDICT = (
@@ -124,6 +132,31 @@ def read_signature(directory: Path) -> bytes:
     return raw
 
 
+def find_gpg():
+    """The gpg to run, PATH first and then the known install locations; and what was searched."""
+    searched = ["PATH"]
+    found = shutil.which("gpg")
+    if found:
+        return found, searched
+    if os.name == "nt":
+        roots = []
+        for variable in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)"):
+            value = os.environ.get(variable)
+            if value and value not in roots:
+                roots.append(value)
+        for fallback in (r"C:\Program Files", r"C:\Program Files (x86)"):
+            if fallback not in roots:
+                roots.append(fallback)
+        candidates = [os.path.join(root, tail) for root in roots for tail in KNOWN_GPG_WINDOWS]
+    else:
+        candidates = list(KNOWN_GPG_POSIX)
+    for candidate in candidates:
+        searched.append(candidate)
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate, searched
+    return None, searched
+
+
 def _environment() -> dict:
     # The verifier sees PATH and a C locale only, plus what Windows needs to run
     # anything; never GNUPGHOME or another pointer at the user's keyring.
@@ -181,18 +214,35 @@ def verdict(lines: list, listed: set) -> str:
     return primaries[0]
 
 
-def verify_signature(artifact_digest: str, signature: bytes, signers) -> str:
-    """Verify ``signature`` over the digest against the registry's ``signers`` only.
+def gpg_path(path: Path) -> str:
+    """A path as gpg is given it: forward slashes on every platform.
 
-    Returns the listed fingerprint that made it. Every step that does not end in
-    a verdict is its own refusal: gpg absent, the verifier not running, a key
-    block gpg cannot import, no verdict in the status lines.
+    Git for Windows' gpg is an MSYS build whose lock-file code splits a path on
+    '/' only; given ``C:\\Users\\...`` as ``--homedir`` it composed the lock name
+    from the working directory and the whole backslashed string and could not
+    start its agent (windows-latest, September 23, 2026). ``C:/Users/...`` is
+    understood by that build and by a native gpg alike.
+    """
+    return Path(path).as_posix()
+
+
+def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
+    """Verify ``signature`` over the digest against the registry's ``signers`` only, without raising.
+
+    Returns ``signer`` (the listed fingerprint that made it, or None), ``refusal``
+    (the refusal text, or None) and ``verifier``: the gpg path and version line
+    used, the status keywords gpg reported in order, and the exit status, which
+    is recorded and never consulted. Every step that does not end in a verdict
+    is its own refusal: gpg absent, the verifier not running, a key block gpg
+    cannot import, no verdict in the status lines.
     """
     signers = list(signers)
     data = signed_bytes(artifact_digest)
-    gpg = shutil.which("gpg")
+    gpg, searched = find_gpg()
+    verifier = {"gpg": gpg, "version": None, "status": [], "exit_status": None}
     if gpg is None:
-        raise FeatureUnavailable(GPG_ABSENT)
+        refusal = GPG_ABSENT.format(searched=", ".join(searched[1:]) or "none known")
+        return {"signer": None, "refusal": refusal, "verifier": verifier}
     listed = {entry["fingerprint"] for entry in signers}
     home = Path(tempfile.mkdtemp(prefix="harness-plugin-verify-"))
     try:
@@ -208,26 +258,43 @@ def verify_signature(artifact_digest: str, signature: bytes, signers) -> str:
             "--no-tty",
             "--no-autostart",
             "--homedir",
-            str(home),
+            gpg_path(home),
             "--status-fd",
             "1",
         )
+        version = _run(base + ("--version",), home).stdout.strip().splitlines()
+        if not version:
+            raise FeatureUnavailable(VERIFIER_FAILED.format(failure="no version line"))
+        verifier["version"] = version[0]
         if signers:
             (home / "signers.asc").write_bytes(
                 b"".join(entry["public_key"].strip().encode("utf-8") + b"\n" for entry in signers)
             )
-            imported = _status(_run(base + ("--import", str(home / "signers.asc")), home).stdout)
+            imported = _status(_run(base + ("--import", gpg_path(home / "signers.asc")), home).stdout)
             keywords = [tokens[0] for tokens in imported]
             if "IMPORT_PROBLEM" in keywords or keywords.count("IMPORT_OK") < len(signers):
                 raise FeatureUnavailable(KEY_IMPORT)
         verified = _run(
-            base + ("--verify", str(home / SIGNATURE_NAME), str(home / "artifact.digest")), home
+            base + ("--verify", gpg_path(home / SIGNATURE_NAME), gpg_path(home / "artifact.digest")), home
         )
-        return verdict(_status(verified.stdout), listed)
+        lines = _status(verified.stdout)
+        verifier["status"] = [tokens[0] for tokens in lines]
+        verifier["exit_status"] = verified.returncode
+        return {"signer": verdict(lines, listed), "refusal": None, "verifier": verifier}
+    except FeatureUnavailable as refused:
+        return {"signer": None, "refusal": str(refused), "verifier": verifier}
     finally:
         shutil.rmtree(home, ignore_errors=True)
 
 
-def verify_bundle(directory: Path, artifact_digest: str, signers) -> str:
+def verify_signature(artifact_digest: str, signature: bytes, signers) -> dict:
+    """``inspect_signature`` with every refusal raised; returns ``signer`` and ``verifier``."""
+    result = inspect_signature(artifact_digest, signature, signers)
+    if result["refusal"] is not None:
+        raise FeatureUnavailable(result["refusal"])
+    return {"signer": result["signer"], "verifier": result["verifier"]}
+
+
+def verify_bundle(directory: Path, artifact_digest: str, signers) -> dict:
     """The bundle's ``artifact.sig`` verified over its in-memory artifact digest."""
     return verify_signature(artifact_digest, read_signature(directory), signers)

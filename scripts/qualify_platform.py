@@ -57,7 +57,9 @@ def qualify(output):
     # Individual operation deadlines and test assertions are unchanged.
     with (output/'tests.txt').open('wb') as log:
         try:
-            run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=600)
+            # The plugin probe (D29.1) writes its receipt into the output directory it is told.
+            run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=600,
+                               env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output)})
         except subprocess.TimeoutExpired:
             run=subprocess.CompletedProcess(argv,124)
             receipt['failure']='suite_timeout'
@@ -94,6 +96,20 @@ def qualify(output):
                              if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')
     if memory.returncode!=0 and run.returncode==0:
         run=subprocess.CompletedProcess(argv,memory.returncode)
+    # The plugin probe's receipt (D29.1): gpg found and its version, the signature verdicts by
+    # status line, the child bootstrap's imports; tests/test_plugin_probe.py writes it step by
+    # step, so a failed step is in it. A missing receipt is a failed qualification, never a skip.
+    probe=output/'plugin-probe.json'
+    if probe.is_file():
+        receipt['plugin_probe']=json.loads(probe.read_text(encoding='utf-8'))
+        steps=receipt['plugin_probe'].get('steps',{})
+        receipt['checks'].append('plugin probe: '+('; '.join(f"{name} {step.get('outcome','recorded')}" for name,step in steps.items()) or 'no steps recorded'))
+        if any(str(step.get('outcome','')).startswith('failed') for step in steps.values()) and run.returncode==0:
+            run=subprocess.CompletedProcess(argv,1)
+    else:
+        receipt['plugin_probe']='missing: tests/test_plugin_probe.py wrote no receipt; see tests.txt'
+        receipt['checks'].append('plugin probe receipt missing')
+        if run.returncode==0:run=subprocess.CompletedProcess(argv,1)
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
     (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')

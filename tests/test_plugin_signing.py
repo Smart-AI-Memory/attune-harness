@@ -60,8 +60,12 @@ def gpg_or_fail():
 
 
 def run_gpg(home, *args):
-    """One bounded gpg call in a scratch home, through the same primitive the host uses."""
-    result = invoke((gpg_or_fail(), '--batch', '--no-tty', '--homedir', str(home), *args), '',
+    """One bounded gpg call in a scratch home, through the same primitive the host uses.
+
+    Paths reach gpg with forward slashes, as the verifier hands them: Git for
+    Windows' MSYS gpg cannot start its agent from a backslashed home (D29.1).
+    """
+    result = invoke((gpg_or_fail(), '--batch', '--no-tty', '--homedir', signing.gpg_path(home), *args), '',
                     cwd=home, timeout=120, max_output_bytes=1_048_576)
     assert result.failure in (None, 'nonzero_exit') and result.returncode == 0, (args, result)
     return result
@@ -83,7 +87,7 @@ class Signer:
 
     def _export(self):
         target = self.home / 'public.asc'
-        run_gpg(self.home, '--armor', '--yes', '--output', str(target), '--export', self.fingerprint)
+        run_gpg(self.home, '--armor', '--yes', '--output', signing.gpg_path(target), '--export', self.fingerprint)
         return target.read_bytes().decode('ascii')
 
     @property
@@ -95,7 +99,7 @@ class Signer:
         source.write_bytes(data)
         faked = ('--faked-system-time', at) if at else self.faked
         run_gpg(self.home, *faked, '--passphrase', '', '--pinentry-mode', 'loopback', '--armor', '--yes',
-                '--output', str(target), '--detach-sign', str(source))
+                '--output', signing.gpg_path(target), '--detach-sign', signing.gpg_path(source))
         return target.read_bytes()
 
     def revoke(self):
@@ -105,12 +109,12 @@ class Signer:
         armed = certificate.read_text(encoding='utf-8').replace(
             ':-----BEGIN PGP PUBLIC KEY BLOCK-----', '-----BEGIN PGP PUBLIC KEY BLOCK-----')
         (self.home / 'revoke.asc').write_text(armed, encoding='utf-8')
-        run_gpg(self.home, '--import', str(self.home / 'revoke.asc'))
+        run_gpg(self.home, '--import', signing.gpg_path(self.home / 'revoke.asc'))
         self.public_key = self._export()
 
     def close(self):
         if GPGCONF is not None:  # stop the agent that key generation started, then remove the home
-            invoke((GPGCONF, '--homedir', str(self.home), '--kill', 'all'), '', cwd=self.home, timeout=30)
+            invoke((GPGCONF, '--homedir', signing.gpg_path(self.home), '--kill', 'all'), '', cwd=self.home, timeout=30)
         shutil.rmtree(self.home, ignore_errors=True)
 
 
@@ -269,8 +273,12 @@ def test_signed_plugin_enables_runs_and_is_receipted(case, plugin, tmp_path, sig
     config = w.register()
     state = ext.mutate(w.directory, first['state_digest'], 'enable', registry=config)
     receipt = state['plugin']
-    assert receipt == {'signer': w.signer.fingerprint, 'grant': GRANT, 'declares': PLUGIN_DECLARES,
-                       'signature_scope': signing.SIGNATURE_SCOPE, 'declarations_scope': signing.DECLARATIONS_SCOPE}
+    assert {k: v for k, v in receipt.items() if k != 'verifier'} == {
+        'signer': w.signer.fingerprint, 'grant': GRANT, 'declares': PLUGIN_DECLARES,
+        'signature_scope': signing.SIGNATURE_SCOPE, 'declarations_scope': signing.DECLARATIONS_SCOPE}
+    verifier = receipt['verifier']
+    assert verifier['gpg'] == GPG and verifier['version'].startswith('gpg') and verifier['exit_status'] == 0
+    assert 'GOODSIG' in verifier['status'] and 'VALIDSIG' in verifier['status'] and 'BADSIG' not in verifier['status']
     assert 'reviewed by the signer under the brief' in receipt['signature_scope']
     assert 'not enforced' in receipt['declarations_scope']
     assert ext.inspect_extension(w.directory) == state
@@ -388,11 +396,15 @@ def test_gpg_absent_from_path_is_a_named_refusal(case, plugin, tmp_path, signers
     empty = tmp_path / 'no-gpg'
     empty.mkdir()
     monkeypatch.setenv('PATH', str(empty))
+    monkeypatch.setattr(signing, 'KNOWN_GPG_POSIX', ())
+    monkeypatch.setattr(signing, 'KNOWN_GPG_WINDOWS', ())
     monkeypatch.setattr(signing, 'invoke', lambda *a, **k: pytest.fail('a verifier was launched with no gpg on PATH'))
-    with pytest.raises(FeatureUnavailable, match=re.escape(signing.GPG_ABSENT)):
+    expected = signing.GPG_ABSENT.format(searched='none known')
+    with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         w.enable(first)
-    with pytest.raises(FeatureUnavailable, match=re.escape(signing.GPG_ABSENT)):
+    with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         ext.catalog(w.section)
+    assert signing.find_gpg() == (None, ['PATH'])
     assert ext.inspect_extension(w.directory)['status'] == 'disabled'
 
 
@@ -412,6 +424,8 @@ def test_verifier_that_does_not_run_or_says_nothing_never_passes(case, plugin, t
     first = w.install()
 
     def stub(argv, prompt, **kwargs):
+        if '--version' in argv:
+            return ProcessResult(argv, 0, 'gpg (GnuPG) 0.0.0-stub\n', '', None)
         if '--import' in argv:
             return ProcessResult(argv, 0, f'[GNUPG:] IMPORT_OK 1 {w.signer.fingerprint}\n', '', None)
         return outcome
@@ -471,15 +485,16 @@ def test_verifier_home_is_private_built_from_the_registry_and_removed(case, plug
         return real(argv, prompt, **kwargs)
     monkeypatch.setattr(signing, 'invoke', spy)
     monkeypatch.setenv('GNUPGHOME', str(tmp_path / 'users-keyring'))  # a canary the verifier must not see
-    assert signing.verify_bundle(w.manifest.parent, w.digest, [w.signer.entry]) == w.signer.fingerprint
-    assert [argv[argv.index('--status-fd') + 2] for argv, _, _ in seen] == ['--import', '--verify']
+    verified = signing.verify_bundle(w.manifest.parent, w.digest, [w.signer.entry])
+    assert verified['signer'] == w.signer.fingerprint and verified['verifier']['gpg'] == GPG
+    assert [argv[argv.index('--status-fd') + 2] for argv, _, _ in seen] == ['--version', '--import', '--verify']
     for argv, kwargs, home in seen:
         assert argv[0] == GPG and '--no-autostart' in argv and argv[argv.index('--status-fd') + 1] == '1'
         assert not home.exists() and not (tmp_path / 'users-keyring').exists()
         environment = kwargs['environment']
         assert 'GNUPGHOME' not in environment and environment['LC_ALL'] == 'C'
         assert kwargs['timeout'] == signing.VERIFIER_TIMEOUT and kwargs['max_output_bytes'] == signing.VERIFIER_OUTPUT
-    assert len(seen) == 2
+    assert len(seen) == 3
 
 
 def test_data_only_bundle_is_untouched_by_the_trust_data(case, bundle, tmp_path, monkeypatch):
