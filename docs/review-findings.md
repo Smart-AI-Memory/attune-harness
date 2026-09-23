@@ -23,6 +23,7 @@ archive and the diff the reviewer works from and scaffolds the mutation table.
 | **claim** | A docstring, README, changelog or pull-request body that states something the code does not do | #64: the README's retired constraint; #66: "pointers never bodies" was false for the curated layer |
 | **test** | A test that passes with a plausible bug present, asserts almost nothing, or pins the wrong thing | #66: three mutations survived and the live test asserted almost nothing; #64: a test fabricated the old hint |
 | **install** | Package metadata or a locked install that resolves to something other than what was intended | #64: `mcp==2.2.0` in the base breaks a co-installed attune-ai; tiktoken's `regex` was unconstrained in CI |
+| **carry** | A carried module that differs from its original where the design note declared no seam; found only by reading the two side by side | #80: gate patterns transcribed rather than copied drifted in both directions; a guard run after the frontmatter check that the original runs before |
 
 ## Log
 
@@ -48,28 +49,37 @@ exact" when the review confirmed a carried module changed nothing.
 | #67 | Working memory behind one interface | request changes | 2/5/6 | bound, platform, input, fallback, test | A bound on the wrong bytes; case-folded file names; `CON` as a key; no reclaim of expired files |
 | #71 | `memory serve`, the digest as text for a hook | request changes | 2/4/6 | fallback, claim, input, bound, mapping | A pipe whose reader has gone turned exit 0 into exit 120 at the interpreter's exit flush; a `None` stream; ANSI and NUL reaching the banner; an O(n²) trim that could outlast a hook timeout |
 | #72 | The lease waits a bounded time | request changes | 0/3/5 | fallback, claim, input, test | A lock the file system cannot grant waited the whole bound and was called busy; two documents still said the refusal was immediate; `nan` as the bound looped forever; dropping the poll's sleep survived every test |
+| #80 | The native memory reader | request changes | 3/9/8 | bound, carry, input, mapping, fallback, test | A bare-key rule quadratic in a long key-shaped run; nine strings the adapter's gate blocks that the transcribed patterns let through, and eleven it passes that they blocked; a raw row with no `topics` key refused; eleven controls whose mutants survived |
+| #81 | Provenance and staleness on document items | approve with should-fixes | 0/5/6 | claim, bound, test | A docstring naming a `None` contract the code did not have; the verdict log re-read per hit; three volatility rows, the tombstone-before-verified order and the quote stripping unpinned |
+| #82 | The native reader as the default | request changes | 0/3/7 | test, claim | A lexical guard that allowed the fallback import anywhere in the file and a runtime test that never invoked a verb; two acceptance criteria narrowed without a ruling; a release-gate label that survived skipping the read |
 
 ## What the log says so far
 
-Sixteen reviews. Every `src/` change since the command workspace host (#54)
-had a request-changes verdict except the one pure carry (#58), so a review
-that finds nothing is the exception, not the norm.
+Nineteen reviews. Every `src/` change since the command workspace host (#54)
+had a request-changes verdict except the one pure carry (#58) and the
+provenance port (#81), so a review that finds nothing is the exception, not
+the norm.
 
-By class, over the eight reviews with a full record (#58 to #72):
+By class, over the eleven reviews with a full record (#58 to #82):
 
 | Class | Findings | Where the author's tests were blind |
 |---|---|---|
-| claim | 17 | Prose is not executed; the reviewer read every sentence against the code |
-| test | 14 | The author's mutation runs missed the mutations the reviewer chose, or a test's `match` was too wide to fail |
-| input | 8 | The seam's own inputs, one past the ones the design note listed |
-| fallback | 5 | A degradation nobody made happen: a gone pipe, a `None` stream, a lock no file system grants |
-| mapping | 5 | An error path nobody triggered |
+| test | 22 | The author's mutation runs missed the mutations the reviewer chose, a test's `match` was too wide to fail, or a proof only constructed what it claimed to exercise |
+| claim | 21 | Prose is not executed; the reviewer read every sentence against the code, design-note criteria included |
+| input | 9 | The seam's own inputs, one past the ones the design note listed |
+| carry | 9 | A carried module read against its original, line by line: patterns, order of checks, defaults, the `None` contract |
+| bound | 6 | A limit measured on the wrong bytes, a loop quadratic in what the server returns, a sidecar re-read per hit |
+| mapping | 6 | An error path nobody triggered |
+| fallback | 6 | A degradation nobody made happen: a gone pipe, a `None` stream, a lock no file system grants, a dangling symlink |
 | platform | 4 | macOS ran the suite; the defect needed NTFS, the C runtime or a Windows runner (a fifth, the console script path, was found by the job itself) |
-| bound | 3 | A limit measured on the wrong bytes, or a loop quadratic in what the server returns |
 | install | 2 | Metadata resolved in a fresh environment, not the developer's |
 | layer, round-trip, wait | 1 each | Each one a blocker or a should-fix, none caught by a test |
 
 Two steps of the brief came out of this table: the author runs the brief
 first (after the six carried steps in a row where a review found something
 the author had called verified), and the Windows traps page, after five
-platform findings in one day that no macOS test could show.
+platform findings in one day that no macOS test could show. Phase 2 added
+a third lesson without a step yet: a carried module's patterns are copied
+from the original's source, never transcribed from a description of it; the
+one transcription (#80) drifted in both directions and a differential that
+compared results could not see it, only a reading of the two side by side.
