@@ -34,14 +34,16 @@ on this section.
 - Added: the R2 clean-environment journey, plan, accept, build, review and
   status with `attune` absent and no model called, runs three ways (spec
   authority Task 4, step c; D23.1): as `tests/test_r2_journey.py` in the
-  platform selection, so the Windows jobs run it and record the build's
-  outcome in the platform's own words rather than skipping; as the `journey`
-  section of `scripts/check_installed.py`, the whole journey where
+  platform selection, so the Windows jobs run it too and fail rather than
+  skip on an outcome the test does not name; as the `journey` section of
+  `scripts/check_installed.py`, in every mode, the whole journey where
   attune-forms is installed and the install-hint refusals from the
-  `--no-deps` wheel; and in the release gate, whose build job now also
-  installs the wheel with its base dependencies from the index under the
-  lock files and asserts on both reports. The platform receipt carries the
-  outcome as `r2_journey`. The sequence and its envelopes are in
+  `--no-deps` wheel, with the adapters and model calls read from the
+  evidence; and in the release gate, whose build job now also installs the
+  wheel with its base dependencies from the index under the lock files and
+  asserts on both reports. The platform receipt carries the section's
+  outcome as `r2_journey`, on Windows the build's refusal in the platform's
+  own words if it refuses. The sequence and its envelopes are in
   `docs/journeys/r2-clean-environment.md`.
 
 ## 0.5.0

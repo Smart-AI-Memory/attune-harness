@@ -290,10 +290,9 @@ def journey_checks(run, python, root, mode):
     ``attune`` package is asserted absent by the caller, in every mode.
     """
     forms = subprocess.run([str(python),'-I','-c','import importlib.util,sys; sys.exit(0 if importlib.util.find_spec("attune_forms") else 1)']).returncode == 0
-    if mode == 'core':
-        assert not forms, 'the core mode checks the package alone'
-    if mode in ('all', 'redis'):
-        assert forms, f'the {mode} mode checks the install a user gets, attune-forms included'
+    # The core mode checks the --no-deps wheel; every other mode is an install with the
+    # base dependencies, attune-forms among them (D15), so its absence is a finding there.
+    assert forms == (mode != 'core'), f"attune-forms {'present' if forms else 'absent'} in the {mode} mode"
     root = root.resolve()  # the task store refuses to traverse a symlink, and macOS's temporary root is one
     project = root/'journey'
     project.mkdir()
@@ -309,7 +308,7 @@ def journey_checks(run, python, root, mode):
     hooks.mkdir()
     git = ['git','-C',str(project),'-c','commit.gpgsign=false','-c',f'core.hooksPath={hooks}',
            '-c','user.name=Check','-c','user.email=check@example.invalid']
-    subprocess.run(['git','init','-q',str(project)], check=True)
+    subprocess.run(['git','init','-q',str(project)], check=True, capture_output=True)
     subprocess.run([*git,'add','source.py','plan.md','baseline.py','oracle.py','pytest.ini','docs'], check=True, capture_output=True)
     subprocess.run([*git,'commit','-qm','Journey baseline'], check=True, capture_output=True)
     # The review's verification context lives inside the project, as its intake requires.
@@ -324,7 +323,8 @@ def journey_checks(run, python, root, mode):
     participants.write_text(json.dumps({'schema_version': 1, 'participants': {
         'local': command, 'critic': command, 'assessor': deterministic}}), encoding='utf-8')
     directory, request = root/'journey-work', root/'journey-request.json'
-    subprocess.run([str(python),'-I','-c',FREEZE,str(project),str(directory),str(request)], check=True)
+    frozen = subprocess.run([str(python),'-I','-c',FREEZE,str(project),str(directory),str(request)], text=True, capture_output=True)
+    assert frozen.returncode == 0, frozen.stderr
 
     plan = run(['plan','--task-dir',str(directory),'--project',str(project),'--config',str(participants),'--request',str(request)],0,'draft')
     assert not plan['questions']['missing'], plan
@@ -334,8 +334,7 @@ def journey_checks(run, python, root, mode):
               '--config',str(participants),'--document','docs/guide.md','--context',str(context),'--corpus','docs',
               '--query','exporter','--criteria','Identify unsupported claims and preserve uncertainty',
               '--assessor','assessor','--accept','--task-dir',str(root/'journey-review')]
-    receipt = {'forms_installed': forms, 'model_calls': 0, 'plan': 'draft',
-               'participants': 'two command participants running one local script; a deterministic assessor'}
+    receipt = {'forms_installed': forms, 'plan': plan['status']}
     if not forms:
         detail = run(accept,2,'failed')['error']['detail']
         assert detail == f'attune-forms {INSTALL_HINT}', detail
@@ -352,18 +351,33 @@ def journey_checks(run, python, root, mode):
     assert accepted['receipt']['disposition'] == 'approve_task', accepted
     receipt['accept'] = 'accepted'
     built = run(build,(0,2),None)
+    turns = []
     if built['status'] == 'completed':
         assert built['blocking'] is False and built['execution_evidence']['runs'], built
         assert (project/'pkg'/'export.py').read_text(encoding='utf-8').startswith('def answer():')
+        # What ran, from the evidence: the host control, and each participant turn with the adapter it reported.
+        operations = built['execution_evidence']['runs'][0]['operations']
+        receipt['controls_run'] = [op['operation'] for op in operations if op.get('kind') == 'build_control']
+        assert receipt['controls_run'] == ['control:baseline'], receipt['controls_run']
+        turns = [((op.get('participant_reported_adapter_identity') or {}).get('value') or {}).get('adapter')
+                 for op in operations if op.get('kind') == 'participant_turn']
+        assert len(turns) == 3 and set(turns) == {'command'}, turns
         receipt['build'] = 'completed'
     else:
-        # Recorded, not skipped: the Windows effects profile refused, in its own words.
+        # Recorded, not skipped: the Windows effects profile refused, in its own words and no other's.
         error = built.get('error') or {}
-        assert os.name == 'nt' and error.get('type') == 'FeatureUnavailable' and 'Windows' in error.get('detail',''), built
+        assert os.name == 'nt' and error.get('type') == 'FeatureUnavailable', built
+        assert error.get('detail','').startswith(('Windows effects require','Windows WCHAR layout')), built
         receipt['build'] = f"refused: {error['detail']}"
     reviewed = run(review,0,'completed')
     assert reviewed['operation'] == 'task', reviewed
+    assessors = [p.get('adapter') for p in reviewed['execution']['participants'].values()]
+    assert assessors == ['deterministic'], assessors
     receipt['review'] = 'completed'
+    # Measured, not declared: every participant turn's adapter, and how many were a model.
+    receipt['participant_turns'] = len(turns) + len(assessors)
+    receipt['adapters'] = sorted(set(turns + assessors))
+    receipt['model_calls'] = sum(1 for a in turns + assessors if a not in ('command', 'deterministic'))
     receipt['status'] = run(['status',str(directory)],0,'completed' if receipt['build'] == 'completed' else 'accepted')['status']
     return receipt
 

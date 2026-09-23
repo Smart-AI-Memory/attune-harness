@@ -82,8 +82,13 @@ def qualify(output):
         # The R2 journey from this installed wheel (spec authority Task 4, D23.1): the
         # receipt carries the build's outcome in the platform's own words, never a skip.
         journey=report['journey']
-        receipt['r2_journey']=journey
         receipt['checks'].append(f"r2 journey with attune absent: accept {journey['accept']}, build {journey['build']}, review {journey['review']}")
+    else:
+        # The check writes its report only when every section passed; the transcript names the section that did not.
+        transcript=(output/'memory-redis.txt').read_text(encoding='utf-8')
+        journey='failed; see memory-redis.txt' if 'journey_checks' in transcript else 'not run: an earlier section failed; see memory-redis.txt'
+        receipt['checks'].append(f'r2 journey {journey}')
+    receipt['r2_journey']=journey
     receipt['memory_redis']='passed' if memory.returncode==0 else 'failed'
     receipt['checks'].append('memory redis: extra present, server absent, unavailable; file scratch round trip; redis scratch never diverts'
                              if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')

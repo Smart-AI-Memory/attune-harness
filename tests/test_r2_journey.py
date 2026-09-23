@@ -20,10 +20,9 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("attune_forms")
-
-import attune_harness  # noqa: E402
-from attune_harness import work_effects  # noqa: E402
+import attune_forms  # noqa: F401  a base dependency since 0.4.0 (D15): absent is a broken install, not a skip
+import attune_harness
+from attune_harness import work_effects
 
 EXPORT = "pkg/export.py"
 GENERATED = "tests/generated/test_app.py"
@@ -285,18 +284,23 @@ def test_plan_accept_build_review_and_status_with_attune_absent(journey):
     assert envelope["receipt"]["disposition"] == "approve_task"
 
     code, envelope, err = child(["build", directory, "--allow-external"], cwd)
-    if (
-        os.name == "nt"
-        and code == 2
-        and (envelope or {}).get("error", {}).get("type") == "FeatureUnavailable"
-    ):
-        # Recorded, not skipped: the Windows effects profile refused, in its own words.
-        assert "Windows" in envelope["error"]["detail"], envelope
+    error = ((envelope or {}).get("error") or {}) if code == 2 else {}
+    if os.name == "nt" and error.get("type") == "FeatureUnavailable":
+        # Recorded, not skipped: the Windows effects profile refused, in its own words and no other's.
+        assert error["detail"].startswith(("Windows effects require", "Windows WCHAR layout")), envelope
         built = False
     else:
         assert code == 0, (envelope, err)
         assert envelope["status"] == "completed", envelope
         assert envelope["blocking"] is False and envelope["execution_evidence"]["runs"], envelope
+        operations = envelope["execution_evidence"]["runs"][0]["operations"]
+        assert [o["operation"] for o in operations if o["kind"] == "build_control"] == ["control:baseline"]
+        turns = [
+            o["participant_reported_adapter_identity"]["value"]["adapter"]
+            for o in operations
+            if o["kind"] == "participant_turn"
+        ]
+        assert len(turns) == 3 and set(turns) == {"command"}, turns
         built = True
         assert (journey["root"] / EXPORT).read_text(encoding="utf-8").startswith("def answer():")
 
@@ -329,6 +333,8 @@ def test_plan_accept_build_review_and_status_with_attune_absent(journey):
     )
     assert code == 0, (code, envelope, err)
     assert envelope["operation"] == "task" and envelope["status"] == "completed", envelope
+    participants = envelope["execution"]["participants"]
+    assert [p["adapter"] for p in participants.values()] == ["deterministic"], participants
 
     code, envelope, err = child(["status", directory], cwd)
     assert code == 0, (envelope, err)

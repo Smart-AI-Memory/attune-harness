@@ -13,8 +13,11 @@ No model is called at any step: the build's worker and reviewer are two
 `command` participants running one local script, and the review's assessor is
 the deterministic adapter.
 
-The same sequence runs three times in the repository, so that this document
-cannot drift from what the code does:
+The same sequence runs three times in the repository. Each run pins every
+step's exit code and status, the build's host control and participant turns,
+and the review's assessor; the other values shown below were captured from one
+run on September 23, 2026 and are not pinned, so read them as an example of
+the shape, not as a contract:
 
 - as a test, `tests/test_r2_journey.py`, in the platform selection, so the
   three platforms run it against the installed wheel on every push, in a child
@@ -93,7 +96,7 @@ attune-harness plan --task-dir work --project project \
  "checkpoint_digest": "7434f9ba…03a90",
  "summary": "Draft ready for review; work is not yet accepted.",
  "next_action": "Review this work record; use plan --accept with this exact --checkpoint.",
- "missing": [], "questions": {"missing": [], "markdown": "", "definition": null},
+ "missing": [], "questions": {"missing": [], "markdown": "", "definition": null, "checkpoint_digest": "7434f9ba…03a90"},
  "blocking": true,
  "note": "Intent acceptance, execution evidence and paid dispatch permissions are separate.",
  "tasks": [{"id": "export", "outputs": ["pkg/export.py", "tests/generated/test_app.py"]},
@@ -160,7 +163,8 @@ attune-harness review --goal "Check the guide against the exporter's evidence" \
 ```json
 {"operation": "task", "status": "completed", "schema_version": 1,
  "checkpoint_digest": "247c7dc2…0b513", "task_profile": "assessment-intake-v1",
- "acceptance": {"accepted": true, "permissions": {"external": false, "provider": false}},
+ "acceptance": {"accepted": true, "permissions": {"external": false, "provider": false},
+                "request_digest": "cd4ecce5…eb80", "form_revision": "8ad2a9ae…688a"},
  "recovery": {"profile": {"kind": "task-intake", "version": 1}, "runtime": {"kind": "assessment", "version": 1}},
  "execution": {"status": "completed",
    "events": [{"operation_key": "preflight", "kind": "preflight_verification", "state": "completed",
@@ -180,12 +184,15 @@ attune-harness status work
  "completed": ["export", "wire"], "blocking": false}
 ```
 
-The receipt the gate section writes for this run:
+The receipt the gate section writes for this run. `controls_run`,
+`participant_turns`, `adapters` and `model_calls` are read from the build's
+and the review's evidence, not declared by the check:
 
 ```json
-{"forms_installed": true, "model_calls": 0, "plan": "draft", "accept": "accepted",
- "build": "completed", "review": "completed", "status": "completed",
- "participants": "two command participants running one local script; a deterministic assessor"}
+{"forms_installed": true, "plan": "draft", "accept": "accepted",
+ "build": "completed", "controls_run": ["control:baseline"],
+ "review": "completed", "status": "completed",
+ "participant_turns": 4, "adapters": ["command", "deterministic"], "model_calls": 0}
 ```
 
 ## From the `--no-deps` wheel

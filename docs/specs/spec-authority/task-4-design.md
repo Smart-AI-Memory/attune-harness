@@ -199,6 +199,10 @@ whole ladder.
   `review`; `review`'s hint names attune-verify, the first base dependency its
   intake finds missing. The whole journey runs where the base dependencies are
   installed, as D23.1 rules: the platform jobs and the gate's with-deps venv.
+  Two more words above are wrong as written: the test asserts no sentinel,
+  only each envelope's status and pins, since `attune` is blocked in the child
+  and any import of it fails the step; and the gate section runs in every
+  mode of `check_installed.py`, not from `--mode core` alone.
 
 ### 4.5 The differential, as Phase 2 had one
 
