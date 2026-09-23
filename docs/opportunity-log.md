@@ -628,6 +628,8 @@ by this note.
 
 **Status, September 23, 2026 (overnight run): in #93 (open, reviewed): the three Node 20 pins become checkout v7.0.1, setup-python v7.0.0 and upload-artifact v7.0.1 in all four workflows, 21 pins; `publish-pypi.yml`'s copies need a `publish=false` rehearsal before the next real publish, which the runbook's step 4 now says.**
 
+**Status, September 23, 2026 (afternoon): #93 merged (`1dd10a5`); the three pins are on their Node 24 releases. The publish workflow's copies of the pins still owe a `publish=false` rehearsal before the next real publish; that is an unnumbered note below.**
+
 O-39, 2026-09-19:
 `ubuntu-latest` moves to Ubuntu 26. The same rehearsal run 35476747591 carried a
 notice on `build`, `publish_testpypi` and `verify_testpypi` that the
@@ -757,6 +759,8 @@ is changed or authorized by this note.
 **Status, September 23, 2026: open.** `tests/test_mcp.py` still holds the bare ten-second literal.
 
 **Status, September 23, 2026 (overnight run): in #94 (open, reviewed): the deadline is `RECEIPT_DEADLINE_SECONDS = 5 * REPLACE_RETRY_SECONDS` with its reasoning, and a miss reports how long it waited. Not raised.**
+
+**Status, September 23, 2026 (afternoon): #94 merged (`e9be36a`). The junit collector the note's decision needs is an unnumbered note below.**
 
 O-43, 2026-09-21:
 `docs/handoffs/` is ignored on one branch only. Both release handoff notes
@@ -1198,6 +1202,8 @@ this note.
 
 **Status, September 23, 2026 (overnight run): in #98 (open, reviewed): each top-level block is parsed on its own, a rejected block falls back alone, and the split is refused where it cannot be trusted (unbalanced tags, a comment or CDATA in the region). The reviewer's fuzz over 12,000 plans: zero cases where the new reader drops a task the old returned.**
 
+**Status, September 23, 2026 (afternoon): #98 merged (`ab0648e`).**
+
 O-59, 2026-09-22 (third pass): three atomic writers, one with the
 Windows retry. `review_store._replace` retries `os.replace` for two seconds
 when a reader holds the file, which is the fix that unblocked 0.1.0 on
@@ -1215,6 +1221,8 @@ a different-model review. Nothing is changed or authorized by this note.
 **Status, September 23, 2026: open.** Three `os.replace` call sites outside `features.py` remain; `features.replace_file` carries the retry for two of them.
 
 **Status, September 23, 2026 (overnight run): in #99 (open, reviewed): the plan-state and Voyage index writers go through `features.replace_file`; an AST guard pins every spelling of a replace under `src/` to `features.py` and the effects host's `dir_fd` replace in `repair.py`, which is POSIX-only by design with `windows_effects.replace_file` as its twin; the retry is exercised on every platform through `RETRY_REFUSED_REPLACE`.**
+
+**Status, September 23, 2026 (afternoon): #99 merged (`5a73aa6`).**
 
 O-60, 2026-09-22 (third pass): the documentation index is generated
 once and nothing keeps it complete. #47 added `docs/README.md` with a row for
@@ -1305,6 +1313,8 @@ Nothing is changed or authorized by this note.
 
 **Status, September 23, 2026 (overnight run): in #93 (open, reviewed): a pull request whose head is a `release/` branch of this repository stops at the classifier and the link check; the push run is the record; the verdict names the reason. The review found the skip spoofable from a fork and the verdict blind to a failed classifier; both fixed there.**
 
+**Status, September 23, 2026 (afternoon): #93 merged (`1dd10a5`); one qualification run per release branch, the verdict consults the classifier, and the skip is repository-bound. `scripts/merge_when_green.sh` still cannot merge a release pull request; that is an unnumbered note below.**
+
 O-65, 2026-09-22 (fourth pass): the append lock's necessity is asserted
 only where the tear happens. #61 fixed a JSONL line torn by the Windows C
 runtime's seek-then-write append with a cross-process lock in
@@ -1324,6 +1334,8 @@ note.
 **Status, September 23, 2026: open.** Phase 4, 4.5.
 
 **Status, September 23, 2026 (overnight run): in #95 (open, reviewed): the seek-then-write emulation is a test that fails on every platform with the lock removed; with the lock, 2,000 whole lines; the children are released by a real barrier.**
+
+**Status, September 23, 2026 (afternoon): #95 merged (`7805db2`).**
 
 O-66, 2026-09-22 (fourth pass): a millisecond collision on the run
 store's lease reaches a human. `RunStore.lease` takes the writer lock with
@@ -1367,6 +1379,8 @@ by this note.
 **Status, September 23, 2026: open.** Three test files still stub `configure_process`. Phase 4, 4.5.
 
 **Status, September 23, 2026 (overnight run): in #100 (open, reviewed): `configure_process` binds structlog once to a writer that resolves `sys.stderr` at write time and drops a diagnostic on a missing or closed stream; called from `main` only; the six stubs are gone; the full suite passed from a snapshot.**
+
+**Status, September 23, 2026 (afternoon): #100 merged (`9e086b3`).**
 
 O-68, 2026-09-22 (fourth pass): `scripts/qualify_pilot.py` installs
 extras that no longer add anything. Last changed on 2026-09-15, it installs the
