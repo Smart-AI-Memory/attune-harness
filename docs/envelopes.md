@@ -28,7 +28,8 @@ row pins, in 73 rows:
 - **disabled** (1 row): the memory config has no `scratch` section.
 - **uncertain** (1 row): a write whose effect cannot be known. `memory scratch
   stash` when the record was written and the replace raised; the receipt
-  says what is known and that nothing was retried or diverted.
+  carries the version and the stamp the write took, and says that the
+  stash was not retried and nothing was diverted.
 
 The four `-adapter` rows pin the memory host's success shapes over an
 in-process double of the adapter's four-member contract (`binding`,
@@ -119,7 +120,7 @@ descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version` or
 | `memory-scratch-capabilities` | success | 0 | - | `ok` | `backend` `location` `operation` `realtime` `shared` `status` |
 | `memory-scratch-stash` | success | 0 | - | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `status` `stored_at` `version` `writer` |
 | `memory-scratch-stash-refused` | refusal | 2 | - | `failed` | `backend` `detail` `error` `expected_version` `key` `operation` `status` `version` |
-| `memory-scratch-stash-uncertain` | uncertain | 2 | - | `uncertain` | `backend` `detail` `error` `key` `operation` `status` `version` |
+| `memory-scratch-stash-uncertain` | uncertain | 2 | - | `uncertain` | `backend` `detail` `error` `key` `operation` `status` `stored_at` `version` |
 | `memory-scratch-retrieve` | success | 0 | - | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `status` `stored_at` `value` `version` `writer` |
 | `memory-scratch-forget` | success | 0 | - | `ok` | `backend` `forgotten` `key` `operation` `status` |
 | `memory-scratch-keys` | success | 0 | - | `ok` | `backend` `keys` `operation` `pattern` `status` |
@@ -215,22 +216,26 @@ D21.6).
 
 ### `attune-harness/scratch`, version 2
 
-One record per key, written by `memory scratch stash`: the file
-`k-<encoded key>.json` under `<root>/scratch/<namespace>/` on the file
-backend, the key `attune:harness:scratch:<namespace>:<key>` on Redis, the
-same bytes on both. The record is one line of compact JSON, ASCII only, no
-NaN, with its fields in this order, so the header opens the record:
+One record per key, written by `memory scratch stash`. On the file backend
+it is the file `k-<encoded key>.json` under `<root>/scratch/<namespace>/`,
+where every character of the key outside `[a-z0-9_.-]` is percent-encoded
+and an encoded key longer than 200 characters is cut to 183 characters plus
+`-` and the first 16 hex characters of the key's SHA-256
+(`FileScratch._name`); on Redis it is the key
+`attune:harness:scratch:<namespace>:<key>`. The same JSON on both; the file
+ends it with a newline. The record is one line of compact JSON, ASCII only,
+no NaN, with its fields in this order, so the header opens the record:
 
 | Field | Value |
 |---|---|
 | `format` | `"attune-harness/scratch"` |
 | `format_version` | `2` |
 | `writer` | `"<distribution> <version>"` read from the package metadata, for example `"attune-harness 0.6.0.dev0"`; the bare distribution name when the metadata cannot be read |
-| `version` | an integer from 1: the successful stashes since the key was last absent. `stash --expected-version N` writes only when the stored record is at `N`; `0` means no record |
+| `version` | an integer from 1: the successful stashes since the key was last absent. `stash --expected-version N` writes only when the stored record is at `N`; `0` means no record. The count is exact only when every writer to the key passes an expected version: a stash without one reads the record only to count and then overwrites unconditionally, a record a compare-and-set landed a moment before included |
 | `key` | the key: 1 to 128 characters of `[A-Za-z0-9_.:-]` |
-| `value` | the value as canonical JSON (keys sorted, finite numbers), up to 64 KiB |
-| `stored_at` | an ISO 8601 UTC stamp |
-| `expires_at` | an ISO 8601 UTC stamp, or `null` |
+| `value` | the value as canonical JSON (keys sorted, finite numbers), up to 64 KiB, nested no deeper than the interpreter reads |
+| `stored_at` | a UTC stamp: `YYYY-MM-DDTHH:MM:SS`, an optional fraction of one to six digits, then `+00:00` as `datetime.isoformat()` writes an aware UTC time, or `Z`; nothing else |
+| `expires_at` | a UTC stamp in the same grammar, or `null` |
 
 What a reader must accept: version 2 as above, and **version 1**, the record
 0.4.0 and 0.5.0 wrote, which has exactly the fields `schema_version` (`1`),
@@ -239,9 +244,13 @@ version 1 record is read in place: `retrieve` reports it with
 `format_version` 1 and `writer` and `version` `null`; a read never rewrites
 it; a `stash --expected-version` over it is refused, since it carries no
 version to compare; and the first plain `stash` over it writes version 2 at
-record version 1. A record of any other shape, including a later
-`format_version`, is foreign: it is not served and nothing is inferred from
-it, and a plain `stash` writes over it, as before. The files in
+record version 1. A record of any other shape is foreign: a later
+`format_version`, a `format_version` or `version` that is not an integer
+(`2.0`, `true`), a stamp outside the grammar above (naive, another offset, a
+space for the `T`), or a value nested deeper than the interpreter reads. A
+foreign record is not served and nothing is inferred from it; `keys` skips
+it and removes only what has expired; nothing raises; a plain `stash`
+writes over it and `forget` removes it, as before. The files in
 `tests/fixtures/scratch_legacy_v1/` are version 1 records as 0.5.0's code
 wrote them; `tests/test_memory_scratch.py` pins them by digest and reads
 them through this code.

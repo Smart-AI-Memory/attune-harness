@@ -20,14 +20,20 @@ version, the ``writer`` (this distribution and its installed version, read
 from the package metadata) and a per-record ``version`` that counts the
 successful stashes since the key was last absent. ``stash`` takes an
 ``expected_version`` and refuses, writing nothing, when the stored version is
-not that one: a lost update is reported, not overwritten. A write whose
+not that one: a lost update is reported, not overwritten. The count is exact
+only when every writer to a key passes an expected version: a stash without
+one reads the record only to count and then overwrites unconditionally, a
+record a compare-and-set landed a moment before included. A write whose
 effect cannot be known, the record written and the replace raised, or the
 write sent to Redis and its reply lost, is reported as ``ScratchUncertain``
-with what is known; it is never retried and never diverted (N3, R5). The
-version 1 record that 0.4.0 and 0.5.0 wrote, ``schema_version`` 1 and no
-header, is read in place and reported as version 1 of the format; the first
-stash over it writes version 2 at record version 1. ``docs/envelopes.md``
-lists the format under "Stored formats".
+with the version and the stamp the write carried; it is never retried and
+never diverted (N3, R5). The version 1 record that 0.4.0 and 0.5.0 wrote,
+``schema_version`` 1 and no header, is read in place and reported as version
+1 of the format; the first stash over it writes version 2 at record version
+1. A record outside the format, a stamp in another grammar, a version that
+is not an integer, a value nested deeper than the interpreter reads, is
+foreign: not served, not removed by ``keys``, never a traceback.
+``docs/envelopes.md`` lists the format under "Stored formats".
 
 A configured Redis that cannot be reached makes scratch ``unavailable``; it
 is never replaced by the file store at runtime, which is the divert the
@@ -75,6 +81,9 @@ DISTRIBUTION = "attune-harness"
 # before it reports busy: the codebase's bound, as the run store's lease.
 LOCK_RETRY_SECONDS = 2.0
 # Room for the record around the value: the header, the key and two stamps.
+# Measured at 9c1d529: the largest record, the longest legal key with a
+# value at VALUE_LIMIT, is 65,851 bytes, 3,781 under this limit, so the
+# write bound cannot be reached and a longer writer string has that margin.
 RECORD_LIMIT = VALUE_LIMIT + 4096
 _CONFIG_KEYS = frozenset({"backend", "root", "namespace"})
 _SCAN_COUNT = 500
@@ -82,6 +91,10 @@ _SCAN_COUNT = 500
 # header first, so a reader that opens the file sees what it is.
 _RECORD_FIELDS = ("format", "format_version", "writer", "version", "key", "value", "stored_at", "expires_at")
 _LEGACY_FIELDS = ("schema_version", "key", "value", "stored_at", "expires_at")
+# The stamps the format accepts: YYYY-MM-DDTHH:MM:SS, an optional fraction
+# of up to six digits, then +00:00 as ``datetime.isoformat()`` writes an
+# aware UTC time, or Z as JavaScript's ``toISOString`` writes it.
+_STAMP_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:\+00:00|Z)$")
 _LOCK_HELD = frozenset(getattr(errno, name) for name in ("EWOULDBLOCK", "EAGAIN", "EACCES") if hasattr(errno, name))
 # Characters a file name keeps as they are; every other one, including an
 # upper-case letter, is percent-encoded, so two keys that differ only in case
@@ -109,14 +122,17 @@ class ScratchRefused(ValueError):
 class ScratchUncertain(RuntimeError):
     """A stash whose effect cannot be known; never retried, never diverted (N3, R5).
 
-    ``version`` is the record version the write carried: a record at that
-    version, read back, means the write landed. ``error`` names the exception.
+    ``version`` and ``stored_at`` are what the attempted write carried: a
+    record read back at that version and that stamp is this write, one at
+    that version with another stamp is another writer's (review finding 1).
+    ``error`` names the exception.
     """
 
-    def __init__(self, message, *, key, version, error):
+    def __init__(self, message, *, key, version, stored_at, error):
         super().__init__(message)
         self.key = key
         self.version = version
+        self.stored_at = stored_at
         self.error = error
 
 
@@ -151,13 +167,23 @@ def _check_key(key):
 
 
 def _check_value(value):
+    """(canonical text, the value as it will be stored) or a refusal in the module's words.
+
+    The text is read back here, so a value nested deeper than the
+    interpreter reads is refused rather than raised, and what ``_record``
+    stores is what this check proved readable.
+    """
     try:
         text = canonical(value)
+        stored = json.loads(text)
     except (TypeError, ValueError) as error:
         raise ValueError(f"Scratch value must be JSON with finite numbers: {error}") from error
+    except RecursionError as error:
+        raise ValueError(f"Scratch value must be JSON nested within what this interpreter reads: {error}. "
+                         "Flatten the value") from error
     if len(text.encode("utf-8")) > VALUE_LIMIT:
         raise ValueError(f"Scratch value is limited to {VALUE_LIMIT} bytes as canonical JSON")
-    return text
+    return text, stored
 
 
 def _check_ttl(ttl_seconds):
@@ -187,7 +213,31 @@ def _now():
     return datetime.now(timezone.utc)
 
 
-def _record(key, text, ttl, record_version):
+def _stamp(text):
+    """The aware UTC datetime a stored stamp names, or None when the stamp is outside the format.
+
+    The grammar is ``_STAMP_RE``, the module's own rather than
+    ``fromisoformat``'s, which on Python 3.10 rejects ``Z`` and reads a
+    naive stamp that then cannot be compared with the clock (review finding
+    3). A record whose stamp is outside it is foreign.
+    """
+    match = _STAMP_RE.match(text) if isinstance(text, str) else None
+    if match is None:
+        return None
+    year, month, day, hour, minute, second, fraction = match.groups()
+    try:
+        return datetime(int(year), int(month), int(day), int(hour), int(minute), int(second),
+                        int((fraction or "").ljust(6, "0")), tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def _count(value):
+    """``value`` when it is an integer of 1 or more; a bool or a float never counts (review finding 7)."""
+    return value if type(value) is int and value >= 1 else None
+
+
+def _record(key, text, stored, ttl, record_version):
     now = _now()
     record = {
         "format": FORMAT,
@@ -195,7 +245,7 @@ def _record(key, text, ttl, record_version):
         "writer": writer(),
         "version": record_version,
         "key": key,
-        "value": json.loads(text),
+        "value": stored,
         "stored_at": now.isoformat(),
         "expires_at": (now + timedelta(seconds=ttl)).isoformat() if ttl else None,
     }
@@ -215,23 +265,24 @@ def _well_formed(record, key):
     Version 2 is the format this module writes. Version 1 is the record 0.4.0
     and 0.5.0 wrote, ``schema_version`` 1 and no header: it is read in place
     and a read never rewrites it. A record of any other shape, including a
-    later version of the format, is foreign, and nothing is inferred from it.
+    later version of the format, a version that is not an integer, or a
+    stamp outside ``_STAMP_RE``, is foreign, and nothing is inferred from it.
     """
     if not isinstance(record, dict) or record.get("key") != key:
         return None, None
     if set(record) == set(_LEGACY_FIELDS):
-        format_version = 1 if record["schema_version"] == 1 else None
+        format_version = 1 if _count(record["schema_version"]) == 1 else None
     elif set(record) == set(_RECORD_FIELDS):
-        counted = isinstance(record["version"], int) and not isinstance(record["version"], bool) and record["version"] >= 1
-        current = record["format"] == FORMAT and record["format_version"] == FORMAT_VERSION and isinstance(record["writer"], str)
-        format_version = FORMAT_VERSION if current and counted else None
+        current = (record["format"] == FORMAT and _count(record["format_version"]) == FORMAT_VERSION
+                   and isinstance(record["writer"], str) and _count(record["version"]) is not None)
+        format_version = FORMAT_VERSION if current else None
     else:
         return None, None
     if format_version is None:
         return None, None
-    if record["expires_at"] is not None and not isinstance(record["expires_at"], str):
+    if _stamp(record["stored_at"]) is None:
         return None, None
-    if not isinstance(record["stored_at"], str):
+    if record["expires_at"] is not None and _stamp(record["expires_at"]) is None:
         return None, None
     return record, format_version
 
@@ -258,13 +309,9 @@ def _view(record, format_version, *, with_value=True):
 
 
 def _expired(record):
+    """Whether a well-formed record's stamp has lapsed; ``_well_formed`` proved the stamp reads."""
     expires = record["expires_at"]
-    if expires is None:
-        return False
-    try:
-        return datetime.fromisoformat(expires) <= _now()
-    except ValueError:
-        return True
+    return expires is not None and _stamp(expires) <= _now()
 
 
 def _stored_version(found, format_version):
@@ -313,10 +360,11 @@ def _changed(key, expected):
             f"Retrieve the key and stash with the version it reports.")
 
 
-def _uncertain(key, version, what, error):
+def _uncertain(key, record, what, error):
+    """The receipt's words: what is known, and how to tell this write from another writer's at the same version."""
     return (f"Scratch stash of key {key!r} may or may not have landed: {what} ({type(error).__name__}: {error}). "
-            f"Retrieve the key; a record at version {version} means it did. "
-            f"No retry was performed and nothing was diverted.")
+            f"Retrieve the key; a record at version {record['version']} stored at {record['stored_at']} means it did. "
+            f"No retry of the stash was performed and nothing was diverted.")
 
 
 def _lock_once(fd):
@@ -406,16 +454,29 @@ class FileScratch:
 
         A lock another writer holds is retried for ``LOCK_RETRY_SECONDS`` and
         then refused in the stash's own words; a file system that grants no
-        lock is refused at once. Only a compare-and-set takes it: a stash
-        without an expected version writes as it always has.
+        lock, and a lock path that cannot be opened (a symlink, a directory),
+        are refused at once. Only a compare-and-set takes it: a stash without
+        an expected version writes as it always has. On Windows the holder's
+        replace may itself retry for ``features.REPLACE_RETRY_SECONDS`` while
+        a reader holds the record (trap 4), so a second compare-and-set can
+        wait the two bounds together, about four seconds, before it is
+        refused as busy (review finding 8).
         """
         lock = self.directory / ".scratch.lock"
-        if os.name == "nt":
-            from .windows import open_lock
-            fd = open_lock(lock)
-        else:
-            fd = os.open(lock, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        fd = None
         try:
+            try:
+                if os.name == "nt":
+                    from .windows import open_lock
+                    fd = open_lock(lock)
+                else:
+                    fd = os.open(lock, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            except OSError as error:
+                raise ScratchRefused(
+                    f"Scratch stash of key {key!r} was refused: the store's lock file cannot be opened "
+                    f"({type(error).__name__}: {error}); nothing was written. Remove what sits at {lock}, "
+                    f"or stash without an expected version, which takes no lock.",
+                    key=key, expected_version=expected, found=None) from error
             deadline = time.monotonic() + LOCK_RETRY_SECONDS
             while True:
                 try:
@@ -436,24 +497,32 @@ class FileScratch:
                     time.sleep(0.005)
             yield
         finally:
-            os.close(fd)
+            if fd is not None:
+                os.close(fd)
 
     def stash(self, key, value, ttl_seconds=None, *, expected_version=None):
+        """Write the value; with ``expected_version``, only over the version named, under the store's lock.
+
+        Without one the record is read only to count its version and then
+        overwritten unconditionally, a record a compare-and-set landed a
+        moment before included, so the count is exact only when every writer
+        to the key passes an expected version (review finding 2).
+        """
         path = self._path(key)
-        text = _check_value(value)
+        text, stored = _check_value(value)
         ttl = _check_ttl(ttl_seconds)
         expected = _check_expected_version(expected_version)
         self._ensure_directory()
         if path.is_symlink():
             raise ValueError("Scratch entry cannot be a symlink")
         if expected is None:
-            return self._write(path, key, text, ttl, expected)
+            return self._write(path, key, text, stored, ttl, expected)
         with self._lock(key, expected):
-            return self._write(path, key, text, ttl, expected)
+            return self._write(path, key, text, stored, ttl, expected)
 
-    def _write(self, path, key, text, ttl, expected):
+    def _write(self, path, key, text, stored, ttl, expected):
         found, format_version = self._live(key, path)
-        record, payload = _record(key, text, ttl, _next_version(key, expected, found, format_version))
+        record, payload = _record(key, text, stored, ttl, _next_version(key, expected, found, format_version))
         handle, name = tempfile.mkstemp(prefix=".scratch-", suffix=".json", dir=self.directory)
         try:
             with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
@@ -463,22 +532,31 @@ class FileScratch:
             except OSError as error:
                 # The record is written and the replace raised: on Windows a
                 # replace can fail after the target is gone, so what is stored
-                # is not known. Reported, never retried (N3, R5).
+                # is not known. Reported, never retried (N3, R5). The bounded
+                # re-attempt inside replace_file is the platform's rename
+                # primitive (trap 4), not a second stash: it cannot land twice.
                 raise ScratchUncertain(
-                    _uncertain(key, record["version"], "the record was written and the replace raised", error),
-                    key=key, version=record["version"], error=type(error).__name__) from error
+                    _uncertain(key, record, "the record was written and the replace raised", error),
+                    key=key, version=record["version"], stored_at=record["stored_at"],
+                    error=type(error).__name__) from error
         finally:
             if Path(name).exists():
                 Path(name).unlink()
         return _view(record, FORMAT_VERSION, with_value=False)
 
     def _load(self, path):
-        """(record, format version, state) for one file: state is 'live', 'expired' or 'foreign'."""
+        """(record, format version, state) for one file: state is 'live', 'expired' or 'foreign'.
+
+        Foreign is anything this reader does not serve: not a file, not JSON,
+        not a record of the format, a stamp outside the grammar, or a value
+        nested deeper than the interpreter reads. A foreign file is left as
+        it is; only an expired one is removed, by ``keys``.
+        """
         if path.is_symlink() or not path.is_file():
             return None, None, "foreign"
         try:
             raw = parse_json(path.read_text(encoding="utf-8"), RECORD_LIMIT)
-        except (OSError, ValueError):
+        except (OSError, ValueError, RecursionError):
             return None, None, "foreign"
         if not isinstance(raw, dict) or not isinstance(raw.get("key"), str):
             return None, None, "foreign"
@@ -567,21 +645,28 @@ class RedisScratch:
         text = raw if isinstance(raw, str) else bytes(raw).decode("utf-8", "replace")
         try:
             parsed = parse_json(text, RECORD_LIMIT)
-        except ValueError as error:
+        except (ValueError, RecursionError) as error:
             raise MemoryRedisUnavailable(f"Redis scratch at {self.host} holds a malformed record: {error}") from error
         record, format_version = _well_formed(parsed, key)
         if record is None:
             raise MemoryRedisUnavailable(f"Redis scratch at {self.host} holds a record that is not this key's")
         return record, format_version
 
-    def _uncertain(self, key, version, error):
+    def _uncertain(self, key, record, error):
         return ScratchUncertain(
-            _uncertain(key, version, f"the write was sent to Redis at {self.host} and its reply was lost", error),
-            key=key, version=version, error=type(error).__name__)
+            _uncertain(key, record, f"the write was sent to Redis at {self.host} and its reply was lost", error),
+            key=key, version=record["version"], stored_at=record["stored_at"], error=type(error).__name__)
 
     def stash(self, key, value, ttl_seconds=None, *, expected_version=None):
+        """Write the value; with ``expected_version``, only over the version named, as one transaction.
+
+        Without one the record is read only to count its version and then
+        overwritten unconditionally, a record a compare-and-set landed a
+        moment before included, so the count is exact only when every writer
+        to the key passes an expected version (review finding 2).
+        """
         name = self._name(key)
-        text = _check_value(value)
+        text, stored = _check_value(value)
         ttl = _check_ttl(ttl_seconds)
         expected = _check_expected_version(expected_version)
         options = {"ex": ttl} if ttl else {}
@@ -597,11 +682,11 @@ class RedisScratch:
                 if expected is not None:
                     raise
                 found, format_version = None, None
-            record, payload = _record(key, text, ttl, _next_version(key, expected, found, format_version))
+            record, payload = _record(key, text, stored, ttl, _next_version(key, expected, found, format_version))
             try:
                 reply = self.client.set(name, payload, **options, **({"nx": True} if expected == 0 else {}))
             except self.errors as error:
-                raise self._uncertain(key, record["version"], error) from error
+                raise self._uncertain(key, record, error) from error
             if expected == 0 and not reply:
                 raise ScratchRefused(_changed(key, expected), key=key, expected_version=expected, found=None)
             return _view(record, FORMAT_VERSION, with_value=False)
@@ -612,7 +697,7 @@ class RedisScratch:
         try:
             self._call("stash", pipe.watch, name)
             found, format_version = self._parse(key, self._call("stash", pipe.get, name))
-            record, payload = _record(key, text, ttl, _next_version(key, expected, found, format_version))
+            record, payload = _record(key, text, stored, ttl, _next_version(key, expected, found, format_version))
             pipe.multi()
             pipe.set(name, payload, **options)
             try:
@@ -621,7 +706,7 @@ class RedisScratch:
                 # The base never imports redis, so its WatchError is known by name.
                 if type(error).__name__ == "WatchError":
                     raise ScratchRefused(_changed(key, expected), key=key, expected_version=expected, found=None) from error
-                raise self._uncertain(key, record["version"], error) from error
+                raise self._uncertain(key, record, error) from error
         finally:
             try:
                 pipe.reset()
@@ -686,7 +771,7 @@ def run(config, operation, arguments, *, open_with=None):
                         error=type(refusal).__name__, detail=str(refusal))
         except ScratchUncertain as receipt:
             return dict(status="uncertain", operation="memory_scratch_stash", backend=store.backend, key=receipt.key,
-                        version=receipt.version, error=receipt.error, detail=str(receipt))
+                        version=receipt.version, stored_at=receipt.stored_at, error=receipt.error, detail=str(receipt))
         return dict(status="ok", operation="memory_scratch_stash", backend=store.backend, **stored)
     if operation == "retrieve":
         found = store.retrieve(arguments["key"])

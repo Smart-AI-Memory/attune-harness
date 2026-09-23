@@ -318,14 +318,19 @@ from 1. `--expected-version N` is a compare-and-set: the stash lands only
 when the stored record is at version `N` (`0` means no record) and is
 otherwise refused with `failed`, a `detail` saying what was expected and
 what was found, and nothing written; retrieve the key and stash with the
-version it reports. A record 0.4.0 or 0.5.0 wrote is read in place and
+version it reports. The count is exact only when every writer to the key
+passes an expected version: a stash without one reads the record only to
+count and then overwrites unconditionally, a record a compare-and-set just
+landed included. A record 0.4.0 or 0.5.0 wrote is read in place and
 reported with `format_version` 1 and no `version`; the first plain stash
 over it writes the current format. A stash whose effect cannot be known,
 the record written and the replace raised, or the write sent to Redis and
-its reply lost, is reported as `uncertain` with the `version` the write
-carried: retrieve the key, and a record at that version means it landed;
-nothing is retried and nothing is diverted. `docs/envelopes.md` lists the
-record under "Stored formats".
+its reply lost, is reported as `uncertain` with the `version` and
+`stored_at` the write carried: retrieve the key, and a record at that
+version stored at that stamp means it landed, while one at that version
+with another stamp is another writer's; the stash is not retried and
+nothing is diverted. `docs/envelopes.md` lists the record under "Stored
+formats".
 
 Statuses and exit codes follow the other memory verbs, except `serve`, which
 exits 0 once its command line has parsed: `ok` and `no_results` exit 0;

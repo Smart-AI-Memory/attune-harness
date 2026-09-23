@@ -15,8 +15,10 @@ sibling pull requests did not conflict on this section.
   update with `failed`, what was expected and what was found, and nothing
   written, under a bounded lock on the file store and `WATCH`/`MULTI`/`EXEC`
   or `SET NX` on Redis; a write whose effect cannot be known is reported as
-  `uncertain` with the version it carried, never retried and never
-  diverted. The record 0.4.0 and 0.5.0 wrote is read in place and reported
+  `uncertain` with the version and the stamp it carried, never retried and
+  never diverted. A stored stamp may end in `Z`, and a record whose stamp
+  or nesting the reader cannot read is foreign, skipped rather than
+  raised. The record 0.4.0 and 0.5.0 wrote is read in place and reported
   as version 1; the first stash over it writes the current format. The
   `stash` and `retrieve` envelopes gain the header keys, the refusal and
   uncertain envelopes are pinned, and `docs/envelopes.md` gains "Stored

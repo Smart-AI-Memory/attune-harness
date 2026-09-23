@@ -258,7 +258,7 @@ ENVELOPES = (
     ('memory-scratch-stash-refused', 'refusal', 2, None, 'failed',
      ('backend', 'detail', 'error', 'expected_version', 'key', 'operation', 'status', 'version')),
     ('memory-scratch-stash-uncertain', 'uncertain', 2, None, 'uncertain',
-     ('backend', 'detail', 'error', 'key', 'operation', 'status', 'version')),
+     ('backend', 'detail', 'error', 'key', 'operation', 'status', 'stored_at', 'version')),
     ('memory-scratch-retrieve', 'success', 0, None, 'ok',
      ('backend', 'expires_at', 'format', 'format_version', 'key', 'operation', 'status', 'stored_at',
       'value', 'version', 'writer')),

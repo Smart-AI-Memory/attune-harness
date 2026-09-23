@@ -20,6 +20,7 @@ import fnmatch
 import hashlib
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -57,6 +58,7 @@ LEGACY_DIGESTS = {
     "k-plan%3Acurrent.json": "8443d3a768600f949cca15cc7163312f3c3035bb947b33790794ee4716a70596",
     "k-ephemeral.json": "acc0cce1f13ae25f314c4293cc718c0f7b83aa4f1301d36a475a5f0de2a2c5f6",
 }
+STAMP = "2026-09-22T12:00:00+00:00"  # the frozen clock, as the record writes it
 
 
 class FakeError(Exception):
@@ -159,6 +161,14 @@ class FakePipeline:
         self.watched, self.queued = None, None
 
 
+class DroppedBeforeServer(FakePipeline):
+    """The connection drops before the EXEC reaches the server: nothing is applied, the reply is lost."""
+
+    def execute(self):
+        self.kv.calls.append(("EXEC",))
+        raise FakeError("Connection reset before EXEC reached the server")
+
+
 class Clock:
     """Moves memory_scratch's clock and the double's together."""
 
@@ -190,6 +200,14 @@ def stored_bytes(backend, kv, key):
         return backend._path(key).read_bytes()
     value = kv.data[REDIS_PREFIX + "unit:" + key][0]
     return value if isinstance(value, bytes) else value.encode("utf-8")
+
+
+def plant(backend, kv, key, payload):
+    """A record another writer put in the store, as bytes on disk or a value under the prefix."""
+    if backend.backend == "file":
+        backend._path(key).write_text(payload + "\n", encoding="utf-8")
+    else:
+        kv.data[REDIS_PREFIX + "unit:" + key] = (payload, None)
 
 
 def header(payload):
@@ -282,6 +300,34 @@ def test_key_value_ttl_and_pattern_bounds(store):
     for bad in ("", "a b", "[abc]", "x" * 129, "../*"):
         with pytest.raises(ValueError, match="pattern"):
             backend.keys(bad)
+
+
+def test_a_value_nested_past_the_interpreter_is_refused_and_such_a_record_is_foreign(store):
+    """Review finding 3: a RecursionError is a refusal on the way in and a foreign record on the way out."""
+    backend, _, kv = store
+    backend.stash("mine", 1)
+    depth = 20000
+    nested = []
+    cursor = nested
+    for _ in range(depth - 1):
+        cursor.append([])
+        cursor = cursor[0]
+    with pytest.raises(ValueError, match="must be JSON nested within what this interpreter reads"):
+        backend.stash("deep", nested)
+    assert backend.retrieve("deep") is None
+    head = '{"format":"attune-harness/scratch","format_version":2,"writer":"other 1.0","version":1,"key":"deep","value":'
+    tail = ',"stored_at":"2026-09-22T12:00:00+00:00","expires_at":null}'
+    payload = head + "[" * depth + "]" * depth + tail
+    assert len(payload) < memory_scratch.RECORD_LIMIT
+    plant(backend, kv, "deep", payload)
+    if backend.backend == "file":
+        assert backend.retrieve("deep") is None
+        assert backend.keys() == ["mine"]  # skipped, not removed, no traceback
+        assert backend._path("deep").is_file()
+    else:
+        with pytest.raises(MemoryRedisUnavailable, match="malformed record"):
+            backend.retrieve("deep")
+        assert backend.keys() == ["deep", "mine"]  # SCAN lists the name; it is the value that cannot be read
 
 
 # --- the versioned record: format, writer, version (Task 5, D21.6) -----------------
@@ -383,7 +429,35 @@ def test_the_writer_is_read_from_the_package_metadata_and_is_the_bare_name_witho
 # --- the uncertain receipt: reported once, never retried, never diverted -------------
 
 
+def test_the_uncertain_receipt_names_the_write_by_version_and_stamp(store, monkeypatch):
+    """Review finding 1: A's write did not land and B then landed the same version number; the stamp tells them apart."""
+    backend, clock, kv = store
+    backend.stash("k", "seed")
+    real_replace = memory_scratch.replace_file
+    if backend.backend == "file":
+        def refused(source, target, **kwargs):
+            raise PermissionError(errno.EACCES, "Access is denied")  # nothing landed (Windows trap 4)
+        monkeypatch.setattr(memory_scratch, "replace_file", refused)
+    else:
+        kv.pipeline = lambda: DroppedBeforeServer(kv)
+    with pytest.raises(ScratchUncertain) as receipt:
+        backend.stash("k", "A-value", expected_version=1)
+    assert receipt.value.version == 2 and receipt.value.stored_at == STAMP
+    assert f"Retrieve the key; a record at version 2 stored at {STAMP} means it did." in str(receipt.value)
+    assert str(receipt.value).endswith("No retry of the stash was performed and nothing was diverted.")
+    if backend.backend == "file":
+        monkeypatch.setattr(memory_scratch, "replace_file", real_replace)
+    else:
+        del kv.pipeline
+    clock.advance(1)
+    assert backend.stash("k", "B-value", expected_version=1)["version"] == 2  # B lands the number A's receipt names
+    found = backend.retrieve("k")
+    assert found["version"] == receipt.value.version  # the version alone would tell A its write landed
+    assert found["stored_at"] != receipt.value.stored_at and found["value"] == "B-value"  # the stamp says it did not
+
+
 def test_a_replace_that_raises_after_the_record_was_written_is_uncertain_and_not_retried(tmp_path, monkeypatch):
+    Clock(monkeypatch)
     root = tmp_path.resolve()
     store = FileScratch(str(root), "unit")
     folder = root / "scratch" / "unit"
@@ -399,13 +473,15 @@ def test_a_replace_that_raises_after_the_record_was_written_is_uncertain_and_not
         store.stash("seed", 2)
     assert str(receipt.value) == (
         "Scratch stash of key 'seed' may or may not have landed: the record was written and the replace raised "
-        "(PermissionError: [Errno 13] Access is denied). Retrieve the key; a record at version 2 means it did. "
-        "No retry was performed and nothing was diverted."
+        f"(PermissionError: [Errno 13] Access is denied). Retrieve the key; a record at version 2 stored at {STAMP} "
+        "means it did. No retry of the stash was performed and nothing was diverted."
     )
     assert receipt.value.key == "seed" and receipt.value.version == 2 and receipt.value.error == "PermissionError"
+    assert receipt.value.stored_at == STAMP
     assert replaces == ["k-seed.json"]  # one attempt
     assert sorted(p.name for p in folder.iterdir()) == ["k-seed.json"]  # no temporary file left, nothing else written
-    assert store.retrieve("seed")["version"] == 2  # this time it did land, as the receipt says how to learn
+    found = store.retrieve("seed")
+    assert found["version"] == 2 and found["stored_at"] == STAMP  # this time it did land, as the receipt says how to learn
 
     def refused(source, target, **kwargs):
         replaces.append(target.name)
@@ -419,10 +495,10 @@ def test_a_replace_that_raises_after_the_record_was_written_is_uncertain_and_not
     envelope = run({"scratch": {"backend": "file"}}, "stash", {"key": "seed", "value": 4}, open_with=lambda c: store)
     assert envelope == {
         "status": "uncertain", "operation": "memory_scratch_stash", "backend": "file", "key": "seed", "version": 3,
-        "error": "OSError", "detail": (
+        "stored_at": STAMP, "error": "OSError", "detail": (
             "Scratch stash of key 'seed' may or may not have landed: the record was written and the replace raised "
-            "(OSError: disk says no). Retrieve the key; a record at version 3 means it did. "
-            "No retry was performed and nothing was diverted."),
+            f"(OSError: disk says no). Retrieve the key; a record at version 3 stored at {STAMP} means it did. "
+            "No retry of the stash was performed and nothing was diverted."),
     }
 
 
@@ -451,20 +527,22 @@ def test_a_lost_redis_reply_is_uncertain_and_not_retried_or_diverted(tmp_path, m
         store.stash("k", 1)
     assert str(receipt.value) == (
         "Scratch stash of key 'k' may or may not have landed: the write was sent to Redis at fake:6379 and its "
-        "reply was lost (FakeError: Connection lost). Retrieve the key; a record at version 1 means it did. "
-        "No retry was performed and nothing was diverted."
+        f"reply was lost (FakeError: Connection lost). Retrieve the key; a record at version 1 stored at {STAMP} "
+        "means it did. No retry of the stash was performed and nothing was diverted."
     )
-    assert receipt.value.version == 1 and receipt.value.error == "FakeError"
+    assert receipt.value.version == 1 and receipt.value.stored_at == STAMP and receipt.value.error == "FakeError"
     assert [call for call in kv.calls if call[0] == "SET"] == [("SET", REDIS_PREFIX + "unit:k", None)]  # one attempt
-    assert store.retrieve("k")["version"] == 1
+    found = store.retrieve("k")
+    assert found["version"] == 1 and found["stored_at"] == receipt.value.stored_at  # it landed: this write's stamp
     kv.calls.clear()
-    with pytest.raises(ScratchUncertain, match="a record at version 2 means it did"):
+    with pytest.raises(ScratchUncertain, match=re.escape(f"a record at version 2 stored at {STAMP} means it did")):
         store.stash("k", 2, expected_version=1)  # the EXEC's reply is lost the same way
     assert [call[0] for call in kv.calls] == ["WATCH", "GET", "MULTI", "EXEC", "SET", "RESET"]
     assert not list(tmp_path.iterdir())  # nothing went to any file store
     envelope = run({"scratch": {"backend": "redis"}}, "stash", {"key": "k", "value": 3}, open_with=lambda c: store)
     assert envelope["status"] == "uncertain" and envelope["version"] == 3 and envelope["error"] == "FakeError"
-    assert set(envelope) == {"status", "operation", "backend", "key", "version", "error", "detail"}
+    assert envelope["stored_at"] == STAMP
+    assert set(envelope) == {"status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
 
 
 def test_a_redis_failure_before_the_write_is_unavailable_not_uncertain():
@@ -530,6 +608,24 @@ def test_redis_stash_with_no_expectation_writes_over_what_it_cannot_read_as_befo
     with pytest.raises(MemoryRedisUnavailable, match="malformed record"):
         store.stash("bad", 2, expected_version=1)  # a compare has nothing to compare against
     assert kv.data[REDIS_PREFIX + "unit:bad"][0] == "{not json"
+
+
+def test_a_foreign_record_on_redis_is_refused_not_served(monkeypatch):
+    """Review finding 3 on the shared backend: a stamp the format accepts is served; one outside it is refused."""
+    kv = FakeKV()
+    Clock(monkeypatch, kv)
+    store = RedisScratch(kv, "unit", host="fake:6379", errors=(FakeError,))
+    store.stash("k", 1)
+    current = json.loads(kv.data[REDIS_PREFIX + "unit:k"][0])
+    kv.data[REDIS_PREFIX + "unit:zulu"] = (json.dumps({**current, "key": "zulu", "expires_at": "2099-01-01T00:00:00Z"}), None)
+    assert store.retrieve("zulu")["expires_at"] == "2099-01-01T00:00:00Z"
+    kv.data[REDIS_PREFIX + "unit:naive"] = (json.dumps({**current, "key": "naive", "expires_at": "2099-01-01T00:00:00"}), None)
+    with pytest.raises(MemoryRedisUnavailable, match="not this key's"):
+        store.retrieve("naive")
+    with pytest.raises(MemoryRedisUnavailable, match="not this key's"):
+        store.stash("naive", 2, expected_version=1)  # nothing to compare against
+    assert store.stash("naive", 2)["version"] == 1  # a plain stash writes over what it cannot read, as before
+    assert store.retrieve("naive")["value"] == 2
 
 
 # --- the legacy record: read in place, never rewritten by a read ---------------------
@@ -669,18 +765,22 @@ def test_file_store_ignores_foreign_or_tampered_files(tmp_path, monkeypatch):
     current = json.loads((folder / "k-good.json").read_text(encoding="utf-8"))
     (folder / "stray.txt").write_text("x", encoding="utf-8")
     (folder / "k-notjson.json").write_text("{", encoding="utf-8")
-    (folder / "k-wrongkey.json").write_text(json.dumps({"schema_version": 1, "key": "other", "value": 1, "stored_at": "x", "expires_at": None}), encoding="utf-8")
-    (folder / "k-future.json").write_text(json.dumps({"schema_version": 2, "key": "future", "value": 1, "stored_at": "x", "expires_at": None}), encoding="utf-8")
-    (folder / "k-novalue.json").write_text(json.dumps({"schema_version": 1, "key": "novalue", "stored_at": "x", "expires_at": None}), encoding="utf-8")
-    (folder / "k-extra.json").write_text(json.dumps({"schema_version": 1, "key": "extra", "value": 1, "stored_at": "x", "expires_at": None, "more": 1}), encoding="utf-8")
-    # The current format's shape, damaged: a later format version, a version that is not a count, a foreign format name.
+    (folder / "k-wrongkey.json").write_text(json.dumps({"schema_version": 1, "key": "other", "value": 1, "stored_at": STAMP, "expires_at": None}), encoding="utf-8")
+    (folder / "k-future.json").write_text(json.dumps({"schema_version": 2, "key": "future", "value": 1, "stored_at": STAMP, "expires_at": None}), encoding="utf-8")
+    (folder / "k-novalue.json").write_text(json.dumps({"schema_version": 1, "key": "novalue", "stored_at": STAMP, "expires_at": None}), encoding="utf-8")
+    (folder / "k-extra.json").write_text(json.dumps({"schema_version": 1, "key": "extra", "value": 1, "stored_at": STAMP, "expires_at": None, "more": 1}), encoding="utf-8")
+    # The current format's shape, damaged: a later format version, a version that is not a count, a foreign format
+    # name, a version that is a float or a bool (review finding 7).
     (folder / "k-later.json").write_text(json.dumps({**current, "key": "later", "format_version": 3}), encoding="utf-8")
     (folder / "k-uncounted.json").write_text(json.dumps({**current, "key": "uncounted", "version": 0}), encoding="utf-8")
     (folder / "k-boolean.json").write_text(json.dumps({**current, "key": "boolean", "version": True}), encoding="utf-8")
     (folder / "k-foreign.json").write_text(json.dumps({**current, "key": "foreign", "format": "other/format"}), encoding="utf-8")
     (folder / "k-nowriter.json").write_text(json.dumps({**current, "key": "nowriter", "writer": None}), encoding="utf-8")
+    (folder / "k-fvfloat.json").write_text(json.dumps({**current, "key": "fvfloat", "format_version": 2.0}), encoding="utf-8")
+    (folder / "k-legacybool.json").write_text(json.dumps({"schema_version": True, "key": "legacybool", "value": 1, "stored_at": STAMP, "expires_at": None}), encoding="utf-8")
     assert store.keys() == ["good"]
-    for key in ("wrongkey", "notjson", "future", "novalue", "extra", "stray", "later", "uncounted", "boolean", "foreign", "nowriter"):
+    for key in ("wrongkey", "notjson", "future", "novalue", "extra", "stray", "later", "uncounted", "boolean", "foreign",
+                "nowriter", "fvfloat", "legacybool"):
         assert store.retrieve(key) is None, key
     assert store.forget("novalue") is False and not (folder / "k-novalue.json").exists()  # housekeeping, never a live entry
     assert store.retrieve("other") is None  # the record under k-wrongkey.json names "other"; neither name finds it
@@ -693,6 +793,51 @@ def test_file_store_ignores_foreign_or_tampered_files(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="symlink"):
         store.stash("link", 2)
     assert store.forget("link") is False and (folder / "k-link.json").is_symlink()
+
+
+def test_stamps_the_format_accepts_and_a_record_outside_it_is_foreign(tmp_path, monkeypatch):
+    """Review finding 3: the reader's grammar is the module's own, the same on every Python."""
+    Clock(monkeypatch)
+    utc = timezone.utc
+    stamp = memory_scratch._stamp
+    assert stamp("2099-01-01T00:00:00Z") == datetime(2099, 1, 1, tzinfo=utc)  # JavaScript's toISOString form
+    assert stamp("2099-01-01T00:00:00.123Z") == datetime(2099, 1, 1, 0, 0, 0, 123000, tzinfo=utc)
+    assert stamp("2099-01-01T00:00:00.123456+00:00") == datetime(2099, 1, 1, 0, 0, 0, 123456, tzinfo=utc)
+    assert stamp(STAMP) == datetime(2026, 9, 22, 12, 0, tzinfo=utc)
+    for outside in ("2099-01-01T00:00:00", "2099-01-01T00:00:00+02:00", "2099-01-01 00:00:00+00:00",
+                    "2099-13-01T00:00:00Z", "2099-01-01T00:00:00.1234567Z", "2099-01-01T00:00Z", "", None, 1):
+        assert stamp(outside) is None, outside
+    root = tmp_path.resolve()
+    store = FileScratch(str(root), "unit")
+    folder = root / "scratch" / "unit"
+    store.stash("mine", 1)
+    current = json.loads((folder / "k-mine.json").read_text(encoding="utf-8"))
+
+    def plant_file(key, **fields):
+        (folder / f"k-{key}.json").write_text(json.dumps({**current, "key": key, **fields}, separators=(",", ":")) + "\n", encoding="utf-8")
+    plant_file("zulu", expires_at="2099-01-01T00:00:00Z")
+    plant_file("js", expires_at="2099-01-01T00:00:00.123Z")
+    plant_file("naive", expires_at="2099-01-01T00:00:00")
+    plant_file("offset", expires_at="2099-01-01T02:00:00+02:00")
+    plant_file("stored", stored_at="2026-09-22 12:00:00")
+    plant_file("lapsed", expires_at="2026-09-22T11:59:59Z")  # a Z stamp in the past has lapsed; it is not foreign
+    assert store.retrieve("zulu")["expires_at"] == "2099-01-01T00:00:00Z"
+    assert store.retrieve("js")["version"] == 1
+    for foreign in ("naive", "offset", "stored"):
+        assert store.retrieve(foreign) is None, foreign
+    assert store.retrieve("lapsed") is None
+    assert store.keys() == ["js", "mine", "zulu"]  # the Z forms served, the foreign skipped, no traceback
+    assert sorted(p.name for p in folder.iterdir()) == [
+        "k-js.json", "k-mine.json", "k-naive.json", "k-offset.json", "k-stored.json", "k-zulu.json",
+    ]  # keys() removed only what had lapsed
+    # A foreign file is handled as every foreign file is: never served, removed by forget, overwritten by a plain stash.
+    assert store.forget("naive") is False and not (folder / "k-naive.json").exists()
+    with pytest.raises(ScratchRefused, match="expected version 1, found no record"):
+        store.stash("offset", 2, expected_version=1)
+    assert store.stash("offset", 2)["version"] == 1
+    assert store.retrieve("offset")["value"] == 2
+    envelope = run({"scratch": {"backend": "file"}}, "keys", {}, open_with=lambda c: store)
+    assert envelope["keys"] == ["js", "mine", "offset", "zulu"]
 
 
 def test_file_store_refuses_a_symlinked_scratch_directory(tmp_path):
@@ -770,6 +915,33 @@ def test_file_compare_and_set_waits_for_the_store_lock_within_the_bound(tmp_path
     assert store.retrieve("k")["value"] == 3
 
 
+def test_a_planted_lock_path_is_refused_in_the_stores_words(tmp_path):
+    """Review finding 6: a directory or a symlink where the lock file goes is a refusal, not a traceback."""
+    root = tmp_path.resolve()
+    store = FileScratch(str(root), "unit")
+    folder = root / "scratch" / "unit"
+    store.stash("k", 1)
+    lock = folder / ".scratch.lock"
+    lock.mkdir()
+    with pytest.raises(ScratchRefused) as refused:
+        store.stash("k", 2, expected_version=1)
+    assert str(refused.value).startswith("Scratch stash of key 'k' was refused: the store's lock file cannot be opened (")
+    assert str(refused.value).endswith(
+        f"); nothing was written. Remove what sits at {lock}, or stash without an expected version, which takes no lock."
+    )
+    assert refused.value.found is None and refused.value.expected_version == 1
+    assert store.retrieve("k")["value"] == 1
+    assert store.stash("k", 2)["version"] == 2  # a plain stash takes no lock
+    lock.rmdir()
+    try:
+        lock.symlink_to(folder / "k-k.json")
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable: {exc}")
+    with pytest.raises(ScratchRefused, match="the store's lock file cannot be opened"):
+        store.stash("k", 3, expected_version=2)
+    assert store.retrieve("k")["value"] == 2 and lock.is_symlink()
+
+
 # --- the redis store's own edges ------------------------------------------------
 
 
@@ -794,7 +966,7 @@ def test_redis_store_uses_ttl_and_scan_never_keys_and_stays_in_its_namespace():
     kv.data[REDIS_PREFIX + "unit:novalue"] = ('{"schema_version": 1, "key": "novalue", "stored_at": "x", "expires_at": null}', None)
     with pytest.raises(MemoryRedisUnavailable, match="not this key's"):
         store.retrieve("novalue")
-    kv.data[REDIS_PREFIX + "unit:raw"] = (b'{"schema_version":1,"key":"raw","value":7,"stored_at":"x","expires_at":null}', None)
+    kv.data[REDIS_PREFIX + "unit:raw"] = (b'{"schema_version":1,"key":"raw","value":7,"stored_at":"2026-09-22T12:00:00+00:00","expires_at":null}', None)
     assert store.retrieve("raw")["value"] == 7  # a bytes reply is decoded, not repr'd
 
 
@@ -953,7 +1125,9 @@ def test_cli_reports_an_uncertain_stash_with_exit_2(tmp_path, capsys, monkeypatc
     assert memory_main([*base, "stash", "k", "--value", "2"]) == 2
     out = json.loads(capsys.readouterr().out)
     assert out["status"] == "uncertain" and out["version"] == 2 and out["error"] == "PermissionError"
+    assert out["stored_at"].endswith("+00:00") and f"stored at {out['stored_at']} means it did" in out["detail"]
     assert out["detail"].startswith("Scratch stash of key 'k' may or may not have landed")
+    assert set(out) == {"status", "operation", "backend", "key", "version", "stored_at", "error", "detail"}
 
 
 def test_importing_the_module_needs_no_redis_package():
