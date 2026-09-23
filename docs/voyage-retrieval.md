@@ -9,7 +9,7 @@ edit code or certify that an agent's interpretation is correct.
 ```sh
 python -m pip install -c requirements-voyage.lock '.[voyage]'
 # Add MCP or the existing review workflow when needed:
-python -m pip install -c requirements-voyage.lock -c requirements-mcp.lock '.[voyage,mcp]'
+python -m pip install -c requirements-voyage.lock -c requirements-mcp.lock '.[voyage]'
 ```
 
 Create an API key in the [Voyage dashboard](https://dashboard.voyageai.com/organization/api-keys).

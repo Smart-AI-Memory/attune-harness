@@ -15,6 +15,6 @@ key=$(python3 -c 'import hashlib,sys; print(hashlib.sha256(b"".join(open(f,"rb")
 venv="${TMPDIR:-/tmp}/attune-harness-suite-venv-$key"
 [[ -x "$venv/bin/python" ]] || python3 -m venv "$venv"
 "$venv/bin/python" -m pip install -q -c requirements-workflow.lock -c requirements-voyage.lock \
-  -c requirements-mcp.lock -c requirements-tokens.lock -c requirements-redis.lock "pytest==9.1.1" -e ".[review,voyage,mcp,redis]"
+  -c requirements-mcp.lock -c requirements-tokens.lock -c requirements-redis.lock "pytest==9.1.1" -e ".[voyage,redis]"
 echo "suite from $(git -C "$root" rev-parse --short HEAD) in $snapshot, environment $venv"
 "$venv/bin/python" -m pytest -q -p no:cacheprovider tests "$@"

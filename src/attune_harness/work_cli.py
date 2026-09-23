@@ -127,6 +127,7 @@ def _json(path):
 def present(directory, *, inspect_only=False):
     record = read_task(directory)
     result = {
+        "schema_version": 1,
         **work_status(directory, _record=record),
         "task_directory": str(Path(record["record_path"]).parent),
         "intent": record["request"]["intent"],
@@ -638,6 +639,7 @@ def exit_code(result):
 
 def _error(exc, directory=None):
     result = {
+        "schema_version": 1,
         "status": "unresolved" if isinstance(exc, UnresolvedOperation) else "failed",
         "error": {"type": type(exc).__name__, "detail": str(exc)},
         "summary": "The requested action could not complete; inspect the error before continuing.",
