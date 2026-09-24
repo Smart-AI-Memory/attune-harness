@@ -1,0 +1,8 @@
+run(task, participant_id, participant, verify)
+Task(task_id, objective, requirements, schema_version=1)
+Output(text)
+Check(accepted, evidence)
+Receipt(task, participant_id, status, output=None, check=None, error=None)
+Participant.run(self, task)
+Status: VERIFIED=verified, REJECTED=rejected, FAILED=failed
+Task.schema_version accepts: 1

@@ -82,6 +82,18 @@ did not conflict on this section.
   removal at 1.0 and D27.6 put it in the first freeze cycle. An install that
   still names one gets pip's warning that the extra does not exist and the
   base install, which carries everything they installed; drop the bracket.
+- Added: the compatibility list, `docs/compatibility.md`, and the first of
+  its guards. The command line's surface, twenty-eight verbs with their
+  subcommands, positionals and required options, is read from the parsers
+  by `attune_harness.cli_surface` (the parser is now built by
+  `cli.build_parser`), committed as `tests/fixtures/compatibility/surface.json`
+  and rendered as the list's table; `tests/test_compatibility_surface.py`
+  fails when any of the three disagree, and `scripts/compatibility_surface.py`
+  rewrites the fixture and the rows on purpose. The Python API's seven names
+  are pinned by parameter in `tests/fixtures/compatibility/public_api.txt`,
+  and `tests/test_public_api.py` runs the README's example as written with
+  its two variants (the interface freeze, 4.1, first cycle; D27.1, D27.4).
+
 
 ## 0.5.0
 

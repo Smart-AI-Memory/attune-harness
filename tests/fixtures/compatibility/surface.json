@@ -1,0 +1,759 @@
+{
+ "options": [
+  "--help-all"
+ ],
+ "program": "attune-harness",
+ "schema_version": 1,
+ "verbs": {
+  "build": {
+   "one_of": [],
+   "options": [
+    "--allow-external",
+    "--allow-native",
+    "--checkpoint",
+    "--max-operations"
+   ],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": []
+  },
+  "cancel-review": {
+   "one_of": [],
+   "options": [
+    "--checkpoint",
+    "--reason"
+   ],
+   "positionals": [
+    "run_dir"
+   ],
+   "required_options": [
+    "--checkpoint",
+    "--reason"
+   ]
+  },
+  "cancel-task": {
+   "one_of": [],
+   "options": [
+    "--checkpoint",
+    "--reason"
+   ],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": [
+    "--reason"
+   ]
+  },
+  "code-config": {
+   "one_of": [],
+   "options": [
+    "--include-docs",
+    "--index-dir",
+    "--repo",
+    "--repo-id",
+    "--structured-path"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--index-dir",
+    "--repo"
+   ]
+  },
+  "extension": {
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "disable": {
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--state-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--checkpoint",
+      "--state-dir"
+     ]
+    },
+    "discover": {
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      "manifest"
+     ],
+     "required_options": []
+    },
+    "enable": {
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--state-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--checkpoint",
+      "--state-dir"
+     ]
+    },
+    "inspect": {
+     "one_of": [],
+     "options": [
+      "--state-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--state-dir"
+     ]
+    },
+    "install": {
+     "one_of": [],
+     "options": [
+      "--state-dir"
+     ],
+     "positionals": [
+      "manifest"
+     ],
+     "required_options": [
+      "--state-dir"
+     ]
+    },
+    "remove": {
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--state-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--checkpoint",
+      "--state-dir"
+     ]
+    },
+    "replace": {
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--manifest",
+      "--state-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--checkpoint",
+      "--manifest",
+      "--state-dir"
+     ]
+    }
+   }
+  },
+  "fix": {
+   "one_of": [],
+   "options": [
+    "--accept",
+    "--allow-external",
+    "--bypass-intake-cache",
+    "--checkout",
+    "--clear-intake-cache",
+    "--config",
+    "--criteria",
+    "--finding-id",
+    "--from-assessment",
+    "--goal",
+    "--intake-only",
+    "--pause-after",
+    "--probe",
+    "--project",
+    "--review",
+    "--reviewer",
+    "--scope",
+    "--task-dir",
+    "--task-response",
+    "--worker"
+   ],
+   "positionals": [],
+   "required_options": []
+  },
+  "github-checks": {
+   "one_of": [],
+   "options": [
+    "--repository",
+    "--revision"
+   ],
+   "positionals": [
+    "input"
+   ],
+   "required_options": [
+    "--repository",
+    "--revision"
+   ]
+  },
+  "index": {
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "build": {
+     "one_of": [],
+     "options": [
+      "--allow-provider",
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
+     ]
+    },
+    "inspect": {
+     "one_of": [],
+     "options": [
+      "--config",
+      "--generation"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config",
+      "--generation"
+     ]
+    },
+    "plan": {
+     "one_of": [],
+     "options": [
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
+     ]
+    },
+    "update": {
+     "one_of": [],
+     "options": [
+      "--allow-provider",
+      "--base-generation",
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--base-generation",
+      "--config"
+     ]
+    }
+   }
+  },
+  "inspect-review": {
+   "one_of": [],
+   "options": [],
+   "positionals": [
+    "run_dir"
+   ],
+   "required_options": []
+  },
+  "mcp-inspect": {
+   "one_of": [],
+   "options": [],
+   "positionals": [
+    "session_dir"
+   ],
+   "required_options": []
+  },
+  "mcp-serve": {
+   "one_of": [],
+   "options": [
+    "--allow-provider",
+    "--config",
+    "--participant",
+    "--request",
+    "--session-dir"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--participant",
+    "--request",
+    "--session-dir"
+   ]
+  },
+  "memory": {
+   "one_of": [],
+   "options": [
+    "--config",
+    "--jobs",
+    "--native-config"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--config"
+   ],
+   "subcommands": {
+    "capabilities": {
+     "one_of": [],
+     "options": [],
+     "positionals": [],
+     "required_options": []
+    },
+    "create": {
+     "one_of": [],
+     "options": [
+      "--envelope",
+      "--policy"
+     ],
+     "positionals": [
+      "run_id"
+     ],
+     "required_options": [
+      "--envelope",
+      "--policy"
+     ]
+    },
+    "execute": {
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      "run_id",
+      "job_id"
+     ],
+     "required_options": []
+    },
+    "inspect": {
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      "run_id",
+      "job_id"
+     ],
+     "required_options": []
+    },
+    "recall": {
+     "one_of": [],
+     "options": [
+      "--k",
+      "--max-chars"
+     ],
+     "positionals": [
+      "query"
+     ],
+     "required_options": []
+    },
+    "redis": {
+     "one_of": [],
+     "options": [],
+     "positionals": [],
+     "required_options": [],
+     "subcommands": {
+      "digest": {
+       "one_of": [],
+       "options": [
+        "--limit"
+       ],
+       "positionals": [],
+       "required_options": []
+      },
+      "node": {
+       "one_of": [],
+       "options": [],
+       "positionals": [
+        "id"
+       ],
+       "required_options": []
+      },
+      "related": {
+       "one_of": [],
+       "options": [],
+       "positionals": [
+        "id"
+       ],
+       "required_options": []
+      },
+      "search": {
+       "one_of": [],
+       "options": [
+        "--k",
+        "--layer"
+       ],
+       "positionals": [
+        "query"
+       ],
+       "required_options": []
+      },
+      "status": {
+       "one_of": [],
+       "options": [],
+       "positionals": [],
+       "required_options": []
+      }
+     }
+    },
+    "refresh": {
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      "context"
+     ],
+     "required_options": []
+    },
+    "replay": {
+     "one_of": [],
+     "options": [
+      "--replies"
+     ],
+     "positionals": [
+      "run_id",
+      "job_id"
+     ],
+     "required_options": [
+      "--replies"
+     ]
+    },
+    "resolve": {
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      "handle"
+     ],
+     "required_options": []
+    },
+    "scratch": {
+     "one_of": [],
+     "options": [],
+     "positionals": [],
+     "required_options": [],
+     "subcommands": {
+      "capabilities": {
+       "one_of": [],
+       "options": [],
+       "positionals": [],
+       "required_options": []
+      },
+      "forget": {
+       "one_of": [],
+       "options": [],
+       "positionals": [
+        "key"
+       ],
+       "required_options": []
+      },
+      "keys": {
+       "one_of": [],
+       "options": [],
+       "positionals": [
+        "pattern"
+       ],
+       "required_options": []
+      },
+      "retrieve": {
+       "one_of": [],
+       "options": [],
+       "positionals": [
+        "key"
+       ],
+       "required_options": []
+      },
+      "stash": {
+       "one_of": [
+        [
+         "--value",
+         "--value-file"
+        ]
+       ],
+       "options": [
+        "--ttl",
+        "--value",
+        "--value-file"
+       ],
+       "positionals": [
+        "key"
+       ],
+       "required_options": []
+      }
+     }
+    },
+    "serve": {
+     "one_of": [],
+     "options": [
+      "--chars",
+      "--limit"
+     ],
+     "positionals": [],
+     "required_options": []
+    }
+   }
+  },
+  "plan": {
+   "one_of": [],
+   "options": [
+    "--accept",
+    "--allow-external",
+    "--allow-native",
+    "--answers",
+    "--checkpoint",
+    "--config",
+    "--decision",
+    "--import-plan",
+    "--max-operations",
+    "--preserve-completed",
+    "--project",
+    "--reimport",
+    "--request",
+    "--review-dispositions",
+    "--revise",
+    "--run",
+    "--stage",
+    "--task-dir"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--task-dir"
+   ]
+  },
+  "reconcile-review": {
+   "one_of": [
+    [
+     "--reply",
+     "--retry-read-only"
+    ]
+   ],
+   "options": [
+    "--checkpoint",
+    "--event",
+    "--reply",
+    "--retry-read-only"
+   ],
+   "positionals": [
+    "run_dir"
+   ],
+   "required_options": [
+    "--checkpoint",
+    "--event"
+   ]
+  },
+  "reconcile-task": {
+   "one_of": [
+    [
+     "--observe-file",
+     "--reply",
+     "--retry-before",
+     "--retry-read-only"
+    ]
+   ],
+   "options": [
+    "--checkpoint",
+    "--event",
+    "--observe-file",
+    "--reply",
+    "--retry-before",
+    "--retry-read-only"
+   ],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": [
+    "--event"
+   ]
+  },
+  "repair-economics": {
+   "one_of": [],
+   "options": [],
+   "positionals": [
+    "input"
+   ],
+   "required_options": []
+  },
+  "resume": {
+   "one_of": [],
+   "options": [
+    "--allow-external",
+    "--allow-native",
+    "--checkpoint",
+    "--max-operations"
+   ],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": []
+  },
+  "resume-review": {
+   "one_of": [],
+   "options": [
+    "--allow-external",
+    "--allow-provider",
+    "--checkpoint",
+    "--config",
+    "--max-operations",
+    "--request"
+   ],
+   "positionals": [
+    "run_dir"
+   ],
+   "required_options": [
+    "--checkpoint",
+    "--config",
+    "--request"
+   ]
+  },
+  "retrieval-task": {
+   "one_of": [],
+   "options": [
+    "--config",
+    "--generation",
+    "--max-calls",
+    "--objective",
+    "--participant"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--config",
+    "--generation",
+    "--objective"
+   ]
+  },
+  "retrieve": {
+   "one_of": [
+    [
+     "--corpus",
+     "--request"
+    ]
+   ],
+   "options": [
+    "--allow-provider",
+    "--corpus",
+    "--k",
+    "--output",
+    "--participant",
+    "--request",
+    "--session-dir"
+   ],
+   "positionals": [
+    "query"
+   ],
+   "required_options": []
+  },
+  "review": {
+   "one_of": [],
+   "options": [
+    "--accept",
+    "--allow-external",
+    "--allow-provider",
+    "--assessor",
+    "--bypass-intake-cache",
+    "--clear-intake-cache",
+    "--config",
+    "--context",
+    "--corpus",
+    "--criteria",
+    "--document",
+    "--goal",
+    "--intake-only",
+    "--max-operations",
+    "--pause-after",
+    "--plan",
+    "--profile",
+    "--project",
+    "--query",
+    "--repair-findings",
+    "--reviewer",
+    "--run-dir",
+    "--task-dir",
+    "--task-response"
+   ],
+   "positionals": [
+    "request"
+   ],
+   "required_options": []
+  },
+  "review-form": {
+   "one_of": [],
+   "options": [
+    "--config"
+   ],
+   "positionals": [],
+   "required_options": []
+  },
+  "status": {
+   "one_of": [],
+   "options": [],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": []
+  },
+  "test": {
+   "one_of": [],
+   "options": [
+    "--accept",
+    "--checkpoint",
+    "--from-task",
+    "--goal",
+    "--intake-only",
+    "--interpreter",
+    "--max-output-bytes",
+    "--pause-after",
+    "--project",
+    "--pytest-arg",
+    "--pytest-plugin",
+    "--scope",
+    "--task-dir",
+    "--test-root",
+    "--tests",
+    "--timeout"
+   ],
+   "positionals": [],
+   "required_options": [
+    "--task-dir"
+   ]
+  },
+  "transfer-review": {
+   "one_of": [],
+   "options": [
+    "--checkpoint",
+    "--lead",
+    "--reason"
+   ],
+   "positionals": [
+    "run_dir"
+   ],
+   "required_options": [
+    "--checkpoint",
+    "--lead",
+    "--reason"
+   ]
+  },
+  "transfer-task": {
+   "one_of": [],
+   "options": [
+    "--assessor",
+    "--checkpoint",
+    "--reason"
+   ],
+   "positionals": [
+    "task_dir"
+   ],
+   "required_options": [
+    "--assessor",
+    "--reason"
+   ]
+  },
+  "triage-check": {
+   "one_of": [],
+   "options": [],
+   "positionals": [
+    "input"
+   ],
+   "required_options": []
+  },
+  "verify": {
+   "one_of": [],
+   "options": [
+    "--context",
+    "--output"
+   ],
+   "positionals": [
+    "document"
+   ],
+   "required_options": [
+    "--context"
+   ]
+  }
+ }
+}
