@@ -14,6 +14,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
 - [R2: the clean-environment journey](journeys/r2-clean-environment.md): Plan, accept, build, review and status from a fresh install with Attune AI absent, the envelope each step returns, and where the gate proves it
+- [R4: another project's spec state, with a receipt](journeys/r4-legacy-spec-state.md): A plan from another project imported by name, the receipt each conversion leaves, the refusals, and the eight fixtures' origins
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [The compatibility list](compatibility.md): What 1.0.0 promises not to change without a deprecation, surface by surface, with the guard for each
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
@@ -37,7 +38,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
-- [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path
+- [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path; D30, the host surface
 - [The interface freeze (4.1): design note](specs/release-1.0/freeze-design.md): The six frozen surfaces turned into guards, the saved-state fixture, the deprecation mechanism, and seven decisions, ruled as D27
 - [The host surface: spec on Harness end to end, design note](specs/release-1.0/host-surface-design.md): What the telemetry says Patrick relies on, what `/spec` needs from attune-ai, the workspace surface over the host Harness already carries, and seven decisions for the deprecation milestone's first row
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick

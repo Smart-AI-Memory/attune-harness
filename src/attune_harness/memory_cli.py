@@ -112,6 +112,8 @@ def add_arguments(parser):
     source.add_argument('--value', help='The value as JSON text')
     source.add_argument('--value-file', type=Path, help='A file holding the value as JSON')
     stash.add_argument('--ttl', type=int, help='Seconds until the value expires')
+    stash.add_argument('--expected-version', type=int,
+                       help='Refuse unless the stored record is at this version (0: no record); nothing is written')
     ops.add_parser('retrieve', help='Read one value').add_argument('key')
     ops.add_parser('forget', help='Remove one value').add_argument('key')
     ops.add_parser('keys', help='List keys, optionally by a glob pattern').add_argument('pattern', nargs='?', default='*')
@@ -194,7 +196,7 @@ def execute(args):
             result = read(read_json(args.config), args.redis_operation, arguments)
         elif args.memory_operation == 'scratch':
             from .memory_scratch import VALUE_LIMIT, run
-            arguments = {key: getattr(args, key) for key in ('key', 'ttl', 'pattern')
+            arguments = {key: getattr(args, key) for key in ('key', 'ttl', 'pattern', 'expected_version')
                          if getattr(args, key, None) is not None}
             if args.scratch_operation == 'stash':
                 raw = read_text(args.value_file, VALUE_LIMIT + 4096) if args.value_file is not None else args.value

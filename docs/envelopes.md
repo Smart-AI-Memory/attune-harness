@@ -10,21 +10,27 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 73 rows:
+row pins, in 76 rows:
 
-- **success** (55 rows): the verb did its work offline on a small fixture;
+- **success** (56 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (8 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (9 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
   built; `memory capabilities` with a config that is not the roots contract,
   refused by the default reader in its own words; `triage-check` and
-  `github-checks` on an empty object. Voyage is never called.
+  `github-checks` on an empty object; `memory scratch stash` with an
+  `--expected-version` the stored record is not at, nothing written. Voyage
+  is never called.
 - **unavailable** (9 rows): a dependency or server this install does not
   have. The memory host route (`capabilities` through `execute`) with
   `reader: adapter` needs the attune-ai adapter, which no base or extra
   install carries; a configured Redis that refuses the connection.
 - **disabled** (1 row): the memory config has no `scratch` section.
+- **uncertain** (1 row): a write whose effect cannot be known. `memory scratch
+  stash` when the record was written and the replace raised; the receipt
+  carries the version and the stamp the write took, and says that the
+  stash was not retried and nothing was diverted.
 
 The four `-adapter` rows pin the memory host's success shapes over an
 in-process double of the adapter's four-member contract (`binding`,
@@ -81,6 +87,7 @@ or to rule exempt; the eight adapter-bound rows among them go with D28.
 | `extension-discover` | success | 0 | 1 | `ready` | `bundle` `operation` `request_id` `schema_version` `status` |
 | `extension-install` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-enable` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
+| `extension-enable-plugin` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `plugin` `revision` `schema_version` `state_digest` `status` |
 | `extension-inspect` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-disable` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-replace` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
@@ -123,8 +130,10 @@ or to rule exempt; the eight adapter-bound rows among them go with D28.
 | `memory-redis-search` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `k` `layer` `operation` `query` `schema_version` `status` `total` |
 | `memory-redis-unreachable` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
 | `memory-scratch-capabilities` | success | 0 | 1 | `ok` | `backend` `location` `operation` `realtime` `schema_version` `shared` `status` |
-| `memory-scratch-stash` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` |
-| `memory-scratch-retrieve` | success | 0 | 1 | `ok` | `backend` `expires_at` `key` `operation` `schema_version` `status` `stored_at` `value` |
+| `memory-scratch-stash` | success | 0 | 1 | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `schema_version` `status` `stored_at` `version` `writer` |
+| `memory-scratch-stash-refused` | refusal | 2 | 1 | `failed` | `backend` `detail` `error` `expected_version` `key` `operation` `schema_version` `status` `version` |
+| `memory-scratch-stash-uncertain` | uncertain | 2 | 1 | `uncertain` | `backend` `detail` `error` `key` `operation` `schema_version` `status` `stored_at` `version` |
+| `memory-scratch-retrieve` | success | 0 | 1 | `ok` | `backend` `expires_at` `format` `format_version` `key` `operation` `schema_version` `status` `stored_at` `value` `version` `writer` |
 | `memory-scratch-forget` | success | 0 | 1 | `ok` | `backend` `forgotten` `key` `operation` `schema_version` `status` |
 | `memory-scratch-keys` | success | 0 | 1 | `ok` | `backend` `keys` `operation` `pattern` `schema_version` `status` |
 | `memory-scratch-disabled` | disabled | 2 | 1 | `disabled` | `detail` `schema_version` `status` |
@@ -159,6 +168,7 @@ What each case runs, in the order of the table.
 - `extension-discover`: `extension discover MANIFEST`
 - `extension-install`: `extension install MANIFEST --state-dir`
 - `extension-enable`: `extension enable --state-dir --checkpoint`
+- `extension-enable-plugin`: `extension enable --state-dir --checkpoint --registry` on a signed plugin bundle, with a scratch key
 - `extension-inspect`: `extension inspect --state-dir`
 - `extension-disable`: `extension disable --state-dir --checkpoint`
 - `extension-replace`: `extension replace --state-dir --checkpoint --manifest`
@@ -202,7 +212,60 @@ What each case runs, in the order of the table.
 - `memory-redis-unreachable`: `memory --config redis status` with a configured Redis that refuses
 - `memory-scratch-capabilities`: `memory --config scratch capabilities` (file backend)
 - `memory-scratch-stash`: `memory --config scratch stash KEY --value --ttl`
+- `memory-scratch-stash-refused`: `memory --config scratch stash KEY --value --expected-version` with a version the stored record is not at
+- `memory-scratch-stash-uncertain`: `memory --config scratch stash KEY --value` with the replace refused after the record was written (in-process)
 - `memory-scratch-retrieve`: `memory --config scratch retrieve KEY`
 - `memory-scratch-forget`: `memory --config scratch forget KEY`
 - `memory-scratch-keys`: `memory --config scratch keys PATTERN`
 - `memory-scratch-disabled`: `memory --config scratch capabilities` with no `scratch` section
+
+## Stored formats
+
+The envelopes above are what the verbs print. What the stores write is a
+second surface: a record that another writer, or a later Harness, must
+read. Each stored format is listed here with its name, its version, its
+fields and what a reader must accept; a change to one is a deliberate diff,
+and Phase 4's freeze (4.1) points the 1.0 changelog at this list. The
+scratch record is its first entry (native memory Task 5, plan task 3.4,
+D21.6).
+
+### `attune-harness/scratch`, version 2
+
+One record per key, written by `memory scratch stash`. On the file backend
+it is the file `k-<encoded key>.json` under `<root>/scratch/<namespace>/`,
+where every character of the key outside `[a-z0-9_.-]` is percent-encoded
+and an encoded key longer than 200 characters is cut to 183 characters plus
+`-` and the first 16 hex characters of the key's SHA-256
+(`FileScratch._name`); on Redis it is the key
+`attune:harness:scratch:<namespace>:<key>`. The same JSON on both; the file
+ends it with a newline. The record is one line of compact JSON, ASCII only,
+no NaN, with its fields in this order, so the header opens the record:
+
+| Field | Value |
+|---|---|
+| `format` | `"attune-harness/scratch"` |
+| `format_version` | `2` |
+| `writer` | `"<distribution> <version>"` read from the package metadata, for example `"attune-harness 0.6.0.dev0"`; the bare distribution name when the metadata cannot be read |
+| `version` | an integer from 1: the successful stashes since the key was last absent. `stash --expected-version N` writes only when the stored record is at `N`; `0` means no record. The count is exact only when every writer to the key passes an expected version: a stash without one reads the record only to count and then overwrites unconditionally, a record a compare-and-set landed a moment before included |
+| `key` | the key: 1 to 128 characters of `[A-Za-z0-9_.:-]` |
+| `value` | the value as canonical JSON (keys sorted, finite numbers), up to 64 KiB, nested no deeper than the interpreter reads |
+| `stored_at` | a UTC stamp: `YYYY-MM-DDTHH:MM:SS`, an optional fraction of one to six digits, then `+00:00` as `datetime.isoformat()` writes an aware UTC time, or `Z`; nothing else |
+| `expires_at` | a UTC stamp in the same grammar, or `null` |
+
+What a reader must accept: version 2 as above, and **version 1**, the record
+0.4.0 and 0.5.0 wrote, which has exactly the fields `schema_version` (`1`),
+`key`, `value`, `stored_at` and `expires_at`, keys sorted, and no header. A
+version 1 record is read in place: `retrieve` reports it with
+`format_version` 1 and `writer` and `version` `null`; a read never rewrites
+it; a `stash --expected-version` over it is refused, since it carries no
+version to compare; and the first plain `stash` over it writes version 2 at
+record version 1. A record of any other shape is foreign: a later
+`format_version`, a `format_version` or `version` that is not an integer
+(`2.0`, `true`), a stamp outside the grammar above (naive, another offset, a
+space for the `T`), or a value nested deeper than the interpreter reads. A
+foreign record is not served and nothing is inferred from it; `keys` skips
+it and removes only what has expired; nothing raises; a plain `stash`
+writes over it and `forget` removes it, as before. The files in
+`tests/fixtures/scratch_legacy_v1/` are version 1 records as 0.5.0's code
+wrote them; `tests/test_memory_scratch.py` pins them by digest and reads
+them through this code.
