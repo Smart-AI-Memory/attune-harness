@@ -1,0 +1,62 @@
+name: Supplemental coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths: ['src/**', 'tests/**', 'scripts/measure_coverage.py', '.github/workflows/coverage.yml', 'pyproject.toml', 'requirements*.lock']
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.10'
+      - name: Prepare a dedicated measurement environment
+        shell: bash
+        run: |
+          python -m pip install 'build==1.3.0' 'setuptools>=77'
+          python -m build --wheel
+          python -m venv "$RUNNER_TEMP/coverage-venv"
+          python - <<'PY'
+          import os, pathlib, subprocess
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'coverage-venv'
+          python = root / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+          wheel = next(pathlib.Path('dist').glob('*.whl')).resolve().as_uri()
+          subprocess.run([str(python), '-m', 'pip', 'install', '-c', 'requirements-workflow.lock', '-c', 'requirements-voyage.lock', '-c', 'requirements-mcp.lock', '-c', 'requirements-tokens.lock', '-c', 'requirements-redis.lock', 'pytest==9.1.1', 'coverage==7.13.5', 'attune-harness[voyage,redis] @ ' + wheel], check=True)
+          PY
+      - name: Measure full POSIX suite or selected Windows platform suite
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os, pathlib, subprocess
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          python = root / 'coverage-venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+          subprocess.run([str(python), 'scripts/measure_coverage.py', '--output', str(root / 'coverage-result'), '--suite', 'platform' if os.name == 'nt' else 'full'], check=True)
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: coverage-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/coverage-result/.coverage*
+            ${{ runner.temp }}/coverage-result/*.json
+            ${{ runner.temp }}/coverage-result/*.ini
+            ${{ runner.temp }}/coverage-result/*.txt
+            ${{ runner.temp }}/coverage-result/*.xml
+            ${{ runner.temp }}/coverage-result/html/
+            ${{ runner.temp }}/coverage-result/instrumented-platform/
+          include-hidden-files: true
+          if-no-files-found: error
