@@ -299,13 +299,31 @@ curated node's bare id or a family-qualified pointer id such as
 `file:<corpus>:<stem>`, and every id `search` returns resolves through `node`.
 
 **`serve`** is the same digest as plain text for a session-start hook:
-`memory serve [--limit N] [--chars N]` prints one header line with the count,
+`memory serve [--for PROMPT] [--limit N] [--chars N]` prints one header line with the count,
 the hydration stamp and the host, one line per curated node (`- id [type]
 name: description`, control characters dropped, cut at 240 characters), and
 one footer line saying the memory is untrusted evidence and how to read one
 node or search. Node lines are dropped from the end until the text fits in
 `--chars` (default 4000) and the header then says how many are shown; the
 header and footer are always printed, so about 600 characters is the floor.
+The banner identifies Redis as the source and the records as untrusted evidence,
+not instructions, and asks the model to disclose IDs of memories that influence
+its answer. A host membership check removes curated nodes absent from
+`status:active`. `--for PROMPT` searches prompt terms (at most 512 characters)
+instead of the global digest; it does not print the prompt. Both modes consider
+at most 100 candidates, filter, then keep `--limit` items (default 8).
+
+File pointers in prompt results require a canonical path inside exactly one
+configured `personal` or `curated` root, and an ID stem matching that path.
+The root uses the same explicit authority config as `memory recall`; a Redis
+`corpus` or `path` does not grant access by itself. The latest `wrong` verdict
+for the stem suppresses the pointer. A missing `.verdicts.jsonl` means no
+recorded verdict; an unreadable, malformed or unsafe log suppresses pointers
+from that root. Sidecar reads share an 8 MiB budget and use the existing POSIX
+descriptor reader. Redis-only configs and Windows still serve eligible curated
+nodes, but cannot serve unchecked file pointers. Lesson and rule pointers
+keep their existing semantics. Pointer `text` bodies are never displayed.
+
 Once the command line has parsed, it never fails: with no digest, because the
 config has no `redis` section, the extra is not installed, the server cannot
 be reached or is not hydrated, the digest is empty, or the config file cannot
@@ -320,6 +338,24 @@ session start:
 {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "timeout": 10,
   "command": "attune-harness memory --config ~/.attune/harness-memory.json serve"}]}]}}
 ```
+
+For a UserPromptSubmit hook, the checkout's
+[`scripts/memory_prompt_hook.py`](../scripts/memory_prompt_hook.py) reads the
+host's JSON from stdin and passes its `prompt` as one argument to the installed
+CLI. Use the interpreter from the Harness environment, not a shell expression
+containing the prompt:
+
+```json
+{"hooks": {"UserPromptSubmit": [{"hooks": [{"type": "command", "timeout": 12,
+  "command": "/path/to/harness-venv/bin/python /path/to/attune-harness/scripts/memory_prompt_hook.py --config /absolute/path/memory.json"}]}]}}
+```
+
+Replace all three paths with your local paths. The bridge accepts at most
+64 KiB of hook JSON and 512 prompt characters, skips longer input, has a
+10-second child deadline, and does not log the prompt. These examples do not
+install or alter your hooks automatically. The real-session receipt remains
+an acceptance step beyond the synthetic tests.
+
 
 **`scratch`** is working memory: JSON values up to 64 KiB under keys of up to
 128 characters, with an optional time to live, through `memory scratch

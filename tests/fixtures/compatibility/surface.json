@@ -550,6 +550,7 @@
      "one_of": [],
      "options": [
       "--chars",
+      "--for",
       "--limit"
      ],
      "positionals": [],
