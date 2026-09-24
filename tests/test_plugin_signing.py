@@ -55,6 +55,11 @@ FAKE_ENTRY = {'fingerprint': 'A' * 40,
 QUERY = {'query': 'quartz policy', 'k': 3}
 
 
+def same_gpg(found):
+    """Whether a discovered path names the runner's gpg: Windows spells Git for Windows' binary gpg.EXE or gpg.exe."""
+    return os.path.normcase(os.path.realpath(found)) == os.path.normcase(os.path.realpath(GPG))
+
+
 def gpg_or_fail():
     """The tests never skip: a runner without gpg fails by name, which is R1's platform proof."""
     if GPG is None:
@@ -371,7 +376,7 @@ def test_signed_plugin_enables_runs_and_is_receipted(case, plugin, tmp_path, sig
         'signer': w.signer.fingerprint, 'grant': GRANT, 'declares': PLUGIN_DECLARES,
         'signature_scope': signing.SIGNATURE_SCOPE, 'declarations_scope': signing.DECLARATIONS_SCOPE}
     verifier = receipt['verifier']
-    assert verifier['gpg'] == GPG and verifier['version'].startswith('gpg') and verifier['exit_status'] == 0
+    assert same_gpg(verifier['gpg']) and verifier['version'].startswith('gpg') and verifier['exit_status'] == 0
     assert verifier['path_style'] in ('posix', 'native')
     assert 'GOODSIG' in verifier['status'] and 'VALIDSIG' in verifier['status'] and 'BADSIG' not in verifier['status']
     assert 'reviewed by the signer under the brief' in receipt['signature_scope']
@@ -671,11 +676,13 @@ def test_known_install_locations_are_searched_after_path(case, plugin, tmp_path,
     stub.write_text('#!/bin/sh\necho hi\n', encoding='utf-8')
     os.chmod(stub, 0o644)
     monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [])
-    with pytest.raises(FeatureUnavailable) as refused:
-        signing.find_gpg()
-    if os.name == 'nt':  # a bare file is not an executable candidate on Windows, so nothing was found
-        pytest.fail('find_gpg raised on Windows where a bare gpg is no candidate')
-    assert str(refused.value) == signing.GPG_NOT_EXECUTABLE.format(path=str(stub))
+    if os.name == 'nt':
+        # A Windows executable needs an extension, so a bare gpg file is no candidate: absent, not unrunnable.
+        assert signing.find_gpg() == (None, ['PATH'])
+    else:
+        with pytest.raises(FeatureUnavailable) as refused:
+            signing.find_gpg()
+        assert str(refused.value) == signing.GPG_NOT_EXECUTABLE.format(path=str(stub))
     monkeypatch.setattr(signing, 'known_gpg_locations', lambda: [GPG])
     assert signing.find_gpg() == (GPG, ['PATH', GPG])  # a present but unusable gpg does not stop the search
 
@@ -716,12 +723,12 @@ def test_verifier_home_is_private_built_from_the_registry_and_removed(case, plug
     monkeypatch.setattr(signing, 'PROBED', {})  # so the build probe runs again and is observed
     monkeypatch.setenv('GNUPGHOME', str(tmp_path / 'users-keyring'))  # a canary the verifier must not see
     verified = signing.verify_bundle(w.manifest.parent, w.digest, [w.signer.entry])
-    assert verified['signer'] == w.signer.fingerprint and verified['verifier']['gpg'] == GPG
+    assert verified['signer'] == w.signer.fingerprint and same_gpg(verified['verifier']['gpg'])
     assert [argv[-1] if '--version' in argv else argv[argv.index('--status-fd') + 2] for argv, _, _ in seen] == [
         '--version', '--import', '--verify']
     assert verified['verifier']['path_style'] == gpg_style()
     for argv, kwargs, home in seen:
-        assert argv[0] == GPG
+        assert same_gpg(argv[0]) and os.path.isabs(argv[0])
         if '--version' not in argv:
             assert '--no-autostart' in argv and argv[argv.index('--status-fd') + 1] == '1'
         assert not home.exists() and not (tmp_path / 'users-keyring').exists()
