@@ -24,6 +24,7 @@ archive and the diff the reviewer works from and scaffolds the mutation table.
 | **test** | A test that passes with a plausible bug present, asserts almost nothing, or pins the wrong thing | #66: three mutations survived and the live test asserted almost nothing; #64: a test fabricated the old hint |
 | **install** | Package metadata or a locked install that resolves to something other than what was intended | #64: `mcp==2.2.0` in the base breaks a co-installed attune-ai; tiktoken's `regex` was unconstrained in CI |
 | **carry** | A carried module that differs from its original where the design note declared no seam; found only by reading the two side by side | #80: gate patterns transcribed rather than copied drifted in both directions; a guard run after the frontmatter check that the original runs before |
+| **race** | A read, a check and an act on shared state with no lock between them, so another writer's change in the gap is undone or lost | #116, second review: `keys()` read a record as expired and unlinked the path, deleting a compare-and-set that had replaced it in between; 35 in 34,555 over 20 seconds |
 
 ## Log
 
@@ -64,7 +65,14 @@ exact" when the review confirmed a carried module changed nothing.
 | #110 | `plan --accept` walks the execution stages | merge | 0/2/5 | claim, test | The walked accept was indistinguishable from the human's in the evidence file; the design note still called `gate_running` dormant; the one new user-visible string had no source and no test |
 | #115 | `plan --import-plan --allow-outside-project`: another project's spec state, with a receipt (spec authority Task 5, 3.2) | fix first | 0/4/4 | bound, fallback, claim, test | A receipt refused after the record was saved reported the landed conversion as `failed`, and the 1 MiB receipts bound was two to eight conversions away because each line repeated the plan's prose; whether a reimport wrote a receipt depended on the file existing; `spec_state: null` for a plan whose comment the reader ignored; three guards surviving mutation |
 | #116 | The scratch record as a versioned format with a writer, compare-and-set and an uncertain receipt (native memory Task 5, 3.4) | fix first | 0/3/6 | claim, input, fallback | The uncertain receipt's rule, "a record at version N means it did", held for one writer only; `version` was documented as exact while a plain stash overwrites a compare-and-set; the published reader contract was not met, an `expires_at` ending in `Z` read as expired and `keys()` deleted the record, a naive stamp raised past `except ValueError` |
+| #116, second review | The same, at the fixed head `6c4d624` (Claude Opus 5.5) | request changes, merged before the fix | 0/1/3 | race, claim, input | `keys()` deleted a record a compare-and-set landed after it read the expired one, so the compare-and-set reported `ok` for a write that was gone (reproduced, two processes); `forget` takes no lock, so file and Redis differ on a compare-and-set racing it; the new stamp grammar accepted a trailing newline and non-ASCII digits. Merged at the reviewed head; fixed in #125 |
 | #118 | Plugin bundles signed, revocable and declaring their capabilities; the Windows probe (4.3, first cycle; D29.1) | fix first | 0/4/11 | bound, test, claim, platform | An `artifact.sig` inside its 16 KiB bound that cost gpg 27 s per check (a compressed message over 6.9 GB of zeros); five guards without a test and 13 of 46 mutations surviving; gpg reading the user's options while the docs said they play no part; a signed bundle failing on a CRLF checkout, the first time a digest crosses machines; `shutil.which` preferring the working directory on Windows |
+| #118, second review | The same, at the fixed head `6025ca3` (Claude Opus 5.5) | request changes, merged with the should-fix open | 0/1/3 | bound, claim, test, input | The first review's fix validated only the first armour block while gpg read the whole file, so a good signature followed by a compressed message (773 bytes) still cost gpg 0.69 s against 0.03 s; the legacy `review` path does not recheck the registry mid-run, narrower than the spec's T9 row; the probe fails rather than skips without the `redis` extra; the walk splits lines where gpg does not. A first draft's claim that revocation never reaches an accepted run was wrong, corrected before posting after the cross-review below |
+| #118, cross-review | The same (Claude Sonnet 5, dispatched by the reviewer above) | approve | 0/1/2 | input, test, claim | An `END` line before the `BEGIN` made a good signature refuse (fail-closed); the import count cannot see a second certificate inside one signer's block; the receipt names one signer when two signed. It also showed the task, MCP and resume paths reread the registry, which corrected the review above |
+| #123 | D30, the host surface's seven decisions; the deprecation milestone's rows (docs only) | approve | 0/0/3 | claim | A heading "After 1.0.0" over rows the next sentence placed in the candidate period; "same columns as the phases" for a table with different ones; four to five October cycles missing from the plan's count |
+| #124 | The compatibility list, the verb surface as data, the README example as a test (4.1, first cycle) | request changes | 0/1/4 | test, claim | The surface recorded positionals by name only, so an optional positional made required, the case the freeze note says must fail, passed; the API snapshot's schema-version line was a literal the test wrote itself; the page said exit codes were pinned row by row where two verbs have no row, and that the guard fails only on non-additive changes |
+| #124, the fixes | `182603a`, the fixes to the review above (Claude Sonnet 5 reviewing Claude Opus 5.5) | approve | 0/1/2 | input, claim | An arity the table could not render (argparse's `REMAINDER`, a count) fell to a branch that printed misleading text instead of failing; the page's "`...` takes one or more" was untrue for `[name ...]` |
+| #125 | `keys()` no longer deletes a record a compare-and-set landed (the fix for #116's second review) | approve | 0/1/2 | test | The race test passed with the unlink moved outside the lock, a real check-then-act gap; no test pinned a planted `.scratch.lock` on the `keys()` path. Codex's GitHub review of the same pull request found nothing |
 
 ## What the log says so far
 
@@ -84,6 +92,20 @@ not be false are the plainest claim finding in the log, an assertion with
 nothing to fail. The one platform finding no macOS run could show, #99's
 stub finishing with `Path.rename`, was reproduced by emulating the Windows
 refusal, the shape the brief now asks for.
+
+September 24 added eight rows: second reviews of #116 and #118 at their
+fixed heads, a cross-review of #118 by a third model, and first reviews of
+#123, #124, #124's own fixes and #125. Two lessons. A second review of a head
+that already carried a first review's fixes still found a should-fix both
+times, and both were in the first review's own fix: #118's packet walk
+checked a decoding gpg does not use, and #116's cleanup raced the
+compare-and-set the pull request added. And a merge that runs ahead of a
+posted review lands its finding on `main`: #116 merged at the reviewed head
+with the race open, and #125 fixed it the same morning. The cross-review
+earned its place the other way, by correcting the reviewer: a should-fix that
+revocation never reaches an accepted run was wrong, and reading the three
+call paths it named showed so before the review was posted. The new class,
+race, is the first finding in the log that needed two processes to show.
 
 By class, over the eleven reviews with a full record (#58 to #82):
 
