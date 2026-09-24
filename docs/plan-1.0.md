@@ -137,8 +137,25 @@ the local profile ships labeled local-only); the Voyage validation reuse spec
 `memory-native` extra stays experimental and POSIX-only); the corrections
 lifecycle (ladder 7), by D21.9, unless the dogfooding week brings it back;
 the Claude Code plugin's skills and the hydrate writer, whose Harness
-successors are the deprecation milestone's first rows (D26), the
-deprecation itself being a notice that may follow 1.0.0 within days.
+successors are the deprecation milestone's first rows (D26), designed on
+September 23 ([the host-surface note](specs/release-1.0/host-surface-design.md),
+D30), the deprecation itself being a notice that follows 1.0.0 once `/spec`
+runs on Harness end to end.
+
+## After 1.0.0 — The deprecation milestone
+
+The rows D26 and D30 name, run during the candidate period beside 4.3 and
+after the freeze's first two cycles, none on the path to `rc1`. Same
+columns as the phases; each cycle that touches `src/` is reviewed under the
+brief.
+
+| Task | Deliverable | Receipt | Decisions | Cycles |
+|---|---|---|---|---|
+| M1 | The workspace surface | `mcp-serve --workspace` exposing attune-ai's three command workspace tool names over the carried host, the events file as evidence, the record's golden rows, and an end-to-end test through the real forms artifact with a mutation set | Ruled (D30.1, D30.3, D30.7) | 1 |
+| M2 | The intake, the presenters, the plugin | `spec intake` and `spec present` ported and read against their originals; `plugin/` with `.claude-plugin/plugin.json`, a `.mcp.json` launching the server with `uvx`, the `/spec` skill rewritten only where it names a source, cross-review and the release skills copied | Ruled (D30.2, D30.4): `test` receipts are the task evidence | 1 |
+| M3 | The gates | `gates check tasks\|execution --spec --changed`: `symbol-reality`, `falsifiability`, `format-lint`, the ledger, the G5 exits; receipts the Spec adapter consumes unchanged | Ruled (D30.5) | 1 |
+| M4 | Roundtable | The roundtable adapter registered on the same host, its own review | Ruled (D30.1): the second row | 1 |
+| M5 | The notice | `/spec` run end to end on Harness in Patrick's own sessions with the measured display receipt under `docs/journeys/`; the plugin on the marketplace; attune-ai's last release warning and pointing here, attune-ai's own work; the migration page (4.8) linked from both | Ruled (D26, D30.6): when M1 to M3 hold, not before | 0 to 1 |
 
 ## Order, and what can overlap
 
