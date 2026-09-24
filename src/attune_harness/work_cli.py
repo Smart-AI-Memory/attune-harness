@@ -81,6 +81,11 @@ def add_commands(sub):
         help="Import legacy tasks alongside --request intent; never import approval",
     )
     plan.add_argument(
+        "--allow-outside-project",
+        action="store_true",
+        help="With --import-plan, accept a plan outside the project, with a receipt",
+    )
+    plan.add_argument(
         "--preserve-completed",
         action="store_true",
         help="With --revise, retain a verified unchanged prefix",
@@ -501,6 +506,8 @@ def execute(args):
                 raise ValueError("--review-dispositions requires --stage")
             if args.preserve_completed and args.revise is None:
                 raise ValueError("--preserve-completed requires --revise")
+            if args.allow_outside_project and args.import_plan is None:
+                raise ValueError("--allow-outside-project requires --import-plan")
             if args.request is None and any(
                 (args.project, args.config, args.import_plan)
             ):
@@ -553,6 +560,7 @@ def execute(args):
                         args.config,
                         path=args.import_plan,
                         directory=args.task_dir,
+                        allow_outside_project=args.allow_outside_project,
                         **data,
                     )
                 else:
