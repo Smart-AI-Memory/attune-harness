@@ -3,9 +3,9 @@
 ## Unreleased
 
 Changes since 0.5.0, each `src/` change with its different-model review
-recorded in its pull request. The three lines after the first landed together
-after the overnight run of September 23, 2026, so that three sibling pull
-requests did not conflict on this section.
+recorded in its pull request. The three lines after the first two landed
+together after the overnight run of September 23, 2026, so that three
+sibling pull requests did not conflict on this section.
 
 - Added: plugin bundles, the first of plan task 4.3's four cycles under the
   approved executable plugins spec (D22, decisions 1 to 3): a manifest with
@@ -48,6 +48,23 @@ requests did not conflict on this section.
   worker, a Job Object and an agent start, so the verifier probes a build
   once per process and the tests start one agent per scratch home.
 
+- Changed: the `memory scratch` record is a named, versioned format,
+  `attune-harness/scratch` version 2, its header first: the format's name
+  and version, the `writer` (the package and its version, read from the
+  metadata) and a per-record `version` that counts successful stashes.
+  `stash --expected-version N` is a compare-and-set that refuses a lost
+  update with `failed`, what was expected and what was found, and nothing
+  written, under a bounded lock on the file store and `WATCH`/`MULTI`/`EXEC`
+  or `SET NX` on Redis; a write whose effect cannot be known is reported as
+  `uncertain` with the version and the stamp it carried, never retried and
+  never diverted. A stored stamp may end in `Z`, and a record whose stamp
+  or nesting the reader cannot read is foreign, skipped rather than
+  raised. The record 0.4.0 and 0.5.0 wrote is read in place and reported
+  as version 1; the first stash over it writes the current format. The
+  `stash` and `retrieve` envelopes gain the header keys, the refusal and
+  uncertain envelopes are pinned, and `docs/envelopes.md` gains "Stored
+  formats", the compatibility list's first entry (native memory Task 5,
+  plan task 3.4, D21.6).
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan
   to the regex path where entities stop being decoded; a block the parser
