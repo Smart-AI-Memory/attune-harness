@@ -1,0 +1,4 @@
+interface:
+  display_name: "Attune Harness"
+  short_description: "Plan, build, review, fix and test with Harness"
+  default_prompt: "Use $attune-harness to choose and run the Harness workflow for my task."
