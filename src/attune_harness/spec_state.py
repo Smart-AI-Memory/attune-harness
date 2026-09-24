@@ -162,16 +162,46 @@ def load_state(plan_path: str) -> SpecState | None:
     except OSError as e:
         logger.debug("Could not read plan file %s: %s", plan_path, e)
         return None
+    return read_state(content, plan_path)
 
+
+def read_state(content: str, plan_path: str) -> SpecState | None:
+    """The state comment in a plan's text, read as ``load_state`` reads the file.
+
+    The half of ``load_state`` after the read, for a caller that has read the
+    plan once for more than one reader: the plan import hands the same text
+    here and to ``spec_legacy`` (spec authority Task 5). ``plan_path`` names
+    the plan in messages and in the returned state. From the comment on, the
+    ``None`` and ``ValueError`` contracts are ``load_state``'s; a text with no
+    comment gives ``None``.
+    """
+    return read_state_report(content, plan_path)["state"]
+
+
+def read_state_report(content: str, plan_path: str) -> dict:
+    """``read_state``, with an account of the comment it read or ignored.
+
+    The mapping carries ``state``, what ``read_state`` returns; ``comment``,
+    whether the text has a state comment; ``schema_version``, the version a
+    present comment declares once it has passed the check (``None`` with no
+    comment, or when its JSON cannot be read); and ``ignored``, ``None`` or,
+    for a present comment the reader ignores with a warning, the reason in
+    short. A ``None`` state alone does not say whether the plan had a
+    comment; the plan import's receipt records the difference (spec
+    authority Task 5). The refusals and the warnings are ``read_state``'s.
+    """
+    report = {"state": None, "comment": False, "schema_version": None, "ignored": None}
     _, payload = _split(content, plan_path)
     if payload is None:
-        return None
+        return report
+    report["comment"] = True
 
     try:
         data = parse_json(payload, PLAN_LIMIT)
     except ValueError as e:
         logger.warning("Malformed spec-state in %s: %s", plan_path, e)
-        return None
+        report["ignored"] = "malformed JSON"
+        return report
 
     if not isinstance(data, dict):
         logger.warning(
@@ -179,9 +209,10 @@ def load_state(plan_path: str) -> SpecState | None:
             plan_path,
             type(data).__name__,
         )
-        return None
+        report["ignored"] = "not a JSON object"
+        return report
 
-    schema_version = _check_schema_version(data, plan_path)
+    report["schema_version"] = _check_schema_version(data, plan_path)
 
     completed_raw = data.get("completed", [])
     if not isinstance(completed_raw, list) or not all(
@@ -191,7 +222,8 @@ def load_state(plan_path: str) -> SpecState | None:
             "spec-state 'completed' in %s is not list[str]; ignoring",
             plan_path,
         )
-        return None
+        report["ignored"] = "'completed' is not list[str]"
+        return report
 
     current_raw = data.get("current")
     if current_raw is not None and not isinstance(current_raw, str):
@@ -199,7 +231,8 @@ def load_state(plan_path: str) -> SpecState | None:
             "spec-state 'current' in %s is not str|None; ignoring",
             plan_path,
         )
-        return None
+        report["ignored"] = "'current' is not str|None"
+        return report
 
     receipts_raw = data.get("task_receipts", [])
     if not isinstance(receipts_raw, list) or not all(
@@ -207,15 +240,16 @@ def load_state(plan_path: str) -> SpecState | None:
     ):
         raise ValueError(f"Invalid spec-state task_receipts in {plan_path}")
 
-    return SpecState(
+    report["state"] = SpecState(
         plan_path=plan_path,
         completed=list(completed_raw),
         task_receipts=receipts_raw,
         current=current_raw,
         auto_run=bool(data.get("auto_run", False)),
         last_updated=str(data.get("last_updated", "")),
-        schema_version=schema_version,
+        schema_version=report["schema_version"],
     )
+    return report
 
 
 def save_state(state: SpecState) -> None:
