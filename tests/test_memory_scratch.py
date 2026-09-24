@@ -901,6 +901,53 @@ def test_keys_never_removes_a_record_a_compare_and_set_landed_after_it_read_the_
     assert store.keys() == ["k"]
 
 
+def test_keys_removes_a_lapsed_file_while_it_still_holds_the_store_lock(tmp_path, monkeypatch):
+    """The unlink happens inside the lock, not after it (review of #125).
+
+    At the moment ``keys`` removes the lapsed file, a second descriptor
+    tries the store's lock and must be refused; an unlink moved past the
+    ``with`` block would let it in, and a compare-and-set with it.
+    """
+    clock = Clock(monkeypatch)
+    root = tmp_path.resolve()
+    store = FileScratch(str(root), "unit")
+    folder = root / "scratch" / "unit"
+    store.stash("gone", 1, ttl_seconds=10)
+    clock.advance(11)
+    target = folder / "k-gone.json"
+    original_unlink = Path.unlink
+    probed = []
+
+    def unlink_while_probing(self, *args, **kwargs):
+        if self == target:
+            fd = os.open(folder / ".scratch.lock", os.O_RDWR | os.O_CREAT, 0o600)
+            try:
+                memory_scratch._lock_once(fd)
+                probed.append("free")
+            except OSError:
+                probed.append("held")
+            finally:
+                os.close(fd)
+        return original_unlink(self, *args, **kwargs)
+    monkeypatch.setattr(Path, "unlink", unlink_while_probing)
+    assert store.keys() == []
+    assert probed == ["held"] and not target.exists()
+
+
+def test_keys_with_a_planted_lock_path_leaves_the_lapsed_file_and_raises_nothing(tmp_path, monkeypatch):
+    """A directory at ``.scratch.lock`` cannot be opened: the cleanup skips, the listing still answers."""
+    clock = Clock(monkeypatch)
+    root = tmp_path.resolve()
+    store = FileScratch(str(root), "unit")
+    folder = root / "scratch" / "unit"
+    store.stash("gone", 1, ttl_seconds=10)
+    store.stash("stays", 2)
+    (folder / ".scratch.lock").mkdir()
+    clock.advance(11)
+    assert store.keys() == ["stays"]
+    assert (folder / "k-gone.json").exists() and store.retrieve("gone") is None
+
+
 def test_keys_leaves_an_expired_file_when_the_store_lock_is_busy_and_still_hides_it(tmp_path, monkeypatch):
     """The cleanup takes the lock in one attempt: busy, a refusing file system or a planted lock path skips it."""
     clock = Clock(monkeypatch)
