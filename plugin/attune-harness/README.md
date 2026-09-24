@@ -33,6 +33,7 @@ from a Windows testing run.
 
 Result presentation requires both a persisted task-content binding and the exact
 accepted test-run receipt. Rewriting an accepted task invalidates presentation;
-old state without a content binding must be reaccepted after redoing the task.
+old state without a content binding cannot be upgraded by saving it. An explicitly
+authorized `clear_state` reset is required before redoing and reaccepting the task.
 The binding detects edits after acceptance persistence; it does not establish
 what ran before that save or supply the missing M3 execution authority.
