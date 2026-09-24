@@ -39,7 +39,7 @@ def configuration(output, aliases):
     # bytes back to the checkout. No production module or branch is excluded.
     paths = [SOURCE.as_posix(), *dict.fromkeys(aliases)]
     config = output / 'coverage.ini'
-    config.write_text('[run]\nbranch = true\nparallel = true\ndata_file = '
+    config.write_text('[run]\nbranch = true\nparallel = true\ndisable_warnings = no-data-collected\ndata_file = '
                       + (output / '.coverage').as_posix() + '\nsource =\n    '
                       + '\n    '.join(paths) + '\n[paths]\npackage =\n    '
                       + '\n    '.join(paths) + '\n', encoding='utf-8')

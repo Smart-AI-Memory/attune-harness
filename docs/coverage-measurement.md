@@ -57,7 +57,9 @@ the union: execution on one OS does not establish behavior on another.
 ## Limits
 
 Python children using `-S`, another uninstrumented interpreter, or abrupt termination
-before saving can remain unmeasured. Startup tracing adds overhead and imports;
+before saving can remain unmeasured. Empty-child coverage warnings are disabled
+to preserve application stderr; incomplete raw data warnings remain visible.
+Startup tracing adds overhead and imports;
 uninstrumented qualification remains the authority for platform behavior. The
 Windows selection differs from the POSIX full suite. Neither an instrumented
 platform receipt nor its combined coverage percentage expands qualification claims.
