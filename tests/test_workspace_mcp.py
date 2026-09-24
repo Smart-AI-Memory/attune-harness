@@ -142,6 +142,9 @@ def test_resume_and_execution_stay_closed_even_with_real_test_evidence(journey, 
     complete(journey, capsys)
     tested=run_linked(journey)
     binding=bind_test_evidence(Path(tested['record_path']).parent)
+    from test_spec_tasks import FULL
+    (tmp_path / '.claude/plans').mkdir(parents=True)
+    (tmp_path / '.claude/plans/demo.md').write_text(FULL)
     async def run():
         scope=m.WorkspaceSession(tmp_path,tmp_path/'closed')
         resumed=await scope.invoke('command_workspace_open',{'adapter_id':'spec',

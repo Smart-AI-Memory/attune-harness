@@ -21,7 +21,8 @@ def test_intake_preserves_form_without_global_registration(tmp_path,capsys):
     assert value['areas']==[] and len(value['form']['fields'])==4
 
 
-@pytest.mark.parametrize('raw',['[]','{','{"outcome":1}', '[['*5000, 'x'*65537, '{"outcome":"x","done_when":"y","unknown":"z"}'])
+@pytest.mark.parametrize('raw',['[]','{','{"outcome":1}', '[['*5000, 'x'*65537, '{"outcome":"x","done_when":"y","unknown":"z"}'],
+    ids=['array', 'malformed', 'wrong-type', 'deep-nesting', 'oversize', 'unknown-field'])
 def test_compose_refuses_bad_answers(tmp_path,monkeypatch,capsys,raw):
     monkeypatch.setattr('sys.stdin',io.StringIO(raw))
     assert main(['spec','intake','--project',str(tmp_path),'--compose'])==2
