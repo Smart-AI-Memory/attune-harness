@@ -566,6 +566,9 @@ def test_verdict_is_read_from_status_lines_never_from_exit_status():
         ([['ERRSIG', fpr[-16:], '22', '10', '00', '1', '9', fpr], ['NO_PUBKEY', fpr[-16:]]], signing.NO_PUBKEY),
         ([['ERRSIG', fpr[-16:], '22', '10', '00', '1', '4', fpr]], signing.SIGNATURE_ERROR),
         ([['NODATA', '1'], ['NODATA', '2']], signing.NOT_A_SIGNATURE),
+        # A good signature followed by junk: gpg reports NODATA after the verdict lines, and that refuses
+        # on its own, although the packet walk stops such a file before gpg runs.
+        ([['NEWSIG'], good, valid, ['NODATA', '1']], signing.NOT_A_SIGNATURE),
         ([['NEWSIG'], good], signing.NO_VERDICT),
         ([['NEWSIG'], valid], signing.NO_VERDICT),
         ([], signing.NO_VERDICT),
