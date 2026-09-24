@@ -63,3 +63,14 @@ than resolving published 0.6.0 with uvx: 0.6.0 cannot run this new profile.
 Release versioning and marketplace distribution remain separate release work.
 The plugin lives at `plugin/attune-harness/` so its directory and manifest name
 agree with the Codex ingestion contract. No user installation is replaced.
+
+## Independent review corrections
+
+GPT-6-sol found that exposing the carried trusted-publisher method to an MCP
+client made invented lifecycle PASS events and bare-plan resume sufficient to
+advance. Both were reproduced locally. M1/M2 now refuse lifecycle events,
+resume and execution publication at the server boundary until M3 can verify
+real gate evidence. Real test evidence alone does not bypass that gate. This
+limits the candidate to intake and draft creation; end-to-end execution is not
+qualified. MCP Apps initialization now advertises the shared UI extension,
+which the real SDK test checks alongside the resource and tool metadata.

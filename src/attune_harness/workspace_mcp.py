@@ -122,11 +122,15 @@ class WorkspaceSession:
         self.save()  # Never mutate a workspace without a durable start.
         try:
             if name == 'command_workspace_open':
+                if arguments['intake'].get('route') == 'resume':
+                    raise ValueError('Spec resume requires verified lifecycle gates (M3); unavailable in this candidate')
                 rendered = await self.host.open(arguments['adapter_id'], arguments['intake'],
                                                workspace_id=arguments.get('workspace_id'))
             elif name == 'command_workspace_collect_action':
                 rendered = await self.host.collect(arguments['response'])
             else:
+                if arguments['event'].get('kind') in {'lifecycle_gate', 'task_started', 'task_result'}:
+                    raise ValueError('Execution publication requires verified lifecycle gates (M3); caller assertions are not receipts')
                 rendered = await self.host.publish(arguments['workspace_id'], arguments['event'])
             result = {'success': True, **rendered.to_dict(), 'mcp_app': mcp_app_result(
                 collect_tool='command_workspace_collect_action', collect_mode='response')}
@@ -155,12 +159,13 @@ def create_server(scope):
     from mcp.server import Server
     from mcp_types import (Tool, ToolAnnotations, ListToolsResult, CallToolResult, TextContent,
                            ListResourcesResult, Resource, ReadResourceResult, TextResourceContents)
-    from attune_forms.mcp_app import mcp_app_resource, mcp_app_tool_meta
+    from attune_forms.mcp_app import (mcp_app_resource, mcp_app_tool_meta,
+                                     MCP_APPS_EXTENSION, MCP_APP_MIME_TYPE)
     lock = anyio.Lock()
     descriptions = {
-        'command_workspace_open': 'Open Spec intake or resume a saved plan in the startup project. Returns HTML and Markdown; executes no task.',
+        'command_workspace_open': 'Open Spec draft intake in the startup project. Returns HTML and Markdown; resume and execution await verified lifecycle gates.',
         'command_workspace_collect_action': 'Consume a user-returned action with its exact workspace, revision, nonce and contract. Never fabricate a user response.',
-        'command_workspace_publish': 'Publish an executor event backed by real artifacts or receipts. Tool access is not evidence that checks passed.',
+        'command_workspace_publish': 'Publish draft artifact events. Lifecycle and execution publications are refused until verified lifecycle gates are available.',
     }
     async def listing(context, params):
         if params is not None and params.cursor:
@@ -197,6 +202,7 @@ def create_server(scope):
         on_list_resources=resources, on_read_resource=read_resource,
         instructions='Local Spec workspace only. Project is fixed at startup. Preserve user action bindings; publish only actual receipts. No provider or model is dispatched. Workspaces do not resume across server restarts.')
     server.middleware.clear()
+    server.extensions[MCP_APPS_EXTENSION] = {'mimeTypes': [MCP_APP_MIME_TYPE]}
     return server
 
 

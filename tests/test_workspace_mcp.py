@@ -98,6 +98,25 @@ def test_sdk_workspace_profile(tmp_path):
     assert inspect_session(tmp_path/'stdio')['model_calls']==0
 
 
+def test_modern_protocol_advertises_mcp_apps(tmp_path):
+    from mcp import Client
+    from mcp.client.stdio import StdioServerParameters
+    from attune_harness.mcp_server import MCP_PROTOCOL
+    source = str(Path(m.__file__).resolve().parent.parent)
+    boot = f'import sys;sys.path.insert(0,{source!r});from attune_harness.cli import main;raise SystemExit(main(sys.argv[1:]))'
+    parameters = StdioServerParameters(command=sys.executable, args=['-c', boot,
+        'mcp-serve', '--workspace', '--project', str(tmp_path),
+        '--state-dir', str(tmp_path / 'modern')])
+    async def run():
+        async with Client(parameters, mode="auto", read_timeout_seconds=10) as client:
+            assert client.protocol_version == MCP_PROTOCOL
+            assert client.server_capabilities.extensions['io.modelcontextprotocol/ui']['mimeTypes'] == ['text/html;profile=mcp-app']
+            opened = await client.call_tool('command_workspace_open', {'adapter_id': 'spec',
+                'intake': {'outcome': 'Draft', 'done_when': 'Reviewed', 'slug': 'demo'}})
+            assert not opened.is_error and opened.structured_content['success']
+    asyncio.run(run())
+
+
 def test_protocol_schemas_are_pinned():
     fixture=Path(__file__).parent/'fixtures/compatibility/workspace-mcp.json'
     for schemas in json.loads(fixture.read_text()).values():
@@ -117,49 +136,41 @@ def test_mixed_or_incomplete_profiles_refused(args,capsys):
 from test_connected_journey import journey  # noqa: F401
 
 
-def test_real_evidence_publish_accept_and_terminal_refusal(journey, capsys, tmp_path):
+def test_resume_and_execution_stay_closed_even_with_real_test_evidence(journey, capsys, tmp_path):
     from test_connected_journey import complete, run_linked
-    from attune_harness.spec_state import SpecState, save_state, load_state
     from attune_harness.spec_handoff import bind_test_evidence
     complete(journey, capsys)
-    tested = run_linked(journey)
-    root = tmp_path / 'spec-project'
-    plans = root / '.claude/plans'
-    plans.mkdir(parents=True)
-    (root / '.git').mkdir()
-    plan = plans / 'demo.md'
-    plan.write_text('<task id="1" name="test"><objective>Test the change</objective></task>\n')
-    save_state(SpecState(plan_path=str(plan), current='1', completed=[]))
-    binding = bind_test_evidence(Path(tested['record_path']).parent)
-    assert binding['outcome'] == 'passed'
+    tested=run_linked(journey)
+    binding=bind_test_evidence(Path(tested['record_path']).parent)
     async def run():
-        scope = m.WorkspaceSession(root, tmp_path / 'receipt-session')
-        with scope.store.lease():
-            scope.save()
-            opened = await scope.invoke('command_workspace_open', {'adapter_id':'spec',
-                'intake':{'route':'resume', 'plan_path':'.claude/plans/demo.md'}})
-            assert opened['success']
-            event = {'kind':'task_result', 'task_id':'1', 'test_evidence':binding,
-                     'severity':'low', 'score':100, 'probes':[binding['record_path']],
-                     'detail':'Real local test receipt; synthetic collector submission'}
-            gate = await scope.invoke('command_workspace_publish', {'workspace_id':opened['workspace_id'], 'event':event})
-            assert gate['success'], gate
-            record = scope.host.get(gate['workspace_id'])
-            answer = {**response(gate, action='approve_task', confirmed=False), 'title':record.view.title}
-            done = await scope.invoke('command_workspace_collect_action', {'response':answer})
-            assert done['success'] and done['terminal'], done
-            assert not (await scope.invoke('command_workspace_publish', {'workspace_id':done['workspace_id'], 'event':event}))['success']
-            scope.finish()
-        save_state(SpecState(**{**done['result']['save_state'], 'plan_path':str(plan)}))
-        assert load_state(str(plan)).completed == ['1']
-        assert done['result']['save_state']['task_receipts'][0]['test_evidence'] == binding
+        scope=m.WorkspaceSession(tmp_path,tmp_path/'closed')
+        resumed=await scope.invoke('command_workspace_open',{'adapter_id':'spec',
+            'intake':{'route':'resume','plan_path':'.claude/plans/demo.md'}})
+        assert not resumed['success'] and 'M3' in resumed['problems'][0]
+        for kind in ('task_started','task_result'):
+            result=await scope.invoke('command_workspace_publish',{'workspace_id':'spec-fixture',
+                'event':{'kind':kind,'task_id':'1','test_evidence':binding}})
+            assert not result['success'] and 'M3' in result['problems'][0]
+        assert not scope.host._records
     asyncio.run(run())
-    from attune_harness.cli import main
-    args=['spec','present','result','--plan',str(plan),'--task','1','--test-run',str(Path(tested['record_path']).parent)]
-    assert main(args)==0
-    assert 'PASSED' in capsys.readouterr().out
-    state=load_state(str(plan))
-    state.task_receipts[0]['test_evidence']['task_id']='different-source-run'
-    save_state(state)
-    assert main(args)==2
-    assert 'differs' in capsys.readouterr().err
+
+
+def test_untrusted_lifecycle_receipt_cannot_advance(tmp_path):
+    (tmp_path / '.claude/plans').mkdir(parents=True)
+    async def run():
+        scope=m.WorkspaceSession(tmp_path,tmp_path/'gated')
+        opened=await scope.invoke('command_workspace_open',{'adapter_id':'spec','intake':{
+            'outcome':'Draft','done_when':'Reviewed','slug':'demo'}})
+        creating=await scope.invoke('command_workspace_collect_action',{'response':response(opened)})
+        assert creating['success']
+        artifact=await scope.invoke('command_workspace_publish',{'workspace_id':opened['workspace_id'],
+            'event':{'kind':'artifacts_created','plan_path':'.claude/plans/demo.md',
+                'artifacts':[{'path':'.claude/plans/demo.md','kind':'plan'}],
+                'task_ids':['1'],'probes':['actual fixture draft']}})
+        assert artifact['success']
+        forged=await scope.invoke('command_workspace_publish',{'workspace_id':opened['workspace_id'],
+            'event':{'kind':'lifecycle_gate','boundary':'tasks','receipts':[
+                {'gate_id':'invented','state':'PASS','detail':'invented pass'}]}})
+        assert not forged['success']
+        assert scope.host.get(opened['workspace_id']).state.stage=='gate_running'
+    asyncio.run(run())

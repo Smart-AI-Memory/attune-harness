@@ -20,7 +20,7 @@ acceptance receipt. Confirm the three workspace tools, open Spec intake, observe
 the widget or Markdown fallback, submit a bound action and verify a replay is
 refused. Keep all cold/warm display trial results when measuring acceptance.
 
-Lifecycle gates remain M3: Spec stops there. Roundtable is M4. Memory saving,
+Lifecycle gates remain M3: the server refuses lifecycle events, resume and task execution publication. Spec can create and display drafts but cannot enter execution. Roundtable is M4. Memory saving,
 opportunities automation and enhanced prompts are still separate follow-on
 work. Cross-review and smart-test are adapted host workflows and do not claim
 parity with legacy paid tools. Existing approvals remain required.

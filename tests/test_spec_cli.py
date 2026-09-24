@@ -39,3 +39,30 @@ def test_compose_collision_and_presenters(tmp_path,monkeypatch,capsys):
         assert expected in capsys.readouterr().out
     assert main(['spec','present','result','--plan',str(plan),'--task','1','--test-run',str(tmp_path/'absent')])==2
     assert not capsys.readouterr().out
+
+
+from test_connected_journey import journey  # noqa: F401
+
+
+def test_result_requires_exact_persisted_acceptance(journey, capsys, tmp_path):
+    from test_connected_journey import complete, run_linked
+    from attune_harness.spec_handoff import bind_test_evidence
+    from attune_harness.spec_state import SpecState, save_state
+    complete(journey,capsys)
+    tested=run_linked(journey)
+    directory=Path(tested['record_path']).parent
+    evidence=bind_test_evidence(directory)
+    plan=tmp_path/'accepted.md';plan.write_text(FULL)
+    args=['spec','present','result','--plan',str(plan),'--task','1','--test-run',str(directory)]
+    assert main(args)==2  # A real test run alone does not associate it with a Spec task.
+    capsys.readouterr()
+    receipt={'task_id':'1','severity':'low','score':100,'probes':[evidence['record_path']],
+             'detail':'Previously accepted fixture evidence','test_evidence':evidence,'disposition':'approve_task'}
+    state=SpecState(plan_path=str(plan),completed=['1'],task_receipts=[receipt])
+    save_state(state)
+    assert main(args)==0
+    assert 'PASSED' in capsys.readouterr().out
+    state.task_receipts[0]['test_evidence']={**evidence,'task_id':'unrelated-testing-run'}
+    save_state(state)
+    assert main(args)==2
+    assert 'differs' in capsys.readouterr().err
