@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add the workspace MCP profile, Spec intake/presentation CLI, and local Claude
+  and Codex plugin candidates. Lifecycle gates remain a separate prerequisite;
+  the Spec skill stops at that boundary. No marketplace release is claimed.
+
 ## 0.6.0
 
 - Memory serving checks active curated membership and configured-root file
