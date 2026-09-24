@@ -112,6 +112,238 @@ unresolved; no automatic retry or exactly-once guarantee is added. Read-only
 artifact checks detect observed changes, not every transient external filesystem
 mutation. Copied state/run directories are not a cross-machine transfer protocol.
 
+## Plugins: signing, revocation and the capability fields
+
+A bundle whose manifest carries `grants` or `declares` is a plugin (the
+[executable plugins spec](specs/executable-plugins/README.md), approved as
+[D22](specs/spec-authority/addendum-2026-09-23.md); plan task 4.3, first of
+four cycles). No plugin code runs yet: the `run` binding is a later cycle,
+and a plugin's tools are still `retrieve` bindings. What this cycle adds is
+the trust boundary those tools already run behind: a signature the accepted
+registry can check, a revocation list, and the two fields whose names carry
+the difference between what the host enforces and what it only records. A
+data-only bundle, one with neither field, is unchanged: it needs no
+signature and no registry to enable, and its receipts are what they were.
+
+### The manifest's two fields
+
+`grants` names what the host will do for the plugin. Each is a host action,
+so each is enforced once the `run` binding exists; in this cycle the grant
+is checked against the manifest and recorded. Version 1 knows five:
+`secrets` (up to eight environment variable names the host will pass, and
+nothing else from the environment; never `PATH`, `LANG`, `LC_ALL`,
+`PYTHONDONTWRITEBYTECODE`, `PYTHONNOUSERSITE` or `SystemRoot`, in any case,
+which the child's environment carries of its own), `paths` (up to eight lowercase names of the task's inputs the
+host will name in the request), `scratch` (`true` for a plugin-private
+writable directory), `time` (a timeout, an integer of at most 300 seconds)
+and `output` (an object with `result`, at most 1048576 bytes, and
+`diagnostics`, at most 65536 bytes). `declares` names what the child could
+violate, so each is recorded and attested, not enforced. Version 1 knows
+six: `imports` (distributions installed in the host's environment the bundle
+will import, an extra in brackets), `network` (lowercase host names),
+`reads` and `writes` (paths outside what it was given, expected empty),
+`subprocess` (`true` or `false`) and `vendored` (the distributions the
+bundle carries itself). Any other name in either field is refused as
+manifest schema version 2 material, in those words. Both fields are manifest
+bytes, so they are bound into the artifact digest like everything else.
+
+```json
+{
+  "schema_version": 1,
+  "id": "evidence",
+  "version": "0.1.0",
+  "skill": "SKILL.md",
+  "tools": {"search": "retrieve"},
+  "grants": {"secrets": ["VOYAGE_API_KEY"], "scratch": true, "time": 120,
+             "output": {"result": 65536, "diagnostics": 8192}},
+  "declares": {"imports": ["voyageai"], "network": ["api.voyageai.com"],
+               "reads": [], "writes": [], "subprocess": false, "vendored": []}
+}
+```
+
+### What is signed, and with what
+
+The signed bytes are the artifact digest's 64 lowercase hexadecimal
+characters, ASCII, with no newline: exactly the `artifact_digest` that
+`extension discover` prints. The signature is a detached OpenPGP signature
+over those bytes, armoured or binary, in the file `artifact.sig` beside the
+manifest, at most 16 KiB and never a symlink. Before gpg runs, the file is
+dearmoured and its packet headers are walked: only Signature packets of
+definite length reach the verifier, so an inline-signed or clearsigned
+message, a compressed or a literal packet, a marker packet or a partial
+length is refused as not a detached signature without gpg (a compressed
+message inside the size bound cost 27 seconds of gpg on every check before
+this walk). The signature file is not part of the digest, so signing does
+not change what is signed. The bundle is byte-exact: the digest covers the
+manifest's and the skill's bytes as they are on disk, so a bundle kept in
+Git marks at least `extension.json` and `SKILL.md` as `-text` in
+`.gitattributes` (as this repository does for its fixtures), or a Windows
+checkout with `core.autocrlf` rewrites them with CRLF and the signature no
+longer verifies, refused as an artifact changed after signing. A signature means
+one thing: this exact bundle, manifest and skill, was reviewed by the signer
+under [the brief](review-brief.md). It does not mean the bundle is safe in
+general, and every receipt words it that way.
+
+A maintainer signs with an ordinary `gpg` key. The example below uses a
+scratch key in a temporary home so that it touches no real keyring; the
+maintainer's own key is the first entry of a real registry's `signers`:
+
+```sh
+export GNUPGHOME=$(mktemp -d) && chmod 700 "$GNUPGHOME"
+gpg --batch --passphrase '' --pinentry-mode loopback \
+    --quick-generate-key 'Scratch <scratch@example.invalid>' default default never
+DIGEST=$(attune-harness extension discover bundle/extension.json \
+         | python3 -c 'import json, sys; print(json.load(sys.stdin)["bundle"]["artifact_digest"])')
+printf '%s' "$DIGEST" | gpg --armor --detach-sign > bundle/artifact.sig
+gpg --armor --export > signer.asc                                   # the public key block
+gpg --with-colons --fingerprint | awk -F: '/^fpr/ {print $10; exit}'  # its fingerprint
+gpgconf --kill all && rm -rf "$GNUPGHOME"                         # the scratch agent and home
+```
+
+`printf '%s'` matters: a trailing newline is a different set of bytes, and a
+signature over it is refused as a changed artifact.
+
+### What the registry carries
+
+Two keys of the `extensions` section are not registrations: `signers`, a
+list of one to eight entries, each a key's 40-character uppercase
+fingerprint and its ASCII-armoured public key block, and `revoked`, a list
+of up to 64 artifact digests that never run again whatever their signature
+says. Both are validated without opening any bundle; `signers` and `revoked`
+are reserved extension identities, so no bundle can carry either name. A
+registration may carry `grant`, the subset
+of the manifest's `grants` this registry allows: the effective set is the
+grant, never the declaration, a registration without one grants nothing,
+and `declares` cannot be granted, only acknowledged, which registering the
+bundle does.
+
+```json
+"extensions": {
+  "signers": [{"fingerprint": "<40 uppercase hexadecimal characters>",
+               "public_key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n...\n-----END PGP PUBLIC KEY BLOCK-----\n"}],
+  "revoked": [],
+  "evidence": {
+    "state_dir": "extension-state",
+    "artifact_digest": "<digest returned by extension install>",
+    "grant": {"secrets": ["VOYAGE_API_KEY"], "time": 60}
+  }
+}
+```
+
+The registry is also the key distribution: an accepted, checkpointed
+artifact whose every change is a receipt. A key rotates by a registry edit
+that lists the old and the new key together for an overlap and then drops
+the old one; the receipts of those edits are the audit trail. A signed
+bundle that turns out to be wrong goes on `revoked` by its digest.
+
+### Where the checks run
+
+A plugin enables only against a registry: `extension enable` takes
+`--registry`, a registry file whose `extensions` section lists the signers
+and registers this state directory with this artifact digest (the accepted
+registry's, or one written for the enable; only that section is read there,
+and every call checks the registry the run accepted); it refuses a plugin
+without it. Inside
+the lease, at `enable` and before and after every call, where the host
+already re-reads the manifest to compare the artifact digest with the
+checkpoint it holds in memory, it also checks that the digest is not on
+`revoked`, that `artifact.sig` verifies over that digest by a listed key,
+and that the grant is a subset of the manifest's `grants`; a change in
+between, a signature withdrawn during a call included, discards the result.
+The revocation list applies to any registered bundle, data-only or not.
+Verification is `gpg --verify` in a bounded subprocess with `--status-fd`,
+in a private home directory created with mode 0700 for the call and removed
+after it, holding a keyring built from the registry's key blocks and nothing
+else; the user's own keyring, options and agent play no part, and
+`GNUPGHOME` is not passed. `gpg` is looked for on `PATH` first and then at
+the known install locations, on Windows Git for Windows' `usr\bin` and
+`mingw64\bin` and GnuPG's `bin` under each Program Files root, elsewhere
+`/usr/bin`, `/usr/local/bin` and `/opt/homebrew/bin`; the absent-gpg refusal
+names what was searched; a gpg that is present but cannot run is named as
+such. The PATH entries are searched directly, absolute ones only, so a gpg
+in the working directory is never chosen. Before any home is opened,
+`gpg --version` alone (with `--no-options`, as every call here, so no option
+file of the invoking user or of the system plays a part) tells the build's
+path style from its `Home:` line: a `/`-rooted home is an MSYS build, Git
+for Windows' among them (a Cygwin build, which spells `/cygdrive/c/`, is
+not handled), which treats any path
+not starting with `/` as relative (a backslashed or a `C:/` `--homedir`
+left it composing its lock file under the working directory and unable to
+start its agent: D29.1's first two findings, windows-latest), so such a
+build is given `/c/Users/...`; a native gpg is given forward slashes. The
+verdict is read from the status lines alone,
+a `GOODSIG` and a `VALIDSIG` whose primary-key fingerprint is listed and no
+expiry, revocation, bad, error or no-data line, never from the exit status,
+which gpg sets to 0 for a signature by an expired or a revoked key. The
+same function will run before the `run` binding's child starts.
+
+### The receipts
+
+The enable receipt, and the `extension` block of every contributed call,
+gain `plugin`: `signer`, the fingerprint that vouched; `verifier`, the gpg
+path used, its version line, its path style, the status keywords it
+reported in order and its exit status, recorded and never consulted
+(D29.1); `grant`, the
+effective grant; `declares`, the acknowledged declarations exactly as the
+manifest states them; `signature_scope`, which says that the signature means
+this exact bundle was reviewed by the signer under the brief and not that it
+is safe in general; and `declarations_scope`, which says the declarations
+were recorded and not enforced and the grant checked against the manifest
+and recorded (the `run` binding is what will apply it). Disabling drops `plugin` from the state,
+since it ends the grant. The envelope is pinned as `extension-enable-plugin`
+in [the envelope table](envelopes.md).
+
+### The probe on every platform job (D29.1)
+
+`tests/test_plugin_probe.py`, in the platform selection, is the ruling's
+probe: on each of the six platform jobs it finds gpg, generates a scratch
+key, verifies a detached signature and asserts that the verdict came from
+`GOODSIG` and a `VALIDSIG` with the listed fingerprint, produces the
+unlisted-signer, tampered-digest and revoked-key refusals (the first and the
+last with exit status 0), and launches the `run` binding's child ahead of its
+cycle: the host's interpreter with `-I -S -B`, `sys.path` set to a bundle
+directory plus the standard library entries of the host's path, and a meta
+path finder that resolves a top-level name from site-packages only inside a
+declared closure; it imports a standard library module, a bundle module and
+one declared installed distribution (`tiktoken`, a base dependency), and
+asserts that an undeclared installed one (`redis`) fails, with the repair
+probe's environment allow-list, `SystemRoot` on Windows. Nothing skips: a
+runner without gpg fails with the discovery receipt in the message. The
+receipt, `plugin-probe.json`, is written step by step into the qualification
+output directory, each step with the second at which it completed, and
+copied by `scripts/qualify_platform.py` into `platform.json` as
+`plugin_probe`, in the artifact each platform job uploads; a missing receipt
+fails the qualification. The first three runs found, in turn, that Git for
+Windows' gpg treats a backslashed path as relative, then a `C:/` one too,
+then that every gpg call on Windows pays a worker, a Job Object and, for a
+key generation or a signing, a fresh agent start, which put the platform
+job past its 600 s budget with every plugin test passed; the tests now start
+one agent per scratch home outside the bounded calls and share one listed
+key where a test needs only that.
+
+### What each refusal means
+
+Each is unavailable (exit 2 from the command line), worded as what happened
+and what to do next. The existing refusals come first and are unchanged: an
+artifact that differs from the accepted binding or from the state is refused
+in the words above before any signature is checked.
+
+- *Plugin bundles enable only against the accepted registry; pass --registry ...*: a plugin was enabled without `--registry`.
+- *Plugin ID is not registered in that registry ...* and *Registry registers plugin ID under a different state directory ...*: the registry passed does not bind this state directory.
+- *Plugin bundle carries no signature ...*: no `artifact.sig` beside the manifest.
+- *Plugin artifact.sig is not a detached signature ...*: the file is not made of Signature packets of definite length (an inline-signed or clearsigned message, a compressed or literal packet, a marker, a partial length, garbage), refused before gpg runs; or gpg found no OpenPGP data (`NODATA`) or reported without checking a signature (no `NEWSIG`).
+- *Plugin artifact changed after it was signed ...*: the signature does not verify over the current digest (`BADSIG`); the manifest or the skill changed after signing, or other bytes were signed.
+- *Plugin signature was made by a key the registry does not list ...*: the signature verified, but the key's primary fingerprint is not under `signers`.
+- *Plugin signature names a key with no public key in the registry ...*: the signing key's block is not under `signers` (`NO_PUBKEY`).
+- *Plugin signature was made by a key that has expired ...* and *... that has been revoked ...*: `EXPKEYSIG` and `REVKEYSIG`, which gpg reports with exit status 0; this is why the exit status is never the verdict.
+- *Plugin signature has expired ...* and *Plugin signature could not be checked by gpg ...*: `EXPSIG`, and an `ERRSIG` that is not a missing key.
+- *Plugin artifact is on the registry revocation list and never runs again ...*: the digest is under `revoked`.
+- *gpg is absent from PATH and from the known install locations (...) ...*: no verifier on this machine; install GnuPG. The platform jobs run the plugin tests and the probe, so a runner without gpg fails them by name rather than skipping.
+- *gpg at PATH is present but cannot run (not executable) ...*: a `gpg` file was found but nothing runnable was, on PATH or at the known locations.
+- *Plugin signature verifier failed to run (...)* and *... reported no verdict ...*: the subprocess did not run, or ran and produced no `GOODSIG` with a `VALIDSIG`; a silent exit 0 is a refusal.
+- *Plugin signature verifier could not import a registry key block ...*: a `public_key` entry gpg cannot read.
+- *Grant names NAME, a capability the plugin manifest does not declare ...* and *Grant of NAME exceeds what the plugin manifest declares ...*: the registration's grant is not a subset of `grants`.
+
 ## Evidence and Attune integration limits
 
 A successful tool result retains native retrieval status, sources and corpus
