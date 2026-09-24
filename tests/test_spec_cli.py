@@ -65,8 +65,38 @@ def test_result_requires_exact_persisted_acceptance(journey, capsys, tmp_path):
     save_state(state)
     assert main(args)==0
     assert 'PASSED' in capsys.readouterr().out
-    state.task_receipts[0]['test_evidence']={**evidence,'task_id':'unrelated-testing-run'}
-    save_state(state)
+    original = plan.read_text()
+    from attune_harness.spec_state import load_state
+    saved = load_state(str(plan))
+    saved.auto_run = True
+    save_state(saved)
+    assert load_state(str(plan)).task_content_digests == state.task_content_digests
+    assert main(args) == 0
+    capsys.readouterr()
+    for before, after in [('add-auth', 'different-task'),
+                          ('Add user authentication', 'Delete the application'),
+                          ('src/auth.py', 'src/unrelated.py'),
+                          ('returns 401', 'returns 200'),
+                          ('May break existing sessions', 'No risk'),
+                          ('<dep>0</dep>', '<dep>99</dep>')]:
+        plan.write_text(original.replace(before, after))
+        assert main(args) == 2
+        rejected = capsys.readouterr()
+        assert not rejected.out and 'accepted binding' in rejected.err
+        with pytest.raises(ValueError, match='content changed'):
+            save_state(load_state(str(plan)))
+    plan.write_text(original)
+    # A historical receipt without a task-content binding must not gain one on save.
+    historical = original.replace(json.dumps(state.task_content_digests), '{}')
+    plan.write_text(historical)
+    save_state(load_state(str(plan)))
+    assert main(args) == 2
+    assert 'accepted binding' in capsys.readouterr().err
+    assert not load_state(str(plan)).task_content_digests
+    plan.write_text(original.replace('<tasks>', '<tasks>' + FULL))
+    assert main(args) == 2
+    assert 'exactly once' in capsys.readouterr().err
+    plan.write_text(original.replace(evidence['task_id'], 'unrelated-testing-run'))
     assert main(args)==2
     assert 'differs' in capsys.readouterr().err
 

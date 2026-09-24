@@ -45,9 +45,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .features import REPLACE_RETRY_SECONDS, read_text, replace_file
-from .review_contract import parse_json
+from .review_contract import digest, parse_json
 from .paths import validate_file_path
-from .spec_tasks import PLAN_LIMIT, read_spec
+from .spec_tasks import PLAN_LIMIT, parse_tasks, read_spec
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,9 @@ class SpecState:
     ``plan_path`` is the file the state was read from or will be written to.
     ``completed`` holds the ids of accepted tasks, ``current`` the id being
     executed, ``task_receipts`` the accepted execution results (absent in
-    older plans), ``auto_run`` whether remaining tasks skip approval,
+    older plans), ``task_content_digests`` binds newly persisted test-backed
+    acceptances to parsed task contents (historical absences stay unbound),
+    ``auto_run`` whether remaining tasks skip approval,
     ``last_updated`` the ISO UTC time of the last change, and
     ``schema_version`` the on-disk format version: the current one for a new
     state, or the version a loaded payload carried.
@@ -84,6 +86,7 @@ class SpecState:
     )
     schema_version: int = CURRENT_SCHEMA_VERSION
     task_receipts: list[dict[str, object]] = field(default_factory=list)
+    task_content_digests: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
         """JSON-safe form, without ``plan_path``."""
@@ -91,6 +94,7 @@ class SpecState:
             "schema_version": self.schema_version,
             "completed": self.completed,
             "task_receipts": self.task_receipts,
+            **({"task_content_digests": self.task_content_digests} if self.task_content_digests else {}),
             "current": self.current,
             "auto_run": self.auto_run,
             "last_updated": self.last_updated,
@@ -240,16 +244,54 @@ def read_state_report(content: str, plan_path: str) -> dict:
     ):
         raise ValueError(f"Invalid spec-state task_receipts in {plan_path}")
 
+    task_content_digests = data.get("task_content_digests", {})
+    if not isinstance(task_content_digests, dict) or any(
+        not isinstance(key, str) or key not in completed_raw
+        or not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None
+        for key, value in task_content_digests.items()
+    ):
+        raise ValueError(f"Invalid spec-state task_content_digests in {plan_path}")
+
     report["state"] = SpecState(
         plan_path=plan_path,
         completed=list(completed_raw),
         task_receipts=receipts_raw,
+        task_content_digests=task_content_digests,
         current=current_raw,
         auto_run=bool(data.get("auto_run", False)),
         last_updated=str(data.get("last_updated", "")),
         schema_version=report["schema_version"],
     )
     return report
+
+
+def _accepted_task_content(body: str, previous: SpecState | None, state: SpecState) -> dict[str, str]:
+    """Bind new acceptances; preserve history rather than restamping edited tasks."""
+    prior_completed = set(previous.completed) if previous else set()
+    prior_bindings = previous.task_content_digests if previous else {}
+    bindings = {}
+    tasks = parse_tasks(body)
+    for task_id in state.completed:
+        receipts = [r for r in state.task_receipts if r.get('task_id') == task_id]
+        if task_id in prior_bindings:
+            prior_receipts = [r for r in previous.task_receipts if r.get('task_id') == task_id]
+            if receipts != prior_receipts:
+                raise ValueError('Accepted Spec task receipt changed; redo the task')
+        elif task_id in prior_completed or not any('test_evidence' in r for r in receipts):
+            continue  # Legacy completion stays unbound; never invent its history.
+        matches = [task for task in tasks if task.task_id == task_id]
+        if len(matches) != 1 or len(receipts) != 1:
+            raise ValueError('Accepted Spec task requires a unique task and receipt')
+        current = digest(matches[0].to_dict())
+        if task_id in prior_bindings and current != prior_bindings[task_id]:
+            raise ValueError('Accepted Spec task content changed; redo the task')
+        bindings[task_id] = prior_bindings.get(task_id, current)
+    if not isinstance(state.task_content_digests, dict) or any(
+        bindings.get(key) != value for key, value in state.task_content_digests.items()
+        if key in state.completed
+    ):
+        raise ValueError('Supplied task content binding conflicts with accepted history')
+    return bindings
 
 
 def save_state(state: SpecState) -> None:
@@ -262,7 +304,9 @@ def save_state(state: SpecState) -> None:
     open, so a reader never sees a
     half-written plan and a crash mid-write leaves the plan as it was. After
     a successful write ``state.last_updated`` and ``state.schema_version``
-    are set to what was written; a refused save leaves the object unchanged.
+    and task-content bindings are set to what was written; a refused save
+    leaves the object unchanged. Existing bound tasks cannot change content
+    or receipt during a progress save.
 
     Raises ``ValueError`` when the path fails validation, the file is not a
     regular file or is over the plan size limit, an existing comment is not
@@ -272,12 +316,21 @@ def save_state(state: SpecState) -> None:
     validated = validate_file_path(state.plan_path)
     content = read_text(validated, PLAN_LIMIT)
     body, _ = _split(content, state.plan_path)
+    prior = read_state_report(content, state.plan_path)
+    if prior['comment'] and prior['state'] is None and any(
+        'test_evidence' in receipt for receipt in state.task_receipts
+    ):
+        raise ValueError('Cannot bind receipts over unreadable prior acceptance history')
+    bindings = _accepted_task_content(body, prior['state'], state)
 
     written = {
         **state.to_dict(),
         "schema_version": CURRENT_SCHEMA_VERSION,
         "last_updated": datetime.now(timezone.utc).isoformat(),
     }
+    written.pop("task_content_digests", None)
+    if bindings:
+        written["task_content_digests"] = bindings
     # Evidence may contain comment delimiters. Keep it inside the JSON comment.
     payload = json.dumps(written).replace("<", "\\u003c").replace(">", "\\u003e")
     comment = f"<!-- spec-state: {payload} -->"
@@ -295,6 +348,7 @@ def save_state(state: SpecState) -> None:
     _atomic_write_text(validated, result)
     state.last_updated = written["last_updated"]
     state.schema_version = CURRENT_SCHEMA_VERSION
+    state.task_content_digests = bindings
 
 
 def clear_state(plan_path: str) -> None:

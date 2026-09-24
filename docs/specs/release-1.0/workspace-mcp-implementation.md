@@ -81,3 +81,37 @@ inside the fixed project and parses the bounded plan to compare task IDs in
 order. Publisher prose in `probes` remains a caller assertion, not test or
 lifecycle evidence. Missing drafts, directories, escaping paths, empty plans
 and invented task IDs are refused without advancing the workspace.
+
+## Accepted task contents — PR 141 P1 correction
+
+The disposable regression in `/private/tmp/pr141-result-probe` changed the
+objective of an already completed task without changing its ID or state comment.
+The old CLI printed PASSED for the rewritten task, reproducing review finding
+`discussion_r4095010101`. Test-run freshness alone cannot establish which Spec
+text was accepted.
+
+Persist an optional map of task IDs to canonical parsed-task content digests at
+the state writer's acceptance boundary: only newly completed tasks carrying test
+receipts receive a digest. Preserve existing bindings on subsequent saves; never
+retroactively bind historical completions or refresh a digest from edited text.
+The digest includes all fields returned by `DecomposedTask.to_dict`; duplicate
+IDs cannot establish a binding. Legacy states remain readable but result display
+refuses missing bindings. Existing bound completions must keep their task text
+and accepted receipt on resave. This records local acceptance, not a signature
+or authorization against an owner who deliberately rewrites the state file.
+
+Read the bounded plan once for both tasks and state. Result display requires
+exactly one selected task, its saved content digest and its existing exact test
+receipt binding before producing output. Cases: unchanged task passes; changed
+name/objective/files/checks/risks/dependencies, missing binding, duplicate IDs,
+changed receipt and resaving an edited accepted task fail. Ordinary progress saves
+preserve the binding. No lifecycle or execution path is enabled.
+
+Rejected: recomputing a digest during presentation (would bless the edit),
+retroactively stamping legacy completions (would fabricate acceptance history),
+and using only mtime or task ID (neither binds the displayed task contents).
+
+A present but unreadable prior state is not a fresh acceptance: binding new test
+receipts over it is refused. This digest proves post-persistence task freshness,
+not which task ran before that save; trusted execution-boundary provenance stays
+with M3.

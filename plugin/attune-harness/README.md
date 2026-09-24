@@ -30,3 +30,9 @@ Windows qualification exercises workspace discovery, draft publication, action
 bindings and execution refusal, plus the producer's explicit unsupported result.
 It does not qualify production of test receipts or accepted-result presentation
 from a Windows testing run.
+
+Result presentation requires both a persisted task-content binding and the exact
+accepted test-run receipt. Rewriting an accepted task invalidates presentation;
+old state without a content binding must be reaccepted after redoing the task.
+The binding detects edits after acceptance persistence; it does not establish
+what ran before that save or supply the missing M3 execution authority.

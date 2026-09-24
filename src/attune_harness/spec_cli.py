@@ -3,8 +3,11 @@ import json
 import sys
 from pathlib import Path
 from .spec_intake import area_candidates, existing_spec_slugs, compose_spec_contract, build_spec_intake_form
-from .spec_tasks import read_spec
-from .spec_state import load_state
+from .spec_tasks import PLAN_LIMIT, parse_tasks
+from .spec_state import _split, read_state
+from .features import read_text
+from .paths import validate_file_path
+from .review_contract import digest
 from . import spec_presenter as present
 
 
@@ -45,15 +48,19 @@ def execute(args):
                         'required':q.required}.items() if v is not None} for q in form.questions]},
                     'areas':areas,'taken_slugs':taken},indent=2))
         else:
-            tasks=read_spec(str(args.plan));state=load_state(str(args.plan))
+            content = read_text(validate_file_path(str(args.plan)), PLAN_LIMIT)
+            body, _ = _split(content, str(args.plan))
+            tasks = parse_tasks(body)
+            state = read_state(content, str(args.plan))
             if args.view in ('tasks','progress'):
                 if args.task or args.test_run: raise ValueError('This view does not take --task or --test-run')
                 if args.view=='tasks': print(present.present_tasks(tasks,state))
                 else: print(present.format_progress_bar(len(state.completed) if state else 0,len(tasks)))
             else:
                 if not args.task: raise ValueError('--task is required for task/result')
-                task=next((t for t in tasks if t.task_id==args.task),None)
-                if task is None: raise ValueError('Task is absent from plan')
+                matches = [t for t in tasks if t.task_id == args.task]
+                if len(matches) != 1: raise ValueError('Task must occur exactly once in plan')
+                task = matches[0]
                 if args.view=='task':
                     if args.test_run: raise ValueError('--test-run is only valid with result')
                     print(present.present_task_detail(task))
@@ -67,6 +74,8 @@ def execute(args):
                     from .spec_workspace import _accepted_receipt
                     if state is None or task.task_id not in state.completed:
                         raise ValueError('Result requires a completed Spec task with accepted evidence')
+                    if state.task_content_digests.get(task.task_id) != digest(task.to_dict()):
+                        raise ValueError('Current task content has no matching accepted binding; redo the task')
                     accepted = [_accepted_receipt(r) for r in state.task_receipts
                                 if r.get('task_id') == task.task_id]
                     if len(accepted) != 1 or accepted[0].receipt.test_evidence != evidence:
