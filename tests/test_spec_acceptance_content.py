@@ -33,6 +33,9 @@ def test_unreadable_history_cannot_be_restamped(tmp_path, prior):
     plan = tmp_path / 'plan.md'
     plan.write_text(FULL + '\n<!-- spec-state: ' + prior + ' -->\n')
     before = plan.read_bytes()
+    with pytest.raises(ValueError, match='unreadable prior'):
+        save_state(SpecState(str(plan)))
+    assert plan.read_bytes() == before
     state = SpecState(str(plan), completed=['1'], task_receipts=[receipt()])
     with pytest.raises(ValueError, match='unreadable prior'):
         save_state(state)
@@ -70,3 +73,22 @@ def test_invalid_saved_content_bindings_refused(tmp_path, bindings):
         'schema_version':2, 'completed':['1'], 'task_content_digests':bindings}) + ' -->\n')
     with pytest.raises(ValueError, match='task_content_digests'):
         load_state(str(plan))
+
+
+@pytest.mark.parametrize('bound', [True, False])
+def test_drop_then_readd_cannot_rebind_old_evidence(tmp_path, bound):
+    plan = tmp_path / 'plan.md'
+    plan.write_text(FULL)
+    state = SpecState(str(plan), completed=['1'], task_receipts=[receipt()] if bound else [])
+    save_state(state)
+    plan.write_text(plan.read_text().replace('Add user authentication', 'Unrelated task'))
+    before = plan.read_bytes()
+    with pytest.raises(ValueError, match='Cannot remove completed task acceptance'):
+        save_state(SpecState(str(plan), completed=[], task_receipts=[]))
+    assert plan.read_bytes() == before
+    if bound:
+        with pytest.raises(ValueError, match='content changed'):
+            save_state(SpecState(str(plan), completed=['1'], task_receipts=[receipt()]))
+    else:
+        save_state(SpecState(str(plan), completed=['1'], task_receipts=[receipt()]))
+    assert load_state(str(plan)).task_content_digests == state.task_content_digests

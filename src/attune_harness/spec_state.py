@@ -269,6 +269,8 @@ def _accepted_task_content(body: str, previous: SpecState | None, state: SpecSta
     """Bind new acceptances; preserve history rather than restamping edited tasks."""
     prior_completed = set(previous.completed) if previous else set()
     prior_bindings = previous.task_content_digests if previous else {}
+    if prior_completed - set(state.completed):
+        raise ValueError('Cannot remove completed task acceptance in a progress save; explicitly reset the plan')
     bindings = {}
     tasks = parse_tasks(body)
     for task_id in state.completed:
@@ -306,7 +308,10 @@ def save_state(state: SpecState) -> None:
     a successful write ``state.last_updated`` and ``state.schema_version``
     and task-content bindings are set to what was written; a refused save
     leaves the object unchanged. Existing bound tasks cannot change content
-    or receipt during a progress save.
+    or receipt during a progress save. Completed IDs cannot be removed, even
+    from legacy state; a present unreadable state also refuses every save.
+    Use ``clear_state`` for an explicit reset rather than erasing history
+    through an empty progress save.
 
     Raises ``ValueError`` when the path fails validation, the file is not a
     regular file or is over the plan size limit, an existing comment is not
@@ -317,10 +322,8 @@ def save_state(state: SpecState) -> None:
     content = read_text(validated, PLAN_LIMIT)
     body, _ = _split(content, state.plan_path)
     prior = read_state_report(content, state.plan_path)
-    if prior['comment'] and prior['state'] is None and any(
-        'test_evidence' in receipt for receipt in state.task_receipts
-    ):
-        raise ValueError('Cannot bind receipts over unreadable prior acceptance history')
+    if prior['comment'] and prior['state'] is None:
+        raise ValueError('Cannot save over unreadable prior acceptance history; explicitly reset the plan')
     bindings = _accepted_task_content(body, prior['state'], state)
 
     written = {

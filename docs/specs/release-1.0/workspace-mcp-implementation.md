@@ -115,3 +115,12 @@ A present but unreadable prior state is not a fresh acceptance: binding new test
 receipts over it is refused. This digest proves post-persistence task freshness,
 not which task ran before that save; trusted execution-boundary provenance stays
 with M3.
+
+Independent review reproduced a two-save bypass: remove a bound completion, then
+re-add the old receipt against rewritten text. Progress saves therefore cannot
+remove any prior completion, including an unbound legacy completion. A deliberate plan reset remains the explicit
+`clear_state` operation and is not a progress-save shortcut.
+
+The same rule applies to unreadable history: every progress save over a present
+unreadable comment is refused, including an empty-state save. Otherwise two
+saves could erase the unreadable history and mint a new binding from old evidence.
