@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Guide a spec through Harness intake, review, receipt-backed execution and resume.
+description: Guide Harness Spec draft intake and inspect existing plans and accepted test receipts.
 ---
 
 Use the user's project, outcome, acceptance criteria and authorized scope. Read its
@@ -31,5 +31,6 @@ rules before acting. Use Harness alone; do not import or install Attune AI.
    That verifies the current test receipt and does not perform a model review.
 
 Workspace state is process-local. Restarting the server invalidates old action
-bindings; reopen from a saved plan and show the new decision. Use fresh evidence
-and the user's original authorization, not retained UI nonces.
+bindings. Existing plans remain inspectable with `spec present`, but this candidate
+cannot resume them. Report that boundary and wait for M3; never reuse retained UI
+nonces or recreate a plan over existing artifacts to work around it.

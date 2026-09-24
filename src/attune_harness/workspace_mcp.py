@@ -79,6 +79,7 @@ class WorkspaceSession:
         project = project.resolve(strict=True)
         if not project.is_dir():
             raise ValueError('Workspace project must be an existing directory')
+        self.project = project
         self.schemas = tool_schemas()
         self.store = RunStore(directory)
         self.store.directory.chmod(0o700)
@@ -104,6 +105,36 @@ class WorkspaceSession:
         except PersistenceError:
             self.persistence_failed = True
             raise
+
+    def verify_artifacts(self, event):
+        """Check the untrusted publisher against files in the fixed project."""
+        from .spec_tasks import PLAN_LIMIT, parse_tasks
+        from .features import read_text
+        artifacts = event.get('artifacts')
+        if not isinstance(artifacts, list) or not artifacts:
+            raise ValueError('Created artifacts must name existing project files')
+        paths = {}
+        for artifact in artifacts:
+            raw = artifact.get('path') if isinstance(artifact, dict) else None
+            if not isinstance(raw, str) or not raw or Path(raw).is_absolute():
+                raise ValueError('Artifact paths must be project-relative files')
+            try:
+                path = (self.project / raw).resolve(strict=True)
+                path.relative_to(self.project)
+                if not path.is_file():
+                    raise ValueError('Artifact is not a regular file')
+            except (OSError, ValueError, RuntimeError) as exc:
+                raise ValueError('Artifact must exist inside the startup project') from exc
+            paths[raw] = path
+        plan = paths.get(event.get('plan_path'))
+        if plan is None:
+            raise ValueError('Plan must name a verified artifact')
+        try:
+            task_ids = [task.task_id for task in parse_tasks(read_text(plan, PLAN_LIMIT))]
+        except OSError as exc:
+            raise ValueError('Plan could not be read') from exc
+        if not task_ids or task_ids != event.get('task_ids'):
+            raise ValueError('Published task IDs must match the actual plan in order')
 
     async def invoke(self, name, arguments):
         import jsonschema
@@ -131,6 +162,8 @@ class WorkspaceSession:
             else:
                 if arguments['event'].get('kind') in {'lifecycle_gate', 'task_started', 'task_result'}:
                     raise ValueError('Execution publication requires verified lifecycle gates (M3); caller assertions are not receipts')
+                if arguments['event'].get('kind') == 'artifacts_created':
+                    self.verify_artifacts(arguments['event'])
                 rendered = await self.host.publish(arguments['workspace_id'], arguments['event'])
             result = {'success': True, **rendered.to_dict(), 'mcp_app': mcp_app_result(
                 collect_tool='command_workspace_collect_action', collect_mode='response')}

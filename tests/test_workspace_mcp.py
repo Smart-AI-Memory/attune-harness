@@ -157,6 +157,8 @@ def test_resume_and_execution_stay_closed_even_with_real_test_evidence(journey, 
 
 def test_untrusted_lifecycle_receipt_cannot_advance(tmp_path):
     (tmp_path / '.claude/plans').mkdir(parents=True)
+    from test_spec_tasks import FULL
+    (tmp_path / '.claude/plans/demo.md').write_text(FULL)
     async def run():
         scope=m.WorkspaceSession(tmp_path,tmp_path/'gated')
         opened=await scope.invoke('command_workspace_open',{'adapter_id':'spec','intake':{
@@ -173,4 +175,28 @@ def test_untrusted_lifecycle_receipt_cannot_advance(tmp_path):
                 {'gate_id':'invented','state':'PASS','detail':'invented pass'}]}})
         assert not forged['success']
         assert scope.host.get(opened['workspace_id']).state.stage=='gate_running'
+    asyncio.run(run())
+
+@pytest.mark.parametrize('case', ['missing', 'directory', 'wrong_ids', 'empty_plan', 'outside'])
+def test_artifact_publication_requires_real_project_plan(tmp_path, case):
+    from test_spec_tasks import FULL
+    project = tmp_path / 'project'
+    project.mkdir()
+    (project / 'docs').mkdir()
+    plan = project / 'docs/plan.md'
+    if case != 'missing':
+        plan.write_text('no tasks' if case == 'empty_plan' else FULL)
+    raw = '../outside.md' if case == 'outside' else 'docs' if case == 'directory' else 'docs/plan.md'
+    (tmp_path / 'outside.md').write_text(FULL)
+    async def run():
+        scope = m.WorkspaceSession(project, tmp_path / 'session')
+        opened = await scope.invoke('command_workspace_open', {'adapter_id':'spec', 'intake':{
+            'outcome':'Draft', 'done_when':'Reviewed', 'slug':'demo'}})
+        await scope.invoke('command_workspace_collect_action', {'response':response(opened)})
+        result = await scope.invoke('command_workspace_publish', {'workspace_id':opened['workspace_id'],
+            'event': {'kind':'artifacts_created', 'plan_path':raw,
+                'artifacts':[{'path':raw, 'kind':'plan'}],
+                'task_ids':['invented' if case == 'wrong_ids' else '1'], 'probes':['caller assertion']}})
+        assert not result['success']
+        assert scope.host.get(opened['workspace_id']).state.stage == 'creating'
     asyncio.run(run())

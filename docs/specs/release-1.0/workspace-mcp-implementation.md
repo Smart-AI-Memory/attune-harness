@@ -74,3 +74,10 @@ real gate evidence. Real test evidence alone does not bypass that gate. This
 limits the candidate to intake and draft creation; end-to-end execution is not
 qualified. MCP Apps initialization now advertises the shared UI extension,
 which the real SDK test checks alongside the resource and tool metadata.
+
+A second review found that the internal trusted publisher accepted nonexistent
+draft paths. The MCP boundary now verifies every artifact is a regular file
+inside the fixed project and parses the bounded plan to compare task IDs in
+order. Publisher prose in `probes` remains a caller assertion, not test or
+lifecycle evidence. Missing drafts, directories, escaping paths, empty plans
+and invented task IDs are refused without advancing the workspace.
