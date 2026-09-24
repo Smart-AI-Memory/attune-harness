@@ -10,6 +10,9 @@ Measure real Python children even when Harness replaces their environment or use
 `-I`. Keep production argv, environment policies and source bytes unchanged. Keep
 all source modules in the denominator. Retain each platform's result separately;
 combine only successful runs of the same commit, source hashes and collector version.
+The supplemental workflow disables checkout newline conversion on its disposable
+runners so Windows and POSIX measure identical source bytes. A CRLF-converted
+checkout is rejected by the combiner rather than silently normalized.
 
 A disposable macOS/Python 3.10 experiment ran the existing test-change and MCP
 suites: 61 passed. A virtualenv startup hook measured 50/52 statements in the
