@@ -806,7 +806,9 @@ def test_stamps_the_format_accepts_and_a_record_outside_it_is_foreign(tmp_path, 
     assert stamp("2099-01-01T00:00:00.123456+00:00") == datetime(2099, 1, 1, 0, 0, 0, 123456, tzinfo=utc)
     assert stamp(STAMP) == datetime(2026, 9, 22, 12, 0, tzinfo=utc)
     for outside in ("2099-01-01T00:00:00", "2099-01-01T00:00:00+02:00", "2099-01-01 00:00:00+00:00",
-                    "2099-13-01T00:00:00Z", "2099-01-01T00:00:00.1234567Z", "2099-01-01T00:00Z", "", None, 1):
+                    "2099-13-01T00:00:00Z", "2099-01-01T00:00:00.1234567Z", "2099-01-01T00:00Z", "", None, 1,
+                    # second review of #116, N2: a trailing newline, and digits that are not ASCII
+                    "2099-01-01T00:00:00Z\n", "2099-01-01T00:00:00+00:00\n", "٢٠٩٩-01-01T00:00:00Z"):
         assert stamp(outside) is None, outside
     root = tmp_path.resolve()
     store = FileScratch(str(root), "unit")
@@ -828,9 +830,10 @@ def test_stamps_the_format_accepts_and_a_record_outside_it_is_foreign(tmp_path, 
         assert store.retrieve(foreign) is None, foreign
     assert store.retrieve("lapsed") is None
     assert store.keys() == ["js", "mine", "zulu"]  # the Z forms served, the foreign skipped, no traceback
-    assert sorted(p.name for p in folder.iterdir()) == [
+    assert sorted(p.name for p in folder.iterdir() if p.name.startswith("k-")) == [
         "k-js.json", "k-mine.json", "k-naive.json", "k-offset.json", "k-stored.json", "k-zulu.json",
     ]  # keys() removed only what had lapsed
+    assert (folder / ".scratch.lock").is_file()  # the removal took the store's lock (second review of #116, S1)
     # A foreign file is handled as every foreign file is: never served, removed by forget, overwritten by a plain stash.
     assert store.forget("naive") is False and not (folder / "k-naive.json").exists()
     with pytest.raises(ScratchRefused, match="expected version 1, found no record"):
@@ -868,6 +871,65 @@ def test_expired_entries_are_reclaimed_and_forget_says_so(tmp_path, monkeypatch)
     clock.advance(11)
     assert store.keys() == ["stays"]
     assert not (folder / "k-gone2.json").exists()  # keys() removed what had lapsed
+
+
+def test_keys_never_removes_a_record_a_compare_and_set_landed_after_it_read_the_expired_one(tmp_path, monkeypatch):
+    """Second review of #116, S1: keys() read an expired record and unlinked the path without looking again.
+
+    A compare-and-set that replaced the file between that read and that unlink
+    was deleted after it had returned ok. The cleanup now takes the store's
+    lock and reads the file again under it before removing anything.
+    """
+    clock = Clock(monkeypatch)
+    store = FileScratch(str(tmp_path.resolve()), "unit")
+    store.stash("k", "old", ttl_seconds=10)
+    clock.advance(11)
+    original = FileScratch._load
+    landed = {}
+
+    def load_then_race(self, path):
+        found = original(self, path)
+        if found[2] == "expired" and not landed:
+            landed["receipt"] = None  # once: the nested stash reads through this function too
+            landed["receipt"] = store.stash("k", "new", expected_version=0)
+        return found
+    monkeypatch.setattr(FileScratch, "_load", load_then_race)
+    assert store.keys() == []  # this listing read the expired record before the stash landed
+    assert landed["receipt"]["version"] == 1
+    monkeypatch.setattr(FileScratch, "_load", original)
+    assert store.retrieve("k")["value"] == "new"
+    assert store.keys() == ["k"]
+
+
+def test_keys_leaves_an_expired_file_when_the_store_lock_is_busy_and_still_hides_it(tmp_path, monkeypatch):
+    """The cleanup takes the lock in one attempt: busy, a refusing file system or a planted lock path skips it."""
+    clock = Clock(monkeypatch)
+    root = tmp_path.resolve()
+    store = FileScratch(str(root), "unit")
+    folder = root / "scratch" / "unit"
+    store.stash("gone", 1, ttl_seconds=10)
+    store.stash("stays", 2)
+    clock.advance(11)
+    taken, released = threading.Event(), threading.Event()
+    holder = threading.Thread(target=hold_lock, args=(folder / ".scratch.lock", taken, released))
+    holder.start()
+    try:
+        assert taken.wait(5)
+        started = time.monotonic()
+        assert store.keys() == ["stays"]
+        assert time.monotonic() - started < 1.0  # one attempt, never the compare-and-set's wait
+        assert (folder / "k-gone.json").exists()  # left for a later listing, never served
+    finally:
+        released.set()
+        holder.join(5)
+
+    def no_locks(fd):
+        raise OSError(errno.ENOLCK, "No locks available")
+    monkeypatch.setattr(memory_scratch, "_lock_once", no_locks)
+    assert store.keys() == ["stays"] and (folder / "k-gone.json").exists()
+    monkeypatch.undo()
+    Clock(monkeypatch).advance(11)
+    assert store.keys() == ["stays"] and not (folder / "k-gone.json").exists()
 
 
 def hold_lock(path, taken, released):

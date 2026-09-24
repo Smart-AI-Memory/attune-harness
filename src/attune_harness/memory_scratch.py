@@ -94,7 +94,11 @@ _LEGACY_FIELDS = ("schema_version", "key", "value", "stored_at", "expires_at")
 # The stamps the format accepts: YYYY-MM-DDTHH:MM:SS, an optional fraction
 # of up to six digits, then +00:00 as ``datetime.isoformat()`` writes an
 # aware UTC time, or Z as JavaScript's ``toISOString`` writes it.
-_STAMP_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:\+00:00|Z)$")
+# ASCII digits only and anchored at the true end: ``\d`` matches any Unicode
+# digit and ``$`` matches before a trailing newline (second review of #116, N2).
+_STAMP_RE = re.compile(
+    r"^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]{1,6}))?(?:\+00:00|Z)\Z"
+)
 _LOCK_HELD = frozenset(getattr(errno, name) for name in ("EWOULDBLOCK", "EAGAIN", "EACCES") if hasattr(errno, name))
 # Characters a file name keeps as they are; every other one, including an
 # upper-case letter, is percent-encoded, so two keys that differ only in case
@@ -455,8 +459,11 @@ class FileScratch:
         A lock another writer holds is retried for ``LOCK_RETRY_SECONDS`` and
         then refused in the stash's own words; a file system that grants no
         lock, and a lock path that cannot be opened (a symlink, a directory),
-        are refused at once. Only a compare-and-set takes it: a stash without
-        an expected version writes as it always has. On Windows the holder's
+        are refused at once. A compare-and-set takes it, and so does the
+        expiry cleanup in ``keys`` (``_cleanup_lock``, one attempt); a stash
+        without an expected version and ``forget`` take none, so the lock
+        orders compare-and-sets against each other and against the cleanup,
+        not against those two. On Windows the holder's
         replace may itself retry for ``features.REPLACE_RETRY_SECONDS`` while
         a reader holds the record (trap 4), so a second compare-and-set can
         wait the two bounds together, about four seconds, before it is
@@ -499,6 +506,47 @@ class FileScratch:
         finally:
             if fd is not None:
                 os.close(fd)
+
+    @contextmanager
+    def _cleanup_lock(self):
+        """The store's lock for removing a lapsed file, in one attempt: yields whether it is held.
+
+        Busy, a file system that grants no lock, or a lock path that cannot
+        be opened all yield False, and the caller leaves the file for a later
+        listing: an expired record is never served, so waiting buys nothing.
+        """
+        lock = self.directory / ".scratch.lock"
+        try:
+            if os.name == "nt":
+                from .windows import open_lock
+                fd = open_lock(lock)
+            else:
+                fd = os.open(lock, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        except OSError:
+            yield False
+            return
+        try:
+            try:
+                _lock_once(fd)
+                held = True
+            except OSError:
+                held = False
+            yield held
+        finally:
+            os.close(fd)
+
+    def _remove_lapsed(self, entry):
+        """Remove ``entry`` only if, read again under the store's lock, it is still expired.
+
+        ``keys`` found it expired without the lock; a compare-and-set may have
+        replaced it since, and that record must survive (second review of
+        #116, S1). A compare-and-set holds the lock from its read to its
+        replace, so a file read here under the lock is not about to change
+        under a compare-and-set.
+        """
+        with self._cleanup_lock() as held:
+            if held and self._load(entry)[2] == "expired":
+                entry.unlink(missing_ok=True)
 
     def stash(self, key, value, ttl_seconds=None, *, expected_version=None):
         """Write the value; with ``expected_version``, only over the version named, under the store's lock.
@@ -599,7 +647,7 @@ class FileScratch:
                 continue
             record, _, state = self._load(entry)
             if state == "expired":
-                entry.unlink()  # the directory clears itself of what has lapsed
+                self._remove_lapsed(entry)  # the directory clears itself of what has lapsed
                 continue
             if state == "live" and fnmatch.fnmatchcase(record["key"], pattern):
                 found.append(record["key"])

@@ -3,10 +3,23 @@
 ## Unreleased
 
 Changes since 0.5.0, each `src/` change with its different-model review
-recorded in its pull request. The three lines after the first landed
+recorded in its pull request. The three lines after the first two landed
 together after the overnight run of September 23, 2026, so that three
 sibling pull requests did not conflict on this section.
 
+- Fixed: `memory scratch keys` on the file store no longer deletes a record
+  that a compare-and-set wrote after the listing read the expired one. The
+  listing removed a lapsed file without looking again, so a
+  `stash --expected-version` that replaced it in between reported `ok` for a
+  record that was then gone (reproduced: 35 in 34,555 compare-and-sets over
+  20 seconds against a looping `keys`). The removal now takes the store's
+  lock in one attempt and reads the file again under it; when the lock is
+  busy or cannot be taken, the lapsed file stays for a later listing and is
+  still never served. `.scratch.lock` therefore also appears in a file store
+  after the first expired file is removed. The stored stamp grammar now
+  accepts ASCII digits only and no trailing newline, as "Stored formats"
+  documents. `forget` and a stash without an expected version still take no
+  lock (second review of #116).
 - Changed: the `memory scratch` record is a named, versioned format,
   `attune-harness/scratch` version 2, its header first: the format's name
   and version, the `writer` (the package and its version, read from the
