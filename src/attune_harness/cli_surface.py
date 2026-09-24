@@ -25,6 +25,10 @@ def _subcommands(parser: argparse.ArgumentParser):
     return None
 
 
+# The positional arities the surface records and the table renders: exactly one, "?", "*" and "+".
+_ARITIES = (None, "?", "*", "+")
+
+
 def _long(action: argparse.Action) -> str:
     return sorted(action.option_strings, key=len)[-1]
 
@@ -33,8 +37,13 @@ def _positional(action: argparse.Action) -> dict:
     """A positional and its arity: ``nargs`` is null for exactly one, else argparse's ``?``, ``*``, ``+`` or a count.
 
     Recorded so that an optional positional made required, or the reverse,
-    changes the surface (second review of #124, S1).
+    changes the surface (second review of #124, S1). An arity this module
+    does not render (argparse's ``REMAINDER`` or ``PARSER``, a count) is
+    refused rather than shown wrongly, so adding one fails the surface test
+    and this function is extended on purpose.
     """
+    if action.nargs not in _ARITIES:
+        raise ValueError(f"cli_surface does not describe positional {action.dest!r} with nargs={action.nargs!r}")
     return {"name": action.dest, "nargs": action.nargs}
 
 
@@ -47,9 +56,7 @@ def _shown(positional: dict) -> str:
         return f"`[{name}]`"
     if nargs == "*":
         return f"`[{name} ...]`"
-    if nargs == "+":
-        return f"`{name} ...`"
-    return f"`{name}` x{nargs}"
+    return f"`{name} ...`"  # "+", the one arity left
 
 
 def describe(parser: argparse.ArgumentParser) -> dict:

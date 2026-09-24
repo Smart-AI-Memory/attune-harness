@@ -9,8 +9,8 @@ deprecation rule at the end for the change that is allowed anyway. Additive
 changes stay free: a new verb, a new optional key, a new optional
 configuration field. Free means no deprecation, not no diff: the guards fail
 on any change to what they pin, additive ones included, and an additive
-change rewrites the fixture on purpose with a changelog line. The content freezes at `1.0.0rc1`; the promise takes
-effect at 1.0.0.
+change rewrites the fixture on purpose with a changelog line. The content
+freezes at `1.0.0rc1`; the promise takes effect at 1.0.0.
 
 What this draft still lacks, by cycle: the second cycle adds the deprecation
 register and helper (D27.3) and the protocol fixtures (section 6); the third
@@ -30,7 +30,8 @@ file disagree; `scripts/compatibility_surface.py --rows` regenerates the
 table. The fixture also lists every option string, so a new optional flag
 fails the test too and is added by rewriting the fixture (additive, so no
 deprecation). In the table a positional in brackets, `[request]`, is
-optional; one followed by `...` takes one or more values.
+optional; `name ...` takes one or more values and `[name ...]` zero or
+more.
 
 Not pinned by this guard: the values an option accepts (`choices`) and its
 default. Whether they are on the list is open (see the pull request that

@@ -59,6 +59,21 @@ def test_a_positional_records_whether_it_is_required():
     assert "| `review` | - | `[request]` |" in "\n".join(rows(surface()))
 
 
+def test_an_arity_the_surface_cannot_render_is_refused_not_shown_wrongly():
+    """Review of #124's fixes (Claude Sonnet 5): REMAINDER or a count must fail loud."""
+    import argparse
+    from attune_harness.cli_surface import describe
+    for nargs in (argparse.REMAINDER, 2):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("rest", nargs=nargs)
+        with pytest.raises(ValueError, match="does not describe positional 'rest'"):
+            describe(parser)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("many", nargs="*")
+    parser.add_argument("some", nargs="+")
+    assert [p["nargs"] for p in describe(parser)["positionals"]] == ["*", "+"]
+
+
 def test_documented_surface_matches():
     if not DOC.is_file():
         pytest.skip("docs/compatibility.md is not part of this checkout")
