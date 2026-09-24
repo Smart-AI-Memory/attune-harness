@@ -42,6 +42,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [The interface freeze (4.1): design note](specs/release-1.0/freeze-design.md): The six frozen surfaces turned into guards, the saved-state fixture, the deprecation mechanism, and seven decisions, ruled as D27
 - [The host surface: spec on Harness end to end, design note](specs/release-1.0/host-surface-design.md): What the telemetry says Patrick relies on, what `/spec` needs from attune-ai, the workspace surface over the host Harness already carries, and seven decisions for the deprecation milestone's first row
 - [Native memory, Phase 2: design note](specs/native-memory/phase-2-design.md): What the attune-ai dependency actually is, the native reader that replaces it, and eight decisions for Patrick
+- [Memory serving implementation design, September 24](specs/native-memory/serving-design-2026-09-24.md): Phase 3.3 cases, authority, experiment and acceptance evidence
+- [Session observations, September 24](specs/native-memory/observations-2026-09-24.md): Missing workflows and their priority immediately after 0.6.0
 - [Phase 3: design note](specs/phase-3-design.md): The journey native and memory served, with ten decisions for Patrick
 - [Spec authority — owned by Harness, built from reviewed Attune AI code](specs/spec-authority/README.md): The spec authority: Harness takes over spec approval from Attune AI
 - [Spec authority: addendum, September 21, 2026](specs/spec-authority/addendum-2026-09-21.md): Rulings on the spec authority, dated

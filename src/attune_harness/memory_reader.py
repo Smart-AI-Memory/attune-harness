@@ -129,8 +129,11 @@ class NativeReader:
                 return root
         raise ValueError("Unknown root identity")
 
-    def _capture(self, root, relative):
+    def _capture(self, root, relative, *, limit=None):
         """Read one file under a root through a descriptor walk: (bytes, version, mtime_ns)."""
+        limit = FILE_LIMIT if limit is None else limit
+        if type(limit) is not int or not 1 <= limit <= FILE_LIMIT:
+            raise ValueError("Source read limit is outside the file bound")
         relative = Path(relative)
         if relative.is_absolute() or not relative.parts or ".." in relative.parts:
             raise ValueError("Source escapes its authorized root")
@@ -160,14 +163,14 @@ class NativeReader:
             if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1:
                 raise ValueError("Source must be a regular file without hard links")
             chunks, size = [], 0
-            while size <= FILE_LIMIT:
-                chunk = os.read(leaf, FILE_LIMIT + 1 - size)
+            while size <= limit:
+                chunk = os.read(leaf, limit + 1 - size)
                 if not chunk:
                     break
                 chunks.append(chunk)
                 size += len(chunk)
             content = b"".join(chunks)
-            if len(content) > FILE_LIMIT:
+            if len(content) > limit:
                 raise ValueError("Source exceeds read limit; select a narrower source")
             after = os.fstat(leaf)
         finally:

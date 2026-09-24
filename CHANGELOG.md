@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
+
+- Memory serving checks active curated membership and configured-root file
+  verdicts before display. `memory serve --for PROMPT` adds bounded prompt
+  search; banners carry source/trust framing and an influence-disclosure
+  reminder. File pointers with no authorized or readable verdict scope are
+  omitted, while diagnostic `memory redis` reads retain their contracts.
 
 Changes since 0.5.0, each `src/` change with its different-model review
 recorded in its pull request. The three lines after the first three landed

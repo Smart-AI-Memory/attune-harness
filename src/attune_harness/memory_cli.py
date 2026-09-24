@@ -101,6 +101,7 @@ def add_arguments(parser):
     search.add_argument('--k', type=int, default=10)
     serve = sub.add_parser('serve', help='The recall digest as plain text for a session-start hook; '
                                          'stdout when Redis answers, one stderr line when not, exit 0 either way')
+    serve.add_argument('--for', dest='prompt', help='Recall memory related to this prompt (at most 512 characters)')
     serve.add_argument('--limit', type=int, default=SERVE_LIMIT, help='Curated nodes to print')
     serve.add_argument('--chars', type=int, default=SERVE_CHARS, help='Bound on the text; node lines are dropped from the end')
     scratch = sub.add_parser('scratch', help='Working memory: bounded JSON under short keys; file store, or Redis with the extra')
@@ -173,7 +174,7 @@ def serve(args):
             text, reason = None, 'Optional memory worker route is disabled'
         else:
             text, reason = digest_text(read_json(args.config), limit=args.limit, chars=args.chars,
-                                       config_path=args.config)
+                                       config_path=args.config, prompt=args.prompt)
     except Exception as error:  # noqa: BLE001 - fail open by contract
         text, reason = None, f'{type(error).__name__}: {error}'
     if text is None:

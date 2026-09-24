@@ -107,6 +107,14 @@ Ladder 7, the corrections lifecycle and review (N8), stays outside 1.0 by
 ruling (D21.9, September 23) unless the week of dogfooding shows corrections
 coming back; D6 does not list it among what cannot wait.
 
+## Priority immediately after 0.6.0
+
+Patrick's September 24 direction prioritizes memory saving, automatic work on
+the opportunities list, cross-review, enhanced prompts, and roundtable immediately after 0.6.0. This changes
+the sequencing of those capabilities from the later host-surface work;
+it does not add them to 0.6.0 or approve an unspecified implementation.
+See the [observations and scope decision](specs/native-memory/observations-2026-09-24.md).
+
 ## Phase 4 — The 1.0.0 candidate
 
 Goal: stop changing the three things the README names, close the loose ends
