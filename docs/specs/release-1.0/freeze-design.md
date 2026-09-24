@@ -131,6 +131,12 @@ way the envelope page is kept honest today. The envelopes keep their table.
 The other four surfaces are pinned by the tests this note adds below, and
 the document points at each.
 
+*Correction, the first cycle:* `surface.json` holds each positional with its
+arity, the required options, the one-of groups and every option string, but
+not exit codes. Those are behaviour, pinned by the envelope table for every
+verb that prints an envelope and by their own tests for `memory serve` and
+`mcp-serve`, as [the compatibility list](../../compatibility.md) says.
+
 ### 4.1.2 The eight gaps close first, additively
 
 `schema_version: 1` on the four envelopes without it, `status` on the four

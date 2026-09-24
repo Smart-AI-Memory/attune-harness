@@ -7,17 +7,17 @@ from pathlib import Path
 from .features import FeatureUnavailable, output_path, report, write_report
 
 
-def main(argv: list[str] | None = None) -> int:
-    import sys
-    invocation = sys.argv[1:] if argv is None else argv
-    if invocation[:1] == ['memory']:
-        from .memory_cli import main as memory_main
-        return memory_main(invocation[1:])
+def build_parser() -> argparse.ArgumentParser:
+    """The command line's parser with every verb registered.
+
+    ``main`` parses with it; ``cli_surface`` reads it as data, the verbs,
+    subcommands, positionals and options the compatibility list pins (4.1).
+    """
     parser = argparse.ArgumentParser(prog='attune-harness')
     sub = parser.add_subparsers(dest='command')
-    from .review_cli import add_commands, execute
+    from .review_cli import add_commands
     add_commands(sub)
-    from .task_cli import add_controls, execute_control, add_fix
+    from .task_cli import add_controls, add_fix
     add_controls(sub)
     add_fix(sub)
     from .work_cli import add_commands as add_work
@@ -64,6 +64,18 @@ def main(argv: list[str] | None = None) -> int:
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
     from .cli_help import configure_help
     configure_help(parser, sub)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    import sys
+    invocation = sys.argv[1:] if argv is None else argv
+    if invocation[:1] == ['memory']:
+        from .memory_cli import main as memory_main
+        return memory_main(invocation[1:])
+    parser = build_parser()
+    from .review_cli import execute
+    from .task_cli import execute_control
     args = parser.parse_args(argv)
     if args.command in ('plan', 'build'):
         from .work_cli import execute as execute_work
