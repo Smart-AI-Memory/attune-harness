@@ -74,6 +74,8 @@ exact" when the review confirmed a carried module changed nothing.
 | #124, the fixes | `182603a`, the fixes to the review above (Claude Sonnet 5 reviewing Claude Opus 5.5) | approve | 0/1/2 | input, claim | An arity the table could not render (argparse's `REMAINDER`, a count) fell to a branch that printed misleading text instead of failing; the page's "`...` takes one or more" was untrue for `[name ...]` |
 | #125 | `keys()` no longer deletes a record a compare-and-set landed (the fix for #116's second review) | approve | 0/1/2 | test | The race test passed with the unlink moved outside the lock, a real check-then-act gap; no test pinned a planted `.scratch.lock` on the `keys()` path. Codex's GitHub review of the same pull request found nothing |
 
+| #128 | Phase 3.3 memory serving and prompt hook; GPT-6-sol reviewing Codex (GPT-6) at `72b6f33`, then `2b5cf8a` | request changes, then approve | 0/1/0 | mapping | A 10 KB deeply nested host payload raised `RecursionError` outside the hook handler and exited 1. Reproduced; caught with a regression test. The reviewer confirmed exit 0, no stdout, no prompt echo, and 36 focused checks passing at the fixed commit |
+
 ## What the log says so far
 
 Nineteen reviews. Every `src/` change since the command workspace host (#54)
