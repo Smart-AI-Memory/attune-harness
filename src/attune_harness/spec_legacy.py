@@ -42,11 +42,10 @@ def plan_content(raw):
     return raw[: match.start()].rstrip() + "\n"
 
 
-def legacy_plan(path):
-    """Read a plan with Harness's own reader; retain its fields and disclose everything ignored."""
-    # Read first, so an oversize plan gets the plan's own message before parsing.
+def read_plan(path):
+    """Read a plan whole; an oversize plan gets the plan's own message before any parsing."""
     try:
-        raw = read_text(Path(path), 65536)
+        return read_text(Path(path), 65536)
     except ValueError as error:
         if not str(error).startswith(OVERSIZE):
             raise
@@ -54,6 +53,17 @@ def legacy_plan(path):
             f"{error} Split the plan into smaller plan files and import each one as its own task."
         ) from error
 
+
+def legacy_plan(path, raw=None):
+    """Read a plan with Harness's own reader; retain its fields and disclose everything ignored.
+
+    ``raw`` is the plan's text when the caller has already read it through
+    ``read_plan``, so that one read serves this reader and
+    ``spec_state.read_state`` (the plan import, spec authority Task 5);
+    otherwise the plan is read here.
+    """
+    if raw is None:
+        raw = read_plan(path)
     content = plan_content(raw)
     blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
     if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
