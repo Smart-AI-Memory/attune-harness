@@ -26,6 +26,24 @@ did not conflict on this section.
   a diagnostic on a missing or closed stream instead of failing the command;
   `main` owns the binding and `execute` no longer rebinds it (O-67, #100).
 
+- Added: `plan --import-plan PATH --allow-outside-project` accepts a plan
+  file outside the project when it is named explicitly (spec authority Task
+  5, plan task 3.2; D4, D20.3): the plan is read once through `spec_state`
+  (schema versions 1 and 2; any other refused with the next action) and
+  `spec_legacy`, converted exactly as the implicit import is, and the
+  conversion leaves one receipt line in `import-receipts.jsonl` beside
+  `record.json`, the path as given (normalised) and resolved, the file's
+  SHA-256, the state comment read or whether one was present and ignored,
+  what was mapped, what was not (the reader's disclosures by count, kind and
+  digest; the record keeps them in full), and the time, the line's room
+  checked before the record is saved; a `--reimport` of such a task, one
+  whose bound plan lies outside the project, appends a second line. A plan
+  the flag names inside the project is refused. The original is only read.
+  The implicit import and its refusals are unchanged. Fixtures under
+  `tests/fixtures/plans/`, one plan from attune-ai's own `.claude/plans` and
+  the seven Harness plans of the Task 2 differential, each with its origin
+  recorded; the journey with its envelope, receipt and refusals is
+  `docs/journeys/r4-legacy-spec-state.md`.
 - Added: the `all` extra, `pip install 'attune-harness[all]'`, installs the
   two qualified extras, `redis` and `voyage`, in one word; it is
   self-referential so the pins stay where they are. `memory-native` stays
