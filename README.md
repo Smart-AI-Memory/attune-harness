@@ -91,6 +91,18 @@ Learning their syntax is not the price of entry, and `attune-harness COMMAND --h
 covers direct use. Full usage, exit codes and recovery controls are in the
 [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.6.0/docs/cli-guide.md).
 
+## Use the Harness skill in Codex
+
+This repository includes an [Attune Harness skill](.agents/skills/attune-harness/SKILL.md)
+for the existing `plan`, `build`, `review`, `fix`, `test`, `status` and `resume`
+workflows. Invoke `$attune-harness` and describe the task; the agent prepares the
+CLI inputs and reports the saved evidence. It preserves the workflow's scope and
+execution permissions. The older `/attune` command belongs to Attune AI.
+
+See [skill discovery and installation](docs/cli-guide.md#codex-skill) to use it
+in this checkout or another project. Installing the Python package alone does
+not install this repository skill.
+
 ## What the install carries
 
 | You want | Install |

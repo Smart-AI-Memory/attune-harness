@@ -61,6 +61,32 @@ copy is labeled separately from existing behavior and measured results.
 For ongoing content maintenance, use the [opportunity log](opportunity-log.md)
 and [documentation review checklist](documentation-maintenance.md).
 
+## Codex skill
+
+The repository's [attune-harness skill](../.agents/skills/attune-harness/SKILL.md)
+routes natural-language tasks to the existing CLI. For example:
+
+```text
+Use $attune-harness to test my changes to src/example.py.
+Use $attune-harness to inspect the task at /path/to/saved-task.
+```
+
+Codex discovers repository skills in `.agents/skills`. For use across projects,
+copy the entire `.agents/skills/attune-harness` directory, including `references`
+and `agents`, into `~/.agents/skills/attune-harness`. Inspect an existing
+destination before replacing it; a user copy is a snapshot and must be updated
+deliberately when the repository skill changes. Having both copies can produce
+two selector entries. These discovery locations and automatic reload behavior
+are described in the [Codex skill documentation](https://developers.openai.com/codex/skills/).
+If a new skill does not appear, restart Codex.
+
+The CLI must also be installed in the environment the agent uses. The skill
+targets 0.6.0 and checks the selected route's installed help before dispatch.
+It does not add new CLI verbs or install a host plugin, and the Python wheel
+does not contain it. `review` checks a document against evidence; `test` runs
+checks on captured changes. Neither a source-security audit nor test generation
+is implied by those names. `ship` and `reflect` remain planned routes.
+
 ## Plan and build
 
 An agent can author a work request from the user's goal. The request records
