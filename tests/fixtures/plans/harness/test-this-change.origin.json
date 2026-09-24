@@ -1,0 +1,16 @@
+{
+  "repository": "https://github.com/Smart-AI-Memory/attune-harness",
+  "branch": "wip/local-snapshot-2026-09-19",
+  "commit": "c8b3235cd7ee579fb4daef3ee4332a40c0a02bcf",
+  "commit_date": "2026-09-21",
+  "path": ".claude/plans/test-this-change.md",
+  "copied": "2026-09-23",
+  "sha256": "163cdf6f96891529db406be00f65fed14748ece32bd45ec7421321b0508f3244",
+  "bytes": 3074,
+  "schema_version": 2,
+  "tasks": [
+    "1",
+    "2",
+    "3"
+  ]
+}

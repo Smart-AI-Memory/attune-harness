@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 from attune_harness import extensions as ext
-from attune_harness import memory_redis
+from attune_harness import memory_redis, memory_scratch
 from attune_harness.cli import main
 from attune_harness.memory_redis import MemoryRedisUnavailable, RedisMemory
 from attune_harness.review import review
@@ -151,6 +151,9 @@ ENVELOPES = (
     ('extension-enable', 'success', 0, 1, 'enabled',
      ('artifact_digest', 'id', 'manifest', 'operation', 'revision', 'schema_version',
       'state_digest', 'status')),
+    ('extension-enable-plugin', 'success', 0, 1, 'enabled',
+     ('artifact_digest', 'id', 'manifest', 'operation', 'plugin', 'revision', 'schema_version',
+      'state_digest', 'status')),
     ('extension-inspect', 'success', 0, 1, 'enabled',
      ('artifact_digest', 'id', 'manifest', 'operation', 'revision', 'schema_version',
       'state_digest', 'status')),
@@ -259,10 +262,16 @@ ENVELOPES = (
     ('memory-scratch-capabilities', 'success', 0, 1, 'ok',
      ('backend', 'location', 'operation', 'realtime', 'schema_version', 'shared', 'status')),
     ('memory-scratch-stash', 'success', 0, 1, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'schema_version', 'status', 'stored_at')),
+     ('backend', 'expires_at', 'format', 'format_version', 'key', 'operation', 'schema_version', 'status',
+      'stored_at', 'version', 'writer')),
+    ('memory-scratch-stash-refused', 'refusal', 2, 1, 'failed',
+     ('backend', 'detail', 'error', 'expected_version', 'key', 'operation', 'schema_version', 'status',
+      'version')),
+    ('memory-scratch-stash-uncertain', 'uncertain', 2, 1, 'uncertain',
+     ('backend', 'detail', 'error', 'key', 'operation', 'schema_version', 'status', 'stored_at', 'version')),
     ('memory-scratch-retrieve', 'success', 0, 1, 'ok',
-     ('backend', 'expires_at', 'key', 'operation', 'schema_version', 'status', 'stored_at',
-      'value')),
+     ('backend', 'expires_at', 'format', 'format_version', 'key', 'operation', 'schema_version', 'status',
+      'stored_at', 'value', 'version', 'writer')),
     ('memory-scratch-forget', 'success', 0, 1, 'ok',
      ('backend', 'forgotten', 'key', 'operation', 'schema_version', 'status')),
     ('memory-scratch-keys', 'success', 0, 1, 'ok',
@@ -894,6 +903,45 @@ def _(w):
     )
 
 
+@scenario("extension-enable-plugin")
+def _(w):
+    # A signed plugin bundle: the enable receipt gains `plugin`, the signer, the
+    # grant and the acknowledged declarations (plan task 4.3, first cycle; D22).
+    from test_plugin_signing import PLUGIN_DECLARES, PLUGIN_GRANTS, Signer, sign_bundle
+
+    signer = Signer("golden")
+    try:
+        change(w.bundle, lambda d: d.update(grants=PLUGIN_GRANTS, declares=PLUGIN_DECLARES))
+        digest = sign_bundle(w.bundle, signer)
+        state, first = w.installed_extension()
+        participant = {"adapter": "deterministic", "tools": [], "max_turns": 1, "max_tool_calls": 0}
+        registry = write_json(
+            w.tmp / "plugin-registry.json",
+            {
+                "schema_version": 1,
+                "participants": {"lead": participant, "peer": participant},
+                "extensions": {
+                    "signers": [signer.entry],
+                    "evidence": {"state_dir": str(state), "artifact_digest": digest, "grant": {"time": 60}},
+                },
+            },
+        )
+        return w.run(
+            [
+                "extension",
+                "enable",
+                "--state-dir",
+                state,
+                "--checkpoint",
+                first["state_digest"],
+                "--registry",
+                registry,
+            ]
+        )
+    finally:
+        signer.close()
+
+
 @scenario("extension-inspect")
 def _(w):
     state, first = w.installed_extension()
@@ -1230,6 +1278,25 @@ def _(w):
         w.file_scratch()
         + ["stash", "plan:current", "--value", '{"task": "golden"}', "--ttl", "120"]
     )
+
+
+@scenario("memory-scratch-stash-refused")
+def _(w):
+    base = w.file_scratch()
+    w.run(base + ["stash", "plan:current", "--value", "1"])
+    return w.run(base + ["stash", "plan:current", "--value", "2", "--expected-version", "7"])
+
+
+@scenario("memory-scratch-stash-uncertain")
+def _(w):
+    base = w.file_scratch()
+    w.run(base + ["stash", "plan:current", "--value", "1"])
+
+    def refuse(source, target, **kwargs):
+        raise PermissionError("the replace was refused after the record was written")
+
+    w.monkeypatch.setattr(memory_scratch, "replace_file", refuse)
+    return w.run(base + ["stash", "plan:current", "--value", "2"])
 
 
 @scenario("memory-scratch-retrieve")
