@@ -3,10 +3,27 @@
 ## Unreleased
 
 Changes since 0.5.0, each `src/` change with its different-model review
-recorded in its pull request. The first three lines landed together after
-the overnight run of September 23, 2026, so that three sibling pull requests
-did not conflict on this section.
+recorded in its pull request. The three lines after the first landed
+together after the overnight run of September 23, 2026, so that three
+sibling pull requests did not conflict on this section.
 
+- Changed: the `memory scratch` record is a named, versioned format,
+  `attune-harness/scratch` version 2, its header first: the format's name
+  and version, the `writer` (the package and its version, read from the
+  metadata) and a per-record `version` that counts successful stashes.
+  `stash --expected-version N` is a compare-and-set that refuses a lost
+  update with `failed`, what was expected and what was found, and nothing
+  written, under a bounded lock on the file store and `WATCH`/`MULTI`/`EXEC`
+  or `SET NX` on Redis; a write whose effect cannot be known is reported as
+  `uncertain` with the version and the stamp it carried, never retried and
+  never diverted. A stored stamp may end in `Z`, and a record whose stamp
+  or nesting the reader cannot read is foreign, skipped rather than
+  raised. The record 0.4.0 and 0.5.0 wrote is read in place and reported
+  as version 1; the first stash over it writes the current format. The
+  `stash` and `retrieve` envelopes gain the header keys, the refusal and
+  uncertain envelopes are pinned, and `docs/envelopes.md` gains "Stored
+  formats", the compatibility list's first entry (native memory Task 5,
+  plan task 3.4, D21.6).
 - Fixed: the task reader parses each top-level `<task>` block on its own, so
   prose between two tasks (a bare `&`, a `<`) no longer drops the whole plan
   to the regex path where entities stop being decoded; a block the parser
@@ -26,6 +43,24 @@ did not conflict on this section.
   a diagnostic on a missing or closed stream instead of failing the command;
   `main` owns the binding and `execute` no longer rebinds it (O-67, #100).
 
+- Added: `plan --import-plan PATH --allow-outside-project` accepts a plan
+  file outside the project when it is named explicitly (spec authority Task
+  5, plan task 3.2; D4, D20.3): the plan is read once through `spec_state`
+  (schema versions 1 and 2; any other refused with the next action) and
+  `spec_legacy`, converted exactly as the implicit import is, and the
+  conversion leaves one receipt line in `import-receipts.jsonl` beside
+  `record.json`, the path as given (normalised) and resolved, the file's
+  SHA-256, the state comment read or whether one was present and ignored,
+  what was mapped, what was not (the reader's disclosures by count, kind and
+  digest; the record keeps them in full), and the time, the line's room
+  checked before the record is saved; a `--reimport` of such a task, one
+  whose bound plan lies outside the project, appends a second line. A plan
+  the flag names inside the project is refused. The original is only read.
+  The implicit import and its refusals are unchanged. Fixtures under
+  `tests/fixtures/plans/`, one plan from attune-ai's own `.claude/plans` and
+  the seven Harness plans of the Task 2 differential, each with its origin
+  recorded; the journey with its envelope, receipt and refusals is
+  `docs/journeys/r4-legacy-spec-state.md`.
 - Added: the `all` extra, `pip install 'attune-harness[all]'`, installs the
   two qualified extras, `redis` and `voyage`, in one word; it is
   self-referential so the pins stay where they are. `memory-native` stays
