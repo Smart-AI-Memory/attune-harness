@@ -124,3 +124,30 @@ remove any prior completion, including an unbound legacy completion. A deliberat
 The same rule applies to unreadable history: every progress save over a present
 unreadable comment is refused, including an empty-state save. Otherwise two
 saves could erase the unreadable history and mint a new binding from old evidence.
+
+## Untrusted presentation — PR 141 P2 correction
+
+The disposable `/private/tmp/pr141-render-probe` passed a repository-controlled
+plan through the real CLI. Its Markdown table contained unescaped pipes and
+bold markers, and a literal ESC control from the malformed-XML fallback. XML
+escaping alone is insufficient because the supported fallback preserves text.
+
+Use one literal-text formatter for every dynamic task field in table, detail
+and result views, including file descriptions, checks, risks, dependencies and
+the evidence path. Collapse whitespace to one line, remove Unicode control and
+format characters (including terminal ESC and bidi controls), escape HTML and
+Markdown delimiters, and keep only the renderer's own structural Markdown.
+Avoid wrapping escaped arbitrary paths in backtick spans: backslashes do not
+protect backticks inside such spans. Ordinary prose and task statuses keep their
+meaning; input files and evidence are never rewritten.
+
+Cases: injected rows/headings, pipe/backtick/link/HTML payloads, CR/LF/tab,
+ANSI/OSC and bidi controls, every detail field, and checked result headers/paths.
+Exercise the actual malformed-XML CLI route as well as the pure presenters.
+Reject the alternative of sanitizing only the table or relying on the parser:
+detail/result renderers and parser fallback share the same trust boundary.
+
+Independent inspection found the same control characters in parser diagnostics,
+including task IDs and rejected raw XML blocks. Diagnostic arguments now quote
+nonprinting characters, retaining normal warning text and line structure while
+preventing terminal controls from leaking through stderr.

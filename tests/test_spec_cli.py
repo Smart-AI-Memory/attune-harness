@@ -36,7 +36,7 @@ def test_compose_collision_and_presenters(tmp_path,monkeypatch,capsys):
     assert main(['spec','intake','--project',str(tmp_path),'--compose'])==0
     assert 'WARNING' in capsys.readouterr().out
     plan=tmp_path/'plan.md';plan.write_text(FULL)
-    for view,extra,expected in [('tasks',[],'add-auth'),('task',['--task','1'],'returns 401'),('progress',[],'0/1')]:
+    for view,extra,expected in [('tasks',[],r'add\-auth'),('task',['--task','1'],'returns 401'),('progress',[],'0/1')]:
         assert main(['spec','present',view,'--plan',str(plan),*extra])==0
         assert expected in capsys.readouterr().out
     assert main(['spec','present','result','--plan',str(plan),'--task','1','--test-run',str(tmp_path/'absent')])==2
