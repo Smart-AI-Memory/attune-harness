@@ -1,0 +1,232 @@
+{
+  "2025-11-25": {
+    "command_workspace_collect_action": {
+      "additionalProperties": false,
+      "properties": {
+        "response": {
+          "additionalProperties": false,
+          "properties": {
+            "__elicitation_response__": {
+              "const": true,
+              "type": "boolean"
+            },
+            "action": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            "action_nonce": {
+              "pattern": "^[A-Za-z0-9_-]{16,128}$",
+              "type": "string"
+            },
+            "confirmed": {
+              "type": "boolean"
+            },
+            "contract_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "instance_id": {
+              "pattern": "^(?:[a-f0-9]{32})?$",
+              "type": "string"
+            },
+            "responses": {
+              "type": "object"
+            },
+            "revision": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "view": {
+              "enum": [
+                "intake",
+                "preview",
+                "execution",
+                "receipt"
+              ],
+              "type": "string"
+            },
+            "workspace_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "__elicitation_response__",
+            "title",
+            "view",
+            "action",
+            "confirmed",
+            "workspace_id",
+            "revision",
+            "action_nonce",
+            "contract_hash"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "response"
+      ],
+      "type": "object"
+    },
+    "command_workspace_open": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        "intake": {
+          "description": "Adapter-owned validated intake values",
+          "type": "object"
+        },
+        "workspace_id": {
+          "description": "Existing workspace to replace after an adapter-approved edit",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter_id",
+        "intake"
+      ],
+      "type": "object"
+    },
+    "command_workspace_publish": {
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "description": "Adapter-owned moderator/executor event",
+          "type": "object"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "event"
+      ],
+      "type": "object"
+    }
+  },
+  "2026-07-28": {
+    "command_workspace_collect_action": {
+      "additionalProperties": false,
+      "properties": {
+        "response": {
+          "additionalProperties": false,
+          "properties": {
+            "__elicitation_response__": {
+              "const": true,
+              "type": "boolean"
+            },
+            "action": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            "action_nonce": {
+              "pattern": "^[A-Za-z0-9_-]{16,128}$",
+              "type": "string"
+            },
+            "confirmed": {
+              "type": "boolean"
+            },
+            "contract_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "instance_id": {
+              "pattern": "^(?:[a-f0-9]{32})?$",
+              "type": "string"
+            },
+            "responses": {
+              "type": "object"
+            },
+            "revision": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "view": {
+              "enum": [
+                "intake",
+                "preview",
+                "execution",
+                "receipt"
+              ],
+              "type": "string"
+            },
+            "workspace_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "__elicitation_response__",
+            "title",
+            "view",
+            "action",
+            "confirmed",
+            "workspace_id",
+            "revision",
+            "action_nonce",
+            "contract_hash"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "response"
+      ],
+      "type": "object"
+    },
+    "command_workspace_open": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "type": "string"
+        },
+        "intake": {
+          "description": "Adapter-owned validated intake values",
+          "type": "object"
+        },
+        "workspace_id": {
+          "description": "Existing workspace to replace after an adapter-approved edit",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "adapter_id",
+        "intake"
+      ],
+      "type": "object"
+    },
+    "command_workspace_publish": {
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "description": "Adapter-owned moderator/executor event",
+          "type": "object"
+        },
+        "workspace_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "event"
+      ],
+      "type": "object"
+    }
+  }
+}
