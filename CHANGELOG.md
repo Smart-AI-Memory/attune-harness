@@ -160,7 +160,8 @@ sibling pull requests did not conflict on this section.
   base install, which carries everything they installed; drop the bracket.
 - Added: the compatibility list, `docs/compatibility.md`, and the first of
   its guards. The command line's surface, twenty-eight verbs with their
-  subcommands, positionals and required options, is read from the parsers
+  subcommands, positionals and their arity, required options and every
+  option string, is read from the parsers
   by `attune_harness.cli_surface` (the parser is now built by
   `cli.build_parser`), committed as `tests/fixtures/compatibility/surface.json`
   and rendered as the list's table; `tests/test_compatibility_surface.py`

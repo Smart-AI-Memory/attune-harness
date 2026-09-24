@@ -7,7 +7,9 @@ the guard that fails when it changes. Frozen means three things at once: this
 list, a test that fails on a non-additive change to anything on it, and the
 deprecation rule at the end for the change that is allowed anyway. Additive
 changes stay free: a new verb, a new optional key, a new optional
-configuration field. The content freezes at `1.0.0rc1`; the promise takes
+configuration field. Free means no deprecation, not no diff: the guards fail
+on any change to what they pin, additive ones included, and an additive
+change rewrites the fixture on purpose with a changelog line. The content freezes at `1.0.0rc1`; the promise takes
 effect at 1.0.0.
 
 What this draft still lacks, by cycle: the second cycle adds the deprecation
@@ -18,14 +20,30 @@ manifest fields. The envelope cells still marked `-` are listed in
 
 ## 1. The command line
 
-Twenty-eight verbs, their subcommands, their positional arguments and their
-required options, read from the parsers themselves by
+Twenty-eight verbs, their subcommands, their positional arguments with how
+many values each takes, and their required options, read from the parsers
+themselves by
 `attune_harness.cli_surface` and committed as
 `tests/fixtures/compatibility/surface.json`. `tests/test_compatibility_surface.py`
 fails when the parsers and the file disagree, and when this table and the
 file disagree; `scripts/compatibility_surface.py --rows` regenerates the
-table. Exit codes are behaviour, not parser data: [the envelope table](envelopes.md)
-pins them, row by row. The program's one option is `--help-all`.
+table. The fixture also lists every option string, so a new optional flag
+fails the test too and is added by rewriting the fixture (additive, so no
+deprecation). In the table a positional in brackets, `[request]`, is
+optional; one followed by `...` takes one or more values.
+
+Not pinned by this guard: the values an option accepts (`choices`) and its
+default. Whether they are on the list is open (see the pull request that
+added this paragraph); until it is ruled, a changed choice or default is
+caught only where another test happens to use it.
+
+Exit codes are behaviour, not parser data: [the envelope table](envelopes.md)
+pins them, row by row, for every verb that prints an envelope. Two print
+none: `memory serve`, whose exit codes (0 on success and on every refusal,
+for a session-start hook) are pinned by `tests/test_memory_redis.py`, and
+`mcp-serve`, whose failure exit, 2, is pinned by `tests/test_mcp.py`; its
+success exit, 0 when the client closes the stream, is not pinned yet. The
+program's one option is `--help-all`.
 
 <!-- surface-rows -->
 | Verb | Subcommands | Positionals | Required |
@@ -50,7 +68,7 @@ pins them, row by row. The program's one option is `--help-all`.
 | `resume-review` | - | `run_dir` | `--checkpoint` `--config` `--request` |
 | `retrieval-task` | - | - | `--config` `--generation` `--objective` |
 | `retrieve` | - | `query` | one of `--corpus`, `--request` |
-| `review` | - | `request` | - |
+| `review` | - | `[request]` | - |
 | `review-form` | - | - | - |
 | `status` | - | `task_dir` | - |
 | `test` | - | - | `--task-dir` |

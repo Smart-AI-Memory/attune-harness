@@ -49,6 +49,16 @@ def test_the_verbs_and_the_journey_are_all_there():
     assert set(memory["scratch"]["subcommands"]) == {"capabilities", "forget", "keys", "retrieve", "stash"}
 
 
+def test_a_positional_records_whether_it_is_required():
+    """An optional positional made required is a new required argument (second review of #124, S1)."""
+    verbs = surface()["verbs"]
+    assert verbs["review"]["positionals"] == [{"name": "request", "nargs": "?"}]
+    keys = verbs["memory"]["subcommands"]["scratch"]["subcommands"]["keys"]
+    assert keys["positionals"] == [{"name": "pattern", "nargs": "?"}]
+    assert verbs["status"]["positionals"] == [{"name": "task_dir", "nargs": None}]
+    assert "| `review` | - | `[request]` |" in "\n".join(rows(surface()))
+
+
 def test_documented_surface_matches():
     if not DOC.is_file():
         pytest.skip("docs/compatibility.md is not part of this checkout")

@@ -1,8 +1,8 @@
 """The command line's surface as data, read from the parsers themselves.
 
 ``surface()`` walks the parser ``cli.build_parser`` returns and records, for
-the program and for every verb and subcommand, the positional arguments, the
-required options, the mutually exclusive groups that require one member, and
+the program and for every verb and subcommand, the positional arguments with
+how many values each takes, the required options, the mutually exclusive groups that require one member, and
 every option string. ``tests/fixtures/compatibility/surface.json`` holds the
 committed form and ``docs/compatibility.md`` its table, kept in step by
 ``tests/test_compatibility_surface.py`` the way the envelope page is; a change
@@ -29,10 +29,33 @@ def _long(action: argparse.Action) -> str:
     return sorted(action.option_strings, key=len)[-1]
 
 
+def _positional(action: argparse.Action) -> dict:
+    """A positional and its arity: ``nargs`` is null for exactly one, else argparse's ``?``, ``*``, ``+`` or a count.
+
+    Recorded so that an optional positional made required, or the reverse,
+    changes the surface (second review of #124, S1).
+    """
+    return {"name": action.dest, "nargs": action.nargs}
+
+
+def _shown(positional: dict) -> str:
+    """A positional as the verb table shows it: ``[name]`` optional, ``name ...`` one or more."""
+    name, nargs = positional["name"], positional["nargs"]
+    if nargs is None:
+        return f"`{name}`"
+    if nargs == "?":
+        return f"`[{name}]`"
+    if nargs == "*":
+        return f"`[{name} ...]`"
+    if nargs == "+":
+        return f"`{name} ...`"
+    return f"`{name}` x{nargs}"
+
+
 def describe(parser: argparse.ArgumentParser) -> dict:
     """One parser: its positionals, required options, one-of groups, options and subcommands."""
     commands = _subcommands(parser)
-    positionals: list[str] = []
+    positionals: list[dict] = []
     required: list[str] = []
     options: list[str] = []
     for action in parser._actions:
@@ -43,7 +66,7 @@ def describe(parser: argparse.ArgumentParser) -> dict:
             if action.required:
                 required.append(_long(action))
         else:
-            positionals.append(action.dest)
+            positionals.append(_positional(action))
     one_of = sorted(
         sorted(_long(action) for action in group._group_actions)
         for group in parser._mutually_exclusive_groups
@@ -85,7 +108,7 @@ def rows(value: dict) -> list[str]:
     out = []
     for verb, entry in value["verbs"].items():
         subs = _tree(entry) or "-"
-        positionals = " ".join(f"`{name}`" for name in entry["positionals"]) or "-"
+        positionals = " ".join(_shown(positional) for positional in entry["positionals"]) or "-"
         parts = [f"`{option}`" for option in entry["required_options"]]
         parts += ["one of " + ", ".join(f"`{option}`" for option in group) for group in entry["one_of"]]
         out.append(f"| `{verb}` | {subs} | {positionals} | {' '.join(parts) or '-'} |")

@@ -14,7 +14,10 @@
     "--max-operations"
    ],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -25,7 +28,10 @@
     "--reason"
    ],
    "positionals": [
-    "run_dir"
+    {
+     "name": "run_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--checkpoint",
@@ -39,7 +45,10 @@
     "--reason"
    ],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--reason"
@@ -82,7 +91,10 @@
      "one_of": [],
      "options": [],
      "positionals": [
-      "manifest"
+      {
+       "name": "manifest",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -90,6 +102,7 @@
      "one_of": [],
      "options": [
       "--checkpoint",
+      "--registry",
       "--state-dir"
      ],
      "positionals": [],
@@ -114,7 +127,10 @@
       "--state-dir"
      ],
      "positionals": [
-      "manifest"
+      {
+       "name": "manifest",
+       "nargs": null
+      }
      ],
      "required_options": [
       "--state-dir"
@@ -182,7 +198,10 @@
     "--revision"
    ],
    "positionals": [
-    "input"
+    {
+     "name": "input",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--repository",
@@ -247,7 +266,10 @@
    "one_of": [],
    "options": [],
    "positionals": [
-    "run_dir"
+    {
+     "name": "run_dir",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -255,7 +277,10 @@
    "one_of": [],
    "options": [],
    "positionals": [
-    "session_dir"
+    {
+     "name": "session_dir",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -300,7 +325,10 @@
       "--policy"
      ],
      "positionals": [
-      "run_id"
+      {
+       "name": "run_id",
+       "nargs": null
+      }
      ],
      "required_options": [
       "--envelope",
@@ -311,8 +339,14 @@
      "one_of": [],
      "options": [],
      "positionals": [
-      "run_id",
-      "job_id"
+      {
+       "name": "run_id",
+       "nargs": null
+      },
+      {
+       "name": "job_id",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -320,8 +354,14 @@
      "one_of": [],
      "options": [],
      "positionals": [
-      "run_id",
-      "job_id"
+      {
+       "name": "run_id",
+       "nargs": null
+      },
+      {
+       "name": "job_id",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -332,7 +372,10 @@
       "--max-chars"
      ],
      "positionals": [
-      "query"
+      {
+       "name": "query",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -354,7 +397,10 @@
        "one_of": [],
        "options": [],
        "positionals": [
-        "id"
+        {
+         "name": "id",
+         "nargs": null
+        }
        ],
        "required_options": []
       },
@@ -362,7 +408,10 @@
        "one_of": [],
        "options": [],
        "positionals": [
-        "id"
+        {
+         "name": "id",
+         "nargs": null
+        }
        ],
        "required_options": []
       },
@@ -373,7 +422,10 @@
         "--layer"
        ],
        "positionals": [
-        "query"
+        {
+         "name": "query",
+         "nargs": null
+        }
        ],
        "required_options": []
       },
@@ -389,7 +441,10 @@
      "one_of": [],
      "options": [],
      "positionals": [
-      "context"
+      {
+       "name": "context",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -399,8 +454,14 @@
       "--replies"
      ],
      "positionals": [
-      "run_id",
-      "job_id"
+      {
+       "name": "run_id",
+       "nargs": null
+      },
+      {
+       "name": "job_id",
+       "nargs": null
+      }
      ],
      "required_options": [
       "--replies"
@@ -410,7 +471,10 @@
      "one_of": [],
      "options": [],
      "positionals": [
-      "handle"
+      {
+       "name": "handle",
+       "nargs": null
+      }
      ],
      "required_options": []
     },
@@ -430,7 +494,10 @@
        "one_of": [],
        "options": [],
        "positionals": [
-        "key"
+        {
+         "name": "key",
+         "nargs": null
+        }
        ],
        "required_options": []
       },
@@ -438,7 +505,10 @@
        "one_of": [],
        "options": [],
        "positionals": [
-        "pattern"
+        {
+         "name": "pattern",
+         "nargs": "?"
+        }
        ],
        "required_options": []
       },
@@ -446,7 +516,10 @@
        "one_of": [],
        "options": [],
        "positionals": [
-        "key"
+        {
+         "name": "key",
+         "nargs": null
+        }
        ],
        "required_options": []
       },
@@ -458,12 +531,16 @@
         ]
        ],
        "options": [
+        "--expected-version",
         "--ttl",
         "--value",
         "--value-file"
        ],
        "positionals": [
-        "key"
+        {
+         "name": "key",
+         "nargs": null
+        }
        ],
        "required_options": []
       }
@@ -486,6 +563,7 @@
     "--accept",
     "--allow-external",
     "--allow-native",
+    "--allow-outside-project",
     "--answers",
     "--checkpoint",
     "--config",
@@ -521,7 +599,10 @@
     "--retry-read-only"
    ],
    "positionals": [
-    "run_dir"
+    {
+     "name": "run_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--checkpoint",
@@ -546,7 +627,10 @@
     "--retry-read-only"
    ],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--event"
@@ -556,7 +640,10 @@
    "one_of": [],
    "options": [],
    "positionals": [
-    "input"
+    {
+     "name": "input",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -569,7 +656,10 @@
     "--max-operations"
    ],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -584,7 +674,10 @@
     "--request"
    ],
    "positionals": [
-    "run_dir"
+    {
+     "name": "run_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--checkpoint",
@@ -625,7 +718,10 @@
     "--session-dir"
    ],
    "positionals": [
-    "query"
+    {
+     "name": "query",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -658,7 +754,10 @@
     "--task-response"
    ],
    "positionals": [
-    "request"
+    {
+     "name": "request",
+     "nargs": "?"
+    }
    ],
    "required_options": []
   },
@@ -674,7 +773,10 @@
    "one_of": [],
    "options": [],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -711,7 +813,10 @@
     "--reason"
    ],
    "positionals": [
-    "run_dir"
+    {
+     "name": "run_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--checkpoint",
@@ -727,7 +832,10 @@
     "--reason"
    ],
    "positionals": [
-    "task_dir"
+    {
+     "name": "task_dir",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--assessor",
@@ -738,7 +846,10 @@
    "one_of": [],
    "options": [],
    "positionals": [
-    "input"
+    {
+     "name": "input",
+     "nargs": null
+    }
    ],
    "required_options": []
   },
@@ -749,7 +860,10 @@
     "--output"
    ],
    "positionals": [
-    "document"
+    {
+     "name": "document",
+     "nargs": null
+    }
    ],
    "required_options": [
     "--context"

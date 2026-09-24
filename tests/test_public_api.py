@@ -81,6 +81,18 @@ def test_run_calls_the_participant_once_and_never_retries():
     assert calls == ["addition", "addition"]
 
 
+# Values tried against Task.schema_version; the snapshot records which are accepted, computed, not written.
+SCHEMA_CANDIDATES = (0, 1, 2, 3, True, 1.0, "1", None)
+
+
+def _accepts(value):
+    try:
+        Task("t", "objective", ("requirement",), schema_version=value)
+    except (ValueError, TypeError):
+        return False
+    return True
+
+
 def signature(obj):
     parts = []
     for parameter in inspect.signature(obj).parameters.values():
@@ -93,7 +105,8 @@ def snapshot():
     lines = [f"{name}{signature(getattr(attune_harness, name))}" for name in NAMES]
     lines.append(f"Participant.run{signature(Participant.run)}")
     lines.append("Status: " + ", ".join(f"{member.name}={member.value}" for member in Status))
-    lines.append("Task.schema_version accepts: 1")
+    accepted = [repr(value) for value in SCHEMA_CANDIDATES if _accepts(value)]
+    lines.append("Task.schema_version accepts: " + ", ".join(accepted))
     return "\n".join(lines) + "\n"
 
 
@@ -104,6 +117,9 @@ def test_the_seven_public_names_keep_their_parameters():
     )
 
 
-def test_task_schema_version_is_fixed_at_one():
+@pytest.mark.parametrize("value", [0, 2, 3, True, 1.0, "1", None])
+def test_task_schema_version_is_fixed_at_one(value):
+    """Only the integer 1 (second review of #124, N2: the test tried 2 alone)."""
     with pytest.raises(ValueError, match="unsupported schema_version"):
-        Task("t", "objective", ("requirement",), schema_version=2)
+        Task("t", "objective", ("requirement",), schema_version=value)
+    assert Task("t", "objective", ("requirement",)).schema_version == 1
