@@ -24,3 +24,9 @@ Lifecycle gates remain M3: the server refuses lifecycle events, resume and task 
 opportunities automation and enhanced prompts are still separate follow-on
 work. Cross-review and smart-test are adapted host workflows and do not claim
 parity with legacy paid tools. Existing approvals remain required.
+
+The actual Harness test-task receipt producer currently supports POSIX only.
+Windows qualification exercises workspace discovery, draft publication, action
+bindings and execution refusal, plus the producer's explicit unsupported result.
+It does not qualify production of test receipts or accepted-result presentation
+from a Windows testing run.

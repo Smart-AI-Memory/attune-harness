@@ -3,6 +3,7 @@
 # qualify: platform
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 import pytest
@@ -136,12 +137,21 @@ def test_mixed_or_incomplete_profiles_refused(args,capsys):
 from test_connected_journey import journey  # noqa: F401
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Actual Harness test-task receipts require the POSIX producer')
 def test_resume_and_execution_stay_closed_even_with_real_test_evidence(journey, capsys, tmp_path):
     from test_connected_journey import complete, run_linked
     from attune_harness.spec_handoff import bind_test_evidence
     complete(journey, capsys)
     tested=run_linked(journey)
     binding=bind_test_evidence(Path(tested['record_path']).parent)
+    assert_execution_closed(tmp_path, binding)
+
+
+def test_resume_and_execution_require_m3_on_every_platform(tmp_path):
+    assert_execution_closed(tmp_path, {})
+
+
+def assert_execution_closed(tmp_path, binding):
     from test_spec_tasks import FULL
     (tmp_path / '.claude/plans').mkdir(parents=True)
     (tmp_path / '.claude/plans/demo.md').write_text(FULL)

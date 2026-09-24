@@ -2,6 +2,7 @@
 # qualify: platform
 import io
 import json
+import os
 from pathlib import Path
 import pytest
 from attune_harness.cli import main
@@ -45,6 +46,7 @@ def test_compose_collision_and_presenters(tmp_path,monkeypatch,capsys):
 from test_connected_journey import journey  # noqa: F401
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Actual Harness test-task receipts require the POSIX producer')
 def test_result_requires_exact_persisted_acceptance(journey, capsys, tmp_path):
     from test_connected_journey import complete, run_linked
     from attune_harness.spec_handoff import bind_test_evidence
@@ -67,3 +69,11 @@ def test_result_requires_exact_persisted_acceptance(journey, capsys, tmp_path):
     save_state(state)
     assert main(args)==2
     assert 'differs' in capsys.readouterr().err
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows-specific explicit testing refusal')
+def test_windows_test_receipt_producer_is_explicitly_unsupported(tmp_path):
+    from attune_harness.test_change import create_test_task
+    import sys
+    with pytest.raises(ValueError, match='POSIX execution profile'):
+        create_test_task(tmp_path, tmp_path / 'tested', scope=['app.py'], interpreter=sys.executable)
+    assert not (tmp_path / 'tested').exists()
