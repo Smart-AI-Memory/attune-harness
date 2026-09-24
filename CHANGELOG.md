@@ -3,9 +3,50 @@
 ## Unreleased
 
 Changes since 0.5.0, each `src/` change with its different-model review
-recorded in its pull request. The three lines after the first landed
+recorded in its pull request. The three lines after the first two landed
 together after the overnight run of September 23, 2026, so that three
 sibling pull requests did not conflict on this section.
+
+- Added: plugin bundles, the first of plan task 4.3's four cycles under the
+  approved executable plugins spec (D22, decisions 1 to 3): a manifest with
+  `grants` (`secrets`, `paths`, `scratch`, `time`, `output`) or `declares`
+  (`imports`, `network`, `reads`, `writes`, `subprocess`, `vendored`) is a
+  plugin, any other name in either field refused as manifest schema version 2
+  material. A plugin enables and is called only against the accepted
+  registry, whose `extensions` section gains `signers` (fingerprints and
+  public key blocks) and `revoked` (artifact digests) beside the
+  registrations, and whose registration may carry a `grant`, checked to be a
+  subset of the manifest's grants. The bundle carries `artifact.sig`, a
+  detached OpenPGP signature over the artifact digest's 64 hex characters,
+  its packets walked before gpg runs so that only Signature packets of
+  definite length reach the verifier,
+  verified inside the lease at `enable` (`extension enable --registry`) and
+  before and after every call by `gpg --verify` in a bounded subprocess, in a
+  private home the host creates and removes, against the registry's key
+  blocks only, with the verdict read from the status lines and never from
+  the exit status; unsigned, unlisted, no public key, tampered, revoked
+  artifact, expired key, revoked key, absent `gpg` and a verifier that fails
+  or says nothing are each their own refusal. Enable and call receipts carry
+  `plugin`: the signer, the effective grant, the acknowledged declarations,
+  and the words that a signature means this exact bundle was reviewed under
+  the brief and that declarations are recorded, not enforced. Data-only
+  bundles are unchanged. No plugin code runs yet: the `run` binding, the
+  bootstrap and Voyage are the later cycles, and the README's protocols row
+  still lists executable plugins as unqualified. Tested with scratch keys on
+  all three platforms (`tests/test_plugin_signing.py`, in the platform
+  selection); the envelope table gains `extension-enable-plugin`. Under
+  D29.1 the Windows unknowns are probed inside this cycle:
+  `tests/test_plugin_probe.py` finds gpg on each platform job (PATH first,
+  then the known install locations, Git for Windows' among them), verifies
+  by status line, produces the refusals, and launches the child bootstrap
+  with its finder; its receipt lands in the platform artifact as
+  `plugin_probe`. Every receipt carries `verifier`, the gpg path, version,
+  path style and status keywords used. First findings: Git for Windows'
+  MSYS gpg treats a backslashed or a `C:/` path as relative, so the
+  verifier reads the build's style from `gpg --version`'s `Home:` line and
+  hands such a build `/c/...` paths; and every gpg call on Windows costs a
+  worker, a Job Object and an agent start, so the verifier probes a build
+  once per process and the tests start one agent per scratch home.
 
 - Changed: the `memory scratch` record is a named, versioned format,
   `attune-harness/scratch` version 2, its header first: the format's name

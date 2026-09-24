@@ -10,9 +10,9 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 75 rows:
+row pins, in 76 rows:
 
-- **success** (55 rows): the verb did its work offline on a small fixture;
+- **success** (56 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
 - **refusal** (9 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
@@ -87,6 +87,7 @@ or to rule exempt; the eight adapter-bound rows among them go with D28.
 | `extension-discover` | success | 0 | 1 | `ready` | `bundle` `operation` `request_id` `schema_version` `status` |
 | `extension-install` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-enable` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
+| `extension-enable-plugin` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `plugin` `revision` `schema_version` `state_digest` `status` |
 | `extension-inspect` | success | 0 | 1 | `enabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-disable` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
 | `extension-replace` | success | 0 | 1 | `disabled` | `artifact_digest` `id` `manifest` `operation` `revision` `schema_version` `state_digest` `status` |
@@ -167,6 +168,7 @@ What each case runs, in the order of the table.
 - `extension-discover`: `extension discover MANIFEST`
 - `extension-install`: `extension install MANIFEST --state-dir`
 - `extension-enable`: `extension enable --state-dir --checkpoint`
+- `extension-enable-plugin`: `extension enable --state-dir --checkpoint --registry` on a signed plugin bundle, with a scratch key
 - `extension-inspect`: `extension inspect --state-dir`
 - `extension-disable`: `extension disable --state-dir --checkpoint`
 - `extension-replace`: `extension replace --state-dir --checkpoint --manifest`

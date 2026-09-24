@@ -151,6 +151,9 @@ ENVELOPES = (
     ('extension-enable', 'success', 0, 1, 'enabled',
      ('artifact_digest', 'id', 'manifest', 'operation', 'revision', 'schema_version',
       'state_digest', 'status')),
+    ('extension-enable-plugin', 'success', 0, 1, 'enabled',
+     ('artifact_digest', 'id', 'manifest', 'operation', 'plugin', 'revision', 'schema_version',
+      'state_digest', 'status')),
     ('extension-inspect', 'success', 0, 1, 'enabled',
      ('artifact_digest', 'id', 'manifest', 'operation', 'revision', 'schema_version',
       'state_digest', 'status')),
@@ -898,6 +901,45 @@ def _(w):
     return w.run(
         ["extension", "enable", "--state-dir", state, "--checkpoint", first["state_digest"]]
     )
+
+
+@scenario("extension-enable-plugin")
+def _(w):
+    # A signed plugin bundle: the enable receipt gains `plugin`, the signer, the
+    # grant and the acknowledged declarations (plan task 4.3, first cycle; D22).
+    from test_plugin_signing import PLUGIN_DECLARES, PLUGIN_GRANTS, Signer, sign_bundle
+
+    signer = Signer("golden")
+    try:
+        change(w.bundle, lambda d: d.update(grants=PLUGIN_GRANTS, declares=PLUGIN_DECLARES))
+        digest = sign_bundle(w.bundle, signer)
+        state, first = w.installed_extension()
+        participant = {"adapter": "deterministic", "tools": [], "max_turns": 1, "max_tool_calls": 0}
+        registry = write_json(
+            w.tmp / "plugin-registry.json",
+            {
+                "schema_version": 1,
+                "participants": {"lead": participant, "peer": participant},
+                "extensions": {
+                    "signers": [signer.entry],
+                    "evidence": {"state_dir": str(state), "artifact_digest": digest, "grant": {"time": 60}},
+                },
+            },
+        )
+        return w.run(
+            [
+                "extension",
+                "enable",
+                "--state-dir",
+                state,
+                "--checkpoint",
+                first["state_digest"],
+                "--registry",
+                registry,
+            ]
+        )
+    finally:
+        signer.close()
 
 
 @scenario("extension-inspect")
