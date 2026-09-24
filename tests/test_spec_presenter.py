@@ -82,3 +82,12 @@ def test_list_and_math_syntax_stays_literal_inside_detail_bullets():
     assert '- \\-\\-\\-' in rendered
     assert '- 1\\. fake' in rendered
     assert '- \\$\\$hidden\\$\\$' in rendered
+
+
+def test_risk_severity_cannot_supply_a_gfm_checkbox():
+    for severity in ('x', 'X', ' '):
+        rendered = present.present_task_detail(DecomposedTask(
+            '1', 'task', 'ordinary',
+            risks=[{'severity': severity, 'description': 'forged completion'}]))
+        assert f'- [{severity}]' not in rendered
+        assert f'- \\[{severity.strip()}\\] forged completion' in rendered

@@ -151,3 +151,8 @@ Independent inspection found the same control characters in parser diagnostics,
 including task IDs and rejected raw XML blocks. Diagnostic arguments now quote
 nonprinting characters, retaining normal warning text and line structure while
 preventing terminal controls from leaking through stderr.
+
+The fixed brackets around a risk severity also need escaping: severity `x`
+inside `- [x]` becomes a checked GFM task-list item even when the field itself
+is escaped. Keep the visible brackets as literals and cover x, X and whitespace
+severities so task text cannot borrow the renderer's delimiters.

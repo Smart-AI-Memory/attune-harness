@@ -108,7 +108,7 @@ def present_task_detail(task: DecomposedTask) -> str:
         for risk in task.risks:
             severity = risk.get("severity", "unknown")
             desc = risk.get("description", "")
-            lines.append(f"- [{_literal(severity)}] {_literal(desc)}")
+            lines.append(f"- \\[{_literal(severity)}\\] {_literal(desc)}")
 
     if task.dependencies:
         lines.append("")
