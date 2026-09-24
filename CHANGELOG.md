@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 
 - Memory serving checks active curated membership and configured-root file
   verdicts before display. `memory serve --for PROMPT` adds bounded prompt

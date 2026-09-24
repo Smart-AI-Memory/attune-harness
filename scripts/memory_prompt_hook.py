@@ -28,14 +28,14 @@ def main():
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 512:
             raise ValueError('Hook prompt must contain 1 to 512 characters')
         result = subprocess.run([sys.executable, '-m', 'attune_harness', 'memory',
-                                 '--config', args.config, 'serve', '--for', prompt],
+                                 '--config', args.config, 'serve', '--for=' + prompt],
                                 capture_output=True, timeout=10, check=False)
-        if result.returncode == 0:
+        if result.returncode == 0 and result.stdout:
             sys.stdout.buffer.write(result.stdout)
-            sys.stderr.buffer.write(result.stderr)
         else:
-            sys.stderr.write('[attune-harness memory] prompt hook skipped: CLI failed\n')
-    except (ValueError, OSError, subprocess.TimeoutExpired) as error:
+            # A backend error can echo the query. Keep hook diagnostics payload-free.
+            sys.stderr.write('[attune-harness memory] prompt hook skipped: no memory served\n')
+    except (ValueError, OSError, RecursionError, subprocess.TimeoutExpired) as error:
         # Do not echo payloads or process arguments: they can contain the user's prompt.
         sys.stderr.write(f'[attune-harness memory] prompt hook skipped: {type(error).__name__}\n')
     return 0
