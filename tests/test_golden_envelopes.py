@@ -199,6 +199,11 @@ ENVELOPES = (
      ('accepted', 'completion_scope', 'events', 'identity_scope', 'max_calls', 'operation',
       'participant_id', 'profile', 'record_path', 'registry', 'request_id', 'requirement_revision',
       'schema_version', 'source_snapshot', 'status', 'tools')),
+    ('mcp-inspect-workspace', 'success', 0, 1, 'completed',
+     ('calls_completed', 'calls_failed', 'calls_started', 'completion_scope', 'dropped_events',
+      'identity_scope', 'max_calls', 'model_calls', 'operation', 'participant_id', 'pending',
+      'profile', 'project', 'provider', 'record_path', 'request_id', 'schema_version', 'status', 'tools')),
+    ('spec-intake', 'success', 0, None, None, ('areas', 'form', 'taken_slugs')),
     ('verify', 'success', 0, 1, 'verified',
      ('artifacts', 'dependency', 'operation', 'passed', 'request_id', 'result', 'schema_version',
       'status')),
@@ -1111,6 +1116,21 @@ def _(w):
     scope.save()
     scope.finish()
     return w.run(["mcp-inspect", session])
+
+
+@scenario("mcp-inspect-workspace")
+def _(w):
+    from attune_harness.workspace_mcp import WorkspaceSession
+    scope = WorkspaceSession(w.root, w.tmp / "workspace-session")
+    with scope.store.lease():
+        scope.save()
+        scope.finish()
+    return w.run(["mcp-inspect", scope.store.directory])
+
+
+@scenario("spec-intake")
+def _(w):
+    return w.run(["spec", "intake", "--project", w.root])
 
 
 @scenario("verify")
