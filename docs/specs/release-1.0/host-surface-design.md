@@ -7,8 +7,8 @@ skill, which today runs on attune-ai's MCP server and Python, running on
 Harness alone, so that the deprecation notice can go out without taking
 away the workflow its one certain user relies on most. Like the design
 notes before it, it puts what was read first, then the design, then the
-decisions that are Patrick's. Nothing here is authorized until he rules;
-the rulings go in the release addendum, numbered on from D29.
+decisions that are Patrick's. He ruled the same night, "all seven as
+recommended": [D30](addendum-2026-09-23.md), which also names the plan rows.
 
 ## What was read
 
