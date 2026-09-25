@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add opt-in `status --format markdown|html` return-to-work views for saved
+  feature-work tasks. `--continuation FILE` adds an explicitly supplied stopping
+  point, attributed external progress and a comparison with retained request scope.
+  Current task guidance takes precedence; supporting evidence stays inspectable.
+  Default JSON output and task execution semantics remain unchanged.
+
 - Add the workspace MCP profile, Spec intake/presentation CLI, and local Claude
   and Codex plugin candidates. Lifecycle gates remain a separate prerequisite;
   the Spec skill stops at that boundary. No marketplace release is claimed.

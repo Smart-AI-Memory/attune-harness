@@ -975,9 +975,9 @@ def apply_planning_proposal(
     )
 
 
-def planning_questions(directory) -> dict:
+def planning_questions(directory, *, _record=None) -> dict:
     """Project focused missing information through the existing form renderer."""
-    record = read_task(directory)
+    record = _record if _record is not None else read_task(directory)
     check_work_fresh(record)
     request = record["request"]
     labels = {
