@@ -1,0 +1,26 @@
+{
+  "name": "attune-harness",
+  "version": "0.6.0",
+  "description": "Spec workspaces and evidence-driven development using Harness. Development candidate; lifecycle gates pending.",
+  "author": {
+    "name": "Smart AI Memory"
+  },
+  "repository": "https://github.com/Smart-AI-Memory/attune-harness",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Attune Harness",
+    "shortDescription": "Spec workspaces and evidence-driven development",
+    "developerName": "Smart AI Memory",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "longDescription": "Local Spec workspaces, independent review guidance and test receipts. Development candidate; lifecycle gates are not yet included.",
+    "defaultPrompt": [
+      "Start a scoped spec with Harness."
+    ]
+  }
+}

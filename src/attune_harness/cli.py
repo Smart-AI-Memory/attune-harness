@@ -41,10 +41,13 @@ def build_parser() -> argparse.ArgumentParser:
     github.add_argument('--repository', required=True)
     github.add_argument('--revision', required=True)
     mcp = sub.add_parser('mcp-serve', help='Serve accepted retrieval grants over local MCP stdio')
-    mcp.add_argument('--request', type=Path, required=True)
+    mcp.add_argument('--request', type=Path)
     mcp.add_argument('--config', type=Path, help='Review participant registry; omit for coding retrieval tasks')
-    mcp.add_argument('--participant', required=True)
-    mcp.add_argument('--session-dir', type=Path, required=True)
+    mcp.add_argument('--participant')
+    mcp.add_argument('--session-dir', type=Path)
+    mcp.add_argument('--workspace', action='store_true', help='Serve the local Spec workspace profile')
+    mcp.add_argument('--project', type=Path, help='Workspace project; defaults to the launcher working directory')
+    mcp.add_argument('--state-dir', type=Path, help='Fresh workspace session directory; defaults to a private temporary path')
     mcp.add_argument('--allow-provider', action='store_true', help='Authorize accepted Voyage retrieval uploads/calls')
     inspect_mcp = sub.add_parser('mcp-inspect', help='Inspect local MCP call receipts without dispatching')
     inspect_mcp.add_argument('session_dir', type=Path)
@@ -62,6 +65,8 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve.add_argument('--allow-provider', action='store_true')
     retrieve.add_argument('--k', type=int, default=3)
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
+    from .spec_cli import add_command as add_spec
+    add_spec(sub)
     from .cli_help import configure_help
     configure_help(parser, sub)
     return parser
@@ -77,6 +82,9 @@ def main(argv: list[str] | None = None) -> int:
     from .review_cli import execute
     from .task_cli import execute_control
     args = parser.parse_args(argv)
+    if args.command == 'spec':
+        from .spec_cli import execute as execute_spec
+        return execute_spec(args)
     if args.command in ('plan', 'build'):
         from .work_cli import execute as execute_work
         return execute_work(args)
@@ -141,8 +149,21 @@ def main(argv: list[str] | None = None) -> int:
         if notice:
             print(notice, file=sys.stderr)
         try:
-            asyncio.run(serve(args.request, args.config, args.participant, args.session_dir,
-                              allow_provider=args.allow_provider))
+            if args.workspace:
+                if any((args.request, args.config, args.participant, args.session_dir, args.allow_provider)):
+                    raise ValueError('Workspace mode cannot use retrieval profile arguments')
+                from .workspace_mcp import serve as serve_workspace
+                import tempfile
+                import uuid
+                directory = args.state_dir or Path(tempfile.gettempdir()) / ('attune-workspace-' + uuid.uuid4().hex)
+                asyncio.run(serve_workspace(args.project or Path.cwd(), directory))
+            else:
+                if args.project or args.state_dir:
+                    raise ValueError('--project and --state-dir require --workspace')
+                if not all((args.request, args.participant, args.session_dir)):
+                    raise ValueError('Retrieval mode requires --request, --participant and --session-dir')
+                asyncio.run(serve(args.request, args.config, args.participant, args.session_dir,
+                                  allow_provider=args.allow_provider))
         except Exception as exc:
             # stdout is exclusively the MCP protocol stream.
             print(f'{type(exc).__name__}: {exc}', file=sys.stderr)
