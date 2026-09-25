@@ -1,4 +1,5 @@
 """Accepted MCP sessions refuse changed authority and retain uncertain reads."""
+# qualify: platform
 
 from copy import deepcopy
 
