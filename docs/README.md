@@ -18,6 +18,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [The compatibility list](compatibility.md): What 1.0.0 promises not to change without a deprecation, surface by surface, with the guard for each
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
+- [Coverage measurement](coverage-measurement.md): Supplemental subprocess and platform measurements, their provenance and limits
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not
 - [Portable contract and qualification map](portable-contract.md): The execution contract and the qualification map
 - [Checks, handoffs and repair economics](operations.md): Checks, handoffs and repair economics
