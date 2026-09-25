@@ -36,7 +36,10 @@ def test_corrupt_publication_blocks_retrieval_before_provider(built, tmp_path, f
     else:
         original = directory / "manifest.json"
         original.rename(directory / "retained-manifest.json")
-        original.symlink_to(directory / "retained-manifest.json")
+        try:
+            original.symlink_to(directory / "retained-manifest.json")
+        except OSError:
+            pytest.skip("Platform does not permit symlink creation")
     provider.calls.clear()
     with pytest.raises(ValueError):
         retrieval.retrieve_voyage(selected, "save_cart", work_dir=tmp_path / "blocked",
@@ -187,7 +190,10 @@ def test_source_symlink_cannot_escape_selected_root(corpus, tmp_path):
     root, cfg, _ = corpus
     outside = tmp_path / "outside.py"
     outside.write_text("private = True\n", encoding="utf-8")
-    (root / "escape.py").symlink_to(outside)
+    try:
+        (root / "escape.py").symlink_to(outside)
+    except OSError:
+        pytest.skip("Platform does not permit symlink creation")
     cfg["allow_untracked"] = True
     with pytest.raises(ValueError, match="escapes selected"):
         snapshot(cfg)
