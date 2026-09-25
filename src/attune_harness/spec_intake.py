@@ -97,3 +97,47 @@ def compose_spec_contract(answers: dict[str, Any], taken_slugs: list[str]) -> st
                 "amend that spec or pick a new slug."
             )
     return "\n".join(lines) + "\n"
+
+
+def build_spec_intake_form(areas: list[str]):
+    """Carried 16.4.0 form shape; no import-time template registry writes."""
+    from .features import require_feature
+    require_feature("attune-forms", "attune_forms", "0.17.0", "review")
+    from attune_forms.intake_template import FieldSlot, FormTemplate, ProviderContext, build_form
+    SPEC_TEMPLATE = FormTemplate(
+        title="New spec intake",
+        description="Frame the spec before brainstorming: outcome, acceptance, area.",
+        fields=[
+            FieldSlot(
+                key="outcome",
+                text="What should exist when this spec is done?",
+                control="textarea",
+                required=True,
+                help_text="One or two sentences — becomes the spec's outcome statement.",
+            ),
+            FieldSlot(
+                key="done_when",
+                text="Done when? (acceptance criteria)",
+                control="textarea",
+                required=True,
+                help_text=(
+                    "Cheap to write, expensive to skip — e.g. "
+                    "'PR merged green, regression test landed'."
+                ),
+            ),
+            FieldSlot(
+                key="area",
+                text="Primary code area?" if areas else "Primary code area? (path or name)",
+                options=[*areas, OTHER] if areas else None,
+                required=True,
+                help_text="Where most of the change lands — bounds the design conversation." if areas else None,
+            ),
+            FieldSlot(
+                key="slug",
+                text="Spec slug (optional — leave blank to derive one)",
+                required=False,
+                help_text="kebab-case directory name under docs/specs/.",
+            ),
+        ],
+    )
+    return build_form(SPEC_TEMPLATE, ProviderContext(repo_root=Path.cwd()), candidates_override={"area": areas})

@@ -44,7 +44,10 @@ none: `memory serve`, whose exit codes (0 on success and on every refusal,
 for a session-start hook) are pinned by `tests/test_memory_redis.py`, and
 `mcp-serve`, whose failure exit, 2, is pinned by `tests/test_mcp.py`; its
 success exit, 0 when the client closes the stream, is not pinned yet. The
-program's one option is `--help-all`.
+program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
+`--project` and `--state-dir`; retrieval still requires `--request`,
+`--participant` and `--session-dir`, checked together before startup.
+`spec intake --compose` and `spec present` return text, tested separately.
 
 <!-- surface-rows -->
 | Verb | Subcommands | Positionals | Required |
@@ -59,7 +62,7 @@ program's one option is `--help-all`.
 | `index` | build inspect plan update | - | - |
 | `inspect-review` | - | `run_dir` | - |
 | `mcp-inspect` | - | `session_dir` | - |
-| `mcp-serve` | - | - | `--participant` `--request` `--session-dir` |
+| `mcp-serve` | - | - | - |
 | `memory` | capabilities create execute inspect recall redis(digest node related search status) refresh replay resolve scratch(capabilities forget keys retrieve stash) serve | - | `--config` |
 | `plan` | - | - | `--task-dir` |
 | `reconcile-review` | - | `run_dir` | `--checkpoint` `--event` one of `--reply`, `--retry-read-only` |
@@ -71,6 +74,7 @@ program's one option is `--help-all`.
 | `retrieve` | - | `query` | one of `--corpus`, `--request` |
 | `review` | - | `[request]` | - |
 | `review-form` | - | - | - |
+| `spec` | intake present | - | - |
 | `status` | - | `task_dir` | - |
 | `test` | - | - | `--task-dir` |
 | `transfer-review` | - | `run_dir` | `--checkpoint` `--lead` `--reason` |
