@@ -6,6 +6,7 @@ not a user's acceptance; the executor still owns the Spec result publication.
 
 import asyncio
 import json
+import os
 import subprocess
 import sys
 import time
@@ -116,6 +117,7 @@ print(json.dumps({'schema_version':1,'request_digest':p['request_digest'],'actio
                 "timeout": 10,
                 "max_output_bytes": 4096,
                 "environment": {
+                    **({"SystemRoot": os.environ["SystemRoot"]} if os.name == "nt" else {}),
                     "PATH": "/usr/bin:/bin",
                     "PYTHONDONTWRITEBYTECODE": "1",
                     "PYTHONNOUSERSITE": "1",

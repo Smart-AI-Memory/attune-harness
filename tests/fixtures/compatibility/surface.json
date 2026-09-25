@@ -290,15 +290,14 @@
     "--allow-provider",
     "--config",
     "--participant",
+    "--project",
     "--request",
-    "--session-dir"
+    "--session-dir",
+    "--state-dir",
+    "--workspace"
    ],
    "positionals": [],
-   "required_options": [
-    "--participant",
-    "--request",
-    "--session-dir"
-   ]
+   "required_options": []
   },
   "memory": {
    "one_of": [],
@@ -769,6 +768,40 @@
    ],
    "positionals": [],
    "required_options": []
+  },
+  "spec": {
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "intake": {
+     "one_of": [],
+     "options": [
+      "--compose",
+      "--project"
+     ],
+     "positionals": [],
+     "required_options": []
+    },
+    "present": {
+     "one_of": [],
+     "options": [
+      "--plan",
+      "--task",
+      "--test-run"
+     ],
+     "positionals": [
+      {
+       "name": "view",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--plan"
+     ]
+    }
+   }
   },
   "status": {
    "one_of": [],

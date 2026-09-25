@@ -63,6 +63,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [design-a2a-increment.md](design-a2a-increment.md) | A2A local peer profile — design before implementation | 2026-09-14 |
+| [design-active-workflow-coverage.md](design-active-workflow-coverage.md) | Active workflow coverage | 2026-09-24 |
 | [design-adapter-increment.md](design-adapter-increment.md) | Adapter boundary experiment |  |
 | [design-astra-review.md](design-astra-review.md) | Astra review selection — design |  |
 | [design-code-first-rag.md](design-code-first-rag.md) | Code-first Attune RAG | September 15, 2026 |
@@ -345,3 +346,5 @@ Session handoffs and starters, kept as written. The directory is ignored on
 | [research/memory-routing-v2-results-2026-09-16.md](research/memory-routing-v2-results-2026-09-16.md) | Revised memory controls and routing results | 2026-09-16 |
 | [research/memory-sorter-results-2026-09-16.md](research/memory-sorter-results-2026-09-16.md) | Mixed-queue memory sorter results | 2026-09-16 |
 | [research/memory-worker-results-2026-09-16.md](research/memory-worker-results-2026-09-16.md) | Bounded memory-worker prototype | 2026-09-16 |
+
+- [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
