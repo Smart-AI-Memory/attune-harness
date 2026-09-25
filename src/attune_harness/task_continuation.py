@@ -22,7 +22,8 @@ def read_continuation(path, record):
     raw = read_text(path, MAX_NOTE_BYTES)
     note = parse_json(raw, MAX_NOTE_BYTES)
     fields(note, ("schema_version", "task_id", "revision", "recorded_at", "source",
-                  "stopped_after", "progress", "next_step"))
+                  "stopped_after", "progress", "next_step",
+                  *(key for key in ("briefing", "design_review") if isinstance(note, dict) and key in note)))
     versioned(note)
     request = record["request"]
     if note["task_id"] != request["task_id"]:
@@ -46,6 +47,25 @@ def read_continuation(path, record):
         fields(note["next_step"], ("action", "reason"))
         for name, value in note["next_step"].items():
             bounded_text(value, name, 2048)
+    if "briefing" in note:
+        fields(note["briefing"], ("title", "context", "goal", "desired_end_state",
+                                 "current_focus", "done_when"))
+        for name, value in note["briefing"].items():
+            bounded_text(value, "briefing " + name, 2048)
+    if "design_review" in note:
+        review = note["design_review"]
+        fields(review, ("presentation_revision", "next_question", "feedback"))
+        bounded_text(review["presentation_revision"], "presentation revision", 64)
+        if review["next_question"] is not None:
+            bounded_text(review["next_question"], "next question", 2048)
+        for item in _list(review["feedback"], "feedback", 6):
+            fields(item, ("criterion", "status", "observation", "references"))
+            for key in ("criterion", "observation"):
+                bounded_text(item[key], "feedback " + key, 2048)
+            if item["status"] not in ("observed", "partial", "unverified"):
+                raise ValueError("Feedback status must be observed, partial or unverified")
+            for reference in _list(item["references"], "feedback references", 6):
+                bounded_text(reference, "feedback reference", 2048)
     baseline = (request if revision == request["revision"]
                 else record["history"][revision - 1]["request"])
     return {

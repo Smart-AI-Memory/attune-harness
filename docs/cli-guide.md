@@ -522,3 +522,65 @@ All 18 original command routes remain callable, including positional
 They preserve their original arguments, output and exit behavior. These are
 compatibility routes, not an additional vocabulary required for new tasks.
 See the [navigation design](design-navigation.md) for the discovery policy.
+
+
+### Saved Tasks and briefing replies
+
+Supply task directories explicitly to produce one navigable HTML file:
+
+```sh
+attune-harness status /tmp/my-work --include-task /tmp/other-work --format html > saved-tasks.html
+```
+
+Re-run the same command to refresh that file. Open it to choose a task; each
+briefing links back to Saved Tasks. This does not install a host entry or refresh
+a browser automatically. The collection accepts at most 20 distinct directories
+and 2 MiB of serialized views. Additional missing, unsupported or duplicate-owner
+tasks appear as unavailable; a failure in the primary task fails the command.
+Markdown is also supported; `--include-task` with JSON is refused. Inspection
+performs no discovery, dispatch or task mutation. `--continuation` applies only
+to the primary task in a collection.
+
+The briefing separates context, overall goal, desired end state, current focus,
+stopping point and authoritative next action. HTML offers local reply preparation
+and Copy reply. Selecting a response does not send it or accept a checkpoint.
+If clipboard access is unavailable, select/copy the text manually. Without
+JavaScript, the initial handoff remains selectable. Replies identify the task and
+revision and require current inspection before acting. Unsaved reply drafts last
+only while the page remains open; they do not survive reload.
+
+The existing continuation schema optionally accepts `briefing` with exactly six
+nonempty text fields (each at most 2,048 UTF-8 bytes): `title`, `context`, `goal`,
+`desired_end_state`, `current_focus`, and `done_when`. These caller-authored
+summaries retain the note's source/timestamp and are shown only for its current
+revision. Historical notes fall back to canonical intent. Full saved intent and
+owner guidance remain available; a summary cannot establish progress, approval
+or a different next action. The entire note remains bounded to 32 KiB.
+
+
+The same continuation note optionally accepts `design_review` with exactly:
+
+- `presentation_revision`: nonempty text, at most 64 UTF-8 bytes, distinct from
+  the saved task revision.
+- `next_question`: null or nonempty text, at most 2,048 UTF-8 bytes. This is a
+  discussion question, never an executable action or approval.
+- `feedback`: at most six objects, each containing `criterion`, `status`,
+  `observation` and `references`. Criterion and observation are nonempty text
+  limited to 2,048 UTF-8 bytes each; status is `observed`, `partial` or
+  `unverified`; references are at most six nonempty strings, each limited to
+  2,048 UTF-8 bytes. References are retained as literal text, not opened.
+
+Reports retain the note's source and timestamp; neither claims nor authorship
+are authenticated. They do not complete tasks. A design question is withheld
+for historical scope, stale task evidence or a completed task. On a current
+non-completed task it may be discussed even when automated build readiness is
+blocked; saved guidance stays visible first. The prepared discussion reply binds
+the task, scope revision, presentation revision and note digest and grants no
+implementation, execution or checkpoint acceptance. Inspect current status and
+the continuation again before relying on it. A same-revision note can still be
+outdated; inspection does not validate its external reports.
+
+HTML and Markdown use Context, Goal, Desired end state, Current focus, Current
+position and Next action. HTML help buttons expose the same definitions used in
+the visible reference; the full saved goal and definitions remain available
+without JavaScript. Snapshot inspection time and caller-report time are separate.

@@ -191,10 +191,11 @@ def test_continuation_bounds_json_mode_and_hostile_text(work, capsys):
     view = task_view.inspect(work[2]["directory"], continuation=path)
     for fmt in ("markdown", "html"):
         rendered = task_view.render(view, fmt)
-        assert "<script>" not in rendered and "\x1b" not in rendered and "\u202e" not in rendered
+        assert "<script>bad()" not in rendered and "\x1b" not in rendered and "\u202e" not in rendered
     page = Page()
     page.feed(task_view.render(view, "html"))
-    assert not {"script", "a", "form", "button", "iframe", "img"} & {t for t, _ in page.tags}
+    assert_fixed_reply_assets(page, task_view.render(view, "html"))
+    assert not {"a", "form", "iframe", "img"} & {t for t, _ in page.tags}
     assert "details" in {t for t, _ in page.tags}
     assert main(["status", str(work[2]["directory"]), "--continuation", str(path)]) == 2
     assert "--format" in json.loads(capsys.readouterr().out)["error"]["detail"]
@@ -395,7 +396,8 @@ def test_hostile_repository_text_is_literal_in_both_formats(work):
     page = Page()
     rendered = task_view.render(view, "html")
     page.feed(rendered)
-    assert not {"script", "img", "a", "form", "iframe", "button"} & {t for t, _ in page.tags}
+    assert_fixed_reply_assets(page, rendered)
+    assert not {"img", "a", "form", "iframe"} & {t for t, _ in page.tags}
     assert all(not any(k.startswith("on") for k in attrs) for _, attrs in page.tags)
     assert any(t == "meta" and a.get("http-equiv") == "Content-Security-Policy" and "default-src 'none'" in a.get("content", "") for t, a in page.tags)
     assert "<script>alert(1)</script>" in "".join(page.text)
@@ -427,3 +429,334 @@ def test_other_profile_and_corrupt_record_fail_visibly(work, capsys):
     assert main(["status", str(directory), "--format", "markdown"]) == 2
     error = json.loads(capsys.readouterr().out)
     assert error["status"] == "failed" and error["error"]["detail"]
+
+
+def assert_fixed_reply_assets(page, rendered):
+    """Only the exact bundled script is executable, never any task-supplied text."""
+    import base64
+    import hashlib
+    import re
+    assert re.findall(r"<script>(.*?)</script>", rendered, re.S | re.I) == [task_view._REPLY_SCRIPT]
+    assert sum(tag == "script" for tag, _ in page.tags) == 1
+    assert sum(tag == "button" for tag, _ in page.tags) == 10
+    assert all(not any(k.startswith("on") or k in ("src", "formaction") for k in attrs)
+               for _, attrs in page.tags)
+    csp = next(a["content"] for t, a in page.tags if a.get("http-equiv") == "Content-Security-Policy")
+    digest = base64.b64encode(hashlib.sha256(task_view._REPLY_SCRIPT.encode()).digest()).decode()
+    assert "script-src 'sha256-" + digest + "'" in csp
+    assert "connect-src 'none'" in csp and "form-action 'none'" in csp
+
+
+def briefing():
+    return dict(title="Support export", context="People need findings at handoff.",
+                goal="Make review findings usable by support.",
+                desired_end_state="Support can explain what remains unresolved.",
+                current_focus="Check the export layout.", done_when="The consumer can find each finding.")
+
+
+def test_authored_briefing_is_attributed_and_preserves_authoritative_guidance(work):
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=briefing())
+    before = files_under(work[0].parent)
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    for fmt in ("html", "markdown"):
+        text = task_view.render(view, fmt)
+        assert "Goal" in text and "Desired end state" in text
+        assert "Make review findings usable by support" in text
+        assert "attributed summary" in text
+        expected = task_view._literal(view["next_action"]) if fmt == "markdown" else task_view._escape(view["next_action"])
+        assert expected in text
+        assert "Export every finding" in text  # canonical intent remains inspectable
+        assert "Your reply to the assistant" in text
+    assert files_under(work[0].parent) == before
+
+
+def test_historical_briefing_is_withheld(work):
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=briefing())
+    contracts.correction(work, intent={"goal": "A different saved goal"})
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    for fmt in ("html", "markdown"):
+        text = task_view.render(view, fmt)
+        assert "Make review findings usable by support" not in text
+        assert "A different saved goal" in text
+        assert "Historical note" in text
+
+
+@pytest.mark.parametrize("bad", [None, {}, {**briefing(), "extra": "no"},
+                                {**briefing(), "goal": ""}, {**briefing(), "goal": "é" * 1025}])
+def test_briefing_rejects_unbounded_or_unknown_shape(work, bad):
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=bad)
+    with pytest.raises(ValueError):
+        task_view.inspect(work[2]["directory"], continuation=note)
+
+
+def second_task(work):
+    import copy
+    root, config, data = work
+    second = copy.deepcopy(data)
+    second["directory"] = data["directory"].parent / "second"
+    second["intent"]["goal"] = "Review another task"
+    contracts.make((root, config, second))
+    return second["directory"]
+
+
+def test_saved_tasks_navigation_is_bound_to_explicit_identities_and_read_only(work, capsys):
+    contracts.make(work)
+    other = second_task(work)
+    before = files_under(work[0].parent)
+    entries = task_view.inspect_saved_tasks(work[2]["directory"], [other])
+    assert len(entries) == 2 and entries[0]["view"]["task_id"] != entries[1]["view"]["task_id"]
+    for fmt in ("html", "markdown"):
+        assert main(["status", str(work[2]["directory"]), "--include-task", str(other),
+                     "--format", fmt]) == 0
+        text = capsys.readouterr().out
+        assert "Saved Tasks" in text and "Review another task" in text
+        if fmt == "html":
+            page = Page(); page.feed(text)
+            ids = [a["id"] for _, a in page.tags if "id" in a]
+            assert len(ids) == len(set(ids))
+            links = [a["href"] for t, a in page.tags if t == "a"]
+            assert len(links) == 4 and all(link[1:] in ids for link in links)
+            assert all(link.startswith("#") for link in links)
+        else:
+            import re
+            anchors = re.findall(r'<a id="([^"]+)"></a>', text)
+            targets = re.findall(r'\]\(#([^)]+)\)', text)
+            assert len(anchors) == 3 and len(anchors) == len(set(anchors))
+            assert len(targets) == 6 and all(target in anchors for target in targets)
+            assert targets[:2] == anchors[1:]
+            assert text.index("# Saved Tasks") < text.index("# Return to work")
+    assert files_under(work[0].parent) == before
+
+
+def test_saved_tasks_refuses_duplicate_paths_and_marks_copied_owner_unavailable(work):
+    import shutil
+    contracts.make(work)
+    directory = work[2]["directory"]
+    with pytest.raises(ValueError, match="distinct"):
+        task_view.inspect_saved_tasks(directory, [directory / "."])
+    clone = directory.parent / "duplicate"
+    shutil.copytree(directory, clone)
+    entries = task_view.inspect_saved_tasks(directory, [clone])
+    assert "Copied work cannot become another owner" in entries[1]["error"]
+    html = task_view.render_saved_tasks(entries, "html")
+    assert html.count('class="saved-task"') == 1 and "Unavailable task" in html
+
+
+def test_saved_tasks_additional_failure_is_visible_and_does_not_hide_valid_work(work):
+    contracts.make(work)
+    missing = work[2]["directory"].parent / "absent<script>"
+    entries = task_view.inspect_saved_tasks(work[2]["directory"], [missing])
+    assert "error" in entries[1]
+    for fmt in ("html", "markdown"):
+        text = task_view.render_saved_tasks(entries, fmt)
+        assert "Unavailable task" in text and "Export every finding" in text
+        assert "absent<script>" not in text
+    with pytest.raises(Exception):
+        task_view.inspect_saved_tasks(missing, [work[2]["directory"]])
+
+
+def test_saved_tasks_enforces_collection_bounds_and_json_compatibility(work, capsys, monkeypatch):
+    contracts.make(work)
+    directory = work[2]["directory"]
+    with pytest.raises(ValueError, match="20"):
+        task_view.inspect_saved_tasks(directory, [directory.parent / str(i) for i in range(20)])
+    entries = task_view.inspect_saved_tasks(directory, [directory.parent / str(i) for i in range(19)])
+    assert len(entries) == 20
+    monkeypatch.setattr(task_view, "MAX_SAVED_TASK_BYTES", 10)
+    with pytest.raises(ValueError, match="2 MiB"):
+        task_view.inspect_saved_tasks(directory, [])
+    assert main(["status", str(directory), "--include-task", str(directory.parent / "second")]) == 2
+    assert "--include-task requires" in json.loads(capsys.readouterr().out)["error"]["detail"]
+
+
+def test_hostile_briefing_and_handoff_stay_literal(work):
+    record = contracts.make(work)
+    attack = '</textarea><script>alert(2)</script><img src=x onerror=alert(3)>\u202e'
+    note = continuation(work, record, briefing={k: attack for k in briefing()})
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    rendered = task_view.render(view, "html")
+    page = Page(); page.feed(rendered)
+    assert_fixed_reply_assets(page, rendered)
+    assert not {"img", "iframe", "form", "a"} & {tag for tag, _ in page.tags}
+    assert "\u202e" not in rendered
+    assert view["task_id"] in rendered and "not a checkpoint acceptance" in rendered
+
+
+def test_markdown_collection_escapes_hostile_index_titles(work):
+    attack = '[outside](https://invalid.example) <a id="saved-tasks">bad</a>'
+    work[2]["intent"]["goal"] = attack
+    contracts.make(work)
+    other = second_task(work)
+    text = task_view.render_saved_tasks(task_view.inspect_saved_tasks(work[2]["directory"], [other]), "markdown")
+    assert text.count('<a id="saved-tasks"></a>') == 1
+    assert '[outside](' not in text
+    assert '<a id="saved-tasks">bad' not in text
+    assert '[← Saved tasks](#saved-tasks)' in text
+
+
+def design_review(**changes):
+    value = dict(presentation_revision="5", next_question="Which entrance should we try next?",
+                 feedback=[dict(criterion="Briefing comprehension", status="observed",
+                                observation="The reader understood the goal.", references=["review-notes.md"]),
+                           dict(criterion="Independent discovery", status="unverified",
+                                observation="No independent test yet.", references=[])])
+    value.update(changes)
+    return value
+
+
+def test_design_feedback_and_next_question_are_attributed_read_only_and_discussion_only(work):
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=briefing(), design_review=design_review())
+    before = files_under(work[0].parent)
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    assert view["blocking"]  # design discussion must not make the build ready
+    for fmt in ("html", "markdown"):
+        text = task_view.render(view, fmt)
+        for content in ("Feedback already recorded", "observed", "unverified",
+                        "The reader understood the goal", "Which entrance should we try next?",
+                        "discussion only", "not authenticated acceptance", "Presentation revision"):
+            assert content in text
+        escape = task_view._literal if fmt == "markdown" else task_view._escape
+        assert escape(view["captured_at"]) in text and escape(view["continuation"]["recorded_at"]) in text
+        assert view["continuation"]["sha256"] in text
+        assert view["completed"] == []
+    handoff = task_view._handoff(view)
+    assert "does not authorize implementation" in handoff
+    assert str(work[2]["directory"]) in handoff
+    assert view["task_id"] in handoff
+    assert files_under(work[0].parent) == before
+
+
+@pytest.mark.parametrize("state", ["historical", "stale", "completed"])
+def test_design_question_never_survives_a_stale_or_completed_owner(work, state):
+    record = contracts.make(work)
+    note = continuation(work, record, design_review=design_review())
+    if state == "historical":
+        contracts.correction(work, intent={"goal": "Changed scope"})
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    if state == "stale":
+        view["freshness_error"] = "Evidence changed"
+    if state == "completed":
+        view["status"] = "completed"
+    for fmt in ("html", "markdown"):
+        text = task_view.render(view, fmt)
+        assert "Which entrance should we try next?" not in text
+        assert "question is withheld" in text
+        assert "The reader understood the goal" in text  # retained, not erased
+    assert "Discussion" not in task_view._handoff(view)
+
+
+def test_feedback_without_a_new_question_does_not_invent_a_decision(work):
+    record = contracts.make(work)
+    note = continuation(work, record, design_review=design_review(next_question=None))
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    text = task_view.render(view, "html")
+    assert "Feedback already recorded" in text
+    assert "Next design decision" not in text and "Discuss next decision" not in text
+
+
+@pytest.mark.parametrize("bad", [None, {}, design_review(extra="no"),
+    design_review(presentation_revision=""), design_review(presentation_revision="é" * 33),
+    design_review(next_question=""), design_review(next_question="é" * 1025),
+    design_review(feedback=[design_review()["feedback"][0]] * 7),
+    design_review(feedback=[dict(criterion="x", status="passed", observation="x", references=[])]),
+    design_review(feedback=[dict(criterion="x", status="observed", observation="x", references=["x"] * 7)]),
+    design_review(feedback=[dict(criterion="x", status="observed", observation="x", references=[], extra=True)])])
+def test_design_review_refuses_unknown_unbounded_or_misleading_shape(work, bad):
+    record = contracts.make(work)
+    note = continuation(work, record, design_review=bad)
+    with pytest.raises(ValueError):
+        task_view.inspect(work[2]["directory"], continuation=note)
+
+
+def test_role_headings_and_definitions_agree_across_formats_and_have_unique_help_targets(work):
+    contracts.make(work)
+    view = task_view.inspect(work[2]["directory"])
+    text = task_view.render(view, "html")
+    page = Page(); page.feed(text)
+    assert sum(t == "h2" and a.get("class") == "role-label" for t, a in page.tags) == 6
+    ids = [a["id"] for _, a in page.tags if "id" in a]
+    assert len(ids) == len(set(ids))
+    for _, attrs in page.tags:
+        if attrs.get("class") == "role-help":
+            assert attrs["aria-describedby"] in ids and attrs["aria-controls"] in ids
+    markdown = task_view.render(view, "markdown")
+    for label, definition in task_view._ROLES.values():
+        assert "## " + label in markdown and definition in markdown
+        assert definition in "".join(page.text)
+    assert "<details><summary>Full saved goal" not in text
+    assert "Full goal and briefing structure" in text
+
+
+def test_hostile_feedback_and_question_cannot_inject_controls_or_script(work):
+    record = contracts.make(work)
+    attack = '</textarea><SCRIPT>evil()</SCRIPT><img src=x onerror=evil>'
+    review = design_review(next_question=attack)
+    review["feedback"][0]["observation"] = attack
+    note = continuation(work, record, design_review=review)
+    view = task_view.inspect(work[2]["directory"], continuation=note)
+    text = task_view.render(view, "html")
+    page = Page(); page.feed(text)
+    assert_fixed_reply_assets(page, text)
+    assert not any(t == "img" for t, _ in page.tags)
+    assert attack in "".join(page.text)
+    assert "<SCRIPT>" not in task_view.render(view, "markdown")
+
+
+def test_partial_feedback_is_supported_without_becoming_observed_or_complete(work):
+    record = contracts.make(work)
+    review = design_review()
+    review['feedback'][0]['status'] = 'partial'
+    note = continuation(work, record, design_review=review)
+    view = task_view.inspect(work[2]['directory'], continuation=note)
+    for fmt in ('html', 'markdown'):
+        assert 'partial: The reader understood the goal' in task_view.render(view, fmt)
+    assert view['completed'] == []
+
+
+@pytest.mark.parametrize('field', ['criterion', 'observation', 'reference'])
+def test_feedback_text_accepts_exact_byte_limit_and_refuses_one_byte_over(work, field):
+    record = contracts.make(work)
+    review = design_review()
+    exact = 'é' * 1024
+    def set_value(value):
+        if field == 'reference':
+            review['feedback'][0]['references'] = [value]
+        else:
+            review['feedback'][0][field] = value
+    set_value(exact)
+    note = continuation(work, record, design_review=review)
+    task_view.inspect(work[2]['directory'], continuation=note)
+    set_value(exact + 'x')
+    note = continuation(work, record, design_review=review)
+    with pytest.raises(ValueError):
+        task_view.inspect(work[2]['directory'], continuation=note)
+
+
+def test_glossary_definitions_remain_visible_without_disclosures_or_javascript(work):
+    class VisibleText(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.hidden = []
+            self.text = []
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if tag not in ('meta', 'input', 'br', 'hr', 'img', 'link'):
+                self.hidden.append('hidden' in attrs or tag in ('script', 'style')
+                                   or (tag == 'details' and 'open' not in attrs))
+        def handle_endtag(self, tag):
+            self.hidden.pop()
+        def handle_data(self, data):
+            if not any(self.hidden):
+                self.text.append(data)
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=briefing())
+    page = VisibleText()
+    page.feed(task_view.render(task_view.inspect(work[2]['directory'], continuation=note), 'html'))
+    visible = ''.join(page.text)
+    assert 'Export every finding' in visible  # full canonical goal, not the authored summary
+    for _, definition in task_view._ROLES.values():
+        assert definition in visible

@@ -328,6 +328,26 @@ def journey_checks(run, python, root, mode):
 
     plan = run(['plan','--task-dir',str(directory),'--project',str(project),'--config',str(participants),'--request',str(request)],0,'draft')
     assert not plan['questions']['missing'], plan
+    # Exercise the read-only human entrance from the installed console script.
+    saved_before = (directory/'record.json').read_bytes()
+    continuation = root/'briefing-note.json'
+    continuation.write_text(json.dumps({
+        'schema_version': 1, 'task_id': plan['task_id'], 'revision': plan['revision'],
+        'recorded_at': '2026-09-25T00:00:00Z', 'source': 'Installed journey fixture',
+        'stopped_after': 'The plan is ready for discussion.', 'progress': [], 'next_step': None,
+        'design_review': {'presentation_revision': '1', 'next_question': 'Which entrance should we try?',
+                          'feedback': [{'criterion': 'Goal', 'status': 'observed',
+                                        'observation': 'Reader feedback: clear — café.', 'references': []}]}
+    }), encoding='utf-8')
+    snapshot = subprocess.run([str(console_script(python)), 'status', str(directory),
+                               '--format', 'html', '--continuation', str(continuation),
+                               '--include-task', str(root/'missing-task')],
+                              text=True, encoding='utf-8', capture_output=True, cwd=root,
+                              env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
+    assert snapshot.returncode == 0, snapshot.stdout + snapshot.stderr
+    assert all(text in snapshot.stdout for text in ('Saved Tasks', 'Goal',
+               'Desired end state', 'Your reply to the assistant', 'Unavailable task'))
+    assert (directory/'record.json').read_bytes() == saved_before
     accept = ['plan','--task-dir',str(directory),'--accept','--checkpoint',plan['checkpoint_digest']]
     build = ['build',str(directory),'--allow-external']
     review = ['review','--goal',"Check the guide against the exporter's evidence",'--project',str(project),
