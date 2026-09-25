@@ -520,6 +520,14 @@ def test_saved_tasks_navigation_is_bound_to_explicit_identities_and_read_only(wo
             links = [a["href"] for t, a in page.tags if t == "a"]
             assert len(links) == 4 and all(link[1:] in ids for link in links)
             assert all(link.startswith("#") for link in links)
+        else:
+            import re
+            anchors = re.findall(r'<a id="([^"]+)"></a>', text)
+            targets = re.findall(r'\]\(#([^)]+)\)', text)
+            assert len(anchors) == 3 and len(anchors) == len(set(anchors))
+            assert len(targets) == 6 and all(target in anchors for target in targets)
+            assert targets[:2] == anchors[1:]
+            assert text.index("# Saved Tasks") < text.index("# Return to work")
     assert files_under(work[0].parent) == before
 
 
@@ -575,3 +583,15 @@ def test_hostile_briefing_and_handoff_stay_literal(work):
     assert not {"img", "iframe", "form", "a"} & {tag for tag, _ in page.tags}
     assert "\u202e" not in rendered
     assert view["task_id"] in rendered and "not a checkpoint acceptance" in rendered
+
+
+def test_markdown_collection_escapes_hostile_index_titles(work):
+    attack = '[outside](https://invalid.example) <a id="saved-tasks">bad</a>'
+    work[2]["intent"]["goal"] = attack
+    contracts.make(work)
+    other = second_task(work)
+    text = task_view.render_saved_tasks(task_view.inspect_saved_tasks(work[2]["directory"], [other]), "markdown")
+    assert text.count('<a id="saved-tasks"></a>') == 1
+    assert '[outside](' not in text
+    assert '<a id="saved-tasks">bad' not in text
+    assert '[← Saved tasks](#saved-tasks)' in text

@@ -435,10 +435,18 @@ def render_saved_tasks(entries, format):
     if format not in ("html", "markdown"):
         raise ValueError("Saved Tasks format must be markdown or html")
     if format == "markdown":
-        return "# Saved Tasks\n\n" + SNAPSHOT_NOTE + "\n\n" + "\n\n".join(
-            render(entry["view"], "markdown") if "view" in entry else
-            "## Unavailable task\n\n" + _literal(entry["directory"]) + "\n\n" + _literal(entry["error"])
-            for entry in entries)
+        index, tasks = ['<a id="saved-tasks"></a>', '# Saved Tasks', '', SNAPSHOT_NOTE, ''], []
+        for entry in entries:
+            if "view" not in entry:
+                index.append("- Unavailable task: " + _literal(entry["directory"]) + " — " + _literal(entry["error"]))
+                continue
+            view = entry["view"]
+            key = "task-" + hashlib.sha256(view["task_id"].encode()).hexdigest()[:24]
+            brief, _, _ = _briefing(view)
+            index.append(f'- [{_literal(brief["title"])}](#{key})')
+            tasks.extend([f'<a id="{key}"></a>', '[← Saved tasks](#saved-tasks)',
+                          render(view, "markdown"), '[← Saved tasks](#saved-tasks)'])
+        return "\n".join(index) + "\n\n" + "\n\n".join(tasks) + "\n"
     bodies, cards = [], []
     for entry in entries:
         if "view" not in entry:
