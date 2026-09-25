@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "attune-harness": {
+      "command": "attune-harness",
+      "args": [
+        "mcp-serve",
+        "--workspace"
+      ]
+    }
+  }
+}
