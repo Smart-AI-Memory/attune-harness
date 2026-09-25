@@ -6,10 +6,36 @@ workflow, qualify model quality, or make every module's 90% a release requiremen
 
 ## Design and experiment
 
+### Receipt input binding repair
+
+The receipt records SHA-256 for every tracked file in the checkout, plus
+untracked files under test, script, example, experiment, documentation, plugin,
+skill and workflow trees and recognized root pytest configuration files.
+This covers collected tests, fixture bytes, the measurement collector, the
+platform qualification driver and subprocess examples. Symlinks in those input
+trees and tracked files are refused. The input map and installed package hashes
+are captured before execution and compared after the child exits; a changed or
+unreadable input marks the receipt incompatible,
+even when pytest exits successfully. Combining requires this input map and an
+explicit no-drift marker, so older manifests remain readable but cannot be
+combined as equivalent evidence. Generated Python caches are excluded because
+they are interpreter outputs rather than executed inputs. The pre/post checks
+do not detect a transient edit restored during execution; the receipt binds
+the observed input bytes, not complete execution provenance.
+The supplemental workflow therefore runs on every pull request: a path filter
+could omit an executed tracked fixture. This costs three instrumented runner
+jobs even for a documentation-only change; the ordinary qualification gate
+remains authoritative.
+
+The owned `test_work_build` fixture disables Git automatic maintenance for its
+baseline commit. That keeps a transient Git lock from racing the production
+snapshot; production snapshot failure remains fail closed.
+
 Measure real Python children even when Harness replaces their environment or uses
 `-I`. Keep production argv, environment policies and source bytes unchanged. Keep
 all source modules in the denominator. Retain each platform's result separately;
-combine only successful runs of the same commit, source hashes and collector version.
+combine only successful runs of the same commit, source and execution-input hashes,
+pytest version and collector version, with no post-run drift.
 The supplemental workflow disables checkout newline conversion on its disposable
 runners so Windows and POSIX measure identical source bytes. A CRLF-converted
 checkout is rejected by the combiner rather than silently normalized.
@@ -42,7 +68,8 @@ uses a private temporary directory, and removes its own startup hook on exit.
 An abrupt kill may leave the hook: retire that disposable environment.
 
 Outputs include the test transcript, JSON/HTML line and branch reports, raw data,
-and a manifest naming the source revision, hashes, platform, suite and exit status.
+and a manifest naming the source revision, source and execution-input hashes,
+platform, suite, exit status and post-run drift status.
 A failed suite remains failed even if its partial coverage report exists. The
 supplemental CI jobs upload those files without imposing a coverage threshold.
 
@@ -54,7 +81,8 @@ python scripts/measure_coverage.py --output /absolute/new/combined \
 ```
 
 Combining requires the pinned collector and rejects a different revision, altered
-source or a failed/unfinished suite. Keep the individual platform reports beside
+source, altered test/fixture/driver bytes, or a failed/unfinished suite. Older
+receipts without execution-input hashes cannot be combined. Keep the individual platform reports beside
 the union: execution on one OS does not establish behavior on another.
 
 ## Limits

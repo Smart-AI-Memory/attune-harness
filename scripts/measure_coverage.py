@@ -13,6 +13,13 @@ import sysconfig
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'src/attune_harness'
 VERSION = '7.13.5'
+INPUT_TREES = ('tests', 'scripts', 'examples', 'experiments', 'docs',
+               'plugin', '.agents', '.claude', '.github/workflows')
+IGNORED_INPUT_DIRS = {'__pycache__', '.pytest_cache'}
+ROOT_INPUTS = ('pyproject.toml', 'pytest.ini', '.pytest.ini', 'pytest.toml',
+               '.pytest.toml', 'tox.ini', 'setup.cfg', 'setup.py', 'conftest.py',
+               'MANIFEST.in', 'README.md', 'participants.json',
+               'dependency-lock.json', '.github/workflows/coverage.yml')
 
 
 def hashes(directory):
@@ -20,18 +27,53 @@ def hashes(directory):
             for p in sorted(directory.rglob('*.py'))}
 
 
+def input_hashes():
+    """Bind tracked checkout bytes and untracked test/driver/fixture inputs."""
+    tracked = subprocess.check_output(['git', 'ls-files', '-z', '--cached'], cwd=ROOT)
+    paths = {ROOT / os.fsdecode(name) for name in tracked.split(b'\0') if name}
+    for name in INPUT_TREES:
+        tree = ROOT / name
+        if tree.is_symlink() or (tree.exists() and not tree.is_dir()):
+            raise ValueError('Coverage input tree must be a real directory: ' + str(tree))
+        if not tree.exists():
+            continue
+        for path in sorted(tree.rglob('*')):
+            if any(part in IGNORED_INPUT_DIRS for part in path.relative_to(tree).parts):
+                continue
+            if path.is_symlink():
+                raise ValueError('Coverage inputs cannot contain symlinks: ' + str(path))
+            if path.is_file():
+                paths.add(path)
+    paths.update(path for path in (ROOT / name for name in ROOT_INPUTS)
+                 if path.exists() or path.is_symlink())
+    paths.update(ROOT.glob('requirements*.lock'))
+    paths.update(ROOT.glob('requirements*.txt'))
+    if any(path.is_symlink() for path in paths):
+        raise ValueError('Coverage inputs cannot contain symlinks')
+    return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(paths)}
+
+
 def identity():
     return {'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
                                                 text=True).strip(),
-            'sources': hashes(SOURCE), 'coverage_version': VERSION}
+            'sources': hashes(SOURCE), 'input_hashes': input_hashes(),
+            'coverage_version': VERSION, 'pytest_version': importlib.metadata.version('pytest')}
+
+
+def inputs_stable(frozen, installed):
+    try:
+        return identity() == frozen and hashes(installed) == frozen['sources']
+    except (OSError, ValueError, subprocess.CalledProcessError):
+        return False
 
 
 def compatible(receipts, expected):
     for receipt in receipts:
         if any(receipt.get(key) != value for key, value in expected.items()):
-            raise ValueError('Coverage requires matching revision, source bytes and collector version')
-        if receipt.get('test_exit') != 0:
-            raise ValueError('Cannot combine a failed or unfinished test run')
+            raise ValueError('Coverage requires matching revision, source and executed input bytes, and tool versions')
+        if receipt.get('test_exit') != 0 or receipt.get('input_drift') is not False:
+            raise ValueError('Cannot combine a failed, unfinished or input-drifted test run')
 
 
 def configuration(output, aliases):
@@ -81,6 +123,7 @@ def measure(output, suite):
     installed = Path(attune_harness.__file__).resolve().parent
     if installed == SOURCE or hashes(installed) != hashes(SOURCE):
         raise ValueError('Install a wheel with exactly the current source bytes')
+    frozen = identity()
     hook = Path(sysconfig.get_path('purelib')) / 'harness_measure_coverage.pth'
     if hook.exists():
         raise ValueError('Measurement hook already exists; use a fresh virtualenv')
@@ -88,9 +131,9 @@ def measure(output, suite):
     temporary = output / 'tmp'
     temporary.mkdir()
     config = configuration(output, [installed.as_posix()])
-    receipt = {**identity(), 'system': platform.system(), 'python': platform.python_version(),
+    receipt = {**frozen, 'system': platform.system(), 'python': platform.python_version(),
                'suite': suite, 'aliases': [SOURCE.as_posix(), installed.as_posix()],
-               'test_exit': None,
+               'test_exit': None, 'input_drift': True,
                'limits': ['no-site (-S) children', 'abrupt termination before save',
                           'instrumented run is not platform qualification']}
     manifest = output / 'manifest.json'
@@ -113,9 +156,10 @@ def measure(output, suite):
         receipt['test_exit'] = run.returncode
     finally:
         hook.unlink(missing_ok=True)
+        receipt['input_drift'] = not inputs_stable(frozen, installed)
         save()
     report(config)
-    return receipt['test_exit']
+    return 1 if receipt['input_drift'] else receipt['test_exit']
 
 
 def combine(output, directories):
@@ -127,7 +171,7 @@ def combine(output, directories):
     config = configuration(output, aliases)
     report(config, [str(p / '.coverage') for p in directories])
     (output / 'manifest.json').write_text(json.dumps({**expected, 'test_exit': 0,
-        'inputs': receipts}, indent=2) + '\n', encoding='utf-8')
+        'input_drift': False, 'inputs': receipts}, indent=2) + '\n', encoding='utf-8')
     return 0
 
 

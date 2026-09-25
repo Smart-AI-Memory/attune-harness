@@ -91,6 +91,8 @@ def prepare(work, *, accept=True):
     subprocess.run(
         [
             "git",
+            "-c",
+            "maintenance.auto=false",
             "-C",
             str(root),
             "add",
@@ -105,6 +107,8 @@ def prepare(work, *, accept=True):
     subprocess.run(
         [
             "git",
+            "-c",
+            "maintenance.auto=false",
             "-C",
             str(root),
             "-c",
