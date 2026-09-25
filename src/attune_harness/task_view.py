@@ -209,6 +209,16 @@ def _overview(view):
         attention.insert(0, ("Before continuing", view["summary"]))
     if attention:
         yield "Needs your attention", attention
+    checked = [task for task in view["tasks"] if task["id"] in view["completed"]]
+    label = "Prior checks need revalidation" if "freshness_error" in view else "Recorded passing checks"
+    progress = [(label, task["objective"]) for task in checked[:3]]
+    if len(checked) > 3:
+        progress.append(("More", f"{len(checked) - 3} further tasks have recorded checks; see Planned tasks below."))
+    if not checked:
+        progress.append(("Harness checks", "No task completion is established by the current journal. Reported external work remains separate."))
+    if view["preserved_completion"]:
+        progress.append(("Earlier revision", "Prior completion is retained for " + ", ".join(view["preserved_completion"]) + "; inspect Completion evidence below for its applicability."))
+    yield "Recorded progress", progress
     completed = set() if "freshness_error" in view else set(view["completed"])
     remaining = [task for task in view["tasks"] if task["id"] not in completed]
     rows = [("Next planned work", task["objective"]) for task in remaining[:3]]

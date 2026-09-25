@@ -147,6 +147,25 @@ def test_paused_work_retains_suggestion_but_uncertain_dispatch_withholds_it(work
         assert "do not blindly retry" in rendered
 
 
+def test_partial_build_progress_is_visible_before_supporting_detail(work):
+    case = builds.prepare(work)
+    builds.execute(case, max_operations=8)
+    view = task_view.inspect(case[1])
+    assert view["status"] == "paused" and view["completed"] == ["export"]
+    objectives = {task["id"]: task["objective"] for task in view["tasks"]}
+    for fmt in ("html", "markdown"):
+        overview = task_view.render(view, fmt).split("Supporting detail", 1)[0]
+        assert objectives["export"] in overview and objectives["wire"] in overview
+        assert "Recorded passing checks" in overview
+    (case[0] / "source.py").write_text("changed after passing check\n")
+    stale = task_view.inspect(case[1])
+    assert stale["status"] == "stale"
+    for fmt in ("html", "markdown"):
+        overview = task_view.render(stale, fmt).split("Supporting detail", 1)[0]
+        assert "Prior checks need revalidation" in overview
+        assert "Recorded passing checks" not in overview
+
+
 @pytest.mark.parametrize("changes", [
     {"task_id": "another-task"}, {"revision": 0}, {"revision": True}, {"revision": 2},
     {"recorded_at": "yesterday"}, {"recorded_at": "2026-09-25T09:30:00"},
