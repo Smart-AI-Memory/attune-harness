@@ -140,7 +140,8 @@ def test_exit_race_reaps_then_rechecks_group_without_losing_output(tmp_path, mon
             raise PermissionError('exit race')
         return real(pid, sig)
     monkeypatch.setattr(runner.os, 'killpg', denied_once)
-    result = invoke(command('print("x"*100000)'), '', cwd=tmp_path, max_output_bytes=100)
+    # Model rapid exit without unrelated atexit work, such as coverage saving.
+    result = invoke(command('import os;os.write(1,b"x"*100000);os._exit(0)'), '', cwd=tmp_path, max_output_bytes=100)
     assert result.failure == 'output_limit' and len(result.stdout) == 100
     assert result.returncode == 0 and len(calls) == 2
 

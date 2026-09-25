@@ -63,6 +63,10 @@ and [documentation review checklist](documentation-maintenance.md).
 
 ## Codex skill
 
+For discovery through the Plugins list, use the separate
+[Attune Harness plugin package](codex-plugin.md). The instructions below install
+the standalone skill only; Attune-AI is a different plugin.
+
 The repository's [attune-harness skill](../.agents/skills/attune-harness/SKILL.md)
 routes natural-language tasks to the existing CLI. For example:
 

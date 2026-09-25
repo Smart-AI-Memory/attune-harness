@@ -13,6 +13,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 ## Start here
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
+- [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
 - [R2: the clean-environment journey](journeys/r2-clean-environment.md): Plan, accept, build, review and status from a fresh install with Attune AI absent, the envelope each step returns, and where the gate proves it
 - [R4: another project's spec state, with a receipt](journeys/r4-legacy-spec-state.md): A plan from another project imported by name, the receipt each conversion leaves, the refusals, and the eight fixtures' origins
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
@@ -67,6 +68,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 | File | Title | Dated |
 | --- | --- | --- |
+| [design-codex-plugin.md](design-codex-plugin.md) | Codex plugin packaging | 2026-09-24 |
 | [design-a2a-increment.md](design-a2a-increment.md) | A2A local peer profile — design before implementation | 2026-09-14 |
 | [design-active-workflow-coverage.md](design-active-workflow-coverage.md) | Active workflow coverage | 2026-09-24 |
 | [design-adapter-increment.md](design-adapter-increment.md) | Adapter boundary experiment |  |

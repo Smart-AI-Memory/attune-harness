@@ -1,0 +1,29 @@
+{
+  "name": "attune-harness",
+  "version": "0.1.0",
+  "description": "Attune Harness workflows for planning, building, evidence review, scoped repair and testing.",
+  "author": {
+    "name": "Smart AI Memory"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Attune Harness",
+    "shortDescription": "Plan, build, review, fix and test with Harness.",
+    "longDescription": "Run the existing Attune Harness CLI workflows and inspect or resume saved tasks. Requires a separate attune-harness runtime. This is distinct from the Attune-AI plugin.",
+    "developerName": "Smart AI Memory",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Use Attune Harness to inspect my saved task.",
+      "Use Attune Harness to test my changes."
+    ]
+  },
+  "repository": "https://github.com/Smart-AI-Memory/attune-harness",
+  "license": "Apache-2.0",
+  "keywords": [
+    "attune-harness",
+    "workflows",
+    "testing",
+    "evidence"
+  ]
+}
