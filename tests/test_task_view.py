@@ -704,3 +704,59 @@ def test_hostile_feedback_and_question_cannot_inject_controls_or_script(work):
     assert not any(t == "img" for t, _ in page.tags)
     assert attack in "".join(page.text)
     assert "<SCRIPT>" not in task_view.render(view, "markdown")
+
+
+def test_partial_feedback_is_supported_without_becoming_observed_or_complete(work):
+    record = contracts.make(work)
+    review = design_review()
+    review['feedback'][0]['status'] = 'partial'
+    note = continuation(work, record, design_review=review)
+    view = task_view.inspect(work[2]['directory'], continuation=note)
+    for fmt in ('html', 'markdown'):
+        assert 'partial: The reader understood the goal' in task_view.render(view, fmt)
+    assert view['completed'] == []
+
+
+@pytest.mark.parametrize('field', ['criterion', 'observation', 'reference'])
+def test_feedback_text_accepts_exact_byte_limit_and_refuses_one_byte_over(work, field):
+    record = contracts.make(work)
+    review = design_review()
+    exact = 'é' * 1024
+    def set_value(value):
+        if field == 'reference':
+            review['feedback'][0]['references'] = [value]
+        else:
+            review['feedback'][0][field] = value
+    set_value(exact)
+    note = continuation(work, record, design_review=review)
+    task_view.inspect(work[2]['directory'], continuation=note)
+    set_value(exact + 'x')
+    note = continuation(work, record, design_review=review)
+    with pytest.raises(ValueError):
+        task_view.inspect(work[2]['directory'], continuation=note)
+
+
+def test_glossary_definitions_remain_visible_without_disclosures_or_javascript(work):
+    class VisibleText(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.hidden = []
+            self.text = []
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if tag not in ('meta', 'input', 'br', 'hr', 'img', 'link'):
+                self.hidden.append('hidden' in attrs or tag in ('script', 'style')
+                                   or (tag == 'details' and 'open' not in attrs))
+        def handle_endtag(self, tag):
+            self.hidden.pop()
+        def handle_data(self, data):
+            if not any(self.hidden):
+                self.text.append(data)
+    record = contracts.make(work)
+    note = continuation(work, record, briefing=briefing())
+    page = VisibleText()
+    page.feed(task_view.render(task_view.inspect(work[2]['directory'], continuation=note), 'html'))
+    visible = ''.join(page.text)
+    assert 'Export every finding' in visible  # full canonical goal, not the authored summary
+    for _, definition in task_view._ROLES.values():
+        assert definition in visible
