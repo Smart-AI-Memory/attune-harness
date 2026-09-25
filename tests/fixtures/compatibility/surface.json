@@ -805,7 +805,10 @@
   },
   "status": {
    "one_of": [],
-   "options": [],
+   "options": [
+    "--continuation",
+    "--format"
+   ],
    "positionals": [
     {
      "name": "task_dir",

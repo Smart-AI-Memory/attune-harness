@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 import subprocess
 import sys
 
@@ -179,7 +180,11 @@ def prepare(work, *, accept=True):
             "cwd": ".",
             "timeout": 10,
             "max_output_bytes": 2048,
-            "environment": {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
+            "environment": {
+                **({"SystemRoot": os.environ["SystemRoot"]} if os.name == "nt" else {}),
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTHONNOUSERSITE": "1",
+            },
             "oracle_paths": [oracle],
         }
 

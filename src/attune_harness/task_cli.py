@@ -155,6 +155,11 @@ def add_controls(sub):
     ):
         parser = sub.add_parser(name, help=help_text)
         parser.add_argument('task_dir', type=Path)
+        if name == 'status':
+            parser.add_argument('--format', choices=('json', 'markdown', 'html'), default='json',
+                                help='Output format; human-readable snapshots require feature work')
+            parser.add_argument('--continuation', type=Path,
+                                help='Explicit continuation JSON for --format markdown or html')
         if name != 'status':
             parser.add_argument('--checkpoint', help='Optional expected checkpoint for scripted compare-and-set')
         if name == 'resume':
@@ -178,6 +183,13 @@ def add_controls(sub):
 def execute_control(args):
     from .task_policies import inspect_task, execute_task, control_task
     try:
+        continuation = getattr(args, 'continuation', None)
+        if continuation is not None and getattr(args, 'format', 'json') == 'json':
+            raise ValueError('--continuation requires --format markdown or html; default JSON is unchanged')
+        if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
+            from .task_view import inspect, render
+            print(render(inspect(args.task_dir, continuation=continuation), args.format))
+            return 0
         from .review_store import read_record
         if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
             from .work_cli import execute_control as execute_work_control
