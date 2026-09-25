@@ -22,7 +22,8 @@ def read_continuation(path, record):
     raw = read_text(path, MAX_NOTE_BYTES)
     note = parse_json(raw, MAX_NOTE_BYTES)
     fields(note, ("schema_version", "task_id", "revision", "recorded_at", "source",
-                  "stopped_after", "progress", "next_step"))
+                  "stopped_after", "progress", "next_step",
+                  *(["briefing"] if isinstance(note, dict) and "briefing" in note else [])))
     versioned(note)
     request = record["request"]
     if note["task_id"] != request["task_id"]:
@@ -46,6 +47,11 @@ def read_continuation(path, record):
         fields(note["next_step"], ("action", "reason"))
         for name, value in note["next_step"].items():
             bounded_text(value, name, 2048)
+    if "briefing" in note:
+        fields(note["briefing"], ("title", "context", "goal", "desired_end_state",
+                                 "current_focus", "done_when"))
+        for name, value in note["briefing"].items():
+            bounded_text(value, "briefing " + name, 2048)
     baseline = (request if revision == request["revision"]
                 else record["history"][revision - 1]["request"])
     return {

@@ -67,3 +67,53 @@ and disagreements; the tutorial is not proof of general ranking effectiveness.
 Check that users understand an opportunity is optional, can explain a simpler
 alternative and ongoing cost, and can defer without losing the idea. Do not use
 the number of opportunities selected as evidence that the journey succeeded.
+
+## Production integration: Saved Tasks and a human briefing
+
+Design status: implementation in progress. Completion review: pending.
+
+The returning user needs a stable entrance as well as an understandable task.
+Keep `status TASK` JSON unchanged. Add repeatable `--include-task TASK` for an
+explicit collection in HTML or Markdown (maximum 20 distinct directories).
+The caller saves HTML to a stable filename; its Saved Tasks links and back links
+navigate locally inside that one document. No directory scanning, host-history
+access, registry, server or task mutation is introduced. Unreadable/unsupported
+additional tasks appear as unavailable entries, not as empty or completed work.
+Reject duplicate task identities rather than presenting two copies as distinct.
+Bound each view as before and the collection to 2 MiB of serialized content.
+
+The opening separates context, overall goal, desired end state, current focus,
+where work stopped and the next useful step. Existing saved-owner guidance stays
+visible and authoritative. Full evidence, comparisons and recorded progress stay
+available below. An explicit continuation note may add a bounded `briefing`
+object: title, context, goal, desired_end_state, current_focus and done_when.
+These are attributed caller summaries, not new task authority. Display them only
+when the declared revision is current; stale summaries fall back to saved intent.
+The existing note size limit and strict validation still apply. Canonical goal,
+criteria and task details remain inspectable.
+
+This increment supersedes the earlier blanket exclusion of scripts/buttons only
+for local reply preparation: fixed bundled JavaScript allows Continue, Correct
+context or Ask a question, optional personal wording, an exact read-only reply
+and Copy reply. Every reply identifies the task path and displayed revision and
+asks the assistant to inspect current status before acting. No response is sent,
+accepted, persisted or executed by the page. Copy failure selects the reply for
+manual copy. Without JavaScript, the baseline reply remains readable/selectable.
+Use “Your reply to the assistant”; host-specific branding is not a control label.
+Only the bundled script and style hashes are allowed by CSP; task content is
+literal text, never JavaScript, links, form actions or navigation targets.
+
+Cases to verify: absent/current/historical summaries; blocked, stale, completed
+and uncertain owner state; literal hostile input; default JSON compatibility;
+collection ordering, duplicates, missing/non-feature tasks, count/byte limits;
+keyboard/mobile navigation and response controls, unavailable clipboard, no JS;
+no changes to task/note bytes and no participant dispatch. Installed wheel checks
+must exercise the same interface. Retained prototype experiments established
+layout/interaction behavior; a formative interrupted-work walkthrough exposed
+navigation difficulty and supported the new hierarchy. Independent discovery
+from a closed host remains unverified.
+
+Rejected alternatives: automatic filesystem/history discovery creates hidden
+scope; new task storage duplicates existing owners; a live write endpoint would
+prematurely introduce Task 6. The read-only single-file entrance can be reused by
+Task 2, with connected response delivery left to the later controlled-action work.

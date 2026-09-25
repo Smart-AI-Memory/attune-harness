@@ -328,6 +328,15 @@ def journey_checks(run, python, root, mode):
 
     plan = run(['plan','--task-dir',str(directory),'--project',str(project),'--config',str(participants),'--request',str(request)],0,'draft')
     assert not plan['questions']['missing'], plan
+    # Exercise the read-only human entrance from the installed console script.
+    saved_before = (directory/'record.json').read_bytes()
+    snapshot = subprocess.run([str(console_script(python)), 'status', str(directory),
+                               '--format', 'html', '--include-task', str(root/'missing-task')],
+                              text=True, capture_output=True, cwd=root)
+    assert snapshot.returncode == 0, snapshot.stdout + snapshot.stderr
+    assert all(text in snapshot.stdout for text in ('Saved Tasks', 'Overall goal',
+               'Desired end state', 'Your reply to the assistant', 'Unavailable task'))
+    assert (directory/'record.json').read_bytes() == saved_before
     accept = ['plan','--task-dir',str(directory),'--accept','--checkpoint',plan['checkpoint_digest']]
     build = ['build',str(directory),'--allow-external']
     review = ['review','--goal',"Check the guide against the exporter's evidence",'--project',str(project),

@@ -90,6 +90,11 @@ authority. Unsupported profiles and oversized views give a JSON error and exit 2
 `--continuation FILE` optionally supplies bounded, attributed pause context for
 Markdown/HTML only. It does not extend the saved task schema or JSON envelope;
 using it with JSON gives an explicit error rather than silently dropping context.
+The optional `briefing` object adds six bounded, attributed summary fields to the
+continuation note only. HTML now carries fixed local reply-preparation controls,
+not task actions. Repeatable `--include-task TASK` adds an explicit bounded Saved
+Tasks collection for HTML/Markdown; JSON refuses that option. No saved-task
+record schema or execution route changes.
 
 ## 2. Envelopes
 

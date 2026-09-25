@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a Saved Tasks entrance through explicit `status --include-task` inputs.
+  Human briefings separate context, goal, desired end state and current focus;
+  optional attributed summaries stay bound to their continuation revision.
+  Local reply controls prepare text for an assistant without sending, approving
+  or executing it. Default JSON and saved task authority remain unchanged.
+
 - Add opt-in `status --format markdown|html` return-to-work views for saved
   feature-work tasks. `--continuation FILE` adds an explicitly supplied stopping
   point, attributed external progress and a comparison with retained request scope.

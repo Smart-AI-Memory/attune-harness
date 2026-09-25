@@ -807,7 +807,8 @@
    "one_of": [],
    "options": [
     "--continuation",
-    "--format"
+    "--format",
+    "--include-task"
    ],
    "positionals": [
     {

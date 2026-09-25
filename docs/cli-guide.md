@@ -522,3 +522,37 @@ All 18 original command routes remain callable, including positional
 They preserve their original arguments, output and exit behavior. These are
 compatibility routes, not an additional vocabulary required for new tasks.
 See the [navigation design](design-navigation.md) for the discovery policy.
+
+
+### Saved Tasks and briefing replies
+
+Supply task directories explicitly to produce one navigable HTML file:
+
+```sh
+attune-harness status /tmp/my-work --include-task /tmp/other-work --format html > saved-tasks.html
+```
+
+Re-run the same command to refresh that file. Open it to choose a task; each
+briefing links back to Saved Tasks. This does not install a host entry or refresh
+a browser automatically. The collection accepts at most 20 distinct directories
+and 2 MiB of serialized views. Additional missing, unsupported or duplicate-owner
+tasks appear as unavailable; a failure in the primary task fails the command.
+Markdown is also supported; `--include-task` with JSON is refused. Inspection
+performs no discovery, dispatch or task mutation. `--continuation` applies only
+to the primary task in a collection.
+
+The briefing separates context, overall goal, desired end state, current focus,
+stopping point and authoritative next action. HTML offers local reply preparation
+and Copy reply. Selecting a response does not send it or accept a checkpoint.
+If clipboard access is unavailable, select/copy the text manually. Without
+JavaScript, the initial handoff remains selectable. Replies identify the task and
+revision and require current inspection before acting. Unsaved reply drafts last
+only while the page remains open; they do not survive reload.
+
+The existing continuation schema optionally accepts `briefing` with exactly six
+nonempty text fields (each at most 2,048 UTF-8 bytes): `title`, `context`, `goal`,
+`desired_end_state`, `current_focus`, and `done_when`. These caller-authored
+summaries retain the note's source/timestamp and are shown only for its current
+revision. Historical notes fall back to canonical intent. Full saved intent and
+owner guidance remain available; a summary cannot establish progress, approval
+or a different next action. The entire note remains bounded to 32 KiB.

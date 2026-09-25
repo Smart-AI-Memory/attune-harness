@@ -158,6 +158,8 @@ def add_controls(sub):
         if name == 'status':
             parser.add_argument('--format', choices=('json', 'markdown', 'html'), default='json',
                                 help='Output format; human-readable snapshots require feature work')
+            parser.add_argument('--include-task', type=Path, action='append', default=[],
+                                help='Additional explicit saved task for an HTML/Markdown task list (20 total)')
             parser.add_argument('--continuation', type=Path,
                                 help='Explicit continuation JSON for --format markdown or html')
         if name != 'status':
@@ -184,11 +186,18 @@ def execute_control(args):
     from .task_policies import inspect_task, execute_task, control_task
     try:
         continuation = getattr(args, 'continuation', None)
+        included = getattr(args, 'include_task', [])
+        if included and getattr(args, 'format', 'json') == 'json':
+            raise ValueError('--include-task requires --format markdown or html; default JSON is unchanged')
         if continuation is not None and getattr(args, 'format', 'json') == 'json':
             raise ValueError('--continuation requires --format markdown or html; default JSON is unchanged')
         if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
-            from .task_view import inspect, render
-            print(render(inspect(args.task_dir, continuation=continuation), args.format))
+            from .task_view import inspect, render, inspect_saved_tasks, render_saved_tasks
+            if included:
+                print(render_saved_tasks(inspect_saved_tasks(
+                    args.task_dir, included, continuation=continuation), args.format))
+            else:
+                print(render(inspect(args.task_dir, continuation=continuation), args.format))
             return 0
         from .review_store import read_record
         if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
