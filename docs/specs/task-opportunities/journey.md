@@ -117,3 +117,28 @@ Rejected alternatives: automatic filesystem/history discovery creates hidden
 scope; new task storage duplicates existing owners; a live write endpoint would
 prematurely introduce Task 6. The read-only single-file entrance can be reused by
 Task 2, with connected response delivery left to the later controlled-action work.
+
+### S1–S3: current design decisions and retained feedback
+
+Before implementation: keep inspection read-only and separate task authority from
+caller-reported design feedback. Optional continuation `design_review` records a
+presentation revision, a next question (or null), and up to six criterion reports
+with observed/partial/unverified status, an observation and evidence references.
+The note's existing identity, revision, source, timestamp and size bounds apply.
+Unknown fields/statuses fail validation. Reports remain attributed, unauthenticated
+external evidence; they never mark task checks complete or accept scope.
+
+Current design questions are shown only for a current-scope note, a non-completed
+owner and no freshness error. Owner next-action guidance remains visible first,
+including blocking build readiness. Discussion controls prepare a question-bound,
+note-digest-bound reply which explicitly authorizes no execution. Historical or
+stale questions are withheld; historical feedback remains clearly identified.
+Inspection time, note time and presentation revision are separately labeled.
+
+Reuse one six-role vocabulary/definition table for prominent HTML headings,
+keyboard/touch/hover help, the visible glossary and Markdown headings. Full saved
+goal and definitions stay visible. Do not hide necessary task facts in tooltips.
+JSON status stays unchanged. Tests cover state/authority combinations, hostile
+input, field and byte limits, cross-format content, and unchanged owner bytes.
+The installed journey must exercise the updated renderer and encoding on Windows.
+Completion review: pending for this increment.

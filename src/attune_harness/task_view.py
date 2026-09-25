@@ -258,6 +258,11 @@ textarea[readonly]{background:var(--wash);min-height:150px}.controls{display:fle
 .task-card{border-top:1px solid var(--line);padding:24px 0}.task-card a{display:inline-block;padding:10px 0;min-height:44px}
 .saved-task{display:none}.saved-task:target{display:block}.saved-task:target~#saved-tasks{display:none}
 @media(max-width:650px){main{padding:22px 16px}.destination{grid-template-columns:1fr}.brief>section,.destination{padding:18px}dl{grid-template-columns:1fr;gap:3px}dd{margin-bottom:10px}.controls button{flex:1 1 100%}}
+
+.role-label{position:relative;display:flex;align-items:center;gap:8px;font-size:22px;font-weight:750;line-height:1.25;color:var(--ink);margin:0 0 16px;padding-left:12px;border-left:4px solid var(--accent)}
+.role-help{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;min-height:44px;padding:0;border:0;background:transparent;color:var(--accent);font-size:17px}
+.role-tooltip{position:absolute;z-index:2;top:100%;left:0;width:26rem;max-width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);box-shadow:0 4px 14px #0002;font:400 14px/1.5 system-ui,sans-serif}
+[hidden]{display:none!important}
 @media print{.saved-task{display:block}.controls{display:none}}
 """
 _REPLY_SCRIPT = """
@@ -269,6 +274,7 @@ document.querySelectorAll('[data-reply]').forEach(panel => {
  const requests={continue:'Please help me follow the current next-action guidance within existing authorization.',
  correct:'Please review my correction to the context before continuing; do not treat it as a change to accepted scope.',
  question:'Please answer my question before continuing.'};
+ if(panel.dataset.discussion==='true')requests.continue='Please discuss the displayed design question; do not execute work or infer new approval.';
  let selected='continue'; const drafts={continue:'',correct:'',question:''};
  function update(){drafts[selected]=notes.value;reply.value=original+'\\n\\n'+requests[selected]+(notes.value.trim()?'\\n\\n'+notes.value:'');
   copy.disabled=selected==='question'&&!notes.value.trim();
@@ -285,6 +291,34 @@ document.querySelectorAll('[data-reply]').forEach(panel => {
  }catch{reply.focus();reply.select();status.textContent='Copy the selected reply with Command+C or Ctrl+C, then paste into your conversation.';}});
  update();
 });
+// Label definitions: hover, keyboard focus or tap; Escape dismisses.
+(() => {
+ const groups = [...document.querySelectorAll('.role-label')];
+ const states = groups.map(group => {
+  const button = group.querySelector('.role-help');
+  const tip = group.querySelector('.role-tooltip');
+  const state = {group, button, tip, pinned:false, hovering:false};
+  state.show = visible => { tip.hidden = !visible; button.setAttribute('aria-expanded', String(visible)); };
+  group.addEventListener('pointerenter', () => { state.hovering = true; state.show(true); });
+  group.addEventListener('pointerleave', () => {
+   state.hovering = false;
+   if (!state.pinned && !group.contains(document.activeElement)) state.show(false);
+  });
+  button.addEventListener('focus', () => state.show(true));
+  group.addEventListener('focusout', event => {
+   if (!group.contains(event.relatedTarget)) { state.pinned = false; if (!state.hovering) state.show(false); }
+  });
+  button.addEventListener('click', () => { state.pinned = !state.pinned; state.show(state.pinned); });
+  return state;
+ });
+ document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') states.forEach(state => { state.pinned = false; state.show(false); });
+ });
+ document.addEventListener('click', event => {
+  states.forEach(state => { if (!state.group.contains(event.target)) { state.pinned = false; state.show(false); } });
+ });
+})();
+
 """
 
 
@@ -292,7 +326,61 @@ def _escape(value):
     return html.escape(_plain(value), quote=True)
 
 
+# Shared language across HTML, Markdown and the always-visible reference.
+_ROLES = {
+    "context": ("Context", "The situation and reason for returning."),
+    "goal": ("Goal", "The purpose of the whole effort."),
+    "desired_end_state": ("Desired end state", "The observable experience we want to make possible."),
+    "current_focus": ("Current focus", "The bounded increment we are working on now."),
+    "position": ("Current position", "What is established and what is still unfinished."),
+    "next_action": ("Next action", "The useful next contribution, with its purpose."),
+}
+
+
+def _design_question(view):
+    note = view["continuation"]
+    if (note and note["current_revision"] and "freshness_error" not in view
+            and view["status"] != "completed"):
+        return note.get("design_review", {}).get("next_question")
+    return None
+
+
+def _feedback_rows(view):
+    note = view["continuation"]
+    review = note.get("design_review") if note else None
+    if review is None:
+        return []
+    rows = [("Source", note["source"]), ("Reported at", note["recorded_at"]),
+            ("Presentation revision", review["presentation_revision"]),
+            ("Evidence limit", "Caller-reported feedback, not authenticated acceptance or passing task checks.")]
+    if not note["current_revision"] or "freshness_error" in view:
+        rows.append(("Historical context", "These reports are retained for reference, not current validation. The design question is withheld."))
+    for item in review["feedback"]:
+        rows.extend([(item["criterion"], item["status"] + ": " + item["observation"]),
+                     ("References (not checked)", "; ".join(item["references"]) or "None supplied")])
+    return rows
+
+
+def _role_heading(role, key):
+    title, definition = _ROLES[role]
+    tip = f"definition-{key}-{role}"
+    return (f'<h2 class="role-label"><span>{title}</span>'
+            f'<button type="button" class="role-help" aria-label="About {title}" '
+            f'aria-describedby="{tip}" aria-controls="{tip}" aria-expanded="false">?</button>'
+            f'<span class="role-tooltip" id="{tip}" role="tooltip" hidden>{definition}</span></h2>')
+
+
 def _handoff(view):
+    question = _design_question(view)
+    if question:
+        note = view["continuation"]
+        return (f'Help me discuss the next design decision for task {view["task_id"]} '
+                f'at {Path(view["record_path"]).parent}, saved revision {view["revision"]}. '
+                f'Presentation revision: {note["design_review"]["presentation_revision"]}. '
+                f'Continuation SHA-256: {note["sha256"]}. '
+                f'Inspect current status and this continuation before responding. Question: {question} '
+                'This reply requests discussion only; it does not authorize implementation, '
+                'execution or checkpoint acceptance.')
     return (f'Help me continue the saved task at {Path(view["record_path"]).parent}. '
             f'Task ID: {view["task_id"]}. The snapshot showed revision {view["revision"]}. '
             'Inspect its current status before acting, then follow its next-action guidance '
@@ -333,9 +421,9 @@ def _document(body, *, title="Return to work"):
 
 
 def _reply(view, key):
-    return (f'<div data-reply><p class="muted">Prepare a reply, then paste it into your conversation. '
+    return (f'<div data-reply data-discussion="{str(bool(_design_question(view))).lower()}"><p class="muted">Prepare a reply, then paste it into your conversation. '
             'Nothing is sent or accepted here. Drafts clear when you reload.</p><div class="controls">'
-            '<button type="button" data-choice="continue" aria-pressed="true">Continue with guidance</button>'
+            f'<button type="button" data-choice="continue" aria-pressed="true">{"Discuss next decision" if _design_question(view) else "Continue with guidance"}</button>'
             '<button type="button" data-choice="correct" aria-pressed="false">Correct context</button>'
             '<button type="button" data-choice="question" aria-pressed="false">Ask a question</button></div>'
             f'<label for="notes-{key}">Your words (required for a question)</label>'
@@ -353,24 +441,35 @@ def _rows(rows):
 
 def _body(view, key):
     brief, attribution, position = _briefing(view)
+    question = _design_question(view)
     parts = ['<header><p class="eyebrow">Attune Harness · Task briefing</p><h1>Return to work</h1>',
-             f'<p>{_escape(brief["title"])}</p><p class="muted">Snapshot captured {_escape(view["captured_at"])}</p></header>',
+             f'<p>{_escape(brief["title"])}</p><p class="muted">Task status checked at {_escape(view["captured_at"])}</p>',
+             f'<p class="muted">{_escape(SNAPSHOT_NOTE)}</p></header>',
              f'<p class="muted">{_escape(attribution)}</p><article class="brief">',
-             '<section><h2 class="label">Context · why we’re here</h2>', f'<p>{_escape(brief["context"])}</p></section>',
-             '<div class="destination"><section><h2 class="label">Overall goal</h2>',
-             f'<p class="goal">{_escape(brief["goal"])}</p></section><section><h2 class="label">Desired end state</h2>',
+             '<section>' + _role_heading("context", key), f'<p>{_escape(brief["context"])}</p></section>',
+             '<div class="destination"><section>' + _role_heading("goal", key),
+             f'<p class="goal">{_escape(brief["goal"])}</p></section><section>' + _role_heading("desired_end_state", key),
              f'<p>{_escape(brief["desired_end_state"])}</p></section></div>',
-             '<section class="focus"><h2 class="label">This iteration · current focus</h2>',
+             '<section class="focus">' + _role_heading("current_focus", key),
              f'<p>{_escape(brief["current_focus"])}</p><p><strong>Done when:</strong> {_escape(brief["done_when"])}</p></section>',
-             '<section><h2 class="label">Where we are now</h2>',
-             f'<p>{_escape(position)}</p><p class="muted">{_escape(view["summary"])}</p></section>',
-             '<section><p class="label">Next action</p><h2>Next useful step</h2>',
-             f'<p>{_escape(view["next_action"])}</p>', _reply(view, key), '</section></article>']
+             '<section>' + _role_heading("position", key),
+             f'<p>{_escape(position)}</p><p class="muted">{_escape(view["summary"])}</p>']
+    if _feedback_rows(view):
+        parts.append('<h3>Feedback already recorded</h3>' + _rows(_feedback_rows(view)))
+    parts.extend(['</section><section>' + _role_heading("next_action", key),
+                  '<h3>Next useful step · saved task guidance</h3>', f'<p>{_escape(view["next_action"])}</p>'])
+    if question:
+        parts.extend(['<h3>Next design decision · discussion only</h3>', f'<p>{_escape(question)}</p>',
+                      '<p class="muted">Caller-supplied question. It does not replace the saved guidance or authorize execution.</p>'])
+    elif view["continuation"] and view["continuation"].get("design_review", {}).get("next_question"):
+        parts.append('<p class="muted">The retained design question is withheld; inspect the current saved guidance.</p>')
+    parts.extend([_reply(view, key), '</section></article>'])
     for title, rows in _overview(view):
         if title != "Next useful step":
             parts.append(f'<details><summary>{title}</summary>{_rows(rows)}</details>')
+    parts.append('<section><h2>Full goal and briefing structure</h2>' +
+                 _rows([("Full saved goal", view["intent"]["goal"]), *_ROLES.values()]) + '</section>')
     parts.append(f'<h2>Supporting detail</h2><p class="muted">{_escape(SNAPSHOT_NOTE)}</p>')
-    parts.append('<details><summary>Full saved goal</summary>' + _rows([("Goal", view["intent"]["goal"])]) + '</details>')
     for title, rows in _sections(view):
         parts.append(f'<details><summary>{title}</summary>{_rows(rows)}</details>')
     return '\n'.join(parts)
@@ -385,17 +484,28 @@ def render(view, format):
         return _document(_body(view, "task"))
     brief, attribution, position = _briefing(view)
     lines = ["# Return to work", "", _literal(brief["title"]), "",
-             _literal("Snapshot captured " + view["captured_at"]), "", _literal(attribution)]
-    for title, content in (("Context", brief["context"]), ("Overall goal", brief["goal"]),
+             _literal("Task status checked at " + view["captured_at"]), "", _literal(attribution)]
+    for title, content in ((_ROLES["context"][0], brief["context"]), (_ROLES["goal"][0], brief["goal"]),
                            ("Desired end state", brief["desired_end_state"]),
                            ("Current focus", brief["current_focus"]), ("Done when", brief["done_when"]),
-                           ("Where we are now", position)):
+                           (_ROLES["position"][0], position)):
         lines.extend(["", "## " + title, "", _literal(content)])
+    if _feedback_rows(view):
+        lines.extend(["", "## Feedback already recorded", ""])
+        lines.extend(f"- **{_literal(label)}:** {_literal(value)}" for label, value in _feedback_rows(view))
+    lines.extend(["", "## " + _ROLES["next_action"][0], "", _literal(view["next_action"])])
+    if _design_question(view):
+        lines.extend(["", "### Next design decision · discussion only", "", _literal(_design_question(view)),
+                      "", "Caller-supplied question; it does not replace saved guidance or authorize execution."])
+    elif view["continuation"] and view["continuation"].get("design_review", {}).get("next_question"):
+        lines.extend(["", "The retained design question is withheld; inspect the current saved guidance."])
     for title, rows in _overview(view):
         lines.extend(["", "## " + title, ""])
         lines.extend(f"- **{_literal(label)}:** {_literal(value)}" for label, value in rows)
     lines.extend(["", "## Your reply to the assistant", "", _literal(_handoff(view)),
                   "", "## Supporting detail", "", _literal(SNAPSHOT_NOTE), "", "### Full saved goal", "", _literal(view["intent"]["goal"])])
+    lines.extend(["", "### Briefing structure", ""])
+    lines.extend(f"- **{title}:** {definition}" for title, definition in _ROLES.values())
     for title, rows in _sections(view):
         lines.extend(["", "### " + title, ""])
         lines.extend(f"- **{_literal(label)}:** {_literal(value)}" for label, value in rows)

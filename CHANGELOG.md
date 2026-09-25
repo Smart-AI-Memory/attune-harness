@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Preserve attributed design feedback and a current discussion question in task
+  briefings, with consistent section labels and accessible definition controls.
+  Keep presentation revision, task inspection time and report time distinct;
+  historical/stale/completed tasks withhold the retained question.
+
 - Add a Saved Tasks entrance through explicit `status --include-task` inputs.
   Human briefings separate context, goal, desired end state and current focus;
   optional attributed summaries stay bound to their continuation revision.
