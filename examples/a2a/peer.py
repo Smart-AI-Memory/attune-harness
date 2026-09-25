@@ -10,6 +10,15 @@ import re
 import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from socketserver import TCPServer
+
+
+class LoopbackHTTPServer(HTTPServer):
+    def server_bind(self):
+        # The peer advertises a numeric loopback endpoint; reverse DNS is unnecessary
+        # and can block readiness on runners with an unavailable resolver.
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
 
 def encoded(value):
@@ -131,7 +140,7 @@ if __name__ == '__main__':
     parser.add_argument('--fault', default='none')
     parser.add_argument('--hold', action='store_true')
     args = parser.parse_args()
-    server = HTTPServer(('127.0.0.1', 0), Handler)
+    server = LoopbackHTTPServer(('127.0.0.1', 0), Handler)
     endpoint = f'http://127.0.0.1:{server.server_port}/rpc'
     server.card = {'name': 'independent-arithmetic-peer', 'description': 'Local deterministic addition fixture', 'version': '1.0.0',
                    'supportedInterfaces': [{'url': endpoint, 'protocolBinding': 'JSONRPC', 'protocolVersion': '1.0'}],

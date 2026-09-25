@@ -175,6 +175,11 @@ def _top_level_spans(region: str) -> list[tuple[int, int]] | None:
     return spans if depth == 0 else None
 
 
+def _safe_diagnostic(value: str) -> str:
+    """Quote nonprinting repository text without emitting terminal controls."""
+    return ''.join(ch if ch.isprintable() else ascii(ch)[1:-1] for ch in str(value))
+
+
 def _parse_xml(xml: str, fallback: str, *, whole: bool = True) -> list[DecomposedTask]:
     """Parse ``xml`` wrapped in one root; on rejection, regex-parse ``fallback``.
 
@@ -188,12 +193,12 @@ def _parse_xml(xml: str, fallback: str, *, whole: bool = True) -> list[Decompose
     except (ET.ParseError, ValueError) as exc:
         # ValueError covers what the parser raises for text it cannot encode,
         # such as a lone surrogate, when a caller passes a string directly.
-        logger.warning("Task XML is not well-formed (%s) - falling back to regex extraction", exc)
+        logger.warning("Task XML is not well-formed (%s) - falling back to regex extraction", _safe_diagnostic(exc))
         tasks = _parse_with_regex(fallback, report=whole)
         if not tasks and not whole:
             logger.warning(
                 "Task block rejected by the parser and unmatched by the fallback - dropped: %.80s",
-                fallback,
+                _safe_diagnostic(fallback),
             )
         return tasks
     # Direct children only: a <task> nested inside a description is an
@@ -231,7 +236,7 @@ def _task_from_element(element: ET.Element) -> DecomposedTask | None:
         logger.warning(
             "Task %s: %d nested <task> element(s) kept as body text, not parsed "
             "as tasks - check for a misplaced </task>",
-            task_id,
+            _safe_diagnostic(task_id),
             nested,
         )
     files_to_create = _files_from_element(element, "files-to-create")
@@ -333,7 +338,7 @@ def _parse_with_regex(content: str, *, report: bool = True) -> list[DecomposedTa
             logger.warning(
                 "Task %s: body contains another <task> opening - a missing "
                 "</task> merged the following task(s) into this one",
-                task_id,
+                _safe_diagnostic(task_id),
             )
         for tag, extracted in (
             ("<file", len(files_to_create) + len(files_to_modify)),
@@ -386,7 +391,7 @@ def _warn_dropped(task_id: str, tag: str, seen: int, extracted: int) -> None:
         logger.warning(
             "Task %s: %d %s tag(s) present but %d parsed - "
             "check for a missing or malformed attribute",
-            task_id,
+            _safe_diagnostic(task_id),
             seen,
             tag,
             extracted,
@@ -446,5 +451,5 @@ def read_spec(plan_path: str) -> list[DecomposedTask]:
     if not path.exists():
         raise FileNotFoundError(f"Plan file not found: {plan_path}")
     tasks = parse_tasks(read_text(path, PLAN_LIMIT))
-    logger.info("Read %d tasks from %s", len(tasks), plan_path)
+    logger.info("Read %d tasks from %s", len(tasks), _safe_diagnostic(plan_path))
     return tasks

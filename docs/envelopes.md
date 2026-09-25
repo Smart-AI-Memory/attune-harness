@@ -38,7 +38,8 @@ in-process double of the adapter's four-member contract (`binding`,
 the four `-native` rows pin the same shapes through Harness's own reader,
 the default since Phase 2 step 2.4 (D19), over a raw root.
 
-Two verbs are not pinned. `mcp-serve` speaks the MCP protocol on stdout and
+Text-only Spec compose/presentation is checked in `test_spec_cli.py`.
+Two other surfaces are not pinned here. `mcp-serve` speaks the MCP protocol on stdout and
 prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
 POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
 verb qualifies the POSIX execution profile and the repair probe fixture is a
@@ -104,6 +105,8 @@ or to rule exempt; the eight adapter-bound rows among them go with D28.
 | `triage-check-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `github-checks-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `mcp-inspect` | success | 0 | 1 | `completed` | `accepted` `completion_scope` `events` `identity_scope` `max_calls` `operation` `participant_id` `profile` `record_path` `registry` `request_id` `requirement_revision` `schema_version` `source_snapshot` `status` `tools` |
+| `mcp-inspect-workspace` | success | 0 | 1 | `completed` | `calls_completed` `calls_failed` `calls_started` `completion_scope` `dropped_events` `identity_scope` `max_calls` `model_calls` `operation` `participant_id` `pending` `profile` `project` `provider` `record_path` `request_id` `schema_version` `status` `tools` |
+| `spec-intake` | success | 0 | - | - | `areas` `form` `taken_slugs` |
 | `verify` | success | 0 | 1 | `verified` | `artifacts` `dependency` `operation` `passed` `request_id` `result` `schema_version` `status` |
 | `retrieve` | success | 0 | 1 | `retrieved` | `corpus` `dependency` `k` `operation` `query` `request_id` `retriever` `schema_version` `sources` `status` |
 | `memory-capabilities` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
