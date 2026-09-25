@@ -83,6 +83,14 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `verify` | - | `document` | `--context` |
 <!-- /surface-rows -->
 
+`status` additionally accepts optional `--format json|markdown|html`. Default
+and explicit JSON preserve the existing envelope. Markdown/HTML are bounded,
+read-only snapshots for `feature-work-v1`, with no live refresh or new task
+authority. Unsupported profiles and oversized views give a JSON error and exit 2.
+`--continuation FILE` optionally supplies bounded, attributed pause context for
+Markdown/HTML only. It does not extend the saved task schema or JSON envelope;
+using it with JSON gives an explicit error rather than silently dropping context.
+
 ## 2. Envelopes
 
 [The envelope table](envelopes.md): seventy-three rows pinned by

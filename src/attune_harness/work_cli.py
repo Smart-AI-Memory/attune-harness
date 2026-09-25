@@ -129,8 +129,8 @@ def _json(path):
     return parse_json(read_text(path, 1048576), 1048576)
 
 
-def present(directory, *, inspect_only=False):
-    record = read_task(directory)
+def present(directory, *, inspect_only=False, _record=None):
+    record = _record if _record is not None else read_task(directory)
     result = {
         "schema_version": 1,
         **work_status(directory, _record=record),
@@ -163,7 +163,7 @@ def present(directory, *, inspect_only=False):
             else:
                 check_work_fresh(record)
         if record["status"] == "draft":
-            result["questions"] = planning_questions(directory)
+            result["questions"] = planning_questions(directory, _record=record)
     except (ValueError, OSError, UnresolvedOperation) as exc:
         if not inspect_only:
             raise

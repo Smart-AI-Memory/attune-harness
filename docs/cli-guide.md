@@ -128,6 +128,66 @@ attune-harness status /tmp/my-work
 attune-harness resume /tmp/my-work --allow-external
 ```
 
+To return to a saved feature-work task, export a read-only overview:
+
+```bash
+attune-harness status /tmp/my-work --format markdown > task-status.md
+attune-harness status /tmp/my-work --format html > task-status.html
+attune-harness status /tmp/my-work --format html --continuation pause.json > return-to-work.html
+```
+
+The overview leads with the goal, next useful step, stopping point, reported
+progress, changes and open decisions. The HTML's expandable supporting details
+retain checks, choices, task identity and evidence. It works without a server or
+network resources. It does not refresh: inspect again before acting. Completed
+planning is still a draft, and stale passing checks do not establish current
+completion. Output contains local paths and task intent; choose where to share it.
+
+Optionally retain a pause note yourself or ask your assistant to prepare one.
+Use the actual task ID and revision from `status`; this example is a format template:
+
+```json
+{
+  "schema_version": 1,
+  "task_id": "COPY-THE-ACTUAL-TASK-ID",
+  "revision": 1,
+  "recorded_at": "2026-09-25T09:30:00-04:00",
+  "source": "Developer's end-of-session note",
+  "stopped_after": "Export is implemented; consumer review is next.",
+  "progress": [{
+    "summary": "The export check passed outside this Harness task.",
+    "references": ["reports/export-check.txt"]
+  }],
+  "next_step": {
+    "action": "Review the export with a consumer.",
+    "reason": "Check that it fits the support team's workflow."
+  }
+}
+```
+
+`--continuation` reads only the named UTF-8 JSON file, at most 32 KiB. It requires
+Markdown or HTML; it never changes default JSON or the task. All fields shown in
+the template are required; `next_step` may be null and `progress` may be empty.
+Each text field is at most 2,048 UTF-8 bytes. At most six progress items and six
+references per item are allowed. Unknown fields, wrong task IDs and revisions
+absent from retained history fail explicitly.
+
+The note is attributed context, not verified execution. References remain literal
+text: the view does not open them or check their claims. The timestamp is supplied
+by the author; matching a task/revision does not authenticate authorship. Historical
+notes compare saved scope against retained request history, not run progress or
+external file activity. Without a note, the view explains the missing stopping
+point and comparison baseline. A note's suggested action is withheld for an older
+revision, a blocked task or completed work; current Harness guidance always wins.
+Edit the note to correct context; use the existing `plan --revise` flow to correct
+task intent. Neither action grants acceptance or execution permission.
+
+Omitted `--format` and explicit `--format json` preserve the existing JSON
+contract. Markdown/HTML require `feature-work-v1`; other profiles retain JSON.
+An inspection succeeds with exit code 0 even when the task is blocked or stale;
+read its status and guidance. Invalid records or projections over 512 KiB fail
+with an explicit JSON diagnostic and exit code 2 instead of a truncated page.
+
 Use the checkpoint returned by the preceding command each time. `--run` asks the
 configured planner for a proposal; `--stage` makes it a new unaccepted draft.
 `--accept` submits the explicit console choice through Harness's own Spec
