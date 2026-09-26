@@ -1,5 +1,9 @@
 # Windows file-effects backend from the observed native primitive
 
+**Limit amendment, September 26, 2026:** the shared snapshot entry bound is
+now 2,048; see [current checkout bounds](specs/plan-build/dependent-build.md#checkout-bounds).
+The original design and retained qualification evidence below remain dated.
+
 September 18, 2026. This is an implementation design, not a Windows effects
 qualification. It supersedes the rename selection in
 `design-windows-feature-effects.md`; that document remains the pre-probe record.

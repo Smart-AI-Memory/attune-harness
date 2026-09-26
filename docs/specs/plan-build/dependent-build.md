@@ -44,3 +44,12 @@ stale source/configuration, missing dependencies and verification, changed outpu
 scope, high review findings, unknown effects and corrected current producer checks.
 Native adapters are tested with injected transport only. Real model effectiveness,
 the actual Spec collector bridge and installed verbs remain later boundaries.
+
+## Checkout bounds
+
+Build and repair snapshot the complete dedicated checkout, including Git
+metadata and untracked files. The bound is 2,048 entries (files and directories;
+Windows also records the root itself) and 16 MiB of total file content. Each
+editable file remains limited to 64 KiB. Exceeding a bound refuses preparation;
+no files are omitted to fit. The same entry bound applies when validating saved
+manifests. Existing smaller snapshots keep their format and remain readable.

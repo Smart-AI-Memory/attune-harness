@@ -13,6 +13,7 @@ from pathlib import Path, PureWindowsPath
 import re
 from uuid import uuid4
 
+from .effect_limits import MAX_ENTRIES
 from .features import FeatureUnavailable
 from .recovery import UnresolvedOperation
 
@@ -21,7 +22,6 @@ FEATURE_PROFILE = "windows-feature-effects-v1"
 SNAPSHOT_VERSION = 1
 MAX_FILE = 65536
 MAX_TREE = 16 * 1024 * 1024
-MAX_ENTRIES = 1000
 
 READ_CONTROL = 0x00020000
 SYNCHRONIZE = 0x00100000

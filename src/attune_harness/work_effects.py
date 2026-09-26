@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 
+from .effect_limits import MAX_ENTRIES
 from . import repair
 from .recovery import UnresolvedOperation, validate_events
 from .review_contract import digest, fields, versioned
@@ -80,7 +81,7 @@ def validate_manifest(plan):
     if set(plan["allowed"]) & set(plan["protected"]):
         raise ValueError("Protected acceptance inputs cannot be edited")
     before = plan["before"]
-    if not isinstance(before, dict) or len(before) > 1000:
+    if not isinstance(before, dict) or len(before) > MAX_ENTRIES:
         raise ValueError("Invalid effect snapshot")
     for path, value in before.items():
         repair.relative(path.rstrip("/"))
@@ -168,7 +169,7 @@ def _validate_windows_manifest(plan):
     if not plan['allowed'] or not plan['protected'] or set(plan['allowed']) & set(plan['protected']):
         raise ValueError('Windows effects require distinct files and protected inputs')
     before = plan['before']
-    if not isinstance(before, dict) or len(before) > 1000:
+    if not isinstance(before, dict) or len(before) > MAX_ENTRIES:
         raise ValueError('Invalid Windows before snapshot')
     for path, entry in before.items():
         if path:

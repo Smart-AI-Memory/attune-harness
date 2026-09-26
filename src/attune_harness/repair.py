@@ -8,6 +8,7 @@ import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import stat
 from uuid import uuid4
+from .effect_limits import MAX_ENTRIES
 from .features import FeatureUnavailable
 from .review_contract import fields, parse_json, versioned, digest
 from .recovery import UnresolvedOperation
@@ -98,7 +99,7 @@ def snapshot(plan):
             path = prefix + name
             st = os.stat(name, dir_fd=fd, follow_symlinks=False)
             if stat.S_ISDIR(st.st_mode):
-                if len(result) >= 1000:
+                if len(result) >= MAX_ENTRIES:
                     raise ValueError('Checkout exceeds bounded repair profile')
                 result[path + '/'] = {'kind': 'directory', 'mode': stat.S_IMODE(st.st_mode)}
                 child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
@@ -109,7 +110,7 @@ def snapshot(plan):
             else:
                 raw, mode = read_file(fd, name)
                 total += len(raw)
-                if len(result) >= 1000 or total > MAX_TREE:
+                if len(result) >= MAX_ENTRIES or total > MAX_TREE:
                     raise ValueError('Checkout exceeds bounded repair profile')
                 result[path] = {'sha256': sha(raw), 'mode': mode}
     with root_handle(plan) as fd:
@@ -366,7 +367,7 @@ def validate_scope(plan):
                 or len(set(plan['allowed'])) != len(plan['allowed'])
                 or set(plan['inputs']) != set(plan['allowed'])):
             raise ValueError('Invalid Windows replacement scope')
-        if not isinstance(plan['before'], dict) or len(plan['before']) > 1000:
+        if not isinstance(plan['before'], dict) or len(plan['before']) > MAX_ENTRIES:
             raise ValueError('Invalid Windows snapshot')
         for name, entry in plan['before'].items():
             if name:
@@ -390,6 +391,8 @@ def validate_scope(plan):
     fields(plan, ('profile','root','root_identity','allowed','probe','executable_sha256','before','inputs'))
     if plan['profile'] != PROFILE or not Path(plan['root']).is_absolute():
         raise ValueError('Unsupported repair scope')
+    if not isinstance(plan['before'], dict) or len(plan['before']) > MAX_ENTRIES:
+        raise ValueError('Invalid effect snapshot')
     fields(plan['root_identity'], ('device','inode'))
     fields(plan['probe'], ('argv','cwd','timeout','max_output_bytes','environment','oracle_paths'))
     if (not isinstance(plan['allowed'],list) or not 1 <= len(plan['allowed']) <= 20 or
