@@ -173,6 +173,7 @@ def add_controls(sub):
             group = parser.add_mutually_exclusive_group(required=True)
             group.add_argument('--reply', type=Path)
             group.add_argument('--retry-read-only', action='store_true')
+            group.add_argument('--retry-native', action='store_true', help='Authorize one stopped Codex build timeout retry; external effects remain unknown')
             group.add_argument('--observe-file', action='store_true', help='Reconcile a replacement from observed after-bytes')
             group.add_argument('--retry-before', action='store_true', help='Authorize one replacement retry only if original bytes remain')
         elif name == 'transfer-task':
@@ -203,6 +204,8 @@ def execute_control(args):
         if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
             from .work_cli import execute_control as execute_work_control
             return execute_work_control(args)
+        if args.command == 'reconcile-task' and args.retry_native:
+            raise ValueError('Native retry applies only to feature builds')
         if args.command == 'resume' and (args.allow_external or args.allow_native):
             raise ValueError('These dispatch options apply only to feature work; existing tasks retain their saved permissions')
         if args.command == 'status':

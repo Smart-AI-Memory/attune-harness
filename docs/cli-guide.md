@@ -215,6 +215,24 @@ is not yet supported. `reconcile-task --observe-file` and `--retry-before` retai
 the existing file-recovery boundary. Unsupported transfer/cancel operations fail
 explicitly for this profile; use bounded operation pauses and inspect uncertainty.
 
+For a Codex build participant that timed out, `reconcile-task TASK --event EVENT
+--checkpoint CHECKPOINT --retry-native` can prepare one explicit retry when the
+saved host evidence establishes that the direct CLI process stopped. Detached
+descendants and external effects are not proven absent. It checks the
+accepted inputs, configuration and checkout before preparing the retry; `resume`
+then still requires the original dispatch permissions. The first attempt remains
+inspectable. This is not a read-only classification: provider work or quota usage
+may have occurred and may repeat. Missing stop evidence, older diagnostic-only
+failures, non-timeout failures and a second retry are refused.
+
+Codex build workers and reviewers use `--ignore-user-config` and disable apps,
+plugins and remote plugins. Authentication still uses the existing `CODEX_HOME`;
+the configured model, checkout directory, read-only sandbox and rules remain.
+This isolates user configuration and plugin integrations, not every project or
+system MCP configuration. Other native routes keep their existing configuration.
+A Codex CLI lacking these flags refuses the invocation; there is no fallback to
+an inherited user configuration. Timeout duration is unchanged.
+
 External command participants require `--allow-external`; native participants also
 require the separate `--allow-native` authorization. Approval alone does not grant
 paid dispatch. A paused command returns 1; a blocked/failed command returns 2.

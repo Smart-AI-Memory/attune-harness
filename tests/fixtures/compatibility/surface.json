@@ -615,6 +615,7 @@
      "--observe-file",
      "--reply",
      "--retry-before",
+     "--retry-native",
      "--retry-read-only"
     ]
    ],
@@ -624,6 +625,7 @@
     "--observe-file",
     "--reply",
     "--retry-before",
+    "--retry-native",
     "--retry-read-only"
    ],
    "positionals": [

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Codex build proposals isolate user configuration and plugin integrations.
+  Stopped native timeouts retain process evidence and support one explicit,
+  checkpoint-bound retry while preserving the failed attempt.
+
 - Raise the complete-checkout snapshot limit to 2,048 entries for build and
   repair, consistently across capture and validation. Files, directories and
   Git metadata remain checked; the 16 MiB tree and 64 KiB edit limits remain.
