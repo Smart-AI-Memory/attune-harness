@@ -63,5 +63,8 @@ The previous attempt stays in the journal, the effect class remains unknown,
 and fresh accepted inputs, configuration and checkout are required. Recovery
 prepares a durable boundary; it does not dispatch. Resume retains its existing
 external/native authorization checks. Older attempts without stop evidence stay
-unresolved; no receipt is invented for them. Non-timeout errors, probes and
+unresolved unless an explicit `--stop-observation` supplies a newly attributed
+operator observation bound to the task, checkpoint and event. This observation
+is retained as an assertion, never inserted as historical host evidence. The
+legacy diagnostic classifies eligibility only. Non-timeout errors, probes and
 file effects do not qualify for this participant retry.

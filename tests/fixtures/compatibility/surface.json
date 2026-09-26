@@ -626,7 +626,8 @@
     "--reply",
     "--retry-before",
     "--retry-native",
-    "--retry-read-only"
+    "--retry-read-only",
+    "--stop-observation"
    ],
    "positionals": [
     {
