@@ -178,3 +178,62 @@ def test_native_error_summary_does_not_promote_nonerror_stdout(tmp_path, raw):
     result = JsonParticipant(attempt(), exchange).execute(lambda *_: pytest.fail('verifier ran'))
     assert result.receipt.error.endswith('native failure')
     assert raw not in result.receipt.error
+
+
+@pytest.mark.parametrize('returncode,stopped', [(None, False), (-9, True), (1, True)])
+def test_process_failure_exposes_local_cleanup_evidence(tmp_path, returncode, stopped):
+    def runner(argv, prompt, **kwargs):
+        return ProcessResult(argv, returncode, 'partial', 'diagnostic', 'timeout_effects_unknown')
+    exchange = NativeExchange('codex', cwd=tmp_path, runner=runner)
+    with pytest.raises(NativeError) as error:
+        exchange(attempt().request())
+    assert error.value.failure == 'timeout_effects_unknown'
+    assert error.value.process_stopped is stopped
+    assert NativeError('unresolved').process_stopped is False
+
+
+@pytest.mark.parametrize('isolated', [False, True])
+def test_codex_user_config_isolation_preserves_auth_cwd_and_policy(tmp_path, monkeypatch, isolated):
+    import os
+    monkeypatch.setenv('CODEX_HOME', str(tmp_path / 'authentication-home'))
+    def runner(argv, prompt, **kwargs):
+        assert ('--ignore-user-config' in argv) is isolated
+        assert ('plugins' in argv) is isolated
+        assert ('apps' in argv) is isolated
+        assert ('remote_plugin' in argv) is isolated
+        assert '--ignore-rules' not in argv
+        assert argv[argv.index('--sandbox') + 1] == 'read-only'
+        assert argv[argv.index('--model') + 1] == 'configured-model'
+        assert 'model_reasoning_effort="high"' in argv
+        assert kwargs['cwd'] == tmp_path
+        assert 'environment' not in kwargs
+        assert os.environ['CODEX_HOME'] == str(tmp_path / 'authentication-home')
+        return ProcessResult(argv, 0, lines(codex()), '')
+    NativeExchange('codex', cwd=tmp_path, model='configured-model', reasoning_effort='high',
+                   isolate_user_config=isolated, runner=runner)(attempt().request())
+
+
+@pytest.mark.parametrize('value', [True, 'yes', 1])
+def test_claude_cannot_claim_codex_config_isolation(tmp_path, value):
+    with pytest.raises(ValueError, match='isolation'):
+        NativeExchange('claude', cwd=tmp_path, isolate_user_config=value)
+
+
+def test_native_timeout_reports_stopped_fixture_process(tmp_path):
+    import os
+    import sys
+    if os.name != 'posix':
+        pytest.skip('POSIX executable fixture')
+    executable = tmp_path / 'timeout-fixture'
+    executable.write_text(
+        f'#!{sys.executable}\nimport sys,time\nsys.stdin.read()\ntime.sleep(30)\n',
+        encoding='utf-8',
+    )
+    executable.chmod(0o700)
+    exchange = NativeExchange('codex', cwd=tmp_path, executable=str(executable),
+                              timeout=0.1, isolate_user_config=True)
+    with pytest.raises(NativeError) as error:
+        exchange(attempt().request())
+    assert error.value.failure == 'timeout_effects_unknown'
+    assert error.value.process_stopped is True
+    assert exchange.last_process.returncode is not None

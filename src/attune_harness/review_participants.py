@@ -160,6 +160,7 @@ class ReviewExchange:
             ))
         exchange = NativeExchange(adapter, cwd=self.cwd, model=config['model'],
                                   reasoning_effort=config.get('reasoning_effort'), timeout=config['timeout'],
+                                  **({'isolate_user_config': True} if building and adapter == 'codex' else {}),
                                   **({'skills_context_tokens': config['skills_context_tokens']}
                                      if 'skills_context_tokens' in config else {}))
         role = ({'planner': 'lead', 'critic': 'reviewer'}[turn['role']] if planning else
@@ -183,6 +184,11 @@ class ReviewExchange:
             }
             if planning or building:
                 self.last_identity.update(profile=self.profile, declared_role=turn['role'], transport_role=role)
+            if building and adapter == 'codex':
+                self.last_identity['user_config_policy'] = 'requested_isolation'
+                process = getattr(exchange, 'last_process', None)
+                self.last_identity['dispatch_argv'] = (
+                    list(process.argv) if process else None)
             if evidence:
                 self.last_identity['review_mode'] = 'evidence'
             if 'skills_context_tokens' in config:

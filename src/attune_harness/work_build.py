@@ -400,6 +400,7 @@ def validate_build(run, request):
     )
     if len(events) > request["budgets"]["max_operations"]:
         raise ValueError("Build journal exceeds the accepted budget")
+    _validate_native_retries(run, request)
     index = 0
 
     class End(Exception):
@@ -433,7 +434,7 @@ def validate_build(run, request):
             )
             if (
                 events[index]["effect_class"] not in allowed
-                or events[index]["attempts"] != 1
+                or (events[index]["attempts"] != 1 and "native_retry" not in events[index])
             ):
                 raise ValueError(
                     "Build participant understates effects or repeats an attempt"
@@ -532,6 +533,114 @@ def validate_build(run, request):
         if run["status"] == "completed":
             raise ValueError("Incomplete dependent build cannot claim completion")
         return None
+
+
+def _validate_native_retries(run, request):
+    """Bind each retry to the retained failed dispatch; no orphan authorizations."""
+    for event in run["events"]:
+        failure = event.get("native_failure")
+        if "native_failure" in event:
+            fields(failure, ("failure", "process_stopped"))
+            if (event["kind"] != "participant_turn"
+                    or event["phase"] != "dispatching" or event["state"] != "failed"
+                    or event.get("error", {}).get("type") != "NativeError"
+                    or not isinstance(failure["failure"], str)
+                    or type(failure["process_stopped"]) is not bool):
+                raise ValueError("Invalid native process failure receipt")
+        receipt = event.get("native_retry")
+        if "native_retry" not in event:
+            if event["kind"] == "participant_turn" and event["attempts"] != 1:
+                raise ValueError("Native retry omitted its authorization receipt")
+            continue
+        fields(receipt, ("checkpoint", "previous", "kind", "previous_participant"))
+        previous = receipt["previous"]
+        if (receipt["kind"] != "explicit_native_timeout_retry"
+                or not isinstance(receipt["checkpoint"], str)
+                or len(receipt["checkpoint"]) != 64
+                or any(c not in "0123456789abcdef" for c in receipt["checkpoint"])
+                or not isinstance(previous, dict)
+                or "native_retry" in previous
+                or event["attempts"] != 2):
+            raise ValueError("Invalid native retry authorization receipt")
+        _retryable_native_event(previous, request)
+        projection = receipt["previous_participant"]
+        fields(projection, ("key", "outcome"))
+        outcome = projection["outcome"]
+        fields(outcome, ("status", "participant_id", "attempt_id", "last_identity"))
+        key = projection["key"]
+        if (key not in run["participants"]
+                or outcome["participant_id"] != previous["participant_id"]
+                or outcome["attempt_id"] != previous["attempt_id"]
+                or any(run["participants"][key][name] != outcome[name]
+                       for name in ("participant_id", "attempt_id"))):
+            raise ValueError("Native retry changed its prior participant assignment")
+        identity = outcome["last_identity"]
+        if identity is not None:
+            config = request["registry"]["participants"][previous["participant_id"]]
+            if (not isinstance(identity, dict)
+                    or identity.get("adapter") != "codex"
+                    or identity.get("requested_model") != config["model"]
+                    or identity.get("profile") != PROFILE
+                    or identity.get("declared_role") != key.partition(":")[0]):
+                raise ValueError("Native retry changed its prior participant identity")
+        validate_events({**run, "events": [previous]}, kinds=("participant_turn",))
+        # Only execution outcome and attempt provenance may differ from the first call.
+        mutable = {"state", "phase", "attempts", "error", "effects", "result",
+                   "runtime_origin", "native_failure", "native_retry"}
+        if ({k: v for k, v in event.items() if k not in mutable}
+                != {k: v for k, v in previous.items() if k not in mutable}):
+            raise ValueError("Native retry changed its original dispatch binding")
+
+
+def _retryable_native_event(event, request):
+    config = request["registry"]["participants"].get(event.get("participant_id"), {})
+    if (event.get("kind") != "participant_turn"
+            or event.get("phase") != "dispatching" or event.get("state") != "failed"
+            or event.get("attempts") != 1 or "native_retry" in event
+            or event.get("effect_class") != "unknown" or event.get("effects") != "unknown"
+            or event.get("error", {}).get("type") != "NativeError"
+            or event.get("native_failure") != {
+                "failure": "timeout_effects_unknown", "process_stopped": True,
+            }
+            or config.get("adapter") != "codex"):
+        raise ValueError("Native retry requires a first Codex timeout with saved stopped-process evidence")
+
+
+def reconcile_native_build(directory, checkpoint, event_id):
+    """Authorize one explicit retry; this does not dispatch or claim read-only effects."""
+    from .work_runtime import _effect_owner
+
+    store = RunStore(safe_storage(directory), existing=True)
+    with store.lease():
+        record = _effect_owner(store, checkpoint)
+        run = record.get("build")
+        if run is None or run["status"] != "unresolved" or not run["events"]:
+            raise ValueError("No unresolved native build dispatch to retry")
+        validate_build(run, record["request"])
+        check_build_fresh(record)
+        event = run["events"][-1]
+        if event["event_id"] != event_id or not run["permissions"]["native"]:
+            raise ValueError("Native retry must name the last authorized build dispatch")
+        _retryable_native_event(event, record["request"])
+        previous = copy.deepcopy(event)
+        projections = [(key, outcome) for key, outcome in run["participants"].items()
+                       if outcome["attempt_id"] == event["attempt_id"]
+                       and outcome["participant_id"] == event["participant_id"]]
+        if len(projections) != 1:
+            raise ValueError("Native retry requires its original participant projection")
+        key, outcome = projections[0]
+        previous_participant = {"key": key, "outcome": copy.deepcopy(outcome)}
+        event.update(state="pending", phase="prepared", attempts=2)
+        for name in ("error", "effects", "runtime_origin", "native_failure"):
+            event.pop(name, None)
+        event["native_retry"] = {"kind": "explicit_native_timeout_retry",
+                                 "checkpoint": checkpoint, "previous": previous,
+                                 "previous_participant": previous_participant}
+        run["status"] = "paused"
+        run.pop("error", None)
+        validate_build(run, record["request"])
+        store.save(record)
+        return record
 
 
 class BuildStore:

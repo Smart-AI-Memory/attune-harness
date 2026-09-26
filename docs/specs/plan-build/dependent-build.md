@@ -53,3 +53,15 @@ Windows also records the root itself) and 16 MiB of total file content. Each
 editable file remains limited to 64 KiB. Exceeding a bound refuses preparation;
 no files are omitted to fit. The same entry bound applies when validating saved
 manifests. Existing smaller snapshots keep their format and remain readable.
+
+## Explicit native timeout recovery
+
+A stopped Codex proposal timeout can be prepared for one explicit retry through
+`reconcile-task --retry-native`, bound to the current checkpoint and event. Host
+evidence that the direct CLI process stopped is retained structurally; diagnostic text is not proof.
+The previous attempt stays in the journal, the effect class remains unknown,
+and fresh accepted inputs, configuration and checkout are required. Recovery
+prepares a durable boundary; it does not dispatch. Resume retains its existing
+external/native authorization checks. Older attempts without stop evidence stay
+unresolved; no receipt is invented for them. Non-timeout errors, probes and
+file effects do not qualify for this participant retry.

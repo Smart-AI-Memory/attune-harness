@@ -167,3 +167,33 @@ def test_inspection_rejects_incompatible_record(tmp_path, record):
     (tmp_path / 'record.json').write_text(json.dumps(record), encoding='utf-8')
     with pytest.raises(ValueError):
         inspect_run(tmp_path)
+
+
+@pytest.mark.parametrize('profile,role', [('feature-build-v1', 'worker'),
+    ('feature-build-v1', 'reviewer'), ('feature-planning-v1', 'planner')])
+@pytest.mark.parametrize('provider', ['claude', 'codex'])
+def test_only_codex_build_proposals_isolate_user_integrations(tmp_path, monkeypatch, profile, role, provider):
+    observed = []
+    def runner(argv, prompt, **kwargs):
+        observed.append(argv)
+        output = {'text': 'A bounded proposal'}
+        if provider == 'claude':
+            raw = json.dumps({'type': 'result', 'subtype': 'success', 'is_error': False,
+                              'session_id': 'fixture', 'structured_output': output})
+        else:
+            raw = '\n'.join(json.dumps(event) for event in [
+                {'type': 'thread.started', 'thread_id': 'fixture'}, {'type': 'turn.started'},
+                {'type': 'item.completed', 'item': {'type': 'agent_message', 'text': json.dumps(output)}},
+                {'type': 'turn.completed'}])
+        return ProcessResult(argv, 0, raw, '')
+    monkeypatch.setattr(participants, 'NativeExchange',
+                        lambda name, **kwargs: NativeExchange(name, **kwargs, runner=runner))
+    data = json.loads(wire())
+    data['turn'].update(operation_profile=profile, role=role, protocol='Return proposal')
+    data['request_digest'] = digest(data['turn'])
+    exchange = ReviewExchange({'adapter': provider, 'model': 'requested-model', 'timeout': 2,
+                               'tools': []}, tmp_path, profile=profile)
+    assert decode_action(exchange(json.dumps(data)), data['request_digest'])['text'] == 'A bounded proposal'
+    isolated = profile == 'feature-build-v1' and provider == 'codex'
+    assert ('--ignore-user-config' in observed[0]) is isolated
+    assert exchange.last_identity.get('user_config_policy') == ('requested_isolation' if isolated else None)

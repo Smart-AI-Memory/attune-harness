@@ -300,10 +300,24 @@ def _guidance(record, result):
         or (run.get("status") == "unresolved" and not blocking_checks)
     )
     if uncertain:
+        if ("build" in record and run.get("status") == "unresolved"
+                and run.get("events") and "freshness_error" not in result):
+            from .work_build import _retryable_native_event
+
+            try:
+                _retryable_native_event(run["events"][-1], record["request"])
+            except ValueError:
+                pass
+            else:
+                return (
+                    "Native proposal timed out; the direct CLI process stopped, but external effects remain unknown.",
+                    True,
+                    "Inspect the saved attempt. To authorize one deliberate retry, use reconcile-task --retry-native with this --checkpoint and the last --event, then resume with the saved dispatch permissions. This can repeat external work or usage.",
+                )
         return (
             "Execution is uncertain; saved evidence does not establish a safe retry.",
             True,
-            "Inspect the saved journal and any running owner before acting. Reconcile only supported file observations with reconcile-task; do not blindly retry calls or checks.",
+            "Inspect the saved journal and any running owner before acting. Reconcile supported file observations with reconcile-task. Native retry is unavailable without an eligible saved stopped-timeout receipt; do not blindly retry calls or checks.",
         )
     if "freshness_error" in result:
         action = (
@@ -694,24 +708,22 @@ def execute_control(args):
                 allow_native=args.allow_native,
             )
         elif args.command == "reconcile-task":
-            if (
-                args.reply
-                or args.retry_read_only
-                or not (args.observe_file or args.retry_before)
-            ):
-                raise ValueError(
-                    "Feature work currently reconciles explicit file observations only"
-                )
+            if args.reply or args.retry_read_only:
+                raise ValueError("These options support explicit file observations only; use --retry-native for eligible native timeouts")
             if not args.checkpoint:
-                raise ValueError(
-                    "Feature reconciliation requires the current --checkpoint"
+                raise ValueError("Feature reconciliation requires the current --checkpoint")
+            if args.retry_native:
+                from .work_build import reconcile_native_build
+
+                reconcile_native_build(args.task_dir, args.checkpoint, args.event)
+            else:
+                if (args.reply or args.retry_read_only
+                        or not (args.observe_file or args.retry_before)):
+                    raise ValueError("Feature work reconciles explicit file observations or native timeouts only")
+                reconcile_work_effect(
+                    args.task_dir, args.checkpoint, args.event,
+                    retry_before=args.retry_before,
                 )
-            reconcile_work_effect(
-                args.task_dir,
-                args.checkpoint,
-                args.event,
-                retry_before=args.retry_before,
-            )
         elif args.command != "status":
             raise ValueError(
                 "This control is not qualified for feature work; pause at a durable operation boundary"

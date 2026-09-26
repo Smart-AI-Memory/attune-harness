@@ -32,7 +32,17 @@ def validate_skills_context_tokens(value: int) -> int:
 
 
 class NativeError(RuntimeError):
-    """Failure of the native boundary, not evidence that effects did not occur."""
+    """Failure of the native boundary, not evidence that effects did not occur.
+
+    ``process_stopped`` records that the supervised CLI returned an exit code.
+    It does not establish that detached descendants or external activity stopped.
+    """
+
+    def __init__(self, message: str, *, failure: str | None = None,
+                 process_stopped: bool = False) -> None:
+        super().__init__(message)
+        self.failure = failure
+        self.process_stopped = process_stopped
 
 
 def _invalid_constant(value: str):
@@ -129,11 +139,14 @@ class NativeExchange:
         self, provider: str, *, cwd: Path, executable: str | None = None,
         model: str | None = None, reasoning_effort: str | None = None, timeout: float = 60,
         skills_context_tokens: int | None = None,
+        isolate_user_config: bool = False,
         max_output_bytes: int = 1_048_576, cancel: Event | None = None,
         runner=invoke,
     ) -> None:
         if provider not in ("claude", "codex"):
             raise ValueError("provider must be claude or codex")
+        if type(isolate_user_config) is not bool or (isolate_user_config and provider != 'codex'):
+            raise ValueError('User configuration isolation is supported only for Codex')
         if executable is not None:
             _text(executable, "executable")
         if model is not None:
@@ -152,6 +165,7 @@ class NativeExchange:
         self.model = model
         self.reasoning_effort = reasoning_effort
         self.skills_context_tokens = skills_context_tokens
+        self.isolate_user_config = isolate_user_config
         self.timeout = timeout
         self.max_output_bytes = max_output_bytes
         self.cancel = cancel
@@ -185,6 +199,11 @@ class NativeExchange:
                 schema.write_text(json.dumps(TEXT_SCHEMA), encoding="utf-8")
                 argv = [self.executable, "exec", "--json", "--output-schema", str(schema),
                         "--sandbox", "read-only", "--ephemeral", "--skip-git-repo-check"]
+                if self.isolate_user_config:
+                    # Keep CODEX_HOME authentication and checkout rules. This
+                    # suppresses user integrations, not project/system policy.
+                    argv += ['--ignore-user-config', '--disable', 'apps',
+                             '--disable', 'plugins', '--disable', 'remote_plugin']
             if self.model:
                 argv += ["--model", self.model]
             if self.reasoning_effort is not None:
@@ -212,7 +231,9 @@ class NativeExchange:
                     and isinstance(envelope.get("result"), str)
                 ):
                     diagnostic = f"{envelope['result']}\n{diagnostic}"
-            raise NativeError(f"{self.provider}: {result.failure or 'nonzero_exit'}: {diagnostic}")
+            failure = result.failure or 'nonzero_exit'
+            raise NativeError(f"{self.provider}: {failure}: {diagnostic}",
+                              failure=failure, process_stopped=result.returncode is not None)
         decoder = decode_claude if self.provider == "claude" else decode_codex
         text, self.identity = decoder(result.stdout)
         return json.dumps({"version": 1, "request_digest": hashlib.sha256(request.encode("utf-8")).hexdigest(), "text": text})

@@ -190,6 +190,14 @@ class RecoveryCursor:
         except Exception as exc:
             event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
                          effects='read_only' if effect_class == 'read_only' else 'unknown')
+            # Preserve host process evidence, never infer it from diagnostic text.
+            from .native import NativeError
+            if (self.record.get('profile') == 'feature-build-v1'
+                    and kind == 'participant_turn' and isinstance(exc, NativeError)
+                    and exc.failure is not None):
+                event['native_failure'] = {
+                    'failure': exc.failure, 'process_stopped': exc.process_stopped,
+                }
             raise
         event.update(state='completed', phase='completed', result=copy.deepcopy(result))
         self.store.save(self.record)
