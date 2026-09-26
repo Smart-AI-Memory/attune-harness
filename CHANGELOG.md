@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Raise the complete-checkout snapshot limit to 2,048 entries for build and
+  repair, consistently across capture and validation. Files, directories and
+  Git metadata remain checked; the 16 MiB tree and 64 KiB edit limits remain.
+
 - Preserve attributed design feedback and a current discussion question in task
   briefings, with consistent section labels and accessible definition controls.
   Keep presentation revision, task inspection time and report time distinct;
