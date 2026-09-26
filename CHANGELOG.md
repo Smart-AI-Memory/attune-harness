@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Legacy Codex build timeouts can retain an explicit operator stop observation
+  for one bounded retry, without inventing historical process evidence.
+
 - Codex build proposals isolate user configuration and plugin integrations.
   Stopped native timeouts retain process evidence and support one explicit,
   checkpoint-bound retry while preserving the failed attempt.

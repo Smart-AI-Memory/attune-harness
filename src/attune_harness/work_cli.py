@@ -307,7 +307,16 @@ def _guidance(record, result):
             try:
                 _retryable_native_event(run["events"][-1], record["request"])
             except ValueError:
-                pass
+                try:
+                    _retryable_native_event(run["events"][-1], record["request"], legacy=True)
+                except ValueError:
+                    pass
+                else:
+                    return (
+                        "Legacy native timeout has no saved host stopped-process evidence; external effects remain unknown.",
+                        True,
+                        "Retry is unavailable from the saved evidence alone. Independently observe that the direct process stopped, then supply an attributed JSON --stop-observation to reconcile-task --retry-native with this --checkpoint and the last --event. This records an operator assertion, not host verification, and can repeat external work or usage.",
+                    )
             else:
                 return (
                     "Native proposal timed out; the direct CLI process stopped, but external effects remain unknown.",
@@ -715,7 +724,8 @@ def execute_control(args):
             if args.retry_native:
                 from .work_build import reconcile_native_build
 
-                reconcile_native_build(args.task_dir, args.checkpoint, args.event)
+                reconcile_native_build(args.task_dir, args.checkpoint, args.event,
+                                       stop_observation=args.stop_observation)
             else:
                 if (args.reply or args.retry_read_only
                         or not (args.observe_file or args.retry_before)):

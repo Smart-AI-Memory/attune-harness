@@ -170,6 +170,7 @@ def add_controls(sub):
             parser.add_argument('--allow-native', action='store_true', help='Separate feature-work native trial authorization')
         elif name == 'reconcile-task':
             parser.add_argument('--event', required=True)
+            parser.add_argument('--stop-observation', type=Path, help='Attributed JSON stop observation for a legacy Codex timeout; requires --retry-native')
             group = parser.add_mutually_exclusive_group(required=True)
             group.add_argument('--reply', type=Path)
             group.add_argument('--retry-read-only', action='store_true')
@@ -200,6 +201,9 @@ def execute_control(args):
             else:
                 print(render(inspect(args.task_dir, continuation=continuation), args.format))
             return 0
+        if (args.command == 'reconcile-task' and args.stop_observation is not None
+                and not args.retry_native):
+            raise ValueError('--stop-observation requires --retry-native')
         from .review_store import read_record
         if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
             from .work_cli import execute_control as execute_work_control
