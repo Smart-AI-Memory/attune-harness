@@ -120,12 +120,18 @@ each reader's own version check are.
 | Plan state comment | schema 1 and 2 read, 2 written | `spec_state`, `spec_legacy` | `plan`, the spec journey |
 | Worker proposal | schema 3, with 2 still accepted at one site | `work_build` | command participants |
 | Effects manifest | `posix-feature-effects-v1`, `windows-feature-effects-v1`, with a `before` snapshot | `work_effects`, `windows_effects` | `work_effects.freeze` |
-| Scratch record | `schema_version` 1; 3.4 adds the format name, its version and a `writer` | `memory_scratch` | `memory scratch stash` |
+| Scratch record | `format: attune-harness/scratch`, `format_version` 2, `writer` and per-key `version`; legacy headerless `schema_version` 1 remains readable | `memory_scratch` | `memory scratch stash` |
+| Saved memory/task store, `state.json` | `schema_version` 1; record revision/history, operation identities and index state; optional task `opportunity_review` checkpoint | `memory_saved.SavedStore` | `memory saved` mutation commands |
 | Extension manifest and state | `schema_version` 1, data only; 4.3 adds `grants`, `declares` and the `run` binding | `extensions` | `extension install`, `enable` |
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
-| Memory config | `roots`, `redis`, `scratch` and `reader` sections | `memory_reader.roots_config` and the backends | the user |
+| Memory config | `roots`, `redis`, `scratch`, `reader` and explicit `saved` sections | `memory_reader.roots_config`, `memory_saved_cli` and the backends | the user |
 | Memory context packet | `schema_version` 1 | `memory_context.refresh` | `memory recall` |
 | The attune-ai memory formats | frozen as read (D25.5); described by 4.4's formats file when it lands | `memory_reader`, `memory_redis` | attune-ai's writers |
+
+The candidate fixture must include both the current scratch format and saved
+memory/task records, including deferred-review state. Their current reader tests
+are not a substitute for a fixture written by the candidate. Saved task intent
+references existing execution; it does not create a second execution owner.
 
 ## 4. Refusal texts
 
