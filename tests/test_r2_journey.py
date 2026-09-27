@@ -22,7 +22,7 @@ import pytest
 
 import attune_forms  # noqa: F401  a base dependency since 0.4.0 (D15): absent is a broken install, not a skip
 import attune_harness
-from attune_harness import work_effects
+from attune_harness import repair, work_effects
 
 EXPORT = "pkg/export.py"
 GENERATED = "tests/generated/test_app.py"
@@ -103,6 +103,25 @@ def probe(argv, oracle):
         "environment": environment,
         "oracle_paths": [oracle],
     }
+
+
+def checkout_snapshot_delta(journey):
+    """Describe a failed fixture boundary without reading out checkout contents."""
+    try:
+        before = journey["effects"]["before"]
+        current = repair.snapshot(journey["effects"])
+        changed = sorted(path for path in before.keys() | current.keys()
+                         if before.get(path) != current.get(path))
+        def entry(value):
+            return ({key: value[key] for key in ("kind", "mode", "sha256") if key in value}
+                    if value is not None else None)
+        return {
+            "changed_count": len(changed),
+            "entries": [{"path": path[:160], "before": entry(before.get(path)),
+                         "current": entry(current.get(path))} for path in changed[:16]],
+        }
+    except Exception as exc:
+        return {"diagnostic_error": type(exc).__name__}
 
 
 @pytest.fixture
@@ -249,9 +268,26 @@ def journey(tmp_path):
         "context": context,
         "directory": directory,
         "request": request_path,
+        "effects": effects,
         "cwd": tmp_path,
         "review_dir": tmp_path / "review",
     }
+
+
+def test_checkout_snapshot_delta_is_bounded_and_survives_inspection_error(journey, monkeypatch):
+    (journey["root"] / "source.py").write_text("private fixture content", encoding="utf-8")
+    for index in range(17):
+        (journey["root"] / f"unexpected-{index}.txt").write_text("private fixture content")
+    delta = checkout_snapshot_delta(journey)
+    assert delta["changed_count"] == 18
+    assert len(delta["entries"]) == 16
+    assert all(set(item) == {"path", "before", "current"} for item in delta["entries"])
+    assert "private fixture content" not in repr(delta)
+
+    def refused_snapshot(_plan):
+        raise OSError("private diagnostic detail")
+    monkeypatch.setattr(repair, "snapshot", refused_snapshot)
+    assert checkout_snapshot_delta(journey) == {"diagnostic_error": "OSError"}
 
 
 def test_plan_accept_build_review_and_status_with_attune_absent(journey):
@@ -272,7 +308,7 @@ def test_plan_accept_build_review_and_status_with_attune_absent(journey):
         ],
         cwd,
     )
-    assert code == 0, (envelope, err)
+    assert code == 0, (envelope, err, checkout_snapshot_delta(journey) if code else None)
     assert envelope["status"] == "draft" and not envelope["questions"]["missing"]
     checkpoint = envelope["checkpoint_digest"]
 
