@@ -1,0 +1,68 @@
+{
+  "protocol": "2026-07-28",
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "input_digest": "da387bdec6e626f976ff6e2e340ab9103f41e09ef16ddf86fde90a0157297ec5",
+      "input_schema": {
+        "additionalProperties": false,
+        "properties": {
+          "k": {
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "k"
+        ],
+        "type": "object"
+      },
+      "name": "harness.retrieve",
+      "output_digest": "b694fcd56df84373280adc97df49860c1b4b22847b4c8633042d7e57319f2b9a",
+      "output_schema": {
+        "properties": {
+          "corpus": {
+            "type": "object"
+          },
+          "operation": {
+            "const": "retrieve"
+          },
+          "schema_version": {
+            "const": 1
+          },
+          "sources": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "retrieved",
+              "no_results"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "operation",
+          "status",
+          "sources",
+          "corpus"
+        ],
+        "type": "object"
+      }
+    }
+  ]
+}
