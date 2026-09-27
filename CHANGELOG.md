@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Executable plugins can read selected installed wheel metadata through the
+  bounded import closure, supporting offline Voyage SDK and compiled dependency
+  imports without exposing site-packages or undeclared distribution metadata.
+
 - Legacy Codex build timeouts can retain an explicit operator stop observation
   for one bounded retry, without inventing historical process evidence.
 

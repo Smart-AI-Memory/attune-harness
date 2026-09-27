@@ -259,7 +259,10 @@ def test_dependency_closure_evaluates_markers_extras_and_transitive_versions(mon
     class Dist:
         def __init__(self, name, requirements):
             self.name, self.requires, self.version = name, requirements, '1.0'
-            self.files = [name + '/__init__.py']
+            self.files = [name + '/__init__.py', name + '-1.0.dist-info/METADATA']
+            path = tmp_path / self.files[1]
+            path.parent.mkdir()
+            path.write_text(f'Name: {name}\nVersion: 1.0\n')
         def locate_file(self, value):
             return tmp_path / str(value)
     distributions = {'parent': Dist('parent', ['child>=1', 'extra_dep; extra == "feature"',
@@ -271,6 +274,10 @@ def test_dependency_closure_evaluates_markers_extras_and_transitive_versions(mon
     monkeypatch.setattr(runtime.metadata, 'packages_distributions', lambda: {'parent': ['parent'], 'child': ['child'], 'extra_dep': ['extra-dep']})
     assert runtime.resolve_imports(['parent'])['versions'] == {'child': '1.0', 'parent': '1.0'}
     assert runtime.resolve_imports(['parent[feature]'])['versions'] == {'child': '1.0', 'extra-dep': '1.0', 'parent': '1.0'}
+    with monkeypatch.context() as bounded:
+        bounded.setattr(runtime, 'METADATA_LIMIT', 40)
+        with pytest.raises(FeatureUnavailable, match='metadata exceeds'):
+            runtime.resolve_imports(['parent'])
     distributions['child'].version = '0.5'
     with pytest.raises(FeatureUnavailable, match='does not satisfy'):
         runtime.resolve_imports(['parent'])
@@ -382,7 +389,7 @@ def test_namespace_finder_excludes_undeclared_sibling_distribution(run_plugin, t
     allowed.write_text('value = 7')
     (namespace / 'unrelated.py').write_text('value = 9')
     closure = {'versions': {'fixture-dist': '1'}, 'top_levels': ['shared_namespace'],
-               'roots': [str(site)], 'files': [str(allowed)]}
+               'roots': [str(site)], 'files': [str(allowed)], 'metadata': {}}
     monkeypatch.setattr(runtime, 'resolve_imports', lambda value: copy.deepcopy(closure))
     _, enable = run_plugin
     bindings, _ = enable('''import json, sys
@@ -438,3 +445,114 @@ def test_archive_refuses_raw_backslash_even_when_zipinfo_normalizes_it(bundle, m
         assert stream.infolist()[0].orig_filename == 'folder\\main.py'
     with pytest.raises(ValueError, match='unsafe'):
         runtime.code_archive(bundle, 'plugin.zip')
+
+
+def test_only_selected_distribution_metadata_reaches_child(run_plugin):
+    _, enable = run_plugin
+    bindings, _ = enable('''import json, sys, importlib.metadata as m
+from pathlib import Path
+try:
+    m.version('pytest')
+except m.PackageNotFoundError:
+    denied = True
+else:
+    denied = False
+d = m.distribution('PACKAGING')
+try:
+    d.locate_file('../private')
+except ValueError:
+    paths_denied = True
+else:
+    paths_denied = False
+Path(sys.argv[2]).write_text(json.dumps({'version': d.version,
+    'names': sorted(x.metadata['Name'].lower() for x in m.distributions()),
+    'denied': denied, 'paths_denied': paths_denied,
+    'unknown_text': d.read_text('../private'), 'site_path': any('site-packages' in p for p in sys.path)}))
+''', declares={'imports': ['packaging']})
+    assert invoke(bindings)['plugin_result'] == {'version': runtime.PACKAGING_VERSION,
+        'names': ['packaging'], 'denied': True, 'paths_denied': True,
+        'unknown_text': None, 'site_path': False}
+
+
+def test_metadata_text_drift_refuses_before_child(run_plugin, monkeypatch):
+    _, enable = run_plugin
+    bindings, _ = enable(declares={'imports': ['packaging']})
+    original = runtime.resolve_imports
+    def drift(value):
+        closure = original(value)
+        closure['metadata']['packaging'] += '\nChanged description\n'
+        return closure
+    monkeypatch.setattr(runtime, 'resolve_imports', drift)
+    with pytest.raises(FeatureUnavailable, match='closure changed'):
+        invoke(bindings)
+
+
+@pytest.mark.parametrize('relative', ['../outside.dist-info/METADATA', '/outside.dist-info/METADATA',
+                                      'nested/pkg.dist-info/METADATA'])
+def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative):
+    class Dist:
+        files, version = [relative], '1'
+        def locate_file(self, value):
+            return tmp_path / str(value)
+    with pytest.raises(ValueError, match='metadata path'):
+        runtime.distribution_metadata(Dist(), 'pkg')
+
+
+def test_distribution_metadata_bounds_and_identity(tmp_path, monkeypatch):
+    class Dist:
+        files, version = ['pkg.dist-info/METADATA'], '1'
+        def locate_file(self, value):
+            return tmp_path / str(value)
+    path = tmp_path / Dist.files[0]
+    path.parent.mkdir()
+    path.write_text('Name: other\nVersion: 1\n')
+    with pytest.raises(ValueError, match='identity'):
+        runtime.distribution_metadata(Dist(), 'pkg')
+    path.write_text('Name: pkg\nVersion: 1\n' + 'x' * 100)
+    monkeypatch.setattr(runtime, 'METADATA_LIMIT', 64)
+    with pytest.raises(ValueError, match='exceeds'):
+        runtime.distribution_metadata(Dist(), 'pkg')
+
+
+def test_bundle_metadata_cannot_advertise_undeclared_distribution(run_plugin):
+    manifest, enable = run_plugin
+    archive(manifest, '''import importlib.metadata as m, json, sys
+from pathlib import Path
+try:
+    m.version('unselected')
+except m.PackageNotFoundError:
+    denied = True
+else:
+    denied = False
+Path(sys.argv[2]).write_text(json.dumps({'denied': denied, 'count': len(list(m.distributions()))}))
+''')
+    with zipfile.ZipFile(manifest.parent / 'plugin.zip', 'a') as stream:
+        stream.writestr('unselected-1.dist-info/METADATA', 'Name: unselected\nVersion: 1\n')
+    bindings, _ = enable()
+    assert invoke(bindings)['plugin_result'] == {'denied': True, 'count': 0}
+
+
+def test_selected_compiled_voyage_stack_runs_offline(run_plugin):
+    for name in ('voyageai', 'lancedb'):
+        try:
+            runtime.metadata.version(name)
+        except runtime.metadata.PackageNotFoundError:
+            pytest.skip('Voyage extra is not installed')
+    _, enable = run_plugin
+    script = '''import sys, json
+from pathlib import Path
+def no_network(event, args):
+    if event in ('socket.connect', 'socket.getaddrinfo', 'socket.sendto'):
+        raise RuntimeError('offline test refuses network')
+sys.addaudithook(no_network)
+import voyageai, lancedb, numpy, pyarrow
+client = voyageai.Client(api_key='offline-test-not-a-real-key', max_retries=0, timeout=60)
+connection = lancedb.connect(str(Path(sys.argv[2]).parent / 'database'))
+table = connection.create_table('probe', data=[{'id': 'a', 'vector': [1., 0.]}, {'id': 'b', 'vector': [0., 1.]}])
+rows = table.search([1., 0.]).limit(1).to_list()
+Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': voyageai.__version__,
+    'broad_site_path': any('site-packages' in p for p in sys.path)}))
+'''
+    bindings, _ = enable(script, grants={**GRANT, 'time': 30},
+                         declares={'imports': ['voyageai', 'lancedb']})
+    assert invoke(bindings)['plugin_result'] == {'nearest': 'a', 'version': '0.5.0', 'broad_site_path': False}
