@@ -87,12 +87,13 @@ def code_archive(manifest, relative):
             raise ValueError('Expanded plugin code exceeds its bound')
         seen = set()
         for item in entries:
-            name = PurePosixPath(item.filename)
-            if (name.is_absolute() or '..' in name.parts or '\\' in item.filename
-                    or item.filename in seen or item.flag_bits & 1
+            raw_name = item.orig_filename
+            name = PurePosixPath(raw_name)
+            if (name.is_absolute() or '..' in name.parts or '\\' in raw_name
+                    or raw_name != item.filename or raw_name in seen or item.flag_bits & 1
                     or stat.S_ISLNK(item.external_attr >> 16)):
                 raise ValueError('Plugin code archive has unsafe entries')
-            seen.add(item.filename)
+            seen.add(raw_name)
             archive.read(item)  # Validate CRC and compression before enabling.
     return target.resolve(), raw
 

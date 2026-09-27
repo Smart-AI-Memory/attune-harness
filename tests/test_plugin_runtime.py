@@ -176,7 +176,11 @@ def test_remote_or_unbounded_schema_features_refused(contract):
 def test_archive_expansion_and_escape_refused(bundle):
     for name in ('../main.py', '/main.py', 'a\\main.py'):
         with zipfile.ZipFile(bundle.parent / 'plugin.zip', 'w') as stream:
-            stream.writestr(name, 'pass')
+            item = zipfile.ZipInfo(name)
+            item.filename = item.orig_filename = name  # Retain unsafe raw names on Windows too.
+            stream.writestr(item, 'pass')
+        with zipfile.ZipFile(bundle.parent / 'plugin.zip') as stream:
+            assert stream.infolist()[0].orig_filename == name
         with pytest.raises(ValueError, match='unsafe'):
             runtime.code_archive(bundle, 'plugin.zip')
     with zipfile.ZipFile(bundle.parent / 'plugin.zip', 'w', compression=zipfile.ZIP_DEFLATED) as stream:
@@ -311,7 +315,7 @@ Path(sys.argv[2]).write_text('{}')
 ''', grants={**GRANT, 'secrets': ['PLUGIN_SECRET']})
     result = invoke(bindings)
     assert secret not in json.dumps(result)
-    assert result['extension']['plugin']['diagnostics']['stdout']['bytes'] == len(secret) + 1
+    assert result['extension']['plugin']['diagnostics']['stdout']['bytes'] == len((secret + os.linesep).encode('utf-8'))
 
 
 def test_mcp_corpus_drift_after_dispatch_is_unresolved(case, run_plugin):
@@ -417,3 +421,20 @@ def test_record_top_level_inference_excludes_metadata_and_external_paths():
              'compiled' + EXTENSION_SUFFIXES[0], 'package-1.dist-info/METADATA',
              '../outside.py', '/absolute/module.py', '__pycache__/single.pyc', 'README.md']
     assert runtime.record_top_levels(files) == {'package', 'namespace', 'single', 'compiled'}
+
+
+def test_archive_refuses_raw_backslash_even_when_zipinfo_normalizes_it(bundle, monkeypatch):
+    with zipfile.ZipFile(bundle.parent / 'plugin.zip', 'w') as stream:
+        item = zipfile.ZipInfo('main.py')
+        item.filename = item.orig_filename = 'folder\\main.py'
+        stream.writestr(item, 'pass')
+    original = zipfile.ZipInfo.__init__
+    def windows_normalization(self, *args, **kwargs):
+        original(self, *args, **kwargs)
+        self.filename = self.filename.replace('\\', '/')
+    monkeypatch.setattr(zipfile.ZipInfo, '__init__', windows_normalization)
+    with zipfile.ZipFile(bundle.parent / 'plugin.zip') as stream:
+        assert stream.infolist()[0].filename == 'folder/main.py'
+        assert stream.infolist()[0].orig_filename == 'folder\\main.py'
+    with pytest.raises(ValueError, match='unsafe'):
+        runtime.code_archive(bundle, 'plugin.zip')
