@@ -143,7 +143,7 @@ def measure(output, suite):
     argv = ([sys.executable, '-m', 'pytest', '-q', '--junitxml=' + str(output / 'tests.xml')]
             if suite == 'full' else
             [sys.executable, '-I', str(ROOT / 'scripts/qualify_platform.py'),
-             '--output', str(output / 'instrumented-platform')])
+             '--output', str(output / 'instrumented-platform'), '--coverage-instrumented'])
     environment = {**os.environ, 'TMPDIR': str(temporary), 'TMP': str(temporary),
                    'TEMP': str(temporary), 'PYTHONUTF8': '1'}
     stream = hook.open('x', encoding='utf-8')
@@ -152,7 +152,7 @@ def measure(output, suite):
             stream.write(startup_hook(config))
         with (output / 'tests.txt').open('w', encoding='utf-8') as log:
             run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
-                                 stderr=subprocess.STDOUT, timeout=900)
+                                 stderr=subprocess.STDOUT, timeout=1080 if suite == 'platform' else 900)
         receipt['test_exit'] = run.returncode
     finally:
         hook.unlink(missing_ok=True)

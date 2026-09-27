@@ -17,7 +17,8 @@ PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest',
              'bootstrap_prepared','bootstrap_launched','bootstrap')
 
 
-def qualify(output):
+def qualify(output, *, coverage_instrumented=False):
+    suite_timeout = 900 if coverage_instrumented else 600
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
@@ -29,6 +30,8 @@ def qualify(output):
         'python':platform.python_version(),'package':importlib.metadata.version('attune-harness'),
         'installed_source':source.as_posix(),'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.glob('*.py')},
         'native_process_and_recovery':'unrun','model_calls':0,'checks':[]}
+    if coverage_instrumented:
+        receipt['instrumentation']='coverage; not platform qualification'
     tests=['test_contract.py','test_adapters.py','test_operations.py','test_github_checks.py','test_native.py']
     # A carried module's tests declare themselves with PLATFORM_MARKER in their
     # first lines, so two steps landing in parallel never edit this line.
@@ -61,12 +64,12 @@ def qualify(output):
     with (output/'tests.txt').open('wb') as log:
         try:
             # The plugin probe (D29.1) writes its receipt into the output directory it is told.
-            run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=600,
+            run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=suite_timeout,
                                env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output)})
         except subprocess.TimeoutExpired:
             run=subprocess.CompletedProcess(argv,124)
             receipt['failure']='suite_timeout'
-    receipt['suite_timeout_seconds']=600
+    receipt['suite_timeout_seconds']=suite_timeout
     receipt['exit']=run.returncode;receipt['command']=argv
     # The memory verbs from this installed wheel, with the redis extra present
     # and no server: the extra absent is the release gate's core check.
@@ -121,6 +124,9 @@ def qualify(output):
         if run.returncode==0:run=subprocess.CompletedProcess(argv,1)
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
+    if coverage_instrumented:
+        receipt['status']='instrumented_checks_passed' if run.returncode==0 else 'instrumented_failed'
+        receipt['native_process_and_recovery']='not_qualified_instrumented'
     (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:v for k,v in receipt.items() if k not in ('sources','command')},indent=2))
     return run.returncode
@@ -128,4 +134,7 @@ def qualify(output):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
-    raise SystemExit(qualify(p.parse_args().output.absolute()))
+    p.add_argument('--coverage-instrumented',action='store_true',
+                   help='Allow 900 seconds for coverage instrumentation; never qualify this run')
+    args=p.parse_args()
+    raise SystemExit(qualify(args.output.absolute(),coverage_instrumented=args.coverage_instrumented))
