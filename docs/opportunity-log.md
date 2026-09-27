@@ -239,7 +239,7 @@ O-04 follow-through, 2026-09-26 — **journey** lens. At main `1615ee7`,
 PR147 supplies durable explicit memory/task capture and deferred-review state;
 that closes the previously missing capture implementation, not automatic
 fresh-session serving or the full capability inventory. The
-[release-gate status](plan-1.0.md#release-gate-status--september-26-2026) now
+[release-gate status](plan-1.0.md#release-gate-status--september-27-2026) now
 separates implemented, evidenced and accepted work for S1–S9, with remaining
 actions and decision owners. Candidate follow-up: keep those rows current as
 reviewed changes merge, using the existing plan rather than another tracker.

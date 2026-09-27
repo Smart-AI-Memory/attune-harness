@@ -48,6 +48,16 @@ exposes only files belonging to that closure. This guards cooperating code;
 malicious code can remove the finder or access the user's machine directly.
 Operating-system startup environment additions are removed before plugin entry.
 
+Installed wheel `METADATA` is also snapshotted for the selected distributions,
+with a combined 1 MiB UTF-8 limit. The child can discover their versions, metadata
+fields and declared requirements through `importlib.metadata`; undeclared or
+bundle-local distribution metadata is not discovered. Metadata changes require
+re-enabling the plugin, just like import-closure drift. The snapshot does not expose
+metadata directories, arbitrary files, entry points or distribution file-location
+APIs, and does not add site-packages to the child's search path. Voyage's SDK uses
+this version discovery when importing its compiled dependency closure; network
+execution still requires the separately planned host-owned journal integration.
+
 The plugin reads the UTF-8 JSON request at `sys.argv[1]` and writes its UTF-8 JSON
 result to `sys.argv[2]`. The request contains `arguments`, granted `paths`, and
 `scratch`. Standard output/error are bounded diagnostics, never the result or an
@@ -61,6 +71,9 @@ MCP and review participants invoke the tool by its existing
 The receipt binds the bootstrap/configuration/request, effective grants,
 declarations, imported versions, environment keys, process status/duration and
 result digest. Returned data does not authorize another operation.
+Per-call `imports` contains `versions` and `closure_digest`; full file lists and
+metadata text stay in accepted extension state and the bootstrap configuration,
+so repeated calls do not duplicate large snapshots in the enclosing run record.
 
 Host authority files and extension state are compared against in-memory
 checkpoints after execution. Signature/grant/artifact checks run again. A changed
