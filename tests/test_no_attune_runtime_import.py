@@ -9,12 +9,8 @@ The files that still import it are listed in ``KNOWN``. That list may only
 shrink: a new offender fails, and so does an entry that no longer offends, so
 the list cannot go stale. It has been empty since Phase 2 step 2.4 (D19).
 
-One import is allowed to remain, under ``FALLBACK``: the adapter's, inside
-``MemoryHost.__init__``'s ``reader == 'adapter'`` branch. It is the fallback
-that Task 9 removes, and it is allowed only there: the test checks that every
-attune import in that file sits lexically inside an ``if``/``elif`` whose test
-compares ``reader`` with ``'adapter'``, and a runtime test constructs the host
-with the default and shows nothing from attune is loaded.
+No fallback exception remains (D28). The default host runtime test also
+checks that no attune module loads.
 """
 
 import ast
@@ -26,12 +22,6 @@ PACKAGE = Path(__file__).resolve().parents[1] / "src" / "attune_harness"
 
 # Remove a name when its file stops importing attune, or is deleted.
 KNOWN = set()
-
-# The one guarded fallback site (D19): an import allowed only inside a
-# ``reader == 'adapter'`` branch. Removed with the adapter in Task 9.
-FALLBACK = {
-    "memory_context.py",
-}
 
 # require_feature is this package's own loader: it passes its module argument
 # to import_module.
@@ -64,48 +54,15 @@ def attune_imports(source):
     return sorted(lines)
 
 
-def fallback_lines(source):
-    """Line numbers inside an ``if``/``elif`` body whose test is ``reader == 'adapter'``,
-    and only inside ``MemoryHost.__init__``: the one place the fallback is allowed.
-
-    The match is literal: a ``Name`` called ``reader`` compared with the constant
-    ``'adapter'`` by ``==``. ``self.reader``, ``!=`` with an ``else``, a
-    ``match``/``case`` rewrite or a guarded import in any other function all
-    fail closed, so a refactor of the constructor moves this test with it.
-    """
-    tree = ast.parse(source)
-    scopes = [
-        function
-        for cls in ast.walk(tree)
-        if isinstance(cls, ast.ClassDef) and cls.name == "MemoryHost"
-        for function in cls.body
-        if isinstance(function, ast.FunctionDef) and function.name == "__init__"
-    ]
-    allowed = set()
-    for scope in scopes:
-        for node in ast.walk(scope):
-            if not isinstance(node, ast.If):
-                continue
-            test = node.test
-            if not (isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], ast.Eq)):
-                continue
-            sides = [test.left, test.comparators[0]]
-            names = {side.id for side in sides if isinstance(side, ast.Name)}
-            values = {side.value for side in sides if isinstance(side, ast.Constant)}
-            if names == {"reader"} and values == {"adapter"}:
-                allowed.update(range(node.body[0].lineno, node.body[-1].end_lineno + 1))
-    return allowed
 
 
 def offenders():
-    """Files importing attune, less the guarded fallback lines in the FALLBACK files."""
+    """Files importing attune, with no fallback exception."""
     found = {}
     for path in sorted(PACKAGE.rglob("*.py")):
         source = path.read_text(encoding="utf-8")
         name = path.relative_to(PACKAGE).as_posix()
         lines = attune_imports(source)
-        if name in FALLBACK:
-            lines = [line for line in lines if line not in fallback_lines(source)]
         if lines:
             found[name] = lines
     return found
@@ -166,27 +123,8 @@ def test_the_known_list_has_no_stale_entries():
     )
 
 
-def test_the_fallback_files_still_import_attune_only_inside_the_adapter_branch():
-    for name in sorted(FALLBACK):
-        source = (PACKAGE / name).read_text(encoding="utf-8")
-        lines = attune_imports(source)
-        assert lines, f"{name} no longer imports attune anywhere; remove it from FALLBACK"
-        assert set(lines) <= fallback_lines(source), (
-            f"{name} imports attune outside the reader == 'adapter' branch at {lines}")
 
 
-def test_fallback_lines_only_match_the_adapter_branch_in_the_constructor():
-    head = "class MemoryHost:\n    def __init__(self, config, reader='native'):\n"
-    guarded = head + "        if reader == 'native':\n            pass\n        elif reader == 'adapter':\n            from attune.x import Y\n            self.a = Y\n"
-    assert fallback_lines(guarded) == {6, 7}
-    assert fallback_lines(head + "        if reader == 'native':\n            from attune.x import Y\n") == set()
-    assert fallback_lines(head + "        if mode == 'adapter':\n            from attune.x import Y\n") == set()
-    assert fallback_lines(head + "        if reader != 'adapter':\n            from attune.x import Y\n") == set()
-    assert fallback_lines(head + "        if self.reader == 'adapter':\n            from attune.x import Y\n") == set()
-    # The same guard anywhere else is not the fallback: another method, a module-level helper.
-    other = "class MemoryHost:\n    def _invoke(self, reader):\n        if reader == 'adapter':\n            from attune.x import Y\n"
-    assert fallback_lines(other) == set()
-    assert fallback_lines("def helper(reader='adapter'):\n    if reader == 'adapter':\n        from attune.x import Y\n") == set()
 
 
 def test_the_default_host_loads_nothing_from_attune(tmp_path, monkeypatch):
