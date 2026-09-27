@@ -46,6 +46,7 @@ def prepare_review(request_path: Path, config_path: Path) -> dict:
                        'registry': registry, 'artifacts': artifacts, 'source_snapshot': source_snapshot})
     return {'accepted': accepted, 'registry': registry, 'answers': answers, 'paths': paths,
             'originals': originals, 'artifacts': artifacts, 'source_snapshot': source_snapshot,
+            'authority_files': {request_path: read_text(request_path, 131072), config_path: read_text(config_path, 131072)},
             'requirement_revision': revision}
 
 

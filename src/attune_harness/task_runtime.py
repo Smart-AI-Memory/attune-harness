@@ -25,6 +25,9 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
     def stable_inputs():
         if policy:
             policy.check_fresh()
+        for path, original in prepared.get('authority_files', {}).items():
+            if read_text(path, 131072) != original:
+                raise ValueError('Accepted request or registry changed during review')
         for path, original in originals.items():
             if read_text(path, 65_536) != original:
                 raise ValueError(f'Accepted input changed during review: {path}')
@@ -112,8 +115,15 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
                     raise PermissionError(f'{participant_id} is not granted tool {name}')
                 if outcome['tool_calls'] >= config['max_tool_calls']:
                     raise ValueError(f'{participant_id} exhausted its tool-call budget')
-                is_retrieval = name == 'retrieve' or name in contributions
-                if is_retrieval:
+                running = contributions.get(name, {}).get('binding') == 'run'
+                is_retrieval = name == 'retrieve' or name in contributions and not running
+                if running:
+                    from .extensions import invoke_tool
+                    from .plugin_runtime import validate
+                    validate(arguments, contributions[name]['input_schema'])
+                    operation = lambda: invoke_tool(bindings, name, arguments, retrieve,
+                        paths=paths, guarded_paths=(store.path, *originals, *prepared.get('authority_files', {})), check_scope=stable_inputs)
+                elif is_retrieval:
                     fields(arguments, ('query', 'k'))
                     bounded_text(arguments['query'], 'query')
                     if type(arguments['k']) is not int or not 1 <= arguments['k'] <= 20:
@@ -128,7 +138,7 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
                     operation = verify
                 outcome['tool_calls'] += 1
                 result = cursor.perform(f'{attempt_id}:tool:{index}', 'tool', operation,
-                                 effect_class=retrieval_effect if is_retrieval else 'unknown', participant_id=participant_id,
+                                 effect_class='scratch_write' if running else retrieval_effect if is_retrieval else 'unknown', participant_id=participant_id,
                                  attempt_id=attempt_id, action=action)
                 if is_retrieval and result['corpus']['version'] != initial['corpus']['version']:
                     raise ValueError('Corpus changed during review')

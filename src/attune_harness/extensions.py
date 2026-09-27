@@ -10,8 +10,8 @@ whose ``revoked`` list refuses a digest whatever its signature says; the grant
 a registration carries must be a subset of the manifest's ``grants``, and
 ``declares`` is recorded, not enforced. Those checks run inside the lease, at
 ``enable`` and before and after every call, against the checkpoint the host
-holds in memory. No plugin code runs in this cycle: the ``run`` binding is a
-later one (executable plugins spec; D22).
+holds in memory. The ``run`` binding uses the host bootstrap and an explicit
+import closure; declarations remain cooperation promises, never sandbox claims.
 """
 
 import copy
@@ -165,7 +165,7 @@ def discover(manifest: Path) -> dict:
         raise ValueError('Extension manifest cannot be a symlink')
     raw = read_text(manifest, 16_384)
     value = parse_json(raw, 16_384)
-    optional = [key for key in ('grants', 'declares') if isinstance(value, dict) and key in value]
+    optional = [key for key in ('grants', 'declares', 'code') if isinstance(value, dict) and key in value]
     fields(value, ('schema_version', 'id', 'version', 'skill', 'tools', *optional))
     versioned(value)
     _name(value['id'])
@@ -188,16 +188,35 @@ def discover(manifest: Path) -> dict:
         raise ValueError('Bundle requires 1–4 tool declarations')
     for name, binding in tools.items():
         _name(name)
-        if binding != 'retrieve':
-            raise FeatureUnavailable('Extension contract 1 only supports the retrieve binding')
+        if isinstance(binding, dict):
+            from .plugin_runtime import schema
+            fields(binding, ('binding', 'entry', 'input_schema', 'output_schema'))
+            if binding['binding'] != 'run':
+                raise FeatureUnavailable('Unsupported extension executable binding')
+            if not isinstance(binding['entry'], str) or not re.fullmatch(r'[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*', binding['entry']):
+                raise ValueError('Plugin entry must be a Python module name')
+            schema(binding['input_schema'])
+            schema(binding['output_schema'])
+            if 'code' not in value or not is_plugin(value):
+                raise ValueError('Run binding requires signed plugin capabilities and code')
+        elif binding != 'retrieve':
+            raise FeatureUnavailable('Extension contract 1 supports retrieve or a run declaration')
     if 'grants' in value:
         _validate_grants(value['grants'])
     if 'declares' in value:
         _validate_declares(value['declares'])
-    artifact = digest({'manifest_sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(),
-                       'skill_sha256': hashlib.sha256(skill_text.encode('utf-8')).hexdigest()})
+    hashes = {'manifest_sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(),
+                       'skill_sha256': hashlib.sha256(skill_text.encode('utf-8')).hexdigest()}
+    if 'code' in value:
+        from .plugin_runtime import code_archive, validate_entry
+        _, raw_code = code_archive(manifest, value['code'])
+        for tool in tools.values():
+            if isinstance(tool, dict):
+                validate_entry(raw_code, tool['entry'])
+        hashes['code_sha256'] = hashlib.sha256(raw_code).hexdigest()
+    artifact = digest(hashes)
     return {'manifest': str(manifest), 'declaration': value, 'artifact_digest': artifact,
-            'skill_text': skill_text, 'availability': 'declared; invocation not qualified'}
+            'code_sha256': hashes.get('code_sha256'), 'skill_text': skill_text, 'availability': 'declared; invocation not qualified'}
 
 
 def _state(store: RunStore) -> dict:
@@ -304,6 +323,14 @@ def _current(state, expected=None, *, enabled=False, scope=None):
         return bundle
     receipt = check_trust(bundle, scope['grant'], scope['trust'])
     if receipt is not None:
+        if any(isinstance(tool, dict) for tool in bundle['declaration']['tools'].values()):
+            from .plugin_runtime import resolve_imports
+            receipt['imports'] = resolve_imports(bundle['declaration'].get('declares', {}).get('imports', []))
+            for tool in bundle['declaration']['tools'].values():
+                if isinstance(tool, dict) and tool['entry'].split('.')[0] in receipt['imports']['top_levels']:
+                    raise FeatureUnavailable('Plugin entry collides with a declared installed distribution')
+            if enabled and state.get('plugin', {}).get('imports') != receipt['imports']:
+                raise FeatureUnavailable('Plugin import closure changed; disable and explicitly enable again')
         bundle['plugin'] = receipt
     return bundle
 
@@ -354,7 +381,8 @@ def mutate(directory: Path, checkpoint: str, action: str, *, manifest: Path | No
             if action == 'enable':
                 scope = None if section is None else _scope_for(section, state['id'], directory)
                 bundle = _current(state, None if scope is None else scope['artifact_digest'], scope=scope)
-                require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'rag')
+                if 'retrieve' in bundle['declaration']['tools'].values():
+                    require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'rag')
                 if 'plugin' in bundle:
                     state['plugin'] = bundle['plugin']
             else:
@@ -429,14 +457,19 @@ def catalog(bindings: dict, *, enabled=False) -> dict:
                 full_name = f'{name}.{local_name}'
                 if full_name in result:
                     raise ValueError('Duplicate extension tool name')
-                result[full_name] = {'extension_id': name, 'binding': operation,
+                result[full_name] = {'extension_id': name, 'binding': operation['binding'] if isinstance(operation, dict) else operation,
                                      'artifact_digest': bundle['artifact_digest'],
                                      'version': bundle['declaration']['version'],
-                                     'input_schema': RETRIEVE_SCHEMA, 'skill_text': bundle['skill_text']}
+                                     'input_schema': operation['input_schema'] if isinstance(operation, dict) else RETRIEVE_SCHEMA,
+                                     'skill_text': bundle['skill_text']}
+                if isinstance(operation, dict):
+                    from .plugin_runtime import RESULT_SCHEMA
+                    result[full_name].update(output_schema=RESULT_SCHEMA,
+                        open_world=bool(bundle['declaration'].get('declares', {}).get('network')))
     return result
 
 
-def invoke_tool(bindings: dict, name: str, arguments: dict, call) -> dict:
+def invoke_tool(bindings: dict, name: str, arguments: dict, call, *, paths=None, guarded_paths=(), check_scope=None) -> dict:
     """Lease through invocation; `call` is the coordinator's already-scoped retrieval."""
     extension_id, _, local_name = name.partition('.')
     registered = registrations(bindings)
@@ -450,6 +483,18 @@ def invoke_tool(bindings: dict, name: str, arguments: dict, call) -> dict:
         bundle = _current(state, binding['artifact_digest'], enabled=True, scope=scope)
         if state['id'] != extension_id or local_name not in bundle['declaration']['tools']:
             raise PermissionError('Tool is not declared by this extension')
+        tool = bundle['declaration']['tools'][local_name]
+        if isinstance(tool, dict):
+            from .plugin_runtime import run
+            def postcheck():
+                _current(state, binding['artifact_digest'], enabled=True, scope=scope)
+                if check_scope is not None:
+                    check_scope()
+            result, receipt = run(bundle, tool, arguments, paths=paths or {},
+                guarded_paths=(store.path, *guarded_paths), postcheck=postcheck)
+            return {**result, 'extension': {'id': extension_id, 'tool': name,
+                'artifact_digest': bundle['artifact_digest'], 'version': bundle['declaration']['version'],
+                'binding': 'run', 'plugin': receipt}}
         fields(arguments, ('query', 'k'))
         bounded_text(arguments['query'], 'query')
         if type(arguments['k']) is not int or not 1 <= arguments['k'] <= 20:
