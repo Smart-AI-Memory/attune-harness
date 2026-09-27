@@ -75,6 +75,23 @@ linked from O-04 in the [opportunity log](opportunity-log.md), rather than in a
 second tracker. Open recovery PR146 is not counted as delivered and needs its own
 disposition; the original failed native build remains retained failed evidence.
 
+## Retrieval scope for stable v1
+
+Patrick confirmed this scope on September 27, 2026: finish and qualify Voyage;
+additional RAG providers, an OpenAI SDK retrieval option and automatic fallback
+are outside this release. A failed Voyage request must produce an explicit error,
+not an empty successful search or an unnoticed switch of retrieval backend.
+Unknown paid effects retain their journal and are never retried automatically.
+
+Keep the existing local keyword route and offline memory document reads.
+`attune-rag` remains a compatibility dependency until its retrieval and memory
+selection features have tested replacements; no removal or formal deprecation
+is part of this release decision. Local keyword search is an explicit user
+choice, with different matching behavior from Voyage. See the
+[Voyage failure and offline guidance](voyage-retrieval.md#failure-and-offline-behavior).
+This narrows delivery scope; it does not claim that the outstanding plugin or
+Voyage differential gates have passed.
+
 ## How to read the tables
 
 *Done when* is the acceptance receipt, in the ladder's own words where it has

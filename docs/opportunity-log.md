@@ -224,6 +224,17 @@ their numbering is independent of O-01–O-36.
 
 ## Dated evidence and follow-through
 
+O-04 follow-through, 2026-09-27 — **user** lens. Stable-v1 retrieval scope is
+explicit: qualify Voyage, preserve local keyword retrieval and memory reads,
+and defer automatic fallback and additional providers. Installed macOS wheel
+checks with network denied and no credentials passed 42 retrieval/memory tests;
+CLI routing probes return exit 2 with `unavailable` or `failed` for injected
+Voyage errors without invoking local retrieval. These are bounded software
+checks, not live-provider quality evidence. The [plan](plan-1.0.md#retrieval-scope-for-stable-v1)
+and [user guidance](voyage-retrieval.md#failure-and-offline-behavior) record the
+decision. Remaining work is the existing Voyage/plugin qualification gate;
+this note adds no new feature or spending authorization.
+
 O-04 follow-through, 2026-09-26 — **journey** lens. At main `1615ee7`,
 PR147 supplies durable explicit memory/task capture and deferred-review state;
 that closes the previously missing capture implementation, not automatic
