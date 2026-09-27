@@ -36,10 +36,10 @@ four pull requests merged (#106, #107, #108) and the release gate runs the R2
 journey; 4.5's nine pull requests all merged the same day. 3.1 completed
 the same evening with #110, step (b)'s stages under D24.
 
-## Release-gate status — September 26, 2026
+## Release-gate status — September 27, 2026
 
-Updated through `main` at `aa0f7655dd50d3ac76db3aff99eb6113febf0540`
-([PR149](https://github.com/Smart-AI-Memory/attune-harness/pull/149)); its tree
+Updated through `main` at `da2206dab02fe2a3812ddf7465aa0ed02d5c0ad9`
+([PR146](https://github.com/Smart-AI-Memory/attune-harness/pull/146)); its tree
 was compared with the reviewed head. Original status baseline: September 26. The
 requirements and exceptions remain those of [S1–S9](specs/release-1.0/README.md)
 and [D25–D30](specs/release-1.0/addendum-2026-09-23.md). This table updates
@@ -53,10 +53,10 @@ human decisions hold. Neither merged code nor a passing suite alone closes a gat
 
 | Gate | Implemented / evidenced at this revision | Remaining action and acceptance evidence | Owner / decision |
 | --- | --- | --- | --- |
-| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), and saved memory/task records (#147). See [compatibility list](compatibility.md) and its named tests. | Deprecation register/helper and retrieval MCP/A2A fixtures; record all current saved formats. After plugin fields settle, capture the candidate saved-state fixture and freeze at rc1. | Implementation and independent review; Patrick approves release. |
+| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), saved memory/task records (#147), and deprecation/protocol guards plus saved-format inventory (#151). See [compatibility list](compatibility.md) and its named tests. | After plugin fields settle, capture the candidate saved-state fixture and freeze at rc1. | Implementation and independent review; Patrick approves release. |
 | S2 / 4.4 — independent memory | Native readers, legacy import (#115), R2 installed journey, and D28 transition removal (#149) are merged. Adapter/differential removed; native fixture retained; old reader explicitly refused. PR149: full suite 3,123 passed, installed wheel 1,513 passed, all 19 CI checks green. | The Harness implementation and tests close 4.4; retain the [frozen-format contract](specs/native-memory/formats.md). | Patrick carries the reverse writer constraint to attune-ai; this summary does not claim that separate-repository action happened. |
 | S3 / 3.3 — useful recall | Serving filters/prompt recall (#128) and explicit saved capture (#147) have software checks. [September 24 observations](specs/native-memory/observations-2026-09-24.md) identify user gaps. | Observe fresh-session serving, provenance and corrected/inactive exclusion. Explicit saved records are not yet wired into that serving path; do not claim automatic recall from save/index tests. | Real-session evidence with Patrick; no invented observations. |
-| S4 / 4.3 — executable plugins | Signing, revocation, capability fields and early probes (#118). [Approved plugin contract](specs/executable-plugins/README.md). | Run binding/bootstrap/import closure, host-owned Voyage journal differential, and R1–R6 receipts on declared platforms; qualification wording changes last (R7). | Implementation/review; live paid differential needs separate authorization. D29 Windows decision remains Patrick's on October 10 if needed. |
+| S4 / 4.3 — executable plugins | Signing, revocation, capability fields and early probes (#118); signed run binding, bootstrap/import closure and result framing (#150), with all 19 checks passed at its merged head. [Approved plugin contract](specs/executable-plugins/README.md). | Voyage dependency metadata, signed-provider wiring, host-owned journal differential, and final R1–R6 receipts on declared platforms; qualification wording changes last (R7). | Implementation/review; live paid differential needs separate authorization. D29 Windows decision remains Patrick's on October 10 if needed. |
 | S5 / 4.2 — honest limits | Windows memory limits and experimental labels remain documented. | Reconcile [qualification](qualification.md) and README against final receipts. Native saved storage on Windows is not a new gate inferred from #147; executable-plugin platform evidence is separate. | Existing D20.8/D25/D29 decisions govern. |
 | S6 / 4.6 — usability | No current candidate walkthrough accepted by this status update. | A named non-programmer completes the installed journey during the candidate period; retain observed receipt under `docs/journeys/`. | Patrick names participant; observer records outcomes. |
 | S7 / 4.7 — artifact and candidate | Latest observed GitHub release is [v0.6.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v0.6.0), not rc1. The [September 24 build-only rehearsal](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/35967800177) passed; publication jobs were skipped and the workflow is byte-identical at this baseline. | TestPyPI now permits `main` with required reviewer retained (Patrick changed it; API verified September 27 UTC). Prepare and qualify the exact candidate commit, then obtain publication approval through the [runbook](release-runbook.md); two weeks without frozen-surface changes and the observed acceptance evidence still follow. | Patrick owns settings, dispatch/publication approval and release. |
@@ -64,16 +64,15 @@ human decisions hold. Neither merged code nor a passing suite alone closes a gat
 | S9 / 4.8 — migration | M1/M2 workspace and host plugin candidates (#140/#141) are distinct from full lifecycle support. | [Pre-release migration guide](migration-from-attune-ai.md) prepared; verify each row during candidate: carried/not carried/workaround, separate environments, and honest successor milestones. No premature deprecation notice. | Documentation; notice timing remains Patrick's under D26/D30. |
 
 **Execution order:** executable plugins → final compatibility fixture/freeze →
-rc1 → observed candidate period → stable. D28 and the second freeze cycle can
-advance independently before the final fixture. New format changes before rc1
+rc1 → observed candidate period → stable. D28 and the deprecation/protocol
+guards are merged; the final fixture still waits for plugin fields to settle. New format changes before rc1
 must be incorporated into that fixture; after rc1 they restart the candidate.
 October remains the target month, with no promised day.
 
-The next useful implementation chunk is plugin run/bootstrap. The smallest
-independent gate closure is D28. Release-gate status and evidence remain here,
+The next useful implementation chunk is Voyage behind the signed-plugin boundary. Release-gate status and evidence remain here,
 linked from O-04 in the [opportunity log](opportunity-log.md), rather than in a
-second tracker. Open recovery PR146 is not counted as delivered and needs its own
-disposition; the original failed native build remains retained failed evidence.
+second tracker. Recovery PR146 is merged with a bounded operator-observation path; its original
+failed native-build evidence remains retained and is not rewritten as success.
 
 ## Retrieval scope for stable v1
 
