@@ -186,10 +186,17 @@ def selected_index_preflight(cfg, provider):
 
 def selected_row_bound(passages):
     """Reject predictable staging overflow before any paid embedding stage."""
-    text_bytes = sum(len(p['embedding_text'].encode('utf-8')) for p in passages)
-    # A JSON double needs at most 25 characters, with comma and structure room.
-    if len(passages) * (PROFILE['dimensions'] * 26 + 4096) + text_bytes > MAX_INDEX_JSON:
-        raise ValueError('Selected index rows exceed the 64 MiB staging bound')
+    # A JSON double needs at most 25 characters, plus a comma. Count every
+    # string through the exact serializer: ASCII escaping can expand both text
+    # and paths well beyond their raw UTF-8 lengths.
+    estimated = 2 + max(0, len(passages) - 1) + len(passages) * PROFILE['dimensions'] * 26
+    for p in passages:
+        row_without_vector = {'passage_id': p['passage_id'], 'repo_id': p['repo_id'],
+                              'path': p['path'], 'text': p['embedding_text'],
+                              'embedding_key': embedding_key(p), 'vector': []}
+        estimated += len(canonical(row_without_vector).encode('utf-8'))
+        if estimated > MAX_INDEX_JSON:
+            raise ValueError('Selected index rows exceed the 64 MiB staging bound')
 
 
 def selected_result_bound(cfg, passages):

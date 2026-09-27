@@ -13,12 +13,12 @@ import pytest
 
 from attune_harness import extensions as ext, plugin_runtime
 from attune_harness.features import FeatureUnavailable
-from attune_harness.review_contract import digest
+from attune_harness.review_contract import canonical, digest
 from attune_harness.review_store import read_record
-from attune_harness.voyage_index import (build_index, expected_rows, index_plan, read_generation,
+from attune_harness.voyage_index import (build_index, embedding_key, expected_rows, index_plan, read_generation,
     selected_result_bound, selection, validate_staged_tree)
 from attune_harness.voyage_retrieval import retrieve_voyage
-from attune_harness.voyage_sources import config
+from attune_harness.voyage_sources import PROFILE, collect, config
 from attune_voyage_plugin.bundle import DECLARES, GRANTS, build as build_bundle
 from test_plugin_signing import base_signer, signers, signer, sign_bundle  # noqa: F401
 from test_voyage import corpus, git  # noqa: F401
@@ -291,6 +291,38 @@ def test_predictably_oversized_rows_refuse_before_paid_state(signed_index, monke
     monkeypatch.setattr(plugin_runtime, 'run_voyage_paid',
         lambda *a, **kw: pytest.fail('oversized rows launched paid child'))
     monkeypatch.setattr(voyage_index, 'MAX_INDEX_JSON', 100)
+    with pytest.raises(ValueError, match='staging bound'):
+        build_index(cfg, allow_provider=True)
+    assert not Path(cfg['index_dir']).exists()
+
+
+def test_json_escaped_rows_refuse_before_paid_state(signed_index, corpus, monkeypatch):
+    root, _, _ = corpus
+    path = 'café.md'
+    (root / path).write_text('\x01' * 64_000, encoding='utf-8')
+    git(root, 'add', path)
+    git(root, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+        'commit', '-m', 'escaped source')
+    cfg, _, _, _ = signed_index()
+    _, passages = collect(cfg)
+    longest = struct.unpack('!f', struct.pack('!f', -3.4028234663852886e38))[0]
+    vector = [longest] * PROFILE['dimensions']
+    rows = [{'passage_id': p['passage_id'], 'repo_id': p['repo_id'], 'path': p['path'],
+             'text': p['embedding_text'], 'embedding_key': embedding_key(p), 'vector': vector}
+            for p in passages]
+    old_bound = len(passages) * (PROFILE['dimensions'] * 26 + 4096) + sum(
+        len(p['embedding_text'].encode('utf-8')) for p in passages)
+    actual_bytes = len(canonical(rows).encode('utf-8'))
+    assert len(canonical(path).encode('utf-8')) > len(path.encode('utf-8'))
+    assert old_bound < actual_bytes
+    from attune_harness import voyage_index
+    limit = (old_bound + actual_bytes) // 2
+    assert old_bound < limit < actual_bytes
+    monkeypatch.setattr(voyage_index, 'MAX_INDEX_JSON', limit)
+    monkeypatch.setattr(plugin_runtime, 'run_voyage_paid',
+        lambda *a, **kw: pytest.fail('escaped rows launched paid child'))
+    monkeypatch.setattr(plugin_runtime, 'run_voyage_index',
+        lambda *a, **kw: pytest.fail('escaped rows launched index child'))
     with pytest.raises(ValueError, match='staging bound'):
         build_index(cfg, allow_provider=True)
     assert not Path(cfg['index_dir']).exists()
