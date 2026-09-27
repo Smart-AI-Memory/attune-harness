@@ -12,7 +12,7 @@ from email.parser import BytesParser
 import hashlib
 from importlib import metadata, util
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import stat
 import subprocess
@@ -29,7 +29,7 @@ def file_digest(path: Path) -> str:
 
 def _relative(name: str) -> PurePosixPath:
     path = PurePosixPath(name)
-    if (not name or path.is_absolute() or str(path) != name or
+    if (not name or path.is_absolute() or PureWindowsPath(name).drive or str(path) != name or
             any(part in ("", ".", "..") for part in path.parts) or "\\" in name):
         raise ValueError(f"Capture path must be canonical and relative: {name!r}")
     return path

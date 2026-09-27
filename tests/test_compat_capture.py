@@ -38,7 +38,7 @@ def test_capture_preserves_raw_bytes_and_hashes(tmp_path):
 
 
 @pytest.mark.parametrize("name", ["../secret", "/etc/passwd", "task/../record.json",
-                                      "task\\record.json", "task//record.json"])
+                                      "task\\record.json", "task//record.json", "C:/x", "C:x"])
 def test_capture_refuses_escape_or_noncanonical_names(tmp_path, name):
     root = tmp_path / "source"
     root.mkdir()
