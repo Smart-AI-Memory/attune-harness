@@ -477,6 +477,120 @@
      ],
      "required_options": []
     },
+    "saved": {
+     "one_of": [],
+     "options": [],
+     "positionals": [],
+     "required_options": [],
+     "subcommands": {
+      "complete": {
+       "one_of": [],
+       "options": [
+        "--request"
+       ],
+       "positionals": [
+        {
+         "name": "id",
+         "nargs": null
+        }
+       ],
+       "required_options": [
+        "--request"
+       ]
+      },
+      "forget": {
+       "one_of": [],
+       "options": [
+        "--request"
+       ],
+       "positionals": [
+        {
+         "name": "id",
+         "nargs": null
+        }
+       ],
+       "required_options": [
+        "--request"
+       ]
+      },
+      "list": {
+       "one_of": [],
+       "options": [
+        "--scope"
+       ],
+       "positionals": [],
+       "required_options": [
+        "--scope"
+       ]
+      },
+      "reindex": {
+       "one_of": [],
+       "options": [
+        "--scope"
+       ],
+       "positionals": [],
+       "required_options": [
+        "--scope"
+       ]
+      },
+      "revise": {
+       "one_of": [],
+       "options": [
+        "--request"
+       ],
+       "positionals": [
+        {
+         "name": "id",
+         "nargs": null
+        }
+       ],
+       "required_options": [
+        "--request"
+       ]
+      },
+      "save": {
+       "one_of": [],
+       "options": [
+        "--request"
+       ],
+       "positionals": [],
+       "required_options": [
+        "--request"
+       ]
+      },
+      "search": {
+       "one_of": [],
+       "options": [
+        "--scope"
+       ],
+       "positionals": [
+        {
+         "name": "query",
+         "nargs": null
+        }
+       ],
+       "required_options": [
+        "--scope"
+       ]
+      },
+      "show": {
+       "one_of": [],
+       "options": [
+        "--history",
+        "--scope"
+       ],
+       "positionals": [
+        {
+         "name": "id",
+         "nargs": null
+        }
+       ],
+       "required_options": [
+        "--scope"
+       ]
+      }
+     }
+    },
     "scratch": {
      "one_of": [],
      "options": [],

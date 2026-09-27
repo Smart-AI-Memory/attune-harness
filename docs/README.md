@@ -188,6 +188,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [harness-release-readiness-direction.md](harness-release-readiness-direction.md) | Harness release readiness — direction and proposed next step | 2026-09-17 |
 | [integrated-rag-architecture.md](integrated-rag-architecture.md) | ADR — Integrated RAG owned by Attune Harness | September 15, 2026 |
 | [memory-documentation-journey.md](memory-documentation-journey.md) | Memory documentation journey: local handoff qualified, native sample pending | 2026-09-17 |
+| [memory-saving.md](memory-saving.md) | Save memories and task intent | 2026-09-26 |
 | [october-release-plan.md](october-release-plan.md) | October release and complete-journey plan | September 18, 2026 |
 | [opportunities-implementation-report.md](opportunities-implementation-report.md) | Attune Harness: opportunities 1–5 implementation report | September 15, 2026 |
 | [pilot-migration.md](pilot-migration.md) | Pilot migration decision record |  |
