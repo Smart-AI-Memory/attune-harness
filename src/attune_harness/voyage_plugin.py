@@ -100,7 +100,8 @@ def inspect_selection(selection: dict) -> dict:
             not isinstance(grant.get('output'), dict) or
             any(type(grant['output'].get(key)) is not int for key in ('result', 'diagnostics'))):
         raise FeatureUnavailable('Voyage plugin requires explicit scratch, time and output grants')
-    return {**result, 'acceptance': 'pinned', 'extension_id': name,
+    return {**result, 'acceptance': 'pinned',
+            'dispatch_available': 'index_staging' in grant.get('paths', ()), 'extension_id': name,
             'artifact_digest': bundle['artifact_digest'], 'signer': bundle['plugin']['signer']}
 
 
@@ -151,14 +152,55 @@ class VoyagePaidStageContext:
             raise FeatureUnavailable('Voyage paid-stage context is not a host-owned dispatching stage')
 
 
+@dataclass(frozen=True)
+class VoyageIndexContext:
+    """Host-owned unpublished generation for a local index tool, not a paid stage."""
+
+    directory: Path
+    staging: Path
+    generation: str
+    config_digest: str
+    extension_id: str
+    artifact_digest: str
+    rows_digest: str
+    row_count: int
+    config: dict
+
+    def assert_index(self, arguments: dict, tool_name: str):
+        from .voyage_index import read_json
+        from .voyage_sources import generation as generation_id
+
+        selection = self.config.get('voyage_plugin', {})
+        if (digest(self.config) != self.config_digest or
+                selection.get('extension_id') != self.extension_id or
+                selection.get('tools', {}).get('index') != tool_name or
+                arguments != {'generation': self.generation, 'rows_digest': self.rows_digest,
+                              'row_count': self.row_count}):
+            raise FeatureUnavailable('Voyage index tool or request differs from its accepted host context')
+        if inspect_selection(selection)['artifact_digest'] != self.artifact_digest:
+            raise FeatureUnavailable('Voyage index selected artifact changed')
+        if (self.staging != self.directory / 'index_staging' or
+                not self.staging.is_dir() or
+                any(path.is_symlink() for path in (self.directory, self.staging,
+                    self.directory / 'manifest.json', self.staging / 'rows.json')) or
+                (self.directory / 'published.json').exists()):
+            raise FeatureUnavailable('Voyage index staging is not an unpublished host generation')
+        metadata = read_json(self.directory / 'manifest.json')
+        rows = read_json(self.staging / 'rows.json')
+        if (metadata['config'] != self.config or
+                generation_id(self.config, metadata['manifest'], metadata['passages']) != self.generation or
+                not isinstance(rows, list) or len(rows) != self.row_count or digest(rows) != self.rows_digest):
+            raise FeatureUnavailable('Voyage index staging rows or generation changed')
+
+
 @contextmanager
 def selected_stage(cfg: dict, kind: str):
     """Keep the selected extension lease and accepted authority across one stage."""
     from .extensions import _current, _scope_for, _state, registrations
     from .review_store import RunStore
 
-    if kind not in ('embed', 'rerank'):
-        raise ValueError('Voyage plugin stage must be embed or rerank')
+    if kind not in ROLES:
+        raise ValueError('Voyage plugin role must be embed, rerank or index')
     selection = cfg['voyage_plugin']
     if 'registry_digest' not in selection:
         raise FeatureUnavailable('Voyage plugin registry is unpinned; inspect the plan and explicitly accept its observed digest')

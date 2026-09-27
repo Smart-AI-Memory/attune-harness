@@ -242,16 +242,16 @@ def test_registration_change_during_child_discards_result(signed_stage, tmp_path
     assert stage_records(directory)[1][0]['status'] == 'unresolved'
 
 
-def test_selected_high_level_paths_still_refuse_before_fallback(signed_stage, tmp_path):
+def test_selected_high_level_paths_refuse_injected_fallback(signed_stage, tmp_path):
     cfg, _, _, _, _ = signed_stage()
     class Poison:
         def embed(self, *a):
             pytest.fail('builtin provider called')
         def rerank(self, *a):
             pytest.fail('builtin provider called')
-    with pytest.raises(FeatureUnavailable, match='dispatch is unavailable'):
+    with pytest.raises(FeatureUnavailable, match='signed plugin tool'):
         build_index(cfg, allow_provider=True, provider=Poison())
-    with pytest.raises(FeatureUnavailable, match='dispatch is unavailable'):
+    with pytest.raises(FeatureUnavailable, match='signed plugin tools'):
         retrieve_voyage({'config': cfg}, 'query', work_dir=tmp_path / 'work',
                         allow_provider=True, provider=Poison())
     assert not Path(cfg['index_dir']).exists() and not (tmp_path / 'work').exists()

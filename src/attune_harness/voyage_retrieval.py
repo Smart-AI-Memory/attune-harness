@@ -4,7 +4,7 @@ import copy
 import re
 from pathlib import Path
 
-from .features import report
+from .features import FeatureUnavailable, report
 from .review_contract import bounded_text, canonical, digest
 from .review_store import RunStore, read_record
 from .voyage_index import check_generation, database, load_selection, read_json, write_json
@@ -88,9 +88,15 @@ def evidence_basis(sources):
 
 
 def retrieve_voyage(selection, query, *, k=3, work_dir: Path, allow_provider=False, provider=None):
-    from .voyage_plugin import refuse_dispatch
+    from .voyage_plugin import inspect_selection
     if isinstance(selection, dict) and isinstance(selection.get('config'), dict):
-        refuse_dispatch(selection['config'])
+        selected = selection['config'].get('voyage_plugin')
+        if selected is not None:
+            if 'registry_digest' not in selected:
+                raise FeatureUnavailable('Voyage plugin registry is unpinned; explicitly accept its observed digest')
+            inspect_selection(selected)
+            if provider is not None:
+                raise FeatureUnavailable('Selected Voyage retrieval uses only signed plugin tools, not an injected provider')
     validate_query(query, k)
     load_selection(selection)
     cfg = selection['config']

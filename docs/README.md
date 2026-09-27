@@ -110,6 +110,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [design-voyage-retrieval.md](design-voyage-retrieval.md) | Voyage application retrieval: implementation design | September 15, 2026 |
 | [voyage-plugin-binding-design.md](voyage-plugin-binding-design.md) | Voyage plugin binding: accepted selection and offline boundary |  |
 | [voyage-paid-stage-adapter-design.md](voyage-paid-stage-adapter-design.md) | Voyage embed/rerank adapter: host-owned paid-stage journal |  |
+| [voyage-index-plugin-design.md](voyage-index-plugin-design.md) | Selected Voyage index, runner bundle and offline journey |  |
+| [voyage-plugin-runner.md](voyage-plugin-runner.md) | Build and explicitly accept the unsigned Voyage runner bundle |  |
 | [design-windows-effect-backend.md](design-windows-effect-backend.md) | Windows file-effects backend from the observed native primitive | September 18, 2026 |
 | [design-windows-feature-effects.md](design-windows-feature-effects.md) | Windows feature and repair effects — design only | September 18, 2026 |
 | [design-windows-runtime.md](design-windows-runtime.md) | Native Windows execution and recovery | 2026-09-15 |

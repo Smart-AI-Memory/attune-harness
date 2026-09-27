@@ -117,15 +117,15 @@ def test_selected_dispatch_refuses_before_index_work_or_stage_state(corpus, voya
     assert provider.calls == []
 
 
-def test_matching_pin_refuses_high_level_paths_and_injected_provider(corpus, voyage_bundle):
+def test_matching_pin_refuses_injected_provider_on_all_paths(corpus, voyage_bundle):
     _, cfg, provider = corpus
     registry, _, _, _ = voyage_bundle
     bound = selected(cfg, registry)
-    with pytest.raises(FeatureUnavailable, match='dispatch is unavailable'):
+    with pytest.raises(FeatureUnavailable, match='signed plugin tool'):
         build_index(bound, allow_provider=True, provider=provider)
     with pytest.raises(FeatureUnavailable, match='signed plugin tool'):
         StageJournal(registry.parent / 'stages', bound, allow_provider=True, provider=provider)
-    with pytest.raises(FeatureUnavailable, match='dispatch is unavailable'):
+    with pytest.raises(FeatureUnavailable, match='signed plugin tools'):
         retrieve_voyage({'config': bound}, 'query', work_dir=registry.parent / 'work',
                         allow_provider=True, provider=provider)
     assert provider.calls == [] and not Path(cfg['index_dir']).exists()
