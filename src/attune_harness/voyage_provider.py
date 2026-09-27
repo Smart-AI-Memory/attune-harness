@@ -140,6 +140,8 @@ class StageJournal:
     """Caller holds its enclosing run/index writer lease. Results live in bounded sidecars."""
 
     def __init__(self, directory: Path, cfg, *, allow_provider=False, provider=None):
+        from .voyage_plugin import refuse_dispatch
+        refuse_dispatch(cfg)
         self.directory, self.cfg = directory, cfg
         self.allow_provider, self.provider = allow_provider, provider
         self.failed = False

@@ -55,7 +55,7 @@ def config(value, base: Path):
     if not isinstance(value, dict):
         raise ValueError('Retrieval config must be an object')
     fields(value, {'schema_version', 'roots', 'index_dir'} |
-           (set(value) & (set(DEFAULTS) | {'structured_paths'})))
+           (set(value) & (set(DEFAULTS) | {'structured_paths', 'voyage_plugin'})))
     versioned(value)
     result = {**copy.deepcopy(DEFAULTS), **copy.deepcopy(value)}
     roots = result['roots']
@@ -75,6 +75,9 @@ def config(value, base: Path):
     if index.is_symlink() or any(p in ('.git', '.hg', '.svn') for p in index.resolve().parts):
         raise ValueError('Index cannot be a symlink or repository metadata')
     result['index_dir'] = str(index.resolve())
+    if 'voyage_plugin' in value:
+        from .voyage_plugin import normalize_selection
+        result['voyage_plugin'] = normalize_selection(value['voyage_plugin'], base)
     if any(Path(r['path']).is_relative_to(index.resolve()) for r in result['roots']):
         raise ValueError('Index directory cannot contain a selected repository root')
     for key in ('include', 'exclude'):

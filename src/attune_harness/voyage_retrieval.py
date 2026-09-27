@@ -88,6 +88,9 @@ def evidence_basis(sources):
 
 
 def retrieve_voyage(selection, query, *, k=3, work_dir: Path, allow_provider=False, provider=None):
+    from .voyage_plugin import refuse_dispatch
+    if isinstance(selection, dict) and isinstance(selection.get('config'), dict):
+        refuse_dispatch(selection['config'])
     validate_query(query, k)
     load_selection(selection)
     cfg = selection['config']
