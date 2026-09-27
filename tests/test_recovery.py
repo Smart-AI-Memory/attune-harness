@@ -3,6 +3,7 @@ import json
 import shutil
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -188,22 +189,29 @@ def test_stale_checkpoint_and_copied_run_refused(case):
 
 def test_concurrent_owner_refused_and_lock_released_after_process_death(case):
     record = review(*case, max_operations=2)
+    ready = case[2].parent / 'lease-ready'
     script = ('from pathlib import Path; import sys; from attune_harness.review_store import RunStore; '
               's=RunStore(Path(sys.argv[1]).parent,existing=True); lease=s.lease(); lease.__enter__(); '
-              'print("locked",flush=True); sys.stdin.read()')
-    process = subprocess.Popen([sys.executable, '-c', script, str(case[2] / '.writer.lock')],
-                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+              'Path(sys.argv[2]).write_text("locked"); sys.stdin.read()')
+    process = subprocess.Popen([sys.executable, '-c', script, str(case[2] / '.writer.lock'),
+                                str(ready)], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                               stderr=subprocess.PIPE, text=True)
     try:
-        assert process.stdout.readline().strip() == 'locked'
+        deadline = time.monotonic() + 20
+        while not ready.is_file() and process.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.05)
+        stderr = process.stderr.read() if process.poll() is not None else 'still running'
+        assert ready.is_file(), f'Lock holder did not signal within 20s: {stderr}'
         with pytest.raises(PersistenceError, match='busy'):
             resume(case, record)
         with pytest.raises(PersistenceError, match='busy'):
             cancel_review(case[2], record['checkpoint_digest'], 'stop')
     finally:
-        process.kill()
-        process.wait()
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=10)
         process.stdin.close()
-        process.stdout.close()
+        process.stderr.close()
     assert resume(case, record)['status'] == 'completed'
 
 

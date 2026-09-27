@@ -122,6 +122,7 @@ each reader's own version check are.
 | Effects manifest | `posix-feature-effects-v1`, `windows-feature-effects-v1`, with a `before` snapshot | `work_effects`, `windows_effects` | `work_effects.freeze` |
 | Scratch record | `format: attune-harness/scratch`, `format_version` 2, `writer` and per-key `version`; legacy headerless `schema_version` 1 remains readable | `memory_scratch` | `memory scratch stash` |
 | Saved memory/task store, `state.json` | `schema_version` 1; record revision/history, operation identities and index state; optional task `opportunity_review` checkpoint | `memory_saved.SavedStore` | `memory saved` mutation commands |
+| Voyage paid-stage ledger and stage `record.json` | `schema_version` 1; recovery profiles `voyage-stage-ledger-v1` and `voyage-paid-stage-v1`, with durable stage identities, statuses and billing receipts | `review_store.read_record`, `voyage_provider.StageJournal` | `voyage_provider.StageJournal` during `index build` and retrieval |
 | Extension manifest and state | `schema_version` 1, data only; 4.3 adds `grants`, `declares` and the `run` binding | `extensions` | `extension install`, `enable` |
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
 | Memory config | `roots`, `redis`, `scratch`, `reader` and explicit `saved` sections | `memory_reader.roots_config`, `memory_saved_cli` and the backends | the user |
@@ -132,6 +133,10 @@ The candidate fixture must include both the current scratch format and saved
 memory/task records, including deferred-review state. Their current reader tests
 are not a substitute for a fixture written by the candidate. Saved task intent
 references existing execution; it does not create a second execution owner.
+The Voyage host-owned stage journal is also saved state: its completed stages
+replay without a new paid call, while a dispatched stage refuses automatic
+retry. The candidate fixture will capture this format with synthetic results;
+the selected index's LanceDB files remain covered by index qualification.
 
 ## 4. Refusal texts
 

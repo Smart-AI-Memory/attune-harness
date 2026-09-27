@@ -79,6 +79,8 @@ def git(root, *args):
             "-c",
             "commit.gpgsign=false",
             "-c",
+            "maintenance.auto=false",
+            "-c",
             f"core.hooksPath={hooks}",
             "-c",
             "user.name=Fixture",

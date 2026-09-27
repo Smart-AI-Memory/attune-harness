@@ -228,11 +228,12 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
     output = tmp_path / 'result'
     calls = []
+    expected_timeout = 900
 
     def child(argv, **kwargs):
         calls.append(argv)
         if '-m' in argv:
-            assert kwargs['timeout'] == (900 if instrumented else 600)
+            assert kwargs['timeout'] == expected_timeout
             (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
                 step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
             if timed_out:
@@ -251,7 +252,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     kwargs = {'coverage_instrumented': True} if instrumented else {}
     assert qualifier.qualify(output, **kwargs) == (124 if timed_out else 0)
     receipt = json.loads((output / 'platform.json').read_text())
-    assert receipt['suite_timeout_seconds'] == (900 if instrumented else 600)
+    assert receipt['suite_timeout_seconds'] == expected_timeout
     assert len(calls) == 2
     if instrumented:
         assert receipt['status'] == ('instrumented_failed' if timed_out else 'instrumented_checks_passed')
