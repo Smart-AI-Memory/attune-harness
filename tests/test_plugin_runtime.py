@@ -532,13 +532,22 @@ Path(sys.argv[2]).write_text(json.dumps({'denied': denied, 'count': len(list(m.d
     assert invoke(bindings)['plugin_result'] == {'denied': True, 'count': 0}
 
 
-def test_selected_compiled_voyage_stack_runs_offline(run_plugin):
+def test_selected_compiled_voyage_stack_runs_offline(run_plugin, monkeypatch):
     for name in ('voyageai', 'lancedb'):
         try:
             runtime.metadata.version(name)
         except runtime.metadata.PackageNotFoundError:
             pytest.skip('Voyage extra is not installed')
     _, enable = run_plugin
+    # This offline fixture uses no real secret or provider input. Keep its bounded
+    # failure transcript in pytest, while production receipts remain digest-only.
+    subprocesses = []
+    original = runtime.invoke
+    def capture(*args, **kwargs):
+        outcome = original(*args, **kwargs)
+        subprocesses.append(outcome)
+        return outcome
+    monkeypatch.setattr(runtime, 'invoke', capture)
     script = '''import sys, json
 from pathlib import Path
 def no_network(event, args):
@@ -555,7 +564,13 @@ Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': vo
 '''
     bindings, _ = enable(script, grants={**GRANT, 'time': 30},
                          declares={'imports': ['voyageai', 'lancedb']})
-    assert invoke(bindings)['plugin_result'] == {'nearest': 'a', 'version': '0.5.0', 'broad_site_path': False}
+    try:
+        result = invoke(bindings)
+    except runtime.PluginUnresolved:
+        if subprocesses:
+            pytest.fail('Offline compiled child failed:\n' + subprocesses[-1].stderr)
+        raise
+    assert result['plugin_result'] == {'nearest': 'a', 'version': '0.5.0', 'broad_site_path': False}
 
 
 def test_call_receipt_binds_large_metadata_without_repeating_snapshot(run_plugin, monkeypatch):
