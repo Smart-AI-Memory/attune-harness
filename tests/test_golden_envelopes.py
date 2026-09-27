@@ -210,44 +210,24 @@ ENVELOPES = (
     ('retrieve', 'success', 0, 1, 'retrieved',
      ('corpus', 'dependency', 'k', 'operation', 'query', 'request_id', 'retriever',
       'schema_version', 'sources', 'status')),
-    ('memory-capabilities', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-recall', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-resolve', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-refresh', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-create', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-replay', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-inspect', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-execute', 'unavailable', 2, None, 'unavailable',
-     ('detail', 'error', 'status')),
-    ('memory-capabilities-adapter', 'success', 0, None, None,
+    ('memory-capabilities', 'success', 0, None, None,
      ('context_refresh', 'mutation_status', 'native_worker', 'read', 'reader', 'retained_paths',
       'worker_execution', 'worker_mutations')),
-    ('memory-recall-adapter', 'success', 0, 1, 'available',
+    ('memory-recall', 'success', 0, 1, 'available',
      ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
       'schema_version', 'status')),
-    ('memory-resolve-adapter', 'success', 0, None, None,
+    ('memory-resolve', 'success', 0, None, None,
      ('authority', 'classification', 'id', 'kind', 'locator', 'metadata', 'owner', 'scope',
       'text', 'version')),
-    ('memory-refresh-adapter', 'success', 0, None, 'available',
+    ('memory-refresh', 'success', 0, None, 'available',
      ('context', 'invalidated_ids', 'replaces', 'status')),
-    ('memory-capabilities-native', 'success', 0, None, None,
-     ('context_refresh', 'mutation_status', 'native_worker', 'read', 'reader', 'retained_paths',
-      'worker_execution', 'worker_mutations')),
-    ('memory-recall-native', 'success', 0, 1, 'available',
-     ('authority', 'guidance', 'items', 'k', 'max_chars', 'operation', 'problems', 'query',
-      'schema_version', 'status')),
-    ('memory-resolve-native', 'success', 0, None, None,
-     ('authority', 'classification', 'id', 'kind', 'locator', 'metadata', 'owner', 'scope',
-      'text', 'version')),
-    ('memory-refresh-native', 'success', 0, None, 'available',
-     ('context', 'invalidated_ids', 'replaces', 'status')),
+    ('memory-create', 'success', 0, None, 'created', ('generation', 'mode', 'status')),
+    ('memory-replay', 'success', 0, None, 'complete_no_change',
+     ('mode', 'provider_calls', 'result', 'status', 'unused_reply_count')),
+    ('memory-inspect', 'success', 0, None, 'complete_no_change',
+     ('attempts', 'envelope', 'generation', 'initial_profile', 'policy', 'reason', 'result', 'sampled', 'status', 'transport')),
+    ('memory-execute', 'success', 0, None, 'complete_no_change',
+     ('dispatch_attempts', 'effects', 'mode', 'provider_transmission', 'result', 'status')),
     ('memory-capabilities-invalid', 'refusal', 2, None, 'failed',
      ('detail', 'error', 'status')),
     ('memory-redis-status', 'success', 0, 1, 'ok',
@@ -480,13 +460,6 @@ class World:
         self.monkeypatch.delenv("ATTUNE_MEMORY_WORKER", raising=False)
         return ["memory", "--config", write_json(self.tmp / "memory.json", value)]
 
-    def memory_host(self):
-        # The adapter fallback (reader: adapter) lives in attune-ai, which no base or extra install
-        # carries; pin its unavailable report the same way on every machine.
-        for name in ("attune", "attune.memory", "attune.memory.harness_adapter"):
-            self.monkeypatch.setitem(sys.modules, name, None)  # also when a differential imported it earlier
-        return self.memory_config({"roots": [], "reader": "adapter"})
-
     def native_reader(self):
         """The default reader over a raw root: no attune-ai, no reader key, one findings file."""
         import time as _time
@@ -501,46 +474,53 @@ class World:
                                    "roots": [dict(id="r", path=str(root.resolve()), tier="raw", scope="s",
                                                   owner="p", classification="internal")]})
 
-    def faked_adapter(self):
-        """The adapter's four-member contract as an in-process double.
+    def memory_job(self, *, create=True, replay=False):
+        """Native reader and one deterministic proposal job; no provider calls."""
+        from attune_harness import memory_context
+        from attune_harness.memory_contract import CAPABILITY
+        from attune_harness.memory_worker import InjectedParticipant
 
-        The success envelopes are Harness's own shapes (memory_context.py) over
-        whatever object answers `binding`, `capabilities()`, `query()` and
-        `resolve()`; pinning them here is the contract the native reader of
-        Phase 2 must satisfy, on every platform, with attune-ai absent.
-        """
-        import types
-
-        binding = {"roots": "double", "digest": "0" * 8}
-        item = dict(id="doc-1", locator="root/doc.md", version="v1", authority=binding,
-                    text="Quartz retention policy: keep audit logs ninety days.", kind="reference",
-                    metadata={"path": "root/doc.md"}, scope="project", owner="patrick",
-                    classification="internal")
-
-        class CompatibilityAdapter:
-            def __init__(self, config):
-                self.binding = binding
-
-            def capabilities(self):
-                return dict(read=["raw", "personal", "curated"], worker_mutations=[],
-                            mutation_status="unavailable", retained_paths=[])
-
-            def query(self, query, k=10):
-                return dict(status="available", items=[dict(item)], problems=[],
-                            authority=binding, capabilities=self.capabilities())
-
-            def resolve(self, handle):
-                return dict(item)
-
-        package = types.ModuleType("attune")
-        memory = types.ModuleType("attune.memory")
-        adapter = types.ModuleType("attune.memory.harness_adapter")
-        adapter.CompatibilityAdapter = CompatibilityAdapter
-        package.memory, memory.harness_adapter = memory, adapter
-        for name, module in (("attune", package), ("attune.memory", memory),
-                             ("attune.memory.harness_adapter", adapter)):
-            self.monkeypatch.setitem(sys.modules, name, module)
-        return self.memory_config({"roots": [], "reader": "adapter"})  # the fallback, by name since 2.4
+        base = self.native_reader()
+        config = json.loads((self.tmp / "memory.json").read_text())
+        config['profiles'] = ['luna', 'astra']
+        write_json(self.tmp / "memory.json", config)
+        jobs = self.tmp / "jobs"
+        jobs.mkdir(exist_ok=True)
+        base += ['--jobs', jobs]
+        fact = dict(id='f1', text='Retain quartz logs ninety days.', scope='s',
+                    kind='note', source_ids=['s1'])
+        envelope = dict(schema_version=1, capability=CAPABILITY, task_class='routine',
+                        input=dict(task='Preserve the retention rule.', record=dict(version=1, facts=[fact]),
+                                   sources=[dict(id='s1', text=fact['text'], scope='s', context='Policy',
+                                                 owner='p', classification='internal')],
+                                   grants=dict(scopes=['s'], kinds=['note'], create_ids=[],
+                                               remove_ids=[], classify_ids=[])),
+                        access=dict(actor='p', owners=['p'], classifications=['internal'],
+                                    profiles=['luna', 'astra']))
+        policy = dict(sample_modulus=10000, sample_bucket=0, sample_salt='golden',
+                      routine_profile='luna', stronger_profile='astra')
+        from attune_harness.memory_worker import sampled
+        while sampled('job-1', policy):
+            policy['sample_salt'] += 'x'
+        value = dict(operation='amend', outcome='no_change', facts=[], reason='Policy is unchanged.',
+                     evidence_ids=['s1'], request='')
+        write_json(self.tmp / 'envelope.json', envelope)
+        write_json(self.tmp / 'policy.json', policy)
+        write_json(self.tmp / 'replies.json', [dict(role='worker', profile='luna', value=value)])
+        if create:
+            assert self.run(base + ['create', 'run-1', '--envelope', self.tmp / 'envelope.json',
+                                    '--policy', self.tmp / 'policy.json'])[0] == 0
+        if replay:
+            assert self.run(base + ['replay', 'run-1', 'job-1', '--replies', self.tmp / 'replies.json'])[0] == 0
+        # Execute keeps its real host/worker path; only the provider participant is injected.
+        original = memory_context.MemoryHost
+        class OfflineHost(original):
+            def __init__(host, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                host.native = InjectedParticipant(lambda *args: {'value': value}, ['luna', 'astra'])
+                host.native.preflight = lambda *args: None
+        self.monkeypatch.setattr(memory_context, 'MemoryHost', OfflineHost)
+        return base
 
     def fake_redis(self):
         self.monkeypatch.setattr(
@@ -1143,72 +1123,27 @@ def _(w):
     return w.run(["retrieve", "quartz retention policy", "--corpus", w.root / "project"])
 
 
-# Memory: the host route (unavailable without attune-ai), the Redis reads against the
-# in-process double, and the file scratch store.
+# Memory: native reads, offline proposal jobs, Redis double and file scratch.
 
 
-@scenario("memory-capabilities")
-def _(w):
-    return w.run(w.memory_host() + ["capabilities"])
-
-
-@scenario("memory-recall")
-def _(w):
-    return w.run(w.memory_host() + ["recall", "quartz"])
-
-
-@scenario("memory-resolve")
-def _(w):
-    return w.run(w.memory_host() + ["resolve", w.tmp / "handle.json"])
-
-
-@scenario("memory-refresh")
-def _(w):
-    return w.run(w.memory_host() + ["refresh", w.tmp / "context.json"])
-
-
-@scenario("memory-capabilities-adapter")
-def _(w):
-    return w.run(w.faked_adapter() + ["capabilities"])
-
-
-@scenario("memory-recall-adapter")
-def _(w):
-    return w.run(w.faked_adapter() + ["recall", "quartz", "--k", "3"])
-
-
-@scenario("memory-resolve-adapter")
-def _(w):
-    base = w.faked_adapter()
-    _, packet = w.run(base + ["recall", "quartz"])
-    return w.run(base + ["resolve", write_json(w.tmp / "handle.json", packet["items"][0]["handle"])])
-
-
-@scenario("memory-refresh-adapter")
-def _(w):
-    base = w.faked_adapter()
-    _, packet = w.run(base + ["recall", "quartz"])
-    return w.run(base + ["refresh", write_json(w.tmp / "context.json", packet)])
-
-
-@scenario("memory-capabilities-native", POSIX_ONLY)
+@scenario("memory-capabilities", POSIX_ONLY)
 def _(w):
     return w.run(w.native_reader() + ["capabilities"])
 
 
-@scenario("memory-recall-native", POSIX_ONLY)
+@scenario("memory-recall", POSIX_ONLY)
 def _(w):
     return w.run(w.native_reader() + ["recall", "quartz", "--k", "2"])
 
 
-@scenario("memory-resolve-native", POSIX_ONLY)
+@scenario("memory-resolve", POSIX_ONLY)
 def _(w):
     base = w.native_reader()
     _, packet = w.run(base + ["recall", "quartz"])
     return w.run(base + ["resolve", write_json(w.tmp / "handle.json", packet["items"][0]["handle"])])
 
 
-@scenario("memory-refresh-native", POSIX_ONLY)
+@scenario("memory-refresh", POSIX_ONLY)
 def _(w):
     base = w.native_reader()
     _, packet = w.run(base + ["recall", "quartz"])
@@ -1224,7 +1159,7 @@ def _(w):
 @scenario("memory-create")
 def _(w):
     return w.run(
-        w.memory_host()
+        w.memory_job(create=False)
         + [
             "create",
             "run-1",
@@ -1239,18 +1174,18 @@ def _(w):
 @scenario("memory-replay")
 def _(w):
     return w.run(
-        w.memory_host() + ["replay", "run-1", "job-1", "--replies", w.tmp / "replies.json"]
+        w.memory_job() + ["replay", "run-1", "job-1", "--replies", w.tmp / "replies.json"]
     )
 
 
 @scenario("memory-inspect")
 def _(w):
-    return w.run(w.memory_host() + ["inspect", "run-1", "job-1"])
+    return w.run(w.memory_job(replay=True) + ["inspect", "run-1", "job-1"])
 
 
 @scenario("memory-execute")
 def _(w):
-    return w.run(w.memory_host() + ["execute", "run-1", "job-1"])
+    return w.run(w.memory_job() + ["execute", "run-1", "job-1"])
 
 
 @scenario("memory-redis-status")

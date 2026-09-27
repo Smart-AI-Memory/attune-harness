@@ -1,9 +1,8 @@
 """The compatibility fixture is the memory format contract (N4, D19): pinned by digest and shape.
 
 ``tests/fixtures/memory_compatibility.json`` came onto ``main`` from commit
-``3230643`` of ``wip/local-snapshot-2026-09-19`` unchanged. The adapter-side
-probes in ``test_memory_compatibility.py`` need attune-ai; these checks need
-nothing, so every platform job sees the contract, and an edit to the file
+``3230643`` of ``wip/local-snapshot-2026-09-19`` unchanged. These checks are the sole retained witness of attune-ai format behavior
+(D28), need nothing, and run on every platform job. An edit to the file
 fails here until the digest below is changed on purpose.
 """
 # qualify: platform
