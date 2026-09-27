@@ -75,6 +75,7 @@ exact" when the review confirmed a carried module changed nothing.
 | #125 | `keys()` no longer deletes a record a compare-and-set landed (the fix for #116's second review) | approve | 0/1/2 | test | The race test passed with the unlink moved outside the lock, a real check-then-act gap; no test pinned a planted `.scratch.lock` on the `keys()` path. Codex's GitHub review of the same pull request found nothing |
 
 | #128 | Phase 3.3 memory serving and prompt hook; GPT-6-sol reviewing Codex (GPT-6) at `72b6f33`, then `2b5cf8a` | request changes, then approve | 0/1/0 | mapping | A 10 KB deeply nested host payload raised `RecursionError` outside the hook handler and exited 1. Reproduced; caught with a regression test. The reviewer confirmed exit 0, no stdout, no prompt echo, and 36 focused checks passing at the fixed commit |
+| #150 | Signed Python plugin run binding | approve after fixes (GPT-6-Sol, `d9b177a`) | 2/0/0 | claim, mapping | Raw diagnostics could retain a granted secret; a post-dispatch MCP scope failure was recorded failed while the session completed. Diagnostics now retain digests/lengths, and run failures preserve unresolved effects and stop dispatch. |
 
 ## What the log says so far
 
@@ -132,5 +133,3 @@ a third lesson without a step yet: a carried module's patterns are copied
 from the original's source, never transcribed from a description of it; the
 one transcription (#80) drifted in both directions and a differential that
 compared results could not see it, only a reading of the two side by side.
-
-| #150 | Signed Python plugin run binding | approve after fixes (GPT-6-Sol, `d9b177a`) | 2/0/0 | claim, mapping | Raw diagnostics could retain a granted secret; a post-dispatch MCP scope failure was recorded failed while the session completed. Diagnostics now retain digests/lengths, and run failures preserve unresolved effects and stop dispatch. |
