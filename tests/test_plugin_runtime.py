@@ -532,7 +532,8 @@ Path(sys.argv[2]).write_text(json.dumps({'denied': denied, 'count': len(list(m.d
     assert invoke(bindings)['plugin_result'] == {'denied': True, 'count': 0}
 
 
-def test_selected_compiled_voyage_stack_runs_offline(run_plugin, monkeypatch):
+@pytest.mark.parametrize('tcp_self_pipe', [False, True])
+def test_selected_compiled_voyage_stack_runs_offline(run_plugin, monkeypatch, tcp_self_pipe):
     for name in ('voyageai', 'lancedb'):
         try:
             runtime.metadata.version(name)
@@ -548,20 +549,42 @@ def test_selected_compiled_voyage_stack_runs_offline(run_plugin, monkeypatch):
         subprocesses.append(outcome)
         return outcome
     monkeypatch.setattr(runtime, 'invoke', capture)
-    script = '''import sys, json
+    script = '''import sys, json, socket
 from pathlib import Path
 def no_network(event, args):
+    # Windows asyncio wakes its loop through a TCP socket pair on literal
+    # loopback. This is local IPC, not a provider request or DNS lookup.
+    if event == 'socket.connect' and isinstance(args[1], tuple) and args[1][0] in ('127.0.0.1', '::1'):
+        return
     if event in ('socket.connect', 'socket.getaddrinfo', 'socket.sendto'):
         raise RuntimeError('offline test refuses network')
 sys.addaudithook(no_network)
+denials = 0
+for event, address in (('socket.connect', ('203.0.113.1', 443)),
+                       ('socket.getaddrinfo', 'api.voyageai.com'), ('socket.sendto', ('127.0.0.1', 443))):
+    try:
+        sys.audit(event, None, address)
+    except RuntimeError:
+        denials += 1
+if TCP_SELF_PIPE:
+    # Exercise Windows' loopback self-pipe shape on every platform.
+    def tcp_pair():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+            listener.bind(('127.0.0.1', 0))
+            listener.listen(1)
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(listener.getsockname())
+            server, _ = listener.accept()
+        return server, client
+    socket.socketpair = tcp_pair
 import voyageai, lancedb, numpy, pyarrow
 client = voyageai.Client(api_key='offline-test-not-a-real-key', max_retries=0, timeout=60)
 connection = lancedb.connect(str(Path(sys.argv[2]).parent / 'database'))
 table = connection.create_table('probe', data=[{'id': 'a', 'vector': [1., 0.]}, {'id': 'b', 'vector': [0., 1.]}])
 rows = table.search([1., 0.]).limit(1).to_list()
 Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': voyageai.__version__,
-    'broad_site_path': any('site-packages' in p for p in sys.path)}))
-'''
+    'broad_site_path': any('site-packages' in p for p in sys.path), 'network_denials': denials}))
+'''.replace('TCP_SELF_PIPE', repr(tcp_self_pipe))
     bindings, _ = enable(script, grants={**GRANT, 'time': 30},
                          declares={'imports': ['voyageai', 'lancedb']})
     try:
@@ -570,7 +593,8 @@ Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': vo
         if subprocesses:
             pytest.fail('Offline compiled child failed:\n' + subprocesses[-1].stderr)
         raise
-    assert result['plugin_result'] == {'nearest': 'a', 'version': '0.5.0', 'broad_site_path': False}
+    assert result['plugin_result'] == {'nearest': 'a', 'version': '0.5.0',
+                                       'broad_site_path': False, 'network_denials': 3}
 
 
 def test_call_receipt_binds_large_metadata_without_repeating_snapshot(run_plugin, monkeypatch):
