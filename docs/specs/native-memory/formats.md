@@ -17,8 +17,9 @@ The complete root config digest binds every handle. Root ids are unique,
 1–64 letters, digits, underscore or hyphen. No ambient root discovery occurs.
 
 File access uses a POSIX descriptor walk with no-follow on each component.
-Symlinks, hard links, nonregular files, authority changes and sources changing
-during reads are refused. Windows reads return the explicit POSIX qualification
+Existing symlink sources, hard links, nonregular files, authority changes and
+sources changing during reads are refused. A dangling `findings.jsonl` symlink
+is treated as an absent raw file (an empty result), preserving the frozen behavior. Windows reads return the explicit POSIX qualification
 refusal. No source is truncated to fit a limit or silently rewritten.
 
 ## Raw findings

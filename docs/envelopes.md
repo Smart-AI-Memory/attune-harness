@@ -10,9 +10,9 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 68 rows:
+row pins, in 70 rows:
 
-- **success** (56 rows): the verb did its work offline on a small fixture;
+- **success** (58 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
 - **refusal** (9 rows): an offline refusal on purpose. `build` before the work
   is accepted; `index build` without `--allow-provider`; `index update`,
@@ -34,7 +34,7 @@ four worker rows pin create, replay, inspect and execute over a native reader
 and one offline job. Execute injects a deterministic participant at the provider
 boundary; it does not qualify a native transport or call a model. D28 removes
 12 adapter-bound rows, renames the four native read rows and adds four worker
-success rows: 76 becomes 68, retaining the five rows added since the design's
+success rows: 78 becomes 70, retaining the seven rows added since the design's
 historical 71-row table.
 
 Text-only Spec compose/presentation is checked in `test_spec_cli.py`.
