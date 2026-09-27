@@ -5,10 +5,8 @@ from email.parser import Parser
 import importlib.metadata as metadata
 from importlib.machinery import EXTENSION_SUFFIXES
 import io
-import json
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
-import re
 import stat
 import sys
 import sysconfig
@@ -19,7 +17,7 @@ import zipfile
 from .features import FeatureUnavailable, read_text, require_feature
 from .process import invoke
 from .recovery import UnresolvedOperation
-from .review_contract import canonical, digest, fields, parse_json
+from .review_contract import canonical, digest, parse_json
 
 PACKAGING_VERSION = '26.3'
 CODE_LIMIT = 4 * 1024 * 1024
@@ -289,10 +287,36 @@ def checkpoint(paths):
 
 
 def run(bundle, tool, arguments, *, paths, guarded_paths, postcheck):
+    """Generic run binding: network declarations still refuse."""
+    if bundle['plugin']['declares'].get('network'):
+        raise FeatureUnavailable('Network run plugins require the host-owned paid-stage journal; not available in this cycle')
+    return _run(bundle, tool, arguments, paths=paths, guarded_paths=guarded_paths,
+                postcheck=postcheck, effect_class='scratch_write')
+
+
+def run_voyage_paid(bundle, tool_name, tool, arguments, *, context, guarded_paths, postcheck):
+    """The signed Voyage tool for one already-dispatching host-owned stage only."""
+    from .voyage_plugin import HOST, VoyagePaidStageContext
+
+    if (not isinstance(context, VoyagePaidStageContext) or
+            bundle['declaration']['id'] != context.extension_id or
+            bundle['artifact_digest'] != context.artifact_digest or
+            bundle['plugin']['declares'].get('network') != [HOST] or
+            bundle['declaration']['tools'].get(tool_name) != tool):
+        raise FeatureUnavailable('Voyage network run requires its selected host-owned paid-stage context')
+    context.assert_dispatching(arguments, tool_name)
+
+    def checked_postcheck():
+        context.assert_dispatching(arguments, tool_name)
+        postcheck()
+
+    return _run(bundle, tool, arguments, paths={}, guarded_paths=guarded_paths,
+                postcheck=checked_postcheck, effect_class='paid_provider_call')
+
+
+def _run(bundle, tool, arguments, *, paths, guarded_paths, postcheck, effect_class):
     plugin = bundle['plugin']
     grant = plugin['grant']
-    if plugin['declares'].get('network'):
-        raise FeatureUnavailable('Network run plugins require the host-owned paid-stage journal; not available in this cycle')
     if not grant.get('scratch') or 'time' not in grant or 'output' not in grant:
         raise FeatureUnavailable('Run plugins require explicit scratch, time and output grants')
     missing = set(grant.get('paths', [])) - set(paths)
@@ -309,7 +333,7 @@ def run(bundle, tool, arguments, *, paths, guarded_paths, postcheck):
     receipt = {**plugin, 'imports': {'versions': plugin['imports']['versions'],
                                    'closure_digest': digest(plugin['imports'])},
                'id': bundle['declaration']['id'], 'version': bundle['declaration']['version'],
-               'artifact_digest': bundle['artifact_digest'], 'environment_keys': sorted(env), 'effect_class': 'scratch_write',
+               'artifact_digest': bundle['artifact_digest'], 'environment_keys': sorted(env), 'effect_class': effect_class,
                'isolation_scope': 'Signed cooperating code in a subprocess; not a security sandbox'}
     with tempfile.TemporaryDirectory(prefix='harness-plugin-') as directory:
         work = Path(directory)

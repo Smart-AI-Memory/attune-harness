@@ -1,13 +1,12 @@
-"""Read-only Voyage plugin selection and accepted registry preflight.
+"""Voyage plugin selection, accepted preflight and host-owned stage binding."""
 
-This slice deliberately has no selected-plugin dispatcher. An accepted binding
-is authority to inspect the bundle, not authority to run a different adapter.
-"""
-
+from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
 from .features import FeatureUnavailable
 from .review_contract import bounded_text, digest, fields
+from .voyage_sources import PROFILE
 
 ROLES = ('embed', 'rerank', 'index')
 HOST = 'api.voyageai.com'
@@ -106,7 +105,7 @@ def inspect_selection(selection: dict) -> dict:
 
 
 def refuse_dispatch(cfg: dict) -> None:
-    """Selected dispatch never reaches index, journal or provider creation."""
+    """Selected high-level index/retrieve remain unavailable until index materialization."""
     selection = cfg.get('voyage_plugin')
     if selection is None:
         return
@@ -114,3 +113,79 @@ def refuse_dispatch(cfg: dict) -> None:
         raise FeatureUnavailable('Voyage plugin registry is unpinned; inspect the plan and explicitly accept its observed digest')
     inspect_selection(selection)
     raise FeatureUnavailable(UNAVAILABLE)
+
+
+@dataclass(frozen=True)
+class VoyagePaidStageContext:
+    """A concrete host journal state, never serialized into the child request.
+
+    This is a same-process cooperation guard, not an OS security boundary.
+    """
+
+    directory: Path
+    stage_id: str
+    kind: str
+    config_digest: str
+    extension_id: str
+    artifact_digest: str
+    config: dict
+
+    def assert_dispatching(self, arguments: dict, tool_name: str):
+        from .review_store import read_record
+
+        selection = self.config.get('voyage_plugin', {})
+        if (digest(self.config) != self.config_digest or
+                selection.get('extension_id') != self.extension_id or
+                selection.get('tools', {}).get(self.kind) != tool_name or
+                self.kind not in ('embed', 'rerank') or
+                digest({'kind': self.kind, 'request': arguments, 'profile': PROFILE}) != self.stage_id):
+            raise FeatureUnavailable('Voyage paid-stage tool or request differs from its accepted host context')
+        if inspect_selection(selection)['artifact_digest'] != self.artifact_digest:
+            raise FeatureUnavailable('Voyage paid-stage selected artifact changed')
+        ledger = read_record(self.directory)
+        stage = read_record(self.directory / self.stage_id)
+        if (ledger.get('config_digest') != self.config_digest or
+                self.stage_id not in ledger.get('stages', ()) or
+                stage.get('request_digest') != self.stage_id or
+                stage.get('kind') != self.kind or stage.get('status') != 'dispatching'):
+            raise FeatureUnavailable('Voyage paid-stage context is not a host-owned dispatching stage')
+
+
+@contextmanager
+def selected_stage(cfg: dict, kind: str):
+    """Keep the selected extension lease and accepted authority across one stage."""
+    from .extensions import _current, _scope_for, _state, registrations
+    from .review_store import RunStore
+
+    if kind not in ('embed', 'rerank'):
+        raise ValueError('Voyage plugin stage must be embed or rerank')
+    selection = cfg['voyage_plugin']
+    if 'registry_digest' not in selection:
+        raise FeatureUnavailable('Voyage plugin registry is unpinned; inspect the plan and explicitly accept its observed digest')
+    inspected = inspect_selection(selection)
+    section, observed = observed_registry(selection)
+    if observed != selection['registry_digest']:
+        raise FeatureUnavailable('Accepted Voyage plugin registry digest changed; inspect and explicitly accept its new digest')
+    name = selection['extension_id']
+    directory = Path(registrations(section)[name]['state_dir'])
+    scope = _scope_for(section, name, directory)
+    store = RunStore(directory, existing=True)
+    with store.lease():
+        state = _state(store)
+        if state['id'] != name:
+            raise FeatureUnavailable('Voyage plugin registration identity changed')
+        bundle = _current(state, scope['artifact_digest'], enabled=True, scope=scope)
+        if bundle['artifact_digest'] != inspected['artifact_digest']:
+            raise FeatureUnavailable('Voyage plugin artifact changed before dispatch')
+        tool_name = selection['tools'][kind]
+        tool = bundle['declaration']['tools'][tool_name]
+
+        def postcheck():
+            if observed_registry(selection)[1] != selection['registry_digest']:
+                raise FeatureUnavailable('Accepted Voyage plugin registry changed during dispatch')
+            current = _state(store)
+            if current['state_digest'] != state['state_digest']:
+                raise FeatureUnavailable('Voyage plugin registration changed during dispatch')
+            _current(current, scope['artifact_digest'], enabled=True, scope=scope)
+
+        yield bundle, tool_name, tool, postcheck
