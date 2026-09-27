@@ -36,6 +36,22 @@ four pull requests merged (#106, #107, #108) and the release gate runs the R2
 journey; 4.5's nine pull requests all merged the same day. 3.1 completed
 the same evening with #110, step (b)'s stages under D24.
 
+## Current execution focus — September 27, 2026
+
+The [stable-v1 and fourteen-day follow-through plan](project-plan.md) refreshes
+status through main `38a5663909139a1811013c8f30d072a516c0067e` (PR161).
+PR154–159 and PR161 are merged; PR161's tested tree equals main and all sixteen
+checks passed. The bounded live Voyage campaign and retained offline replay are
+complete. Candidate-written compatibility fixtures and public claim reconciliation
+are active in PR162; observed candidate acceptance remains open. The table below
+is the earlier PR152 snapshot, not the current implementation backlog. S1–S9 and D25–D30 still govern acceptance.
+
+Focus: Voyage evidence → candidate fixture/freeze → rc1 → fourteen days of
+observed candidate use → stable v1 → fourteen days of stabilization. The final
+two weeks are additional to the existing candidate requirement. Select at most
+four quick existing opportunities under the new plan's six-hour total timebox;
+a fifth is a ceiling, not a target. GUI implementation remains deferred.
+
 ## Release-gate status — September 27, 2026
 
 Updated through `main` at `3eec95e0a4db4429bd8e2b9db3ec7f274e3efd87`
