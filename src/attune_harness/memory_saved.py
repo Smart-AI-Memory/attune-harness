@@ -368,7 +368,8 @@ class SavedStore:
                     if record['status'] == 'completed' and 'execution' in value:
                         raise SavedError('Completed tasks cannot acquire an execution owner')
                     record.update(value)
-                    _intent(copy.deepcopy({k: v for k, v in record.items() if k not in ('id', 'revision', 'status', 'history')}))
+                    intent = {k: v for k, v in record.items() if k not in ('id', 'revision', 'status', 'history')}
+                    record.update(_intent(copy.deepcopy(intent)))
                 elif operation == 'forget':
                     record['status'] = 'withdrawn'
                 else:

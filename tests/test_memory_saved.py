@@ -279,3 +279,30 @@ def test_lock_open_uses_exclusive_creation_then_existing_inode(tmp_path, monkeyp
     assert calls[0] & os.O_EXCL
     assert not calls[1] & os.O_CREAT
     assert (store.root / '.saved.lock').stat().st_ino == inode
+
+
+def test_revision_retains_canonical_execution_and_replays_after_restart(tmp_path, case):
+    from attune_harness.task_contract import create_task
+    owner = create_task(case[0].parent, case[1], goal='Retain intent', directory=case[2])
+    scope = {'kind': 'project', 'project': owner['request']['project_root']}
+    alias = tmp_path / 'owner-alias'
+    alias.symlink_to(case[2], target_is_directory=True)
+    execution = {'directory': str(alias), 'task_id': owner['request']['task_id']}
+    req = request(next_action='Inspect owner')
+    req.update(kind='task', scope=scope)
+    store = SavedStore(tmp_path / 'saved')
+    first = store.save(req)['record']
+    changes = {'execution': execution}
+    before = (case[2] / 'record.json').read_bytes()
+    result = store.revise(first['id'], changes, scope, 'link-owner', 1)
+    canonical = dict(execution, directory=str(case[2].resolve()))
+    assert result['record']['execution'] == canonical
+    assert result['record']['history'][-1]['record']['execution'] == canonical
+    assert changes['execution']['directory'] == str(alias)
+    restarted = SavedStore(store.root)
+    assert restarted.revise(first['id'], changes, scope, 'link-owner', 1) == result
+    assert restarted.get(first['id'], scope)['execution_status'] == 'draft'
+    assert (case[2] / 'record.json').read_bytes() == before
+    # Save and revise accept the same absolute alias and retain the same identity.
+    req.update(request_id='saved-linked', execution=execution)
+    assert restarted.save(req)['record']['execution'] == canonical
