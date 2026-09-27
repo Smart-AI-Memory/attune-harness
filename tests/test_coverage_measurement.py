@@ -119,8 +119,9 @@ def test_symlinked_fixture_is_refused(tmp_path, monkeypatch):
         measurement.input_hashes()
 
 
+@pytest.mark.parametrize('suite', ['full', 'platform'])
 @pytest.mark.parametrize('changed', ['checkout_test', 'installed_package'])
-def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed):
+def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite):
     import attune_harness
 
     root = tmp_path / 'checkout'
@@ -151,6 +152,8 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
 
     def successful_child(argv, **kwargs):
+        assert ('--coverage-instrumented' in argv) == (suite == 'platform')
+        assert kwargs['timeout'] == (1080 if suite == 'platform' else 900)
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
@@ -162,7 +165,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
         CalledProcessError=subprocess.CalledProcessError, STDOUT=subprocess.STDOUT))
     output = tmp_path / 'result'
     frozen = measurement.identity()
-    assert measurement.measure(output, 'full') == 1
+    assert measurement.measure(output, suite) == 1
     receipt = json.loads((output / 'manifest.json').read_text())
     assert receipt['test_exit'] == 0
     assert receipt['input_drift'] is True
@@ -210,3 +213,56 @@ def test_startup_hook_measures_scrubbed_and_isolated_children(tmp_path, monkeypa
     assert len(list(tmp_path.glob('.coverage.*'))) >= 2
     assert 'COVERAGE_PROCESS_START' not in clean
     assert 'COVERAGE_PROCESS_CONFIG' not in clean
+
+
+@pytest.mark.parametrize('instrumented', [False, True])
+@pytest.mark.parametrize('timed_out', [False, True])
+def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out):
+    import attune_harness
+    spec = importlib.util.spec_from_file_location('qualifier', SCRIPT.with_name('qualify_platform.py'))
+    qualifier = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(qualifier)
+    installed = tmp_path / 'installed'
+    installed.mkdir()
+    (installed / '__init__.py').write_text('')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    output = tmp_path / 'result'
+    calls = []
+
+    def child(argv, **kwargs):
+        calls.append(argv)
+        if '-m' in argv:
+            assert kwargs['timeout'] == (900 if instrumented else 600)
+            (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
+                step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
+            if timed_out:
+                raise subprocess.TimeoutExpired(argv, kwargs['timeout'])
+            return subprocess.CompletedProcess(argv, 0)
+        (output / 'memory-redis.json').write_text(json.dumps({
+            'memory': {'native_reader': 'available' if os.name == 'posix' else 'posix-only refusal',
+                       'tiers_read': ['raw', 'personal', 'curated'] if os.name == 'posix' else [],
+                       'reader_named': 'native'},
+            'journey': {'accept': 'accepted', 'build': 'completed', 'review': 'completed'}}))
+        return subprocess.CompletedProcess(argv, 0, stdout='', stderr='')
+
+    monkeypatch.setattr(qualifier, 'subprocess', SimpleNamespace(
+        run=child, TimeoutExpired=subprocess.TimeoutExpired, CompletedProcess=subprocess.CompletedProcess,
+        STDOUT=subprocess.STDOUT))
+    kwargs = {'coverage_instrumented': True} if instrumented else {}
+    assert qualifier.qualify(output, **kwargs) == (124 if timed_out else 0)
+    receipt = json.loads((output / 'platform.json').read_text())
+    assert receipt['suite_timeout_seconds'] == (900 if instrumented else 600)
+    assert len(calls) == 2
+    if instrumented:
+        assert receipt['status'] == ('instrumented_failed' if timed_out else 'instrumented_checks_passed')
+        assert receipt['native_process_and_recovery'] == 'not_qualified_instrumented'
+        assert receipt['instrumentation'] == 'coverage; not platform qualification'
+    else:
+        assert receipt['status'] == ('failed' if timed_out else 'checks_passed')
+        assert receipt['native_process_and_recovery'] == ('failed' if timed_out else 'passed')
+        assert 'instrumentation' not in receipt
+    if timed_out:
+        assert receipt['failure'] == 'suite_timeout'
+        failed = {**measurement.identity(), 'test_exit': 124, 'input_drift': False}
+        with pytest.raises(ValueError, match='unfinished'):
+            measurement.compatible([failed], measurement.identity())
