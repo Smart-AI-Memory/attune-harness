@@ -310,13 +310,45 @@ def run_voyage_paid(bundle, tool_name, tool, arguments, *, context, guarded_path
         context.assert_dispatching(arguments, tool_name)
         postcheck()
 
+    accepted = bundle['plugin']['grant']
+    applied = {**accepted, 'paths': []}
     return _run(bundle, tool, arguments, paths={}, guarded_paths=guarded_paths,
-                postcheck=checked_postcheck, effect_class='paid_provider_call')
+                postcheck=checked_postcheck, effect_class='paid_provider_call', invocation_grant=applied)
 
 
-def _run(bundle, tool, arguments, *, paths, guarded_paths, postcheck, effect_class):
+def run_voyage_index(bundle, tool_name, tool, arguments, *, context, guarded_paths, postcheck):
+    """A separate, local index context; never impersonates a paid-stage journal."""
+    from .voyage_plugin import HOST, VoyageIndexContext
+
+    if (not isinstance(context, VoyageIndexContext) or
+            bundle['declaration']['id'] != context.extension_id or
+            bundle['artifact_digest'] != context.artifact_digest or
+            bundle['plugin']['declares'].get('network') != [HOST] or
+            bundle['declaration']['tools'].get(tool_name) != tool):
+        raise FeatureUnavailable('Voyage index run requires its selected host-owned index context')
+    context.assert_index(arguments, tool_name)
+
+    def checked_postcheck():
+        context.assert_index(arguments, tool_name)
+        postcheck()
+
+    accepted = bundle['plugin']['grant']
+    if 'index_staging' not in accepted.get('paths', ()):
+        raise FeatureUnavailable('Voyage index requires an accepted index_staging path grant')
+    applied = {**accepted, 'secrets': [], 'paths': ['index_staging']}
+    return _run(bundle, tool, arguments, paths={'index_staging': context.staging},
+                guarded_paths=guarded_paths, postcheck=checked_postcheck,
+                effect_class='index_materialization', invocation_grant=applied)
+
+
+def _run(bundle, tool, arguments, *, paths, guarded_paths, postcheck, effect_class, invocation_grant=None):
     plugin = bundle['plugin']
-    grant = plugin['grant']
+    accepted = plugin['grant']
+    grant = accepted if invocation_grant is None else invocation_grant
+    if (set(grant.get('secrets', ())) - set(accepted.get('secrets', ())) or
+            set(grant.get('paths', ())) - set(accepted.get('paths', ())) or
+            any(grant.get(name) != accepted.get(name) for name in ('scratch', 'time', 'output'))):
+        raise FeatureUnavailable('Voyage invocation grant cannot exceed or change its accepted bundle grant')
     if not grant.get('scratch') or 'time' not in grant or 'output' not in grant:
         raise FeatureUnavailable('Run plugins require explicit scratch, time and output grants')
     missing = set(grant.get('paths', [])) - set(paths)
@@ -330,7 +362,7 @@ def _run(bundle, tool, arguments, *, paths, guarded_paths, postcheck, effect_cla
     before = checkpoint(guarded_paths)
     # Accepted state and bootstrap retain the full closure. Repeating its file
     # lists/metadata in every call would exhaust the enclosing saved run record.
-    receipt = {**plugin, 'imports': {'versions': plugin['imports']['versions'],
+    receipt = {**plugin, 'applied_grant': grant, 'imports': {'versions': plugin['imports']['versions'],
                                    'closure_digest': digest(plugin['imports'])},
                'id': bundle['declaration']['id'], 'version': bundle['declaration']['version'],
                'artifact_digest': bundle['artifact_digest'], 'environment_keys': sorted(env), 'effect_class': effect_class,
