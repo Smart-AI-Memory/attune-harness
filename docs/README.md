@@ -54,6 +54,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Native memory: decisions, September 22, 2026](specs/native-memory/decisions-2026-09-22.md): D15 to D19, the base install, the Redis backend and the Phase 2 rulings
 - [Native memory: decisions, September 23, 2026](specs/native-memory/decisions-2026-09-23.md): D21, the Phase 3 rulings on serving and the store, and a correction to the note
 - [Native memory, ladder 9 (plan 4.4): ending the transition, design note](specs/native-memory/transition-end-design.md): The formats frozen as read, the adapter and the differential removed, the golden table re-pinned, and five decisions ruled as D28
+- [Frozen legacy memory formats](specs/native-memory/formats.md): Native-only reader contract, refusal text, immutable fixture and reverse writer constraint (D28)
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
 - [Spec authority, Task 2: plan](specs/spec-authority/task-2-plan.md): Task 2's four steps
 - [Attune Harness — phased delivery plan](harness-phased-plan.md): The earlier phased plan, superseded in part
