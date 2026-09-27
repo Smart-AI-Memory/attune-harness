@@ -498,7 +498,8 @@ def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative):
         runtime.distribution_metadata(Dist(), 'pkg')
 
 
-def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path):
+@pytest.mark.parametrize('newline', ['\n', '\r\n'], ids=['lf', 'crlf'])
+def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path, newline):
     class Dist:
         files = ['demo/METADATA', 'demo/nested/METADATA', 'METADATA', 'demo-1.dist-info/METADATA']
         version = '1'
@@ -508,8 +509,8 @@ def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path):
         path = tmp_path / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text('package data, not distribution metadata')
-    metadata_text = 'Name: demo\nVersion: 1\n'
-    (tmp_path / Dist.files[-1]).write_text(metadata_text)
+    metadata_text = f'Name: demo{newline}Version: 1{newline}'
+    (tmp_path / Dist.files[-1]).write_bytes(metadata_text.encode('utf-8'))
     assert runtime.distribution_metadata(Dist(), 'demo') == metadata_text
     Dist.files.append('other-1.dist-info/METADATA')
     with pytest.raises(ValueError, match='one recorded wheel METADATA'):
