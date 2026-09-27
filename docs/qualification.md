@@ -70,8 +70,9 @@ source regression results from historical installed-host evidence.
 The model campaign is frozen on dev10, separately from the dev11 platform work.
 Use the preserved dev10 environment with the review extra. On a fresh clone,
 commit `c2fa34038483ec7a028a50f554bf1a95e54039a5` contains that version; build and
-install it in an isolated environment before invoking the campaign. The current
-library is dev13; do not overwrite a frozen environment to run a comparison.
+install it in an isolated environment before invoking the campaign. This is
+historical campaign guidance; do not overwrite its frozen dev10 environment to
+run a comparison.
 
 ```sh
 python -I experiments/opportunities/campaign.py prepare --out /absolute/new-run

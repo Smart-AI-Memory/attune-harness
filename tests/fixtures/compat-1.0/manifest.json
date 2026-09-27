@@ -1,0 +1,146 @@
+{
+  "capture": "byte_inventory_only",
+  "files": {
+    "context.json": {
+      "bytes": 62,
+      "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+    },
+    "effects/manifest.json": {
+      "bytes": 3990,
+      "sha256": "b45889a4f3b50039a7f888cb0b6104ca72d58101059a77f26769cb68884d8e97"
+    },
+    "extension-disabled/record.json": {
+      "bytes": 373,
+      "sha256": "cab7bc80b323e89216d252b5cbc61da70c719117607d51c83648cbb88633e738"
+    },
+    "memory-config.json": {
+      "bytes": 1148,
+      "sha256": "8aaad948ac6df639ad13bd96dbe2ac543449169d88e3c03cc3f513a6c28ae9d8"
+    },
+    "memory-roots/curated/rule.md": {
+      "bytes": 46,
+      "sha256": "cdf0cc6cfecc30745de19e8aaf7cf04cf47fb3cdf3ff94d2ef704a9216c7a411"
+    },
+    "memory-roots/personal/note.md": {
+      "bytes": 35,
+      "sha256": "317b1f9dc47053ee05c7291901c925b3853a06137ed13ff2c5fc2bc3b5d65d15"
+    },
+    "memory-roots/raw/findings.jsonl": {
+      "bytes": 118,
+      "sha256": "e0e8a4f3326d125de45a677e19e17959199333eaa19a6f407978723d38e8e49c"
+    },
+    "participants.json": {
+      "bytes": 550,
+      "sha256": "17a7fb7700e02ab34396d1103836743fdeb4e5197c05b0e844c8b0ca39251a20"
+    },
+    "plan-state/plan.md": {
+      "bytes": 253,
+      "sha256": "be6fb2579ba49336b1c2d15ca4c8255e0d52d46abb5374574197ee6f45657f14"
+    },
+    "review-completed/record.json": {
+      "bytes": 26136,
+      "sha256": "4a087533ffb4e05729511b0899d86f581e4693dc0e57d9cc3f23972a51c6ddd9"
+    },
+    "review-paused/record.json": {
+      "bytes": 8489,
+      "sha256": "fedc3c03a7eb51858552cc5f1c6faef1fe1e306a0996058ad2fff01501f95bf0"
+    },
+    "review-project/guide.md": {
+      "bytes": 39,
+      "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+    },
+    "review-project/reference.md": {
+      "bytes": 46,
+      "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e"
+    },
+    "review-request.json": {
+      "bytes": 378,
+      "sha256": "2cc0fbb7579ac5921ec0e9eb19c9e4e0b4cf0818d713cfa6ad3ca5edc7328481"
+    },
+    "saved-store/state.json": {
+      "bytes": 5873,
+      "sha256": "a84b65cc4bc21ebc5532f3e980d42439f8c8b8c814005a551eddb4413b5b000a"
+    },
+    "scratch-store/scratch/harness/k-compat-note.json": {
+      "bytes": 209,
+      "sha256": "7a24daf0fa25b20ab16ffb2eac47e2e2a065ef8eeb078bcae51bee2c04b359ad"
+    },
+    "test-draft/record.json": {
+      "bytes": 2922,
+      "sha256": "77accef45b6cf2ce9f87e39be3a9d02ab3f48759cacc12140c041b6a3afc37ac"
+    },
+    "test-project/src/demo/logic.py": {
+      "bytes": 50,
+      "sha256": "729533664113a2e284c86b3837b0a12bd054d9639a6bae0762d18fadf14b4597"
+    },
+    "test-project/tests/test_logic.py": {
+      "bytes": 39,
+      "sha256": "15654a118808b24bc5cc83a7917edad8549a4eba2370895de62bc1ecb08597dc"
+    },
+    "voyage-bundle/SKILL.md": {
+      "bytes": 163,
+      "sha256": "e8e70dafbbd5eac9305f5bde0187f23e2025451e40688ea2a31922100193aeab"
+    },
+    "voyage-bundle/code.zip": {
+      "bytes": 3818,
+      "sha256": "aa9e655da3fedf332c05915c8a74ee3c7bcfd8b7470658239436d1e24f08c90a"
+    },
+    "voyage-bundle/manifest.json": {
+      "bytes": 1179,
+      "sha256": "2d0e66c303ebd5e786e40ca400b385206ffbd5563fda1c5a1a12d336f3d44a5a"
+    },
+    "voyage-completed/7d7e89c2aafa8ce268b5883f7a9f87e0bca0714f4557f4145305d5f6b17d3cb2/record.json": {
+      "bytes": 14194,
+      "sha256": "700077c8c7c54baefb225b81f09cbb37ae8fb235d6268e16227afe5bcc82be66"
+    },
+    "voyage-completed/record.json": {
+      "bytes": 355,
+      "sha256": "dc479cc42585199b2143558177ea6a021d1e26a603a7b1f9d5e8de20dc3fa783"
+    },
+    "voyage-dispatching/7d7e89c2aafa8ce268b5883f7a9f87e0bca0714f4557f4145305d5f6b17d3cb2/record.json": {
+      "bytes": 310,
+      "sha256": "3a0c08ec4d8f821809d5dc544c85c4288956ca3a92acf0609ef4f2b99d222b51"
+    },
+    "voyage-dispatching/record.json": {
+      "bytes": 355,
+      "sha256": "dc479cc42585199b2143558177ea6a021d1e26a603a7b1f9d5e8de20dc3fa783"
+    },
+    "work-accepted/decision.json": {
+      "bytes": 1120,
+      "sha256": "166ee3f582605e07f4b41dae7e0241d5a1a06107154dd7bdd6d5d13607f077c1"
+    },
+    "work-accepted/record.json": {
+      "bytes": 4663,
+      "sha256": "6f5c4f66bf5bec58dc6b6f7676f6c2d864ec590ba7fc7d5a76bb350c729666fb"
+    },
+    "work-draft/decision.json": {
+      "bytes": 602,
+      "sha256": "f4abad1c82d8ec309d00fcd3bdfecb44a4cd21e796d04b87b487ca89683da31e"
+    },
+    "work-draft/record.json": {
+      "bytes": 3093,
+      "sha256": "3c6ee110b3af76fe3c9475713bf3721c2e391187c98d4a7c1c2f019f282d3136"
+    },
+    "work-project/plan.md": {
+      "bytes": 26,
+      "sha256": "10b912875bf0de00b7b8db1d4774c1839fe2c586a6176333c3ac49b491933b87"
+    },
+    "work-project/source.py": {
+      "bytes": 28,
+      "sha256": "aecc013c518523ca22b7e3780f87002f5cae13fabc369f2f59a1faf7058f8c76"
+    },
+    "writer-receipt.json": {
+      "bytes": 5134,
+      "sha256": "5d0537cce1e4bceb5eb9e144b8dfc691f7d1182a3b4a360a4148f59425b0efc3"
+    }
+  },
+  "provenance": {
+    "distribution": "attune-harness",
+    "verified_package_files": 97,
+    "version": "1.0.0rc1",
+    "wheel_sha256": "18cda1a30c54f8143225007e80aac0a1bda211d2fcc49a07a3ab521272cc517f",
+    "writer_source_commit": "ca5d9ee80ce6884d786acb4ad4cfe42ff246861e"
+  },
+  "record_writer": "not_verified_by_capture_tool",
+  "schema_version": 1
+}

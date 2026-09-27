@@ -1,0 +1,837 @@
+{
+  "schema_version": 1,
+  "request_id": "2fe47641-0ab6-4886-8bfa-922cbaf19828",
+  "operation": "review",
+  "status": "completed",
+  "run_id": "33e92968-967a-4d3b-ac31-550d9348a7c0",
+  "requirement_revision": "7c1fd4517c0c0040964bdaa29d0f92f8c3d98dae6530cdf26fe0489f5d2c6309",
+  "accepted": {
+    "submission": {
+      "accepted": true,
+      "answers": {
+        "context": "context.json",
+        "corpus": "review-project",
+        "document": "review-project/guide.md",
+        "lead": "alpha",
+        "objective": "Check evidence",
+        "query": "quartz retention policy",
+        "reviewer": "beta"
+      },
+      "form_revision": "115bd8723ba6f146a45c08821f89beee25407d2254040a1272bc67d5fd47309e",
+      "schema_version": 1
+    },
+    "form_response": {
+      "template_id": "harness-review-v1",
+      "responses": {
+        "objective": "Check evidence",
+        "query": "quartz retention policy",
+        "document": "review-project/guide.md",
+        "context": "context.json",
+        "corpus": "review-project",
+        "lead": "alpha",
+        "reviewer": "beta"
+      },
+      "timestamp": "2026-09-27T19:17:55.799977",
+      "response_id": "resp-20260927-191755-31c8aeab"
+    },
+    "paths": {
+      "document": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+      "context": "/private/tmp/attune-compat-candidate-a1/context.json",
+      "corpus": "/private/tmp/attune-compat-candidate-a1/review-project"
+    },
+    "forms_version": "0.17.0"
+  },
+  "registry": {
+    "participants": {
+      "alpha": {
+        "adapter": "deterministic",
+        "max_tool_calls": 2,
+        "max_turns": 3,
+        "tools": [
+          "retrieve",
+          "verify"
+        ]
+      },
+      "beta": {
+        "adapter": "deterministic",
+        "max_tool_calls": 2,
+        "max_turns": 3,
+        "tools": [
+          "retrieve",
+          "verify"
+        ]
+      },
+      "local": {
+        "adapter": "deterministic",
+        "max_tool_calls": 2,
+        "max_turns": 3,
+        "tools": [
+          "retrieve",
+          "verify"
+        ]
+      }
+    },
+    "schema_version": 1
+  },
+  "artifacts": {
+    "document": {
+      "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+      "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+    },
+    "context": {
+      "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+      "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+    }
+  },
+  "events": [
+    {
+      "event_id": "21d71b4e-1068-4445-a261-5772fd664b0e",
+      "operation_key": "preflight",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "preflight_verification",
+      "effect_class": "unknown",
+      "result": {
+        "schema_version": 1,
+        "request_id": "9f6badfe-428b-4a95-b4a0-b81c25734f0a",
+        "operation": "verify",
+        "status": "verified",
+        "dependency": {
+          "name": "attune-verify",
+          "version": "0.6.0"
+        },
+        "artifacts": {
+          "document": {
+            "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+          },
+          "context": {
+            "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+            "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+          }
+        },
+        "passed": true,
+        "result": {
+          "schema_version": 1,
+          "ok": true,
+          "status": "verified",
+          "checked": [
+            "imports",
+            "flags",
+            "links",
+            "counts"
+          ],
+          "semantic_ran": false,
+          "coverage": {
+            "total": 1,
+            "verified": 1,
+            "refuted": 0,
+            "unknown": 0
+          },
+          "findings": [],
+          "claims": [
+            {
+              "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+              "kind": "links",
+              "subject": "reference.md",
+              "status": "verified",
+              "evidence": "[Quartz retention policy](reference.md)",
+              "location": "line 1",
+              "detail": "",
+              "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "event_id": "5f7af77c-b3d4-473b-a366-b92c06fccee2",
+      "operation_key": "retrieval",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "initial_retrieval",
+      "effect_class": "read_only",
+      "result": {
+        "schema_version": 1,
+        "request_id": "01366001-db9c-4af3-93ea-7e8947a8bc90",
+        "operation": "retrieve",
+        "status": "retrieved",
+        "dependency": {
+          "name": "attune-rag",
+          "version": "1.2.0"
+        },
+        "query": "quartz retention policy",
+        "k": 3,
+        "corpus": {
+          "root": "/private/tmp/attune-compat-candidate-a1/review-project",
+          "version": "3616e1ee0d89c432",
+          "documents": 2
+        },
+        "retriever": "KeywordRetriever",
+        "sources": [
+          {
+            "path": "guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "[Quartz retention policy](reference.md)"
+          },
+          {
+            "path": "reference.md",
+            "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "Quartz retention policy is synthetic evidence."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "2779a204-2960-480f-a27b-893837da3c0e",
+      "operation_key": "750b6d8c-4dc2-5927-9b81-1b764605f316:turn:0",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "turn_id": "e71bcccd-4960-5898-b0af-c57b23aad28b",
+      "request_digest": "28d988712fa28bc3c0e36d884a41b59d05c03580cc7b306f0aced5b432bc0e0e",
+      "result": {
+        "action": {
+          "kind": "tool",
+          "name": "retrieve",
+          "arguments": {
+            "query": "quartz retention policy",
+            "k": 3
+          }
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "998c2ab3-5853-47fa-99c1-7f4dd65619f2",
+      "operation_key": "750b6d8c-4dc2-5927-9b81-1b764605f316:tool:0",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "tool",
+      "effect_class": "read_only",
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "action": {
+        "kind": "tool",
+        "name": "retrieve",
+        "arguments": {
+          "query": "quartz retention policy",
+          "k": 3
+        }
+      },
+      "result": {
+        "schema_version": 1,
+        "request_id": "00bb50b8-ac29-4871-a673-82ee0001e7c2",
+        "operation": "retrieve",
+        "status": "retrieved",
+        "dependency": {
+          "name": "attune-rag",
+          "version": "1.2.0"
+        },
+        "query": "quartz retention policy",
+        "k": 3,
+        "corpus": {
+          "root": "/private/tmp/attune-compat-candidate-a1/review-project",
+          "version": "3616e1ee0d89c432",
+          "documents": 2
+        },
+        "retriever": "KeywordRetriever",
+        "sources": [
+          {
+            "path": "guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "[Quartz retention policy](reference.md)"
+          },
+          {
+            "path": "reference.md",
+            "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "Quartz retention policy is synthetic evidence."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "72718b7b-380b-464a-951f-1b7a132be6e9",
+      "operation_key": "750b6d8c-4dc2-5927-9b81-1b764605f316:turn:1",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "turn_id": "2f043538-2d6f-56aa-ac08-dd9b571e4620",
+      "request_digest": "52da78ffe20832899f6946c4e9fb10736dc7e77082e451a149292c85163ba159",
+      "result": {
+        "action": {
+          "kind": "tool",
+          "name": "verify",
+          "arguments": {}
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "6aa3938a-d5d2-4635-b208-cb8dfd857462",
+      "operation_key": "750b6d8c-4dc2-5927-9b81-1b764605f316:tool:1",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "tool",
+      "effect_class": "unknown",
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "action": {
+        "kind": "tool",
+        "name": "verify",
+        "arguments": {}
+      },
+      "result": {
+        "schema_version": 1,
+        "request_id": "105cac44-0dcb-459c-b57a-096014252276",
+        "operation": "verify",
+        "status": "verified",
+        "dependency": {
+          "name": "attune-verify",
+          "version": "0.6.0"
+        },
+        "artifacts": {
+          "document": {
+            "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+          },
+          "context": {
+            "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+            "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+          }
+        },
+        "passed": true,
+        "result": {
+          "schema_version": 1,
+          "ok": true,
+          "status": "verified",
+          "checked": [
+            "imports",
+            "flags",
+            "links",
+            "counts"
+          ],
+          "semantic_ran": false,
+          "coverage": {
+            "total": 1,
+            "verified": 1,
+            "refuted": 0,
+            "unknown": 0
+          },
+          "findings": [],
+          "claims": [
+            {
+              "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+              "kind": "links",
+              "subject": "reference.md",
+              "status": "verified",
+              "evidence": "[Quartz retention policy](reference.md)",
+              "location": "line 1",
+              "detail": "",
+              "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "event_id": "128bd0f1-bf01-4c9c-9dfc-ced2812842a7",
+      "operation_key": "750b6d8c-4dc2-5927-9b81-1b764605f316:turn:2",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "turn_id": "09408d24-0fd6-5205-a562-bea330259340",
+      "request_digest": "4aeb0b1a89010e28b0cda2fec89fd8d29f825c5c44a11c9f7c96d7f355e96fa8",
+      "result": {
+        "action": {
+          "kind": "final",
+          "text": "Deterministic demonstration: retrieve=retrieved, verify=verified. No model judgment was performed."
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "77f35be1-df79-479e-ae19-78e775c1c0d8",
+      "operation_key": "88b35c17-6591-5c16-af82-615c390592d4:turn:0",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "turn_id": "55a7027b-3776-5eab-beeb-15564840a4e7",
+      "request_digest": "13724e138c4e156611646bd03dbc88c7a8fc0eb20b56b15c3a64198ecfbf2b5d",
+      "result": {
+        "action": {
+          "kind": "tool",
+          "name": "retrieve",
+          "arguments": {
+            "query": "quartz retention policy",
+            "k": 3
+          }
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "a8fa32bc-b1d9-47e9-9ac0-3cb53a79f121",
+      "operation_key": "88b35c17-6591-5c16-af82-615c390592d4:tool:0",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "tool",
+      "effect_class": "read_only",
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "action": {
+        "kind": "tool",
+        "name": "retrieve",
+        "arguments": {
+          "query": "quartz retention policy",
+          "k": 3
+        }
+      },
+      "result": {
+        "schema_version": 1,
+        "request_id": "7363a4f0-8359-4c21-aeb0-8db0c9c96a7f",
+        "operation": "retrieve",
+        "status": "retrieved",
+        "dependency": {
+          "name": "attune-rag",
+          "version": "1.2.0"
+        },
+        "query": "quartz retention policy",
+        "k": 3,
+        "corpus": {
+          "root": "/private/tmp/attune-compat-candidate-a1/review-project",
+          "version": "3616e1ee0d89c432",
+          "documents": 2
+        },
+        "retriever": "KeywordRetriever",
+        "sources": [
+          {
+            "path": "guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "[Quartz retention policy](reference.md)"
+          },
+          {
+            "path": "reference.md",
+            "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e",
+            "score": 3.0,
+            "match_reason": "content:3",
+            "excerpt": "Quartz retention policy is synthetic evidence."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "170d2cf5-365e-46aa-bd3a-df68e26a2c31",
+      "operation_key": "88b35c17-6591-5c16-af82-615c390592d4:turn:1",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "turn_id": "7c8a8056-ef03-5c20-bf8a-48d4a2760a83",
+      "request_digest": "89aa4623624ed89f515b7d2a0b645d3eecc6e52cec7ce2878b3e98bbf093cc1d",
+      "result": {
+        "action": {
+          "kind": "tool",
+          "name": "verify",
+          "arguments": {}
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "6a37889e-1154-4cd9-bfa3-66cf3cfddb9d",
+      "operation_key": "88b35c17-6591-5c16-af82-615c390592d4:tool:1",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "tool",
+      "effect_class": "unknown",
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "action": {
+        "kind": "tool",
+        "name": "verify",
+        "arguments": {}
+      },
+      "result": {
+        "schema_version": 1,
+        "request_id": "68be0fa7-f8ed-445c-aba3-3b3348b77fff",
+        "operation": "verify",
+        "status": "verified",
+        "dependency": {
+          "name": "attune-verify",
+          "version": "0.6.0"
+        },
+        "artifacts": {
+          "document": {
+            "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+          },
+          "context": {
+            "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+            "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+          }
+        },
+        "passed": true,
+        "result": {
+          "schema_version": 1,
+          "ok": true,
+          "status": "verified",
+          "checked": [
+            "imports",
+            "flags",
+            "links",
+            "counts"
+          ],
+          "semantic_ran": false,
+          "coverage": {
+            "total": 1,
+            "verified": 1,
+            "refuted": 0,
+            "unknown": 0
+          },
+          "findings": [],
+          "claims": [
+            {
+              "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+              "kind": "links",
+              "subject": "reference.md",
+              "status": "verified",
+              "evidence": "[Quartz retention policy](reference.md)",
+              "location": "line 1",
+              "detail": "",
+              "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "event_id": "5ef3f091-6819-4708-b0e3-f4a5ae873363",
+      "operation_key": "88b35c17-6591-5c16-af82-615c390592d4:turn:2",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "participant_turn",
+      "effect_class": "read_only",
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "turn_id": "f2d89d63-2bf9-5445-8031-e6ff2a692854",
+      "request_digest": "e66f97264e912ab6c248665711ff7d5ac77c4b9edb762c6fef8622633b4ddb55",
+      "result": {
+        "action": {
+          "kind": "final",
+          "text": "Deterministic demonstration: retrieve=retrieved, verify=verified. No model judgment was performed."
+        },
+        "identity": {
+          "adapter": "deterministic",
+          "model": null
+        }
+      }
+    },
+    {
+      "event_id": "588de949-1896-4ae9-80c1-79670865552a",
+      "operation_key": "final",
+      "state": "completed",
+      "phase": "completed",
+      "attempts": 1,
+      "kind": "final_verification",
+      "effect_class": "unknown",
+      "result": {
+        "schema_version": 1,
+        "request_id": "4cbb1c45-387c-4f84-8294-5be39f5150f3",
+        "operation": "verify",
+        "status": "verified",
+        "dependency": {
+          "name": "attune-verify",
+          "version": "0.6.0"
+        },
+        "artifacts": {
+          "document": {
+            "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+            "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+          },
+          "context": {
+            "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+            "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+          }
+        },
+        "passed": true,
+        "result": {
+          "schema_version": 1,
+          "ok": true,
+          "status": "verified",
+          "checked": [
+            "imports",
+            "flags",
+            "links",
+            "counts"
+          ],
+          "semantic_ran": false,
+          "coverage": {
+            "total": 1,
+            "verified": 1,
+            "refuted": 0,
+            "unknown": 0
+          },
+          "findings": [],
+          "claims": [
+            {
+              "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+              "kind": "links",
+              "subject": "reference.md",
+              "status": "verified",
+              "evidence": "[Quartz retention policy](reference.md)",
+              "location": "line 1",
+              "detail": "",
+              "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "participants": {
+    "lead": {
+      "participant_id": "alpha",
+      "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316",
+      "adapter": "deterministic",
+      "status": "completed",
+      "tool_calls": 2,
+      "last_identity": {
+        "adapter": "deterministic",
+        "model": null
+      },
+      "text": "Deterministic demonstration: retrieve=retrieved, verify=verified. No model judgment was performed."
+    },
+    "reviewer": {
+      "participant_id": "beta",
+      "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4",
+      "adapter": "deterministic",
+      "status": "completed",
+      "tool_calls": 2,
+      "last_identity": {
+        "adapter": "deterministic",
+        "model": null
+      },
+      "text": "Deterministic demonstration: retrieve=retrieved, verify=verified. No model judgment was performed."
+    }
+  },
+  "record_path": "/private/tmp/attune-compat-candidate-a1/review-completed/record.json",
+  "verification_scope": "Supported claims in the reviewed document; participant narratives are not verified",
+  "external_execution_enabled": false,
+  "recovery": {
+    "profile": {
+      "version": 1,
+      "turn_protocol_sha256": "8838cfa943ddf9b48aa83b1055fb85a0f4011e7e11f93837774c1607656a8cba",
+      "verify": "0.6.0",
+      "rag": "1.2.0"
+    },
+    "source_snapshot": {
+      "guide.md": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+      "reference.md": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e"
+    },
+    "assignments": {
+      "lead": {
+        "participant_id": "alpha",
+        "attempt_id": "750b6d8c-4dc2-5927-9b81-1b764605f316"
+      },
+      "reviewer": {
+        "participant_id": "beta",
+        "attempt_id": "88b35c17-6591-5c16-af82-615c390592d4"
+      }
+    },
+    "transfers": [],
+    "reconciliations": []
+  },
+  "checkpoint_digest": "80753460834718728cfae18ccc87e341edb4b0f5446c85a7e468457d8a713750",
+  "preflight_verification": {
+    "schema_version": 1,
+    "request_id": "9f6badfe-428b-4a95-b4a0-b81c25734f0a",
+    "operation": "verify",
+    "status": "verified",
+    "dependency": {
+      "name": "attune-verify",
+      "version": "0.6.0"
+    },
+    "artifacts": {
+      "document": {
+        "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+      },
+      "context": {
+        "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+        "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+      }
+    },
+    "passed": true,
+    "result": {
+      "schema_version": 1,
+      "ok": true,
+      "status": "verified",
+      "checked": [
+        "imports",
+        "flags",
+        "links",
+        "counts"
+      ],
+      "semantic_ran": false,
+      "coverage": {
+        "total": 1,
+        "verified": 1,
+        "refuted": 0,
+        "unknown": 0
+      },
+      "findings": [],
+      "claims": [
+        {
+          "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+          "kind": "links",
+          "subject": "reference.md",
+          "status": "verified",
+          "evidence": "[Quartz retention policy](reference.md)",
+          "location": "line 1",
+          "detail": "",
+          "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+        }
+      ]
+    }
+  },
+  "initial_retrieval": {
+    "schema_version": 1,
+    "request_id": "01366001-db9c-4af3-93ea-7e8947a8bc90",
+    "operation": "retrieve",
+    "status": "retrieved",
+    "dependency": {
+      "name": "attune-rag",
+      "version": "1.2.0"
+    },
+    "query": "quartz retention policy",
+    "k": 3,
+    "corpus": {
+      "root": "/private/tmp/attune-compat-candidate-a1/review-project",
+      "version": "3616e1ee0d89c432",
+      "documents": 2
+    },
+    "retriever": "KeywordRetriever",
+    "sources": [
+      {
+        "path": "guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "[Quartz retention policy](reference.md)"
+      },
+      {
+        "path": "reference.md",
+        "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e",
+        "score": 3.0,
+        "match_reason": "content:3",
+        "excerpt": "Quartz retention policy is synthetic evidence."
+      }
+    ]
+  },
+  "verification": {
+    "schema_version": 1,
+    "request_id": "4cbb1c45-387c-4f84-8294-5be39f5150f3",
+    "operation": "verify",
+    "status": "verified",
+    "dependency": {
+      "name": "attune-verify",
+      "version": "0.6.0"
+    },
+    "artifacts": {
+      "document": {
+        "path": "/private/tmp/attune-compat-candidate-a1/review-project/guide.md",
+        "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81"
+      },
+      "context": {
+        "path": "/private/tmp/attune-compat-candidate-a1/context.json",
+        "sha256": "c92525e403ab5779c8c34fffdf4bcf66c46451ae74904c21548eb3c48119b51b"
+      }
+    },
+    "passed": true,
+    "result": {
+      "schema_version": 1,
+      "ok": true,
+      "status": "verified",
+      "checked": [
+        "imports",
+        "flags",
+        "links",
+        "counts"
+      ],
+      "semantic_ran": false,
+      "coverage": {
+        "total": 1,
+        "verified": 1,
+        "refuted": 0,
+        "unknown": 0
+      },
+      "findings": [],
+      "claims": [
+        {
+          "id": "0487e437a5f4d628f72773a14bf0b880108f7ba250ecc7786316fedd9f3f30cb",
+          "kind": "links",
+          "subject": "reference.md",
+          "status": "verified",
+          "evidence": "[Quartz retention policy](reference.md)",
+          "location": "line 1",
+          "detail": "",
+          "source": "/private/tmp/attune-compat-candidate-a1/review-project"
+        }
+      ]
+    }
+  },
+  "document_outcome": "verified",
+  "retrieval_outcome": "retrieved"
+}

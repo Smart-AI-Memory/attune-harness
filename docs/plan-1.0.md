@@ -53,7 +53,7 @@ human decisions hold. Neither merged code nor a passing suite alone closes a gat
 
 | Gate | Implemented / evidenced at this revision | Remaining action and acceptance evidence | Owner / decision |
 | --- | --- | --- | --- |
-| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), saved memory/task records (#147), and deprecation/protocol guards plus saved-format inventory (#151). See [compatibility list](compatibility.md) and its named tests. | After plugin fields settle, capture the candidate saved-state fixture and freeze at rc1. | Implementation and independent review; Patrick approves release. |
+| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), saved memory/task records (#147), and deprecation/protocol guards plus saved-format inventory (#151). The clean unpublished `1.0.0rc1` wheel has now written the [candidate fixture](../tests/fixtures/compat-1.0/README.md) with exact reader/refusal tests; see the [compatibility list](compatibility.md). | Complete full and fresh-wheel qualification, exact package-byte comparison and platform CI before claiming a frozen candidate or starting observation. | Implementation and independent review; Patrick approves release. |
 | S2 / 4.4 — independent memory | Native readers, legacy import (#115), R2 installed journey, and D28 transition removal (#149) are merged. Adapter/differential removed; native fixture retained; old reader explicitly refused. PR149: full suite 3,123 passed, installed wheel 1,513 passed, all 19 CI checks green. | The Harness implementation and tests close 4.4; retain the [frozen-format contract](specs/native-memory/formats.md). | Patrick carries the reverse writer constraint to attune-ai; this summary does not claim that separate-repository action happened. |
 | S3 / 3.3 — useful recall | Serving filters/prompt recall (#128) and explicit saved capture (#147) have software checks. [September 24 observations](specs/native-memory/observations-2026-09-24.md) identify user gaps. | Observe fresh-session serving, provenance and corrected/inactive exclusion. Explicit saved records are not yet wired into that serving path; do not claim automatic recall from save/index tests. | Real-session evidence with Patrick; no invented observations. |
 | S4 / 4.3 — executable plugins | Signing, revocation and capability controls (#118/#150), paid-stage journal preservation (#152), offline differential (#158) and recorded live-response replay (#161) are merged. One fixed public-corpus query completed eight live stages total across the direct SDK and signed-plugin paths, with four matching normalized request/result pairs; all six installed-wheel platform jobs replayed recorded results and synthetic interruption ([qualification](qualification.md)). | R1–R6 evidence supports the bounded cooperating-plugin profile; retain exact limits in the public R7 wording and recheck on the candidate wheel. It is not arbitrary-plugin security or general ranking quality. | Implementation and independent review complete for the declared profile; Patrick still owns candidate/release acceptance. |
@@ -65,11 +65,14 @@ human decisions hold. Neither merged code nor a passing suite alone closes a gat
 
 **Execution order:** executable plugins → final compatibility fixture/freeze →
 rc1 → observed candidate period → stable. D28 and the deprecation/protocol
-guards are merged; the final fixture still waits for plugin fields to settle. New format changes before rc1
-must be incorporated into that fixture; after rc1 they restart the candidate.
+guards are merged; plugin fields have settled and the unpublished candidate
+fixture is captured. Final validation remains. New format changes before RC
+publication must be incorporated into that fixture; after publication they
+restart the candidate.
 October remains the target month, with no promised day.
 
-The next useful implementation chunk is the candidate-written saved-state fixture and exact-wheel read matrix. Release-gate status and evidence remain here,
+The next useful implementation chunk is the exact-wheel read matrix and
+candidate validation. Release-gate status and evidence remain here,
 linked from O-04 in the [opportunity log](opportunity-log.md), rather than in a
 second tracker. Recovery PR146 is merged with a bounded operator-observation path; its original
 failed native-build evidence remains retained and is not rewritten as success.
