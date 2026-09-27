@@ -96,6 +96,16 @@ def code_archive(manifest, relative):
     return target.resolve(), raw
 
 
+def validate_entry(raw, entry):
+    """The entry is signed bundle code, never a stdlib/installed module of that name."""
+    if entry.split('.')[0] in sys.stdlib_module_names:
+        raise ValueError('Plugin entry cannot shadow a standard-library module')
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        name = entry.replace('.', '/')
+        if name + '.py' not in archive.namelist() and name + '/__main__.py' not in archive.namelist():
+            raise ValueError('Plugin entry is absent from the signed code archive')
+
+
 def resolve_imports(declarations):
     """Resolve installed distribution dependencies/extras, refusing ambiguity or drift."""
     require_feature('packaging', 'packaging', PACKAGING_VERSION, 'plugins')
@@ -165,8 +175,9 @@ class DeclaredImports(importlib.abc.MetaPathFinder):
                 if any(pathlib.Path(f).is_relative_to(pathlib.Path(p).resolve()) for f in config['imports']['files'])]
         return spec
 sys.meta_path.insert(0, DeclaredImports())
+allowed_keys = {key.casefold() if os.name == 'nt' else key for key in config['environment_keys']}
 for key in tuple(os.environ):
-    if key not in config['environment_keys']:
+    if (key.casefold() if os.name == 'nt' else key) not in allowed_keys:
         del os.environ[key]
 sys.argv[:] = [config['entry'], config['request'], config['result']]
 runpy.run_module(config['entry'], run_name='__main__')
@@ -238,7 +249,9 @@ def run(bundle, tool, arguments, *, paths, guarded_paths, postcheck):
                          max_output_bytes=grant['output']['diagnostics'], capture_interrupt=True)
         receipt.update(exit_status=outcome.returncode, failure=outcome.failure,
                        duration_seconds=time.monotonic() - start,
-                       diagnostics={'stdout': outcome.stdout, 'stderr': outcome.stderr})
+                       diagnostics={name: {'bytes': len(text.encode('utf-8')),
+                           'sha256': hashlib.sha256(text.encode('utf-8')).hexdigest()}
+                           for name, text in (('stdout', outcome.stdout), ('stderr', outcome.stderr))})
         try:
             if checkpoint(guarded_paths) != before:
                 raise ValueError('Plugin changed host-owned evidence against its checkpoint')

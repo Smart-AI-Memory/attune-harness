@@ -69,7 +69,8 @@ def test_signed_run_sees_only_granted_environment_and_input_paths(run_plugin, mo
     bindings, directory = enable(grants=grants)
     result = invoke(bindings, paths={'document': tmp_path / 'input.md', 'context': tmp_path / 'hidden'})
     value = result['plugin_result']
-    assert value['environment'] == sorted([*runtime.environment(grants)])
+    assert value['environment'] == sorted(key.upper() if os.name == 'nt' else key
+                                          for key in runtime.environment(grants))
     assert 'UNGRANTED_CANARY' not in value['environment']
     assert value['paths'] == {'document': str(tmp_path / 'input.md')}
     assert all('site-packages' not in path for path in value['sys_path'])
@@ -272,3 +273,136 @@ def test_missing_import_metadata_refuses_enable(run_plugin):
     _, enable = run_plugin
     with pytest.raises(FeatureUnavailable, match='cannot be resolved'):
         enable(declares={'imports': ['harness_nonexistent_test_distribution']})
+
+
+def test_mcp_strict_inner_schema_uses_host_envelope_for_protocol(case, run_plugin):
+    manifest, enable = run_plugin
+    change(manifest, lambda d: d['tools']['search'].update(output_schema={
+        'type': 'object', 'required': ['message'], 'properties': {'message': {'const': 'exact'}},
+        'additionalProperties': False}))
+    bindings, _ = enable('import sys; from pathlib import Path; Path(sys.argv[2]).write_text(\'{"message":"exact"}\')')
+    def update(value):
+        value['extensions'] = bindings
+        for participant in value['participants'].values():
+            participant['tools'] = ['evidence.search']
+    change_config(case, update)
+    request, config, directory = case
+    scope = RetrievalSession(request, config, 'alpha', directory)
+    with scope.store.lease():
+        scope.save()
+        result = scope.invoke('harness.evidence.search', {'message': 'test'})
+        scope.finish()
+    assert result['plugin_result'] == {'message': 'exact'}
+    assert scope.record['status'] == 'completed'
+
+
+def test_diagnostics_receipt_does_not_retain_granted_secret(run_plugin, monkeypatch):
+    _, enable = run_plugin
+    secret = 'private-test-token-never-in-receipt'
+    monkeypatch.setenv('PLUGIN_SECRET', secret)
+    bindings, _ = enable('''import os, sys
+from pathlib import Path
+print(os.environ['PLUGIN_SECRET'])
+print(os.environ['PLUGIN_SECRET'], file=sys.stderr)
+Path(sys.argv[2]).write_text('{}')
+''', grants={**GRANT, 'secrets': ['PLUGIN_SECRET']})
+    result = invoke(bindings)
+    assert secret not in json.dumps(result)
+    assert result['extension']['plugin']['diagnostics']['stdout']['bytes'] == len(secret) + 1
+
+
+def test_mcp_corpus_drift_after_dispatch_is_unresolved(case, run_plugin):
+    _, enable = run_plugin
+    request, config, directory = case
+    path = request.parent / 'project' / 'injected.md'
+    bindings, _ = enable(f'''import sys
+from pathlib import Path
+Path({str(path)!r}).write_text('new evidence')
+Path(sys.argv[2]).write_text('{{}}')
+''')
+    def update(value):
+        value['extensions'] = bindings
+        for participant in value['participants'].values():
+            participant['tools'] = ['evidence.search']
+    change_config(case, update)
+    scope = RetrievalSession(request, config, 'alpha', directory)
+    with scope.store.lease():
+        scope.save()
+        with pytest.raises(runtime.PluginUnresolved, match='corpus changed'):
+            scope.invoke('harness.evidence.search', {'message': 'test'})
+        scope.finish()
+    assert scope.record['status'] == 'unresolved'
+    assert scope.record['events'][0]['state'] == 'unresolved'
+    assert scope.record['events'][0]['plugin_receipt']['exit_status'] == 0
+
+
+def test_mcp_outer_catalog_failure_after_run_retains_receipt_and_uncertainty(case, run_plugin, monkeypatch):
+    _, enable = run_plugin
+    bindings, _ = enable()
+    def update(value):
+        value['extensions'] = bindings
+        for participant in value['participants'].values():
+            participant['tools'] = ['evidence.search']
+    change_config(case, update)
+    request, config, directory = case
+    scope = RetrievalSession(request, config, 'alpha', directory)
+    original = scope.check_scope
+    calls = 0
+    def check(*, check_extensions=True):
+        nonlocal calls
+        if check_extensions:
+            calls += 1
+            if calls == 2:
+                raise FeatureUnavailable('Another extension state changed')
+        original(check_extensions=check_extensions)
+    monkeypatch.setattr(scope, 'check_scope', check)
+    with scope.store.lease():
+        scope.save()
+        with pytest.raises(FeatureUnavailable, match='Another extension'):
+            scope.invoke('harness.evidence.search', {'message': 'test'})
+        scope.finish()
+    assert scope.record['status'] == 'unresolved'
+    assert scope.record['events'][0]['state'] == 'unresolved'
+    assert scope.record['events'][0]['plugin_receipt']['exit_status'] == 0
+
+
+def test_namespace_finder_excludes_undeclared_sibling_distribution(run_plugin, tmp_path, monkeypatch):
+    """Namespace packages expose closure files only; cooperating-import proof, not sandboxing."""
+    site = tmp_path / 'site'
+    namespace = site / 'shared_namespace'
+    namespace.mkdir(parents=True)
+    allowed = namespace / 'allowed.py'
+    allowed.write_text('value = 7')
+    (namespace / 'unrelated.py').write_text('value = 9')
+    closure = {'versions': {'fixture-dist': '1'}, 'top_levels': ['shared_namespace'],
+               'roots': [str(site)], 'files': [str(allowed)]}
+    monkeypatch.setattr(runtime, 'resolve_imports', lambda value: copy.deepcopy(closure))
+    _, enable = run_plugin
+    bindings, _ = enable('''import json, sys
+from pathlib import Path
+from shared_namespace import allowed
+try:
+    from shared_namespace import unrelated
+except ImportError:
+    denied = True
+else:
+    denied = False
+Path(sys.argv[2]).write_text(json.dumps({'value': allowed.value, 'denied': denied}))
+''')
+    assert invoke(bindings)['plugin_result'] == {'value': 7, 'denied': True}
+
+
+@pytest.mark.parametrize('entry', ['json', 'absent'])
+def test_entry_must_be_signed_bundle_code(run_plugin, entry):
+    manifest, _ = run_plugin
+    change(manifest, lambda d: d['tools']['search'].update(entry=entry))
+    with pytest.raises(ValueError, match='Plugin entry'):
+        ext.discover(manifest)
+
+
+def test_entry_cannot_resolve_from_installed_distribution(run_plugin, monkeypatch):
+    _, enable = run_plugin
+    monkeypatch.setattr(runtime, 'resolve_imports', lambda value: {
+        'versions': {'other': '1'}, 'top_levels': ['main'], 'roots': [], 'files': []})
+    with pytest.raises(FeatureUnavailable, match='entry collides'):
+        enable()

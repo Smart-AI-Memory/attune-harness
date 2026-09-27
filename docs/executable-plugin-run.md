@@ -32,7 +32,8 @@ explicit effective `scratch: true`, `time` and `output` grants. The accepted
 registry's grant remains a subset of the manifest's grant. `paths` names accepted
 host inputs such as `document` or `corpus`; the caller supplies arguments, not
 replacement paths. `secrets` names only the environment values explicitly passed.
-No secret values are written into the host's receipt.
+The host records environment keys and diagnostics digests/lengths, not their
+values. Plugin-returned result data may itself contain sensitive content.
 
 At enable, Harness resolves `declares.imports` from installed distribution
 metadata, including transitive requirements, environment markers and explicitly

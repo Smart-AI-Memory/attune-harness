@@ -208,8 +208,11 @@ def discover(manifest: Path) -> dict:
     hashes = {'manifest_sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(),
                        'skill_sha256': hashlib.sha256(skill_text.encode('utf-8')).hexdigest()}
     if 'code' in value:
-        from .plugin_runtime import code_archive
+        from .plugin_runtime import code_archive, validate_entry
         _, raw_code = code_archive(manifest, value['code'])
+        for tool in tools.values():
+            if isinstance(tool, dict):
+                validate_entry(raw_code, tool['entry'])
         hashes['code_sha256'] = hashlib.sha256(raw_code).hexdigest()
     artifact = digest(hashes)
     return {'manifest': str(manifest), 'declaration': value, 'artifact_digest': artifact,
@@ -323,6 +326,9 @@ def _current(state, expected=None, *, enabled=False, scope=None):
         if any(isinstance(tool, dict) for tool in bundle['declaration']['tools'].values()):
             from .plugin_runtime import resolve_imports
             receipt['imports'] = resolve_imports(bundle['declaration'].get('declares', {}).get('imports', []))
+            for tool in bundle['declaration']['tools'].values():
+                if isinstance(tool, dict) and tool['entry'].split('.')[0] in receipt['imports']['top_levels']:
+                    raise FeatureUnavailable('Plugin entry collides with a declared installed distribution')
             if enabled and state.get('plugin', {}).get('imports') != receipt['imports']:
                 raise FeatureUnavailable('Plugin import closure changed; disable and explicitly enable again')
         bundle['plugin'] = receipt

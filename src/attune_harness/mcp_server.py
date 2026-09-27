@@ -84,7 +84,7 @@ class RetrievalSession:
             self.persistence_failed = True
             raise
 
-    def check_scope(self):
+    def check_scope(self, *, check_extensions=True):
         if parse_json(read_text(self.request_path, 131072)) != self.request_value:
             raise ValueError('Accepted request/grants changed; start a newly accepted session')
         if self.config_path is not None and read_text(self.config_path, 131072) != self.config_original:
@@ -97,7 +97,7 @@ class RetrievalSession:
             load_selection(self.retrieval)
         elif snapshot_sources(self.prepared['paths']['corpus']) != self.prepared['source_snapshot']:
             raise ValueError('Accepted corpus changed; start a newly accepted session')
-        if self.bindings:
+        if self.bindings and check_extensions:
             catalog(self.bindings, enabled=True)
 
     def invoke(self, name, arguments):
@@ -133,6 +133,7 @@ class RetrievalSession:
                  'state': 'pending', 'effect_class': 'scratch_write' if running else 'paid_retrieval' if self.retrieval else 'read_only'}
         self.record['events'].append(event)
         self.save()
+        result = None
         try:
             def retrieve(query, k):
                 if self.retrieval:
@@ -145,15 +146,18 @@ class RetrievalSession:
                       invoke_tool(self.bindings, portable, arguments, retrieve,
                           paths=self.prepared['paths'], guarded_paths=(self.store.path, self.request_path,
                               *([self.config_path] if self.config_path is not None else []),
-                              *self.prepared['originals'])))
+                              *self.prepared['originals']),
+                          check_scope=lambda: self.check_scope(check_extensions=False)))
             self.check_scope()
             import jsonschema
             jsonschema.validate(result, self.contributions[portable]['output_schema'] if running else OUTPUT_SCHEMA)
         except Exception as exc:
             from .plugin_runtime import PluginUnresolved
-            event.update(state='unresolved' if isinstance(exc, PluginUnresolved) else 'failed', error={'type': type(exc).__name__, 'detail': str(exc)})
+            event.update(state='unresolved' if running or isinstance(exc, PluginUnresolved) else 'failed', error={'type': type(exc).__name__, 'detail': str(exc)})
             if isinstance(exc, PluginUnresolved):
                 event['plugin_receipt'] = exc.receipt
+            elif running and result is not None:
+                event['plugin_receipt'] = result['extension']['plugin']
             self.save()
             raise
         event.update(state='completed', result=result)
