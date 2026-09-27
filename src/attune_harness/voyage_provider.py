@@ -22,6 +22,13 @@ class PaidStageUnresolved(RuntimeError):
     """A dispatched provider operation has unknown effects; never retry automatically."""
 
 
+class PaidStageInterrupted(RuntimeError):
+    """Provider adapter signal: a dispatched subprocess stopped without a result.
+
+    The host retains its durable dispatching record; this is not permission to retry.
+    """
+
+
 def number(value):
     return type(value) in (float, int) and math.isfinite(value)
 
@@ -214,6 +221,11 @@ class StageJournal:
             else:
                 result = self.provider.rerank(request['query'], request['documents'], request['k'])
             validate(result)
+        except PaidStageInterrupted:
+            # A killed child has the same retained state as an abrupt host stop.
+            # Do not overwrite dispatching or persist untrusted child diagnostics.
+            raise PaidStageUnresolved(
+                'Provider subprocess interrupted; billing unknown. No automatic retry.') from None
         except BaseException as exc:
             # SDK error strings may include source text or secrets. Persist only the class.
             record.update(status='unresolved', error={'type': type(exc).__name__,
