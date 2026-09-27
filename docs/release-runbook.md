@@ -149,8 +149,17 @@ approval comment records. What those scripts learned, for the next ones:
 ## TestPyPI rehearsal
 
 `target=testpypi` takes a release-candidate version such as `X.Y.Zrc1`, and
-`pyproject.toml` has to carry that version, so it needs its own commit and
-branch. Name the branch `release/...`: pushes qualify only on `main` and
-`release/**`, and the rehearsal gate needs a push or dispatch run on the commit. 0.2.0 skipped it: packaging had not changed since 0.1.0, and the build
-job already installs the wheel and runs the installed check before any upload.
+`pyproject.toml` has to carry that version. Prepare the candidate version and
+changelog in a reviewed pull request, merge through `main`, and wait for that
+exact main commit's qualification to pass. Dispatch the publication workflow
+from `main` with that same full `release_sha`, as the current repository rules
+require; `main` must still point at it. The TestPyPI environment must allow
+`main`, with its required reviewer retained. Changing that setting is Patrick's
+action and does not authorize a dispatch or upload.
+
+This replaces the older instruction to dispatch a candidate from a `release/...`
+branch. Historical release-branch runs remain evidence; they are not the current
+publication procedure. 0.2.0 skipped TestPyPI: packaging had not changed since
+0.1.0, and the build job already installs the wheel and runs the installed check
+before any upload.
 Use it when packaging metadata, the build backend or the workflow itself changes.
