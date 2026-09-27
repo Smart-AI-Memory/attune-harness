@@ -10,7 +10,7 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 76 rows:
+row pins, in 68 rows:
 
 - **success** (56 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
@@ -22,28 +22,27 @@ row pins, in 76 rows:
   `github-checks` on an empty object; `memory scratch stash` with an
   `--expected-version` the stored record is not at, nothing written. Voyage
   is never called.
-- **unavailable** (9 rows): a dependency or server this install does not
-  have. The memory host route (`capabilities` through `execute`) with
-  `reader: adapter` needs the attune-ai adapter, which no base or extra
-  install carries; a configured Redis that refuses the connection.
+- **unavailable** (1 row): a configured Redis that refuses the connection.
 - **disabled** (1 row): the memory config has no `scratch` section.
 - **uncertain** (1 row): a write whose effect cannot be known. `memory scratch
   stash` when the record was written and the replace raised; the receipt
   carries the version and the stamp the write took, and says that the
   stash was not retried and nothing was diverted.
 
-The four `-adapter` rows pin the memory host's success shapes over an
-in-process double of the adapter's four-member contract (`binding`,
-`capabilities`, `query`, `resolve`), since no install carries the adapter;
-the four `-native` rows pin the same shapes through Harness's own reader,
-the default since Phase 2 step 2.4 (D19), over a raw root.
+The four plain read rows pin Harness's native reader over a raw root. The
+four worker rows pin create, replay, inspect and execute over a native reader
+and one offline job. Execute injects a deterministic participant at the provider
+boundary; it does not qualify a native transport or call a model. D28 removes
+12 adapter-bound rows, renames the four native read rows and adds four worker
+success rows: 76 becomes 68, retaining the five rows added since the design's
+historical 71-row table.
 
 Text-only Spec compose/presentation is checked in `test_spec_cli.py`.
 Two other surfaces are not pinned here. `mcp-serve` speaks the MCP protocol on stdout and
 prints no envelope, and `--help`/`--help-all` print text. Seven rows run on
 POSIX only: `fix-intake`, `test-preview` and `status-test`, because the `test`
 verb qualifies the POSIX execution profile and the repair probe fixture is a
-POSIX one; and the four `-native` rows, because the native memory reader's
+POSIX one; and the four native read rows, because the native memory reader's
 descriptor walk is POSIX-only at 0.5.0 (D19). A `-` in the `schema_version`
 or `status` column means the envelope has no such key. The first freeze cycle
 (4.1, D27.2) closed the gaps this page used to list: the feature-work verbs
@@ -56,7 +55,7 @@ its envelope is the retrieval config itself, which `index plan --config`
 reads back and would refuse with a key it does not know. The `-` cells that
 remain, the `demo` receipt, the memory host route's packets and refusals, and
 the Redis reader's unreachable report, are the second freeze cycle's to close
-or to rule exempt; the eight adapter-bound rows among them go with D28.
+or to rule exempt.
 
 ## Table
 
@@ -109,22 +108,14 @@ or to rule exempt; the eight adapter-bound rows among them go with D28.
 | `spec-intake` | success | 0 | - | - | `areas` `form` `taken_slugs` |
 | `verify` | success | 0 | 1 | `verified` | `artifacts` `dependency` `operation` `passed` `request_id` `result` `schema_version` `status` |
 | `retrieve` | success | 0 | 1 | `retrieved` | `corpus` `dependency` `k` `operation` `query` `request_id` `retriever` `schema_version` `sources` `status` |
-| `memory-capabilities` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-recall` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-resolve` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-refresh` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-create` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-replay` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-inspect` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-execute` | unavailable | 2 | - | `unavailable` | `detail` `error` `status` |
-| `memory-capabilities-adapter` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `reader` `retained_paths` `worker_execution` `worker_mutations` |
-| `memory-recall-adapter` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
-| `memory-resolve-adapter` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
-| `memory-refresh-adapter` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
-| `memory-capabilities-native` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `reader` `retained_paths` `worker_execution` `worker_mutations` |
-| `memory-recall-native` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
-| `memory-resolve-native` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
-| `memory-refresh-native` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
+| `memory-capabilities` | success | 0 | - | - | `context_refresh` `mutation_status` `native_worker` `read` `reader` `retained_paths` `worker_execution` `worker_mutations` |
+| `memory-recall` | success | 0 | 1 | `available` | `authority` `guidance` `items` `k` `max_chars` `operation` `problems` `query` `schema_version` `status` |
+| `memory-resolve` | success | 0 | - | - | `authority` `classification` `id` `kind` `locator` `metadata` `owner` `scope` `text` `version` |
+| `memory-refresh` | success | 0 | - | `available` | `context` `invalidated_ids` `replaces` `status` |
+| `memory-create` | success | 0 | - | `created` | `generation` `mode` `status` |
+| `memory-replay` | success | 0 | - | `complete_no_change` | `mode` `provider_calls` `result` `status` `unused_reply_count` |
+| `memory-inspect` | success | 0 | - | `complete_no_change` | `attempts` `envelope` `generation` `initial_profile` `policy` `reason` `result` `sampled` `status` `transport` |
+| `memory-execute` | success | 0 | - | `complete_no_change` | `dispatch_attempts` `effects` `mode` `provider_transmission` `result` `status` |
 | `memory-capabilities-invalid` | refusal | 2 | - | `failed` | `detail` `error` `status` |
 | `memory-redis-status` | success | 0 | 1 | `ok` | `active_nodes` `authority` `guidance` `items` `layers` `operation` `schema_version` `status` |
 | `memory-redis-digest` | success | 0 | 1 | `ok` | `authority` `guidance` `items` `limit` `operation` `schema_version` `status` |
@@ -190,22 +181,6 @@ What each case runs, in the order of the table.
 - `mcp-inspect`: `mcp-inspect SESSION_DIR` on a finished retrieval session
 - `verify`: `verify DOCUMENT --context`
 - `retrieve`: `retrieve QUERY --corpus`
-- `memory-capabilities`: `memory --config capabilities` without attune-ai
-- `memory-recall`: `memory --config recall QUERY` without attune-ai
-- `memory-resolve`: `memory --config resolve HANDLE` without attune-ai
-- `memory-refresh`: `memory --config refresh CONTEXT` without attune-ai
-- `memory-create`: `memory --config create RUN_ID --envelope --policy` without attune-ai
-- `memory-replay`: `memory --config replay RUN_ID JOB_ID --replies` without attune-ai
-- `memory-inspect`: `memory --config inspect RUN_ID JOB_ID` without attune-ai
-- `memory-execute`: `memory --config execute RUN_ID JOB_ID` without attune-ai
-- `memory-capabilities-adapter`: `memory --config capabilities` over an in-process double of the adapter's four-member contract
-- `memory-recall-adapter`: `memory --config recall QUERY --k 3` over the double
-- `memory-resolve-adapter`: `memory --config resolve HANDLE` with a handle the double's recall returned
-- `memory-refresh-adapter`: `memory --config refresh CONTEXT` with the packet the double's recall returned
-- `memory-capabilities-native`: `memory --config capabilities` with the default reader over a raw root (POSIX only)
-- `memory-recall-native`: `memory --config recall QUERY --k 2` over the raw root (POSIX only)
-- `memory-resolve-native`: `memory --config resolve HANDLE` with a handle the native recall returned (POSIX only)
-- `memory-refresh-native`: `memory --config refresh CONTEXT` with the packet the native recall returned (POSIX only)
 - `memory-capabilities-invalid`: `memory --config capabilities` with the default reader and a config that is not the roots contract
 - `memory-redis-status`: `memory --config redis status` (in-process double of a hydrated keyspace)
 - `memory-redis-digest`: `memory --config redis digest --limit`
@@ -272,3 +247,11 @@ writes over it and `forget` removes it, as before. The files in
 `tests/fixtures/scratch_legacy_v1/` are version 1 records as 0.5.0's code
 wrote them; `tests/test_memory_scratch.py` pins them by digest and reads
 them through this code.
+
+Native host cases:
+
+- `memory-capabilities`, `memory-recall`, `memory-resolve`, `memory-refresh`: explicit raw root, native reader, no attune-ai runtime.
+- `memory-create`: create one offline proposal run.
+- `memory-replay`: consume a deterministic no-change reply.
+- `memory-inspect`: read that completed offline job.
+- `memory-execute`: execute a new offline job using an injected participant, without provider transmission.

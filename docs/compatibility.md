@@ -125,7 +125,7 @@ each reader's own version check are.
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
 | Memory config | `roots`, `redis`, `scratch` and `reader` sections | `memory_reader.roots_config` and the backends | the user |
 | Memory context packet | `schema_version` 1 | `memory_context.refresh` | `memory recall` |
-| The attune-ai memory formats | frozen as read (D25.5); described by 4.4's formats file when it lands | `memory_reader`, `memory_redis` | attune-ai's writers |
+| The attune-ai memory formats | frozen as read (D25.5/D28); [field and refusal contract](specs/native-memory/formats.md) | `memory_reader`, `memory_redis` | attune-ai's writers |
 
 ## 4. Refusal texts
 

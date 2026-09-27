@@ -1,9 +1,6 @@
 """The strict content gate refuses what the sanitizer would change, in the adapter's words."""
 # qualify: platform
 
-import os
-from pathlib import Path
-
 import pytest
 
 from attune_harness.memory_controls import REFUSAL, findings, guard, strict
@@ -88,27 +85,3 @@ def test_the_bare_key_rule_is_linear_on_a_long_run():
     started = time.monotonic()
     assert strict("content", "sk-" + "a" * 200000)
     assert time.monotonic() - started < 1.0
-
-
-@pytest.mark.skipif(not os.environ.get("ATTUNE_TEST_ADAPTER_ROOT"), reason="ATTUNE_TEST_ADAPTER_ROOT names no adapter checkout")
-def test_gate_agrees_with_the_adapters_own_gate(monkeypatch):
-    """D19: the same strings through both gates, same verdict. Runs where the adapter checkout exists."""
-    monkeypatch.syspath_prepend(str(Path(os.environ["ATTUNE_TEST_ADAPTER_ROOT"]).resolve() / "src"))
-    session_stash = pytest.importorskip("attune.memory.session_stash")
-    cases = ["SK-ANT-" + "A1b2" * 24, "xsk-" + "A1b2" * 10, "xoxb-abcdefgh", "myapikey = " + "A1b2" * 6,
-             'mypassword = "hunter2"', 'connection_string = "server=x;pw=y"', 'database_url = "x"', 'db_url = "x"',
-             "2001:db8::8a2e:370:7334", "aws_secret_key = " + "A" * 40, "api_key = " + "A1b2./+=" * 4,
-             'password = "hunt er2"', "Basic " + "A" * 16, "basic characterization", "-----BEGIN DSA PRIVATE KEY-----",
-             "postgresql://u:p@h", "postgres://a.b:p@h", "amqp://u:p@h", "", "   ", "sk-ant-" + "a" * 100,
-             "token eyJhbGciOi.eyJzdWIiOi.abc", "bearer abcdefghijklmnopqrstuvwxyz",
-             "Quartz retention policy: keep audit logs ninety days.", "call (555) 123-4567 today",
-             "mail someone@example.com", "version 1.2.3 released 2026-09-22 at 10:45", "sk-" + "A1b2" * 10,
-             "api_key=" + "A" * 24, "1234567890", "10.0.0.12", "at 12 Main Street Apt 4", "Patient ID 12345",
-             "ghp_" + "x" * 36, "-----BEGIN OPENSSH PRIVATE KEY-----"]
-    disagreements = []
-    for text in cases:
-        candidate = "content=" + text
-        theirs = session_stash.prepare_strict_content(candidate, max_chars=None) == candidate
-        if theirs != strict("content", text):
-            disagreements.append((text[:40], theirs))
-    assert disagreements == []

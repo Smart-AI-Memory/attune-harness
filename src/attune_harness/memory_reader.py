@@ -1,34 +1,12 @@
-"""Read the three legacy memory tiers with nothing from attune-ai: the native reader.
+"""Read frozen legacy memory formats with no attune-ai runtime dependency.
 
-Native memory Phase 2, step 2.2 (D19). ``MemoryHost`` consumes four members of
-whatever answers for a memory root config: ``binding``, ``capabilities()``,
-``query(query, k)`` and ``resolve(handle)``. Until now the only thing that did
-was ``attune.memory.harness_adapter.CompatibilityAdapter``, a module attune-ai
-never released. This class answers the same contract from the standard
-library, plus attune-rag's keyword retriever for the document tiers, which
-the base install already carries, so every envelope the host prints keeps
-its shape.
-
-What is reproduced is the adapter's observable contract, read from its
-source on the ``codex/shared-memory-adoption`` branch on 2026-09-22 and
-written down in the Phase 2 design note: the config validation and its
-words; the binding as the digest of the whole config; the descriptor walk
-with ``O_NOFOLLOW`` on every component, POSIX only; the bounds (8 MiB a
-file, 4,096 files and 64 MiB a query, 30 days for a raw row); the raw tier's
-ranking (token overlap plus a three-day recency half-life, stable, file
-order on ties; newest first for a blank query) and its exact ``cwd`` scope;
-the document tiers' ranking (attune-rag's keyword retriever over a snapshot
-that keeps the sources' mtimes, twice ``k`` then de-duplicated by path);
-the frontmatter authority check; the strict content gate; the statuses
-``available``, ``partial``, ``unavailable`` and ``empty``; and every refusal
-text. D19 asks for identical result sets and an identical top result; order
-below the top is reported by the differential, not enforced.
-
-Not reproduced here, by design: the telemetry line the adapter's document
-query appends under the user's home (a write), and anything else that
-writes. The provenance fields and the staleness annotations the adapter's
-document metadata carries are produced by ``memory_controls`` (step 2.3). The adapter stays
-selectable with ``"reader": "adapter"`` until Task 9.
+MemoryHost consumes binding, capabilities, query and resolve from this reader.
+The standard library serves raw findings; attune-rag serves document tiers.
+The contract is docs/specs/native-memory/formats.md and the digest-pinned
+memory_compatibility.json fixture. Config validation, refusal text, descriptor
+reads, bounds, ranking, provenance and staleness annotations remain unchanged.
+Reads produce available, partial, unavailable or empty packets and never write
+sources or telemetry. The only supported reader selection is native (D28).
 
 Copyright 2026 Smart AI Memory, LLC
 Licensed under the Apache License, Version 2.0
