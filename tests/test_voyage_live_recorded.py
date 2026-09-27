@@ -11,11 +11,14 @@ import json
 from pathlib import Path
 import socket
 import struct
+import zipfile
 
 import pytest
 import requests
+import test_voyage_index_plugin as index_fixtures
 
 from attune_harness import plugin_runtime
+from attune_harness.extensions import discover
 from attune_harness.review_contract import digest
 from attune_harness.review_store import read_record
 from attune_harness.voyage_provider import (PaidStageInterrupted, PaidStageUnresolved,
@@ -26,10 +29,66 @@ from test_voyage import corpus  # noqa: F401
 from test_voyage_index_plugin import signed_index  # noqa: F401
 
 FIXTURE = Path(__file__).parent / 'fixtures/voyage-live-recorded/stages.json.gz'
+RETAINED_ARTIFACT = 'a950e357c5e145cc4c988fa043792def1ddd8a4dab90ec41c3fc6f83853db391'
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/voyage_plugin_differential.py'
 spec = importlib.util.spec_from_file_location('voyage_plugin_differential', SCRIPT)
 differential = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(differential)
+
+
+def canonical_bundle_text(bundle):
+    """Match the retained signed bundle's LF bytes on every host OS."""
+    for name in ('manifest.json', 'SKILL.md'):
+        path = bundle / name
+        path.write_bytes(path.read_bytes().replace(b'\r\n', b'\n'))
+    rewrite_code_newlines(bundle, lambda data: data.replace(b'\r\n', b'\n'))
+
+
+def rewrite_code_newlines(bundle, convert):
+    archive = bundle / 'code.zip'
+    with zipfile.ZipFile(archive) as source:
+        entries = [(info, source.read(info.filename)) for info in source.infolist()]
+    assert all(info.filename.endswith('.py') for info, _ in entries)
+    if all(convert(data) == data for _, data in entries):
+        return
+    replacement = bundle / 'normalized-code.zip'
+    with zipfile.ZipFile(replacement, 'w') as target:
+        for info, data in entries:
+            target.writestr(info, convert(data))
+    replacement.replace(archive)
+
+
+@pytest.fixture(autouse=True)
+def signed_fixture_lf(monkeypatch):
+    original = index_fixtures.build_bundle
+
+    def build_with_lf(bundle):
+        original(bundle)
+        canonical_bundle_text(bundle)
+        return discover(bundle / 'manifest.json')['artifact_digest']
+
+    monkeypatch.setattr(index_fixtures, 'build_bundle', build_with_lf)
+
+
+def test_signed_fixture_recovers_retained_artifact_after_crlf(tmp_path):
+    from attune_voyage_plugin.bundle import build
+
+    bundle = tmp_path / 'bundle'
+    build(bundle)
+    canonical_bundle_text(bundle)
+    expected = {name: (bundle / name).read_bytes() for name in ('manifest.json', 'SKILL.md')}
+    code = (bundle / 'code.zip').read_bytes()
+    assert hashlib.sha256(code).hexdigest() == recorded()['provenance']['bundle_code_sha256']
+    assert discover(bundle / 'manifest.json')['artifact_digest'] == RETAINED_ARTIFACT
+    for name, value in expected.items():
+        assert b'\n' in value and b'\r' not in value
+        (bundle / name).write_bytes(value.replace(b'\n', b'\r\n'))
+    rewrite_code_newlines(bundle, lambda data: data.replace(b'\n', b'\r\n'))
+    assert discover(bundle / 'manifest.json')['artifact_digest'] != RETAINED_ARTIFACT
+    canonical_bundle_text(bundle)
+    assert {name: (bundle / name).read_bytes() for name in expected} == expected
+    assert (bundle / 'code.zip').read_bytes() == code
+    assert discover(bundle / 'manifest.json')['artifact_digest'] == RETAINED_ARTIFACT
 
 
 def recorded():

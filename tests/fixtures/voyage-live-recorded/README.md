@@ -4,4 +4,6 @@
 
 The fixture excludes credentials, signer identity, private registry, local absolute paths, and raw HTTP responses. Tests reconstruct SDK response envelopes from the **recorded normalized results**, verify the exact canonical request and SDK wire fields, and refuse sockets. A dummy test-only credential satisfies the host's name-presence gate. The synthetic kill case uses a captured request but does not replay a real interrupted paid call.
 
+Before test signing, the fixture normalizes generated Windows CRLF bytes in the manifest, skill, and code ZIP source members to the retained LF artifact; the production bundle builder is unchanged.
+
 This is one fixed query and source corpus, not a model-quality benchmark. Its eight live stages had known token usage; the calculated cost at the pinned rates was `$0.00249178` across both arms, not an independently verified provider invoice. R6/R7 qualification still depends on the reviewed offline replay and required platform CI receipts.
