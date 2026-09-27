@@ -494,8 +494,26 @@ def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative):
         files, version = [relative], '1'
         def locate_file(self, value):
             return tmp_path / str(value)
-    with pytest.raises(ValueError, match='metadata path'):
+    with pytest.raises(ValueError, match='one recorded wheel METADATA'):
         runtime.distribution_metadata(Dist(), 'pkg')
+
+
+def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path):
+    class Dist:
+        files = ['demo/METADATA', 'demo/nested/METADATA', 'METADATA', 'demo-1.dist-info/METADATA']
+        version = '1'
+        def locate_file(self, value):
+            return tmp_path / str(value)
+    for relative in Dist.files:
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('package data, not distribution metadata')
+    metadata_text = 'Name: demo\nVersion: 1\n'
+    (tmp_path / Dist.files[-1]).write_text(metadata_text)
+    assert runtime.distribution_metadata(Dist(), 'demo') == metadata_text
+    Dist.files.append('other-1.dist-info/METADATA')
+    with pytest.raises(ValueError, match='one recorded wheel METADATA'):
+        runtime.distribution_metadata(Dist(), 'demo')
 
 
 def test_distribution_metadata_bounds_and_identity(tmp_path, monkeypatch):
