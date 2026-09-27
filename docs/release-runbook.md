@@ -11,11 +11,11 @@ settings change himself. See [AGENTS.md](../AGENTS.md).
 Nothing in a checkout shows these. Check them before relying on them, and
 update this table when they change.
 
-| Where | Setting | Value on 2026-09-22 |
+| Where | Setting | Recorded value (September 22 unless noted) |
 | --- | --- | --- |
 | GitHub environment `pypi` | Branches allowed to deploy | `main` |
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
-| GitHub environment `testpypi` | Branches allowed to deploy | `codex/testpypi-rc-20260918`, which no longer exists |
+| GitHub environment `testpypi` | Branches allowed to deploy | `main` — changed by Patrick and verified through GitHub API September 27, 2026 |
 | GitHub environment `testpypi` | Required reviewer | `silversurfer562` |
 | Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six platform jobs (Ubuntu, macOS and Windows on Python 3.10 and 3.12) and the full test suite on Ubuntu |
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
@@ -23,11 +23,11 @@ update this table when they change.
 
 Four things follow from that table.
 
-The `testpypi` environment cannot deploy until its allowed branch is changed. A
-TestPyPI rehearsal will build and then be rejected at the publish job. 0.2.0 hit
-the same problem on `pypi`: the only allowed branch had been deleted as merged,
-and nothing in the repository said the environment depended on it. Before
-deleting a release branch, check both environments.
+The `testpypi` environment now permits `main`, and its required reviewer remains
+`silversurfer562` (both verified September 27). The previous branch restriction
+was a deployment blocker; changing it did not publish a candidate. 0.2.0 hit the
+same problem on `pypi`: the only allowed branch had been deleted as merged.
+Before deleting a branch, check whether an environment still depends on it.
 
 Do not change the required check back to the six platform names. A pull request
 that only touches documentation skips the platform jobs, so those names never
