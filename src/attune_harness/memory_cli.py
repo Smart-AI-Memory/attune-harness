@@ -225,9 +225,6 @@ def execute(args):
                 if key in arguments:
                     arguments[key] = read_json(arguments[key])
             result = host.invoke(args.memory_operation, arguments)
-    except ImportError as error:
-        result = dict(status='unavailable', detail='Optional current-memory adapter dependencies are unavailable',
-                      error=str(error))
     except FeatureUnavailable as error:
         result = dict(status='unavailable', detail=str(error), error=type(error).__name__)
     except Exception as error:

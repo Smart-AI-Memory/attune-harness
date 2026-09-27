@@ -7,6 +7,10 @@
   protocol version and the A2A local profile. No current form is deprecated;
   the candidate saved-state freeze remains pending executable-plugin completion.
 
+- End the legacy memory adapter transition (D28): `reader: adapter` is now
+  refused with "Memory reader must be 'native'". Native formats remain frozen
+  as read; offline worker and native read envelopes replace adapter fixtures.
+
 - Preserve optional deferred opportunity-review checkpoints on saved tasks,
   with visible resume guidance and `memory saved list --pending-review`.
   Task completion does not clear a pending review.

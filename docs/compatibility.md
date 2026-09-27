@@ -126,7 +126,7 @@ each reader's own version check are.
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
 | Memory config | `roots`, `redis`, `scratch`, `reader` and explicit `saved` sections | `memory_reader.roots_config`, `memory_saved_cli` and the backends | the user |
 | Memory context packet | `schema_version` 1 | `memory_context.refresh` | `memory recall` |
-| The attune-ai memory formats | frozen as read (D25.5); described by 4.4's formats file when it lands | `memory_reader`, `memory_redis` | attune-ai's writers |
+| The attune-ai memory formats | frozen as read (D25.5/D28); [field and refusal contract](specs/native-memory/formats.md) | `memory_reader`, `memory_redis` | attune-ai's writers |
 
 The candidate fixture must include both the current scratch format and saved
 memory/task records, including deferred-review state. Their current reader tests

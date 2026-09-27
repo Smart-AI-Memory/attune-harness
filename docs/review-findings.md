@@ -132,3 +132,16 @@ a third lesson without a step yet: a carried module's patterns are copied
 from the original's source, never transcribed from a description of it; the
 one transcription (#80) drifted in both directions and a differential that
 compared results could not see it, only a reading of the two side by side.
+
+
+### D28 memory transition — GPT-6 Sol review, September 26, 2026
+
+Reviewed implementation `28ce3ff` from an immutable archive; verdict approve.
+Documentation precision: the format contract originally said all symlinks
+were refused, while a dangling raw findings symlink is treated as absent.
+The contract now records that retained behavior explicitly. Native-only
+refusal, import guard, immutable fixture, native read and offline worker
+envelopes, and attune-rag document probes were held. Reviewer ran 88
+memory/guard tests and 23 memory golden cases successfully; its broad
+selection had 159 passes and one GPG environment failure. Author's unrestricted
+targeted run passed all 160. No runtime behavior changed for this finding.
