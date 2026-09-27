@@ -32,6 +32,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Code-grounded documentation](documentation-workflow.md): Code-grounded documentation
 - [Local A2A task/artifact profile](a2a-workflow.md): The local A2A task and artifact profile
 - [Attune RAG anchored in repository code](code-first-rag.md): Attune RAG anchored in repository code
+- [Voyage plugin journal](voyage-plugin-journal.md): interrupted paid-stage design
 - [Voyage context for coding agents](voyage-retrieval.md): Voyage context for coding agents
 - [Review using host-owned source passages](passage-review.md): Review using host-owned source passages
 - [Agent collaboration: what is in force, and what is planned](agent-collaboration-plan.md): Planned and aspirational items for the agents
@@ -358,3 +359,5 @@ Session handoffs and starters, kept as written. The directory is ignored on
 | [research/memory-worker-results-2026-09-16.md](research/memory-worker-results-2026-09-16.md) | Bounded memory-worker prototype | 2026-09-16 |
 
 - [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
+
+- [Moving from Attune AI to Harness](migration-from-attune-ai.md) — Pre-release per-journey migration guide; candidate validation remains pending.

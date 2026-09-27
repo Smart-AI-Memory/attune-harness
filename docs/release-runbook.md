@@ -11,11 +11,11 @@ settings change himself. See [AGENTS.md](../AGENTS.md).
 Nothing in a checkout shows these. Check them before relying on them, and
 update this table when they change.
 
-| Where | Setting | Value on 2026-09-22 |
+| Where | Setting | Recorded value (September 22 unless noted) |
 | --- | --- | --- |
 | GitHub environment `pypi` | Branches allowed to deploy | `main` |
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
-| GitHub environment `testpypi` | Branches allowed to deploy | `codex/testpypi-rc-20260918`, which no longer exists |
+| GitHub environment `testpypi` | Branches allowed to deploy | `main` — changed by Patrick and verified through GitHub API September 27, 2026 |
 | GitHub environment `testpypi` | Required reviewer | `silversurfer562` |
 | Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six platform jobs (Ubuntu, macOS and Windows on Python 3.10 and 3.12) and the full test suite on Ubuntu |
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
@@ -23,11 +23,11 @@ update this table when they change.
 
 Four things follow from that table.
 
-The `testpypi` environment cannot deploy until its allowed branch is changed. A
-TestPyPI rehearsal will build and then be rejected at the publish job. 0.2.0 hit
-the same problem on `pypi`: the only allowed branch had been deleted as merged,
-and nothing in the repository said the environment depended on it. Before
-deleting a release branch, check both environments.
+The `testpypi` environment now permits `main`, and its required reviewer remains
+`silversurfer562` (both verified September 27). The previous branch restriction
+was a deployment blocker; changing it did not publish a candidate. 0.2.0 hit the
+same problem on `pypi`: the only allowed branch had been deleted as merged.
+Before deleting a branch, check whether an environment still depends on it.
 
 Do not change the required check back to the six platform names. A pull request
 that only touches documentation skips the platform jobs, so those names never
@@ -149,8 +149,17 @@ approval comment records. What those scripts learned, for the next ones:
 ## TestPyPI rehearsal
 
 `target=testpypi` takes a release-candidate version such as `X.Y.Zrc1`, and
-`pyproject.toml` has to carry that version, so it needs its own commit and
-branch. Name the branch `release/...`: pushes qualify only on `main` and
-`release/**`, and the rehearsal gate needs a push or dispatch run on the commit. 0.2.0 skipped it: packaging had not changed since 0.1.0, and the build
-job already installs the wheel and runs the installed check before any upload.
+`pyproject.toml` has to carry that version. Prepare the candidate version and
+changelog in a reviewed pull request, merge through `main`, and wait for that
+exact main commit's qualification to pass. Dispatch the publication workflow
+from `main` with that same full `release_sha`, as the current repository rules
+require; `main` must still point at it. The TestPyPI environment must allow
+`main`, with its required reviewer retained. Changing that setting is Patrick's
+action and does not authorize a dispatch or upload.
+
+This replaces the older instruction to dispatch a candidate from a `release/...`
+branch. Historical release-branch runs remain evidence; they are not the current
+publication procedure. 0.2.0 skipped TestPyPI: packaging had not changed since
+0.1.0, and the build job already installs the wheel and runs the installed check
+before any upload.
 Use it when packaging metadata, the build backend or the workflow itself changes.

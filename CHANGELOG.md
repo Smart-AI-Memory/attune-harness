@@ -6,6 +6,9 @@
   bounded import closure, supporting offline Voyage SDK and compiled dependency
   imports without exposing site-packages or undeclared distribution metadata.
 
+- Preserve the host-owned `dispatching` stage when a provider adapter reports
+  an interrupted subprocess, refusing automatic replay without exposing child diagnostics.
+
 - Legacy Codex build timeouts can retain an explicit operator stop observation
   for one bounded retry, without inventing historical process evidence.
 
