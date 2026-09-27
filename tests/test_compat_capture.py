@@ -31,6 +31,7 @@ def test_capture_preserves_raw_bytes_and_hashes(tmp_path):
     assert (output / "files/task/record.json").read_bytes() == raw
     assert manifest["files"]["task/record.json"] == {
         "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+    assert manifest["record_writer"] == "not_verified_by_capture_tool"
     assert json.loads((output / "manifest.json").read_text()) == manifest
     with pytest.raises(FileExistsError):
         capture(root, ["task/record.json"], output, PROVENANCE)

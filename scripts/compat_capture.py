@@ -132,7 +132,8 @@ def capture(root: Path, names: list[str], output: Path, provenance: dict) -> dic
         raw = source.read_bytes()
         destination.write_bytes(raw)
         files[name] = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
-    manifest = {"schema_version": 1, "capture": "unpublished_candidate_preparation",
+    manifest = {"schema_version": 1, "capture": "byte_inventory_only",
+                "record_writer": "not_verified_by_capture_tool",
                 "provenance": provenance, "files": files}
     (output / "manifest.json").write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n",
                                            encoding="utf-8")
