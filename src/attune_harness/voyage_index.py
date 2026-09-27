@@ -1,6 +1,5 @@
 """Explicit immutable local index generations. Provider work is never hidden in reads."""
 
-import json
 import os
 import tempfile
 from pathlib import Path
@@ -10,6 +9,7 @@ from .review_contract import canonical, digest, fields, parse_json
 from .review_store import RunStore, read_record
 from .voyage_provider import LANCEDB_VERSION, StageJournal, embeddings, RATES
 from .voyage_sources import PROFILE, collect, config, generation, hex_digest, snapshot, validate_scope
+from .voyage_plugin import inspect_selection, refuse_dispatch
 
 MAX_INDEX_JSON = 64 * 1024 * 1024
 
@@ -44,6 +44,7 @@ def read_json(path):
 
 
 def index_plan(cfg):
+    plugin = inspect_selection(cfg['voyage_plugin']) if 'voyage_plugin' in cfg else {}
     manifest, passages = collect(cfg)
     total = sum(len(p['embedding_text'].encode('utf-8')) for p in passages)
     batches = list(embedding_batches(passages, cfg))
@@ -53,7 +54,7 @@ def index_plan(cfg):
                   estimated_tokens=total / 4, estimated_embedding_cost_usd=total / 4 * 0.12 / 1_000_000,
                   planned_embedding_calls=len(batches), rate_snapshot=RATES,
                   estimate_scope='Advisory bytes/4 estimate, not exact tokens or a USD ceiling; full build before reuse',
-                  provider_calls=0)
+                  provider_calls=0, **plugin)
 
 
 def embedding_key(passage):
@@ -163,6 +164,7 @@ def inspect_index(cfg, identity):
 
 
 def build_index(cfg, *, base_generation=None, allow_provider=False, provider=None):
+    refuse_dispatch(cfg)
     manifest, passages = collect(cfg)
     identity = generation(cfg, manifest, passages)
     metadata = {'config': cfg, 'profile': PROFILE, 'manifest': manifest, 'passages': passages}
