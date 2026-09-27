@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Legacy Codex build timeouts can retain an explicit operator stop observation
+  for one bounded retry, without inventing historical process evidence.
+
 - Add a signed Python plugin `run` binding with explicit grants, a declared
   import closure, bounded subprocesses, and unresolved receipts when host
   evidence changes. MCP and review wrap results as untrusted data.
