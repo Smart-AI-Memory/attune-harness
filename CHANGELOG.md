@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Preserve the host-owned `dispatching` stage when a provider adapter reports
+  an interrupted subprocess, refusing automatic replay without exposing child diagnostics.
+
 - End the legacy memory adapter transition (D28): `reader: adapter` is now
   refused with "Memory reader must be 'native'". Native formats remain frozen
   as read; offline worker and native read envelopes replace adapter fixtures.
