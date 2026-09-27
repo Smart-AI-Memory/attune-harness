@@ -7,7 +7,7 @@ from importlib.machinery import EXTENSION_SUFFIXES
 import io
 import json
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import stat
 import sys
@@ -139,6 +139,11 @@ def distribution_metadata(dist, name):
     candidates = []
     for file in dist.files:
         path = PurePosixPath(str(file))
+        windows_path = PureWindowsPath(str(file))
+        if ((path.name == 'METADATA' or windows_path.name == 'METADATA') and
+                (path.is_absolute() or '..' in path.parts or
+                 windows_path.anchor or '..' in windows_path.parts)):
+            raise ValueError(f'{name} has an unsafe METADATA path')
         if len(path.parts) == 2 and path.parts[0].endswith('.dist-info') and path.name == 'METADATA':
             candidates.append(path)
     if len(candidates) != 1:

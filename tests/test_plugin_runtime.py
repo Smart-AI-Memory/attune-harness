@@ -487,14 +487,33 @@ def test_metadata_text_drift_refuses_before_child(run_plugin, monkeypatch):
         invoke(bindings)
 
 
-@pytest.mark.parametrize('relative', ['../outside.dist-info/METADATA', '/outside.dist-info/METADATA',
-                                      'nested/pkg.dist-info/METADATA'])
-def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative):
+@pytest.mark.parametrize('relative, error', [
+    ('../outside.dist-info/METADATA', 'unsafe METADATA path'),
+    ('/outside.dist-info/METADATA', 'unsafe METADATA path'),
+    ('nested/pkg.dist-info/METADATA', 'one recorded wheel METADATA'),
+])
+def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative, error):
     class Dist:
         files, version = [relative], '1'
         def locate_file(self, value):
             return tmp_path / str(value)
-    with pytest.raises(ValueError, match='one recorded wheel METADATA'):
+    with pytest.raises(ValueError, match=error):
+        runtime.distribution_metadata(Dist(), 'pkg')
+
+
+@pytest.mark.parametrize('relative', [
+    '../outside.dist-info/METADATA', '/outside.dist-info/METADATA',
+    r'..\outside.dist-info\METADATA', r'C:\outside.dist-info\METADATA',
+])
+def test_distribution_metadata_rejects_escaping_record_alongside_valid_one(tmp_path, relative):
+    class Dist:
+        files, version = ['pkg-1.dist-info/METADATA', relative], '1'
+        def locate_file(self, value):
+            return tmp_path / str(value)
+    path = tmp_path / Dist.files[0]
+    path.parent.mkdir()
+    path.write_text('Name: pkg\nVersion: 1\n')
+    with pytest.raises(ValueError, match='unsafe METADATA path'):
         runtime.distribution_metadata(Dist(), 'pkg')
 
 
