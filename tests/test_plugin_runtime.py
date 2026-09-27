@@ -83,8 +83,11 @@ def test_signed_run_sees_only_granted_environment_and_input_paths(run_plugin, mo
     assert not Path(value['sys_path'][-1]).exists()  # Host removed the private working directory.
 
 
-def test_declared_distribution_imports_and_undeclared_import_refusal(run_plugin):
+@pytest.mark.parametrize('legacy_mapping', [False, True])
+def test_declared_distribution_imports_and_undeclared_import_refusal(run_plugin, monkeypatch, legacy_mapping):
     """A cooperating bundle cannot import installed, undeclared packages; not a sandbox."""
+    if legacy_mapping:
+        monkeypatch.setattr(runtime.metadata, 'packages_distributions', lambda: {})
     _, enable = run_plugin
     script = '''import json, sys, packaging.version
 from pathlib import Path
@@ -406,3 +409,11 @@ def test_entry_cannot_resolve_from_installed_distribution(run_plugin, monkeypatc
         'versions': {'other': '1'}, 'top_levels': ['main'], 'roots': [], 'files': []})
     with pytest.raises(FeatureUnavailable, match='entry collides'):
         enable()
+
+
+def test_record_top_level_inference_excludes_metadata_and_external_paths():
+    from importlib.machinery import EXTENSION_SUFFIXES
+    files = ['package/__init__.py', 'namespace/part/module.py', 'single.py',
+             'compiled' + EXTENSION_SUFFIXES[0], 'package-1.dist-info/METADATA',
+             '../outside.py', '/absolute/module.py', '__pycache__/single.pyc', 'README.md']
+    assert runtime.record_top_levels(files) == {'package', 'namespace', 'single', 'compiled'}

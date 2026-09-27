@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib.metadata as metadata
+from importlib.machinery import EXTENSION_SUFFIXES
 import io
 import json
 import os
@@ -106,6 +107,29 @@ def validate_entry(raw, entry):
             raise ValueError('Plugin entry is absent from the signed code archive')
 
 
+def record_top_levels(files):
+    """Python 3.10 maps only top_level.txt; modern wheels may provide only RECORD.
+
+    Infer names from the selected distribution's recorded files, never by scanning
+    site-packages. The child still checks every module origin against that closure.
+    """
+    result = set()
+    for file in files:
+        path = PurePosixPath(str(file))
+        if not path.parts:
+            continue
+        top = path.parts[0]
+        if len(path.parts) == 1:
+            suffix = next((suffix for suffix in ('.py', '.pyc', *EXTENSION_SUFFIXES)
+                           if top.endswith(suffix)), None)
+            if suffix is None:
+                continue
+            top = top[:-len(suffix)]
+        if top.isidentifier() and top != '__pycache__':
+            result.add(top)
+    return result
+
+
 def resolve_imports(declarations):
     """Resolve installed distribution dependencies/extras, refusing ambiguity or drift."""
     require_feature('packaging', 'packaging', PACKAGING_VERSION, 'plugins')
@@ -113,6 +137,7 @@ def resolve_imports(declarations):
     from packaging.utils import canonicalize_name
     pending = [Requirement(text) for text in declarations]
     selected, extras, files, roots = {}, {}, set(), set()
+    inferred_tops = set()
     try:
         pins = {}
         for text in metadata.requires('attune-harness') or []:
@@ -135,6 +160,7 @@ def resolve_imports(declarations):
             extras.setdefault(name, set()).update(requested)
             if dist.files is None:
                 raise ValueError(f'{name} has no installed file metadata')
+            inferred_tops.update(record_top_levels(dist.files))
             root = Path(dist.locate_file('')).resolve()
             roots.add(str(root))
             files.update(str(Path(dist.locate_file(file)).resolve()) for file in dist.files)
@@ -144,8 +170,8 @@ def resolve_imports(declarations):
                                                for extra in {'', *extras[name]}):
                     pending.append(child)
         mapping = metadata.packages_distributions()
-        tops = sorted(top for top, names in mapping.items()
-                      if any(canonicalize_name(name) in selected for name in names))
+        tops = sorted(inferred_tops | {top for top, names in mapping.items()
+                      if any(canonicalize_name(name) in selected for name in names)})
         if selected and not tops:
             raise ValueError('Declared imports have no top-level module mapping')
     except (metadata.PackageNotFoundError, ValueError, TypeError, KeyError) as exc:
