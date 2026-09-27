@@ -13,6 +13,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 ## Start here
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
+- [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
 - [R2: the clean-environment journey](journeys/r2-clean-environment.md): Plan, accept, build, review and status from a fresh install with Attune AI absent, the envelope each step returns, and where the gate proves it
 - [R4: another project's spec state, with a receipt](journeys/r4-legacy-spec-state.md): A plan from another project imported by name, the receipt each conversion leaves, the refusals, and the eight fixtures' origins
@@ -54,6 +55,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Native memory: decisions, September 22, 2026](specs/native-memory/decisions-2026-09-22.md): D15 to D19, the base install, the Redis backend and the Phase 2 rulings
 - [Native memory: decisions, September 23, 2026](specs/native-memory/decisions-2026-09-23.md): D21, the Phase 3 rulings on serving and the store, and a correction to the note
 - [Native memory, ladder 9 (plan 4.4): ending the transition, design note](specs/native-memory/transition-end-design.md): The formats frozen as read, the adapter and the differential removed, the golden table re-pinned, and five decisions ruled as D28
+- [Frozen legacy memory formats](specs/native-memory/formats.md): Native-only reader contract, refusal text, immutable fixture and reverse writer constraint (D28)
 - [Spec authority, Task 1: module verdicts](specs/spec-authority/verdicts.md): Task 1's adopt, adapt, reference or drop verdict for each module
 - [Spec authority, Task 2: plan](specs/spec-authority/task-2-plan.md): Task 2's four steps
 - [Attune Harness — phased delivery plan](harness-phased-plan.md): The earlier phased plan, superseded in part
@@ -188,6 +190,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [harness-release-readiness-direction.md](harness-release-readiness-direction.md) | Harness release readiness — direction and proposed next step | 2026-09-17 |
 | [integrated-rag-architecture.md](integrated-rag-architecture.md) | ADR — Integrated RAG owned by Attune Harness | September 15, 2026 |
 | [memory-documentation-journey.md](memory-documentation-journey.md) | Memory documentation journey: local handoff qualified, native sample pending | 2026-09-17 |
+| [memory-saving.md](memory-saving.md) | Save memories and task intent | 2026-09-26 |
 | [october-release-plan.md](october-release-plan.md) | October release and complete-journey plan | September 18, 2026 |
 | [opportunities-implementation-report.md](opportunities-implementation-report.md) | Attune Harness: opportunities 1–5 implementation report | September 15, 2026 |
 | [pilot-migration.md](pilot-migration.md) | Pilot migration decision record |  |

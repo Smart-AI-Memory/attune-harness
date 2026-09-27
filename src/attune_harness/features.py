@@ -3,6 +3,7 @@
 import importlib
 import json
 import os
+import re
 import tempfile
 import time
 from importlib.metadata import PackageNotFoundError, requires, version
@@ -41,6 +42,37 @@ def report(operation: str, status: str, **fields) -> dict:
     """Tool-operation envelope, separate from model task completion receipts."""
     return {"schema_version": 1, "request_id": str(uuid4()),
             "operation": operation, "status": status, **fields}
+
+
+def deprecation_entry(entry: dict) -> dict:
+    """Validate one active compatibility notice and return an independent value."""
+    keys = {'surface', 'form', 'since', 'removal', 'replacement'}
+    if (not isinstance(entry, dict) or set(entry) != keys
+            or any(not isinstance(value, str) or not value.strip() for value in entry.values())):
+        raise ValueError('Deprecation requires surface, form, since, removal and replacement')
+    versions = []
+    for name in ('since', 'removal'):
+        if not re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', entry[name]):
+            raise ValueError('Deprecation versions must be stable major.minor.patch versions')
+        versions.append(tuple(int(part) for part in entry[name].split('.')))
+    since, removal = versions
+    if removal < (since[0], since[1] + 1, 0):
+        raise ValueError('Deprecation must retain the old form for at least one minor release')
+    return dict(entry)
+
+
+def with_deprecation(envelope: dict, entry: dict) -> dict:
+    """Add a notice only on the caller's deprecated-form path (D27.3).
+
+    Current forms keep their envelope unchanged. Callers retain the old behavior
+    and select an entry from the documented register; this helper never redirects
+    a command or removes a form. No caller-owned dictionary or list is mutated.
+    """
+    notice = deprecation_entry(entry)
+    notices = [deprecation_entry(value) for value in envelope.get('deprecations', [])]
+    if notice not in notices:
+        notices.append(notice)
+    return {**envelope, 'deprecations': notices}
 
 
 OVERSIZE = "Input exceeds its limit"

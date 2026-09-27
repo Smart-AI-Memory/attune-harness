@@ -5,6 +5,29 @@
 - Legacy Codex build timeouts can retain an explicit operator stop observation
   for one bounded retry, without inventing historical process evidence.
 
+- Add a signed Python plugin `run` binding with explicit grants, a declared
+  import closure, bounded subprocesses, and unresolved receipts when host
+  evidence changes. MCP and review wrap results as untrusted data.
+  Network plugins await host-owned provider journals; platform qualification
+  claims remain unchanged.
+
+- Add the empty active deprecation register and opt-in envelope notice helper
+  for the stable compatibility promise. Pin actual retrieval MCP listings by
+  protocol version and the A2A local profile. No current form is deprecated;
+  the candidate saved-state freeze remains pending executable-plugin completion.
+
+- End the legacy memory adapter transition (D28): `reader: adapter` is now
+  refused with "Memory reader must be 'native'". Native formats remain frozen
+  as read; offline worker and native read envelopes replace adapter fixtures.
+
+- Preserve optional deferred opportunity-review checkpoints on saved tasks,
+  with visible resume guidance and `memory saved list --pending-review`.
+  Task completion does not clear a pending review.
+
+- Add explicit `memory saved` save, inspect, search, revise, withdraw, complete
+  and reindex commands. Local POSIX files retain history and retry identities;
+  optional Redis indexing reports pending work without losing durable saves.
+
 - Codex build proposals isolate user configuration and plugin integrations.
   Stopped native timeouts retain process evidence and support one explicit,
   checkpoint-bound retry while preserving the failed attempt.
