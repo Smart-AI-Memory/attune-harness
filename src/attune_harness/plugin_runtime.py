@@ -136,13 +136,14 @@ def record_top_levels(files):
 def distribution_metadata(dist, name):
     """Snapshot only the selected wheel's bounded METADATA, never a site directory."""
     from packaging.utils import canonicalize_name
-    candidates = [PurePosixPath(str(file)) for file in dist.files
-                  if PurePosixPath(str(file)).name == 'METADATA']
+    candidates = []
+    for file in dist.files:
+        path = PurePosixPath(str(file))
+        if len(path.parts) == 2 and path.parts[0].endswith('.dist-info') and path.name == 'METADATA':
+            candidates.append(path)
     if len(candidates) != 1:
         raise ValueError(f'{name} must have one recorded wheel METADATA file')
     relative = candidates[0]
-    if len(relative.parts) != 2 or not relative.parts[0].endswith('.dist-info'):
-        raise ValueError(f'{name} has an invalid metadata path')
     root = Path(dist.locate_file('')).resolve()
     path = Path(dist.locate_file(relative))
     if path.resolve() != root / relative.as_posix():
