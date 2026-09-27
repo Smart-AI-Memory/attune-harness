@@ -21,6 +21,9 @@ def add_arguments(subparsers):
         if name == 'show':
             command.add_argument('id')
             command.add_argument('--history', action='store_true')
+        if name == 'list':
+            command.add_argument('--pending-review', action='store_true',
+                                 help='Show tasks with an unfinished opportunity review')
         if name == 'search':
             command.add_argument('query')
         command.add_argument('--scope', type=Path, required=True)
@@ -72,7 +75,11 @@ def run(args):
                 record = {key: value for key, value in record.items() if key != 'history'}
             return record
         if operation == 'list':
-            return {'records': store.list(scope)}
+            records = store.list(scope)
+            if args.pending_review:
+                records = [record for record in records
+                           if record.get('opportunity_review', {}).get('status') == 'pending']
+            return {'records': records}
         if operation == 'search':
             return {'records': store.search(args.query, scope)}
         return store.reindex(scope)

@@ -516,6 +516,7 @@
       "list": {
        "one_of": [],
        "options": [
+        "--pending-review",
         "--scope"
        ],
        "positionals": [],

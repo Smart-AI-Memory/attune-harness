@@ -74,8 +74,37 @@ def _id(value):
     return value
 
 
+def _opportunity_review(value):
+    _fields(value, ('status', 'goal', 'progress', 'evidence'),
+            ('reason', 'next_action', 'outcome'))
+    for field in ('goal', 'progress'):
+        _text(value[field], 8192)
+    evidence = value['evidence']
+    if not isinstance(evidence, list) or len(evidence) > 16:
+        raise SavedError('Opportunity review evidence must contain at most 16 references')
+    for reference in evidence:
+        _text(reference, 2048)
+    if value['status'] == 'pending':
+        if set(value) != {'status', 'goal', 'progress', 'evidence', 'reason', 'next_action'}:
+            raise SavedError('Pending opportunity review requires its stopping reason and next action')
+        _text(value['reason'], 2048)
+        _text(value['next_action'], 8192)
+    elif value['status'] == 'completed':
+        if set(value) != {'status', 'goal', 'progress', 'evidence', 'outcome'}:
+            raise SavedError('Completed opportunity review requires an explicit outcome')
+        outcome = value['outcome']
+        _fields(outcome, ('kind', 'summary'))
+        if outcome['kind'] not in ('logged', 'no_change'):
+            raise SavedError('Unsupported opportunity review outcome')
+        _text(outcome['summary'], 8192)
+        if outcome['kind'] == 'logged' and not evidence:
+            raise SavedError('Logged opportunity review requires an evidence reference')
+    else:
+        raise SavedError('Unsupported opportunity review status')
+
+
 def _intent(value):
-    _fields(value, ('kind', 'scope', 'title', 'content', 'source'), ('next_action', 'execution'))
+    _fields(value, ('kind', 'scope', 'title', 'content', 'source'), ('next_action', 'execution', 'opportunity_review'))
     if value['kind'] not in ('memory', 'task'):
         raise SavedError('Unsupported saved kind')
     value['scope'] = _scope(value['scope'])
@@ -85,6 +114,8 @@ def _intent(value):
     for item in value['source'].values():
         _text(item, 2048)
     if value['kind'] == 'task':
+        if 'opportunity_review' in value:
+            _opportunity_review(value['opportunity_review'])
         _text(value.get('next_action'), 8192)
         if 'execution' in value:
             _fields(value['execution'], ('directory', 'task_id'))
@@ -92,7 +123,7 @@ def _intent(value):
             _id(value['execution']['task_id'])
             if value['scope']['kind'] != 'project':
                 raise SavedError('Execution references require project scope')
-    elif 'next_action' in value or 'execution' in value:
+    elif any(field in value for field in ('next_action', 'execution', 'opportunity_review')):
         raise SavedError('Memory cannot have task fields')
     return value
 
@@ -114,7 +145,7 @@ def _pairs(items):
 
 def _record(record):
     _fields(record, ('id', 'kind', 'scope', 'title', 'content', 'source', 'revision', 'status', 'history'),
-            ('next_action', 'execution'))
+            ('next_action', 'execution', 'opportunity_review'))
     _id(record['id'])
     intent = {k: copy.deepcopy(v) for k, v in record.items() if k not in ('id', 'revision', 'status', 'history')}
     if _intent(copy.deepcopy(intent)) != intent:
@@ -136,7 +167,7 @@ def _record(record):
         # Validate snapshots using a single synthetic history entry is unnecessary:
         # the same exact intent/status schema is checked directly.
         _fields(snap, ('id', 'kind', 'scope', 'title', 'content', 'source', 'revision', 'status'),
-                ('next_action', 'execution'))
+                ('next_action', 'execution', 'opportunity_review'))
         snapshot_intent = {k: v for k, v in snap.items() if k not in ('id', 'revision', 'status')}
         if _intent(copy.deepcopy(snapshot_intent)) != snapshot_intent:
             raise SavedError('Noncanonical saved history intent')
@@ -356,12 +387,12 @@ class SavedStore:
             return {'record': copy.deepcopy(record), 'index_status': status}
 
     def save(self, request):
-        _fields(request, ('request_id', 'kind', 'scope', 'title', 'content', 'source'), ('next_action', 'execution'))
+        _fields(request, ('request_id', 'kind', 'scope', 'title', 'content', 'source'), ('next_action', 'execution', 'opportunity_review'))
         value = _intent(copy.deepcopy({k: v for k, v in request.items() if k != 'request_id'}))
         return self._mutate('save', request['request_id'], value)
 
     def revise(self, id, changes, scope, request_id, expected_revision):
-        if not isinstance(changes, dict) or not changes or set(changes) - {'title', 'content', 'source', 'next_action', 'execution'}:
+        if not isinstance(changes, dict) or not changes or set(changes) - {'title', 'content', 'source', 'next_action', 'execution', 'opportunity_review'}:
             raise SavedError('Unsupported saved revision fields')
         return self._mutate('revise', request_id, copy.deepcopy(changes), _id(id), _scope(scope), expected_revision)
 
@@ -374,6 +405,20 @@ class SavedStore:
     def _observe(self, record, index_status):
         result = copy.deepcopy(record)
         result['index_status'] = index_status
+        review = result.get('opportunity_review')
+        if review is not None:
+            if record['status'] == 'withdrawn':
+                result['opportunity_review_notice'] = (
+                    'Opportunity review: ' + review['status']
+                    + ' (retained checkpoint; task withdrawn, read-only)')
+            elif review['status'] == 'pending':
+                result['opportunity_review_notice'] = (
+                    'Opportunity review: pending — ' + review['reason']
+                    + '\nResume: ' + review['next_action'])
+            else:
+                result['opportunity_review_notice'] = (
+                    'Opportunity review: completed (caller reported) — '
+                    + review['outcome']['summary'])
         if 'execution' in result:
             result['execution_status'] = 'unavailable'
             try:
@@ -403,8 +448,15 @@ class SavedStore:
 
     def search(self, query, scope):
         query = _text(query, 4096).casefold()
-        return [record for record in self.list(scope)
-                if query in '\n'.join(record.get(k, '') for k in ('title', 'content', 'next_action')).casefold()]
+        matches = []
+        for record in self.list(scope):
+            review = record.get('opportunity_review', {})
+            text = [record.get(k, '') for k in ('title', 'content', 'next_action')]
+            text += [review.get(k, '') for k in ('goal', 'progress', 'reason', 'next_action')]
+            text.append(review.get('outcome', {}).get('summary', ''))
+            if query in '\n'.join(text).casefold():
+                matches.append(record)
+        return matches
 
     def reindex(self, scope):
         selected = _scope(scope)

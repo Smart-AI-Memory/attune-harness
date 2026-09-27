@@ -61,6 +61,71 @@ in one atomic file replacement under a bounded writer lock. An `uncertain` outco
 means the replacement may have committed: inspect the record or retry the same
 request, rather than inventing a new request ID.
 
+## Stop mid-task and resume an opportunity review
+
+A saved task may carry an optional `opportunity_review` checkpoint. Session
+closure does not complete the task or its review. Put this object in the save
+request, or inside `changes` in a normal revise request:
+
+```json
+{
+  "opportunity_review": {
+    "status": "pending",
+    "goal": "Find useful follow-up work from the installation change",
+    "progress": "Reviewed the Mac evidence; Windows remains to assess",
+    "reason": "Deferred at session close",
+    "next_action": "Inspect the Windows results and update the opportunity log",
+    "evidence": ["docs/opportunity-log.md", "receipts/installation-checks.json"]
+  }
+}
+```
+
+`show`, `list` and `search` return an `opportunity_review_notice` with the pending
+status, stopping reason and resume action. Search includes the current review
+goal, progress, reason, next action and outcome summary. Find unfinished reviews in the exact
+scope with:
+
+```sh
+attune-harness memory --config config.json saved list --scope scope.json --pending-review
+```
+
+Completed tasks remain in this result while their reviews are pending. Withdrawn
+tasks are hidden from ordinary recall; their checkpoint remains available through
+`show --history`, labeled read-only rather than offering a resume action.
+Resume an active record by reading the checkpoint and its references, then revise
+`progress` and `next_action` as needed. Keep provisional findings labeled in the
+progress text. This does not dispatch a review, schedule a reminder or block task
+execution. An urgent stop may happen before a checkpoint is saved; do not claim a
+successful save unless the command confirms it.
+
+To explicitly close the review, replace the entire checkpoint through `revise`:
+
+```json
+{
+  "opportunity_review": {
+    "status": "completed",
+    "goal": "Find useful follow-up work from the installation change",
+    "progress": "Reviewed the Mac and Windows evidence",
+    "evidence": ["docs/opportunity-log.md#installation-follow-up"],
+    "outcome": {"kind": "logged", "summary": "Recorded the Windows follow-up"}
+  }
+}
+```
+
+Alternatively, `outcome.kind` may be `no_change` with a reasoned summary;
+`evidence` may then be empty. These are caller-reported outcomes, not host-verified
+claims: the host never opens or fetches these opaque references. Inspect the
+actual log or draft before reporting completion. No checkpoint on an older task
+means none was recorded, not that its review completed. Existing checkpoints
+cannot be cleared with `null`; revising other task fields preserves them. A new
+pending checkpoint can explicitly reopen a completed review, and revision history
+retains the earlier state.
+
+Review checkpoints belong only to tasks. Goal, progress, next action and outcome
+summary each allow 8 KiB; reason allows 2 KiB; evidence allows at most 16 references
+of 2 KiB each. The overall request/state limits below still apply. Review completion
+and Harness execution state remain independent.
+
 ## Reference Harness execution
 
 A project task may include
