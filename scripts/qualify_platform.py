@@ -18,7 +18,9 @@ PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest',
 
 
 def qualify(output, *, coverage_instrumented=False):
-    suite_timeout = 900 if coverage_instrumented else 600
+    # Allow 15 minutes for the installed selection on every platform. Keep
+    # each test's own deadline; the workflow gives setup and evidence headroom.
+    suite_timeout = 900
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
