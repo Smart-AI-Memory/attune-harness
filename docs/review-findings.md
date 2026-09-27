@@ -132,3 +132,5 @@ a third lesson without a step yet: a carried module's patterns are copied
 from the original's source, never transcribed from a description of it; the
 one transcription (#80) drifted in both directions and a differential that
 compared results could not see it, only a reading of the two side by side.
+
+| #150 | Signed Python plugin run binding | approve after fixes (GPT-6-Sol, `d9b177a`) | 2/0/0 | claim, mapping | Raw diagnostics could retain a granted secret; a post-dispatch MCP scope failure was recorded failed while the session completed. Diagnostics now retain digests/lengths, and run failures preserve unresolved effects and stop dispatch. |

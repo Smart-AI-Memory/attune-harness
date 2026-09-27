@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a signed Python plugin `run` binding with explicit grants, a declared
+  import closure, bounded subprocesses, and unresolved receipts when host
+  evidence changes. MCP and review wrap results as untrusted data.
+  Network plugins await host-owned provider journals; platform qualification
+  claims remain unchanged.
+
 - Preserve optional deferred opportunity-review checkpoints on saved tasks,
   with visible resume guidance and `memory saved list --pending-review`.
   Task completion does not clear a pending review.

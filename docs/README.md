@@ -13,6 +13,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 ## Start here
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
+- [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
 - [R2: the clean-environment journey](journeys/r2-clean-environment.md): Plan, accept, build, review and status from a fresh install with Attune AI absent, the envelope each step returns, and where the gate proves it
 - [R4: another project's spec state, with a receipt](journeys/r4-legacy-spec-state.md): A plan from another project imported by name, the receipt each conversion leaves, the refusals, and the eight fixtures' origins
