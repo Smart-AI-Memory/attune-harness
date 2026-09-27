@@ -359,3 +359,5 @@ Session handoffs and starters, kept as written. The directory is ignored on
 | [research/memory-worker-results-2026-09-16.md](research/memory-worker-results-2026-09-16.md) | Bounded memory-worker prototype | 2026-09-16 |
 
 - [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
+
+- [Moving from Attune AI to Harness](migration-from-attune-ai.md) — Pre-release per-journey migration guide; candidate validation remains pending.

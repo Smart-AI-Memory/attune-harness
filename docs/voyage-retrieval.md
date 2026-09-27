@@ -173,7 +173,29 @@ searches, or $15.24/month for 10,000 searches. It assumes 10M initial tokens, 1M
 updated tokens/month, 100 query tokens and 50 passages of 500 tokens per search.
 Actual selected code and call receipts determine actual costs.
 
-Explicitly choose the existing keyword route to stop using Voyage:
+## Failure and offline behavior
+
+For stable v1, Voyage remains an explicitly authorized provider route. Missing
+credentials or unavailable prerequisites return a visible `unavailable` error;
+uncertain dispatched provider effects return `failed` with a
+`PaidStageUnresolved` error. Both exit with code 2. An ordinary completed search
+with no matching evidence reports `no_results` and exits with code 1. A provider
+failure is not an empty successful search.
+
+For an unavailable prerequisite, follow the error's setup guidance. When billing
+is unknown, preserve the session/index directories and inspect the retained stage
+receipts before deciding how to recover. Do not start another request simply to
+retry an uncertain paid call. The CLI never automatically switches that request
+to local retrieval.
+
+The local option is keyword search over an already installed local corpus. It
+requires no provider key or network connection at runtime; dependencies must be
+installed beforehand. It does not promise semantic matching equivalent to
+Voyage: a synonym-only query may return no results. Existing local memory
+document reads remain available. Keep `attune-rag` until these behaviors have
+tested replacements.
+
+Explicitly choose the local keyword route:
 
 ```sh
 attune-harness retrieve "retention policy" --corpus docs
