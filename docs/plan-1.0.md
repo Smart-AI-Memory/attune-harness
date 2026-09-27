@@ -23,7 +23,7 @@ the spec authority through Task 5, the legacy spec reader, executable plugins
 with their own threat model, and an honest README status. Task 6 of the spec
 authority, the non-programmer walkthrough, should not wait either.
 
-**Where things stand.** 0.3.0 is on PyPI with its tag and Release. `main` is
+**Historical baseline (September 22–23).** 0.3.0 is on PyPI with its tag and Release. `main` is
 at `0.4.0.dev0` and carries the batteries-included install (D15, amended),
 the `redis` extra, `memory redis` and `memory scratch` (Task 4.1 to 4.3,
 D16 to D18), and the review loop as data. All three landed the same evening, and 0.4.0 shipped from `9b15502`; Phase 1 below is
@@ -35,6 +35,44 @@ Phase 3 began on September 23: 3.5 is approved (D22), 3.1 has three of its
 four pull requests merged (#106, #107, #108) and the release gate runs the R2
 journey; 4.5's nine pull requests all merged the same day. 3.1 completed
 the same evening with #110, step (b)'s stages under D24.
+
+## Release-gate status — September 26, 2026
+
+Verified against `main` at `1615ee78fadf119afd2299bf5acfece38aee976a`
+([PR147](https://github.com/Smart-AI-Memory/attune-harness/pull/147)). The
+requirements and exceptions remain those of [S1–S9](specs/release-1.0/README.md)
+and [D25–D30](specs/release-1.0/addendum-2026-09-23.md). This table updates
+execution status; the historical phase tables below preserve the original plan.
+Existing stable-release gates have priority. Nice-to-have features stay in the
+opportunity backlog unless needed to satisfy an existing requirement.
+
+Implemented means code is merged. Evidenced means a named check or observation
+supports a bounded claim. Accepted means the requirement's full evidence and
+human decisions hold. Neither merged code nor a passing suite alone closes a gate.
+
+| Gate | Implemented / evidenced at this revision | Remaining action and acceptance evidence | Owner / decision |
+| --- | --- | --- | --- |
+| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), and saved memory/task records (#147). See [compatibility list](compatibility.md) and its named tests. | Deprecation register/helper and retrieval MCP/A2A fixtures; record all current saved formats. After plugin fields settle, capture the candidate saved-state fixture and freeze at rc1. | Implementation and independent review; Patrick approves release. |
+| S2 / 4.4 — independent memory | Native readers, legacy import (#115), and R2 installed journey. The optional adapter import and `FALLBACK` remain. | Apply D28: remove the adapter/differential, retain format fixtures, refuse the old reader value and record the reverse writer constraint. Installed checks must pass with attune-ai absent. | D28 approved; Patrick carries writer constraint to attune-ai. |
+| S3 / 3.3 — useful recall | Serving filters/prompt recall (#128) and explicit saved capture (#147) have software checks. [September 24 observations](specs/native-memory/observations-2026-09-24.md) identify user gaps. | Observe fresh-session serving, provenance and corrected/inactive exclusion. Explicit saved records are not yet wired into that serving path; do not claim automatic recall from save/index tests. | Real-session evidence with Patrick; no invented observations. |
+| S4 / 4.3 — executable plugins | Signing, revocation, capability fields and early probes (#118). [Approved plugin contract](specs/executable-plugins/README.md). | Run binding/bootstrap/import closure, host-owned Voyage journal differential, and R1–R6 receipts on declared platforms; qualification wording changes last (R7). | Implementation/review; live paid differential needs separate authorization. D29 Windows decision remains Patrick's on October 10 if needed. |
+| S5 / 4.2 — honest limits | Windows memory limits and experimental labels remain documented. | Reconcile [qualification](qualification.md) and README against final receipts. Native saved storage on Windows is not a new gate inferred from #147; executable-plugin platform evidence is separate. | Existing D20.8/D25/D29 decisions govern. |
+| S6 / 4.6 — usability | No current candidate walkthrough accepted by this status update. | A named non-programmer completes the installed journey during the candidate period; retain observed receipt under `docs/journeys/`. | Patrick names participant; observer records outcomes. |
+| S7 / 4.7 — artifact and candidate | Latest observed GitHub release is [v0.6.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v0.6.0), not rc1. | Verify environment readiness and authorized rehearsal; publish candidate through [runbook](release-runbook.md); two weeks without frozen-surface changes, then authorized stable release. | Patrick owns settings, dispatch/publication approval and release. |
+| S8 — promised loose ends | Most 4.5 hygiene merged September 23; that closed row is not reopened. | Disposition the separately promised obsolete code-RAG caller and check final public claims against retained evidence. | Bounded implementation/review; inspect before removal. |
+| S9 / 4.8 — migration | M1/M2 workspace and host plugin candidates (#140/#141) are distinct from full lifecycle support. | Per-journey migration page verified during candidate: carried/not carried/workaround, separate environments, and honest successor milestones. No premature deprecation notice. | Documentation; notice timing remains Patrick's under D26/D30. |
+
+**Execution order:** executable plugins → final compatibility fixture/freeze →
+rc1 → observed candidate period → stable. D28 and the second freeze cycle can
+advance independently before the final fixture. New format changes before rc1
+must be incorporated into that fixture; after rc1 they restart the candidate.
+October remains the target month, with no promised day.
+
+The next useful implementation chunk is plugin run/bootstrap. The smallest
+independent gate closure is D28. Release-gate status and evidence remain here,
+linked from O-04 in the [opportunity log](opportunity-log.md), rather than in a
+second tracker. Open recovery PR146 is not counted as delivered and needs its own
+disposition; the original failed native build remains retained failed evidence.
 
 ## How to read the tables
 

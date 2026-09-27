@@ -224,6 +224,22 @@ their numbering is independent of O-01–O-36.
 
 ## Dated evidence and follow-through
 
+O-04 follow-through, 2026-09-26 — **journey** lens. At main `1615ee7`,
+PR147 supplies durable explicit memory/task capture and deferred-review state;
+that closes the previously missing capture implementation, not automatic
+fresh-session serving or the full capability inventory. The
+[release-gate status](plan-1.0.md#release-gate-status--september-26-2026) now
+separates implemented, evidenced and accepted work for S1–S9, with remaining
+actions and decision owners. Candidate follow-up: keep those rows current as
+reviewed changes merge, using the existing plan rather than another tracker.
+Done when each gate has the required receipt and no source-only capability is
+presented as an accepted user journey. Effort: bounded status maintenance at
+merge milestones. The first opportunity a user meets is an accurate account of
+what saving and returning supports. GUI expansion and other nice-to-haves stay
+deferred behind current release gates. This note authorizes no new scope or paid
+calls.
+
+
 These notes explain how the opportunities developed. Read the current register
 above for today's position. Five Task 6–8 reflection labels originally reused
 O-13–O-17; they now point to the matching opportunity, with the old label retained
