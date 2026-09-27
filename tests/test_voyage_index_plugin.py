@@ -11,7 +11,7 @@ import zipfile
 
 import pytest
 
-from attune_harness import extensions as ext
+from attune_harness import extensions as ext, plugin_runtime
 from attune_harness.features import FeatureUnavailable
 from attune_harness.review_contract import digest
 from attune_harness.review_store import read_record
@@ -19,7 +19,7 @@ from attune_harness.voyage_index import (build_index, expected_rows, index_plan,
     selected_result_bound, selection, validate_staged_tree)
 from attune_harness.voyage_retrieval import retrieve_voyage
 from attune_harness.voyage_sources import config
-from attune_voyage_plugin.bundle import GRANTS, build as build_bundle
+from attune_voyage_plugin.bundle import DECLARES, GRANTS, build as build_bundle
 from test_plugin_signing import base_signer, signers, signer, sign_bundle  # noqa: F401
 from test_voyage import corpus, git  # noqa: F401
 
@@ -43,8 +43,13 @@ result({'ranking': [{'index': i, 'score': 1.0 - rank / 100} for rank, i in enume
 def signed_index(corpus, signer, tmp_path, monkeypatch):
     root, cfg, _ = corpus
     monkeypatch.setenv('VOYAGE_API_KEY', 'offline-fixture-not-a-real-key')
+    real_resolver = plugin_runtime.resolve_imports
 
-    def prepare(*, alter_paid=True, embed_script=None, index_script=None, grant=None):
+    def prepare(*, alter_paid=True, embed_script=None, index_script=None, grant=None,
+                real_closure=False):
+        # Each accepted bundle must resolve the installed closure afresh, even
+        # when a test invokes prepare more than once.
+        monkeypatch.setattr(plugin_runtime, 'resolve_imports', real_resolver)
         bundle = tmp_path / 'bundle'
         build_bundle(bundle)
         if alter_paid or embed_script is not None or index_script is not None:
@@ -76,7 +81,16 @@ def signed_index(corpus, signer, tmp_path, monkeypatch):
                               'grant': accepted_grant}, 'signers': [signer.entry]}
         registry = tmp_path / 'registry.json'
         registry.write_text(json.dumps({'extensions': section}), encoding='utf-8')
-        ext.mutate(state_dir, state['state_digest'], 'enable', registry=registry)
+        state = ext.mutate(state_dir, state['state_digest'], 'enable', registry=registry)
+        if not real_closure:
+            # Stage checks still verify the signed artifact, grants and
+            # accepted-state equality; only repeated installed-wheel scans are
+            # replaced by this bundle's real enable-time closure snapshot.
+            accepted_imports = copy.deepcopy(state['plugin']['imports'])
+            def accepted_closure(declarations):
+                assert tuple(declarations) == tuple(DECLARES['imports'])
+                return copy.deepcopy(accepted_imports)
+            monkeypatch.setattr(plugin_runtime, 'resolve_imports', accepted_closure)
         chosen = copy.deepcopy(cfg)
         chosen['voyage_plugin'] = {'registry': str(registry),
             'registry_digest': digest(ext._registry_section(registry)), 'extension_id': 'voyage',
@@ -98,7 +112,7 @@ def test_unsigned_builder_is_deterministic_and_exclusive(tmp_path):
 
 
 def test_selected_full_build_retrieve_and_replay(signed_index, corpus, tmp_path, monkeypatch):
-    cfg, _, _, _ = signed_index()
+    cfg, _, _, _ = signed_index(real_closure=True)
     planned = index_plan(cfg)
     assert planned['acceptance'] == 'pinned' and planned['dispatch_available'] is True
     assert planned['provider_calls'] == 0
@@ -132,6 +146,25 @@ def test_selected_full_build_retrieve_and_replay(signed_index, corpus, tmp_path,
     replay = retrieve_voyage(chosen, 'save_cart', k=2, work_dir=tmp_path / 'work')
     assert replay['replay']['reused'] is True and replay['usage']['new_provider_calls'] == 0
     assert replay['sources'] == first['sources']
+
+
+def test_real_installed_closure_drift_refuses_before_selected_state(signed_index, monkeypatch):
+    cfg, _, _, _ = signed_index(real_closure=True)
+    real_resolver = plugin_runtime.resolve_imports
+    observed = []
+
+    def drift(declarations):
+        closure = real_resolver(declarations)
+        observed.append(copy.deepcopy(closure))
+        closure['versions']['voyageai'] = 'drifted-test-version'
+        return closure
+
+    monkeypatch.setattr(plugin_runtime, 'resolve_imports', drift)
+    monkeypatch.setattr(plugin_runtime, 'invoke', lambda *a, **kw: pytest.fail('a child ran after closure drift'))
+    with pytest.raises(FeatureUnavailable, match='closure changed'):
+        build_index(cfg, allow_provider=True)
+    assert observed and 'voyageai' in observed[0]['versions']
+    assert not Path(cfg['index_dir']).exists()
 
 
 def test_decimal_paid_vectors_round_to_frozen_float32_index_rows(signed_index, tmp_path, monkeypatch):
