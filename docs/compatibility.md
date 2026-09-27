@@ -20,23 +20,25 @@ This does not declare the content frozen before rc1. The envelope cells still ma
 
 ## 1. The command line
 
-Twenty-eight verbs, their subcommands, their positional arguments with how
-many values each takes, and their required options, read from the parsers
+Twenty-nine verbs, their subcommands, their positional arguments with how
+many values each takes, their required options, accepted choices and defaults,
+read from the parsers
 themselves by
 `attune_harness.cli_surface` and committed as
 `tests/fixtures/compatibility/surface.json`. `tests/test_compatibility_surface.py`
 fails when the parsers and the file disagree, and when this table and the
 file disagree; `scripts/compatibility_surface.py --rows` regenerates the
-table. The fixture also lists every option string, so a new optional flag
+table. The fixture also lists every option string, choice and default, so a new optional flag
 fails the test too and is added by rewriting the fixture (additive, so no
 deprecation). In the table a positional in brackets, `[request]`, is
 optional; `name ...` takes one or more values and `[name ...]` zero or
 more.
 
-Not pinned by this guard: the values an option accepts (`choices`) and its
-default. Whether they are on the list is open (see the pull request that
-added this paragraph); until it is ruled, a changed choice or default is
-caught only where another test happens to use it.
+Patrick ruled choices and defaults into the 1.0 CLI contract before rc1.
+`surface.json` records them for every argument, with path values distinguished
+from strings. The dynamic `spec intake --project` default is the current
+working directory, recorded as such rather than as the fixture writer's
+absolute checkout path. Changing a choice or default fails the surface guard.
 
 Exit codes are behaviour, not parser data: [the envelope table](envelopes.md)
 pins them, row by row, for every verb that prints an envelope. Two print
@@ -123,7 +125,7 @@ each reader's own version check are.
 | Scratch record | `format: attune-harness/scratch`, `format_version` 2, `writer` and per-key `version`; legacy headerless `schema_version` 1 remains readable | `memory_scratch` | `memory scratch stash` |
 | Saved memory/task store, `state.json` | `schema_version` 1; record revision/history, operation identities and index state; optional task `opportunity_review` checkpoint | `memory_saved.SavedStore` | `memory saved` mutation commands |
 | Voyage paid-stage ledger and stage `record.json` | `schema_version` 1; recovery profiles `voyage-stage-ledger-v1` and `voyage-paid-stage-v1`, with durable stage identities, statuses and billing receipts | `review_store.read_record`, `voyage_provider.StageJournal` | `voyage_provider.StageJournal` during `index build` and retrieval |
-| Extension manifest and state | `schema_version` 1, data only; 4.3 adds `grants`, `declares` and the `run` binding | `extensions` | `extension install`, `enable` |
+| Extension manifest and state | `schema_version` 1; signed Python declarations include `grants`, `declares`, `code` and the `run` binding, with host-owned enable state | `extensions`, `plugin_runtime` | `extension install`, `enable` |
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
 | Memory config | `roots`, `redis`, `scratch`, `reader` and explicit `saved` sections | `memory_reader.roots_config`, `memory_saved_cli` and the backends | the user |
 | Memory context packet | `schema_version` 1 | `memory_context.refresh` | `memory recall` |

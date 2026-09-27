@@ -2,9 +2,10 @@
 
 ``surface()`` walks the parser ``cli.build_parser`` returns and records, for
 the program and for every verb and subcommand, the positional arguments with
-how many values each takes, the required options, the mutually exclusive groups that require one member, and
-every option string. ``tests/fixtures/compatibility/surface.json`` holds the
-committed form and ``docs/compatibility.md`` its table, kept in step by
+how many values each takes, the required options, the mutually exclusive groups
+that require one member, every option string, and every argument's choices
+and default. ``tests/fixtures/compatibility/surface.json`` holds the committed
+form and ``docs/compatibility.md`` its table, kept in step by
 ``tests/test_compatibility_surface.py`` the way the envelope page is; a change
 to either is a deliberate diff (the interface freeze, 4.1; D27.1). Exit codes
 are behaviour, not parser data: the envelope table pins them, row by row.
@@ -16,6 +17,7 @@ Licensed under the Apache License, Version 2.0
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 
 def _subcommands(parser: argparse.ArgumentParser):
@@ -59,12 +61,26 @@ def _shown(positional: dict) -> str:
     return f"`{name} ...`"  # "+", the one arity left
 
 
-def describe(parser: argparse.ArgumentParser) -> dict:
-    """One parser: its positionals, required options, one-of groups, options and subcommands."""
+def _value(value, *, cwd_default=False):
+    """JSON-safe argument value; preserve Path identity and the one dynamic cwd default."""
+    if isinstance(value, Path):
+        if cwd_default and value == Path.cwd():
+            return {"kind": "cwd"}
+        return {"kind": "path", "value": str(value)}
+    if value is None or type(value) in (str, bool, int, float):
+        return value
+    if isinstance(value, (list, tuple)):
+        return [_value(item) for item in value]
+    raise ValueError(f"cli_surface does not describe argument value {value!r}")
+
+
+def describe(parser: argparse.ArgumentParser, *, command_path: tuple[str, ...] = ()) -> dict:
+    """One parser: argument identity, choices/defaults, arity, groups and options."""
     commands = _subcommands(parser)
     positionals: list[dict] = []
     required: list[str] = []
     options: list[str] = []
+    arguments: list[dict] = []
     for action in parser._actions:
         if action is commands or isinstance(action, argparse._HelpAction):
             continue
@@ -74,6 +90,13 @@ def describe(parser: argparse.ArgumentParser) -> dict:
                 required.append(_long(action))
         else:
             positionals.append(_positional(action))
+        arguments.append({
+            "name": action.dest,
+            "option_strings": sorted(action.option_strings),
+            "choices": None if action.choices is None else _value(list(action.choices)),
+            "default": _value(action.default, cwd_default=(command_path == ("spec", "intake")
+                                                   and action.dest == "project")),
+        })
     one_of = sorted(
         sorted(_long(action) for action in group._group_actions)
         for group in parser._mutually_exclusive_groups
@@ -84,9 +107,11 @@ def describe(parser: argparse.ArgumentParser) -> dict:
         "required_options": sorted(required),
         "one_of": one_of,
         "options": sorted(options),
+        "arguments": sorted(arguments, key=lambda item: item["name"]),
     }
     if commands is not None:
-        entry["subcommands"] = {name: describe(sub) for name, sub in sorted(commands.choices.items())}
+        entry["subcommands"] = {name: describe(sub, command_path=(*command_path, name))
+                                for name, sub in sorted(commands.choices.items())}
     return entry
 
 
@@ -99,6 +124,7 @@ def surface() -> dict:
         "schema_version": 1,
         "program": "attune-harness",
         "options": top["options"],
+        "arguments": top["arguments"],
         "verbs": top["subcommands"],
     }
 
