@@ -99,7 +99,7 @@ record schema or execution route changes.
 
 ## 2. Envelopes
 
-[The envelope table](envelopes.md): seventy-three rows pinned by
+[The envelope table](envelopes.md): rows pinned by
 `tests/test_golden_envelopes.py`, each verb's top-level keys,
 `schema_version`, `status` and exit code, values never. Every `status` value
 a row shows is part of the contract; a new value on an existing verb is a
@@ -152,7 +152,9 @@ runs the README's example as written, its two documented variants, pins that
 
 MCP tool names and schemas per profile version, `2026-07-28` and
 `2025-11-25`, and the A2A local profile, changed only with the protocol
-version. `mcp-inspect` shows the profile a session spoke. `tests/test_protocol_compatibility.py` compares the real SDK/stdio tool listing
+version. `mcp-inspect` records the supported profiles; the SDK tests assert the
+negotiated version. `tests/test_protocol_compatibility.py` compares the real
+SDK/stdio tool listing
 with `tests/fixtures/compatibility/mcp-2025-11-25.json` and its
 `mcp-2026-07-28.json` sibling. They pin the built-in retrieval tool's name,
 input/output schemas and digests, and annotations under each negotiated version.
