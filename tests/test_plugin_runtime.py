@@ -556,3 +556,21 @@ Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': vo
     bindings, _ = enable(script, grants={**GRANT, 'time': 30},
                          declares={'imports': ['voyageai', 'lancedb']})
     assert invoke(bindings)['plugin_result'] == {'nearest': 'a', 'version': '0.5.0', 'broad_site_path': False}
+
+
+def test_call_receipt_binds_large_metadata_without_repeating_snapshot(run_plugin, monkeypatch):
+    original = runtime.distribution_metadata
+    def expanded(dist, name):
+        text = original(dist, name)
+        return text + '\n' + 'private-metadata-description ' * 30000
+    monkeypatch.setattr(runtime, 'distribution_metadata', expanded)
+    _, enable = run_plugin
+    bindings, directory = enable(declares={'imports': ['packaging']})
+    state_imports = ext.inspect_extension(directory)['plugin']['imports']
+    assert len(state_imports['metadata']['packaging']) > 700000
+    receipt = invoke(bindings)['extension']['plugin']
+    assert receipt['imports'] == {'versions': {'packaging': runtime.PACKAGING_VERSION},
+                                  'closure_digest': runtime.digest(state_imports)}
+    serialized = json.dumps(receipt)
+    assert 'private-metadata-description' not in serialized
+    assert len(serialized.encode()) < 8192

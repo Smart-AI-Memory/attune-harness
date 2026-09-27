@@ -298,7 +298,11 @@ def run(bundle, tool, arguments, *, paths, guarded_paths, postcheck):
     if hashlib.sha256(raw).hexdigest() != bundle['code_sha256']:
         raise FeatureUnavailable('Plugin code changed before dispatch')
     before = checkpoint(guarded_paths)
-    receipt = {**plugin, 'id': bundle['declaration']['id'], 'version': bundle['declaration']['version'],
+    # Accepted state and bootstrap retain the full closure. Repeating its file
+    # lists/metadata in every call would exhaust the enclosing saved run record.
+    receipt = {**plugin, 'imports': {'versions': plugin['imports']['versions'],
+                                   'closure_digest': digest(plugin['imports'])},
+               'id': bundle['declaration']['id'], 'version': bundle['declaration']['version'],
                'artifact_digest': bundle['artifact_digest'], 'environment_keys': sorted(env), 'effect_class': 'scratch_write',
                'isolation_scope': 'Signed cooperating code in a subprocess; not a security sandbox'}
     with tempfile.TemporaryDirectory(prefix='harness-plugin-') as directory:

@@ -71,6 +71,9 @@ MCP and review participants invoke the tool by its existing
 The receipt binds the bootstrap/configuration/request, effective grants,
 declarations, imported versions, environment keys, process status/duration and
 result digest. Returned data does not authorize another operation.
+Per-call `imports` contains `versions` and `closure_digest`; full file lists and
+metadata text stay in accepted extension state and the bootstrap configuration,
+so repeated calls do not duplicate large snapshots in the enclosing run record.
 
 Host authority files and extension state are compared against in-memory
 checkpoints after execution. Signature/grant/artifact checks run again. A changed
