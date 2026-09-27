@@ -190,6 +190,9 @@ class RecoveryCursor:
         except Exception as exc:
             event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
                          effects='read_only' if effect_class == 'read_only' else 'unknown')
+            from .plugin_runtime import PluginUnresolved
+            if isinstance(exc, PluginUnresolved):
+                event['plugin_receipt'] = exc.receipt
             # Preserve host process evidence, never infer it from diagnostic text.
             from .native import NativeError
             if (self.record.get('profile') == 'feature-build-v1'

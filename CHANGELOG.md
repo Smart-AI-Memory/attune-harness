@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a signed Python plugin `run` binding with explicit grants, a declared
+  import closure, bounded subprocesses, and unresolved receipts when host
+  evidence changes. MCP and review wrap results as untrusted data.
+  Network plugins await host-owned provider journals; platform qualification
+  claims remain unchanged.
+
 - Add the empty active deprecation register and opt-in envelope notice helper
   for the stable compatibility promise. Pin actual retrieval MCP listings by
   protocol version and the A2A local profile. No current form is deprecated;
