@@ -156,6 +156,9 @@ multi-agent workflows live. Harness does not replace those today. If that is wha
 you need, install attune-ai, in its own environment: the two pin different lines
 of the MCP SDK and cannot share one.
 
+The [pre-release migration guide](docs/migration-from-attune-ai.md) lists each
+journey, its current boundary and what to keep using while a successor is qualified.
+
 ## Links
 
 - [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.6.0/docs/qualification.md)
