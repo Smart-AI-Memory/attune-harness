@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add the empty active deprecation register and opt-in envelope notice helper
+  for the stable compatibility promise. Pin actual retrieval MCP listings by
+  protocol version and the A2A local profile. No current form is deprecated;
+  the candidate saved-state freeze remains pending executable-plugin completion.
+
 - Preserve optional deferred opportunity-review checkpoints on saved tasks,
   with visible resume guidance and `memory saved list --pending-review`.
   Task completion does not clear a pending review.

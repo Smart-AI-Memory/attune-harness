@@ -12,10 +12,10 @@ on any change to what they pin, additive ones included, and an additive
 change rewrites the fixture on purpose with a changelog line. The content
 freezes at `1.0.0rc1`; the promise takes effect at 1.0.0.
 
-What this draft still lacks, by cycle: the second cycle adds the deprecation
-register and helper (D27.3) and the protocol fixtures (section 6); the third
-adds the saved-state fixture (section 3) after 3.4's record and 4.3's
-manifest fields. The envelope cells still marked `-` are listed in
+The second cycle now supplies the deprecation register/helper (D27.3) and
+retrieval MCP/A2A protocol fixtures (section 6). The third cycle still adds the
+candidate saved-state fixture (section 3) after the final plugin manifest fields.
+This does not declare the content frozen before rc1. The envelope cells still marked `-` are listed in
 [the freeze note's correction](specs/release-1.0/freeze-design.md).
 
 ## 1. The command line
@@ -146,8 +146,19 @@ runs the README's example as written, its two documented variants, pins that
 
 MCP tool names and schemas per profile version, `2026-07-28` and
 `2025-11-25`, and the A2A local profile, changed only with the protocol
-version. `mcp-inspect` shows the profile a session spoke. The per-version
-fixtures are the second cycle's.
+version. `mcp-inspect` shows the profile a session spoke. `tests/test_protocol_compatibility.py` compares the real SDK/stdio tool listing
+with `tests/fixtures/compatibility/mcp-2025-11-25.json` and its
+`mcp-2026-07-28.json` sibling. They pin the built-in retrieval tool's name,
+input/output schemas and digests, and annotations under each negotiated version.
+Dynamic extension tools remain governed by their accepted manifests. Workspace
+MCP has its separate `workspace-mcp.json` fixture and existing workspace tests.
+
+`a2a-1.0.json` pins the local profile's operations, accepted/terminal task states,
+and the independent example peer's agent card (only its ephemeral port is
+normalized). The actual card check uses the existing POSIX peer fixture; the
+state/operation guard runs on every platform. The existing A2A behavioral tests
+still prove correlation and task handling. These are compatibility checks, not
+remote-authentication or model-quality qualification.
 
 ## Outside the list
 
@@ -160,8 +171,16 @@ and attune-ai's own keyspace, read as it is.
 
 A rename, a removal or a change of meaning on anything above ships only with
 the old form still working for one minor release, a `deprecations` entry in
-the envelope and a changelog line. The register, the helper that writes the
-entry and their test are the second cycle's (D27.3); until then the rule is
-this paragraph and the tests above, which fail on the change itself. After
+the envelope and a changelog line. The active register is `docs/deprecations.json`, initially empty (D27.3).
+Each entry has exactly `surface`, `form`, `since`, `removal` and `replacement`.
+Versions name stable releases; removal is no earlier than the next minor release
+following `since`. `features.with_deprecation` copies a notice into the optional
+`deprecations` list only when the deprecated-form branch calls it. Current forms
+keep their envelopes unchanged. The helper does not remove or redirect a form:
+the caller must retain the old behavior and add its changelog line.
+`tests/test_deprecations.py` checks the active register, minimum notice period,
+overdue entries and a synthetic alias. Remove an expired entry together with its
+old form and retain its history in the changelog; runtime behavior does not read
+files from the repository's `docs/` directory. After
 `rc1`, a change to anything on the list restarts the candidate at the next
 `rc` number, the runbook's rule (D27.7).
