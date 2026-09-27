@@ -4,7 +4,7 @@ import copy
 import math
 import os
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 
 from .features import FeatureUnavailable, require_feature
@@ -140,8 +140,14 @@ class StageJournal:
     """Caller holds its enclosing run/index writer lease. Results live in bounded sidecars."""
 
     def __init__(self, directory: Path, cfg, *, allow_provider=False, provider=None):
-        from .voyage_plugin import refuse_dispatch
-        refuse_dispatch(cfg)
+        if 'voyage_plugin' in cfg:
+            from .voyage_plugin import inspect_selection
+            selection = cfg['voyage_plugin']
+            if 'registry_digest' not in selection:
+                raise FeatureUnavailable('Voyage plugin registry is unpinned; inspect the plan and explicitly accept its observed digest')
+            inspect_selection(selection)
+            if provider is not None:
+                raise FeatureUnavailable('Selected Voyage stages use only their signed plugin tool, not an injected provider')
         self.directory, self.cfg = directory, cfg
         self.allow_provider, self.provider = allow_provider, provider
         self.failed = False
@@ -178,6 +184,7 @@ class StageJournal:
             raise ValueError('Provider request exceeds accepted byte limit')
         key = digest({'kind': kind, 'request': request, 'profile': PROFILE})
         directory = self.directory / key
+        record = None
         if key in self.ledger['stages']:
             record = read_record(directory)
             if record.get('request_digest') != key or record.get('kind') != kind:
@@ -187,12 +194,25 @@ class StageJournal:
                 return copy.deepcopy(record['result']), {**record['receipt'], 'replayed': True, 'new_tokens': 0, 'new_cost_usd': 0.0}
             if record['status'] != 'prepared':
                 raise PaidStageUnresolved('Provider stage may have been billed; inspect its receipt. No automatic retry.')
+        from .voyage_plugin import selected_stage
+        binding = selected_stage(self.cfg, kind) if 'voyage_plugin' in self.cfg else nullcontext(None)
+        with binding as selected:
+            return self._dispatch(kind, request, validate, key, directory, record, reserve_calls, selected)
+
+    def _dispatch(self, kind, request, validate, key, directory, record, reserve_calls, selected):
+        if not self.allow_provider:
+            raise FeatureUnavailable('Voyage uploads and paid calls require --allow-provider')
+        if selected is not None:
+            # A completed stage returned before this point. A new or prepared
+            # stage needs a key before its first durable dispatch marker.
+            key_value = os.environ.get('VOYAGE_API_KEY')
+            if not key_value or not key_value.strip():
+                raise FeatureUnavailable('Set VOYAGE_API_KEY locally before selected plugin dispatch')
+        if record is not None:
             if len(self.ledger['stages']) + reserve_calls > self.cfg['max_provider_calls']:
                 raise PermissionError('Accepted provider-call budget cannot cover required follow-on stages')
             store = RunStore(directory, existing=True)
         else:
-            if not self.allow_provider:
-                raise FeatureUnavailable('Voyage uploads and paid calls require --allow-provider')
             if len(self.ledger['stages']) + 1 + reserve_calls > self.cfg['max_provider_calls']:
                 raise PermissionError('Accepted provider-call budget cannot cover required stages')
             if directory.exists():
@@ -209,16 +229,31 @@ class StageJournal:
                     os.fsync(fd)
                 finally:
                     os.close(fd)
-        if not self.allow_provider:
-            raise FeatureUnavailable('Voyage uploads and paid calls require --allow-provider')
         # Constructing a client must not move a missing credential into unknown billing.
-        if self.provider is None:
+        if selected is None and self.provider is None:
             self.provider = VoyageProvider()
         record['status'] = 'dispatching'
         self._save(store, record)
         started = time.monotonic()
+        plugin_receipt = None
         try:
-            if kind == 'embed':
+            if selected is not None:
+                from .voyage_plugin import VoyagePaidStageContext
+                from .plugin_runtime import PluginUnresolved, run_voyage_paid
+                bundle, tool_name, tool, postcheck = selected
+                context = VoyagePaidStageContext(self.directory, key, kind, digest(self.cfg),
+                                                 self.cfg['voyage_plugin']['extension_id'], bundle['artifact_digest'],
+                                                 copy.deepcopy(self.cfg))
+                try:
+                    wrapped, plugin_receipt = run_voyage_paid(bundle, tool_name, tool, request, context=context,
+                        guarded_paths=(self.ledger_store.path, store.path), postcheck=postcheck)
+                except PluginUnresolved as exc:
+                    if exc.receipt.get('failure') in ('timeout_effects_unknown', 'interrupted_effects_unknown',
+                                                     'cancelled_effects_unknown', 'output_limit'):
+                        raise PaidStageInterrupted() from None
+                    raise
+                result = wrapped['plugin_result']
+            elif kind == 'embed':
                 result = self.provider.embed(request['texts'], request['input_type'])
             else:
                 result = self.provider.rerank(request['query'], request['documents'], request['k'])
@@ -241,6 +276,8 @@ class StageJournal:
                    'total_tokens': tokens, 'new_tokens': tokens, 'new_cost_usd': cost,
                    'usage_status': 'unknown' if tokens is None else 'provider_reported',
                    'rate_snapshot': RATES, 'elapsed_seconds': time.monotonic() - started}
+        if plugin_receipt is not None:
+            receipt['plugin'] = plugin_receipt
         record.update(status='completed', result=result, receipt=receipt)
         self._save(store, record)
         return copy.deepcopy(result), copy.deepcopy(receipt)
