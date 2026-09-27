@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Preserve optional deferred opportunity-review checkpoints on saved tasks,
+  with visible resume guidance and `memory saved list --pending-review`.
+  Task completion does not clear a pending review.
+
+- Add explicit `memory saved` save, inspect, search, revise, withdraw, complete
+  and reindex commands. Local POSIX files retain history and retry identities;
+  optional Redis indexing reports pending work without losing durable saves.
+
 - Codex build proposals isolate user configuration and plugin integrations.
   Stopped native timeouts retain process evidence and support one explicit,
   checkpoint-bound retry while preserving the failed attempt.

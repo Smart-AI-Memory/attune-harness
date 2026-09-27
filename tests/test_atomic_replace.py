@@ -3,7 +3,8 @@
 ``features.replace_file`` retries ``os.replace`` for a bounded time on Windows
 while a reader holds the target open; the run store had it, the plan state
 writer and the Voyage index writer called ``os.replace`` once. Every writer
-goes through it now, and this file keeps it that way.
+goes through it unless a POSIX-only descriptor-anchored exception is listed
+below, and this file keeps that boundary explicit.
 """
 # qualify: platform
 
@@ -16,10 +17,12 @@ import pytest
 
 from attune_harness import features, spec_state, voyage_index
 
-# repair.py is the one exception: the effects host replaces through directory
-# descriptors (src_dir_fd/dst_dir_fd), POSIX-only by design, and Windows has
-# its own windows_effects.replace_file. features.py is the implementation.
-ALLOWED = {"features.py": {"os.replace"}, "repair.py": {"os.replace"}}
+# repair.py and memory_saved.py replace through directory descriptors
+# (src_dir_fd/dst_dir_fd), POSIX-only by design. Windows effects have their
+# own windows_effects.replace_file; saved storage refuses Windows before writes.
+# features.py is the shared path-based implementation.
+ALLOWED = {"features.py": {"os.replace"}, "repair.py": {"os.replace"},
+           "memory_saved.py": {"os.replace"}}
 
 
 def _replace_calls(tree):
@@ -153,3 +156,13 @@ def test_voyage_index_metadata_is_written_through_replace_file_from_a_sibling(tm
     (source, written, named), = calls
     assert written == target and source.parent == tmp_path and not source.exists()
     assert named == {"retry_seconds": voyage_index.REPLACE_RETRY_SECONDS}
+
+
+def test_saved_replace_remains_descriptor_anchored():
+    tree = ast.parse((Path(features.__file__).parent / 'memory_saved.py').read_text(encoding='utf-8'))
+    calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)
+             and isinstance(node.func, ast.Attribute)
+             and isinstance(node.func.value, ast.Name)
+             and node.func.value.id == 'os' and node.func.attr == 'replace']
+    assert len(calls) == 1
+    assert {keyword.arg for keyword in calls[0].keywords} == {'src_dir_fd', 'dst_dir_fd'}

@@ -68,6 +68,8 @@ def add_arguments(parser):
     parser.add_argument('--native-config', type=Path,
                         help='Startup-owned pinned native proposal transport JSON')
     sub = parser.add_subparsers(dest='memory_operation', required=True)
+    from .memory_saved_cli import add_arguments as add_saved_arguments
+    add_saved_arguments(sub)
     sub.add_parser('capabilities', help='Show supported reads and qualification limits')
     recall = sub.add_parser('recall', help='Get scoped memory excerpts and complete-source handles')
     recall.add_argument('query')
@@ -190,6 +192,9 @@ def execute(args):
     try:
         if os.environ.get('ATTUNE_MEMORY_WORKER') == '0':
             result = dict(status='disabled', detail='Optional memory worker route is disabled')
+        elif args.memory_operation == 'saved':
+            from .memory_saved_cli import run
+            result = run(args)
         elif args.memory_operation == 'redis':
             from .memory_redis import read
             arguments = {key: getattr(args, key) for key in ('limit', 'id', 'query', 'layer', 'k')

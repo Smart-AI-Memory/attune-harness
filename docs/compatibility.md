@@ -63,7 +63,7 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `inspect-review` | - | `run_dir` | - |
 | `mcp-inspect` | - | `session_dir` | - |
 | `mcp-serve` | - | - | - |
-| `memory` | capabilities create execute inspect recall redis(digest node related search status) refresh replay resolve scratch(capabilities forget keys retrieve stash) serve | - | `--config` |
+| `memory` | capabilities create execute inspect recall redis(digest node related search status) refresh replay resolve saved(complete forget list reindex revise save search show) scratch(capabilities forget keys retrieve stash) serve | - | `--config` |
 | `plan` | - | - | `--task-dir` |
 | `reconcile-review` | - | `run_dir` | `--checkpoint` `--event` one of `--reply`, `--retry-read-only` |
 | `reconcile-task` | - | `task_dir` | `--event` one of `--observe-file`, `--reply`, `--retry-before`, `--retry-native`, `--retry-read-only` |
