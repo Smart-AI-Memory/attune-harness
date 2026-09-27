@@ -12,6 +12,10 @@
   Reconcile current-main signed-plugin and Voyage qualification claims with
   their bounded platform and recorded-response evidence.
 
+- Read a single memory configuration with both native recall roots and saved
+  storage: `memory recall` sets aside the saved section while `memory saved`
+  continues to use it.
+
 - Executable plugins can read selected installed wheel metadata through the
   bounded import closure, supporting offline Voyage SDK and compiled dependency
   imports without exposing site-packages or undeclared distribution metadata.
