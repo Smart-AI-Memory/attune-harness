@@ -5,10 +5,23 @@
 - Preserve the host-owned `dispatching` stage when a provider adapter reports
   an interrupted subprocess, refusing automatic replay without exposing child diagnostics.
 
+- Legacy Codex build timeouts can retain an explicit operator stop observation
+  for one bounded retry, without inventing historical process evidence.
+
+- Add a signed Python plugin `run` binding with explicit grants, a declared
+  import closure, bounded subprocesses, and unresolved receipts when host
+  evidence changes. MCP and review wrap results as untrusted data.
+  Network plugins await host-owned provider journals; platform qualification
+  claims remain unchanged.
+
+- Add the empty active deprecation register and opt-in envelope notice helper
+  for the stable compatibility promise. Pin actual retrieval MCP listings by
+  protocol version and the A2A local profile. No current form is deprecated;
+  the candidate saved-state freeze remains pending executable-plugin completion.
+
 - End the legacy memory adapter transition (D28): `reader: adapter` is now
   refused with "Memory reader must be 'native'". Native formats remain frozen
   as read; offline worker and native read envelopes replace adapter fixtures.
-
 
 - Preserve optional deferred opportunity-review checkpoints on saved tasks,
   with visible resume guidance and `memory saved list --pending-review`.

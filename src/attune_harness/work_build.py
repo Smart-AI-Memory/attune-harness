@@ -1,6 +1,8 @@
 """Accepted dependent feature tasks over the existing transport/effect journal."""
 
 import copy
+import hashlib
+from datetime import datetime
 import time
 from pathlib import Path
 
@@ -552,9 +554,11 @@ def _validate_native_retries(run, request):
             if event["kind"] == "participant_turn" and event["attempts"] != 1:
                 raise ValueError("Native retry omitted its authorization receipt")
             continue
-        fields(receipt, ("checkpoint", "previous", "kind", "previous_participant"))
+        legacy = receipt.get("kind") == "explicit_legacy_native_timeout_retry"
+        fields(receipt, ("checkpoint", "previous", "kind", "previous_participant",
+                         *(["stop_observation"] if legacy else [])))
         previous = receipt["previous"]
-        if (receipt["kind"] != "explicit_native_timeout_retry"
+        if (receipt["kind"] not in ("explicit_native_timeout_retry", "explicit_legacy_native_timeout_retry")
                 or not isinstance(receipt["checkpoint"], str)
                 or len(receipt["checkpoint"]) != 64
                 or any(c not in "0123456789abcdef" for c in receipt["checkpoint"])
@@ -562,7 +566,10 @@ def _validate_native_retries(run, request):
                 or "native_retry" in previous
                 or event["attempts"] != 2):
             raise ValueError("Invalid native retry authorization receipt")
-        _retryable_native_event(previous, request)
+        _retryable_native_event(previous, request, legacy=legacy)
+        if legacy:
+            _validate_stop_observation(receipt["stop_observation"], request,
+                                       receipt["checkpoint"], previous["event_id"])
         projection = receipt["previous_participant"]
         fields(projection, ("key", "outcome"))
         outcome = projection["outcome"]
@@ -592,21 +599,54 @@ def _validate_native_retries(run, request):
             raise ValueError("Native retry changed its original dispatch binding")
 
 
-def _retryable_native_event(event, request):
+def _retryable_native_event(event, request, *, legacy=False):
     config = request["registry"]["participants"].get(event.get("participant_id"), {})
     if (event.get("kind") != "participant_turn"
             or event.get("phase") != "dispatching" or event.get("state") != "failed"
             or event.get("attempts") != 1 or "native_retry" in event
             or event.get("effect_class") != "unknown" or event.get("effects") != "unknown"
             or event.get("error", {}).get("type") != "NativeError"
-            or event.get("native_failure") != {
+            or (not legacy and event.get("native_failure") != {
                 "failure": "timeout_effects_unknown", "process_stopped": True,
-            }
+            })
+            or (legacy and ("native_failure" in event
+                            or not event.get("error", {}).get("detail", "").startswith(
+                                "codex: timeout_effects_unknown:")))
             or config.get("adapter") != "codex"):
         raise ValueError("Native retry requires a first Codex timeout with saved stopped-process evidence")
 
 
-def reconcile_native_build(directory, checkpoint, event_id):
+def _validate_stop_observation(receipt, request, checkpoint, event_id):
+    """Validate an attributed operator assertion, never historical host evidence."""
+    fields(receipt, ("provenance", "path", "sha256", "text"))
+    text = receipt["text"]
+    if (receipt["provenance"] != "operator_assertion"
+            or not isinstance(receipt["path"], str) or not Path(receipt["path"]).is_absolute()
+            or not isinstance(text, str) or len(text.encode("utf-8")) > 16384
+            or receipt["sha256"] != hashlib.sha256(text.encode("utf-8")).hexdigest()):
+        raise ValueError("Invalid legacy stop observation provenance")
+    observation = parse_json(text)
+    fields(observation, ("schema_version", "task_id", "checkpoint", "event_id",
+                         "observer", "observed_at", "statement", "evidence",
+                         "acknowledge_unknown_effects"))
+    if (type(observation["schema_version"]) is not int or observation["schema_version"] != 1
+            or observation["task_id"] != request["task_id"]
+            or observation["checkpoint"] != checkpoint or observation["event_id"] != event_id
+            or observation["statement"] != "direct_process_stopped"
+            or observation["acknowledge_unknown_effects"] is not True):
+        raise ValueError("Legacy stop observation differs from the unresolved attempt")
+    for name in ("observer", "evidence"):
+        if not isinstance(observation[name], str) or not observation[name].strip():
+            raise ValueError("Legacy stop observation requires attributed exit evidence")
+    try:
+        observed = datetime.fromisoformat(observation["observed_at"].replace("Z", "+00:00"))
+        if observed.tzinfo is None or observed.utcoffset() is None:
+            raise ValueError("Missing timezone")
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ValueError("Legacy stop observation requires a timezone ISO timestamp") from exc
+
+
+def reconcile_native_build(directory, checkpoint, event_id, *, stop_observation=None):
     """Authorize one explicit retry; this does not dispatch or claim read-only effects."""
     from .work_runtime import _effect_owner
 
@@ -621,7 +661,16 @@ def reconcile_native_build(directory, checkpoint, event_id):
         event = run["events"][-1]
         if event["event_id"] != event_id or not run["permissions"]["native"]:
             raise ValueError("Native retry must name the last authorized build dispatch")
-        _retryable_native_event(event, record["request"])
+        legacy = stop_observation is not None
+        _retryable_native_event(event, record["request"], legacy=legacy)
+        observation_receipt = None
+        if legacy:
+            path = Path(stop_observation).resolve()
+            text = read_text(path, limit=16384)
+            observation_receipt = {"provenance": "operator_assertion", "path": str(path),
+                                   "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                                   "text": text}
+            _validate_stop_observation(observation_receipt, record["request"], checkpoint, event_id)
         previous = copy.deepcopy(event)
         projections = [(key, outcome) for key, outcome in run["participants"].items()
                        if outcome["attempt_id"] == event["attempt_id"]
@@ -636,6 +685,9 @@ def reconcile_native_build(directory, checkpoint, event_id):
         event["native_retry"] = {"kind": "explicit_native_timeout_retry",
                                  "checkpoint": checkpoint, "previous": previous,
                                  "previous_participant": previous_participant}
+        if legacy:
+            event["native_retry"].update(kind="explicit_legacy_native_timeout_retry",
+                                        stop_observation=observation_receipt)
         run["status"] = "paused"
         run.pop("error", None)
         validate_build(run, record["request"])

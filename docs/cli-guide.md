@@ -222,8 +222,37 @@ descendants and external effects are not proven absent. It checks the
 accepted inputs, configuration and checkout before preparing the retry; `resume`
 then still requires the original dispatch permissions. The first attempt remains
 inspectable. This is not a read-only classification: provider work or quota usage
-may have occurred and may repeat. Missing stop evidence, older diagnostic-only
-failures, non-timeout failures and a second retry are refused.
+may have occurred and may repeat. Missing stop evidence, non-timeout failures
+and a second retry are refused unless the legacy observation path below applies.
+
+For an older Codex timeout without a structured stop receipt, an operator who
+has independently observed the direct worker stop may add `--stop-observation
+observation.json` to the same `--retry-native` command. This is a new attributed
+assertion, not reconstructed host evidence or proof that external effects ceased.
+The observation must name the current task, checkpoint and failed event:
+
+```json
+{
+  "schema_version": 1,
+  "task_id": "COPY-TASK-ID",
+  "checkpoint": "COPY-CURRENT-CHECKPOINT",
+  "event_id": "COPY-FAILED-EVENT-ID",
+  "observer": "Operator who inspected the stopped worker",
+  "observed_at": "2026-09-26T06:30:00+00:00",
+  "statement": "direct_process_stopped",
+  "evidence": "Describe the independently observed exit and process inspection.",
+  "acknowledge_unknown_effects": true
+}
+```
+
+Keep this file outside the checkout. Reconciliation retains its bounded contents,
+path and digest with `operator_assertion` provenance, alongside the untouched
+failed event and participant details. It validates the observation's bindings and
+rechecks accepted inputs, configuration and the complete checkout under the task
+lease. The operator's name is attribution, not authenticated identity. The legacy
+timeout diagnostic only selects eligible failures; it never proves termination.
+No observation is generated automatically, no historical `native_failure` receipt
+is fabricated, and reconciliation does not dispatch the next attempt.
 
 Codex build workers and reviewers use `--ignore-user-config` and disable apps,
 plugins and remote plugins. Authentication still uses the existing `CODEX_HOME`;
