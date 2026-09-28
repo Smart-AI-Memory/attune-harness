@@ -26,7 +26,7 @@ envelope cells still marked `-` are listed in
 
 ## 1. The command line
 
-Twenty-nine verbs, their subcommands, their positional arguments with how
+Thirty verbs, their subcommands, their positional arguments with how
 many values each takes, their required options, accepted choices and defaults,
 read from the parsers
 themselves by
@@ -58,8 +58,6 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 `spec intake --compose` and `spec present` return text, tested separately.
 
 <!-- surface-rows -->
-| Verb | Subcommands | Positionals | Required |
-| --- | --- | --- | --- |
 | `build` | - | `task_dir` | - |
 | `cancel-review` | - | `run_dir` | `--checkpoint` `--reason` |
 | `cancel-task` | - | `task_dir` | `--reason` |
@@ -68,6 +66,7 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `fix` | - | - | - |
 | `github-checks` | - | `input` | `--repository` `--revision` |
 | `index` | build inspect plan update | - | - |
+| `init` | - | - | - |
 | `inspect-review` | - | `run_dir` | - |
 | `mcp-inspect` | - | `session_dir` | - |
 | `mcp-serve` | - | - | - |

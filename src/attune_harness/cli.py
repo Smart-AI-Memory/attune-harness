@@ -67,6 +67,8 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve.add_argument('--output', type=Path, help='Save a JSON report in an existing directory')
     from .spec_cli import add_command as add_spec
     add_spec(sub)
+    from .init_cli import add_command as add_init
+    add_init(sub)
     from .cli_help import configure_help
     configure_help(parser, sub)
     return parser
@@ -85,6 +87,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == 'spec':
         from .spec_cli import execute as execute_spec
         return execute_spec(args)
+    if args.command == 'init':
+        from .init_cli import execute as execute_init
+        return execute_init(args)
     if args.command in ('plan', 'build'):
         from .work_cli import execute as execute_work
         return execute_work(args)

@@ -79,6 +79,9 @@ goal. The compact CLI catalog presents the execution interface:
 ```text
 attune-harness --help
 
+Getting started
+  init         Write a starter participant registry
+
 Task execution
   plan         Define intent and accept its scope
   build        Execute accepted tasks and protected checks
@@ -135,6 +138,27 @@ It does not add new CLI verbs or install a host plugin, and the Python wheel
 does not contain it. `review` checks a document against evidence; `test` runs
 checks on captured changes. Neither a source-security audit nor test generation
 is implied by those names. `ship` and `reflect` remain planned routes.
+
+## Get started with a participant registry
+
+`plan`, `review` and `fix` read a participant registry, `participants.json`,
+naming who plans, works, assesses and reviews. `init` writes a starter one into
+the project:
+
+```sh
+attune-harness init
+attune-harness init --profile claude --project /path/to/repo
+```
+
+The default `demo` profile has two deterministic participants that call no
+model, enough to run the review intake and the bundled examples offline.
+`claude` and `codex` name a lead and a reviewer on different models, since a
+required native review needs one. Writing them authorizes nothing: running them
+still needs `--allow-external` and `--allow-native`, and may incur provider
+costs. `init` refuses to replace an existing registry unless you pass
+`--force`, which keeps the old file as `participants.json.bak`. Its JSON names
+the next command to run. When `plan`, `review` or `fix` finds no registry, the
+refusal's `next_action` names `init`.
 
 ## Plan and build
 

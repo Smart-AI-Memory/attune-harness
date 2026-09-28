@@ -66,6 +66,14 @@ def harness(args, cwd):
     return result.returncode, envelope, result.stdout + result.stderr
 
 
+def split(command):
+    """A printed command line as argv, read the way this platform's shell reads it."""
+    if os.name == 'posix':
+        return shlex.split(command)
+    return [token[1:-1] if len(token) > 1 and token[0] == token[-1] == '"' else token
+            for token in shlex.split(command, posix=False)]
+
+
 def git_repository(root):
     """A small committed project, then an uncommitted change to ``calc.py`` and ``src/example.py``."""
     root.mkdir()
@@ -159,16 +167,20 @@ def test_review_bundled_example(home):
     assert code == 0 and envelope['status'] == 'completed', output
 
 
-# The journeys that do not work from a fresh install yet. Each passes when its task lands.
+# First-run journey T3: a registry from init, and refusals that name it.
 
-@pending('T3', 'no init verb writes a participant registry')
 def test_init_writes_a_working_registry(home):
+    """``init`` writes the registry, and its next action runs exactly as printed."""
+    (home / 'guide.md').write_text('# Guide\n\nThe answer is 42.\n', encoding='utf-8')
     code, envelope, output = harness(['init', '--profile', 'demo'], home)
-    assert code == 0 and envelope and envelope.get('next_action'), output
+    assert code == 0 and envelope['status'] == 'created', output
     assert json.loads((home / 'participants.json').read_text(encoding='utf-8'))['schema_version'] == 1
+    command = envelope['next_action'].split(': ', 1)[1]
+    code, intake, output = harness(split(command)[1:], home)
+    assert code == 1 and intake['status'] == 'draft', output
+    assert intake['operation'] == 'task-intake' and intake['markdown'].startswith('## Evidence assessment'), output
 
 
-@pending('T3', 'a missing registry is refused without naming init')
 def test_review_without_a_registry_names_init(home):
     (home / 'guide.md').write_text('# Guide\n\nThe answer is 42.\n', encoding='utf-8')
     code, envelope, output = harness(['review', '--goal', 'Check the guide', '--document', 'guide.md',
@@ -177,7 +189,6 @@ def test_review_without_a_registry_names_init(home):
     assert 'attune-harness init' in (envelope.get('next_action') or ''), output
 
 
-@pending('T3', 'a missing registry is refused without naming init')
 def test_plan_without_a_registry_names_init(home):
     (home / 'request.json').write_text(json.dumps({'intent': {'goal': 'Add a subtract function'}}), encoding='utf-8')
     code, envelope, output = harness(['plan', '--task-dir', str(home.parent / 'plan-task'),
@@ -185,6 +196,8 @@ def test_plan_without_a_registry_names_init(home):
     assert code == 2 and envelope, output
     assert 'attune-harness init' in (envelope.get('next_action') or ''), output
 
+
+# The journeys that do not work from a fresh install yet. Each passes when its task lands.
 
 @pending('T4', 'a path refusal does not say which base the path resolved against')
 def test_path_refusal_explains_resolution(home):
