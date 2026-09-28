@@ -2,10 +2,12 @@
 
 ## Unreleased
 
-- Prepare `1.0.0rc1` package metadata for an unpublished candidate-writer
-  wheel and compatibility capture. This does not publish an RC or start the
-  observed candidate period; the exact release wheel and freeze checks remain
-  pending.
+## 1.0.0rc1
+
+- Prepare `1.0.0rc1` package metadata and capture the candidate saved-state
+  fixture from a clean, installed local writer wheel. The fixture retains exact
+  record bytes and reader/replay/refusal cases; publication and the observed
+  candidate period are separate release steps.
 
 - Pin each CLI argument's accepted choices and default in the 1.0 surface
   fixture, including the working-directory default for `spec intake --project`.

@@ -2,9 +2,14 @@
 
 **Run an agent's work, check it independently, and keep a receipt of which happened.**
 
-> **Status: 0.6.0, alpha.** Interfaces, configuration formats and CLI commands may
-> change before 1.0. What is and is not qualified is
-> [listed below](#what-is-qualified-and-what-is-not), not implied.
+> **Status: 1.0.0rc1 release candidate.** The candidate's compatibility content
+> is pinned; the stable compatibility promise begins at 1.0.0. A version in this
+> checkout does not itself mean an RC has been published. What is and is not
+> qualified is [listed below](#what-is-qualified-and-what-is-not), not implied.
+
+The [rc1 release notes](docs/release-notes-1.0.0rc1.md) state the candidate's
+scope and limits. The [release runbook](docs/release-runbook.md#testpypi-rehearsal)
+gives the exact TestPyPI rehearsal and installation procedure.
 
 On September 18, 2026 I ran twelve model-written implementations of a small JSONL
 exporter through Harness. Nine behaved correctly under the full check. The other three passed when their serializer
