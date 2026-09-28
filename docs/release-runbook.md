@@ -225,14 +225,18 @@ dispatch or publish:
    same release checkout run:
 
    ```sh
+   (
+   set -e
    PUBLISH_RUN_ID=REPLACE_WITH_APPROVED_PUBLISH_RUN_ID
    gh run download "$PUBLISH_RUN_ID" --repo Smart-AI-Memory/attune-harness --name release-evidence --dir release-evidence
    python3 scripts/check_testpypi_rehearsal.py fetch --manifest release-evidence/artifact-manifest.json --output rc1-download --receipt rc1-download.json
+   python3 -c 'from pathlib import Path; import sys; p = Path(".venv-rc1"); sys.exit("Refusing to reuse existing .venv-rc1" if p.exists() or p.is_symlink() else 0)'
    python3 -m venv .venv-rc1
    .venv-rc1/bin/python -m pip --isolated --disable-pip-version-check install --index-url https://pypi.org/simple/ -c requirements-workflow.lock -c requirements-voyage.lock -c requirements-mcp.lock -c requirements-tokens.lock -c requirements-redis.lock rc1-download/attune_harness-1.0.0rc1-py3-none-any.whl
    .venv-rc1/bin/python -m pip check
    python3 scripts/check_installed.py --python .venv-rc1/bin/python --mode all --report rc1-installed.json
    .venv-rc1/bin/python -I -c 'import importlib.metadata; assert importlib.metadata.version("attune-harness") == "1.0.0rc1"'
+   )
    ```
 
    `fetch` reads TestPyPI's exact version JSON, refuses a different file
@@ -241,7 +245,11 @@ dispatch or publish:
    resolution. The workflow separately installs both downloaded distributions
    into fresh environments and runs the core installed check. On Windows use
    `py -3.12 -m venv .venv-rc1` and `.venv-rc1\Scripts\python.exe` for the
-   environment Python; native memory/saved POSIX limitations still apply.
+   environment Python. In PowerShell, first run
+   `if (Test-Path -LiteralPath .venv-rc1) { throw 'Refusing to reuse existing .venv-rc1' }`;
+   do not proceed if it refuses. The POSIX subshell above also stops on any
+   failed step without deleting a prior environment. Native memory/saved POSIX
+   limitations still apply.
 5. Record the release SHA, publication run and attempt, published wheel and
    sdist hashes, TestPyPI download receipt and verified-install time. Only then
    start the 14-day candidate observation clock. No production PyPI release or
