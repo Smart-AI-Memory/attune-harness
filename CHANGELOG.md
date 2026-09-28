@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.1
+
+- Repair links in the PyPI-rendered README by pointing to release-specific
+  repository pages. Keep the published package's runtime and dependency pins
+  identical to 1.0.0.
+- Check that future README Markdown links work when rendered by PyPI.
+
 ## 1.0.0
 
 - Publish the v1 compatibility contract from the rc2 candidate with no runtime

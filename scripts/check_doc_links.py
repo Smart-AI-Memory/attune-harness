@@ -10,6 +10,10 @@ have it.
 Every tracked ``docs/**/*.md`` other than the index itself must be linked
 from ``docs/README.md``, so a new document cannot land unindexed.
 
+The root README is also rendered on PyPI, where repository-relative links
+resolve under ``pypi.org/project/attune-harness/`` and fail. Its Markdown
+links must therefore be absolute HTTP(S) URLs or same-page anchors.
+
 ``scripts/known_dead_links.txt`` lists the targets that were already dead when
 this check began, one per line. A link to one of them does not fail. The list
 may only shrink: a listed target that now exists, or that nothing links to any
@@ -30,6 +34,7 @@ import sys
 from pathlib import Path
 
 LINK = re.compile(r"\]\(([^)\s]+?)(?:#[^)\s]*)?\)")
+README_LINK = re.compile(r"\]\(([^)\s]+)\)")
 KNOWN_NAME = "known_dead_links.txt"
 INDEX = "docs/README.md"
 
@@ -71,6 +76,14 @@ def check(root: Path) -> list[str]:
         if not path.endswith(".md"):
             continue
         text = (root / path).read_text(encoding="utf-8", errors="replace")
+        if path == "README.md":
+            for number, line in enumerate(text.splitlines(), 1):
+                for match in README_LINK.finditer(line):
+                    target = match.group(1)
+                    if not target.startswith(("https://", "http://", "#", "mailto:")):
+                        findings.append(
+                            f"{path}:{number}: link will not resolve on PyPI: {target}"
+                        )
         for number, target in links(path, text):
             if path == INDEX:
                 indexed.add(target)
