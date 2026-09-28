@@ -46,7 +46,7 @@ CAPABILITIES = {
     "retained_paths": ["keyed working memory", "governed persisted patterns", "existing memory commands"],
 }
 # Sections of the one memory config file that belong to other verbs, not to the roots contract.
-OTHER_SECTIONS = ("redis", "scratch", "reader")
+OTHER_SECTIONS = ("redis", "scratch", "reader", "saved")
 _ROOT_ID = re.compile(r"[A-Za-z0-9_-]{1,64}")
 _TOKEN = re.compile(r"[^\W_]+", re.UNICODE)  # alnum runs; str.isalnum() semantics come close enough
 

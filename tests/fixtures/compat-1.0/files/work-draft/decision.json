@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "work": {
+    "schema_version": 1,
+    "task_id": "ea1bf2eb-1e5c-40fd-9f9b-6cda92c0763a",
+    "revision": 1,
+    "request_digest": "8de9b8c6b4fe2f93dd003ba7728fbb2c48e2a6b5db3ff15b050e7d5f8ffe7cf3",
+    "record_path": "/private/tmp/attune-compat-candidate-a1/work-draft/record.json",
+    "checkpoint_digest": "83e7c72ad2eeb037ca840cc53ea147a8cb07d69f0c0ff979b084a1d1f5231f9c"
+  },
+  "display": {
+    "kind": "spec",
+    "markdown": "Approve this synthetic work draft."
+  },
+  "response": null,
+  "digest": "30a06a77c5e7e304c4b4e97d6b34d113c0621e2e2d842b819db8d63fcc2fe6a6"
+}

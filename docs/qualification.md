@@ -39,12 +39,28 @@ boundary fixtures run with Harness's MCP dependency alone. The five real Attune
 dispatcher cases in `tests/test_code_rag.py` were removed with the module they
 tested; they skipped whenever Attune AI was absent, so CI never ran them.
 
-`scripts/check_code_rag_host.py` checked the tool through Attune AI's dispatcher
-by launching `attune_harness.attune_bridge`. That module was removed after 0.2.0
-(D8 in the [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md)),
-so the script can no longer complete a host check. It and its test stay for now
-because `scripts/qualify_platform.py` still selects the test; removing them is
-separate work.
+`scripts/check_code_rag_host.py` is a historical caller through Attune AI's
+dispatcher: it launches `attune_harness.attune_bridge`, removed after 0.2.0
+(D8 in the [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md)).
+It cannot complete a current host check. Its selected test checks mocked
+failure-boundary evidence; it is not a real host qualification receipt. The
+script and test remain as historical artifacts. Any replacement host check
+needs its own scope and evidence; the current MCP profile tests qualify their
+declared paths separately.
+
+The signed Python plugin qualification on unreleased main covers signatures,
+revocation, effective grants, cooperating import closure, bounded subprocesses
+and host-owned journals in the six installed-wheel macOS, Ubuntu and Windows
+Python 3.10/3.12 jobs. The Voyage live comparison used one fixed public-corpus
+query and eight stages total across two paths (four matching request/result
+pairs), with identical normalized SDK and signed
+plugin requests/results and five ranked sources. CI replays normalized recorded
+responses and a synthetic interruption offline on all six jobs. These receipts
+do not qualify arbitrary plugins, hostile same-user code as an OS sandbox,
+general ranking quality, raw HTTP capture or live provider calls on each OS.
+See [the recorded fixture](../tests/fixtures/voyage-live-recorded/README.md),
+[reviewed PR #161](https://github.com/Smart-AI-Memory/attune-harness/pull/161)
+and [six-platform installed-wheel run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36340878620).
 
 The [September 16 fix receipt](sol-review-fix-receipt.md) distinguishes local
 source regression results from historical installed-host evidence.
@@ -54,8 +70,9 @@ source regression results from historical installed-host evidence.
 The model campaign is frozen on dev10, separately from the dev11 platform work.
 Use the preserved dev10 environment with the review extra. On a fresh clone,
 commit `c2fa34038483ec7a028a50f554bf1a95e54039a5` contains that version; build and
-install it in an isolated environment before invoking the campaign. The current
-library is dev13; do not overwrite a frozen environment to run a comparison.
+install it in an isolated environment before invoking the campaign. This is
+historical campaign guidance; do not overwrite its frozen dev10 environment to
+run a comparison.
 
 ```sh
 python -I experiments/opportunities/campaign.py prepare --out /absolute/new-run

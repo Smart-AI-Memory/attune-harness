@@ -1,7 +1,8 @@
 """The command line's surface is data, committed and documented (the interface freeze, 4.1; D27.1).
 
 ``attune_harness.cli_surface`` reads the parsers ``cli.build_parser`` returns;
-``tests/fixtures/compatibility/surface.json`` is the committed form and the
+``tests/fixtures/compatibility/surface.json`` is the committed form, including
+each argument's choices and default, and the
 verb table in ``docs/compatibility.md`` its rendering. A verb, subcommand,
 positional or required option added, renamed or dropped fails here until the
 fixture is rewritten on purpose and the page follows, the way the envelope
@@ -72,6 +73,50 @@ def test_an_arity_the_surface_cannot_render_is_refused_not_shown_wrongly():
     parser.add_argument("many", nargs="*")
     parser.add_argument("some", nargs="+")
     assert [p["nargs"] for p in describe(parser)["positionals"]] == ["*", "+"]
+
+
+def test_choices_and_defaults_are_pinned_with_argument_identity(tmp_path, monkeypatch):
+    import argparse
+    from pathlib import Path
+    from attune_harness.cli_surface import describe
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=("safe", "fast"), default="safe")
+    parser.add_argument("--config", type=Path, default=Path("participants.json"))
+    before = describe(parser)["arguments"]
+    assert before == [
+        {"name": "config", "option_strings": ["--config"], "choices": None,
+         "default": {"kind": "path", "value": "participants.json"}},
+        {"name": "mode", "option_strings": ["--mode"], "choices": ["safe", "fast"],
+         "default": "safe"},
+    ]
+    parser._option_string_actions["--mode"].choices = ("safe",)
+    assert describe(parser)["arguments"] != before
+    parser._option_string_actions["--mode"].choices = ("safe", "fast")
+    parser._option_string_actions["--mode"].default = "fast"
+    assert describe(parser)["arguments"] != before
+    monkeypatch.chdir(tmp_path)
+    assert describe(parser)["arguments"][0]["default"] == {"kind": "path", "value": "participants.json"}
+
+
+def test_dynamic_project_default_is_cwd_without_masking_fixed_absolute_path(tmp_path, monkeypatch):
+    import argparse
+    from pathlib import Path
+    from attune_harness.cli_surface import describe, surface
+
+    original = surface()
+    monkeypatch.chdir(tmp_path)
+    assert surface() == original
+    intake = original["verbs"]["spec"]["subcommands"]["intake"]
+    project = next(item for item in intake["arguments"] if item["name"] == "project")
+    assert project["default"] == {"kind": "cwd"}
+
+    fixed_path = tmp_path / "fixed-project"
+    fixed = argparse.ArgumentParser()
+    fixed.add_argument("--project", type=Path, default=fixed_path)
+    value = next(item for item in describe(fixed, command_path=("spec", "intake"))["arguments"]
+                 if item["name"] == "project")
+    assert value["default"] == {"kind": "path", "value": str(fixed_path)}
 
 
 def test_documented_surface_matches():

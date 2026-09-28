@@ -1,7 +1,7 @@
 # Moving from Attune AI to Harness
 
-Pre-release migration guide, September 26, 2026. Checked against Harness main
-`1615ee7`; this is preparation for S9, not a notice that Attune AI is deprecated
+Pre-release migration guide, September 27, 2026. Checked against Harness main
+`38a5663`; this is preparation for S9, not a notice that Attune AI is deprecated
 or a claim that Harness 1.0 has shipped. Recheck each row against the installed
 candidate during the candidate period before accepting S9.
 
@@ -24,7 +24,7 @@ is required by this guide.
 | Claude/Codex host workflow | Checkout-installable host plugin candidates, workspace MCP intake and presentation. | Candidates are not marketplace publication or complete lifecycle parity. M3 gates and observed host acceptance remain open; preserve the existing working host workflow until those hold. |
 | Multi-agent workflows and roundtable | Explicit participant contracts and bounded workflow routes. | Full Attune AI multi-agent workflow/roundtable parity is a later milestone, not promised by stable core 1.0. Keep the existing workflow where required. |
 | MCP tools | Accepted retrieval and workspace profiles with explicit scope. | This is not wholesale replacement of Attune AI's MCP tools. Compare required tools and profile schemas before changing a host's server configuration. |
-| Executable extensions / Voyage | Signing and capability groundwork is merged; the current qualified provider path remains separately controlled. | Executable-plugin completion and R1–R6 receipts remain a stable-release gate. Do not migrate a provider into an unqualified plugin path or infer paid-call authority from installation. |
+| Executable extensions / Voyage | The bounded signed Python plugin profile has six installed-wheel platform receipts for signature/revocation, effective grants, cooperating import closure, subprocess bounds and host journals. One fixed public-corpus Voyage query completed eight live stages total across two paths (four matching request/result pairs); recorded replay and synthetic interruption passed across the platform matrix. | This is current unreleased main, not v0.6.0. It does not qualify arbitrary plugins, an OS sandbox, general ranking quality or live paid calls on each OS. Keep the current working provider setup until its exact signed artifact and effective grants are accepted; installation alone grants no paid-call authority. |
 | Fix and test | Supported commands and retained check receipts within their declared profiles. | Follow the [qualification guide](qualification.md), especially Windows limits. A workflow port is not required to keep using the existing supported entry point. |
 
 ## Candidate acceptance

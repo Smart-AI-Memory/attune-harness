@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "work": {
+    "schema_version": 1,
+    "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+    "revision": 1,
+    "request_digest": "091e4d48ccf53d8e37ff02c64dd5f338950ef353b5210f6c00b1764d653d9948",
+    "record_path": "/private/tmp/attune-compat-candidate-a1/work-accepted/record.json",
+    "checkpoint_digest": "03999ed79f4a18d80777e9cd403b9b9e2b3d82e37141ea2866ebc018bc76a389"
+  },
+  "display": {
+    "kind": "spec",
+    "markdown": "Approve this synthetic work draft."
+  },
+  "response": {
+    "schema_version": 1,
+    "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+    "revision": 1,
+    "request_digest": "091e4d48ccf53d8e37ff02c64dd5f338950ef353b5210f6c00b1764d653d9948",
+    "record_path": "/private/tmp/attune-compat-candidate-a1/work-accepted/record.json",
+    "checkpoint_digest": "03999ed79f4a18d80777e9cd403b9b9e2b3d82e37141ea2866ebc018bc76a389",
+    "accepted": true,
+    "source": {
+      "owner": "spec",
+      "reference": "synthetic-approval",
+      "disposition": "approve_task"
+    }
+  },
+  "digest": "4aa0bb2d9fbe5db01f191064825ce4ff12148d26bfaa0ba74d6456cfb3880c3d"
+}

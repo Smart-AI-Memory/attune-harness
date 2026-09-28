@@ -1,0 +1,154 @@
+{
+  "extension_signature": "unsigned disabled declaration only",
+  "families": {
+    "effects": {
+      "outcome": "written",
+      "outputs": {
+        "effects/manifest.json": {
+          "bytes": 3990,
+          "sha256": "b45889a4f3b50039a7f888cb0b6104ca72d58101059a77f26769cb68884d8e97"
+        }
+      }
+    },
+    "extension-unsigned-disabled": {
+      "outcome": "written",
+      "outputs": {
+        "extension-disabled/record.json": {
+          "bytes": 373,
+          "schema_version": 1,
+          "sha256": "cab7bc80b323e89216d252b5cbc61da70c719117607d51c83648cbb88633e738",
+          "status": "disabled"
+        },
+        "voyage-bundle/SKILL.md": {
+          "bytes": 163,
+          "sha256": "e8e70dafbbd5eac9305f5bde0187f23e2025451e40688ea2a31922100193aeab"
+        },
+        "voyage-bundle/code.zip": {
+          "bytes": 3818,
+          "sha256": "aa9e655da3fedf332c05915c8a74ee3c7bcfd8b7470658239436d1e24f08c90a"
+        },
+        "voyage-bundle/manifest.json": {
+          "bytes": 1179,
+          "schema_version": 1,
+          "sha256": "2d0e66c303ebd5e786e40ca400b385206ffbd5563fda1c5a1a12d336f3d44a5a"
+        }
+      }
+    },
+    "memory": {
+      "outcome": "written",
+      "outputs": {
+        "saved-store/state.json": {
+          "bytes": 5873,
+          "schema_version": 1,
+          "sha256": "a84b65cc4bc21ebc5532f3e980d42439f8c8b8c814005a551eddb4413b5b000a"
+        },
+        "scratch-store/scratch/harness/k-compat-note.json": {
+          "bytes": 209,
+          "format_version": 2,
+          "sha256": "7a24daf0fa25b20ab16ffb2eac47e2e2a065ef8eeb078bcae51bee2c04b359ad"
+        }
+      }
+    },
+    "plan": {
+      "outcome": "written",
+      "outputs": {
+        "plan-state/plan.md": {
+          "bytes": 253,
+          "sha256": "be6fb2579ba49336b1c2d15ca4c8255e0d52d46abb5374574197ee6f45657f14"
+        }
+      }
+    },
+    "review": {
+      "outcome": "written",
+      "outputs": {
+        "review-completed/record.json": {
+          "bytes": 26136,
+          "schema_version": 1,
+          "sha256": "4a087533ffb4e05729511b0899d86f581e4693dc0e57d9cc3f23972a51c6ddd9",
+          "status": "completed"
+        },
+        "review-paused/record.json": {
+          "bytes": 8489,
+          "schema_version": 1,
+          "sha256": "fedc3c03a7eb51858552cc5f1c6faef1fe1e306a0996058ad2fff01501f95bf0",
+          "status": "paused"
+        }
+      }
+    },
+    "test": {
+      "outcome": "written",
+      "outputs": {
+        "test-draft/record.json": {
+          "bytes": 2922,
+          "schema_version": 1,
+          "sha256": "77accef45b6cf2ce9f87e39be3a9d02ab3f48759cacc12140c041b6a3afc37ac",
+          "status": "draft"
+        }
+      }
+    },
+    "voyage-offline": {
+      "outcome": "written",
+      "outputs": {
+        "voyage-completed/7d7e89c2aafa8ce268b5883f7a9f87e0bca0714f4557f4145305d5f6b17d3cb2/record.json": {
+          "bytes": 14194,
+          "schema_version": 1,
+          "sha256": "700077c8c7c54baefb225b81f09cbb37ae8fb235d6268e16227afe5bcc82be66",
+          "status": "completed"
+        },
+        "voyage-completed/record.json": {
+          "bytes": 355,
+          "schema_version": 1,
+          "sha256": "dc479cc42585199b2143558177ea6a021d1e26a603a7b1f9d5e8de20dc3fa783"
+        },
+        "voyage-dispatching/7d7e89c2aafa8ce268b5883f7a9f87e0bca0714f4557f4145305d5f6b17d3cb2/record.json": {
+          "bytes": 310,
+          "schema_version": 1,
+          "sha256": "3a0c08ec4d8f821809d5dc544c85c4288956ca3a92acf0609ef4f2b99d222b51",
+          "status": "dispatching"
+        },
+        "voyage-dispatching/record.json": {
+          "bytes": 355,
+          "schema_version": 1,
+          "sha256": "dc479cc42585199b2143558177ea6a021d1e26a603a7b1f9d5e8de20dc3fa783"
+        }
+      }
+    },
+    "work": {
+      "outcome": "written",
+      "outputs": {
+        "work-accepted/decision.json": {
+          "bytes": 1120,
+          "schema_version": 1,
+          "sha256": "166ee3f582605e07f4b41dae7e0241d5a1a06107154dd7bdd6d5d13607f077c1"
+        },
+        "work-accepted/record.json": {
+          "bytes": 4663,
+          "schema_version": 1,
+          "sha256": "6f5c4f66bf5bec58dc6b6f7676f6c2d864ec590ba7fc7d5a76bb350c729666fb",
+          "status": "accepted"
+        },
+        "work-draft/decision.json": {
+          "bytes": 602,
+          "schema_version": 1,
+          "sha256": "f4abad1c82d8ec309d00fcd3bdfecb44a4cd21e796d04b87b487ca89683da31e"
+        },
+        "work-draft/record.json": {
+          "bytes": 3093,
+          "schema_version": 1,
+          "sha256": "3c6ee110b3af76fe3c9475713bf3721c2e391187c98d4a7c1c2f019f282d3136",
+          "status": "draft"
+        }
+      }
+    }
+  },
+  "network": "socket connections refused; provider keys absent",
+  "schema_version": 1,
+  "writer": {
+    "distribution": "attune-harness",
+    "package_origins": {
+      "attune_harness": "/private/tmp/attune-v1-writer-env-ca5d9ee/lib/python3.12/site-packages/attune_harness/__init__.py",
+      "attune_voyage_plugin": "/private/tmp/attune-v1-writer-env-ca5d9ee/lib/python3.12/site-packages/attune_voyage_plugin/__init__.py"
+    },
+    "version": "1.0.0rc1"
+  }
+}

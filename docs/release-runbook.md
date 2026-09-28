@@ -148,6 +148,13 @@ approval comment records. What those scripts learned, for the next ones:
 
 ## TestPyPI rehearsal
 
+The 1.0 compatibility content freezes when `rc1` is published. During the
+candidate period, a change to a frozen golden row, CLI surface, public API
+signature, protocol fixture, saved-format fixture or its reader starts a new
+candidate at the next `rc` number, with a changelog line explaining the change
+(D27.7). Preparing an unpublished candidate-version wheel and its fixture does
+not start the observation period or authorize publication.
+
 `target=testpypi` takes a release-candidate version such as `X.Y.Zrc1`, and
 `pyproject.toml` has to carry that version. Prepare the candidate version and
 changelog in a reviewed pull request, merge through `main`, and wait for that
