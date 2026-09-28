@@ -1,7 +1,7 @@
 # Stable v1 and the first two weeks after release
 
-Reviewed September 27, 2026 against main
-`38a5663909139a1811013c8f30d072a516c0067e`. This updates the execution focus of
+Refreshed September 28, 2026 against main
+`0d2634c3eacf3d59e22b09dd1a31a9d7e3aa4b30`. This updates the execution focus of
 [the v1 roadmap](plan-1.0.md), retaining [S1–S9 and D25–D30](specs/release-1.0/addendum-2026-09-23.md).
 The earlier phased and October plans remain historical inputs, not an extra
 release backlog. Planning scope: stable v1, then fourteen days of stabilization.
@@ -10,32 +10,35 @@ dispatch, publication, repository settings changes or a deprecation notice.
 
 ## Executive status
 
-PR154–159 and PR161 are merged. Main matches PR161's tested head tree:
-`626f6450635ee59f9b4ed805a7f30c04f618ac87`.
-All sixteen PR161 checks passed, including six installed-wheel platform jobs,
-three supplemental coverage jobs, full suite and security checks. Local final-head
-full validation passed 3,328 tests with 52 skipped; installed macOS qualification
-passed 1,623 with seven skipped. The bounded live Voyage campaign completed on
+PR154–159 and PR161–163 are merged. Main matches [PR163's](https://github.com/Smart-AI-Memory/attune-harness/pull/163)
+tested head tree `7c93877a3d8b5c8ed140539e9b3c505d7c947c28`; all 19 PR163 checks
+passed, including the six installed-wheel platform jobs. The final source suite
+passed 3,342 tests with 52 skipped, and fresh installed macOS qualification
+passed 1,632 with seven skipped. [PR162](https://github.com/Smart-AI-Memory/attune-harness/pull/162)
+retains 33 byte-exact files written through the clean unpublished `1.0.0rc1`
+candidate wheel, reader/refusal tests and CLI choice/default guards. Its source
+and public-claim reconciliation are merged. The bounded live Voyage campaign completed on
 macOS; PR161 retains four paired direct/signed-plugin stage responses and tests
 keyless offline replay across the six CI platforms. This is not broad retrieval
 quality, live cross-platform or human acceptance evidence. See
 [the retained replay fixture](../tests/fixtures/voyage-live-recorded/README.md).
-The earlier release check listed v0.6.0; release and package-index publication
-state must be checked again before candidate publication.
+These are prepublication software and platform receipts. They do not start the
+candidate observation clock; recheck release and package-index state immediately
+before any authorized TestPyPI dispatch.
 
 **Status: preparing the release candidate; not ready to publish stable v1.**
 No percentage-complete estimate is useful while observed acceptance is open.
 
 | Gate | Present now | What still closes it |
 |---|---|---|
-| S1 compatibility | Versioned state, CLI/API/envelope and deprecation/protocol guards; PR159 capture preparation | Real candidate-written saved records, reader/resume checks and final freeze. The capture tool verifies byte/package provenance, not who originally wrote arbitrary records. |
+| S1 compatibility | Versioned state, CLI/API/envelope and deprecation/protocol guards; PR162's candidate-written 33-file fixture, reader/refusal checks and CLI choice/default guard; fresh-wheel and six-platform evidence | Preserve the exact candidate contract through the final release SHA; publication starts the content freeze. The capture manifest proves installed package and bytes, while the writer recipe and reader tests provide the separate writer/consumption evidence. |
 | S2 native independence | D28 adapter removal and native installed journey merged in PR149 | Retain final-artifact proof; Patrick's separate Attune AI writer constraint is not claimed complete. |
 | S3 useful memory | Serving/filter software and explicit saved capture exist | Real fresh-session provenance/recall and corrected/inactive exclusion; explicit saves are not automatically connected to serving. |
-| S4 signed Voyage | Bounded live direct/signed-plugin campaign complete; retained responses and six-platform offline replay merged in PR161 | Final plugin R1–R7 public claim/evidence reconciliation in step 2. Live evidence is local macOS; CI replay is offline, not live platform qualification. |
-| S5 platform limits | Six platform jobs green | Final README/qualification claims match actual scope; Windows fix/test/native-reader limitations remain unless separately qualified. |
+| S4 signed Voyage | Bounded live direct/signed-plugin campaign complete; retained responses and six-platform offline replay merged in PR161; PR162's bounded R1–R7 public claims reconciled | Keep live-macOS versus offline cross-platform limits visible in the final artifact and candidate observations; no general ranking-quality claim. |
+| S5 platform limits | Six platform jobs green; PR162/163 release claims state native-memory, saved-storage and plugin limits | Recheck the exact release artifact and observed-period receipts; Windows native memory/saved limits remain unless separately qualified. |
 | S6 usability | Observation procedure prepared | Named non-programmer completes the installed candidate journey under observation. |
-| S7 candidate/release | Existing runbook and earlier build-only rehearsal | Current environment/artifact verification, approved rc1 publication, two-week candidate observation, then stable approval. |
-| S8 loose ends | Most historical hygiene closed | Explicitly disposition the old code-RAG check/callers without removing retained functionality; final claim audit. |
+| S7 candidate/release | PR163's `1.0.0rc1` changelog, release notes and exact TestPyPI procedure are merged; the earlier build-only rehearsal is historical | Qualify the final main SHA, recheck TestPyPI slot/settings, obtain separate build-only and publication approvals, verify the published install, then begin two-week candidate observation; stable approval follows its evidence. |
+| S8 loose ends | Most historical hygiene closed; PR162 explicitly labels the old code-RAG caller/check historical and reconciles public claims | Any replacement host check needs separate scope and evidence; retained script/receipts stay untouched. |
 | S9 migration | Migration guide drafted | Exercise its supported rows and verify workarounds against the candidate; preserve separate environments. |
 
 ## Ordered work to stable v1
@@ -46,22 +49,21 @@ No percentage-complete estimate is useful while observed acceptance is open.
    pinned rates was $0.00249178, not an invoice-verified amount. PR161 adds keyless
    replay of the retained responses. Live evidence is macOS only; interruption
    refusal is synthetic, and replay does not establish general retrieval quality.
-   The public requirement/claim reconciliation remains in step 2. No further paid
+   The public requirement/claim reconciliation was completed in step 2. No further paid
    calls are needed for this completed campaign. Explicit local keyword retrieval
    stays available; keep attune-rag until its features have tested replacements.
-2. **Finish candidate compatibility and claims (S1/S5/S8), active in
-   [PR162](https://github.com/Smart-AI-Memory/attune-harness/pull/162).** Use an
-   unpublished candidate-version wheel to write real saved state, retain raw bytes
-   and hashes, and prove final readers/status/resume consume it. Patrick approved
-   including CLI choices/defaults in the freeze inventory. Reconcile README,
-   migration and qualification claims, and disposition obsolete callers. Done:
-   freeze inventory, actual writer provenance and guards agree, with full suite,
-   fresh-wheel qualification and independent review. An unpublished local wheel
-   does not start the candidate observation clock. Owner: Sol/Astra; Patrick owns
-   scope rulings and merge approval.
-3. **Prepare and publish rc1 (S7).** Verify current release settings through the
-   existing runbook; qualify the exact clean source/artifacts. Present the concrete
-   hashes and evidence for dispatch/publication approval. Candidate channel is
+2. **Candidate compatibility and claims (S1/S5/S8), completed before publication.**
+   [PR162](https://github.com/Smart-AI-Memory/attune-harness/pull/162) merged
+   the installed-writer fixture, exact raw bytes and hashes, reader/refusal
+   matrix, CLI choices/defaults and bounded claim audit. Its clean writer wheel
+   is unpublished; the content is prepared but freezes only at rc1 publication.
+   Retain those receipts and require the final release wheel's packaged runtime
+   files and selected metadata/entry points to match the writer contract.
+3. **Prepare and publish rc1 (S7), next release gate.** After this planning PR
+   merges, qualify the exact final main SHA and artifact through the
+   [runbook](release-runbook.md), verify current TestPyPI settings and version
+   slot, and present concrete hashes and evidence for separate build-only
+   rehearsal and publication approvals. Candidate channel is
    TestPyPI; do not repeat historical instructions that imply rc1 is on PyPI.
    At least the S3 SessionStart filter evidence must hold before rc1. Owner:
    agents prepare; Patrick approves release actions.
@@ -77,10 +79,11 @@ No percentage-complete estimate is useful while observed acceptance is open.
    release is R0. October remains a target, not a promised date. Stable v1 does not
    automatically deprecate Attune AI or claim GUI/workflow parity.
 
-The shortest useful next unit is completing and validating candidate-written
-compatibility fixtures. The next release dependency is closing that freeze and
-claim audit before rc1 preparation. Scheduling human observations can proceed
-alongside it. Do not start another feature chain while those gates remain open.
+The shortest useful next unit is exact-final-main qualification and TestPyPI
+preflight for a concrete build-only rehearsal. Publication approval remains a
+separate gate. Schedule human observations without backdating them; C0 begins
+only after an approved TestPyPI publication and verified install. Do not start
+another feature chain while those gates remain open.
 
 ## R0 through R0+14: post-release stabilization
 
@@ -125,7 +128,8 @@ repeatedly exhausted, investigate before changing it again.
 
 ## Explicitly deferred
 
-GUI implementation; extra RAG providers/OpenAI retrieval fallback; automatic
+GUI implementation (any prototype is a separate track); extra RAG
+providers/OpenAI retrieval fallback; automatic
 provider switching; broad memory/workflow parity and Spec lifecycle expansion;
 new cross-provider model campaigns; general caching/performance redesign;
 Attune AI deprecation and removal of attune-rag. Existing supported paths and
@@ -135,9 +139,9 @@ claim that the work has no value.
 ## Review outcome
 
 Goal: stable interfaces backed by live, installed and observed evidence, followed
-by a quiet stabilization period. The highest-value finding is the distinction
-between merged implementation and unclosed acceptance: more feature PRs will not
-supply candidate compatibility proof or fourteen days of observed acceptance.
+by a quiet stabilization period. The candidate compatibility proof is now merged;
+the highest-value remaining distinction is between prepublication checks and
+actual published-install and fourteen-day observed acceptance.
 The first user-facing opportunity is O-04's accurate journey/limits map. This review narrows
 existing opportunities rather than inventing a new register or reopening closed
 work. Completion review: complete for planning; release acceptance remains open.

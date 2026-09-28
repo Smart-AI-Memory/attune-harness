@@ -36,15 +36,16 @@ four pull requests merged (#106, #107, #108) and the release gate runs the R2
 journey; 4.5's nine pull requests all merged the same day. 3.1 completed
 the same evening with #110, step (b)'s stages under D24.
 
-## Current execution focus — September 27, 2026
+## Current execution focus — September 28, 2026
 
 The [stable-v1 and fourteen-day follow-through plan](project-plan.md) refreshes
-status through main `38a5663909139a1811013c8f30d072a516c0067e` (PR161).
-PR154–159 and PR161 are merged; PR161's tested tree equals main and all sixteen
+status through main `0d2634c3eacf3d59e22b09dd1a31a9d7e3aa4b30` (PR163).
+PR154–159 and PR161–163 are merged; PR163's tested tree equals main and all 19
 checks passed. The bounded live Voyage campaign and retained offline replay are
-complete. Candidate-written compatibility fixtures and public claim reconciliation
-are active in PR162; observed candidate acceptance remains open. The table below
-is the earlier PR152 snapshot, not the current implementation backlog. S1–S9 and D25–D30 still govern acceptance.
+complete. PR162's candidate-written fixture and public claim reconciliation are
+merged, while publication and observed candidate acceptance remain open. The
+release-gate table below is current; the historical phase tables remain earlier
+snapshots. S1–S9 and D25–D30 still govern acceptance.
 
 Focus: Voyage evidence → candidate fixture/freeze → rc1 → fourteen days of
 observed candidate use → stable v1 → fourteen days of stabilization. The final
@@ -52,11 +53,11 @@ two weeks are additional to the existing candidate requirement. Select at most
 four quick existing opportunities under the new plan's six-hour total timebox;
 a fifth is a ceiling, not a target. GUI implementation remains deferred.
 
-## Release-gate status — September 27, 2026
+## Release-gate status — September 28, 2026
 
-Updated through `main` at `3eec95e0a4db4429bd8e2b9db3ec7f274e3efd87`
-([PR152](https://github.com/Smart-AI-Memory/attune-harness/pull/152)); its tree
-was compared with the reviewed head. Original status baseline: September 26. The
+Updated through `main` at `0d2634c3eacf3d59e22b09dd1a31a9d7e3aa4b30`
+([PR163](https://github.com/Smart-AI-Memory/attune-harness/pull/163)); its tree
+matches the reviewed head. Original status baseline: September 26. The
 requirements and exceptions remain those of [S1–S9](specs/release-1.0/README.md)
 and [D25–D30](specs/release-1.0/addendum-2026-09-23.md). This table updates
 execution status; the historical phase tables below preserve the original plan.
@@ -69,26 +70,27 @@ human decisions hold. Neither merged code nor a passing suite alone closes a gat
 
 | Gate | Implemented / evidenced at this revision | Remaining action and acceptance evidence | Owner / decision |
 | --- | --- | --- | --- |
-| S1 / 4.1, 3.4 — compatibility | First CLI/API/envelope guards (#124), versioned scratch (#116), saved memory/task records (#147), and deprecation/protocol guards plus saved-format inventory (#151). The clean unpublished `1.0.0rc1` wheel has now written the [candidate fixture](../tests/fixtures/compat-1.0/README.md) with exact reader/refusal tests; see the [compatibility list](compatibility.md). | Complete full and fresh-wheel qualification, exact package-byte comparison and platform CI before claiming a frozen candidate or starting observation. | Implementation and independent review; Patrick approves release. |
+| S1 / 4.1, 3.4 — compatibility | CLI/API/envelope, deprecation/protocol and saved-format guards; PR162's clean unpublished `1.0.0rc1` writer produced the [33-file candidate fixture](../tests/fixtures/compat-1.0/README.md), reader/refusal tests and CLI choices/defaults guard. Full, fresh-wheel and platform checks passed, and PR163's merged tree matches its tested head. | Keep the final release artifact bound to the writer contract; rc1 publication freezes the content and only a verified install begins observation. | Implementation and independent review complete for the prepared contract; Patrick approves publication. |
 | S2 / 4.4 — independent memory | Native readers, legacy import (#115), R2 installed journey, and D28 transition removal (#149) are merged. Adapter/differential removed; native fixture retained; old reader explicitly refused. PR149: full suite 3,123 passed, installed wheel 1,513 passed, all 19 CI checks green. | The Harness implementation and tests close 4.4; retain the [frozen-format contract](specs/native-memory/formats.md). | Patrick carries the reverse writer constraint to attune-ai; this summary does not claim that separate-repository action happened. |
 | S3 / 3.3 — useful recall | Serving filters/prompt recall (#128) and explicit saved capture (#147) have software checks. [September 24 observations](specs/native-memory/observations-2026-09-24.md) identify user gaps. | Observe fresh-session serving, provenance and corrected/inactive exclusion. Explicit saved records are not yet wired into that serving path; do not claim automatic recall from save/index tests. | Real-session evidence with Patrick; no invented observations. |
-| S4 / 4.3 — executable plugins | Signing, revocation and capability controls (#118/#150), paid-stage journal preservation (#152), offline differential (#158) and recorded live-response replay (#161) are merged. One fixed public-corpus query completed eight live stages total across the direct SDK and signed-plugin paths, with four matching normalized request/result pairs; all six installed-wheel platform jobs replayed recorded results and synthetic interruption ([qualification](qualification.md)). | R1–R6 evidence supports the bounded cooperating-plugin profile; retain exact limits in the public R7 wording and recheck on the candidate wheel. It is not arbitrary-plugin security or general ranking quality. | Implementation and independent review complete for the declared profile; Patrick still owns candidate/release acceptance. |
-| S5 / 4.2 — honest limits | Windows memory limits and experimental labels remain documented. Current-main [qualification](qualification.md) and README now state bounded signed-plugin/Voyage evidence and its limits. | Recheck claims against the exact installed candidate and observed-period receipts. Native saved storage remains POSIX-only; executable-plugin platform evidence is separate. | Existing D20.8/D25/D29 decisions govern. |
+| S4 / 4.3 — executable plugins | Signing, revocation and capability controls (#118/#150), paid-stage journal preservation (#152), offline differential (#158) and recorded live-response replay (#161) are merged. One fixed public-corpus query completed eight live stages total across the direct SDK and signed-plugin paths, with four matching normalized request/result pairs; all six installed-wheel platform jobs replayed recorded results and synthetic interruption ([qualification](qualification.md)). PR162 reconciled the bounded R1–R7 public wording. | Retain live-macOS versus offline cross-platform limits in the final artifact and observations; not arbitrary-plugin security or general ranking quality. | Implementation and independent review complete for the declared profile; Patrick still owns candidate/release acceptance. |
+| S5 / 4.2 — honest limits | Windows memory limits and experimental labels remain documented. PR162/163 README, [qualification](qualification.md) and release notes state bounded signed-plugin/Voyage evidence and its limits. | Recheck the exact release artifact and observed-period receipts. Native saved storage remains POSIX-only; executable-plugin platform evidence is separate. | Existing D20.8/D25/D29 decisions govern. |
 | S6 / 4.6 — usability | No current candidate walkthrough accepted by this status update. | A named non-programmer completes the installed journey during the candidate period; retain observed receipt under `docs/journeys/`. | Patrick names participant; observer records outcomes. |
-| S7 / 4.7 — artifact and candidate | Latest observed GitHub release is [v0.6.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v0.6.0), not rc1. The [September 24 build-only rehearsal](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/35967800177) passed; publication jobs were skipped and the workflow is byte-identical at this baseline. | TestPyPI now permits `main` with required reviewer retained (Patrick changed it; API verified September 27 UTC). Prepare and qualify the exact candidate commit, then obtain publication approval through the [runbook](release-runbook.md); two weeks without frozen-surface changes and the observed acceptance evidence still follow. | Patrick owns settings, dispatch/publication approval and release. |
-| S8 — promised loose ends | Most 4.5 hygiene merged September 23; that closed row is not reopened. The removed `attune_bridge` makes `scripts/check_code_rag_host.py` a historical, unrunnable caller; [qualification](qualification.md) now states that its mocked boundary test is not a real host check. | Any replacement host check is separately scoped and evidenced. Recheck final public claims on the candidate wheel; no historical script or receipt was deleted. | Bounded disposition and review; Patrick owns any later replacement scope. |
+| S7 / 4.7 — artifact and candidate | PR163 merged the `1.0.0rc1` changelog, release notes and [TestPyPI procedure](release-runbook.md); the September 24 build-only rehearsal predates this candidate. No publication or observation is claimed. | After this planning PR merges, qualify the exact final main SHA, recheck TestPyPI slot/settings and obtain separate build-only rehearsal and publication approvals. Verify the published install before C0; two weeks without frozen-surface changes and observed acceptance evidence still follow. | Patrick owns settings, dispatch/publication approval and release. |
+| S8 — promised loose ends | Most 4.5 hygiene merged September 23; that closed row is not reopened. PR162 explicitly documented the removed `attune_bridge` caller as historical and reconciled public claims without deleting the retained script or receipt. | Any replacement host check is separately scoped and evidenced. | Bounded disposition and review; Patrick owns any later replacement scope. |
 | S9 / 4.8 — migration | M1/M2 workspace and host plugin candidates (#140/#141) are distinct from full lifecycle support. | [Pre-release migration guide](migration-from-attune-ai.md) prepared; verify each row during candidate: carried/not carried/workaround, separate environments, and honest successor milestones. No premature deprecation notice. | Documentation; notice timing remains Patrick's under D26/D30. |
 
 **Execution order:** executable plugins → final compatibility fixture/freeze →
 rc1 → observed candidate period → stable. D28 and the deprecation/protocol
 guards are merged; plugin fields have settled and the unpublished candidate
-fixture is captured. Final validation remains. New format changes before RC
+fixture and final local/platform validation are complete. TestPyPI preparation
+is next. New format changes before RC
 publication must be incorporated into that fixture; after publication they
 restart the candidate.
 October remains the target month, with no promised day.
 
-The next useful implementation chunk is the exact-wheel read matrix and
-candidate validation. Release-gate status and evidence remain here,
+The next useful release chunk is exact-final-main qualification and TestPyPI
+preflight for a concrete build-only rehearsal. Release-gate status and evidence remain here,
 linked from O-04 in the [opportunity log](opportunity-log.md), rather than in a
 second tracker. Recovery PR146 is merged with a bounded operator-observation path; its original
 failed native-build evidence remains retained and is not rewritten as success.

@@ -15,9 +15,12 @@ freezes at `1.0.0rc1`; the promise takes effect at 1.0.0.
 The second cycle supplies the deprecation register/helper (D27.3) and
 retrieval MCP/A2A protocol fixtures (section 6). The third cycle has captured
 the [unpublished candidate saved-state fixture](../tests/fixtures/compat-1.0/README.md)
-after the final plugin manifest fields. Full, fresh-wheel and platform
-qualification of this candidate remains pending; the observed RC period has
-not begun. This does not declare the content frozen or published. The envelope cells still marked `-` are listed in
+after the final plugin manifest fields. [PR162](https://github.com/Smart-AI-Memory/attune-harness/pull/162)
+and [PR163](https://github.com/Smart-AI-Memory/attune-harness/pull/163)
+passed full, fresh-wheel and six-platform qualification for the prepared
+candidate. The exact final main SHA and publication artifact still require
+release qualification; the observed RC period has not begun. This does not
+declare the content frozen or published. The envelope cells still marked `-` are listed in
 [the freeze note's correction](specs/release-1.0/freeze-design.md).
 
 ## 1. The command line
