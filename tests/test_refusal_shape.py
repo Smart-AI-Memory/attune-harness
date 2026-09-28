@@ -63,7 +63,10 @@ def test_intake_failures_always_name_a_next_action(capsys, tmp_path):
 
 
 def test_control_failures_name_a_next_action(capsys, tmp_path):
+    # A failing status is not told to run status again (T6 review).
     assert main(['status', str(tmp_path / 'absent')]) == 2
+    assert json.loads(capsys.readouterr().out)['next_action'].startswith(f'Check that {tmp_path / "absent"}')
+    assert main(['resume', str(tmp_path / 'absent')]) == 2
     assert 'attune-harness status' in json.loads(capsys.readouterr().out)['next_action']
 
 

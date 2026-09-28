@@ -274,7 +274,9 @@ def execute_control(args):
         from .recovery import UnresolvedOperation
         print(json.dumps({'status':'unresolved' if isinstance(exc,UnresolvedOperation) else 'failed',
                           'error':{'type':type(exc).__name__,'detail':str(exc)},
-                          'next_action': ('Inspect the task with attune-harness status before choosing an action; '
+                          'next_action': (f'Check that {args.task_dir} is a Harness task directory holding its '
+                                          'record.json' if args.command == 'status' else
+                                          'Inspect the task with attune-harness status before choosing an action; '
                                           'do not retry an uncertain operation blindly')}))
         return 2
 
