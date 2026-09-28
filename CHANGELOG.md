@@ -9,6 +9,11 @@
   Codex plugins and the Python package are unchanged.
 - The Harness skill no longer names the 0.6.0 CLI. A test checks every command
   and option it shows against the CLI surface of the version it ships with.
+- Add a cold-start journey test to every installed-wheel platform job. It runs
+  the CLI guide's journey-tagged blocks as written, from an empty directory
+  with no participant registry. Journeys that do not work from a fresh install
+  yet are strict expected failures, each naming the first-run journey task that
+  fixes it.
 
 ## 1.0.1
 
