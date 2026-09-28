@@ -107,7 +107,8 @@ def home(tmp_path):
 
 def test_documented_journeys_are_tagged():
     """The tags this test runs exist; losing one would silently drop its journey."""
-    assert {'checks-and-receipts', 'test-this-change', 'review-bundled-example'} <= set(doc_journeys.journeys())
+    assert {'checks-and-receipts', 'test-this-change', 'review-bundled-example', 'init',
+            'first-run'} <= set(doc_journeys.journeys())
 
 
 def test_demo(home):
@@ -238,3 +239,29 @@ def test_fix_with_only_a_goal_returns_an_envelope(home):
                                       '--task-dir', str(home.parent / 'fix-task')], home)
     assert code == 2 and envelope, output
     assert envelope['status'] == 'failed' and envelope.get('next_action'), output
+
+
+# First-run journey T7: the README's five minutes and the guide's init, as written.
+
+@POSIX_ONLY
+def test_documented_first_run(home):
+    """The README's first five minutes: init, a test preview in Markdown, and the review intake."""
+    repo = git_repository(home / 'your-project')
+    change, init, test, review = doc_journeys.commands(doc_journeys.journeys()['first-run'])
+    assert change == 'cd your-project'
+    code, envelope, output = harness(split(init)[1:], repo)
+    assert code == 0 and envelope['status'] == 'created', output
+    code, _, output = harness(split(doc_journeys.substitute(test, {'.venv/bin/python': sys.executable}))[1:], repo)
+    assert code == 1 and output.startswith('## Test this change'), output
+    code, envelope, output = harness(split(review)[1:], repo)
+    assert code == 1 and envelope['status'] == 'draft', output
+
+
+def test_documented_init(home):
+    first, second = doc_journeys.commands(doc_journeys.journeys()['init'])
+    code, envelope, output = harness(split(first)[1:], home)
+    assert code == 0 and envelope['profile'] == 'demo', output
+    other = home / 'repo'
+    other.mkdir()
+    code, envelope, output = harness(split(doc_journeys.substitute(second, {'/path/to/repo': str(other)}))[1:], home)
+    assert code == 0 and envelope['profile'] == 'claude' and envelope['requires']['allow_native'], output
