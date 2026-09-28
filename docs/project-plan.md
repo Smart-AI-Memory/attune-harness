@@ -1,7 +1,7 @@
 # Stable v1 and the first two weeks after release
 
 Refreshed September 28, 2026 against main
-`0d2634c3eacf3d59e22b09dd1a31a9d7e3aa4b30`. This updates the execution focus of
+`30ae645560cf309cfbd8eed16875bf83b1dbb1c9`. This updates the execution focus of
 [the v1 roadmap](plan-1.0.md), retaining [S1–S9 and D25–D30](specs/release-1.0/addendum-2026-09-23.md).
 The earlier phased and October plans remain historical inputs, not an extra
 release backlog. Planning scope: stable v1, then fourteen days of stabilization.
@@ -9,6 +9,24 @@ This document selects work; it does not authorize merges, paid calls, workflow
 dispatch, publication, repository settings changes or a deprecation notice.
 
 ## Executive status
+
+**Current decision: prepare an accelerated stable 1.0.0 release for Patrick's
+review.** The production PyPI `1.0.0rc2` release is published and its fresh
+unconstrained `[all]` install has passed `pip check`, installed checks and an
+offline Forms plan/accept/build/review journey. PyPI's unversioned project and
+search result still display stable `0.6.0`; a direct rc2 link does not change
+the default page or ordinary install selection. Mirror-excluded PyPI Stats
+recorded one download on September 27, before rc2 publication. That count is
+not a measure of people or evidence that the PyPI display caused the decline.
+
+The proposed stable release uses rc2's runtime and pins without a frozen
+surface change. It has **not** completed the previously planned fourteen days
+of observed candidate use, a named non-programmer installed journey, real
+fresh-session memory observation, or per-row candidate migration trial. Those
+are acceptance gaps, not results to infer from green software checks. This
+plan proposes moving those observations into the post-release stabilization
+period to improve discoverability, subject to an explicit stable-release
+decision after the exact artifact and platform evidence are reviewed.
 
 PR154–159 and PR161–163 are merged. Main matches [PR163's](https://github.com/Smart-AI-Memory/attune-harness/pull/163)
 tested head tree `7c93877a3d8b5c8ed140539e9b3c505d7c947c28`; all 19 PR163 checks
@@ -22,24 +40,22 @@ macOS; PR161 retains four paired direct/signed-plugin stage responses and tests
 keyless offline replay across the six CI platforms. This is not broad retrieval
 quality, live cross-platform or human acceptance evidence. See
 [the retained replay fixture](../tests/fixtures/voyage-live-recorded/README.md).
-These are prepublication software and platform receipts. They do not start the
-candidate observation clock; recheck release and package-index state immediately
-before any authorized TestPyPI dispatch.
-
-**Status: preparing the release candidate; not ready to publish stable v1.**
+Those are historical prepublication receipts. Rc1 and rc2 are now published on
+production PyPI; rc2 is the current candidate. Recheck the exact stable SHA,
+PyPI version slot and installed artifact before any authorized stable dispatch.
 No percentage-complete estimate is useful while observed acceptance is open.
 
 | Gate | Present now | What still closes it |
 |---|---|---|
-| S1 compatibility | Versioned state, CLI/API/envelope and deprecation/protocol guards; PR162's candidate-written 33-file fixture, reader/refusal checks and CLI choice/default guard; fresh-wheel and six-platform evidence | Preserve the exact candidate contract through the final release SHA; publication starts the content freeze. The capture manifest proves installed package and bytes, while the writer recipe and reader tests provide the separate writer/consumption evidence. |
+| S1 compatibility | Versioned state, CLI/API/envelope and deprecation/protocol guards; PR162's candidate-written 33-file fixture, reader/refusal checks and CLI choice/default guard; fresh-wheel and six-platform evidence | Preserve the frozen rc2 contract through the final release SHA. The capture manifest proves installed package and bytes, while the writer recipe and reader tests provide the separate writer/consumption evidence. |
 | S2 native independence | D28 adapter removal and native installed journey merged in PR149 | Retain final-artifact proof; Patrick's separate Attune AI writer constraint is not claimed complete. |
 | S3 useful memory | Serving/filter software and explicit saved capture exist | Real fresh-session provenance/recall and corrected/inactive exclusion; explicit saves are not automatically connected to serving. |
 | S4 signed Voyage | Bounded live direct/signed-plugin campaign complete; retained responses and six-platform offline replay merged in PR161; PR162's bounded R1–R7 public claims reconciled | Keep live-macOS versus offline cross-platform limits visible in the final artifact and candidate observations; no general ranking-quality claim. |
 | S5 platform limits | Six platform jobs green; PR162/163 release claims state native-memory, saved-storage and plugin limits | Recheck the exact release artifact and observed-period receipts; Windows native memory/saved limits remain unless separately qualified. |
-| S6 usability | Observation procedure prepared | Named non-programmer completes the installed candidate journey under observation. |
-| S7 candidate/release | PR163's `1.0.0rc1` changelog, release notes and exact TestPyPI procedure are merged; the earlier build-only rehearsal is historical | Qualify the final main SHA, recheck TestPyPI slot/settings, obtain separate build-only and publication approvals, verify the published install, then begin two-week candidate observation; stable approval follows its evidence. |
+| S6 usability | Observation procedure prepared; no named non-programmer walkthrough recorded | Keep the gap visible in release notes; perform and retain the installed stable journey during stabilization. Do not claim prior human acceptance. |
+| S7 candidate/release | Rc2 is published on PyPI; its fresh `[all]` install passed. The candidate observation period is incomplete. | Qualify the exact stable SHA, recheck the PyPI slot, rehearse the publication gate, obtain separate merge/dispatch/publication/tag decisions, verify the installed stable artifact and continue observations. |
 | S8 loose ends | Most historical hygiene closed; PR162 explicitly labels the old code-RAG caller/check historical and reconciles public claims | Any replacement host check needs separate scope and evidence; retained script/receipts stay untouched. |
-| S9 migration | Migration guide drafted | Exercise its supported rows and verify workarounds against the candidate; preserve separate environments. |
+| S9 migration | Migration guide drafted; candidate row-by-row trial not recorded | Preserve separate environments and exercise each supported row against the installed stable artifact during stabilization. |
 
 ## Ordered work to stable v1
 
@@ -56,39 +72,40 @@ No percentage-complete estimate is useful while observed acceptance is open.
    [PR162](https://github.com/Smart-AI-Memory/attune-harness/pull/162) merged
    the installed-writer fixture, exact raw bytes and hashes, reader/refusal
    matrix, CLI choices/defaults and bounded claim audit. Its clean writer wheel
-   is unpublished; the content is prepared but freezes only at rc1 publication.
+   was unpublished when captured; the content froze at rc1 publication.
    Retain those receipts and require the final release wheel's packaged runtime
    files and selected metadata/entry points to match the writer contract.
-3. **Prepare and publish rc1 (S7), next release gate.** After this planning PR
-   merges, qualify the exact final main SHA and artifact through the
-   [runbook](release-runbook.md), verify current TestPyPI settings and version
-   slot, and present concrete hashes and evidence for separate build-only
-   rehearsal and publication approvals. Candidate channel is
-   TestPyPI; do not repeat historical instructions that imply rc1 is on PyPI.
-   At least the S3 SessionStart filter evidence must hold before rc1. Owner:
-   agents prepare; Patrick approves release actions.
-4. **Observe the candidate for at least fourteen days (S3/S6/S7/S9).** Set C0 from
-   the actual published, installed candidate with frozen surfaces. Record artifact,
-   session, outcome, failures and help required. Observe real memory behavior,
-   one non-programmer walkthrough, migration paths and ordinary plugin use. A
-   frozen-surface change requires the next candidate and restarts the interval.
-   Elapsed days without observations are not acceptance evidence.
-5. **Approve stable v1.** At C0+14 days or later, review all S1–S9 evidence and
-   unresolved findings, qualify the exact stable artifacts against retained candidate
-   state, then obtain concrete publication/tag approval under the runbook. Stable
-   release is R0. October remains a target, not a promised date. Stable v1 does not
-   automatically deprecate Attune AI or claim GUI/workflow parity.
+3. **Prepare stable 1.0.0 (S7).** The rc1 and rc2 publication steps are complete.
+   Make a separate version-and-docs pull request from current `main`, with no
+   runtime or saved-format change. Qualify its wheel, source suite, dependency
+   resolution and all six installed-wheel platform jobs. Compare its frozen
+   surfaces and published dependency pins with rc2. State the abbreviated
+   observation decision and remaining S3/S6/S9 gaps in the pull request.
+4. **Approve and publish stable 1.0.0.** Patrick reviews the exact diff and
+   evidence, decides whether to accept the shortened candidate period, and
+   separately authorizes each merge, workflow dispatch, publication and tag as
+   required by the [runbook](release-runbook.md). Verify the PyPI hashes and a
+   fresh unconstrained `[all]` install. R0 is the actual stable publication,
+   never the date of this plan. Stable v1 does not deprecate Attune AI or claim
+   GUI/workflow parity.
+5. **Observe after R0 (S3/S6/S9).** Record artifact, session, outcome, failures
+   and help required. Observe real memory behavior, a named non-programmer
+   installed walkthrough, migration rows and ordinary plugin use. Treat
+   findings as product work with separate reviews and releases; do not
+   backdate observations or relabel software checks as human acceptance.
 
-The shortest useful next unit is exact-final-main qualification and TestPyPI
-preflight for a concrete build-only rehearsal. Publication approval remains a
-separate gate. Schedule human observations without backdating them; C0 begins
-only after an approved TestPyPI publication and verified install. Do not start
-another feature chain while those gates remain open.
+The shortest useful next unit is a reviewable stable-release diff and local
+wheel qualification. The most urgent user-facing outcome is a stable PyPI
+listing that routes ordinary search and installs to the current runtime. Those
+are distinct: publication still waits on exact-main qualification and the
+release decisions. Do not start another feature chain while these gates remain
+open.
 
 ## R0 through R0+14: post-release stabilization
 
-This is **additional to**, not a substitute for, the fourteen-day candidate period.
-Dates are relative because neither publication date is established.
+Under the proposed accelerated release decision, these observations include
+the work originally planned for the candidate period. Dates are relative
+because stable publication has not occurred.
 
 | Window | Focus | Exit evidence |
 |---|---|---|
@@ -138,10 +155,10 @@ claim that the work has no value.
 
 ## Review outcome
 
-Goal: stable interfaces backed by live, installed and observed evidence, followed
-by a quiet stabilization period. The candidate compatibility proof is now merged;
-the highest-value remaining distinction is between prepublication checks and
-actual published-install and fourteen-day observed acceptance.
+Goal: stable interfaces backed by live and installed evidence, with remaining
+human observations retained as named gaps during stabilization. The rc2
+compatibility proof and PyPI install are complete; the highest-value remaining
+distinction is between software checks and observed user acceptance.
 The first user-facing opportunity is O-04's accurate journey/limits map. This review narrows
 existing opportunities rather than inventing a new register or reopening closed
 work. Completion review: complete for planning; release acceptance remains open.

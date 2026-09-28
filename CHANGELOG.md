@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.0.0
+
+- Publish the v1 compatibility contract from the rc2 candidate with no runtime
+  or saved-state format change. The rc2 fix to the unconstrained `[all]` and
+  `voyage` dependency resolution is included.
+- Make 1.0.0 the default stable installation on PyPI. Document the supported
+  journeys and limits, including experimental native model work and host
+  integrations that still need observed use.
+
 ## 1.0.0rc2
 
 - Pin `httpx2` in the `voyage` extra (and therefore `all`) to the version
