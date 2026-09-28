@@ -72,6 +72,11 @@ and a manifest naming the source revision, source and execution-input hashes,
 platform, suite, exit status and post-run drift status.
 A failed suite remains failed even if its partial coverage report exists. The
 supplemental CI jobs upload those files without imposing a coverage threshold.
+The instrumented POSIX full suite has a 1,200-second child budget; the selected
+Windows platform suite retains 1,080 seconds. The 25-minute outer CI job leaves
+time for environment setup, report generation and artifact upload. A timeout
+still leaves an unfinished receipt that cannot be combined. Uninstrumented
+platform qualification retains its separate 900-second suite budget.
 
 Combine downloaded result directories at that exact source revision:
 

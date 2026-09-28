@@ -152,7 +152,7 @@ def measure(output, suite):
             stream.write(startup_hook(config))
         with (output / 'tests.txt').open('w', encoding='utf-8') as log:
             run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
-                                 stderr=subprocess.STDOUT, timeout=1080 if suite == 'platform' else 900)
+                                 stderr=subprocess.STDOUT, timeout=1080 if suite == 'platform' else 1200)
         receipt['test_exit'] = run.returncode
     finally:
         hook.unlink(missing_ok=True)

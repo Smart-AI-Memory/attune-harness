@@ -153,7 +153,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
 
     def successful_child(argv, **kwargs):
         assert ('--coverage-instrumented' in argv) == (suite == 'platform')
-        assert kwargs['timeout'] == (1080 if suite == 'platform' else 900)
+        assert kwargs['timeout'] == (1080 if suite == 'platform' else 1200)
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
