@@ -90,8 +90,12 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    attaching the two files from the publish run. Do this straight after step 7:
    the README on PyPI links to the tag, and those links return 404 until it
    exists.
-9. **Reopen development.** A pull request moves `main` to the next `.dev0`
-   version, so a build from `main` cannot be mistaken for the release.
+9. **Reopen development.** A pull request moves `main` to a `.dev0` version
+   that sorts after the published release, so a build from `main` cannot be
+   mistaken for it or treated as a downgrade. After `1.0.0rc2`, use
+   `1.0.0rc3.dev0`: `1.0.0.dev0` sorts before rc2. This development marker
+   does not commit the project to publishing rc3. Check the ordering with
+   `packaging.version.Version` before pushing the pull request.
 
 ## Things that look wrong and are not
 
