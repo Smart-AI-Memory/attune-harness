@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 from urllib.error import HTTPError
 
 import pytest
@@ -67,6 +68,7 @@ def test_other_version_forms_remain_refused(version):
         candidate.validate_target(**data)
 
 
+@pytest.mark.parametrize("bash_path", ["bash", "/bin/bash"] if sys.platform == "darwin" else ["bash"])
 @pytest.mark.parametrize("target,version,valid", [
     ("pypi", "1.0.0", True), ("pypi", "1.0.0rc1", True),
     ("pypi", "1.0.0rc12", True), ("pypi", "1.0.0rc0", False),
@@ -74,16 +76,16 @@ def test_other_version_forms_remain_refused(version):
     ("testpypi", "1.0.0rc1", True), ("testpypi", "1.0.0", False),
     ("unknown", "1.0.0rc1", False),
 ])
-def test_actual_workflow_target_guard(target, version, valid):
+def test_actual_workflow_target_guard(target, version, valid, bash_path):
     workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/publish-pypi.yml").read_text()
     step = workflow.split("- name: Validate immutable target\n", 1)[1].split("      - uses:", 1)[0]
     script = "\n".join(line[10:] for line in step.split("        run: |\n", 1)[1].splitlines())
     env = dict(os.environ, RELEASE_SHA="a" * 40, GITHUB_SHA="a" * 40,
                RELEASE_TARGET=target, RELEASE_VERSION=version)
-    result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script], env=env, capture_output=True)
+    result = subprocess.run([bash_path, "-e", "-o", "pipefail", "-c", script], env=env, capture_output=True)
     assert (result.returncode == 0) is valid
     env["GITHUB_SHA"] = "b" * 40
-    assert subprocess.run(["bash", "-e", "-c", script], env=env, capture_output=True).returncode != 0
+    assert subprocess.run([bash_path, "-e", "-c", script], env=env, capture_output=True).returncode != 0
 
 
 @pytest.mark.parametrize(
