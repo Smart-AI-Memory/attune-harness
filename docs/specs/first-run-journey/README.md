@@ -3,7 +3,7 @@
 **Status: Q1–Q5 ruled by Patrick on September 28, 2026: Q1–Q3 and Q5 as
 recommended; Q4 changed later that day to "publish the Claude plugin now
 provided it will not interfere with the library working in codex or
-antigravity". The tasks await spec approval before implementation.** Written September 28, 2026 against main `1b56ce5` (1.0.1). It belongs to the
+antigravity". Patrick approved the spec the same day ("approve the spec, start T1"); T1–T7 are authorized in order.** Written September 28, 2026 against main `1b56ce5` (1.0.1). It belongs to the
 stabilization period in [the project plan](../../project-plan.md) and is the
 prerequisite for its S6 gap, the named non-programmer walkthrough: a
 walkthrough is not worth scheduling while three of the five task verbs cannot

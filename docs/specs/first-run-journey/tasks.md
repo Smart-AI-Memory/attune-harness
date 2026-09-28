@@ -1,7 +1,7 @@
 # First-run journey: tasks
 
-**Status: proposed; not executable until the spec is approved.** Checkboxes
-are future work. Requirements are in [design.md](design.md), questions Q1–Q5
+**Status: approved September 28, 2026; T1 in progress.** Checkboxes mark
+completed tasks. Requirements are in [design.md](design.md), questions Q1–Q5
 in the [README](README.md).
 
 ## Order

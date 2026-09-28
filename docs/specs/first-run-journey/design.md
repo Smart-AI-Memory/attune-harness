@@ -1,6 +1,6 @@
 # First-run journey: requirements and acceptance
 
-**Status: Q1–Q5 ruled September 28, 2026; awaiting spec approval.** Overview, evidence and rulings are in the
+**Status: approved September 28, 2026, with Q1–Q5 ruled.** Overview, evidence and rulings are in the
 [README](README.md). Each requirement names what it must not change; the
 [freeze](../../compatibility.md) governs anything not named.
 
