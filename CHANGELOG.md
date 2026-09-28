@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a cold-start journey test to every installed-wheel platform job. It runs
+  the CLI guide's journey-tagged blocks as written, from an empty directory
+  with no participant registry. Journeys that do not work from a fresh install
+  yet are strict expected failures, each naming the first-run journey task that
+  fixes it.
+
 ## 1.0.1
 
 - Repair links in the PyPI-rendered README by pointing to release-specific
