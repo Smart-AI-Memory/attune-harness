@@ -12,6 +12,11 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
+- [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
+- [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
+- [Portable journey tasks](specs/portable-user-journey/tasks.md): Ordered work and verification gates; not yet authorized
+
 - [Stable v1 and the first two weeks after release](project-plan.md): Current release gates, observed candidate period and four bounded follow-through opportunities
 
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
