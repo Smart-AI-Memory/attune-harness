@@ -40,6 +40,23 @@ platform; this is a defect list, not a usability measurement.
 | `fix --goal` | Refused | argparse usage error on stderr, not an envelope: needs `--checkout`, `--scope`, a hand-written probe JSON and a registry |
 | "Ask your agent" in Claude Code | Not available | The `attune-harness` skill lives in `.agents/skills/` only. `plugin/attune-harness/.claude-plugin/plugin.json` says version 0.6.0 and "development candidate", and its skills are `spec`, `cross-review`, `smart-test`, `release-execute` and `attune-release-check`; the Harness skill is not among them. The skill itself says it "targets the 0.6.0 CLI" |
 
+### The same walkthrough after T1–T7, September 28, 2026
+
+Re-run against the T7 head (#178, stacked on #172 and #174–#177), with the
+same scratch repository, macOS, deterministic participants and no model
+calls. Stdin is closed, as for an agent.
+
+| Journey | Result |
+|---|---|
+| `python -m attune_harness` | Completed, exit 0 |
+| `attune-harness init` | Created `participants.json` (demo), exit 0; its `next_action` runs as printed |
+| `test ... --format markdown`, preview then accept | Markdown preview (exit 1, a draft), then `passed` (exit 0) |
+| `status --format markdown` on that test task | Rendered, exit 0 |
+| `plan --request` without `--config` | Refused, exit 2, with the pinned detail and a `next_action` naming `init`. It still needs a work request with a frozen effects manifest: an accepted limit, documented in the CLI guide |
+| `review --goal ... --intake-only --format markdown` | The intake form, exit 1 (a draft) |
+| `fix --goal` alone | A JSON refusal on stdout, exit 2, with a `next_action`. It still needs a checkout and a trusted probe: an accepted limit, documented |
+| "Ask your agent" in Claude Code | The plugin is published by #173. The live receipt is owed after merge (it needs Patrick signed in) |
+
 Refusals came in three shapes: argparse usage text (`fix`), an envelope with
 `next_action` (`plan`), and an envelope without one (`review`).
 
