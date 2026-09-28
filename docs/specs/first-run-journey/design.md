@@ -48,7 +48,7 @@ moves up, whichever keeps the legacy `review-form` example working unchanged.
 
 Must not change: how any path resolves.
 
-## R4: the agent path ships in Claude Code, without touching Codex (Q4)
+## R4: the Claude Code plugin is published, without touching Codex (Q4)
 
 Claude Code discovers skills in `~/.claude/skills/`, a project's
 `.claude/skills/` and installed plugins. It does not read `.agents/skills/`,
@@ -77,8 +77,36 @@ So:
 - The skill's "targets the 0.6.0 CLI" line becomes a check against the
   installed CLI surface (`cli_surface`), which serves every host that reads the
   skill.
-- The plugin README gives one install sequence from the checkout that a fresh
-  Claude Code session follows to a working skill.
+- The repository gains `.claude-plugin/marketplace.json` listing one plugin,
+  `attune-harness`, with `source` `./plugin/attune-harness` and the package
+  version, in the layout attune-forms uses. The plugin README gives the
+  install sequence (`/plugin marketplace add Smart-AI-Memory/attune-harness`,
+  then install), and states that the MCP server and skill need the
+  `attune-harness` CLI on `PATH`, installed separately from PyPI.
+
+**The Q4 condition: publishing must not interfere with Codex, Antigravity or
+the library.** T2 proves each point before its PR leaves draft:
+
+- *Codex.* Codex reads `.codex-plugin/plugin.json` manifests and its own
+  catalogs (`~/.agents/plugins/marketplace.json`); nothing in Codex reads
+  `.claude-plugin/`. T2 shows that `scripts/package_codex_plugin.py` output is
+  byte-identical apart from the SKILL version line, that the Codex plugin
+  validator still passes on both Codex manifests, and that a Codex session
+  lists the Harness skill once.
+- *Antigravity.* Nothing in this repository is packaged for it, and the new
+  files live only under `.claude-plugin/` and a Claude-only skills directory.
+  The shared skill text changes only its version line.
+- *The library.* No plugin file enters the wheel or the sdist; T2 compares
+  their file lists before and after. The CLI, envelopes and saved state are
+  untouched.
+- *What Claude users receive.* If Claude Code loads the shared `./skills/`
+  even when the manifest names extra paths, the published plugin also
+  carries the five shared skills, including the maintainer-only
+  `release-execute` and `attune-release-check`. T2 checks this in a fresh
+  session. If they appear, T2 stops and asks Patrick whether to publish them,
+  mark them maintainer-only, or publish a generated Claude-only package, the
+  pattern `package_codex_plugin.py` already uses. It does not move shared
+  skills on its own, because that would change Codex.
 
 Antigravity has no packaging in this repository and no participant adapter.
 This spec adds neither; the host-neutral pieces (the skill text, `init
@@ -86,8 +114,8 @@ This spec adds neither; the host-neutral pieces (the skill text, `init
 qualified under [the portable journey](../portable-user-journey/README.md).
 
 Must not change: `plugins/attune-harness/`, the shared `./skills/` set, the
-Codex manifests' skill paths, the workspace MCP profile, D30.2's publication
-timing, or the skill's rules on acceptance and permissions. Moving the
+Codex manifests' skill paths, the wheel's contents, the workspace MCP profile,
+or the skill's rules on acceptance and permissions. Moving the
 maintainer skills (`release-execute`, `attune-release-check`) out of the shared
 plugin would change what Codex users get too, so it is left to a separate
 decision.

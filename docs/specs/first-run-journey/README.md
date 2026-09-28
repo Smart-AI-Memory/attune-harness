@@ -1,8 +1,9 @@
 # First-run journey: every verb works from a fresh install
 
-**Status: Q1–Q5 ruled as recommended by Patrick on September 28, 2026
-("all five as recommended"); the tasks await spec approval before
-implementation.** Written September 28, 2026 against main `1b56ce5` (1.0.1). It belongs to the
+**Status: Q1–Q5 ruled by Patrick on September 28, 2026: Q1–Q3 and Q5 as
+recommended; Q4 changed later that day to "publish the Claude plugin now
+provided it will not interfere with the library working in codex or
+antigravity". The tasks await spec approval before implementation.** Written September 28, 2026 against main `1b56ce5` (1.0.1). It belongs to the
 stabilization period in [the project plan](../../project-plan.md) and is the
 prerequisite for its S6 gap, the named non-programmer walkthrough: a
 walkthrough is not worth scheduling while three of the five task verbs cannot
@@ -57,23 +58,23 @@ a stopped control verb. This spec leaves every exit code unchanged.
   changelog line; none needs a deprecation.
 - **D30.2.** The Claude/Codex plugin lives under `plugin/`, is versioned with
   the package, is installed from the checkout until the deprecation notice, and
-  is published to the marketplace with it. This spec fixes the version and the
-  skill set; it does not move the publication date unless Q4 says so.
+  is published to the marketplace with it. Q4 moves the publication forward
+  to T2; the location and versioning terms stand.
 - **No model on the CI path.** Every journey here runs with deterministic or
   command participants. Native participants keep needing `--allow-native`;
   `init` writing a native registry makes no call.
 
 ## Questions for Patrick, ruled
 
-All five were ruled as recommended on September 28, 2026. None weakens an
+All five were ruled on September 28, 2026, Q4 against the original recommendation. None weakens an
 acceptance, provider-spend or recovery gate.
 
-| | Question | Ruled (as recommended) |
+| | Question | Ruling |
 |---|---|---|
 | Q1 | How does a new user get a participant registry? | A new verb, `attune-harness init`, writing `participants.json` from a named profile: `demo` (deterministic, offline), `claude`, `codex`. It refuses to overwrite. Not chosen: documentation plus copyable example files only |
 | Q2 | How do people get readable output, given JSON is frozen as the default? | An optional `--format markdown` on the task verbs, printing the Markdown the envelope already carries; JSON stays the default everywhere. Not chosen: switching to Markdown when stdout is a terminal, which breaks "every verb prints one JSON object" for interactive scripts |
 | Q3 | Path resolution between `--config` and `--document`/`--context` | Keep both rules (changing either is a behaviour change) and make every path refusal state the rule, the value given and the path it resolved to. Fix the example layout to match the rule |
-| Q4 | Plugin publication | Keep D30.2: sync the shared plugin's version, add the Harness skill for Claude Code only (R4) and install from the checkout now; the marketplace waits for the notice. Not chosen: publishing the plugin at 1.1.0, ahead of the notice |
+| Q4 | Plugin publication | **Publish the Claude Code plugin now**, from a `.claude-plugin/marketplace.json` in this repository as attune-forms does, provided it does not interfere with Codex, Antigravity or the Python library (conditions in R4). This amends D30.2's timing, which tied publication to the deprecation notice; D30.2's other terms stand. Not chosen: installing from the checkout until the notice |
 | Q5 | Release vehicle | 1.1.0, a minor release: a new verb and new optional flags, no frozen-surface break |
 
 ## Out of scope

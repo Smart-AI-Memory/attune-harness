@@ -22,18 +22,21 @@ are independent and can be separate PRs in any order. T7 closes out.
   strict xfails naming the task that will fix them.
   Size: one PR, no `src/` change.
 
-- [ ] **T2: ship the Harness skill to Claude Code only (R4).**
+- [ ] **T2: publish the Claude Code plugin with the Harness skill (R4, Q4).**
   Scope: `plugin/attune-harness/.claude-plugin/plugin.json`, a generated
   `plugin/attune-harness/claude-skills/attune-harness/`, both
   `plugin/attune-harness` manifests' versions, the plugin README,
-  `.agents/skills/attune-harness/SKILL.md`'s version line, and a test pinning:
+  `.agents/skills/attune-harness/SKILL.md`'s version line, a new
+  `.claude-plugin/marketplace.json`, and a test pinning:
   the shared manifests' version = package version, the Claude copy identical
   to its source, the skill absent from the shared `./skills/`, and
   `plugins/attune-harness/` unchanged.
-  Done when: the test passes; `scripts/package_codex_plugin.py` output is
-  byte-identical to before apart from the SKILL version line; and a fresh
-  Claude Code session with the plugin installed from the checkout completes
-  the skill to a `test` receipt (a recorded manual receipt).
+  Done when: the test passes; every R4 non-interference check passes (Codex
+  package output, Codex validator, one skill entry in Codex, unchanged wheel
+  and sdist file lists); and a fresh Claude Code session that installs from
+  the marketplace completes the skill to a `test` receipt (a recorded manual
+  receipt). Merging this PR is the publication. Patrick approves the merge
+  separately.
   Size: one PR, no `src/` change.
 
 - [ ] **T3: `init` and registry refusals (R1, R2 registry part).**
