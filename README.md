@@ -11,8 +11,8 @@ three defects that serializer-only tests missed.
 [Read the experiment and its limits](docs/plan-build-native-results.md).
 For a small working example, see [how checks and receipts work](docs/cli-guide.md#checks-and-receipts).
 
-**1.0.0rc1 · Release candidate.** Compatibility content is pinned; the stable
-promise begins at 1.0.0. [Release notes](docs/release-notes-1.0.0rc1.md).
+**1.0.0rc2 · Release candidate.** Compatibility content is pinned; the stable
+promise begins at 1.0.0. [Release notes](docs/release-notes-1.0.0rc2.md).
 [Qualification status](#what-is-qualified-and-what-is-not).
 
 [Install Attune Harness](#installation) · [User guide](docs/cli-guide.md)
@@ -52,7 +52,7 @@ participants need `--allow-external`, and native model participants also need
 Many of these commands are there for the agent and its integrations to call.
 Learning their syntax is not the price of entry, and `attune-harness COMMAND --help`
 covers direct use. Full usage, exit codes and recovery controls are in the
-[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/cli-guide.md).
+[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/cli-guide.md).
 
 ## Use Harness with Codex, Claude, or other models
 
@@ -70,10 +70,10 @@ another project. Installing the Python package alone installs neither integratio
 ## Installation
 
 ```sh
-pipx install 'attune-harness[all]==1.0.0rc1'
+pipx install 'attune-harness[all]==1.0.0rc2'
 ```
 
-or `uv tool install 'attune-harness[all]==1.0.0rc1'`, or `pip install 'attune-harness[all]==1.0.0rc1'`
+or `uv tool install 'attune-harness[all]==1.0.0rc2'`, or `pip install 'attune-harness[all]==1.0.0rc2'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The [worked example](docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
@@ -87,11 +87,11 @@ if it finds the two side by side.
 
 | You want | Install |
 | --- | --- |
-| **Recommended:** the base package plus the Redis reader and Voyage retrieval. The experimental extra below stays explicit | `pip install 'attune-harness[all]==1.0.0rc1'` |
-| The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install 'attune-harness==1.0.0rc1'` |
-| Read the Redis memory a hydration keeps warm: the recall digest, related nodes, one record, full-text search over the index (`redis` 5.3.1); read-only, the `text` body of a file, lesson or rule pointer is never served; needs a reachable Redis Stack with the hydration's index and function library. Also the Redis backend for working memory (`memory scratch`), shared across processes and machines; the file backend is in the base | `pip install 'attune-harness[redis]==1.0.0rc1'` |
-| Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]==1.0.0rc1'` |
-| Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]==1.0.0rc1'` |
+| **Recommended:** the base package plus the Redis reader and Voyage retrieval. The experimental extra below stays explicit | `pip install 'attune-harness[all]==1.0.0rc2'` |
+| The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install 'attune-harness==1.0.0rc2'` |
+| Read the Redis memory a hydration keeps warm: the recall digest, related nodes, one record, full-text search over the index (`redis` 5.3.1); read-only, the `text` body of a file, lesson or rule pointer is never served; needs a reachable Redis Stack with the hydration's index and function library. Also the Redis backend for working memory (`memory scratch`), shared across processes and machines; the file backend is in the base | `pip install 'attune-harness[redis]==1.0.0rc2'` |
+| Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]==1.0.0rc2'` |
+| Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]==1.0.0rc2'` |
 
 Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`
 and `tokens` were extras; they were empty from 0.4.0 and are gone since 0.6.0,
@@ -109,10 +109,10 @@ tests and model quality are different claims, and this project keeps them apart.
 
 | Area | Qualified | Not qualified |
 | --- | --- | --- |
-| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
+| Platforms | CI builds and installs the wheel on macOS, Ubuntu and Windows with Python 3.10 and 3.12, and exercises timeouts, cancellation, bounded output, crash-released locks and recovery ([guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/qualification.md)) | Other Python versions are outside the matrix. On Windows, a process that holds a run's `record.json` open for more than about two seconds still fails that run closed |
 | Models | CI calls no model provider. Native Claude and Codex adapters have recorded comparisons | Native planning and building are experimental. In the September 18, 2026 comparison the original reply contract accepted 1 of 24 replies; after the contract was corrected it accepted 12 of 12. Two repetitions per role do not establish a reliability rate |
 | `fix` and `test` | Local POSIX Git checkouts, regular files, default pytest discovery | File creation, deletion and renames, linked worktrees, custom pytest collectors, committed revision ranges |
-| `fix` on Windows | Nothing yet. New in 0.2.0 and experimental: `fix` runs on a fixed local NTFS volume instead of refusing, and its native tests pass in CI on windows-2022 and windows-2025 ([design note](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/design-windows-effect-backend.md)) | Everything beyond those tests: deletion and renames, files with their own ACL or nonstandard attributes, files over 64 KiB, crash recovery, concurrent writers, power-loss durability, and any run against a real project. `test` on Windows is unchanged and unqualified |
+| `fix` on Windows | Nothing yet. New in 0.2.0 and experimental: `fix` runs on a fixed local NTFS volume instead of refusing, and its native tests pass in CI on windows-2022 and windows-2025 ([design note](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/design-windows-effect-backend.md)) | Everything beyond those tests: deletion and renames, files with their own ACL or nonstandard attributes, files over 64 KiB, crash recovery, concurrent writers, power-loss durability, and any run against a real project. `test` on Windows is unchanged and unqualified |
 | Isolation | Commands and probes run as supervised processes with deadlines and bounded output | **This is not a security sandbox.** Use a dedicated checkout and commands you trust |
 | Receipts | Receipts retain the task, output and check evidence locally | They are local values, not signed attestations. Constructing a `Receipt` directly certifies nothing |
 | Plan acceptance | Core imports, help and the library run standalone. `plan --accept` runs from the base install with no Attune AI; CI exercises its gate with Attune AI blocked | Acceptance through a live MCP host; CI submits the console approval |
@@ -142,9 +142,9 @@ journey, its current boundary and what to keep using while a successor is qualif
 
 ## Links
 
-- [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/qualification.md)
-- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/cli-guide.md)
-- [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc1/docs/portable-contract.md)
+- [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/qualification.md)
+- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/cli-guide.md)
+- [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.0rc2/docs/portable-contract.md)
 - [Repository](https://github.com/Smart-AI-Memory/attune-harness) and
   [issues](https://github.com/Smart-AI-Memory/attune-harness/issues)
 

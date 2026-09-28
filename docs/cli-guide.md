@@ -9,10 +9,10 @@ install commands now name the published package.
 ## Installation
 
 ```sh
-pipx install 'attune-harness[all]==1.0.0rc1'
+pipx install 'attune-harness[all]==1.0.0rc2'
 ```
 
-or `uv tool install 'attune-harness[all]==1.0.0rc1'`, or `pip install 'attune-harness[all]==1.0.0rc1'`
+or `uv tool install 'attune-harness[all]==1.0.0rc2'`, or `pip install 'attune-harness[all]==1.0.0rc2'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The example below needs no API key or attune-ai installation;
