@@ -67,6 +67,19 @@ For an **Attune Harness** entry in Codex Plugins, use the
 [standalone skill discovery](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.0.1/docs/cli-guide.md#codex-skill) in this checkout or
 another project. Installing the Python package alone installs neither integration.
 
+In **Claude Code**, add this repository as a plugin marketplace, then install the
+plugin. It carries the Harness skill plus `cross-review` and `smart-test`, and
+it calls the `attune-harness` command installed above:
+
+```text
+/plugin marketplace add Smart-AI-Memory/attune-harness
+/plugin install attune-harness@attune-harness
+```
+
+Claude Code does not read the `.agents/skills/` folder that Codex discovers, so
+this plugin is how the skill reaches it. Installing the plugin authorizes no
+paid calls.
+
 ## Installation
 
 ```sh

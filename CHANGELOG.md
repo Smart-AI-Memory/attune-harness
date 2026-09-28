@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Publish Attune Harness as a Claude Code plugin from
+  `.claude-plugin/marketplace.json`. It carries the Harness skill (the same
+  source Codex uses), `cross-review` and `smart-test`, with no MCP server. The
+  Spec workspace skill and the maintainer release skills are not included. The
+  Codex plugins and the Python package are unchanged.
+- The Harness skill no longer names the 0.6.0 CLI. A test checks every command
+  and option it shows against the CLI surface of the version it ships with.
+
 ## 1.0.1
 
 - Repair links in the PyPI-rendered README by pointing to release-specific
