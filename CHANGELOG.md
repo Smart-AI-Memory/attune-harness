@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- One refusal shape for the task verbs. A rejected combination of valid
+  options for `review` or `fix`, such as `fix --goal` alone, now prints a JSON
+  refusal envelope with `error` and `next_action` on stdout and still exits 2;
+  it was an argparse usage message on stderr. Unknown flags and malformed
+  arguments remain argparse errors. Refusals from review and fix intake, the
+  saved-task controls and `test` now always carry `next_action`. New golden
+  rows are `fix-incomplete` and `test-refusal`.
+
 - Add `--format json|markdown` (default `json`) to `plan`, `build`, `review`,
   `fix`, `test` and `resume`. Markdown prints the same envelope for people,
   with the same exit code. `status --format markdown|html` now works for every

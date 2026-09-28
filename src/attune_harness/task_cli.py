@@ -58,6 +58,23 @@ def add_arguments(parser):
     parser.add_argument('--clear-intake-cache', action='store_true')
 
 
+REVIEW_MODES = ('See attune-harness review --help: start new work with --goal, answer a saved intake with '
+                '--task-dir and --task-response, or run a legacy review with REQUEST and --run-dir')
+FIX_MODES = ('See attune-harness fix --help: start a repair with --goal, --checkout, --scope and --probe '
+             "(the CLI guide's Scoped repair section shows a probe), or answer a saved intake with "
+             '--task-dir and --task-response')
+FINDINGS = 'Name the completed assessment with --from-assessment and each selected finding with its own --finding-id'
+INSPECT = ('Inspect the error. If a task directory was created, read it with attune-harness status '
+           'before running anything again')
+
+
+def refuse(detail, next_action):
+    """A rejected combination of valid options: one refusal envelope, then exit 2 as argparse did (R2)."""
+    print(json.dumps({'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
+                      'error': {'type': 'UsageError', 'detail': detail}, 'next_action': next_action}, indent=2))
+    raise SystemExit(2)
+
+
 def validate_mode(args, parser):
     task = args.goal is not None or args.task_response is not None
     names = ('project', 'plan', 'task_dir', 'profile', 'criteria', 'query', 'document',
@@ -65,22 +82,22 @@ def validate_mode(args, parser):
              'repair_findings', 'bypass_intake_cache', 'clear_intake_cache', 'intake_only', 'pause_after')
     if task:
         if args.request is not None or args.run_dir is not None or args.max_operations is not None:
-            parser.error('Task intake and legacy request/--run-dir/--max-operations are mutually exclusive')
+            refuse('Task intake and legacy request/--run-dir/--max-operations are mutually exclusive', REVIEW_MODES)
         if args.goal is not None and args.task_response is not None:
-            parser.error('--goal and --task-response are mutually exclusive')
+            refuse('--goal and --task-response are mutually exclusive', REVIEW_MODES)
         if args.task_response is not None:
             forbidden = tuple(n for n in names if n not in ('task_dir', 'bypass_intake_cache', 'clear_intake_cache', 'intake_only', 'pause_after'))
             if args.task_dir is None or any(getattr(args, n) is not None and getattr(args, n) is not False for n in forbidden):
-                parser.error('--task-response requires --task-dir and cannot be combined with intake overrides')
+                refuse('--task-response requires --task-dir and cannot be combined with intake overrides', REVIEW_MODES)
             if args.allow_external or args.allow_provider:
-                parser.error('A task response must carry its own explicit permissions')
+                refuse('A task response must carry its own explicit permissions', REVIEW_MODES)
             if args.config is not None:
-                parser.error('A task response uses its saved registry; --config cannot override it')
+                refuse('A task response uses its saved registry; --config cannot override it', REVIEW_MODES)
     else:
         if args.request is None or args.run_dir is None:
-            parser.error('Legacy review requires request and --run-dir; new intake requires --goal')
+            refuse('Legacy review requires request and --run-dir; new intake requires --goal', REVIEW_MODES)
         if any(getattr(args, n) is not None and getattr(args, n) is not False for n in names):
-            parser.error('Task intake options require --goal or --task-response')
+            refuse('Task intake options require --goal or --task-response', REVIEW_MODES)
     args.config = args.config or Path('participants.json')
     return task
 
@@ -144,8 +161,7 @@ def execute_intake(args):
     except Exception as exc:
         failure = {'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
                    'error': {'type': type(exc).__name__, 'detail': str(exc)}}
-        if getattr(exc, 'next_action', None):
-            failure['next_action'] = exc.next_action
+        failure['next_action'] = getattr(exc, 'next_action', None) or INSPECT
         print(json.dumps(failure, indent=2))
         return 2
 
@@ -257,7 +273,9 @@ def execute_control(args):
     except Exception as exc:
         from .recovery import UnresolvedOperation
         print(json.dumps({'status':'unresolved' if isinstance(exc,UnresolvedOperation) else 'failed',
-                          'error':{'type':type(exc).__name__,'detail':str(exc)}}))
+                          'error':{'type':type(exc).__name__,'detail':str(exc)},
+                          'next_action': ('Inspect the task with attune-harness status before choosing an action; '
+                                          'do not retry an uncertain operation blindly')}))
         return 2
 
 
@@ -295,13 +313,13 @@ def validate_fix(args, parser):
         if args.task_dir is None or args.accept or args.allow_external or any(getattr(args,n) is not None for n in
                 ('goal','project','config','checkout','scope','probe','worker','review','reviewer','criteria',
                  'from_assessment','finding_ids')):
-            parser.error('Fix response requires --task-dir and cannot override accepted inputs or permissions')
+            refuse('Fix response requires --task-dir and cannot override accepted inputs or permissions', FIX_MODES)
     else:
         if not args.goal or not args.checkout or not args.scope or not args.probe:
-            parser.error('Fix requires --goal, --checkout, --scope and --probe, or a bound --task-response')
+            refuse('Fix requires --goal, --checkout, --scope and --probe, or a bound --task-response', FIX_MODES)
         if (args.from_assessment is None) != (args.finding_ids is None):
-            parser.error('--from-assessment and at least one --finding-id are required together')
+            refuse('--from-assessment and at least one --finding-id are required together', FINDINGS)
         if args.finding_ids is not None and len(args.finding_ids) != len(set(args.finding_ids)):
-            parser.error('--finding-id values must be unique')
+            refuse('--finding-id values must be unique', FINDINGS)
         args.config=args.config or Path('participants.json')
         args.review=args.review or 'required'

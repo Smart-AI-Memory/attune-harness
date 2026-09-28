@@ -231,9 +231,8 @@ def test_test_verb_prints_markdown_on_request(home):
     assert code == 1 and output.startswith('## Test this change'), output
 
 
-# The journeys that do not work from a fresh install yet. Each passes when its task lands.
+# First-run journey T6: one refusal shape.
 
-@pending('T6', 'fix rejects an incomplete request with argparse usage text, not an envelope')
 def test_fix_with_only_a_goal_returns_an_envelope(home):
     code, envelope, output = harness(['fix', '--goal', 'Make add handle strings',
                                       '--task-dir', str(home.parent / 'fix-task')], home)

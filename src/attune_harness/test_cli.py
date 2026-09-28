@@ -132,6 +132,10 @@ def execute(args) -> int:
                 {
                     "status": "blocked",
                     "error": {"type": type(exc).__name__, "detail": str(exc)},
+                    "next_action": (
+                        "Correct the reported input and preview again; accept a saved preview "
+                        "with --task-dir, --checkpoint and --accept"
+                    ),
                 }
             )
         )
