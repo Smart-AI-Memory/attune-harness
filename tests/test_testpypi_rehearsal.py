@@ -148,10 +148,9 @@ def test_testpypi_file_inventory_host_hash_and_redirect_reject(tmp_path):
         rehearsal.fetch(manifest, tmp_path / "redirected", opener=redirected, attempts=1)
 
 
-def test_workflow_keeps_production_final_and_testpypi_rc_routes_separate():
+def test_workflow_keeps_production_and_testpypi_routes_separate():
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github/workflows/publish-pypi.yml").read_text()
-    production = (root / "scripts/check_release_candidate.py").read_text()
     assert "if: inputs.publish && inputs.target == 'pypi'" in workflow
     assert "if: inputs.publish && inputs.target == 'testpypi'" in workflow
     assert "environment: pypi" in workflow and "environment: testpypi" in workflow
@@ -160,5 +159,4 @@ def test_workflow_keeps_production_final_and_testpypi_rc_routes_separate():
     assert '[[ "$GITHUB_SHA" == "$RELEASE_SHA" ]]' in workflow
     assert workflow.count("PIP_CONFIG_FILE: /dev/null") == 2
     assert "--isolated --disable-pip-version-check install --no-cache-dir --index-url https://pypi.org/simple/" in workflow
-    assert "This publication path requires a final release version" in production
     assert "check_release_candidate.py" in workflow

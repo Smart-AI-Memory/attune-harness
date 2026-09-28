@@ -54,7 +54,14 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 
 ## Steps
 
-1. **Prepare.** One pull request sets the final `version` in `pyproject.toml`,
+Production PyPI accepts final versions (`X.Y.Z`) and release candidates
+(`X.Y.ZrcN`, where N is a positive integer without leading zeros). For an RC,
+use its exact version in every command, changelog heading and tag below.
+TestPyPI remains RC-only. Both destinations retain the exact-SHA qualification,
+unused version slot, build/install checks and environment approval gates.
+Publishing an RC to production does not approve a stable 1.0 release.
+
+1. **Prepare.** One pull request sets the exact release `version` in `pyproject.toml`,
    adds a `## X.Y.Z` heading to `CHANGELOG.md`, and pins README links to the
    `vX.Y.Z` tag. Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.

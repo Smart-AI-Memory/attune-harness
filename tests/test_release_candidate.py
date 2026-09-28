@@ -4,6 +4,9 @@ import copy
 import importlib.util
 import io
 import json
+import os
+import shutil
+import subprocess
 from pathlib import Path
 from urllib.error import HTTPError
 
@@ -17,7 +20,7 @@ candidate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(candidate)
 
 
-def packet():
+def packet(version="0.1.0"):
     sha = "a" * 40
     repo = "Smart-AI-Memory/attune-harness"
     run = dict(
@@ -32,17 +35,18 @@ def packet():
     )
     return dict(
         sha=sha,
-        version="0.1.0",
+        version=version,
         head=sha,
-        project=dict(name="attune-harness", version="0.1.0"),
-        changelog="# Changelog\n\n## 0.1.0 — release\n",
+        project=dict(name="attune-harness", version=version),
+        changelog=f"# Changelog\n\n## {version} — release\n",
         repository=repo,
         runs=dict(workflow_runs=[run]),
     )
 
 
-def test_exact_candidate_and_latest_success():
-    assert candidate.validate_target(**packet())["version"] == "0.1.0"
+@pytest.mark.parametrize("version", ["0.1.0", "1.0.0rc1", "1.0.0rc12"])
+def test_exact_candidate_and_latest_success(version):
+    assert candidate.validate_target(**packet(version))["version"] == version
 
 
 @pytest.mark.parametrize(
@@ -59,8 +63,9 @@ def test_exact_candidate_and_latest_success():
         "rerun_pending",
     ],
 )
-def test_stale_or_unqualified_candidate_rejected(case):
-    data = packet()
+@pytest.mark.parametrize("version", ["0.1.0", "1.0.0rc1"])
+def test_stale_or_unqualified_candidate_rejected(case, version):
+    data = packet(version)
     run = data["runs"]["workflow_runs"][0]
     if case == "sha":
         data["head"] = "b" * 40
@@ -102,3 +107,58 @@ def test_version_lookup_distinguishes_absent_from_unavailable_and_existing():
             "0.1.0",
             opener=lambda *a, **k: io.StringIO(json.dumps({"releases": {"0.1.0": []}})),
         )
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "1.0.0rc0",
+        "1.0.0rc01",
+        "1.0.0rc",
+        "1.0.0a1",
+        "1.0.0b1",
+        "1.0.0.dev1",
+        "1.0.0.post1",
+        "1.0.0+local",
+        "v1.0.0",
+        "1.0.0rc1\n",
+    ],
+)
+def test_unsupported_release_versions_rejected(version):
+    with pytest.raises(ValueError, match="requires a final or release-candidate"):
+        candidate.validate_target(**packet(version))
+
+
+@pytest.mark.skipif(shutil.which("bash") is None, reason="workflow runs on Ubuntu Bash")
+@pytest.mark.parametrize(
+    "target,version,matching_sha,accepted",
+    [
+        ("pypi", "1.0.0", True, True),
+        ("pypi", "1.0.0rc1", True, True),
+        ("pypi", "1.0.0rc12", True, True),
+        ("testpypi", "1.0.0rc1", True, True),
+        ("testpypi", "1.0.0", True, False),
+        ("pypi", "1.0.0rc0", True, False),
+        ("pypi", "1.0.0rc01", True, False),
+        ("pypi", "1.0.0.dev1", True, False),
+        ("pypi", "1.0.0+local", True, False),
+        ("pypi", "1.0.0rc1", False, False),
+        ("unknown", "1.0.0rc1", True, False),
+    ],
+)
+def test_workflow_immutable_target_guard(target, version, matching_sha, accepted):
+    workflow = (
+        Path(__file__).resolve().parents[1] / ".github/workflows/publish-pypi.yml"
+    ).read_text()
+    step = workflow.split("- name: Validate immutable target\n", 1)[1]
+    script = step.split("        run: |\n", 1)[1].split("      - uses:", 1)[0]
+    script = "\n".join(line[10:] for line in script.splitlines())
+    env = dict(
+        os.environ,
+        RELEASE_TARGET=target,
+        RELEASE_VERSION=version,
+        RELEASE_SHA="a" * 40,
+        GITHUB_SHA=("a" if matching_sha else "b") * 40,
+    )
+    result = subprocess.run(["bash", "-e", "-c", script], env=env, capture_output=True)
+    assert (result.returncode == 0) is accepted, result.stderr.decode()

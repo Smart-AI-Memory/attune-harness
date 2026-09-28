@@ -1,4 +1,4 @@
-"""Check a final release candidate in CI (Python 3.12); never publish."""
+"""Check a final or release-candidate version in CI (Python 3.12); never publish."""
 
 import argparse
 import json
@@ -13,8 +13,8 @@ from urllib.request import urlopen
 def validate_target(*, sha, version, head, project, changelog, runs, repository):
     if not re.fullmatch(r"[0-9a-f]{40}", sha) or head != sha:
         raise ValueError("The checkout must match the full approved commit SHA")
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
-        raise ValueError("This publication path requires a final release version")
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:rc[1-9][0-9]*)?", version):
+        raise ValueError("This publication path requires a final or release-candidate version")
     if project.get("name") != "attune-harness" or project.get("version") != version:
         raise ValueError("Package metadata differs from the requested release")
     if not re.search(r"^## " + re.escape(version) + r"(?:\s|$)", changelog, re.M):
