@@ -12,6 +12,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Stable v1 and the first two weeks after release](project-plan.md): Current release gates, observed candidate period and four bounded follow-through opportunities
+
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
 - [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin

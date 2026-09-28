@@ -224,6 +224,30 @@ their numbering is independent of O-01–O-36.
 
 ## Dated evidence and follow-through
 
+O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
+execution snapshot still calling the now-completed Voyage campaign pending.
+Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree
+`626f6450635ee59f9b4ed805a7f30c04f618ac87`; all sixteen PR161 checks passed.
+Refresh the existing plan to distinguish completed live evidence from PR162's
+unfinished compatibility/claim work and future observed acceptance. CLI
+choices/defaults are an approved freeze decision. This closes the planning
+snapshot correction, not O-04's final candidate journey map. No new opportunity
+is needed; the user encounters accurate status first. This note authorizes no
+additional work, spend, merge or release action.
+
+O-04 follow-through, 2026-09-27 — **goal** lens. Main
+`adbba126e435966df2ef2118bf69fdbda1316712` has the exact PR159 tested tree;
+all sixteen PR checks passed. Live Voyage and observed candidate acceptance
+remain distinct from those software results. The [updated release plan](project-plan.md)
+keeps the existing two-week candidate gate and adds two weeks after stable release.
+It selects small slices of O-04, O-09/O-16, Windows-traps follow-through and O-11,
+with two hours per item and six hours total, instead of opening a new feature chain.
+Done when the plan's maps/evidence links/guidance/timing report are accurate and
+reviewed; skip any slice already closed by release work. The first user-facing
+improvement is accurate supported-journey guidance. No new opportunity ID is
+needed, and this entry authorizes no implementation, spend or release action.
+
+
 O-04 follow-through, 2026-09-27 — **user** lens. Stable-v1 retrieval scope is
 explicit: qualify Voyage, preserve local keyword retrieval and memory reads,
 and defer automatic fallback and additional providers. Installed macOS wheel
