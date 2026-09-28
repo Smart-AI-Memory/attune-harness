@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.0.0rc2
+
+- Pin `httpx2` in the `voyage` extra (and therefore `all`) to the version
+  required by the signed plugin import closure. A fresh unconstrained
+  `attune-harness[all]` install no longer selects a newer incompatible
+  transitive version. This candidate supersedes rc1 for installation testing;
+  rc1 remains published and its evidence is retained.
+
 ## 1.0.0rc1
 
 - Support release candidates on production PyPI while preserving exact-commit,

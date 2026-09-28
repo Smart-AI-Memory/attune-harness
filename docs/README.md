@@ -27,6 +27,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [The compatibility list](compatibility.md): What 1.0.0 promises not to change without a deprecation, surface by surface, with the guard for each
 - [1.0.0rc1 release notes](release-notes-1.0.0rc1.md): Candidate scope, evidence limits and observation prerequisites
+- [1.0.0rc2 release notes](release-notes-1.0.0rc2.md): Unconstrained `voyage` and `all` install correction
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Coverage measurement](coverage-measurement.md): Supplemental subprocess and platform measurements, their provenance and limits
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not
