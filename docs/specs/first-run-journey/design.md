@@ -42,9 +42,10 @@ on refusal envelopes are additive and rewrite the golden rows.
 
 A refusal about an input path states which base it resolved against (the
 working directory or `--project`), the value given and the resolved path. The
-bundled examples are laid out so each documented verb accepts them: the
-review example's `context.json` moves inside its project, or the project root
-moves up, whichever keeps the legacy `review-form` example working unchanged.
+bundled review example keeps its layout: it already completes with
+`--project examples/local-workflow` (found during T1, which pins that
+invocation). The CLI guide documents that command, so each documented verb has
+a runnable example for the bundled files.
 
 Must not change: how any path resolves.
 

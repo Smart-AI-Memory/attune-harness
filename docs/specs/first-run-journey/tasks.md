@@ -11,7 +11,7 @@ result. T2 is the smallest change with the widest reach. After those, T3–T6
 are independent and can be separate PRs in any order. T7 closes out.
 `src/` changes get the different-model review, as usual.
 
-- [ ] **T1: the cold-start journey test, red first (R6).**
+- [ ] **T1: the cold-start journey test, red first (R6).** In review: #172.
   Scope: `tests/test_cold_start_journey.py`, a doc-block extractor under
   `scripts/`, one step in `qualification.yml`'s installed-wheel jobs, and
   `<!-- journey: -->` tags on the blocks that already run. Each step that
@@ -46,12 +46,13 @@ are independent and can be separate PRs in any order. T7 closes out.
   Done when: T1's `init` step passes, and `review`, `plan` and `fix` without a
   registry return `next_action` naming `init`.
 
-- [ ] **T4: examples and path refusals (R3).**
-  Scope: `examples/review/`, `examples/local-workflow/`,
-  `task_contract.py` path refusals, the `review-form` legacy example test.
-  Done when: T1's `review` step passes on the bundled example with the
-  documented command, the legacy example still passes unchanged, and each
-  path refusal names its base and resolved path.
+- [ ] **T4: path refusals and the documented review example (R3).**
+  Scope: `task_contract.py` path refusals, the CLI guide's review section,
+  golden refusal rows that gain words but no keys.
+  Done when: T1's `test_path_refusal_explains_resolution` passes; each path
+  refusal names its base and resolved path; the guide shows the bundled
+  example's working invocation, which T1's `test_review_bundled_example`
+  already pins, and T7 tags it.
 
 - [ ] **T5: `--format markdown` and `status` profiles (R5).**
   Scope: the six task verbs' parsers, one shared renderer over existing
