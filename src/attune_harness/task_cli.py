@@ -170,6 +170,8 @@ def add_controls(sub):
         if name != 'status':
             parser.add_argument('--checkpoint', help='Optional expected checkpoint for scripted compare-and-set')
         if name == 'resume':
+            from .human_output import add_format
+            add_format(parser)
             parser.add_argument('--max-operations', type=int)
             parser.add_argument('--allow-external', action='store_true', help='Explicit feature-work command dispatch')
             parser.add_argument('--allow-native', action='store_true', help='Separate feature-work native trial authorization')
@@ -198,7 +200,16 @@ def execute_control(args):
             raise ValueError('--include-task requires --format markdown or html; default JSON is unchanged')
         if continuation is not None and getattr(args, 'format', 'json') == 'json':
             raise ValueError('--continuation requires --format markdown or html; default JSON is unchanged')
-        if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
+        readable = args.command == 'status' and getattr(args, 'format', 'json') != 'json'
+        if readable and not included:
+            from .review_store import read_record
+            # Feature work has its own return-to-work snapshot; every other task renders its
+            # status envelope below (first-run journey R5). A continuation note is feature-work only.
+            feature = read_record(args.task_dir).get('task_profile') == 'feature-work-v1'
+            if not feature and continuation is not None:
+                raise ValueError('--continuation applies to feature-work-v1 snapshots only')
+            readable = feature
+        if readable:
             from .task_view import inspect, render, inspect_saved_tasks, render_saved_tasks
             if included:
                 print(render_saved_tasks(inspect_saved_tasks(
@@ -232,6 +243,10 @@ def execute_control(args):
         if result.get('task_profile') == 'pytest-change-v1':
             from .test_change import public_test_task
             result = public_test_task(result)
+        if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
+            from .human_output import document, markdown
+            print(markdown(result) if args.format == 'markdown' else document(result), end='')
+            return 0
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         if args.command == 'status':
             return 0
@@ -248,6 +263,8 @@ def execute_control(args):
 
 def add_fix(sub):
     parser = sub.add_parser('fix', help='Repair scoped files and check the result')
+    from .human_output import add_format
+    add_format(parser)
     parser.add_argument('--goal')
     parser.add_argument('--project',type=Path)
     parser.add_argument('--config',type=Path)

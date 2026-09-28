@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add `--format json|markdown` (default `json`) to `plan`, `build`, `review`,
+  `fix`, `test` and `resume`. Markdown prints the same envelope for people,
+  with the same exit code. `status --format markdown|html` now works for every
+  task profile, not only `feature-work-v1`. JSON output is unchanged.
+
 - Review intake path refusals now say how each path was read: the value given,
   whether it resolved against `--project` or was absolute, and the resolved
   path, plus the rule (`--document`, `--context` and `--corpus` against

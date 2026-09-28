@@ -90,10 +90,18 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `verify` | - | `document` | `--context` |
 <!-- /surface-rows -->
 
+`plan`, `build`, `review`, `fix`, `test` and `resume` accept an optional
+`--format json|markdown`, default `json` (first-run journey T5). Markdown
+prints the same envelope for people, with the exit code the JSON path returns;
+the envelope itself is unchanged. `review` and `fix` refuse Markdown when they
+would prompt on a terminal.
+
 `status` additionally accepts optional `--format json|markdown|html`. Default
-and explicit JSON preserve the existing envelope. Markdown/HTML are bounded,
-read-only snapshots for `feature-work-v1`, with no live refresh or new task
-authority. Unsupported profiles and oversized views give a JSON error and exit 2.
+and explicit JSON preserve the existing envelope. For `feature-work-v1`,
+Markdown/HTML are bounded, read-only return-to-work snapshots, with no live
+refresh or new task authority. Every other task renders its JSON status
+envelope as Markdown, or that Markdown in an HTML page. Oversized views give a
+JSON error and exit 2.
 `--continuation FILE` optionally supplies bounded, attributed pause context for
 Markdown/HTML only. It does not extend the saved task schema or JSON envelope;
 using it with JSON gives an explicit error rather than silently dropping context.
