@@ -1,0 +1,78 @@
+# First-run journey: tasks
+
+**Status: proposed; not executable until the spec is approved.** Checkboxes
+are future work. Requirements are in [design.md](design.md), questions Q1–Q5
+in the [README](README.md).
+
+## Order
+
+T1 first, because it turns every later task's done condition into a CI
+result. T2 is the smallest change with the widest reach. After those, T3–T6
+are independent and can be separate PRs in any order. T7 closes out.
+`src/` changes get the different-model review, as usual.
+
+- [ ] **T1: the cold-start journey test, red first (R6).**
+  Scope: `tests/test_cold_start_journey.py`, a doc-block extractor under
+  `scripts/`, one step in `qualification.yml`'s installed-wheel jobs, and
+  `<!-- journey: -->` tags on the blocks that already run. Each step that
+  fails today is `xfail(strict=True)` with the walkthrough's reason, so each
+  later task must flip its own xfail to pass.
+  Done when: the job runs on all six platform jobs; `demo` and `test` pass;
+  `init`, `review`, `fix`, `plan`/`build` and `status --format markdown` are
+  strict xfails naming the task that will fix them.
+  Size: one PR, no `src/` change.
+
+- [ ] **T2: ship the Harness skill to Claude Code only (R4).**
+  Scope: `plugin/attune-harness/.claude-plugin/plugin.json`, a generated
+  `plugin/attune-harness/claude-skills/attune-harness/`, both
+  `plugin/attune-harness` manifests' versions, the plugin README,
+  `.agents/skills/attune-harness/SKILL.md`'s version line, and a test pinning:
+  the shared manifests' version = package version, the Claude copy identical
+  to its source, the skill absent from the shared `./skills/`, and
+  `plugins/attune-harness/` unchanged.
+  Done when: the test passes; `scripts/package_codex_plugin.py` output is
+  byte-identical to before apart from the SKILL version line; and a fresh
+  Claude Code session with the plugin installed from the checkout completes
+  the skill to a `test` receipt (a recorded manual receipt).
+  Size: one PR, no `src/` change.
+
+- [ ] **T3: `init` and registry refusals (R1, R2 registry part).**
+  Scope: new `init_cli.py`, `cli.py` and `cli_help.py` registration,
+  `surface.json`, golden rows `init` and `init-refusal`, the missing-registry
+  refusal in `review_cli.py`, `task_cli.py` and `work_cli.py`.
+  Done when: T1's `init` step passes, and `review`, `plan` and `fix` without a
+  registry return `next_action` naming `init`.
+
+- [ ] **T4: examples and path refusals (R3).**
+  Scope: `examples/review/`, `examples/local-workflow/`,
+  `task_contract.py` path refusals, the `review-form` legacy example test.
+  Done when: T1's `review` step passes on the bundled example with the
+  documented command, the legacy example still passes unchanged, and each
+  path refusal names its base and resolved path.
+
+- [ ] **T5: `--format markdown` and `status` profiles (R5).**
+  Scope: the six task verbs' parsers, one shared renderer over existing
+  presentation Markdown, `task_view.py`'s profile gate, `surface.json`,
+  `docs/compatibility.md`'s `status` paragraph.
+  Done when: T1's `status --format markdown` steps pass for every profile, and
+  a golden check shows each verb's exit code identical under both formats.
+
+- [ ] **T6: one refusal shape (R2 remainder).**
+  Scope: the option-combination `parser.error` calls in `task_cli.py`, refusal
+  envelopes for `plan`, `review`, `fix`, `test`, `build`, `status` and
+  `resume`, new golden refusal rows.
+  Done when: every refusal row in `docs/envelopes.md` for those verbs carries
+  `error` and `next_action`, at exit 2.
+
+- [ ] **T7: the journey is the documentation, then release (R7, Q5).**
+  Scope: the README's five-minute path, each CLI-guide verb section opening
+  with a tagged runnable block, the changelog, release notes for 1.1.0.
+  Done when: T1 has no xfail left (or each remaining one is a named, accepted
+  limit in the README table), the walkthrough table is re-run, and the release
+  runbook's qualification passes.
+
+## Estimate
+
+Seven PRs. T1, T2 and T7 are documentation, tests and packaging; T3–T6 touch
+`src/` at the CLI and presentation layers only, with no runtime, saved-state
+or execution-route change.
