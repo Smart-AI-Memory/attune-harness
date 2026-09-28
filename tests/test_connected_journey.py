@@ -37,6 +37,11 @@ def journey(tmp_path):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
     subprocess.run(["git", "init", "-q", str(root)], check=True)
+    # The repair snapshot includes .git; do not leave auto-maintenance writing behind it.
+    subprocess.run(["git", "-C", str(root), "config", "--local", "maintenance.auto", "false"], check=True)
+    assert subprocess.check_output(
+        ["git", "-C", str(root), "config", "--get", "maintenance.auto"], text=True,
+    ).strip() == "false"
     subprocess.run(["git", "-C", str(root), "add", "."], check=True)
     subprocess.run(
         [
@@ -127,6 +132,14 @@ print(json.dumps({'schema_version':1,'request_digest':p['request_digest'],'actio
         )
     )
     return tmp_path, root, registry, probe, configure
+
+
+def test_journey_checkout_disables_git_auto_maintenance(journey):
+    root = journey[1]
+    setting = subprocess.check_output(
+        ["git", "-C", str(root), "config", "--get", "maintenance.auto"], text=True,
+    )
+    assert setting.strip() == "false"
 
 
 def repair_args(journey, *, assessment=False):
