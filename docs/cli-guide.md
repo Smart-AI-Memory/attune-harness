@@ -27,6 +27,7 @@ if it finds the two side by side.
 A participant produces output; a separate check decides whether it meets the
 criteria. This local example needs no API key:
 
+<!-- journey: checks-and-receipts -->
 ```python
 from attune_harness import Check, Output, Task, run
 
@@ -348,6 +349,7 @@ Install `attune-harness`, which carries the forms grammar, and choose an interpr
 pytest. Supply a changed file or directory relative to Git HEAD. The first command
 saves a preview; accept its returned checkpoint to run the captured inputs:
 
+<!-- journey: test-this-change -->
 ```sh
 attune-harness test --project /path/to/repo --scope src/example.py \
   --interpreter /path/to/venv/bin/python --task-dir /path/outside/repo/test-task
