@@ -57,8 +57,10 @@ def environment():
 
 def harness(args, cwd):
     """Run the installed console script; return the exit code, the envelope (or None) and the raw output."""
+    # An empty pipe, never the runner's stdin: Windows reports an inherited console, and even
+    # NUL, as a terminal, which would start review's interactive intake prompts.
     result = subprocess.run([str(CLI), *args], cwd=cwd, env=environment(), capture_output=True,
-                            text=True, encoding='utf-8', timeout=120)
+                            input='', text=True, encoding='utf-8', timeout=120)
     try:
         envelope = json.loads(result.stdout)
     except ValueError:
