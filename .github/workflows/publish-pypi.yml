@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       version:
-        description: Exact final version or TestPyPI RC, such as 0.1.0rc1
+        description: Exact final or release-candidate version, such as 1.0.0rc1
         required: true
         type: string
       target:
-        description: Publish destination; production remains final-only
+        description: Publish destination; PyPI accepts final and RC versions
         required: true
         type: choice
         options: [pypi, testpypi]
@@ -45,13 +45,13 @@ jobs:
       - name: Validate immutable target
         shell: bash
         run: |
-          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$GITHUB_SHA" == "$RELEASE_SHA" ]]
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          [[ "$GITHUB_SHA" == "$RELEASE_SHA" ]] || exit 1
           if [[ "$RELEASE_TARGET" == testpypi ]]; then
-            [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+rc[1-9][0-9]*$ ]]
+            [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+rc[1-9][0-9]*$ ]] || exit 1
           else
-            [[ "$RELEASE_TARGET" == pypi ]]
-            [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            [[ "$RELEASE_TARGET" == pypi ]] || exit 1
+            [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(rc[1-9][0-9]*)?$ ]] || exit 1
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

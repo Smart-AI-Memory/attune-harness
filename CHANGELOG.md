@@ -4,6 +4,10 @@
 
 ## 1.0.0rc1
 
+- Support release candidates on production PyPI while preserving exact-commit,
+  qualification and unused-version checks. Simplify the README introduction,
+  link the worked example, and recommend the complete `[all]` installation.
+
 - Prepare `1.0.0rc1` package metadata and capture the candidate saved-state
   fixture from a clean, installed local writer wheel. The fixture retains exact
   record bytes and reader/replay/refusal cases; publication and the observed

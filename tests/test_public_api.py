@@ -1,7 +1,7 @@
-"""The Python API the README opens with, run as written and pinned by name and parameters (4.1; D27.4).
+"""The Python API documented in the CLI guide, run as written and pinned by name and parameters (4.1; D27.4).
 
 Seven public names: ``run``, ``Task``, ``Output``, ``Check``, ``Receipt``,
-``Status`` and ``Participant``. The README's first fenced example runs
+``Status`` and ``Participant``. The CLI guide's checks-and-receipts example runs
 unchanged, as a script; its two documented variants reject and fail; ``run``
 calls the participant exactly once; and the names' parameters and defaults
 match ``tests/fixtures/compatibility/public_api.txt``, a deliberate diff to
@@ -24,20 +24,26 @@ import attune_harness
 from attune_harness import Check, Output, Participant, Status, Task, run
 
 ROOT = Path(__file__).resolve().parents[1]
-README = ROOT / "README.md"
+GUIDE = ROOT / "docs" / "cli-guide.md"
 SNAPSHOT = ROOT / "tests" / "fixtures" / "compatibility" / "public_api.txt"
 NAMES = ("run", "Task", "Output", "Check", "Receipt")
 
 
-def readme_example():
-    match = re.search(r"```python\n(.*?)```", README.read_text(encoding="utf-8"), re.S)
-    assert match, "the README's first fenced Python block is the example"
+def guide_example():
+    section = re.search(
+        r"^## Checks and receipts\n(.*?)(?=^## |\Z)",
+        GUIDE.read_text(encoding="utf-8"),
+        re.M | re.S,
+    )
+    assert section, "the CLI guide must document checks and receipts"
+    match = re.search(r"```python\n(.*?)```", section.group(1), re.S)
+    assert match, "the checks-and-receipts section must contain the Python example"
     return match.group(1)
 
 
 def run_example(source, directory):
     """Run the example as a script from a file, the way a reader would, capturing its output."""
-    script = directory / "readme_example.py"
+    script = directory / "guide_example.py"
     script.write_text(source, encoding="utf-8")
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
@@ -45,15 +51,15 @@ def run_example(source, directory):
     return namespace, out.getvalue().strip()
 
 
-def test_the_readme_example_runs_as_written(tmp_path):
-    namespace, out = run_example(readme_example(), tmp_path)
+def test_the_guide_example_runs_as_written(tmp_path):
+    namespace, out = run_example(guide_example(), tmp_path)
     assert out == "verified"
     assert namespace["receipt"].status is Status.VERIFIED
     assert namespace["receipt"].check.evidence == "Compared with independent arithmetic"
 
 
-def test_the_readme_variants_reject_and_fail(tmp_path):
-    source = readme_example()
+def test_the_guide_variants_reject_and_fail(tmp_path):
+    source = guide_example()
     assert 'return Output("4")' in source
     _, out = run_example(source.replace('return Output("4")', 'return Output("5")'), tmp_path)
     assert out == "rejected"

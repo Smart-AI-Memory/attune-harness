@@ -6,6 +6,50 @@ This text was moved here from the README for the 0.1.0 release so that the packa
 page can stay brief. Nothing was dropped. Links were adjusted for this location and
 install commands now name the published package.
 
+## Installation
+
+```sh
+pipx install 'attune-harness[all]==1.0.0rc1'
+```
+
+or `uv tool install 'attune-harness[all]==1.0.0rc1'`, or `pip install 'attune-harness[all]==1.0.0rc1'`
+into an environment of its own. This is the recommended install: everything the
+review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
+Python 3.10 or later. The example below needs no API key or attune-ai installation;
+Voyage retrieval needs a Voyage API key and makes paid calls.
+Harness and attune-ai cannot share one environment:
+they pin different lines of the MCP SDK, and installing Harness over attune-ai
+replaces attune-ai's; an isolated install avoids that, and `mcp-serve` says so
+if it finds the two side by side.
+
+## Checks and receipts
+
+A participant produces output; a separate check decides whether it meets the
+criteria. This local example needs no API key:
+
+```python
+from attune_harness import Check, Output, Task, run
+
+class Worker:
+    def run(self, task: Task) -> Output:
+        return Output("4")
+
+receipt = run(
+    Task("addition", "Compute 2 + 2", ("Return the integer result",)),
+    "example-worker",
+    Worker(),
+    lambda task, output: Check(output.text == "4", "Compared with independent arithmetic"),
+)
+print(receipt.status.value)  # verified
+```
+
+Change the worker to return `"5"` and the same call returns `rejected`, with the
+output and the check's evidence still attached. If the participant or the check
+raises, the status is `failed` and the receipt names the stage and the error. `run`
+executes once. It never retries on its own.
+
+`python -m attune_harness` runs the installed demonstration and prints a JSON receipt.
+
 ## How people and AI work together
 
 People can direct or intervene in work through the task verbs. **Specs are the
