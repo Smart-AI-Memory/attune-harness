@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from urllib.error import HTTPError
 
@@ -130,6 +131,7 @@ def test_unsupported_release_versions_rejected(version):
 
 
 @pytest.mark.skipif(shutil.which("bash") is None, reason="workflow runs on Ubuntu Bash")
+@pytest.mark.parametrize("bash_path", ["bash", "/bin/bash"] if sys.platform == "darwin" else ["bash"])
 @pytest.mark.parametrize(
     "target,version,matching_sha,accepted",
     [
@@ -146,7 +148,7 @@ def test_unsupported_release_versions_rejected(version):
         ("unknown", "1.0.0rc1", True, False),
     ],
 )
-def test_workflow_immutable_target_guard(target, version, matching_sha, accepted):
+def test_workflow_immutable_target_guard(target, version, matching_sha, accepted, bash_path):
     workflow = (
         Path(__file__).resolve().parents[1] / ".github/workflows/publish-pypi.yml"
     ).read_text()
@@ -160,5 +162,5 @@ def test_workflow_immutable_target_guard(target, version, matching_sha, accepted
         RELEASE_SHA="a" * 40,
         GITHUB_SHA=("a" if matching_sha else "b") * 40,
     )
-    result = subprocess.run(["bash", "-e", "-c", script], env=env, capture_output=True)
+    result = subprocess.run([bash_path, "-e", "-c", script], env=env, capture_output=True)
     assert (result.returncode == 0) is accepted, result.stderr.decode()
