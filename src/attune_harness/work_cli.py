@@ -554,6 +554,8 @@ def execute(args):
                         from .init_cli import registry_next_action
 
                         error.next_action = registry_next_action(args.project or Path.cwd())
+                        if args.project is None:
+                            error.next_action = "Pass --project with the project directory. " + error.next_action
                     raise error
                 data = _json(args.request)
                 allowed = {

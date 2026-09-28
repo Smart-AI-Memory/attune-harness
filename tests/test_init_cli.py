@@ -93,6 +93,14 @@ def test_review_intake_without_a_registry_names_init(tmp_path, capsys, monkeypat
     assert not (tmp_path / 'task').exists()
 
 
+def test_plan_without_a_project_or_config_names_both(tmp_path, capsys):
+    (tmp_path / 'request.json').write_text('{}', encoding='utf-8')
+    code = main(['plan', '--task-dir', str(tmp_path / 'task'), '--request', str(tmp_path / 'request.json')])
+    envelope = json.loads(capsys.readouterr().out)
+    assert code == 2 and envelope['next_action'].startswith('Pass --project with the project directory. ')
+    assert 'attune-harness init' in envelope['next_action']
+
+
 def test_plan_without_a_config_names_init(tmp_path, capsys):
     (tmp_path / 'request.json').write_text('{}', encoding='utf-8')
     code = main(['plan', '--task-dir', str(tmp_path / 'task'), '--request', str(tmp_path / 'request.json'),

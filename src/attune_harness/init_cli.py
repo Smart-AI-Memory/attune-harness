@@ -14,7 +14,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from .features import replace_file, write_report
+from .features import write_report
 from .review_contract import validate_registry
 
 REGISTRY = 'participants.json'
@@ -100,7 +100,10 @@ def execute(args) -> int:
                 raise ValueError(f'{backup} already exists; move it before replacing the registry')
             if target.is_symlink() or not target.is_file():
                 raise ValueError(f'Not a regular file: {target}')
-            replace_file(target, backup)
+            # Copy, never move: the old registry stays in place until the new one replaces it
+            # atomically, so no moment leaves the project without one. 'x' refuses a racing backup.
+            with target.open('rb') as source, backup.open('xb') as copy:
+                copy.write(source.read())
             replaced = str(backup)
         write_report(target, registry)
         native = args.profile != 'demo'
