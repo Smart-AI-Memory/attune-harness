@@ -146,6 +146,34 @@ approval comment records. What those scripts learned, for the next ones:
 - Wrap the tag message with `fold -s` and strip the leading space `fold`
   leaves on continuation lines.
 
+## Production PyPI release candidates
+
+Production PyPI accepts final versions and release candidates such as
+`1.0.0rc1`. The production gate requires a clean checkout at the exact approved
+commit, matching package metadata and changelog, successful qualification for
+that commit, and an unused PyPI version. Development, alpha, beta, post-release
+and local versions are refused. TestPyPI retains its separate RC-only route.
+
+For `1.0.0rc1`, follow the release steps above with `target=pypi`. First run
+the build-only rehearsal (`publish=false`), then the authorized publication
+(`publish=true`) from the same reviewed main commit. Preserve the environment
+approval and verify both published files against the publishing run's
+`release-evidence/SHA256SUMS`; rehearsal hashes do not establish published bytes.
+Create the GitHub release as a prerelease and attach those verified files.
+
+Install the candidate explicitly in a fresh environment:
+
+```sh
+pipx install 'attune-harness[all]==1.0.0rc1'
+```
+
+An unpinned installation normally selects the stable release. Record the release
+SHA, publication run and attempt, both artifact hashes and the verified-install
+time before starting the candidate observation period. Production publication
+does not waive the 14-day observation period, non-programmer walkthrough or
+separate stable-release decision. The TestPyPI procedure below remains available
+for rehearsals; it is not the destination selected for this candidate.
+
 ## TestPyPI rehearsal
 
 The 1.0 compatibility content freezes when `rc1` is published. During the
