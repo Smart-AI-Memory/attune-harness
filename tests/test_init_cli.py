@@ -88,7 +88,8 @@ def test_review_intake_without_a_registry_names_init(tmp_path, capsys, monkeypat
     code, envelope = run(capsys, 'review', '--goal', 'Check the guide', '--task-dir', str(tmp_path / 'task'))
     assert code == 2 and envelope['operation'] == 'task-intake'
     assert envelope['error'] == {'type': 'RegistryMissing',
-                                 'detail': f'No participant registry at {Path("participants.json")}'}
+                                 'detail': f'No participant registry at {tmp_path / "participants.json"} '
+                                           "(--config 'participants.json' resolves against the working directory)"}
     assert 'attune-harness init' in envelope['next_action']
     assert not (tmp_path / 'task').exists()
 

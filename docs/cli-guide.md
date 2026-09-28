@@ -356,6 +356,22 @@ attune-harness status .attune-harness/tasks/<task-id>
 attune-harness resume .attune-harness/tasks/<task-id>
 ```
 
+`--document`, `--context` and `--corpus` resolve against `--project`, while
+`--config` resolves against the working directory; a refusal about a path says
+which base it used and what it resolved to. The bundled example runs offline
+from a checkout, with its deterministic participants and the example directory
+as the project:
+
+<!-- journey: review-bundled-example -->
+```sh
+cd examples/local-workflow
+attune-harness review --goal "Check the guide against its evidence" --project . \
+  --config ../review/participants.json --document project/guide.md \
+  --context context.json --corpus project --query "quartz retention policy" \
+  --criteria "Identify unsupported claims" --assessor sample-lead \
+  --task-dir /path/outside/repo/review-task --accept
+```
+
 Use `--plan independent-review --reviewer beta` for a separate assignment;
 `--allow-external` explicitly enables configured command/native participants.
 `--intake-only` prepares accepted inputs without executing. `--pause-after 2`

@@ -54,7 +54,8 @@ class RegistryMissing(ValueError):
     """A verb needs a participant registry and there is none; ``next_action`` says how to make one."""
 
     def __init__(self, path: Path, project: Path):
-        super().__init__(f'No participant registry at {path}')
+        super().__init__(f'No participant registry at {Path(path).absolute()} '
+                         f'(--config {str(path)!r} resolves against the working directory)')
         self.next_action = registry_next_action(project)
 
 
