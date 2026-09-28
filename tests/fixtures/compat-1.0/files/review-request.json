@@ -1,0 +1,14 @@
+{
+  "accepted": true,
+  "answers": {
+    "context": "context.json",
+    "corpus": "review-project",
+    "document": "review-project/guide.md",
+    "lead": "alpha",
+    "objective": "Check evidence",
+    "query": "quartz retention policy",
+    "reviewer": "beta"
+  },
+  "form_revision": "115bd8723ba6f146a45c08821f89beee25407d2254040a1272bc67d5fd47309e",
+  "schema_version": 1
+}

@@ -1,4 +1,14 @@
 {
+ "arguments": [
+  {
+   "choices": null,
+   "default": null,
+   "name": "help_all",
+   "option_strings": [
+    "--help-all"
+   ]
+  }
+ ],
  "options": [
   "--help-all"
  ],
@@ -6,6 +16,46 @@
  "schema_version": 1,
  "verbs": {
   "build": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_native",
+     "option_strings": [
+      "--allow-native"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "max_operations",
+     "option_strings": [
+      "--max-operations"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--allow-external",
@@ -22,6 +72,30 @@
    "required_options": []
   },
   "cancel-review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reason",
+     "option_strings": [
+      "--reason"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--checkpoint",
@@ -39,6 +113,30 @@
    ]
   },
   "cancel-task": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reason",
+     "option_strings": [
+      "--reason"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--checkpoint",
@@ -55,6 +153,48 @@
    ]
   },
   "code-config": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "include_docs",
+     "option_strings": [
+      "--include-docs"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "index_dir",
+     "option_strings": [
+      "--index-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "repo",
+     "option_strings": [
+      "--repo"
+     ]
+    },
+    {
+     "choices": null,
+     "default": "app",
+     "name": "repo_id",
+     "option_strings": [
+      "--repo-id"
+     ]
+    },
+    {
+     "choices": null,
+     "default": [],
+     "name": "structured_path",
+     "option_strings": [
+      "--structured-path"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--include-docs",
@@ -70,12 +210,31 @@
    ]
   },
   "extension": {
+   "arguments": [],
    "one_of": [],
    "options": [],
    "positionals": [],
    "required_options": [],
    "subcommands": {
     "disable": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--checkpoint",
@@ -88,6 +247,14 @@
      ]
     },
     "discover": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "manifest",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [],
      "positionals": [
@@ -99,6 +266,32 @@
      "required_options": []
     },
     "enable": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "registry",
+       "option_strings": [
+        "--registry"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--checkpoint",
@@ -112,6 +305,16 @@
      ]
     },
     "inspect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--state-dir"
@@ -122,6 +325,22 @@
      ]
     },
     "install": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "manifest",
+       "option_strings": []
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--state-dir"
@@ -137,6 +356,24 @@
      ]
     },
     "remove": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--checkpoint",
@@ -149,6 +386,32 @@
      ]
     },
     "replace": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "manifest",
+       "option_strings": [
+        "--manifest"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "state_dir",
+       "option_strings": [
+        "--state-dir"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--checkpoint",
@@ -165,6 +428,172 @@
    }
   },
   "fix": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "accept",
+     "option_strings": [
+      "--accept"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "bypass_intake_cache",
+     "option_strings": [
+      "--bypass-intake-cache"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkout",
+     "option_strings": [
+      "--checkout"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "clear_intake_cache",
+     "option_strings": [
+      "--clear-intake-cache"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "criteria",
+     "option_strings": [
+      "--criteria"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "finding_ids",
+     "option_strings": [
+      "--finding-id"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "from_assessment",
+     "option_strings": [
+      "--from-assessment"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "goal",
+     "option_strings": [
+      "--goal"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "intake_only",
+     "option_strings": [
+      "--intake-only"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "pause_after",
+     "option_strings": [
+      "--pause-after"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "probe",
+     "option_strings": [
+      "--probe"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    },
+    {
+     "choices": [
+      "none",
+      "requested",
+      "required"
+     ],
+     "default": null,
+     "name": "review",
+     "option_strings": [
+      "--review"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reviewer",
+     "option_strings": [
+      "--reviewer"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "scope",
+     "option_strings": [
+      "--scope"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_response",
+     "option_strings": [
+      "--task-response"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "worker",
+     "option_strings": [
+      "--worker"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--accept",
@@ -192,6 +621,30 @@
    "required_options": []
   },
   "github-checks": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "input",
+     "option_strings": []
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "repository",
+     "option_strings": [
+      "--repository"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "revision",
+     "option_strings": [
+      "--revision"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--repository",
@@ -209,12 +662,31 @@
    ]
   },
   "index": {
+   "arguments": [],
    "one_of": [],
    "options": [],
    "positionals": [],
    "required_options": [],
    "subcommands": {
     "build": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_provider",
+       "option_strings": [
+        "--allow-provider"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--allow-provider",
@@ -226,6 +698,24 @@
      ]
     },
     "inspect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "generation",
+       "option_strings": [
+        "--generation"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--config",
@@ -238,6 +728,16 @@
      ]
     },
     "plan": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--config"
@@ -248,6 +748,32 @@
      ]
     },
     "update": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_provider",
+       "option_strings": [
+        "--allow-provider"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "base_generation",
+       "option_strings": [
+        "--base-generation"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--allow-provider",
@@ -263,6 +789,14 @@
    }
   },
   "inspect-review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [],
    "positionals": [
@@ -274,6 +808,14 @@
    "required_options": []
   },
   "mcp-inspect": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "session_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [],
    "positionals": [
@@ -285,6 +827,72 @@
    "required_options": []
   },
   "mcp-serve": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_provider",
+     "option_strings": [
+      "--allow-provider"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "participant",
+     "option_strings": [
+      "--participant"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "request",
+     "option_strings": [
+      "--request"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "session_dir",
+     "option_strings": [
+      "--session-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "state_dir",
+     "option_strings": [
+      "--state-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "workspace",
+     "option_strings": [
+      "--workspace"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--allow-provider",
@@ -300,6 +908,32 @@
    "required_options": []
   },
   "memory": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "jobs",
+     "option_strings": [
+      "--jobs"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "native_config",
+     "option_strings": [
+      "--native-config"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--config",
@@ -312,12 +946,37 @@
    ],
    "subcommands": {
     "capabilities": {
+     "arguments": [],
      "one_of": [],
      "options": [],
      "positionals": [],
      "required_options": []
     },
     "create": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "envelope",
+       "option_strings": [
+        "--envelope"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "policy",
+       "option_strings": [
+        "--policy"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_id",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [
       "--envelope",
@@ -335,6 +994,20 @@
      ]
     },
     "execute": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "job_id",
+       "option_strings": []
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_id",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [],
      "positionals": [
@@ -350,6 +1023,20 @@
      "required_options": []
     },
     "inspect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "job_id",
+       "option_strings": []
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_id",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [],
      "positionals": [
@@ -365,6 +1052,30 @@
      "required_options": []
     },
     "recall": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": 10,
+       "name": "k",
+       "option_strings": [
+        "--k"
+       ]
+      },
+      {
+       "choices": null,
+       "default": 8000,
+       "name": "max_chars",
+       "option_strings": [
+        "--max-chars"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "query",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [
       "--k",
@@ -379,12 +1090,23 @@
      "required_options": []
     },
     "redis": {
+     "arguments": [],
      "one_of": [],
      "options": [],
      "positionals": [],
      "required_options": [],
      "subcommands": {
       "digest": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": 5,
+         "name": "limit",
+         "option_strings": [
+          "--limit"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--limit"
@@ -393,6 +1115,14 @@
        "required_options": []
       },
       "node": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [],
        "positionals": [
@@ -404,6 +1134,14 @@
        "required_options": []
       },
       "related": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [],
        "positionals": [
@@ -415,6 +1153,35 @@
        "required_options": []
       },
       "search": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": 10,
+         "name": "k",
+         "option_strings": [
+          "--k"
+         ]
+        },
+        {
+         "choices": [
+          "curated",
+          "file",
+          "lesson",
+          "rule"
+         ],
+         "default": null,
+         "name": "layer",
+         "option_strings": [
+          "--layer"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "query",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [
         "--k",
@@ -429,6 +1196,7 @@
        "required_options": []
       },
       "status": {
+       "arguments": [],
        "one_of": [],
        "options": [],
        "positionals": [],
@@ -437,6 +1205,14 @@
      }
     },
     "refresh": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "context",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [],
      "positionals": [
@@ -448,6 +1224,28 @@
      "required_options": []
     },
     "replay": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "job_id",
+       "option_strings": []
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "replies",
+       "option_strings": [
+        "--replies"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_id",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [
       "--replies"
@@ -467,6 +1265,14 @@
      ]
     },
     "resolve": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "handle",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [],
      "positionals": [
@@ -478,12 +1284,29 @@
      "required_options": []
     },
     "saved": {
+     "arguments": [],
      "one_of": [],
      "options": [],
      "positionals": [],
      "required_options": [],
      "subcommands": {
       "complete": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "request",
+         "option_strings": [
+          "--request"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--request"
@@ -499,6 +1322,22 @@
        ]
       },
       "forget": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "request",
+         "option_strings": [
+          "--request"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--request"
@@ -514,6 +1353,24 @@
        ]
       },
       "list": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": false,
+         "name": "pending_review",
+         "option_strings": [
+          "--pending-review"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "scope",
+         "option_strings": [
+          "--scope"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--pending-review",
@@ -525,6 +1382,16 @@
        ]
       },
       "reindex": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "scope",
+         "option_strings": [
+          "--scope"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--scope"
@@ -535,6 +1402,22 @@
        ]
       },
       "revise": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "request",
+         "option_strings": [
+          "--request"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--request"
@@ -550,6 +1433,16 @@
        ]
       },
       "save": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "request",
+         "option_strings": [
+          "--request"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--request"
@@ -560,6 +1453,22 @@
        ]
       },
       "search": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "query",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "scope",
+         "option_strings": [
+          "--scope"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--scope"
@@ -575,6 +1484,30 @@
        ]
       },
       "show": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": false,
+         "name": "history",
+         "option_strings": [
+          "--history"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "id",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "scope",
+         "option_strings": [
+          "--scope"
+         ]
+        }
+       ],
        "one_of": [],
        "options": [
         "--history",
@@ -593,18 +1526,28 @@
      }
     },
     "scratch": {
+     "arguments": [],
      "one_of": [],
      "options": [],
      "positionals": [],
      "required_options": [],
      "subcommands": {
       "capabilities": {
+       "arguments": [],
        "one_of": [],
        "options": [],
        "positionals": [],
        "required_options": []
       },
       "forget": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "key",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [],
        "positionals": [
@@ -616,6 +1559,14 @@
        "required_options": []
       },
       "keys": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": "*",
+         "name": "pattern",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [],
        "positionals": [
@@ -627,6 +1578,14 @@
        "required_options": []
       },
       "retrieve": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "key",
+         "option_strings": []
+        }
+       ],
        "one_of": [],
        "options": [],
        "positionals": [
@@ -638,6 +1597,46 @@
        "required_options": []
       },
       "stash": {
+       "arguments": [
+        {
+         "choices": null,
+         "default": null,
+         "name": "expected_version",
+         "option_strings": [
+          "--expected-version"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "key",
+         "option_strings": []
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "ttl",
+         "option_strings": [
+          "--ttl"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "value",
+         "option_strings": [
+          "--value"
+         ]
+        },
+        {
+         "choices": null,
+         "default": null,
+         "name": "value_file",
+         "option_strings": [
+          "--value-file"
+         ]
+        }
+       ],
        "one_of": [
         [
          "--value",
@@ -661,6 +1660,32 @@
      }
     },
     "serve": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": 4000,
+       "name": "chars",
+       "option_strings": [
+        "--chars"
+       ]
+      },
+      {
+       "choices": null,
+       "default": 8,
+       "name": "limit",
+       "option_strings": [
+        "--limit"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "prompt",
+       "option_strings": [
+        "--for"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--chars",
@@ -673,6 +1698,160 @@
    }
   },
   "plan": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "accept",
+     "option_strings": [
+      "--accept"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_native",
+     "option_strings": [
+      "--allow-native"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_outside_project",
+     "option_strings": [
+      "--allow-outside-project"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "answers",
+     "option_strings": [
+      "--answers"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "decision",
+     "option_strings": [
+      "--decision"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "import_plan",
+     "option_strings": [
+      "--import-plan"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "max_operations",
+     "option_strings": [
+      "--max-operations"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "preserve_completed",
+     "option_strings": [
+      "--preserve-completed"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "reimport",
+     "option_strings": [
+      "--reimport"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "request",
+     "option_strings": [
+      "--request"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "review_dispositions",
+     "option_strings": [
+      "--review-dispositions"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "revise",
+     "option_strings": [
+      "--revise"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "run",
+     "option_strings": [
+      "--run"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "stage",
+     "option_strings": [
+      "--stage"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--accept",
@@ -701,6 +1880,46 @@
    ]
   },
   "reconcile-review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "event",
+     "option_strings": [
+      "--event"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reply",
+     "option_strings": [
+      "--reply"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "retry_read_only",
+     "option_strings": [
+      "--retry-read-only"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [
     [
      "--reply",
@@ -725,6 +1944,78 @@
    ]
   },
   "reconcile-task": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "event",
+     "option_strings": [
+      "--event"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "observe_file",
+     "option_strings": [
+      "--observe-file"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reply",
+     "option_strings": [
+      "--reply"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "retry_before",
+     "option_strings": [
+      "--retry-before"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "retry_native",
+     "option_strings": [
+      "--retry-native"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "retry_read_only",
+     "option_strings": [
+      "--retry-read-only"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "stop_observation",
+     "option_strings": [
+      "--stop-observation"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [
     [
      "--observe-file",
@@ -755,6 +2046,14 @@
    ]
   },
   "repair-economics": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "input",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [],
    "positionals": [
@@ -766,6 +2065,46 @@
    "required_options": []
   },
   "resume": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_native",
+     "option_strings": [
+      "--allow-native"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "max_operations",
+     "option_strings": [
+      "--max-operations"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--allow-external",
@@ -782,6 +2121,62 @@
    "required_options": []
   },
   "resume-review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_provider",
+     "option_strings": [
+      "--allow-provider"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "max_operations",
+     "option_strings": [
+      "--max-operations"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "request",
+     "option_strings": [
+      "--request"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--allow-external",
@@ -804,6 +2199,48 @@
    ]
   },
   "retrieval-task": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "generation",
+     "option_strings": [
+      "--generation"
+     ]
+    },
+    {
+     "choices": null,
+     "default": 8,
+     "name": "max_calls",
+     "option_strings": [
+      "--max-calls"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "objective",
+     "option_strings": [
+      "--objective"
+     ]
+    },
+    {
+     "choices": null,
+     "default": "coding-agent",
+     "name": "participant",
+     "option_strings": [
+      "--participant"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--config",
@@ -820,6 +2257,70 @@
    ]
   },
   "retrieve": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_provider",
+     "option_strings": [
+      "--allow-provider"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "corpus",
+     "option_strings": [
+      "--corpus"
+     ]
+    },
+    {
+     "choices": null,
+     "default": 3,
+     "name": "k",
+     "option_strings": [
+      "--k"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "output",
+     "option_strings": [
+      "--output"
+     ]
+    },
+    {
+     "choices": null,
+     "default": "coding-agent",
+     "name": "participant",
+     "option_strings": [
+      "--participant"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "query",
+     "option_strings": []
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "request",
+     "option_strings": [
+      "--request"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "session_dir",
+     "option_strings": [
+      "--session-dir"
+     ]
+    }
+   ],
    "one_of": [
     [
      "--corpus",
@@ -844,6 +2345,209 @@
    "required_options": []
   },
   "review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "accept",
+     "option_strings": [
+      "--accept"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_external",
+     "option_strings": [
+      "--allow-external"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_provider",
+     "option_strings": [
+      "--allow-provider"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "assessor",
+     "option_strings": [
+      "--assessor"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "bypass_intake_cache",
+     "option_strings": [
+      "--bypass-intake-cache"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "clear_intake_cache",
+     "option_strings": [
+      "--clear-intake-cache"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "context",
+     "option_strings": [
+      "--context"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "corpus",
+     "option_strings": [
+      "--corpus"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "criteria",
+     "option_strings": [
+      "--criteria"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "document",
+     "option_strings": [
+      "--document"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "goal",
+     "option_strings": [
+      "--goal"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "intake_only",
+     "option_strings": [
+      "--intake-only"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "max_operations",
+     "option_strings": [
+      "--max-operations"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "pause_after",
+     "option_strings": [
+      "--pause-after"
+     ]
+    },
+    {
+     "choices": [
+      "solo",
+      "independent-review"
+     ],
+     "default": null,
+     "name": "plan",
+     "option_strings": [
+      "--plan"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "profile",
+     "option_strings": [
+      "--profile"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "query",
+     "option_strings": [
+      "--query"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "repair_findings",
+     "option_strings": [
+      "--repair-findings"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "request",
+     "option_strings": []
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reviewer",
+     "option_strings": [
+      "--reviewer"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": [
+      "--run-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_response",
+     "option_strings": [
+      "--task-response"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--accept",
@@ -880,6 +2584,19 @@
    "required_options": []
   },
   "review-form": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": {
+      "kind": "path",
+      "value": "participants.json"
+     },
+     "name": "config",
+     "option_strings": [
+      "--config"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--config"
@@ -888,12 +2605,33 @@
    "required_options": []
   },
   "spec": {
+   "arguments": [],
    "one_of": [],
    "options": [],
    "positionals": [],
    "required_options": [],
    "subcommands": {
     "intake": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": false,
+       "name": "compose",
+       "option_strings": [
+        "--compose"
+       ]
+      },
+      {
+       "choices": null,
+       "default": {
+        "kind": "cwd"
+       },
+       "name": "project",
+       "option_strings": [
+        "--project"
+       ]
+      }
+     ],
      "one_of": [],
      "options": [
       "--compose",
@@ -903,6 +2641,43 @@
      "required_options": []
     },
     "present": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "plan",
+       "option_strings": [
+        "--plan"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "task",
+       "option_strings": [
+        "--task"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "test_run",
+       "option_strings": [
+        "--test-run"
+       ]
+      },
+      {
+       "choices": [
+        "tasks",
+        "task",
+        "result",
+        "progress"
+       ],
+       "default": null,
+       "name": "view",
+       "option_strings": []
+      }
+     ],
      "one_of": [],
      "options": [
       "--plan",
@@ -922,6 +2697,42 @@
    }
   },
   "status": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "continuation",
+     "option_strings": [
+      "--continuation"
+     ]
+    },
+    {
+     "choices": [
+      "json",
+      "markdown",
+      "html"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
+     "choices": null,
+     "default": [],
+     "name": "include_task",
+     "option_strings": [
+      "--include-task"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--continuation",
@@ -937,6 +2748,136 @@
    "required_options": []
   },
   "test": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "accept",
+     "option_strings": [
+      "--accept"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "from_task",
+     "option_strings": [
+      "--from-task"
+     ]
+    },
+    {
+     "choices": null,
+     "default": "Test this change",
+     "name": "goal",
+     "option_strings": [
+      "--goal"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "intake_only",
+     "option_strings": [
+      "--intake-only"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "interpreter",
+     "option_strings": [
+      "--interpreter"
+     ]
+    },
+    {
+     "choices": null,
+     "default": 1048576,
+     "name": "max_output_bytes",
+     "option_strings": [
+      "--max-output-bytes"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "pause_after",
+     "option_strings": [
+      "--pause-after"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "pytest_arg",
+     "option_strings": [
+      "--pytest-arg"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "pytest_plugin",
+     "option_strings": [
+      "--pytest-plugin"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "scope",
+     "option_strings": [
+      "--scope"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": "tests",
+     "name": "test_root",
+     "option_strings": [
+      "--test-root"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "tests",
+     "option_strings": [
+      "--tests"
+     ]
+    },
+    {
+     "choices": null,
+     "default": 60,
+     "name": "timeout",
+     "option_strings": [
+      "--timeout"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--accept",
@@ -962,6 +2903,38 @@
    ]
   },
   "transfer-review": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "lead",
+     "option_strings": [
+      "--lead"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reason",
+     "option_strings": [
+      "--reason"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "run_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--checkpoint",
@@ -981,6 +2954,38 @@
    ]
   },
   "transfer-task": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "assessor",
+     "option_strings": [
+      "--assessor"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "checkpoint",
+     "option_strings": [
+      "--checkpoint"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "reason",
+     "option_strings": [
+      "--reason"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [
     "--assessor",
@@ -999,6 +3004,14 @@
    ]
   },
   "triage-check": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "input",
+     "option_strings": []
+    }
+   ],
    "one_of": [],
    "options": [],
    "positionals": [
@@ -1010,6 +3023,30 @@
    "required_options": []
   },
   "verify": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": null,
+     "name": "context",
+     "option_strings": [
+      "--context"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "document",
+     "option_strings": []
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "output",
+     "option_strings": [
+      "--output"
+     ]
+    }
+   ],
    "one_of": [],
    "options": [
     "--context",

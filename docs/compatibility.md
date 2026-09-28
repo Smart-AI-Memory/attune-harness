@@ -12,31 +12,35 @@ on any change to what they pin, additive ones included, and an additive
 change rewrites the fixture on purpose with a changelog line. The content
 freezes at `1.0.0rc1`; the promise takes effect at 1.0.0.
 
-The second cycle now supplies the deprecation register/helper (D27.3) and
-retrieval MCP/A2A protocol fixtures (section 6). The third cycle still adds the
-candidate saved-state fixture (section 3) after the final plugin manifest fields.
-This does not declare the content frozen before rc1. The envelope cells still marked `-` are listed in
+The second cycle supplies the deprecation register/helper (D27.3) and
+retrieval MCP/A2A protocol fixtures (section 6). The third cycle has captured
+the [unpublished candidate saved-state fixture](../tests/fixtures/compat-1.0/README.md)
+after the final plugin manifest fields. Full, fresh-wheel and platform
+qualification of this candidate remains pending; the observed RC period has
+not begun. This does not declare the content frozen or published. The envelope cells still marked `-` are listed in
 [the freeze note's correction](specs/release-1.0/freeze-design.md).
 
 ## 1. The command line
 
-Twenty-eight verbs, their subcommands, their positional arguments with how
-many values each takes, and their required options, read from the parsers
+Twenty-nine verbs, their subcommands, their positional arguments with how
+many values each takes, their required options, accepted choices and defaults,
+read from the parsers
 themselves by
 `attune_harness.cli_surface` and committed as
 `tests/fixtures/compatibility/surface.json`. `tests/test_compatibility_surface.py`
 fails when the parsers and the file disagree, and when this table and the
 file disagree; `scripts/compatibility_surface.py --rows` regenerates the
-table. The fixture also lists every option string, so a new optional flag
+table. The fixture also lists every option string, choice and default, so a new optional flag
 fails the test too and is added by rewriting the fixture (additive, so no
 deprecation). In the table a positional in brackets, `[request]`, is
 optional; `name ...` takes one or more values and `[name ...]` zero or
 more.
 
-Not pinned by this guard: the values an option accepts (`choices`) and its
-default. Whether they are on the list is open (see the pull request that
-added this paragraph); until it is ruled, a changed choice or default is
-caught only where another test happens to use it.
+Patrick ruled choices and defaults into the 1.0 CLI contract before rc1.
+`surface.json` records them for every argument, with path values distinguished
+from strings. The dynamic `spec intake --project` default is the current
+working directory, recorded as such rather than as the fixture writer's
+absolute checkout path. Changing a choice or default fails the surface guard.
 
 Exit codes are behaviour, not parser data: [the envelope table](envelopes.md)
 pins them, row by row, for every verb that prints an envelope. Two print
@@ -109,9 +113,10 @@ the retrieval config that `index plan --config` reads back.
 ## 3. Configuration and saved state
 
 Every record on disk carries a version, and every reader refuses what it does
-not know. The fixture from the 1.0 era, the third cycle's, is the guard that
-the 1.0 readers keep reading 1.0 records; until it lands, the golden rows and
-each reader's own version check are.
+not know. The candidate-written third-cycle fixture and its
+[reader/refusal tests](../tests/test_compat_candidate_fixture.py) guard that
+the 1.0 readers keep reading these 1.0 records. The existing golden rows and
+each reader's version check remain separate guards.
 
 | Format | Version today | Read by | Written by |
 | --- | --- | --- | --- |
@@ -123,20 +128,23 @@ each reader's own version check are.
 | Scratch record | `format: attune-harness/scratch`, `format_version` 2, `writer` and per-key `version`; legacy headerless `schema_version` 1 remains readable | `memory_scratch` | `memory scratch stash` |
 | Saved memory/task store, `state.json` | `schema_version` 1; record revision/history, operation identities and index state; optional task `opportunity_review` checkpoint | `memory_saved.SavedStore` | `memory saved` mutation commands |
 | Voyage paid-stage ledger and stage `record.json` | `schema_version` 1; recovery profiles `voyage-stage-ledger-v1` and `voyage-paid-stage-v1`, with durable stage identities, statuses and billing receipts | `review_store.read_record`, `voyage_provider.StageJournal` | `voyage_provider.StageJournal` during `index build` and retrieval |
-| Extension manifest and state | `schema_version` 1, data only; 4.3 adds `grants`, `declares` and the `run` binding | `extensions` | `extension install`, `enable` |
+| Extension manifest and state | `schema_version` 1; signed Python declarations include `grants`, `declares`, `code` and the `run` binding, with host-owned enable state | `extensions`, `plugin_runtime` | `extension install`, `enable` |
 | Participants registry | `schema_version` 1 | `review_contract.load_registry` | the user |
 | Memory config | `roots`, `redis`, `scratch`, `reader` and explicit `saved` sections | `memory_reader.roots_config`, `memory_saved_cli` and the backends | the user |
 | Memory context packet | `schema_version` 1 | `memory_context.refresh` | `memory recall` |
 | The attune-ai memory formats | frozen as read (D25.5/D28); [field and refusal contract](specs/native-memory/formats.md) | `memory_reader`, `memory_redis` | attune-ai's writers |
 
-The candidate fixture must include both the current scratch format and saved
-memory/task records, including deferred-review state. Their current reader tests
-are not a substitute for a fixture written by the candidate. Saved task intent
+The [candidate fixture](../tests/fixtures/compat-1.0/README.md) includes the
+current scratch format and saved memory/task records with deferred-review
+state, written by the clean, installed local `1.0.0rc1` wheel. Saved task intent
 references existing execution; it does not create a second execution owner.
 The Voyage host-owned stage journal is also saved state: its completed stages
 replay without a new paid call, while a dispatched stage refuses automatic
-retry. The candidate fixture will capture this format with synthetic results;
-the selected index's LanceDB files remain covered by index qualification.
+retry. The fixture captures both states with synthetic results; its unsigned
+disabled extension record is format evidence, while signed enabled behavior
+has separate installed-wheel receipts. The selected index's LanceDB files
+remain covered by index qualification. Final qualification, wheel equivalence
+and the release decision remain pending.
 
 ## 4. Refusal texts
 

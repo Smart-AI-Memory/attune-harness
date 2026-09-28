@@ -1,0 +1,52 @@
+{
+  "actor": "fixture",
+  "classifications": [
+    "internal"
+  ],
+  "owners": [
+    "fixture"
+  ],
+  "profiles": [
+    "claude"
+  ],
+  "reader": "native",
+  "roots": [
+    {
+      "classification": "internal",
+      "id": "raw",
+      "owner": "fixture",
+      "path": "/private/tmp/attune-compat-candidate-a1/memory-roots/raw",
+      "scope": "compat-project",
+      "tier": "raw"
+    },
+    {
+      "classification": "internal",
+      "id": "personal",
+      "owner": "fixture",
+      "path": "/private/tmp/attune-compat-candidate-a1/memory-roots/personal",
+      "scope": "global",
+      "tier": "personal"
+    },
+    {
+      "classification": "internal",
+      "id": "curated",
+      "owner": "fixture",
+      "path": "/private/tmp/attune-compat-candidate-a1/memory-roots/curated",
+      "scope": "global",
+      "tier": "curated"
+    }
+  ],
+  "saved": {
+    "root": "/private/tmp/attune-compat-candidate-a1/saved-store"
+  },
+  "schema_version": 1,
+  "scopes": [
+    "compat-project",
+    "global"
+  ],
+  "scratch": {
+    "backend": "file",
+    "namespace": "harness",
+    "root": "/private/tmp/attune-compat-candidate-a1/scratch-store"
+  }
+}

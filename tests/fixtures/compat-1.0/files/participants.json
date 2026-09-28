@@ -1,0 +1,32 @@
+{
+  "participants": {
+    "alpha": {
+      "adapter": "deterministic",
+      "max_tool_calls": 2,
+      "max_turns": 3,
+      "tools": [
+        "retrieve",
+        "verify"
+      ]
+    },
+    "beta": {
+      "adapter": "deterministic",
+      "max_tool_calls": 2,
+      "max_turns": 3,
+      "tools": [
+        "retrieve",
+        "verify"
+      ]
+    },
+    "local": {
+      "adapter": "deterministic",
+      "max_tool_calls": 2,
+      "max_turns": 3,
+      "tools": [
+        "retrieve",
+        "verify"
+      ]
+    }
+  },
+  "schema_version": 1
+}

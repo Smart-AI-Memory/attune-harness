@@ -85,7 +85,7 @@ def test_config_is_validated_in_the_adapters_words_and_bound_by_digest(tmp_path)
 
 
 def test_roots_config_sets_the_other_sections_aside():
-    assert roots_config({"roots": [], "redis": {}, "scratch": {}, "reader": "native"}) == {"roots": []}
+    assert roots_config({"roots": [], "redis": {}, "scratch": {}, "reader": "native", "saved": {}}) == {"roots": []}
     assert roots_config("not a dict") == "not a dict"
 
 
@@ -331,7 +331,8 @@ def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys,
     seed_raw(root)
     config = tmp_path / "memory.json"
     config.write_text(json.dumps(dict(config_for(("r", root, "raw", "project-a")), reader="native",
-                                      redis={"url": "redis://127.0.0.1:1/0"})), encoding="utf-8")
+                                      redis={"url": "redis://127.0.0.1:1/0"},
+                                      saved={"root": str(tmp_path / "saved")})), encoding="utf-8")
     base = ["--config", str(config)]
     assert memory_main([*base, "capabilities"]) == 0
     capabilities = json.loads(capsys.readouterr().out)

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "recovery": {
+    "profile": "voyage-stage-ledger-v1"
+  },
+  "config_digest": "b27c5159df592cbfb9908f8063eb6afd7c9187c62a32628c99feb8a44a0dffb8",
+  "stages": [
+    "7d7e89c2aafa8ce268b5883f7a9f87e0bca0714f4557f4145305d5f6b17d3cb2"
+  ],
+  "checkpoint_digest": "b5cc13bd438185aeb756ed7af0784bacb47c549f46cbba92b3608de7aff2959b"
+}

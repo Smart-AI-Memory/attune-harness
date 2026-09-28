@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "operation": "task",
+  "task_profile": "pytest-change-v1",
+  "status": "draft",
+  "request": {
+    "schema_version": 1,
+    "task_id": "dc0882e7-b804-40b3-9387-6bc260a9a9b3",
+    "revision": 1,
+    "project_root": "/private/tmp/attune-compat-candidate-a1/test-project",
+    "goal": "Verify synthetic behavior",
+    "snapshot": {
+      "root": "/private/tmp/attune-compat-candidate-a1/test-project",
+      "root_identity": [
+        16777229,
+        414628887
+      ],
+      "head": "15cba623bd5ad06161197da85707d1d190e5e932",
+      "index_sha256": "f79a338dd6e65b2b43139a853070968e584de1cfb0f38658865c98d345558239",
+      "changed_paths": [
+        "src/demo/logic.py"
+      ],
+      "files": {
+        ".gitignore": {
+          "sha256": "a51104264729e7b362ea8c739de0ada29ba6e4f6047580ec3a3fd330ad20fd47",
+          "size": 28,
+          "mode": 420
+        },
+        "src/demo/logic.py": {
+          "sha256": "729533664113a2e284c86b3837b0a12bd054d9639a6bae0762d18fadf14b4597",
+          "size": 50,
+          "mode": 420
+        },
+        "tests/test_logic.py": {
+          "sha256": "15654a118808b24bc5cc83a7917edad8549a4eba2370895de62bc1ecb08597dc",
+          "size": 39,
+          "mode": 420
+        }
+      },
+      "bytes": 117
+    },
+    "selection": {
+      "scope": [
+        "src/demo/logic.py"
+      ],
+      "changed_files": [
+        "src/demo/logic.py"
+      ],
+      "mode": "broader_fallback",
+      "reason": "Conservative broader fallback to tests/: static associations do not prove a complete narrower set.",
+      "test_root": "tests",
+      "selected": [
+        "tests/test_logic.py"
+      ],
+      "associations": {
+        "tests/test_logic.py": "filename hint"
+      },
+      "excluded": [],
+      "missing_evidence": [
+        "Selection does not establish complete behavioral coverage.",
+        "Discovery covers default test_*.py / *_test.py files under the named test root; custom collectors are not qualified.",
+        "Git metadata, ignored files and external dependencies are not copied."
+      ],
+      "intake_elapsed_seconds": 0.06603487499523908
+    },
+    "budgets": {
+      "max_operations": 1
+    },
+    "runner": {
+      "interpreter": "/private/tmp/attune-v1-writer-env-ca5d9ee/bin/python",
+      "interpreter_sha256": "0d065b161d6a12b853689570dc972bd75c72e5f76807a76cecdd0657adb60f9b",
+      "worker_sha256": "4af455e8fabb6b0d5dc7ac1923221e1ecd50af7ece3a6e135f1a75ecefe2a87d",
+      "timeout": 60,
+      "max_output_bytes": 1048576,
+      "pytest_args": [
+        "-q"
+      ],
+      "plugins": []
+    }
+  },
+  "record_path": "/private/tmp/attune-compat-candidate-a1/test-draft/record.json",
+  "acceptance": null,
+  "bindings": {},
+  "events": [],
+  "history": [],
+  "recovery": {
+    "profile": {
+      "kind": "testing",
+      "version": 1
+    }
+  },
+  "checkpoint_digest": "a578cb910e386b658e469f47d176780cb123f58d000159d524be9ede40535cfe"
+}

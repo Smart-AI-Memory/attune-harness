@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "operation": "task",
+  "task_profile": "feature-work-v1",
+  "status": "accepted",
+  "request": {
+    "schema_version": 1,
+    "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+    "revision": 1,
+    "project_root": "/private/tmp/attune-compat-candidate-a1/work-project",
+    "intent": {
+      "goal": "Preserve the answer",
+      "context": [
+        "Synthetic compatibility project"
+      ],
+      "scope": [
+        "source.py"
+      ],
+      "constraints": [
+        "No network"
+      ],
+      "acceptance": [
+        "Existing test remains green"
+      ],
+      "questions": []
+    },
+    "signals": {
+      "multi_session": false,
+      "multi_pr": false,
+      "design_ambiguity": false,
+      "irreversible_choice": false,
+      "premise_decision": false,
+      "cold_handoff": false,
+      "dependent_changes": false,
+      "authorization_risk": false,
+      "retained_data_risk": false,
+      "compatibility_risk": false,
+      "xml_consumer": false,
+      "existing_artifact": null
+    },
+    "choices": [],
+    "assignments": [
+      {
+        "role": "planner",
+        "participant": "local",
+        "output_contract": "Bounded plan with checks",
+        "budgets": {
+          "max_operations": 20,
+          "max_attempts": 1,
+          "max_output_bytes": 10000
+        }
+      }
+    ],
+    "controls": [],
+    "tasks": [],
+    "inputs": [
+      "source.py"
+    ],
+    "artifact": "plan.md",
+    "budgets": {
+      "max_operations": 20,
+      "max_attempts": 1,
+      "max_output_bytes": 10000
+    },
+    "registry": {
+      "participants": {
+        "alpha": {
+          "adapter": "deterministic",
+          "max_tool_calls": 2,
+          "max_turns": 3,
+          "tools": [
+            "retrieve",
+            "verify"
+          ]
+        },
+        "beta": {
+          "adapter": "deterministic",
+          "max_tool_calls": 2,
+          "max_turns": 3,
+          "tools": [
+            "retrieve",
+            "verify"
+          ]
+        },
+        "local": {
+          "adapter": "deterministic",
+          "max_tool_calls": 2,
+          "max_turns": 3,
+          "tools": [
+            "retrieve",
+            "verify"
+          ]
+        }
+      },
+      "schema_version": 1
+    },
+    "config": {
+      "path": "/private/tmp/attune-compat-candidate-a1/participants.json",
+      "sha256": "17a7fb7700e02ab34396d1103836743fdeb4e5197c05b0e844c8b0ca39251a20"
+    },
+    "authoring": {
+      "tier": "prompt",
+      "reasons": [
+        "bounded_work_without_spec_or_xml_requirement"
+      ]
+    },
+    "evidence": {
+      "source.py": "aecc013c518523ca22b7e3780f87002f5cae13fabc369f2f59a1faf7058f8c76",
+      "plan.md": "10b912875bf0de00b7b8db1d4774c1839fe2c586a6176333c3ac49b491933b87"
+    }
+  },
+  "record_path": "/private/tmp/attune-compat-candidate-a1/work-accepted/record.json",
+  "acceptance": {
+    "decision": {
+      "schema_version": 1,
+      "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+      "revision": 1,
+      "request_digest": "091e4d48ccf53d8e37ff02c64dd5f338950ef353b5210f6c00b1764d653d9948",
+      "record_path": "/private/tmp/attune-compat-candidate-a1/work-accepted/record.json",
+      "checkpoint_digest": "03999ed79f4a18d80777e9cd403b9b9e2b3d82e37141ea2866ebc018bc76a389",
+      "accepted": true,
+      "source": {
+        "owner": "spec",
+        "reference": "synthetic-approval",
+        "disposition": "approve_task"
+      }
+    },
+    "supported_controls": []
+  },
+  "bindings": {
+    "contract": {
+      "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+      "revision": 1,
+      "request_digest": "091e4d48ccf53d8e37ff02c64dd5f338950ef353b5210f6c00b1764d653d9948"
+    },
+    "assignments": {
+      "planner": {
+        "task_id": "17da4892-d4ad-4ae0-a8a3-e39e457d440e",
+        "revision": 1,
+        "request_digest": "091e4d48ccf53d8e37ff02c64dd5f338950ef353b5210f6c00b1764d653d9948",
+        "role": "planner",
+        "participant": "local",
+        "output_contract": "Bounded plan with checks",
+        "budgets": {
+          "max_operations": 20,
+          "max_attempts": 1,
+          "max_output_bytes": 10000
+        },
+        "assignment_id": "700f977a-a5f5-52ba-a86f-9bcd0a2a5ab2",
+        "configuration": {
+          "adapter": "deterministic",
+          "max_tool_calls": 2,
+          "max_turns": 3,
+          "tools": [
+            "retrieve",
+            "verify"
+          ]
+        }
+      }
+    },
+    "effect_classes": []
+  },
+  "events": [],
+  "history": [],
+  "recovery": {
+    "profile": {
+      "kind": "feature-work-v1",
+      "version": 1
+    }
+  },
+  "checkpoint_digest": "35a1ac2d5e4c23dda8e4ce4ae550340fd260cfad5a7f51ccbc8650f3b559fd09"
+}

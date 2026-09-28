@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "operation": "extension",
+  "status": "disabled",
+  "manifest": "/private/tmp/attune-compat-candidate-a1/voyage-bundle/manifest.json",
+  "id": "voyage",
+  "artifact_digest": "a950e357c5e145cc4c988fa043792def1ddd8a4dab90ec41c3fc6f83853db391",
+  "revision": 1,
+  "state_digest": "9a221a15dbdbb3e589354ee163447ec4e89f6a20518f28118415a51548122e8f"
+}

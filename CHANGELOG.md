@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 1.0.0rc1
+
+- Prepare `1.0.0rc1` package metadata and capture the candidate saved-state
+  fixture from a clean, installed local writer wheel. The fixture retains exact
+  record bytes and reader/replay/refusal cases; publication and the observed
+  candidate period are separate release steps.
+
+- Pin each CLI argument's accepted choices and default in the 1.0 surface
+  fixture, including the working-directory default for `spec intake --project`.
+  Reconcile current-main signed-plugin and Voyage qualification claims with
+  their bounded platform and recorded-response evidence.
+
+- Read a single memory configuration with both native recall roots and saved
+  storage: `memory recall` sets aside the saved section while `memory saved`
+  continues to use it.
+
 - Executable plugins can read selected installed wheel metadata through the
   bounded import closure, supporting offline Voyage SDK and compiled dependency
   imports without exposing site-packages or undeclared distribution metadata.

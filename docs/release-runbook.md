@@ -148,6 +148,13 @@ approval comment records. What those scripts learned, for the next ones:
 
 ## TestPyPI rehearsal
 
+The 1.0 compatibility content freezes when `rc1` is published. During the
+candidate period, a change to a frozen golden row, CLI surface, public API
+signature, protocol fixture, saved-format fixture or its reader starts a new
+candidate at the next `rc` number, with a changelog line explaining the change
+(D27.7). Preparing an unpublished candidate-version wheel and its fixture does
+not start the observation period or authorize publication.
+
 `target=testpypi` takes a release-candidate version such as `X.Y.Zrc1`, and
 `pyproject.toml` has to carry that version. Prepare the candidate version and
 changelog in a reviewed pull request, merge through `main`, and wait for that
@@ -157,9 +164,101 @@ require; `main` must still point at it. The TestPyPI environment must allow
 `main`, with its required reviewer retained. Changing that setting is Patrick's
 action and does not authorize a dispatch or upload.
 
+For `1.0.0rc1`, use this order. These commands are templates, not an approval to
+dispatch or publish:
+
+1. On a clean checkout of the final reviewed `main`, record its full 40-character
+   SHA. Verify `pyproject.toml` says `1.0.0rc1`, `CHANGELOG.md` has the exact
+   `## 1.0.0rc1` heading, the candidate wheel's packaged runtime files,
+   entry points and the `Name`, `Version`, `Requires-Python`, `Requires-Dist` and
+   `Provides-Extra` metadata match the retained fixture writer, and a successful **push-to-main**
+   Library qualification run reports this exact SHA. Recheck the TestPyPI version
+   slot immediately before dispatch. Also confirm the `testpypi` environment
+   still permits `main` and requires Patrick, and the TestPyPI trusted publisher
+   names this repository, `publish-pypi.yml` and that environment. The preflight
+   records a qualification run but does **not** require its conclusion to be
+   successful; a provisional preflight receipt is not release approval. The
+   rc1 `Development Status :: 4 - Beta` classifier changes distribution
+   metadata from the unpublished fixture writer. It does not change those
+   runtime fields; do not require whole-wheel or whole-`METADATA` byte equality.
+   Read the matching push runs, then inspect the successful run's aggregate
+   `Qualification` check and six platform receipts:
+
+   ```sh
+   git fetch origin main
+   RC_RELEASE_SHA=$(git rev-parse HEAD)
+   test "$(git status --porcelain)" = ""
+   test "$(git rev-parse origin/main)" = "$RC_RELEASE_SHA"
+   gh run list --repo Smart-AI-Memory/attune-harness --workflow qualification.yml --commit "$RC_RELEASE_SHA" --event push --json databaseId,headSha,event,status,conclusion,url
+   ```
+2. After Patrick explicitly authorizes the **build-only rehearsal dispatch**, run
+   from that checkout:
+
+   ```sh
+   gh workflow run publish-pypi.yml --repo Smart-AI-Memory/attune-harness --ref main -f release_sha="$RC_RELEASE_SHA" -f version=1.0.0rc1 -f target=testpypi -f publish=false
+   ```
+
+   The workflow rejects a dispatch whose actual `GITHUB_SHA` differs from
+   `release_sha`. Inspect that run's conclusion, `release-evidence` preflight,
+   `distributions` and SHA-256 file list. `publish=false` has no TestPyPI
+   environment job and uploads nothing. A newly built sdist can have a different
+   hash even at the same commit; the artifacts from this run are rehearsal
+   evidence, not the hashes to verify a later publication.
+3. After the rehearsal passes and Patrick separately authorizes the **TestPyPI
+   publication dispatch**, recheck `main`, the version slot and qualification;
+   dispatch with the same exact version and the then-current reviewed main SHA:
+
+   ```sh
+   git fetch origin main
+   test "$(git rev-parse origin/main)" = "$RC_RELEASE_SHA"
+   gh workflow run publish-pypi.yml --repo Smart-AI-Memory/attune-harness --ref main -f release_sha="$RC_RELEASE_SHA" -f version=1.0.0rc1 -f target=testpypi -f publish=true
+   ```
+
+   The build job produces a new manifest binding both distribution hashes to
+   this publishing run ID and attempt. Patrick reviews the queued `testpypi`
+   deployment before OIDC upload. Approval of the deployment and publication
+   consume the version slot; neither the rehearsal nor this document authorizes
+   them. Inspect the publishing run's `distributions` and `release-evidence`
+   artifacts, and require its `verify_testpypi` job to pass.
+4. Verify the published files against the **publishing run's** manifest. Download
+   that run's `release-evidence` artifact into a fresh directory, then from the
+   same release checkout run:
+
+   ```sh
+   (
+   set -e
+   PUBLISH_RUN_ID=REPLACE_WITH_APPROVED_PUBLISH_RUN_ID
+   gh run download "$PUBLISH_RUN_ID" --repo Smart-AI-Memory/attune-harness --name release-evidence --dir release-evidence
+   python3 scripts/check_testpypi_rehearsal.py fetch --manifest release-evidence/artifact-manifest.json --output rc1-download --receipt rc1-download.json
+   python3 -c 'from pathlib import Path; import sys; p = Path(".venv-rc1"); sys.exit("Refusing to reuse existing .venv-rc1" if p.exists() or p.is_symlink() else 0)'
+   python3 -m venv .venv-rc1
+   .venv-rc1/bin/python -m pip --isolated --disable-pip-version-check install --index-url https://pypi.org/simple/ -c requirements-workflow.lock -c requirements-voyage.lock -c requirements-mcp.lock -c requirements-tokens.lock -c requirements-redis.lock rc1-download/attune_harness-1.0.0rc1-py3-none-any.whl
+   .venv-rc1/bin/python -m pip check
+   python3 scripts/check_installed.py --python .venv-rc1/bin/python --mode all --report rc1-installed.json
+   .venv-rc1/bin/python -I -c 'import importlib.metadata; assert importlib.metadata.version("attune-harness") == "1.0.0rc1"'
+   )
+   ```
+
+   `fetch` reads TestPyPI's exact version JSON, refuses a different file
+   inventory, size, hash or file host, and saves the verified wheel and sdist.
+   Installing that local wheel with dependencies from PyPI avoids a mixed-index
+   resolution. The workflow separately installs both downloaded distributions
+   into fresh environments and runs the core installed check. On Windows use
+   `py -3.12 -m venv .venv-rc1` and `.venv-rc1\Scripts\python.exe` for the
+   environment Python. In PowerShell, first run
+   `if (Test-Path -LiteralPath .venv-rc1) { throw 'Refusing to reuse existing .venv-rc1' }`;
+   do not proceed if it refuses. The POSIX subshell above also stops on any
+   failed step without deleting a prior environment. Native memory/saved POSIX
+   limitations still apply.
+5. Record the release SHA, publication run and attempt, published wheel and
+   sdist hashes, TestPyPI download receipt and verified-install time. Only then
+   start the 14-day candidate observation clock. No production PyPI release or
+   stable-1.0 decision follows automatically.
+
 This replaces the older instruction to dispatch a candidate from a `release/...`
 branch. Historical release-branch runs remain evidence; they are not the current
 publication procedure. 0.2.0 skipped TestPyPI: packaging had not changed since
 0.1.0, and the build job already installs the wheel and runs the installed check
 before any upload.
-Use it when packaging metadata, the build backend or the workflow itself changes.
+The TestPyPI route is also appropriate when packaging metadata, the build backend
+or the workflow itself changes.

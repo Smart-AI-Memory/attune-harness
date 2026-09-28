@@ -1,0 +1,66 @@
+{
+  "code": "code.zip",
+  "declares": {
+    "imports": [
+      "voyageai",
+      "lancedb"
+    ],
+    "network": [
+      "api.voyageai.com"
+    ],
+    "reads": [],
+    "subprocess": false,
+    "vendored": [],
+    "writes": []
+  },
+  "grants": {
+    "output": {
+      "diagnostics": 8192,
+      "result": 1048576
+    },
+    "paths": [
+      "index_staging"
+    ],
+    "scratch": true,
+    "secrets": [
+      "VOYAGE_API_KEY"
+    ],
+    "time": 300
+  },
+  "id": "voyage",
+  "schema_version": 1,
+  "skill": "SKILL.md",
+  "tools": {
+    "embed": {
+      "binding": "run",
+      "entry": "attune_voyage_plugin.embed",
+      "input_schema": {
+        "type": "object"
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    "index": {
+      "binding": "run",
+      "entry": "attune_voyage_plugin.index",
+      "input_schema": {
+        "type": "object"
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    "rerank": {
+      "binding": "run",
+      "entry": "attune_voyage_plugin.rerank",
+      "input_schema": {
+        "type": "object"
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    }
+  },
+  "version": "1.0.0"
+}
