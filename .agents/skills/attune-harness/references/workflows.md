@@ -1,7 +1,7 @@
 # Workflow reference
 
 Read the selected route's installed `--help` before constructing a command.
-The examples below show the 0.6.0 interface. Paths, participant names and
+The examples below match the CLI this skill ships with. Paths, participant names and
 checkpoints are placeholders, not default choices or authorization.
 
 ## Plan and build
@@ -16,8 +16,9 @@ In a Harness source checkout, read `docs/cli-guide.md`,
 `docs/specs/plan-build/dependent-build.md` and the request construction in
 `scripts/check_installed.py` (`FREEZE` and `journey_checks`). For an installed-only
 environment, consult the same files at the installed version's repository tag;
-the [0.6.0 CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v0.6.0/docs/cli-guide.md)
-is the baseline for this skill. If matching schema documentation is unavailable,
+the CLI guide at
+`https://github.com/Smart-AI-Memory/attune-harness/blob/vVERSION/docs/cli-guide.md`,
+with the installed version for `VERSION`, is the baseline for this skill. If matching schema documentation is unavailable,
 report that gap instead of fabricating a build manifest.
 
 ```sh

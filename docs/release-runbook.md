@@ -55,8 +55,10 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 ## Steps
 
 1. **Prepare.** One pull request sets the final `version` in `pyproject.toml`,
-   adds a `## X.Y.Z` heading to `CHANGELOG.md`, and pins README links to the
-   `vX.Y.Z` tag. Build locally and run `twine check --strict`, then install the
+   adds a `## X.Y.Z` heading to `CHANGELOG.md`, pins README links to the
+   `vX.Y.Z` tag, and sets the same version in `.claude-plugin/marketplace.json`
+   (both fields) and in both `plugin/attune-harness` manifests;
+   `tests/test_claude_plugin.py` fails until they match. Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.
 2. **Merge.** The squash commit on `main` is the release SHA. Use all 40
    characters everywhere below.

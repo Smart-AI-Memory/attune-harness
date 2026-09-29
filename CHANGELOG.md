@@ -2,12 +2,18 @@
 
 ## Unreleased
 
+- Publish Attune Harness as a Claude Code plugin from
+  `.claude-plugin/marketplace.json`. It carries the Harness skill (the same
+  source Codex uses), `cross-review` and `smart-test`, with no MCP server. The
+  Spec workspace skill and the maintainer release skills are not included. The
+  Codex plugins and the Python package are unchanged.
+- The Harness skill no longer names the 0.6.0 CLI. A test checks every command
+  and option it shows against the CLI surface of the version it ships with.
 - The README gains "Your first five minutes" (init, a test preview and the
   review intake). The CLI guide's review section opens with the bundled
   runnable example. Both, and the guide's `init` block, are journey-tagged
   and run in CI as written. The plan/build and fix sections say why they have
   no copy-and-paste example yet. A draft of the 1.1.0 release notes is added.
-
 - One refusal shape for the task verbs. A rejected combination of valid
   options for `review` or `fix`, such as `fix --goal` alone, now prints a JSON
   refusal envelope with `error` and `next_action` on stdout and still exits 2;
@@ -15,21 +21,18 @@
   arguments remain argparse errors. Refusals from review and fix intake, the
   saved-task controls and `test` now always carry `next_action`. New golden
   rows are `fix-incomplete` and `test-refusal`.
-
 - Add `--format json|markdown` (default `json`) to `plan`, `build`, `review`,
   `fix`, `test` and `resume`. Markdown prints the same envelope for people,
   with the same exit code. `status --format markdown|html` now works for every
   task profile, not only `feature-work-v1`. **Behaviour change:** in 1.0.1
   that combination refused non-feature tasks with exit 2; it now renders and
   exits 0. JSON output is unchanged.
-
 - Review intake path refusals now say how each path was read: the value given,
   whether it resolved against `--project` or was absolute, and the resolved
   path, plus the rule (`--document`, `--context` and `--corpus` against
   `--project`, `--config` against the working directory). A missing registry
   names its absolute path. The CLI guide documents the bundled review example's
   working command, which the cold-start test runs as written.
-
 - Add `attune-harness init`, which writes a starter `participants.json` from
   the `demo` (offline, deterministic), `claude` or `codex` profile. It refuses
   to replace an existing registry unless given `--force`, which keeps a
@@ -37,7 +40,6 @@
   `next_action` that names `init`. New golden rows are `init` and
   `init-refusal`, and the compact `--help` gains a "Getting started" section.
   Existing envelopes, exit codes and defaults are unchanged.
-
 - Add a cold-start journey test to every installed-wheel platform job. It runs
   the CLI guide's journey-tagged blocks as written, from an empty directory
   with no participant registry. Journeys that do not work from a fresh install

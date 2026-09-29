@@ -37,9 +37,11 @@ than silently routing them through Attune AI or claiming Harness ran them.
    executable/environment throughout the task; do not mix a global CLI with an
    unrelated checkout's Python modules.
 2. Read `attune-harness <route> --help` for the selected route and the relevant
-   section of [the workflow reference](references/workflows.md). This skill
-   targets the 0.6.0 CLI. If the installed interface differs, inspect that version
-   before acting. Report missing dependencies using the CLI's actual diagnostic.
+   section of [the workflow reference](references/workflows.md). The skill ships
+   with the Harness version it describes; a repository test checks its commands
+   and options against that version's CLI. If the installed interface differs,
+   follow the installed `--help` before acting. Report missing dependencies using
+   the CLI's actual diagnostic.
 3. If no runtime is available, prepare an isolated `pip install attune-harness`
    environment within the user's installation permissions. Do not upgrade a
    retained environment or install Attune AI to satisfy Harness acceptance.
