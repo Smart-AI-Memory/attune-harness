@@ -788,6 +788,46 @@
     }
    }
   },
+  "init": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "force",
+     "option_strings": [
+      "--force"
+     ]
+    },
+    {
+     "choices": [
+      "demo",
+      "claude",
+      "codex"
+     ],
+     "default": "demo",
+     "name": "profile",
+     "option_strings": [
+      "--profile"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    }
+   ],
+   "one_of": [],
+   "options": [
+    "--force",
+    "--profile",
+    "--project"
+   ],
+   "positionals": [],
+   "required_options": []
+  },
   "inspect-review": {
    "arguments": [
     {

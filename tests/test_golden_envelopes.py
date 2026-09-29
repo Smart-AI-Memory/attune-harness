@@ -195,6 +195,11 @@ ENVELOPES = (
      ('error', 'schema_version', 'status')),
     ('github-checks-refusal', 'refusal', 2, 1, 'failed',
      ('error', 'schema_version', 'status')),
+    ('init', 'success', 0, 1, 'created',
+     ('next_action', 'operation', 'participants', 'path', 'profile', 'replaced', 'requires',
+      'schema_version', 'status')),
+    ('init-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'next_action', 'operation', 'schema_version', 'status')),
     ('mcp-inspect', 'success', 0, 1, 'completed',
      ('accepted', 'completion_scope', 'events', 'identity_scope', 'max_calls', 'operation',
       'participant_id', 'profile', 'record_path', 'registry', 'request_id', 'requirement_revision',
@@ -1028,6 +1033,21 @@ def _(w):
             ),
         ]
     )
+
+
+@scenario("init")
+def _(w):
+    project = w.tmp / "init-project"
+    project.mkdir()
+    return w.run(["init", "--project", str(project)])
+
+
+@scenario("init-refusal")
+def _(w):
+    project = w.tmp / "init-existing"
+    project.mkdir()
+    (project / "participants.json").write_text("{}", encoding="utf-8")
+    return w.run(["init", "--project", str(project)])
 
 
 @scenario("triage-check-refusal")

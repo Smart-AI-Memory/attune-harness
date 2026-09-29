@@ -99,6 +99,8 @@ def execute_intake(args):
             record = accept_task(args.task_dir, response)
             directory = Path(record['record_path']).parent
         else:
+            from .init_cli import require_registry
+            require_registry(args.config, args.project)
             if args.command == 'fix':
                 from .task_contract import create_repair_task
                 from .features import read_text
@@ -140,8 +142,11 @@ def execute_intake(args):
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
     except Exception as exc:
-        print(json.dumps({'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
-                          'error': {'type': type(exc).__name__, 'detail': str(exc)}}, indent=2))
+        failure = {'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
+                   'error': {'type': type(exc).__name__, 'detail': str(exc)}}
+        if getattr(exc, 'next_action', None):
+            failure['next_action'] = exc.next_action
+        print(json.dumps(failure, indent=2))
         return 2
 
 

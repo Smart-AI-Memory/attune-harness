@@ -9,6 +9,13 @@
   Codex plugins and the Python package are unchanged.
 - The Harness skill no longer names the 0.6.0 CLI. A test checks every command
   and option it shows against the CLI surface of the version it ships with.
+- Add `attune-harness init`, which writes a starter `participants.json` from
+  the `demo` (offline, deterministic), `claude` or `codex` profile. It refuses
+  to replace an existing registry unless given `--force`, which keeps a
+  backup. `review`, `fix` and `plan` without a registry now refuse with a
+  `next_action` that names `init`. New golden rows are `init` and
+  `init-refusal`, and the compact `--help` gains a "Getting started" section.
+  Existing envelopes, exit codes and defaults are unchanged.
 - Add a cold-start journey test to every installed-wheel platform job. It runs
   the CLI guide's journey-tagged blocks as written, from an empty directory
   with no participant registry. Journeys that do not work from a fresh install

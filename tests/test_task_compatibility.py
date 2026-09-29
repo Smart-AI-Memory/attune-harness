@@ -36,10 +36,11 @@ def test_all_legacy_names_remain_discoverable(capsys):
     assert error.value.code == 0
     output = capsys.readouterr()
     assert not output.err
-    assert all(title in output.out for title in ('Task execution:', 'Task controls:', 'AI tools and integration:'))
+    assert all(title in output.out for title in ('Getting started:', 'Task execution:', 'Task controls:',
+                                                 'AI tools and integration:'))
     assert '--help-all' in output.out
     options = set(re.findall(r'^  ([a-z][a-z-]*)\s', output.out, re.MULTILINE))
-    assert options == {'plan', 'build', 'review', 'fix', 'test', 'status', 'resume'}
+    assert options == {'init', 'plan', 'build', 'review', 'fix', 'test', 'status', 'resume'}
     assert not any(name in output.out for name in LEGACY_COMMANDS - {'review'})
 
     with pytest.raises(SystemExit) as error:

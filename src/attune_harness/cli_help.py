@@ -13,17 +13,19 @@ class CatalogHelp(argparse.Action):
 def configure_help(parser, commands):
     """Change discovery only; leave registered commands and their contracts intact."""
     descriptions = {entry.dest: entry.help for entry in commands._get_subactions()}
+    starting = ('init',)
     primary = ('plan', 'build', 'review', 'fix', 'test')
     continuation = ('status', 'resume')
     compatibility = ('review-form', 'inspect-review', 'resume-review',
                      'reconcile-review', 'transfer-review', 'cancel-review')
-    advanced = sorted(set(descriptions) - set(primary + continuation + compatibility))
+    advanced = sorted(set(descriptions) - set(starting + primary + continuation + compatibility))
 
     def section(title, names):
         return title + ':\n' + '\n'.join(
             f'  {name:<19} {descriptions[name]}' for name in names)
 
-    tasks = section('Task execution', primary) + '\n\n' + section('Task controls', continuation)
+    tasks = '\n\n'.join((section('Getting started', starting), section('Task execution', primary),
+                       section('Task controls', continuation)))
     hint = 'Use attune-harness COMMAND --help for command options.'
     catalog = '\n\n'.join((
         tasks,
