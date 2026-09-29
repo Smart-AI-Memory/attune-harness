@@ -94,6 +94,15 @@ acceptance, provider-spend or recovery gate.
 | Q4 | Plugin publication | **Publish the Claude Code plugin now**, from a `.claude-plugin/marketplace.json` in this repository as attune-forms does, provided it does not interfere with Codex, Antigravity or the Python library (conditions in R4). This amends D30.2's timing, which tied publication to the deprecation notice; D30.2's other terms stand. Not chosen: installing from the checkout until the notice |
 | Q5 | Release vehicle | 1.1.0, a minor release: a new verb and new optional flags, no frozen-surface break |
 
+### Ruled during implementation
+
+- **T5, `status` for non-feature tasks (September 29, 2026).** 1.0.1 refused
+  `status --format markdown|html` for a task other than `feature-work-v1` with
+  exit 2. T5 renders it and exits 0, as R5 asks. The different-model review
+  flagged this as a change of meaning on a frozen surface. Patrick ruled: keep
+  the change as is, with no `docs/deprecations.json` entry. The 1.1.0 release
+  notes and changelog name it as a behaviour change.
+
 ## Out of scope
 
 Changing any default, exit code or path-resolution rule; model calls in CI;
