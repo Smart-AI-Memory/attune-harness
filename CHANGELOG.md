@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.2.0
+
+A refused native Claude turn no longer strands a review task (#182). See the
+[release notes](docs/release-notes-1.2.0.md).
+
 - A native Claude participant turn that the CLI refuses before any model runs,
   for example an expired login or no usage credits, no longer leaves a review
   or assessment task stuck (#182). When the CLI exits with a structured error

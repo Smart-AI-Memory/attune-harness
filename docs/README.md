@@ -33,6 +33,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.0rc2 release notes](release-notes-1.0.0rc2.md): Unconstrained `voyage` and `all` install correction
 - [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
+- [1.2.0 release notes](release-notes-1.2.0.md): Recovery for a participant turn the Claude CLI refused, and init's flag guidance
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Coverage measurement](coverage-measurement.md): Supplemental subprocess and platform measurements, their provenance and limits
