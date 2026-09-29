@@ -193,10 +193,10 @@ class RecoveryCursor:
             from .plugin_runtime import PluginUnresolved
             if isinstance(exc, PluginUnresolved):
                 event['plugin_receipt'] = exc.receipt
-            # Preserve host process evidence, never infer it from diagnostic text.
+            # Preserve host process evidence for every task profile, never infer
+            # it from diagnostic text; native reconciliation reads only this receipt.
             from .native import NativeError
-            if (self.record.get('profile') == 'feature-build-v1'
-                    and kind == 'participant_turn' and isinstance(exc, NativeError)
+            if (kind == 'participant_turn' and isinstance(exc, NativeError)
                     and exc.failure is not None):
                 event['native_failure'] = {
                     'failure': exc.failure, 'process_stopped': exc.process_stopped,
@@ -315,7 +315,30 @@ def reconcile_review(directory: Path, checkpoint: str, event_id: str, *,
         return reconcile_record(record, store, checkpoint, event_id, reply_file=reply_file, retry_read_only=retry_read_only)
 
 
-def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, retry_read_only=False):
+NATIVE_RETRY_FAILURES = ('nonzero_exit', 'timeout_effects_unknown')
+
+
+def _retryable_native_turn(record, event):
+    """One retry needs host-saved stopped-process evidence; effects stay unknown."""
+    config = record['registry']['participants'].get(event.get('participant_id'), {})
+    failure = event.get('native_failure')
+    if (event['kind'] != 'participant_turn' or event['state'] != 'failed'
+            or event['effect_class'] != 'unknown' or event.get('effects') != 'unknown'
+            or event.get('error', {}).get('type') != 'NativeError'
+            or config.get('adapter') not in ('claude', 'codex')
+            or not isinstance(failure, dict)
+            or failure.get('failure') not in NATIVE_RETRY_FAILURES
+            or failure.get('process_stopped') is not True):
+        raise UnresolvedOperation('Native retry requires a failed native participant turn '
+                                  'with saved stopped-process evidence')
+    if event['attempts'] >= 2:
+        raise ValueError('Native retry limit exhausted')
+
+
+def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, retry_read_only=False,
+                     retry_native=False):
+    if sum((reply_file is not None, bool(retry_read_only), bool(retry_native))) != 1:
+        raise ValueError('Choose one recovered reply, read-only retry or native retry')
     ensure_active(record)
     event = next((item for item in record['events'] if item['event_id'] == event_id), None)
     if event is None or event['phase'] != 'dispatching' or event['state'] == 'completed':
@@ -330,6 +353,14 @@ def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, re
         evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
                     'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
                     'identity': 'operator-supplied; not authenticated'}
+    elif retry_native:
+        _retryable_native_turn(record, event)
+        event.update(state='pending', phase='prepared', attempts=event['attempts'] + 1)
+        event.pop('runtime_origin', None)
+        event.pop('native_failure', None)
+        # An authorization, not a finding: the first attempt may have used the provider.
+        evidence = {'kind': 'explicit_native_retry', 'native_failure': before['native_failure'],
+                    'effects': 'unknown'}
     else:
         if event['effect_class'] != 'read_only':
             raise UnresolvedOperation('Unknown external effects cannot be retried as read-only')

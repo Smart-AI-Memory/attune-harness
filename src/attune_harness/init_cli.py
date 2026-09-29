@@ -82,7 +82,7 @@ def next_action(project: Path, target: Path, profile: str) -> str:
     if profile == 'demo':
         return f'Show the review intake form, offline: {command}'
     return (f'Show the review intake form: {command}. Running native participants needs '
-            f'--allow-external and --allow-native, and may incur provider costs')
+            f'--allow-external (plan and build also need --allow-native), and may incur provider costs')
 
 
 def execute(args) -> int:

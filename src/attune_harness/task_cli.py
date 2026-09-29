@@ -197,7 +197,7 @@ def add_controls(sub):
             group = parser.add_mutually_exclusive_group(required=True)
             group.add_argument('--reply', type=Path)
             group.add_argument('--retry-read-only', action='store_true')
-            group.add_argument('--retry-native', action='store_true', help='Authorize one stopped Codex build timeout retry; external effects remain unknown')
+            group.add_argument('--retry-native', action='store_true', help='Authorize one retry of a stopped native participant turn (a Codex build timeout, or a review turn); external effects remain unknown')
             group.add_argument('--observe-file', action='store_true', help='Reconcile a replacement from observed after-bytes')
             group.add_argument('--retry-before', action='store_true', help='Authorize one replacement retry only if original bytes remain')
         elif name == 'transfer-task':
@@ -240,8 +240,8 @@ def execute_control(args):
         if read_record(args.task_dir).get('task_profile') == 'feature-work-v1':
             from .work_cli import execute_control as execute_work_control
             return execute_work_control(args)
-        if args.command == 'reconcile-task' and args.retry_native:
-            raise ValueError('Native retry applies only to feature builds')
+        if args.command == 'reconcile-task' and args.stop_observation is not None:
+            raise ValueError('--stop-observation applies only to feature builds')
         if args.command == 'resume' and (args.allow_external or args.allow_native):
             raise ValueError('These dispatch options apply only to feature work; existing tasks retain their saved permissions')
         if args.command == 'status':
@@ -251,7 +251,7 @@ def execute_control(args):
         elif args.command == 'resume':
             result = execute_task(args.task_dir, checkpoint=args.checkpoint, max_operations=args.max_operations)
         else:
-            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'observe_file':args.observe_file,'retry_before':args.retry_before},
+            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'retry_native':args.retry_native,'observe_file':args.observe_file,'retry_before':args.retry_before},
                        'transfer-task': lambda: {'participant_id':args.assessor,'reason':args.reason},
                        'cancel-task': lambda: {'reason':args.reason}}
             result = control_task(args.task_dir, args.command.split('-')[0],

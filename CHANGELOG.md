@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- A review task whose native participant failed before answering, such
+  as a `claude` CLI refusal for an expired login or exhausted credits, is no
+  longer stuck (#182). The host now saves `native_failure` process evidence for
+  every task profile, not only feature builds. `reconcile-task --retry-native`
+  authorizes one retry of a failed native participant turn when that evidence
+  shows the CLI process stopped (`nonzero_exit` or `timeout_effects_unknown`).
+  The receipt, `explicit_native_retry`, records effects as still unknown;
+  completed turns are kept. Records without the evidence stay refused.
+- `init --profile claude|codex` no longer says every route needs
+  `--allow-native`; only `plan` and `build` take it.
+
 ## 1.1.0
 
 Every task verb is reachable from a fresh install (the first-run journey,

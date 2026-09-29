@@ -397,6 +397,25 @@ creates a durable interruption for later resume. A completed assessment can repo
 a refuted or unknown document; participant narratives remain unverified proposals.
 The JSON includes the task directory and identity.
 
+A native participant's turn can fail before it answers, for example when the
+`claude` CLI refuses an expired login or an exhausted usage allowance. The failed
+turn records `effects: unknown`, so `resume` refuses it and `--retry-read-only`
+does not apply. When the host saved `native_failure` evidence that the CLI
+process stopped (`nonzero_exit` or `timeout_effects_unknown`, with
+`process_stopped: true`), fix the cause and authorize one retry:
+
+```sh
+attune-harness reconcile-task <task> --event <event-id> --retry-native
+attune-harness resume <task>
+```
+
+The receipt, `explicit_native_retry`, keeps the first attempt and its evidence
+and still records effects as unknown: provider usage may have occurred and may
+repeat. Completed turns are kept, so other participants are not called again.
+A second failure, a process not known to have stopped, and records saved before
+this evidence was kept (Harness 1.1.0 and earlier) are refused; `cancel-task`
+closes such a record. `--stop-observation` remains feature-build only.
+
 Use `--help-all` when you need additional recovery or setup controls.
 See the [assessment receipt](specs/unified-task-execution/assessment-receipt.md)
 for installed software evidence and outstanding native-model qualification.

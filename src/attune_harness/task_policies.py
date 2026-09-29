@@ -203,9 +203,10 @@ def control_task(directory, action, *, checkpoint=None, **kwargs):
         if action == 'reconcile':
             reply = kwargs.get('reply_file')
             retry = kwargs.get('retry_read_only', False)
+            native = kwargs.get('retry_native', False)
             file_resolution = kwargs.get('observe_file', False) or kwargs.get('retry_before', False)
-            if sum((reply is not None, bool(retry), bool(kwargs.get('observe_file')), bool(kwargs.get('retry_before')))) != 1:
-                raise ValueError('Choose one recovered reply or read-only retry')
+            if sum((reply is not None, bool(retry), bool(native), bool(kwargs.get('observe_file')), bool(kwargs.get('retry_before')))) != 1:
+                raise ValueError('Choose one recovered reply, read-only retry or native retry')
             if 'repair' in task['request']:
                 event = next((e for e in run['events'] if e['event_id'] == kwargs['event_id']), None)
                 if event and event['kind'] == 'replacement':
@@ -222,7 +223,8 @@ def control_task(directory, action, *, checkpoint=None, **kwargs):
             if file_resolution:
                 raise ValueError('File observation/retry applies only to a replacement effect')
             check_fresh(task)
-            reconcile_record(run, adapter, current, kwargs['event_id'], reply_file=reply, retry_read_only=retry)
+            reconcile_record(run, adapter, current, kwargs['event_id'], reply_file=reply, retry_read_only=retry,
+                             retry_native=native)
         elif action == 'transfer':
             bounded_text(kwargs['reason'], 'transfer reason')
             check_fresh(task)
