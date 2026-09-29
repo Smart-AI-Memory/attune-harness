@@ -81,9 +81,22 @@ def main(argv: list[str] | None = None) -> int:
         from .memory_cli import main as memory_main
         return memory_main(invocation[1:])
     parser = build_parser()
+    args = parser.parse_args(argv)
+    from .human_output import VERBS, run
+    if args.command in VERBS and args.format == 'markdown':
+        if (args.command in ('review', 'fix') and sys.stdin.isatty() and not args.accept
+                and args.task_response is None and (args.command == 'fix' or args.goal is not None)):
+            parser.error('--format markdown cannot show the interactive intake prompts; '
+                         'pass --accept or answer with --task-response')
+        return run(lambda: dispatch(args, parser))
+    return dispatch(args, parser)
+
+
+def dispatch(args, parser) -> int:
+    """Run the parsed verb; ``main`` decides how its envelope is printed."""
+    import sys
     from .review_cli import execute
     from .task_cli import execute_control
-    args = parser.parse_args(argv)
     if args.command == 'spec':
         from .spec_cli import execute as execute_spec
         return execute_spec(args)

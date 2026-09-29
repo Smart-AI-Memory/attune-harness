@@ -24,6 +24,9 @@ def add_commands(sub):
     plan = sub.add_parser(
         "plan", help="Define intent, review a proposal and accept its scope"
     )
+    from .human_output import add_format
+
+    add_format(plan)
     plan.add_argument(
         "--task-dir",
         type=Path,
@@ -102,6 +105,7 @@ def add_commands(sub):
     build = sub.add_parser(
         "build", help="Execute the accepted plan and its protected checks"
     )
+    add_format(build)
     build.add_argument("task_dir", type=Path)
     build.add_argument("--checkpoint", help="Expected current checkpoint")
     _dispatch_options(build)
