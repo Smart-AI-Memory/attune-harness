@@ -58,6 +58,23 @@ def add_arguments(parser):
     parser.add_argument('--clear-intake-cache', action='store_true')
 
 
+REVIEW_MODES = ('See attune-harness review --help: start new work with --goal, answer a saved intake with '
+                '--task-dir and --task-response, or run a legacy review with REQUEST and --run-dir')
+FIX_MODES = ('See attune-harness fix --help: start a repair with --goal, --checkout, --scope and --probe '
+             "(the CLI guide's Scoped repair section shows a probe), or answer a saved intake with "
+             '--task-dir and --task-response')
+FINDINGS = 'Name the completed assessment with --from-assessment and each selected finding with its own --finding-id'
+INSPECT = ('Inspect the error. If a task directory was created, read it with attune-harness status '
+           'before running anything again')
+
+
+def refuse(detail, next_action):
+    """A rejected combination of valid options: one refusal envelope, then exit 2 as argparse did (R2)."""
+    print(json.dumps({'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
+                      'error': {'type': 'UsageError', 'detail': detail}, 'next_action': next_action}, indent=2))
+    raise SystemExit(2)
+
+
 def validate_mode(args, parser):
     task = args.goal is not None or args.task_response is not None
     names = ('project', 'plan', 'task_dir', 'profile', 'criteria', 'query', 'document',
@@ -65,22 +82,22 @@ def validate_mode(args, parser):
              'repair_findings', 'bypass_intake_cache', 'clear_intake_cache', 'intake_only', 'pause_after')
     if task:
         if args.request is not None or args.run_dir is not None or args.max_operations is not None:
-            parser.error('Task intake and legacy request/--run-dir/--max-operations are mutually exclusive')
+            refuse('Task intake and legacy request/--run-dir/--max-operations are mutually exclusive', REVIEW_MODES)
         if args.goal is not None and args.task_response is not None:
-            parser.error('--goal and --task-response are mutually exclusive')
+            refuse('--goal and --task-response are mutually exclusive', REVIEW_MODES)
         if args.task_response is not None:
             forbidden = tuple(n for n in names if n not in ('task_dir', 'bypass_intake_cache', 'clear_intake_cache', 'intake_only', 'pause_after'))
             if args.task_dir is None or any(getattr(args, n) is not None and getattr(args, n) is not False for n in forbidden):
-                parser.error('--task-response requires --task-dir and cannot be combined with intake overrides')
+                refuse('--task-response requires --task-dir and cannot be combined with intake overrides', REVIEW_MODES)
             if args.allow_external or args.allow_provider:
-                parser.error('A task response must carry its own explicit permissions')
+                refuse('A task response must carry its own explicit permissions', REVIEW_MODES)
             if args.config is not None:
-                parser.error('A task response uses its saved registry; --config cannot override it')
+                refuse('A task response uses its saved registry; --config cannot override it', REVIEW_MODES)
     else:
         if args.request is None or args.run_dir is None:
-            parser.error('Legacy review requires request and --run-dir; new intake requires --goal')
+            refuse('Legacy review requires request and --run-dir; new intake requires --goal', REVIEW_MODES)
         if any(getattr(args, n) is not None and getattr(args, n) is not False for n in names):
-            parser.error('Task intake options require --goal or --task-response')
+            refuse('Task intake options require --goal or --task-response', REVIEW_MODES)
     args.config = args.config or Path('participants.json')
     return task
 
@@ -99,6 +116,8 @@ def execute_intake(args):
             record = accept_task(args.task_dir, response)
             directory = Path(record['record_path']).parent
         else:
+            from .init_cli import require_registry
+            require_registry(args.config, args.project)
             if args.command == 'fix':
                 from .task_contract import create_repair_task
                 from .features import read_text
@@ -140,8 +159,10 @@ def execute_intake(args):
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
     except Exception as exc:
-        print(json.dumps({'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
-                          'error': {'type': type(exc).__name__, 'detail': str(exc)}}, indent=2))
+        failure = {'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
+                   'error': {'type': type(exc).__name__, 'detail': str(exc)}}
+        failure['next_action'] = getattr(exc, 'next_action', None) or INSPECT
+        print(json.dumps(failure, indent=2))
         return 2
 
 
@@ -165,6 +186,8 @@ def add_controls(sub):
         if name != 'status':
             parser.add_argument('--checkpoint', help='Optional expected checkpoint for scripted compare-and-set')
         if name == 'resume':
+            from .human_output import add_format
+            add_format(parser)
             parser.add_argument('--max-operations', type=int)
             parser.add_argument('--allow-external', action='store_true', help='Explicit feature-work command dispatch')
             parser.add_argument('--allow-native', action='store_true', help='Separate feature-work native trial authorization')
@@ -193,7 +216,16 @@ def execute_control(args):
             raise ValueError('--include-task requires --format markdown or html; default JSON is unchanged')
         if continuation is not None and getattr(args, 'format', 'json') == 'json':
             raise ValueError('--continuation requires --format markdown or html; default JSON is unchanged')
-        if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
+        readable = args.command == 'status' and getattr(args, 'format', 'json') != 'json'
+        if readable and not included:
+            from .review_store import read_record
+            # Feature work has its own return-to-work snapshot; every other task renders its
+            # status envelope below (first-run journey R5). A continuation note is feature-work only.
+            feature = read_record(args.task_dir).get('task_profile') == 'feature-work-v1'
+            if not feature and continuation is not None:
+                raise ValueError('--continuation applies to feature-work-v1 snapshots only')
+            readable = feature
+        if readable:
             from .task_view import inspect, render, inspect_saved_tasks, render_saved_tasks
             if included:
                 print(render_saved_tasks(inspect_saved_tasks(
@@ -227,6 +259,10 @@ def execute_control(args):
         if result.get('task_profile') == 'pytest-change-v1':
             from .test_change import public_test_task
             result = public_test_task(result)
+        if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
+            from .human_output import document, markdown
+            print(markdown(result) if args.format == 'markdown' else document(result), end='')
+            return 0
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         if args.command == 'status':
             return 0
@@ -237,12 +273,18 @@ def execute_control(args):
     except Exception as exc:
         from .recovery import UnresolvedOperation
         print(json.dumps({'status':'unresolved' if isinstance(exc,UnresolvedOperation) else 'failed',
-                          'error':{'type':type(exc).__name__,'detail':str(exc)}}))
+                          'error':{'type':type(exc).__name__,'detail':str(exc)},
+                          'next_action': (f'Check that {args.task_dir} is a Harness task directory holding its '
+                                          'record.json' if args.command == 'status' else
+                                          'Inspect the task with attune-harness status before choosing an action; '
+                                          'do not retry an uncertain operation blindly')}))
         return 2
 
 
 def add_fix(sub):
     parser = sub.add_parser('fix', help='Repair scoped files and check the result')
+    from .human_output import add_format
+    add_format(parser)
     parser.add_argument('--goal')
     parser.add_argument('--project',type=Path)
     parser.add_argument('--config',type=Path)
@@ -273,13 +315,13 @@ def validate_fix(args, parser):
         if args.task_dir is None or args.accept or args.allow_external or any(getattr(args,n) is not None for n in
                 ('goal','project','config','checkout','scope','probe','worker','review','reviewer','criteria',
                  'from_assessment','finding_ids')):
-            parser.error('Fix response requires --task-dir and cannot override accepted inputs or permissions')
+            refuse('Fix response requires --task-dir and cannot override accepted inputs or permissions', FIX_MODES)
     else:
         if not args.goal or not args.checkout or not args.scope or not args.probe:
-            parser.error('Fix requires --goal, --checkout, --scope and --probe, or a bound --task-response')
+            refuse('Fix requires --goal, --checkout, --scope and --probe, or a bound --task-response', FIX_MODES)
         if (args.from_assessment is None) != (args.finding_ids is None):
-            parser.error('--from-assessment and at least one --finding-id are required together')
+            refuse('--from-assessment and at least one --finding-id are required together', FINDINGS)
         if args.finding_ids is not None and len(args.finding_ids) != len(set(args.finding_ids)):
-            parser.error('--finding-id values must be unique')
+            refuse('--finding-id values must be unique', FINDINGS)
         args.config=args.config or Path('participants.json')
         args.review=args.review or 'required'

@@ -42,6 +42,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "max_operations",
@@ -61,6 +72,7 @@
     "--allow-external",
     "--allow-native",
     "--checkpoint",
+    "--format",
     "--max-operations"
    ],
    "positionals": [
@@ -494,6 +506,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "from_assessment",
@@ -604,6 +627,7 @@
     "--config",
     "--criteria",
     "--finding-id",
+    "--format",
     "--from-assessment",
     "--goal",
     "--intake-only",
@@ -787,6 +811,46 @@
      ]
     }
    }
+  },
+  "init": {
+   "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "force",
+     "option_strings": [
+      "--force"
+     ]
+    },
+    {
+     "choices": [
+      "demo",
+      "claude",
+      "codex"
+     ],
+     "default": "demo",
+     "name": "profile",
+     "option_strings": [
+      "--profile"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "project",
+     "option_strings": [
+      "--project"
+     ]
+    }
+   ],
+   "one_of": [],
+   "options": [
+    "--force",
+    "--profile",
+    "--project"
+   ],
+   "positionals": [],
+   "required_options": []
   },
   "inspect-review": {
    "arguments": [
@@ -1764,6 +1828,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "import_plan",
@@ -1862,6 +1937,7 @@
     "--checkpoint",
     "--config",
     "--decision",
+    "--format",
     "--import-plan",
     "--max-operations",
     "--preserve-completed",
@@ -2091,6 +2167,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "max_operations",
@@ -2110,6 +2197,7 @@
     "--allow-external",
     "--allow-native",
     "--checkpoint",
+    "--format",
     "--max-operations"
    ],
    "positionals": [
@@ -2435,6 +2523,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "goal",
@@ -2561,6 +2660,7 @@
     "--corpus",
     "--criteria",
     "--document",
+    "--format",
     "--goal",
     "--intake-only",
     "--max-operations",
@@ -2766,6 +2866,17 @@
      ]
     },
     {
+     "choices": [
+      "json",
+      "markdown"
+     ],
+     "default": "json",
+     "name": "format",
+     "option_strings": [
+      "--format"
+     ]
+    },
+    {
      "choices": null,
      "default": null,
      "name": "from_task",
@@ -2882,6 +2993,7 @@
    "options": [
     "--accept",
     "--checkpoint",
+    "--format",
     "--from-task",
     "--goal",
     "--intake-only",

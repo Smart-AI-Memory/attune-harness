@@ -18,6 +18,9 @@ def add_command(sub) -> None:
     parser = sub.add_parser(
         "test", help="Test a captured change and retain the evidence"
     )
+    from .human_output import add_format
+
+    add_format(parser)
     parser.add_argument("--project", type=Path)
     parser.add_argument(
         "--from-task",
@@ -129,6 +132,10 @@ def execute(args) -> int:
                 {
                     "status": "blocked",
                     "error": {"type": type(exc).__name__, "detail": str(exc)},
+                    "next_action": (
+                        "Correct the reported input and preview again; accept a saved preview "
+                        "with --task-dir, --checkpoint and --accept"
+                    ),
                 }
             )
         )

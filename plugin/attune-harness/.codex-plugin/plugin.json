@@ -1,6 +1,6 @@
 {
   "name": "attune-harness",
-  "version": "0.6.0",
+  "version": "1.1.0",
   "description": "Spec workspaces and evidence-driven development using Harness. Development candidate; lifecycle gates pending.",
   "author": {
     "name": "Smart AI Memory"

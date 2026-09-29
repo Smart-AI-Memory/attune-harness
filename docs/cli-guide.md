@@ -9,10 +9,10 @@ install commands now name the published package.
 ## Installation
 
 ```sh
-pipx install 'attune-harness[all]==1.0.1'
+pipx install 'attune-harness[all]==1.1.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.0.1'`, or `pip install 'attune-harness[all]==1.0.1'`
+or `uv tool install 'attune-harness[all]==1.1.0'`, or `pip install 'attune-harness[all]==1.1.0'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The example below needs no API key or attune-ai installation;
@@ -27,6 +27,7 @@ if it finds the two side by side.
 A participant produces output; a separate check decides whether it meets the
 criteria. This local example needs no API key:
 
+<!-- journey: checks-and-receipts -->
 ```python
 from attune_harness import Check, Output, Task, run
 
@@ -77,6 +78,9 @@ goal. The compact CLI catalog presents the execution interface:
 
 ```text
 attune-harness --help
+
+Getting started
+  init         Write a starter participant registry
 
 Task execution
   plan         Define intent and accept its scope
@@ -135,29 +139,43 @@ does not contain it. `review` checks a document against evidence; `test` runs
 checks on captured changes. Neither a source-security audit nor test generation
 is implied by those names. `ship` and `reflect` remain planned routes.
 
+## Readable output
+
+Every verb prints one JSON envelope, for the agent and for scripts. Add
+`--format markdown` to `plan`, `build`, `review`, `fix`, `test` or `resume` to
+print the same result for people: the envelope's own Markdown where it has
+one, otherwise its status, outcome and any refusal, then where the record is
+saved and what to do next. The exit code does not change. `status --format
+markdown` (or `html`) works for every saved task.
+
+## Get started with a participant registry
+
+`plan`, `review` and `fix` read a participant registry, `participants.json`,
+naming who plans, works, assesses and reviews. `init` writes a starter one into
+the project:
+
+<!-- journey: init -->
+```sh
+attune-harness init
+attune-harness init --profile claude --project /path/to/repo
+```
+
+The default `demo` profile has two deterministic participants that call no
+model, enough to run the review intake and the bundled examples offline.
+`claude` and `codex` name a lead and a reviewer on different models, since a
+required native review needs one. Writing them authorizes nothing: running them
+still needs `--allow-external` and `--allow-native`, and may incur provider
+costs. `init` refuses to replace an existing registry unless you pass
+`--force`, which keeps the old file as `participants.json.bak`. Its JSON names
+the next command to run. When `plan`, `review` or `fix` finds no registry, the
+refusal's `next_action` names `init`.
+
 ## Plan and build
 
 An agent can author a work request from the user's goal. The request records
 `intent` (goal, context, exact file scope, constraints, acceptance criteria and
 questions), explicit participant assignments and any dependent tasks. Complex
 work can import an existing Spec using `--import-plan`; import grants no authority.
-A plan from another project, outside the checkout, is imported by naming it
-with `--allow-outside-project` beside `--import-plan` (spec authority Task 5,
-D4): the plan is read once through `spec_state` (schema versions 1 and 2; any
-other is refused with the next action) and `spec_legacy`, converted exactly
-as the implicit import is, and the conversion leaves a receipt, one JSON line
-per conversion in `import-receipts.jsonl` beside `record.json`, with the path
-as given (in the command line's normalised spelling) and as resolved, the
-file's SHA-256, the state comment read, or whether one was present and
-ignored, what was mapped, what was not, and the time. A `--reimport` of such
-a task, one whose bound plan lies outside the project, appends a second line;
-a receipts file that cannot take the line, full, linked or not a regular
-file, refuses the conversion before anything is saved, with the next action.
-A plan the flag names that resolves inside the project is refused: import it
-without the flag. The plan is only read. Without the flag a plan outside the
-project, or behind a symlink, is refused as before. The sequence with its
-envelope, its receipt and its refusals is
-[the R4 journey](journeys/r4-legacy-spec-state.md).
 For construction, freeze the supported effect manifest and protected verification
 commands before accepting the work. See [the contract](specs/plan-build/work-contract.md)
 and [bounded build profile](specs/plan-build/dependent-build.md).
@@ -175,6 +193,31 @@ attune-harness build /tmp/my-work --allow-external --max-operations 4
 attune-harness status /tmp/my-work
 attune-harness resume /tmp/my-work --allow-external
 ```
+
+These commands are not a copy-and-paste example yet: `work.json` must carry a
+frozen effects manifest, which no command writes. The offline plan, accept,
+build, review and status journey in `scripts/check_installed.py` (`FREEZE` and
+`journey_checks`) builds one and runs in every platform job.
+
+### Importing a plan from another project
+
+A plan from another project, outside the checkout, is imported by naming it
+with `--allow-outside-project` beside `--import-plan` (spec authority Task 5,
+D4): the plan is read once through `spec_state` (schema versions 1 and 2; any
+other is refused with the next action) and `spec_legacy`, converted exactly
+as the implicit import is, and the conversion leaves a receipt, one JSON line
+per conversion in `import-receipts.jsonl` beside `record.json`, with the path
+as given (in the command line's normalised spelling) and as resolved, the
+file's SHA-256, the state comment read, or whether one was present and
+ignored, what was mapped, what was not, and the time. A `--reimport` of such
+a task, one whose bound plan lies outside the project, appends a second line;
+a receipts file that cannot take the line, full, linked or not a regular
+file, refuses the conversion before anything is saved, with the next action.
+A plan the flag names that resolves inside the project is refused: import it
+without the flag. The plan is only read. Without the flag a plan outside the
+project, or behind a symlink, is refused as before. The sequence with its
+envelope, its receipt and its refusals is
+[the R4 journey](journeys/r4-legacy-spec-state.md).
 
 To return to a saved feature-work task, export a read-only overview:
 
@@ -316,7 +359,23 @@ active integration and release remain separate qualification boundaries.
 
 ## Task-oriented evidence review
 
-Install `attune-harness`, then supply one goal and the source/participant choices. Missing
+The bundled example runs offline from a checkout, with its deterministic participants and the example directory as the project:
+
+<!-- journey: review-bundled-example -->
+```sh
+cd examples/local-workflow
+attune-harness review --goal "Check the guide against its evidence" --project . \
+  --config ../review/participants.json --document project/guide.md \
+  --context context.json --corpus project --query "quartz retention policy" \
+  --criteria "Identify unsupported claims" --assessor sample-lead \
+  --task-dir /path/outside/repo/review-task --accept
+```
+
+`--document`, `--context` and `--corpus` resolve against `--project`, while
+`--config` resolves against the working directory; a refusal about a path says
+which base it used and what it resolved to.
+
+For your own project, supply one goal and the source/participant choices. Missing
 answers are collected interactively; headless runs return a bound intake form.
 Explicit acceptance executes the assessment. For example, from a project with
 `docs/guide.md`, a trusted verification context and a participant registry:
@@ -348,6 +407,7 @@ Install `attune-harness`, which carries the forms grammar, and choose an interpr
 pytest. Supply a changed file or directory relative to Git HEAD. The first command
 saves a preview; accept its returned checkpoint to run the captured inputs:
 
+<!-- journey: test-this-change -->
 ```sh
 attune-harness test --project /path/to/repo --scope src/example.py \
   --interpreter /path/to/venv/bin/python --task-dir /path/outside/repo/test-task
@@ -406,7 +466,9 @@ with more than one hard link and alternate data streams before writing. It passe
 its own native tests and is not qualified beyond them. See the
 [design note](design-windows-effect-backend.md).
 
-Prepare a trusted probe JSON before the worker runs:
+`fix` has no copy-and-paste example yet: it needs a dedicated checkout, a
+trusted probe you write, and a worker that proposes a replacement. Prepare a
+trusted probe JSON before the worker runs:
 
 ```json
 {

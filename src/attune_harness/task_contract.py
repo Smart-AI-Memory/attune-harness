@@ -81,6 +81,16 @@ def safe_storage(directory):
     return directory.resolve()
 
 
+RESOLUTION_RULE = ('--document, --context and --corpus resolve against --project; '
+                   '--config resolves against the working directory')
+
+
+def resolution(name, value, project, path):
+    """How an input path was read, so a refusal says which base it resolved against (first-run journey R3)."""
+    base = 'is absolute' if Path(value).is_absolute() else f'resolves against --project {project}'
+    return f'{name} {str(value)!r} {base} to {path}'
+
+
 def evidence(project, directory, answers, registry):
     """Freeze known inputs without running verification or provider operations."""
     result = {}
@@ -89,17 +99,20 @@ def evidence(project, directory, answers, registry):
         if answers[name] is None:
             continue
         path = (project / answers[name]).resolve()
+        where = resolution(name, answers[name], project, path)
         if not path.is_relative_to(project) or path.is_relative_to(directory):
-            raise ValueError(f'{name} must be inside the project and outside task state')
+            raise ValueError(f'{name} must be inside the project and outside task state: {where}. {RESOLUTION_RULE}')
         if name == 'corpus':
             if not path.is_dir():
-                raise ValueError('Corpus must be an existing directory')
+                raise ValueError(f'Corpus must be an existing directory: {where}. {RESOLUTION_RULE}')
             if directory.is_relative_to(path):
                 raise ValueError('Corpus would ingest task state; choose --task-dir outside the corpus')
             local_state = project / '.attune-harness/tasks'
             if path.is_relative_to(local_state) or (local_state.exists() and local_state.is_relative_to(path)):
                 raise ValueError('Corpus overlaps existing project task state; select a narrower corpus')
         else:
+            if not path.is_file():
+                raise ValueError(f'{name} is not a regular file: {where}. {RESOLUTION_RULE}')
             raw = read_text(path, 65536)
             if name == 'document' and path.suffix.lower() not in ('.md', '.markdown'):
                 raise ValueError('Assessment document must be Markdown')

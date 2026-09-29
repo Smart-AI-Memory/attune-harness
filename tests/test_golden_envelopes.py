@@ -195,6 +195,15 @@ ENVELOPES = (
      ('error', 'schema_version', 'status')),
     ('github-checks-refusal', 'refusal', 2, 1, 'failed',
      ('error', 'schema_version', 'status')),
+    ('init', 'success', 0, 1, 'created',
+     ('next_action', 'operation', 'participants', 'path', 'profile', 'replaced', 'requires',
+      'schema_version', 'status')),
+    ('init-refusal', 'refusal', 2, 1, 'failed',
+     ('error', 'next_action', 'operation', 'schema_version', 'status')),
+    ('fix-incomplete', 'refusal', 2, 1, 'failed',
+     ('error', 'next_action', 'operation', 'schema_version', 'status')),
+    ('test-refusal', 'refusal', 2, None, 'blocked',
+     ('error', 'next_action', 'status')),
     ('mcp-inspect', 'success', 0, 1, 'completed',
      ('accepted', 'completion_scope', 'events', 'identity_scope', 'max_calls', 'operation',
       'participant_id', 'profile', 'record_path', 'registry', 'request_id', 'requirement_revision',
@@ -1028,6 +1037,34 @@ def _(w):
             ),
         ]
     )
+
+
+@scenario("init")
+def _(w):
+    project = w.tmp / "init-project"
+    project.mkdir()
+    return w.run(["init", "--project", str(project)])
+
+
+@scenario("init-refusal")
+def _(w):
+    project = w.tmp / "init-existing"
+    project.mkdir()
+    (project / "participants.json").write_text("{}", encoding="utf-8")
+    return w.run(["init", "--project", str(project)])
+
+
+@scenario("fix-incomplete")
+def _(w):
+    # A rejected option combination prints its envelope and exits 2, as argparse's usage error did.
+    with pytest.raises(SystemExit) as exit:
+        main(["fix", "--goal", "Repair addition"])
+    return exit.value.code, json.loads(w.capsys.readouterr().out)
+
+
+@scenario("test-refusal")
+def _(w):
+    return w.run(["test", "--task-dir", w.tmp / "test-refusal"])
 
 
 @scenario("triage-check-refusal")
