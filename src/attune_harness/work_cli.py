@@ -547,9 +547,16 @@ def execute(args):
                     or args.config is None
                     or args.checkpoint is not None
                 ):
-                    raise ValueError(
+                    error = ValueError(
                         "New work requires --project and --config, without an old checkpoint"
                     )
+                    if args.config is None and args.checkpoint is None:
+                        from .init_cli import registry_next_action
+
+                        error.next_action = registry_next_action(args.project or Path.cwd())
+                        if args.project is None:
+                            error.next_action = "Pass --project with the project directory. " + error.next_action
+                    raise error
                 data = _json(args.request)
                 allowed = {
                     "intent",
@@ -675,7 +682,8 @@ def _error(exc, directory=None):
         "error": {"type": type(exc).__name__, "detail": str(exc)},
         "summary": "The requested action could not complete; inspect the error before continuing.",
         "blocking": True,
-        "next_action": "Inspect the error and any saved journal before choosing a valid action. Do not blindly retry uncertain operations.",
+        "next_action": getattr(exc, "next_action", None)
+        or "Inspect the error and any saved journal before choosing a valid action. Do not blindly retry uncertain operations.",
     }
     try:
         current = present(directory, inspect_only=True) if directory else None

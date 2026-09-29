@@ -22,6 +22,9 @@ experimental features and platform limits are listed below. [Release notes](http
 ```text
 attune-harness --help
 
+Getting started
+  init         Write a starter participant registry
+
 Task execution
   plan         Define intent and accept its scope
   build        Execute accepted tasks and protected checks

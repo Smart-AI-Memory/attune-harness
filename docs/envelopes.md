@@ -10,12 +10,12 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 70 rows:
+row pins, in 72 rows:
 
-- **success** (58 rows): the verb did its work offline on a small fixture;
+- **success** (59 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (9 rows): an offline refusal on purpose. `build` before the work
-  is accepted; `index build` without `--allow-provider`; `index update`,
+- **refusal** (10 rows): an offline refusal on purpose. `build` before the work
+  is accepted; `init` over an existing registry, which it leaves unchanged; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
   built; `memory capabilities` with a config that is not the roots contract,
   refused by the default reader in its own words; `triage-check` and
@@ -103,6 +103,8 @@ or to rule exempt.
 | `github-checks` | success | 0 | 1 | `completed` | `all_checks_passed` `checks` `note` `repair_verified` `repository` `revision` `schema_version` `status` |
 | `triage-check-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `github-checks-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
+| `init` | success | 0 | 1 | `created` | `next_action` `operation` `participants` `path` `profile` `replaced` `requires` `schema_version` `status` |
+| `init-refusal` | refusal | 2 | 1 | `failed` | `error` `next_action` `operation` `schema_version` `status` |
 | `mcp-inspect` | success | 0 | 1 | `completed` | `accepted` `completion_scope` `events` `identity_scope` `max_calls` `operation` `participant_id` `profile` `record_path` `registry` `request_id` `requirement_revision` `schema_version` `source_snapshot` `status` `tools` |
 | `mcp-inspect-workspace` | success | 0 | 1 | `completed` | `calls_completed` `calls_failed` `calls_started` `completion_scope` `dropped_events` `identity_scope` `max_calls` `model_calls` `operation` `participant_id` `pending` `profile` `project` `provider` `record_path` `request_id` `schema_version` `status` `tools` |
 | `spec-intake` | success | 0 | - | - | `areas` `form` `taken_slugs` |
@@ -178,6 +180,8 @@ What each case runs, in the order of the table.
 - `github-checks`: `github-checks INPUT --repository --revision`
 - `triage-check-refusal`: `triage-check INPUT` on an empty object
 - `github-checks-refusal`: `github-checks INPUT --repository --revision` on an empty object
+- `init`: `init --project` on an empty directory (the default `demo` profile)
+- `init-refusal`: `init --project` where a `participants.json` already exists
 - `mcp-inspect`: `mcp-inspect SESSION_DIR` on a finished retrieval session
 - `verify`: `verify DOCUMENT --context`
 - `retrieve`: `retrieve QUERY --corpus`
