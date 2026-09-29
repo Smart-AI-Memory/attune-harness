@@ -1,11 +1,10 @@
 # First-run journey: tasks
 
-**Status: approved September 28, 2026. All seven tasks implemented the
-same day, each in its own pull request and awaiting Patrick's merge:** T1 #172,
-T2 #173, T3 #174, T4 #175, T5 #176, T6 #177, T7 #178. T3–T7 are stacked on T1
-in that order. T2 is based on `main`. Each `src/` pull request records its
-different-model review (Claude Sonnet 5). The 1.1.0 prepare pull request and
-the publication follow the merges. A checkbox means implemented, not merged. Requirements are in [design.md](design.md), questions Q1–Q5
+**Status: complete.** Approved September 28, 2026. All seven tasks were
+merged to `main` (T1 #172, T2 #173, T3 #174, T4 #175, T5 #176, T6 #177, T7
+#178) and released in **1.1.0** on September 29, 2026 (tag `v1.1.0` at
+`31fa8a61b6bbb602349c57a359d69ec795670be7`). Each `src/` pull request records
+its different-model review (Claude Sonnet 5). Requirements are in [design.md](design.md), questions Q1–Q5
 in the [README](README.md).
 
 ## Order
