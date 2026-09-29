@@ -1,17 +1,19 @@
-# Attune Harness 1.1.0 release notes (draft)
-
-**Draft, prepared with first-run journey T7. Not released.** The version, its
-changelog heading, the README's release links and the plugin versions are set
-by the release's own prepare pull request (see the [release runbook](release-runbook.md)),
-after the first-run journey pull requests merge.
+# Attune Harness 1.1.0 release notes
 
 `1.1.0` makes every task verb reachable from a fresh install. A cold
 walkthrough of 1.0.1 found that only `test` completed: `plan`, `review` and
 `fix` needed a participant registry that nothing wrote, refusals came in three
-shapes, and the Harness skill had no way into Claude Code. Everything below is
-additive under the v1 compatibility contract: no envelope key, exit code,
-default or saved-state format changes, and `docs/deprecations.json` stays
-empty.
+shapes, and the Harness skill had no way into Claude Code. Use an isolated
+environment:
+
+```sh
+pipx install 'attune-harness[all]==1.1.0'
+```
+
+The v1 compatibility contract holds. Every JSON envelope key, default and
+saved-state format is unchanged, and `docs/deprecations.json` stays empty. New
+verbs, options and golden rows are additive. Two behaviours change, and each
+is listed under "Behaviour changes" below.
 
 ## What is new
 
@@ -37,6 +39,14 @@ empty.
 - **Documented journeys run in CI.** Blocks tagged in the README and the CLI
   guide run as written, from an empty directory, in every installed-wheel
   platform job.
+
+## Behaviour changes
+
+- `status --format markdown|html` on a task other than `feature-work-v1` used
+  to be refused with exit 2. It now renders the task and exits 0.
+- A rejected combination of valid options for `review` or `fix` (for example
+  `fix --goal` alone) used to print argparse usage text on stderr. It now
+  prints a JSON refusal on stdout. The exit code is still 2.
 
 ## Limits
 
