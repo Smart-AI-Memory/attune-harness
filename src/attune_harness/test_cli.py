@@ -18,6 +18,9 @@ def add_command(sub) -> None:
     parser = sub.add_parser(
         "test", help="Test a captured change and retain the evidence"
     )
+    from .human_output import add_format
+
+    add_format(parser)
     parser.add_argument("--project", type=Path)
     parser.add_argument(
         "--from-task",

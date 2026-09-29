@@ -9,6 +9,12 @@
   Codex plugins and the Python package are unchanged.
 - The Harness skill no longer names the 0.6.0 CLI. A test checks every command
   and option it shows against the CLI surface of the version it ships with.
+- Add `--format json|markdown` (default `json`) to `plan`, `build`, `review`,
+  `fix`, `test` and `resume`. Markdown prints the same envelope for people,
+  with the same exit code. `status --format markdown|html` now works for every
+  task profile, not only `feature-work-v1`. **Behaviour change:** in 1.0.1
+  that combination refused non-feature tasks with exit 2; it now renders and
+  exits 0. JSON output is unchanged.
 - Review intake path refusals now say how each path was read: the value given,
   whether it resolved against `--project` or was absolute, and the resolved
   path, plus the rule (`--document`, `--context` and `--corpus` against

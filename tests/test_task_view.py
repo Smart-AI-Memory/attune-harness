@@ -416,13 +416,15 @@ def test_oversized_projection_refuses_instead_of_truncating(work, monkeypatch):
         task_view.inspect(work[2]["directory"])
 
 
-def test_other_profile_and_corrupt_record_fail_visibly(work, capsys):
+def test_other_profile_renders_its_envelope_and_corrupt_record_fails_visibly(work, capsys):
+    """Since first-run journey T5 every task renders; only a record that cannot be read refuses."""
     directory = work[2]["directory"]
     task_contract.create_task(work[0], work[1], goal="Assess this", directory=directory)
-    assert main(["status", str(directory), "--format", "html"]) == 2
-    error = json.loads(capsys.readouterr().out)
-    assert "feature-work" in error["error"]["detail"]
-    assert "json" in error["error"]["detail"].lower()
+    assert main(["status", str(directory), "--format", "html"]) == 0
+    page = capsys.readouterr().out
+    assert page.startswith("<!doctype html>") and "assessment-intake-v1" in page
+    assert main(["status", str(directory), "--format", "markdown"]) == 0
+    assert capsys.readouterr().out.startswith("## assessment-intake-v1")
     assert main(["status", str(directory)]) == 0
     capsys.readouterr()
     (directory / "record.json").write_text("{corrupt")

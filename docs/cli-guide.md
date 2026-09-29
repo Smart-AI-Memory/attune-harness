@@ -139,6 +139,15 @@ does not contain it. `review` checks a document against evidence; `test` runs
 checks on captured changes. Neither a source-security audit nor test generation
 is implied by those names. `ship` and `reflect` remain planned routes.
 
+## Readable output
+
+Every verb prints one JSON envelope, for the agent and for scripts. Add
+`--format markdown` to `plan`, `build`, `review`, `fix`, `test` or `resume` to
+print the same result for people: the envelope's own Markdown where it has
+one, otherwise its status, outcome and any refusal, then where the record is
+saved and what to do next. The exit code does not change. `status --format
+markdown` (or `html`) works for every saved task.
+
 ## Get started with a participant registry
 
 `plan`, `review` and `fix` read a participant registry, `participants.json`,

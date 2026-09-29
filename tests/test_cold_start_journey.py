@@ -214,11 +214,9 @@ def test_path_refusal_explains_resolution(home):
     assert 'working directory' in detail, detail
 
 
-# The journeys that do not work from a fresh install yet. Each passes when its task lands.
-
+# First-run journey T5: readable output on request.
 
 @POSIX_ONLY
-@pending('T5', 'status renders Markdown for feature-work-v1 only')
 def test_status_markdown_for_a_test_task(home, tested_change):
     task, _, _ = tested_change
     code, _, output = harness(['status', str(task), '--format', 'markdown'], home)
@@ -226,13 +224,14 @@ def test_status_markdown_for_a_test_task(home, tested_change):
 
 
 @POSIX_ONLY
-@pending('T5', 'the task verbs have no --format markdown')
 def test_test_verb_prints_markdown_on_request(home):
     repo = git_repository(home / 'repo')
     code, _, output = harness(['test', '--project', str(repo), '--scope', 'calc.py', '--interpreter', sys.executable,
                                '--task-dir', str(home / 'test-task'), '--format', 'markdown'], home)
     assert code == 1 and output.startswith('## Test this change'), output
 
+
+# The journeys that do not work from a fresh install yet. Each passes when its task lands.
 
 @pending('T6', 'fix rejects an incomplete request with argparse usage text, not an envelope')
 def test_fix_with_only_a_goal_returns_an_envelope(home):
