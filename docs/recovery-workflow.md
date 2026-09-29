@@ -89,6 +89,23 @@ as potentially effectful. Trusted verification manifests can execute code. Their
 uncertain operations cannot use this retry path. No arbitrary effect reconciliation,
 automatic retries or exactly-once guarantee is implemented.
 
+A native Claude participant turn that the CLI refused has one more path:
+
+```sh
+attune-harness reconcile-task TASK_DIR --event EVENT_ID --retry-refused
+attune-harness reconcile-review new-run --checkpoint CHECKPOINT_DIGEST --event EVENT_ID --retry-refused
+```
+
+It is available only when the failed turn saved `native_refusal`: the Claude
+CLI exited on its own with a structured `is_error` result, no structured output
+and an explicitly empty `modelUsage`, as it does for an expired login or
+exhausted usage credits. Diagnostic text alone never qualifies. The retry is an
+operator decision recorded with that evidence; provider usage may repeat. One
+retry is allowed. Completed turns, including another participant's finished
+turn, are replayed rather than dispatched again. A turn without this evidence
+still needs a recovered reply, or `cancel-task` closes the record without
+claiming its effects were undone.
+
 Verification results are replayed as evidence from their original checks. The
 snapshot covers the accepted document/context bytes and local Markdown sources;
 it does not snapshot an interpreter, installed modules, external services or every
