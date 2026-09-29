@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.1.0
+
+Every task verb is reachable from a fresh install (the first-run journey,
+#171 to #178). See the [release notes](docs/release-notes-1.1.0.md).
+
 - Publish Attune Harness as a Claude Code plugin from
   `.claude-plugin/marketplace.json`. It carries the Harness skill (the same
   source Codex uses), `cross-review` and `smart-test`, with no MCP server. The
