@@ -107,7 +107,7 @@ def home(tmp_path):
 
 def test_documented_journeys_are_tagged():
     """The tags this test runs exist; losing one would silently drop its journey."""
-    assert {'checks-and-receipts', 'test-this-change'} <= set(doc_journeys.journeys())
+    assert {'checks-and-receipts', 'test-this-change', 'review-bundled-example'} <= set(doc_journeys.journeys())
 
 
 def test_demo(home):
@@ -152,20 +152,14 @@ def test_documented_test_this_change(home, tested_change):
     assert code == 0 and envelope['status'] == 'completed', output
 
 
-def test_review_bundled_example(home):
-    """The bundled review example completes offline, with the example's parent as the project.
-
-    Not yet documented as a runnable command: T4 documents it and T7 tags it.
-    """
-    examples = home / 'examples'
-    shutil.copytree(ROOT / 'examples', examples)
-    workflow = examples / 'local-workflow'
-    code, envelope, output = harness(
-        ['review', '--goal', 'Check the guide against evidence', '--project', '.',
-         '--config', '../review/participants.json', '--document', 'project/guide.md',
-         '--context', 'context.json', '--corpus', 'project', '--query', 'quartz retention policy',
-         '--criteria', 'Identify unsupported claims', '--assessor', 'sample-lead',
-         '--task-dir', str(home / 'review-task'), '--accept'], workflow)
+def test_documented_review_bundled_example(home):
+    """The CLI guide's bundled review example, run as written from a copy of ``examples/``."""
+    shutil.copytree(ROOT / 'examples', home / 'examples')
+    change, review = doc_journeys.commands(doc_journeys.journeys()['review-bundled-example'])
+    assert change == 'cd examples/local-workflow'
+    table = {'/path/outside/repo/review-task': str(home / 'review-task')}
+    code, envelope, output = harness(split(doc_journeys.substitute(review, table))[1:],
+                                     home / 'examples' / 'local-workflow')
     assert code == 0 and envelope['status'] == 'completed', output
 
 
@@ -199,9 +193,8 @@ def test_plan_without_a_registry_names_init(home):
     assert 'attune-harness init' in (envelope.get('next_action') or ''), output
 
 
-# The journeys that do not work from a fresh install yet. Each passes when its task lands.
+# First-run journey T4: a path refusal says how the path was read.
 
-@pending('T4', 'a path refusal does not say which base the path resolved against')
 def test_path_refusal_explains_resolution(home):
     project = home / 'project'
     project.mkdir()
@@ -217,6 +210,11 @@ def test_path_refusal_explains_resolution(home):
     assert code == 2 and envelope, output
     detail = envelope['error']['detail']
     assert '--project' in detail and str(project) in detail, detail
+    assert "context 'context.json' resolves against --project" in detail, detail
+    assert 'working directory' in detail, detail
+
+
+# The journeys that do not work from a fresh install yet. Each passes when its task lands.
 
 
 @POSIX_ONLY

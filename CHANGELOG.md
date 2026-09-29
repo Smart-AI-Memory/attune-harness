@@ -9,6 +9,12 @@
   Codex plugins and the Python package are unchanged.
 - The Harness skill no longer names the 0.6.0 CLI. A test checks every command
   and option it shows against the CLI surface of the version it ships with.
+- Review intake path refusals now say how each path was read: the value given,
+  whether it resolved against `--project` or was absolute, and the resolved
+  path, plus the rule (`--document`, `--context` and `--corpus` against
+  `--project`, `--config` against the working directory). A missing registry
+  names its absolute path. The CLI guide documents the bundled review example's
+  working command, which the cold-start test runs as written.
 - Add `attune-harness init`, which writes a starter `participants.json` from
   the `demo` (offline, deterministic), `claude` or `codex` profile. It refuses
   to replace an existing registry unless given `--force`, which keeps a
