@@ -59,9 +59,17 @@ def document(envelope: dict) -> str:
 def run(dispatch) -> int:
     """Run a verb with its JSON captured, then print that envelope as Markdown."""
     buffer = io.StringIO()
-    with contextlib.redirect_stdout(buffer):
-        code = dispatch()
-    captured = buffer.getvalue()
+    try:
+        with contextlib.redirect_stdout(buffer):
+            code = dispatch()
+    except SystemExit:
+        # A refusal that exits (as argparse's did) still printed its envelope: show it, then exit.
+        _emit(buffer.getvalue())
+        raise
+    return _emit(buffer.getvalue(), code)
+
+
+def _emit(captured, code=None):
     try:
         envelope = json.loads(captured)
     except ValueError:
