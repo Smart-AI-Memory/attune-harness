@@ -118,6 +118,26 @@ without its dependencies still returns an actionable unavailable report for each
 missing piece instead of a traceback. Keep the quotes around an extra: zsh and
 bash treat square brackets as glob characters.
 
+## Your first five minutes
+
+From a Git project with an uncommitted change and a virtual environment that
+has pytest, after the install above:
+
+<!-- journey: first-run -->
+```sh
+cd your-project
+attune-harness init
+attune-harness test --project . --scope src/example.py --interpreter .venv/bin/python --task-dir ../test-task --format markdown
+attune-harness review --goal "Check README.md against project evidence" --intake-only
+```
+
+`init` writes a `participants.json` with two offline demo participants. `test`
+previews exactly which tests it will run for your change and saves that plan;
+accept it with the checkpoint it prints to run them. `review` shows the intake
+form for an evidence review: the document, its evidence and who assesses it.
+Nothing here calls a model. CI runs these commands, as written, on every
+platform job.
+
 ## What is qualified and what is not
 
 I would rather you find the limits here than in your own checkout. Green software

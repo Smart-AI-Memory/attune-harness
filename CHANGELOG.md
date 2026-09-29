@@ -9,6 +9,11 @@
   Codex plugins and the Python package are unchanged.
 - The Harness skill no longer names the 0.6.0 CLI. A test checks every command
   and option it shows against the CLI surface of the version it ships with.
+- The README gains "Your first five minutes" (init, a test preview and the
+  review intake). The CLI guide's review section opens with the bundled
+  runnable example. Both, and the guide's `init` block, are journey-tagged
+  and run in CI as written. The plan/build and fix sections say why they have
+  no copy-and-paste example yet. A draft of the 1.1.0 release notes is added.
 - One refusal shape for the task verbs. A rejected combination of valid
   options for `review` or `fix`, such as `fix --goal` alone, now prints a JSON
   refusal envelope with `error` and `next_action` on stdout and still exits 2;
