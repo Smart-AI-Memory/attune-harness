@@ -224,6 +224,63 @@ their numbering is independent of O-01–O-36.
 
 ## Dated evidence and follow-through
 
+O-70, 2026-09-28 — **goal** lens. After the first-run journey (#172–#178), the
+re-walk in [the spec](specs/first-run-journey/README.md) completes every row
+except two accepted limits: `plan --request` needs a `work.json` with a frozen
+effects manifest, and `fix` needs a trusted probe. No command writes either;
+only `scripts/check_installed.py`'s `FREEZE` does, from Python. These are now
+the largest gap between install and a finished `plan`/`build` or `fix`.
+Candidate: `init` (or a `plan --scaffold`) writes a starter request and probe
+for a named file scope, validated by the same owners. Done when the CLI guide's
+plan and fix sections open with journey-tagged blocks that CI runs. Effort
+medium. This note authorizes no work.
+
+O-71, 2026-09-28 — **review** lens (T3 CI). The Windows platform jobs failed
+the cold-start `init` case (job 109153423854): the CLI inherited the runner's
+stdin, which Windows reports as a terminal (even `NUL` does), so `review
+--intake-only` began interactive prompts. The test now passes an empty pipe
+(`04bb400`). The same class lives in the product: `task_cli.execute_intake`
+decides to prompt on `sys.stdin.isatty()` alone, so an agent on Windows with an
+inherited console, or stdin from `NUL`, is prompted. Candidate: prompt only when
+stdin and stdout are both terminals and `--accept`/`--task-response` are absent.
+Done when a Windows test with `NUL` stdin gets the draft envelope. Effort small.
+No work authorized.
+
+O-72, 2026-09-28 — **review** lens (T4, T6). Two different-model findings shared
+a class: guidance text that was wrong for a case the tests did not drive. An
+absolute `--config` was said to "resolve against the working directory", and a
+failing `status` was told to run `status`. Both are fixed. Only `init`'s
+`next_action` is executed by a test; the others are asserted by substring.
+Candidate: a golden check that runs each runnable `next_action` in the refusal
+rows, as the `init` case does. Done when every refusal row either runs its next
+action or is marked prose-only. Effort small–medium. No work authorized.
+
+O-73, 2026-09-28 — **next-rung** lens (T2). Claude Code caches a plugin by its
+version: a reinstall at 1.0.1 kept the old skill text. Under D30.2 the plugin
+shares the package version, so skill fixes reach Claude users only at a
+release. Candidate: keep that and say so in the runbook (done in #173), or give
+the marketplace entry its own patch line. A ruling for Patrick, not a defect.
+
+O-74, 2026-09-28 — **R6** lens (T5). `status --format markdown|html` now works
+for every task, but assessment and repair tasks get the generic envelope
+rendering (status, outcome, refusal, record, next action), not what was
+assessed, against which criteria, with which evidence. That is the portable
+journey's J3 ("inspect why it is called complete"). Candidate: per-profile
+presentations in the existing `task_view`, starting with assessment. Done when
+a completed assessment's Markdown lists criteria, verdicts and evidence
+pointers. Effort medium. No work authorized.
+
+O-75, 2026-09-28 — **process** lens. The seven first-run PRs form a stack
+(#172, then #174 to #178; #173 on `main`), kept current by merge commits rather
+than force-pushes, which need Patrick's approval. Merging it is the
+"shepherd" delegation in AGENTS.md: squash in order, and `git rebase --onto`
+each next head. The preferred reviewer (Fable 5.1) was out of usage credits,
+so the reviews ran on Sonnet 5. Recorded so the merge order and the reviewer
+are not rediscovered. No work authorized.
+
+The entry a user would meet first is O-70: with Harness installed, `plan`
+and `fix` are the verbs that still stop before they start.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree

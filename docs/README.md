@@ -12,6 +12,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [First-run journey — complete spec](specs/first-run-journey/README.md): A cold 1.0.1 walkthrough, and making every verb work from a fresh install; released in 1.1.0
+- [First-run journey requirements](specs/first-run-journey/design.md): R1–R7 and what each must not change
+- [First-run journey tasks](specs/first-run-journey/tasks.md): Seven ordered PRs, cold-start CI test first
 - [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
 - [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
