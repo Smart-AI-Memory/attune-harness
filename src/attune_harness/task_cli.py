@@ -198,6 +198,7 @@ def add_controls(sub):
             group.add_argument('--reply', type=Path)
             group.add_argument('--retry-read-only', action='store_true')
             group.add_argument('--retry-native', action='store_true', help='Authorize one stopped Codex build timeout retry; external effects remain unknown')
+            group.add_argument('--retry-refused', action='store_true', help='Authorize one retry of a participant turn the Claude CLI refused with a structured error; usage may repeat')
             group.add_argument('--observe-file', action='store_true', help='Reconcile a replacement from observed after-bytes')
             group.add_argument('--retry-before', action='store_true', help='Authorize one replacement retry only if original bytes remain')
         elif name == 'transfer-task':
@@ -251,7 +252,7 @@ def execute_control(args):
         elif args.command == 'resume':
             result = execute_task(args.task_dir, checkpoint=args.checkpoint, max_operations=args.max_operations)
         else:
-            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'observe_file':args.observe_file,'retry_before':args.retry_before},
+            options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'retry_refused':args.retry_refused,'observe_file':args.observe_file,'retry_before':args.retry_before},
                        'transfer-task': lambda: {'participant_id':args.assessor,'reason':args.reason},
                        'cancel-task': lambda: {'reason':args.reason}}
             result = control_task(args.task_dir, args.command.split('-')[0],

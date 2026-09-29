@@ -1991,6 +1991,14 @@
     },
     {
      "choices": null,
+     "default": false,
+     "name": "retry_refused",
+     "option_strings": [
+      "--retry-refused"
+     ]
+    },
+    {
+     "choices": null,
      "default": null,
      "name": "run_dir",
      "option_strings": []
@@ -1999,14 +2007,16 @@
    "one_of": [
     [
      "--reply",
-     "--retry-read-only"
+     "--retry-read-only",
+     "--retry-refused"
     ]
    ],
    "options": [
     "--checkpoint",
     "--event",
     "--reply",
-    "--retry-read-only"
+    "--retry-read-only",
+    "--retry-refused"
    ],
    "positionals": [
     {
@@ -2079,6 +2089,14 @@
     },
     {
      "choices": null,
+     "default": false,
+     "name": "retry_refused",
+     "option_strings": [
+      "--retry-refused"
+     ]
+    },
+    {
+     "choices": null,
      "default": null,
      "name": "stop_observation",
      "option_strings": [
@@ -2098,7 +2116,8 @@
      "--reply",
      "--retry-before",
      "--retry-native",
-     "--retry-read-only"
+     "--retry-read-only",
+     "--retry-refused"
     ]
    ],
    "options": [
@@ -2109,6 +2128,7 @@
     "--retry-before",
     "--retry-native",
     "--retry-read-only",
+    "--retry-refused",
     "--stop-observation"
    ],
    "positionals": [

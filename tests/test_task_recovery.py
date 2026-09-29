@@ -154,3 +154,74 @@ def test_foreign_recovered_reply_does_not_mutate(case,monkeypatch):
     with pytest.raises(ValueError,match='current turn'):
         control_task(case[2],'reconcile',event_id=event['event_id'],reply_file=reply)
     assert read_task(case[2])==before
+
+
+def refusing(envelope, calls):
+    """Refuse the reviewer turn the way the Claude CLI does, through the real translator."""
+    from attune_harness.native import NativeExchange
+    from attune_harness.process import ProcessResult
+    def factory(config, cwd):
+        real = ReviewExchange(config, cwd)
+        def call(raw):
+            calls.append(json.loads(raw)['turn']['role'])
+            if json.loads(raw)['turn']['role'] == 'reviewer' and envelope is not None:
+                runner = lambda argv, prompt, **_: ProcessResult(argv, 1, json.dumps(envelope), '', None)
+                NativeExchange('claude', cwd=cwd, runner=runner)(json.dumps({'version': 1}))
+            return real(raw)
+        return call
+    return factory
+
+
+REFUSAL = {'type': 'result', 'subtype': 'success', 'is_error': True, 'num_turns': 1,
+           'result': "You're out of usage credits.", 'total_cost_usd': 0, 'modelUsage': {}}
+
+
+def test_structured_cli_refusal_authorizes_one_retry_that_keeps_completed_turns(case):
+    draft(case, plan='independent-review'); accept_task(case[2], response(case[2]))
+    calls = []
+    failed = execute_task(case[2], exchange_factory=refusing(REFUSAL, calls))
+    assert failed['status'] == 'failed' and calls == ['assessor', 'reviewer']
+    event = failed['execution']['events'][-1]
+    assert event['state'] == 'failed' and event['effects'] == 'unknown'
+    assert event['native_refusal'] == {'kind': 'claude_structured_error', 'returncode': 1,
+                                       'result': "You're out of usage credits.", 'model_usage': {}}
+    with pytest.raises(UnresolvedOperation):
+        control_task(case[2], 'reconcile', event_id=event['event_id'], retry_read_only=True)
+    paused = control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)
+    assert paused['execution']['status'] == 'paused'
+    evidence = paused['execution']['recovery']['reconciliations'][-1]['evidence']
+    assert evidence['kind'] == 'native_refusal_retry' and evidence['refusal'] == event['native_refusal']
+    calls.clear()
+    done = execute_task(case[2], exchange_factory=refusing(None, calls))
+    assert done['status'] == 'completed', done
+    assert calls == ['reviewer']  # The completed assessor turn is replayed, not paid for again.
+    retried = next(e for e in done['execution']['events'] if e['event_id'] == event['event_id'])
+    assert retried['state'] == 'completed' and retried['attempts'] == 2
+
+
+@pytest.mark.parametrize('envelope', [
+    {k: v for k, v in REFUSAL.items() if k != 'modelUsage'},
+    {**REFUSAL, 'modelUsage': {'claude-sonnet-5': {}}},
+    {**REFUSAL, 'is_error': False},
+])
+def test_refusal_without_structured_no_usage_evidence_stays_unresolved(case, envelope):
+    draft(case, plan='independent-review'); accept_task(case[2], response(case[2]))
+    assert execute_task(case[2], exchange_factory=refusing(envelope, []))['status'] == 'failed'
+    event = read_task(case[2])['execution']['events'][-1]
+    assert 'native_refusal' not in event
+    raw = (case[2] / 'record.json').read_bytes()
+    with pytest.raises(UnresolvedOperation, match='structured CLI refusal'):
+        control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)
+    assert (case[2] / 'record.json').read_bytes() == raw
+    assert control_task(case[2], 'cancel', reason='Close the record honestly')['status'] == 'cancelled'
+
+
+def test_refused_turn_retry_is_limited_to_one(case):
+    draft(case, plan='independent-review'); accept_task(case[2], response(case[2]))
+    for _ in range(2):
+        assert execute_task(case[2], exchange_factory=refusing(REFUSAL, []))['status'] == 'failed'
+        event = read_task(case[2])['execution']['events'][-1]
+        if event['attempts'] == 1:
+            control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)
+    with pytest.raises(ValueError, match='limit exhausted'):
+        control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)

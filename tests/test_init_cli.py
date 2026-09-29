@@ -27,6 +27,7 @@ def test_each_profile_writes_a_registry_the_reader_accepts(tmp_path, capsys, pro
     native = profile != 'demo'
     assert envelope['requires'] == {'allow_external': native, 'allow_native': native}
     assert ('may incur provider costs' in envelope['next_action']) is native
+    assert ('review with native participants needs --allow-external;' in envelope['next_action']) is native
     if native:
         models = {item['model'] for item in registry['participants'].values()}
         assert len(models) == 2, 'a required native review needs a different model'

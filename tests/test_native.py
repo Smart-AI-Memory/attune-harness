@@ -237,3 +237,21 @@ def test_native_timeout_reports_stopped_fixture_process(tmp_path):
     assert error.value.failure == 'timeout_effects_unknown'
     assert error.value.process_stopped is True
     assert exchange.last_process.returncode is not None
+
+
+@pytest.mark.parametrize('failure,usage,saved', [
+    (None, {}, True), ('timeout', {}, False), (None, {'model': {}}, False), (None, None, False),
+])
+def test_only_a_stopped_structured_refusal_without_usage_is_saved(tmp_path, failure, usage, saved):
+    envelope = {**claude(), 'is_error': True, 'result': 'Failed to authenticate'}
+    envelope.pop('structured_output', None)
+    envelope.pop('modelUsage', None)
+    if usage is not None:
+        envelope['modelUsage'] = usage
+    def runner(argv, prompt, **kwargs):
+        return ProcessResult(argv, 1, json.dumps(envelope), '', failure)
+    with pytest.raises(NativeError) as raised:
+        NativeExchange('claude', cwd=tmp_path, runner=runner)(json.dumps({'version': 1}))
+    assert (raised.value.refusal is not None) is saved
+    if saved:
+        assert raised.value.refusal['result'] == 'Failed to authenticate'
