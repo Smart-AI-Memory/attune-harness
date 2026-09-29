@@ -88,7 +88,8 @@ def test_review_intake_without_a_registry_names_init(tmp_path, capsys, monkeypat
     code, envelope = run(capsys, 'review', '--goal', 'Check the guide', '--task-dir', str(tmp_path / 'task'))
     assert code == 2 and envelope['operation'] == 'task-intake'
     assert envelope['error'] == {'type': 'RegistryMissing',
-                                 'detail': f'No participant registry at {Path("participants.json")}'}
+                                 'detail': f'No participant registry at {tmp_path / "participants.json"} '
+                                           "(--config 'participants.json' resolves against the working directory)"}
     assert 'attune-harness init' in envelope['next_action']
     assert not (tmp_path / 'task').exists()
 
@@ -111,3 +112,11 @@ def test_plan_without_a_config_names_init(tmp_path, capsys):
         'type': 'ValueError', 'detail': 'New work requires --project and --config, without an old checkpoint'}
     assert 'attune-harness init' in envelope['next_action']
     assert not (tmp_path / 'task').exists()
+
+
+def test_an_absolute_config_is_not_said_to_resolve(tmp_path, capsys):
+    """Only a relative --config resolves against the working directory (T4 review)."""
+    absent = tmp_path / 'elsewhere' / 'participants.json'
+    code, envelope = run(capsys, 'review', '--goal', 'Check the guide', '--config', str(absent),
+                         '--task-dir', str(tmp_path / 'task'))
+    assert code == 2 and envelope['error']['detail'] == f'No participant registry at {absent}'
