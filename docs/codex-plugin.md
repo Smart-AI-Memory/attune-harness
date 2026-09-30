@@ -7,7 +7,8 @@ the `attune-harness` Python runtime separately as described in the
 [CLI guide](cli-guide.md#codex-skill).
 
 The plugin version is independent of the Python package version. This initial
-plugin is 0.1.0 and its skill targets the Harness 0.6.0 CLI.
+plugin is 0.1.0. Its skill is copied from the checkout, and since 1.1.0 a test checks
+the commands it shows against that checkout's CLI.
 
 ## Package from a checkout
 
