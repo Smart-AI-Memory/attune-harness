@@ -92,12 +92,12 @@ equal; each item is a separate pull request.
 
 | Rank | Work | Why here | Status |
 |---|---|---|---|
-| 1 | **O-76:** the CLI guide's `--task-dir /tmp/...` examples are refused on macOS | A documented journey that fails as printed; the R0–R0+2 window's own focus | Recorded in [#180](https://github.com/Smart-AI-Memory/attune-harness/pull/180); fix: guide paths and a refusal that names the path to use |
+| 1 | **O-76:** the CLI guide's `--task-dir /tmp/...` examples are refused on macOS | A documented journey that fails as printed; the R0–R0+2 window's own focus | Recorded in [#180](https://github.com/Smart-AI-Memory/attune-harness/pull/180) (merged); the fix is the starter-files spec's T5, under different-model review |
 | 2 | **This refresh** | The status above still described preparing 1.0.0 | This pull request |
 | 3 | **S3/S6/S9 observations** | The only open acceptance gaps; software checks cannot close them | Needs a person: Patrick, or someone he names for S6 |
 | 4 | **Windows-traps guidance** (quick opportunity 3) | Documentation only | R0+8 onward |
 | 5 | **O-11 timing baseline** (quick opportunity 4) | A report only | R0+8 onward |
-| 6 | **O-70 starter files** ([#181](https://github.com/Smart-AI-Memory/attune-harness/pull/181)) | The largest product gap, but a feature chain | Rule Q1–Q6 now; build after the R0+14 review unless ruled a defect |
+| 6 | **O-70 starter files** ([#181](https://github.com/Smart-AI-Memory/attune-harness/pull/181)) | The largest product gap, and a feature chain | Spec approved September 30 (Q1–Q6 as recommended; targets 1.3.0). T5 is rank 1; T1–T4 follow |
 
 Four stable releases in two days is fast for a stabilization period. Batch
 compatible fixes into one release per window unless a critical defect needs
