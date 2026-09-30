@@ -174,3 +174,73 @@ def test_windows_refuses_system_paths_and_admits_a_repository_end_to_end(tmp_pat
             validate_file_path(path)
     nested = tmp_path / "repo" / "etc" / "dev" / "plan.md"
     assert validate_file_path(str(nested)) == nested.resolve()
+
+
+# ---- symlink refusals name the path to use (O-76) ---------------------------
+
+
+def _alias(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip("Host lacks symlink creation permission")
+    return real, alias
+
+
+def test_refuse_symlinked_names_the_link_and_the_path_to_use(tmp_path):
+    real, alias = _alias(tmp_path)
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Checkout", alias / "work")
+    message = str(refused.value)
+    assert message.startswith(f"Checkout cannot traverse a symlink: {alias} links to ")
+    assert message.endswith(f"use {(real / 'work').resolve()}")
+    paths.refuse_symlinked("Checkout", (real / "work").resolve())
+
+
+def test_refuse_symlinked_names_the_outermost_of_nested_links(tmp_path):
+    real, outer = _alias(tmp_path)
+    (real / "deeper").mkdir()
+    (real / "inner").symlink_to(real / "deeper", target_is_directory=True)
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Checkout", outer / "inner" / "work")
+    message = str(refused.value)
+    assert message.startswith(f"Checkout cannot traverse a symlink: {outer} links to ")
+    assert message.endswith(f"use {(real / 'deeper' / 'work').resolve()}")
+
+
+def test_refuse_symlinked_without_a_suggestion_for_a_link_loop(tmp_path):
+    loop = tmp_path / "loop"
+    try:
+        loop.symlink_to(loop)
+    except OSError:
+        pytest.skip("Host lacks symlink creation permission")
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Checkout", loop / "work")
+    assert str(refused.value) == f"Checkout cannot traverse a symlink: {loop}"
+
+
+@pytest.mark.parametrize("metadata", [".git", ".hg", ".svn"])
+def test_refuse_symlinked_never_suggests_repository_metadata(tmp_path, metadata):
+    real, alias = _alias(tmp_path)
+    (real / metadata).mkdir()
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Task storage", alias / metadata / "work")
+    assert str(refused.value) == f"Task storage cannot traverse a symlink: {alias} links to {real.resolve()}"
+
+
+@posix_only
+def test_repair_checkout_behind_a_symlink_is_refused_with_the_path_to_use(tmp_path):
+    from attune_harness import repair
+
+    real, alias = _alias(tmp_path)
+    (real / "checkout").mkdir()
+    plan = {"root": str(alias / "checkout"), "root_identity": None}
+    with pytest.raises(ValueError) as refused:
+        with repair.root_handle(plan):
+            pass
+    message = str(refused.value)
+    assert message.startswith(f"Checkout cannot traverse a symlink: {alias} links to ")
+    assert message.endswith(f"use {(real / 'checkout').resolve()}")

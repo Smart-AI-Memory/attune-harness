@@ -300,6 +300,13 @@ the path to use. Effort small; the refusal and `.` touch `src/`. This note
 authorizes no work. On macOS, a user who clears O-70 meets this next: the
 guide's `plan` commands are refused even with a valid `work.json`.
 
+O-76 follow-through, 2026-09-30. Patrick chose the smaller remedy and kept the
+symlink rule. The guide's task directories now live under `~/harness-tasks`,
+and the refusal names the link and the path to use ("…: /tmp links to
+/private/tmp; use /private/tmp/my-work"). Still open: `--test-root .`, which
+touches the saved `test_root` field and needs its own scope, and the guide's
+`plan` block running as printed in CI, which waits on O-70's `work.json`.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree

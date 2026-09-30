@@ -172,6 +172,33 @@ refusal's `next_action` names `init`.
 
 ## Plan and build
 
+From 1.3.0, two commands take a Git checkout from a named file to an accepted
+plan with a finished build. `init --for plan` writes `work.json`, with its
+effects manifest frozen, and the example command worker in
+`examples/starter/` makes the change. On 1.2.0 `init --for` is refused; this
+journey runs in CI and is expected to fail there until the
+[starter-files spec](specs/starter-files/README.md) lands.
+
+<!-- journey: plan-starter -->
+```sh
+attune-harness init --for plan --goal "Repair addition" \
+  --project /path/to/repo --scope calc.py \
+  --interpreter /path/to/venv/bin/python --tests tests/test_calc.py \
+  --task-dir ~/harness-tasks/starter-plan
+attune-harness plan --request /path/to/repo/work.json --project /path/to/repo \
+  --config /path/to/examples/starter/participants.json \
+  --task-dir ~/harness-tasks/starter-plan
+attune-harness plan --task-dir ~/harness-tasks/starter-plan --accept \
+  --checkpoint <preview-checkpoint>
+attune-harness build ~/harness-tasks/starter-plan --allow-external
+attune-harness status ~/harness-tasks/starter-plan
+```
+
+The starter request carries the goal, the scope and the named tests as its
+acceptance evidence; add context and constraints by revising it before you
+accept. Writing the request accepts nothing: the preview and `--accept` are
+still separate steps.
+
 An agent can author a work request from the user's goal. The request records
 `intent` (goal, context, exact file scope, constraints, acceptance criteria and
 questions), explicit participant assignments and any dependent tasks. Complex
@@ -182,22 +209,26 @@ and [bounded build profile](specs/plan-build/dependent-build.md).
 
 ```bash
 attune-harness plan --request work.json --project ./checkout \
-  --config participants.json --task-dir /tmp/my-work
+  --config participants.json --task-dir ~/harness-tasks/my-work
 attune-harness plan --request work.json --project ./checkout \
-  --config participants.json --task-dir /tmp/my-work \
+  --config participants.json --task-dir ~/harness-tasks/my-work \
   --import-plan ~/other-project/.claude/plans/feature.md --allow-outside-project
-attune-harness plan --task-dir /tmp/my-work --run --allow-external
-attune-harness plan --task-dir /tmp/my-work --stage --checkpoint CURRENT_CHECKPOINT
-attune-harness plan --task-dir /tmp/my-work --accept --checkpoint CURRENT_CHECKPOINT
-attune-harness build /tmp/my-work --allow-external --max-operations 4
-attune-harness status /tmp/my-work
-attune-harness resume /tmp/my-work --allow-external
+attune-harness plan --task-dir ~/harness-tasks/my-work --run --allow-external
+attune-harness plan --task-dir ~/harness-tasks/my-work --stage --checkpoint CURRENT_CHECKPOINT
+attune-harness plan --task-dir ~/harness-tasks/my-work --accept --checkpoint CURRENT_CHECKPOINT
+attune-harness build ~/harness-tasks/my-work --allow-external --max-operations 4
+attune-harness status ~/harness-tasks/my-work
+attune-harness resume ~/harness-tasks/my-work --allow-external
 ```
 
 These commands are not a copy-and-paste example yet: `work.json` must carry a
 frozen effects manifest, which no command writes. The offline plan, accept,
 build, review and status journey in `scripts/check_installed.py` (`FREEZE` and
 `journey_checks`) builds one and runs in every platform job.
+
+A task directory may not sit behind a symlink. That rules out `/tmp` on macOS,
+which links to `/private/tmp`; the refusal names the link and the resolved path
+to use instead.
 
 ### Importing a plan from another project
 
@@ -222,9 +253,9 @@ envelope, its receipt and its refusals is
 To return to a saved feature-work task, export a read-only overview:
 
 ```bash
-attune-harness status /tmp/my-work --format markdown > task-status.md
-attune-harness status /tmp/my-work --format html > task-status.html
-attune-harness status /tmp/my-work --format html --continuation pause.json > return-to-work.html
+attune-harness status ~/harness-tasks/my-work --format markdown > task-status.md
+attune-harness status ~/harness-tasks/my-work --format html > task-status.html
+attune-harness status ~/harness-tasks/my-work --format html --continuation pause.json > return-to-work.html
 ```
 
 The overview leads with the goal, next useful step, stopping point, reported
@@ -454,10 +485,28 @@ available. See the [implementation results](test-this-change-results.md).
 
 ## Scoped repair
 
+From 1.3.0, `init --for fix` writes the trusted probe, `probe.json`, that
+`fix` needs, and validates it before writing. It does not run the probe. The
+repair starts from a failing test and ends when the probe passes. On 1.2.0
+`init --for` is refused; this journey runs in CI and is expected to fail there
+until the [starter-files spec](specs/starter-files/README.md) lands.
+
+<!-- journey: fix-starter -->
+```sh
+attune-harness init --for fix --project /path/to/repo --scope calc.py \
+  --interpreter /path/to/venv/bin/python --tests tests/test_calc.py
+attune-harness fix --goal "Repair addition" --project /path/to/repo \
+  --checkout /path/to/repo --scope calc.py --probe /path/to/repo/probe.json \
+  --config /path/to/examples/starter/participants.json \
+  --worker starter-worker --reviewer starter-reviewer --review required \
+  --criteria "The frozen probe passes without changing its oracle" \
+  --task-dir ~/harness-tasks/starter-fix --accept --allow-external
+```
+
 `fix` replaces explicitly listed existing UTF-8 files in an exclusively owned,
 bounded POSIX checkout with a local `.git` directory. Keep task state outside that
 checkout. Creation, deletion, renames, symlinks/hardlinks and linked Git worktrees
-are outside this first profile. The entire checkout is bounded to 1,000 entries
+are outside this first profile. The entire checkout is bounded to 2,048 entries
 and 16 MiB, including protected metadata.
 
 On Windows, `fix` is experimental as of 0.2.0. It requires a fixed local NTFS
@@ -681,7 +730,7 @@ See the [navigation design](design-navigation.md) for the discovery policy.
 Supply task directories explicitly to produce one navigable HTML file:
 
 ```sh
-attune-harness status /tmp/my-work --include-task /tmp/other-work --format html > saved-tasks.html
+attune-harness status ~/harness-tasks/my-work --include-task ~/harness-tasks/other-work --format html > saved-tasks.html
 ```
 
 Re-run the same command to refresh that file. Open it to choose a task; each

@@ -29,13 +29,16 @@ Must not change: the probe schema, what `fix` accepts, or `init` without
 
 ## R2: `init --for plan` writes a frozen starter request (Q1, Q2)
 
-`attune-harness init --for plan --scope FILE… --interpreter PY --tests PATH…
-[--project DIR] [--task-dir DIR] [--force]` writes `work.json` into the
-project.
+`attune-harness init --for plan --goal TEXT --scope FILE… --interpreter PY
+--tests PATH… [--project DIR] [--task-dir DIR] [--force]` writes `work.json`
+into the project.
 
-- `intent` carries the scope and the test files as acceptance evidence. Goal,
-  context, constraints and acceptance text are empty, so `plan` lists them
-  under `questions.missing` as it does today.
+- `intent` carries the goal, the scope and the test files as acceptance
+  evidence, so the request can be accepted as written: `plan --accept` refuses
+  an empty goal, scope or acceptance ("Unresolved material intent prevents
+  acceptance"). Context and constraints are empty, which `plan` allows.
+  (Amended September 30 at T1: the draft left the goal empty, which would have
+  stopped R5's journey at acceptance. Patrick chose `--goal`, as `fix` has.)
 - There is one task whose outputs are the scope and whose check is the pytest
   probe, plus the `final` verification probe `build` preflight requires.
   Worker and reviewer are distinct participants from the registry.
@@ -76,6 +79,10 @@ Must not change: the symlink rule, or the refusal's exit code and envelope keys.
 Each of the two sections opens with a `<!-- journey: -->` block that
 `scripts/doc_journeys.py` runs as printed, on a scratch checkout, in the six
 installed-wheel jobs:
+
+Both use `examples/starter/participants.json` (R3), whose worker
+`starter-worker` and reviewer `starter-reviewer` serve build and repair turns
+alike (ruled at T1).
 
 - `plan-starter`: `init --for plan`, `plan --request` preview, accept,
   `build`, then `status` shows the build as completed.
