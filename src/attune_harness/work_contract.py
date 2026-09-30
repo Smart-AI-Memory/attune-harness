@@ -335,8 +335,13 @@ def _sha(value):
 
 def _capture(request, directory):
     root = Path(request["project_root"])
-    if not root.is_dir() or root.resolve() != root:
+    if not root.is_dir():
         raise ValueError("Project must remain an existing resolved directory")
+    if root.resolve() != root:
+        raise ValueError(
+            "Project must remain an existing resolved directory; "
+            f"use {root.resolve()}"
+        )
     if directory.is_relative_to(root) or root.is_relative_to(directory):
         raise ValueError("Feature-work state must be outside the project")
     paths = request["inputs"] + (

@@ -174,3 +174,39 @@ def test_windows_refuses_system_paths_and_admits_a_repository_end_to_end(tmp_pat
             validate_file_path(path)
     nested = tmp_path / "repo" / "etc" / "dev" / "plan.md"
     assert validate_file_path(str(nested)) == nested.resolve()
+
+
+# ---- symlink refusals name the path to use (O-76) ---------------------------
+
+
+def _alias(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip("Host lacks symlink creation permission")
+    return real, alias
+
+
+def test_refuse_symlinked_names_the_link_and_the_path_to_use(tmp_path):
+    real, alias = _alias(tmp_path)
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Checkout", alias / "work")
+    message = str(refused.value)
+    assert message.startswith(f"Checkout cannot traverse a symlink: {alias} links to ")
+    assert message.endswith(f"use {(real / 'work').resolve()}")
+    paths.refuse_symlinked("Checkout", (real / "work").resolve())
+
+
+def test_refuse_symlinked_without_a_suggestion_for_a_link_loop(tmp_path, monkeypatch):
+    _, alias = _alias(tmp_path)
+
+    def loop(self, strict=False):
+        raise RuntimeError("Symlink loop")
+
+    monkeypatch.setattr(Path, "resolve", loop)
+    with pytest.raises(ValueError) as refused:
+        paths.refuse_symlinked("Checkout", alias / "work")
+    assert str(refused.value) == f"Checkout cannot traverse a symlink: {alias}"

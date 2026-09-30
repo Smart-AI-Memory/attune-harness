@@ -100,3 +100,21 @@ def validate_file_path(path: str, allowed_dir: str | None = None) -> Path:
     if directory is not None:
         raise ValueError(f"Cannot write to system directory: {directory}")
     return resolved
+
+
+def refuse_symlinked(label, path):
+    """Refuse a path with a symlink among itself and its parents, naming the path to use.
+
+    ``/tmp`` and ``/var`` are symlinks on macOS, so the refusal names the link
+    and the resolved path rather than only the rule (O-76).
+    """
+    path = Path(path)
+    links = [p for p in (path, *path.parents) if p.is_symlink()]
+    if not links:
+        return
+    link = links[-1]
+    try:
+        fix = f" links to {link.resolve()}; use {path.resolve()}"
+    except (OSError, RuntimeError):  # a link loop has no path to suggest
+        fix = ""
+    raise ValueError(f"{label} cannot traverse a symlink: {link}{fix}")

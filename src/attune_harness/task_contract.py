@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import UUID, uuid4, uuid5, NAMESPACE_URL
 
 from .features import read_text, require_feature
+from .paths import refuse_symlinked
 from .review_contract import (FORMS_VERSION, bounded_text, canonical, digest, fields, parse_json,
                               validate_registry, versioned)
 from .review_store import RunStore, read_record
@@ -74,15 +75,7 @@ def profile_defaults(path, project_root, plan, registry):
 
 def safe_storage(directory):
     directory = Path(directory).absolute()
-    links = [p for p in (directory, *directory.parents) if p.is_symlink()]
-    if links:
-        # Name the link and the path to use instead (O-76: /tmp on macOS).
-        link = links[-1]
-        try:
-            fix = f' links to {link.resolve()}; use {directory.resolve()}'
-        except (OSError, RuntimeError):  # a link loop has no path to suggest
-            fix = ''
-        raise ValueError(f'Task storage cannot traverse a symlink: {link}{fix}')
+    refuse_symlinked('Task storage', directory)
     if any(p in ('.git', '.hg', '.svn') for p in directory.parts):
         raise ValueError('Task storage cannot use repository metadata')
     return directory.resolve()

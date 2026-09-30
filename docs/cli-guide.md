@@ -461,7 +461,7 @@ available. See the [implementation results](test-this-change-results.md).
 `fix` replaces explicitly listed existing UTF-8 files in an exclusively owned,
 bounded POSIX checkout with a local `.git` directory. Keep task state outside that
 checkout. Creation, deletion, renames, symlinks/hardlinks and linked Git worktrees
-are outside this first profile. The entire checkout is bounded to 1,000 entries
+are outside this first profile. The entire checkout is bounded to 2,048 entries
 and 16 MiB, including protected metadata.
 
 On Windows, `fix` is experimental as of 0.2.0. It requires a fixed local NTFS
