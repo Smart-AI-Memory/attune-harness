@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.2.0
+
+A refused native Claude turn no longer strands a review task (#182). See the
+[release notes](docs/release-notes-1.2.0.md).
+
+- A native Claude participant turn that the CLI refuses before any model runs,
+  for example an expired login or no usage credits, no longer leaves a review
+  or assessment task stuck (#182). When the CLI exits with a structured error
+  result that reports no model usage, the Harness saves that result on the
+  failed turn as `native_refusal`. `reconcile-task --retry-refused` (and
+  `reconcile-review --retry-refused`) then authorizes one retry of that turn,
+  and `resume` continues without repeating completed turns. Diagnostic text
+  alone never qualifies; a turn without this evidence still reconciles by
+  reply or closes with `cancel-task`.
+- `init --profile claude|codex` now says a review needs `--allow-external` and
+  only `plan` and `build` also take `--allow-native`.
+
 ## 1.1.0
 
 Every task verb is reachable from a fresh install (the first-run journey,

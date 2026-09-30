@@ -1,5 +1,7 @@
 # Connected capability map — 2026-09-17
 
+> **Historical.** The current map is [Supported journeys and their limits](../../supported-journeys.md), written for 1.2.0. This record describes `plan` and `build` as absent; both now exist.
+
 This completes the inventory step of Patrick's approved sequence. Preserve every
 useful capability; distinguish implemented connections from planned ones. The
 [initial independent map](../../receipts/connected-journey-qualification/connected-journey-map-review.json)

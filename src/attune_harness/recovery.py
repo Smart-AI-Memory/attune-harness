@@ -201,6 +201,9 @@ class RecoveryCursor:
                 event['native_failure'] = {
                     'failure': exc.failure, 'process_stopped': exc.process_stopped,
                 }
+            elif (self.record.get('profile') is None and kind == 'participant_turn'
+                    and isinstance(exc, NativeError) and exc.refusal is not None):
+                event['native_refusal'] = copy.deepcopy(exc.refusal)
             raise
         event.update(state='completed', phase='completed', result=copy.deepcopy(result))
         self.store.save(self.record)
@@ -306,16 +309,18 @@ def resume_review(directory: Path, request: Path, config: Path, checkpoint: str,
 
 
 def reconcile_review(directory: Path, checkpoint: str, event_id: str, *,
-                     reply_file: Path | None = None, retry_read_only=False):
-    if (reply_file is not None) == retry_read_only:
-        raise ValueError('Choose one recovered reply or read-only retry')
+                     reply_file: Path | None = None, retry_read_only=False, retry_refused=False):
+    if sum((reply_file is not None, bool(retry_read_only), bool(retry_refused))) != 1:
+        raise ValueError('Choose one recovered reply, read-only retry or refused-turn retry')
     store = RunStore(directory, existing=True)
     with store.lease():
         record = load_recovery(store, checkpoint)
-        return reconcile_record(record, store, checkpoint, event_id, reply_file=reply_file, retry_read_only=retry_read_only)
+        return reconcile_record(record, store, checkpoint, event_id, reply_file=reply_file,
+                                retry_read_only=retry_read_only, retry_refused=retry_refused)
 
 
-def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, retry_read_only=False):
+def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, retry_read_only=False,
+                     retry_refused=False):
     ensure_active(record)
     event = next((item for item in record['events'] if item['event_id'] == event_id), None)
     if event is None or event['phase'] != 'dispatching' or event['state'] == 'completed':
@@ -330,6 +335,18 @@ def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, re
         evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
                     'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
                     'identity': 'operator-supplied; not authenticated'}
+    elif retry_refused:
+        refusal = event.get('native_refusal')
+        if event['kind'] != 'participant_turn' or event['state'] != 'failed' or not isinstance(refusal, dict):
+            raise UnresolvedOperation('Only a participant turn with a saved structured CLI refusal can be retried this way')
+        if event['attempts'] >= 2:
+            raise ValueError('Refused-turn retry limit exhausted')
+        event.update(state='pending', phase='prepared', attempts=event['attempts'] + 1)
+        event.pop('runtime_origin', None)
+        event.pop('native_refusal', None)
+        evidence = {'kind': 'native_refusal_retry', 'refusal': copy.deepcopy(refusal),
+                    'provenance': 'CLI structured error result with no reported model usage; '
+                                  'retry authorized by the operator, and usage may repeat'}
     else:
         if event['effect_class'] != 'read_only':
             raise UnresolvedOperation('Unknown external effects cannot be retried as read-only')

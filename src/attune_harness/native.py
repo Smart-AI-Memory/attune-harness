@@ -39,10 +39,31 @@ class NativeError(RuntimeError):
     """
 
     def __init__(self, message: str, *, failure: str | None = None,
-                 process_stopped: bool = False) -> None:
+                 process_stopped: bool = False, refusal: dict | None = None) -> None:
         super().__init__(message)
         self.failure = failure
         self.process_stopped = process_stopped
+        self.refusal = refusal
+
+
+def claude_refusal(envelope: object, returncode: int | None) -> dict | None:
+    """The CLI's own structured report that it refused before any model ran.
+
+    Requires an error result from a process that exited, with no structured
+    output and an explicitly empty ``modelUsage``. Anything less stays unknown.
+    """
+    if (
+        returncode is None
+        or not isinstance(envelope, dict)
+        or envelope.get("type") != "result"
+        or envelope.get("is_error") is not True
+        or not isinstance(envelope.get("result"), str)
+        or envelope.get("structured_output") is not None
+        or envelope.get("modelUsage") != {}
+    ):
+        return None
+    return {"kind": "claude_structured_error", "returncode": returncode,
+            "result": envelope["result"][:2_000], "model_usage": {}}
 
 
 def _invalid_constant(value: str):
@@ -218,7 +239,7 @@ class NativeExchange:
             )
         result = self.last_process
         if result.failure or result.returncode != 0:
-            diagnostic = result.stderr
+            diagnostic, refusal = result.stderr, None
             if self.provider == "claude":
                 try:
                     envelope = _json(result.stdout)
@@ -231,9 +252,11 @@ class NativeExchange:
                     and isinstance(envelope.get("result"), str)
                 ):
                     diagnostic = f"{envelope['result']}\n{diagnostic}"
+                refusal = claude_refusal(envelope, None if result.failure else result.returncode)
             failure = result.failure or 'nonzero_exit'
             raise NativeError(f"{self.provider}: {failure}: {diagnostic}",
-                              failure=failure, process_stopped=result.returncode is not None)
+                              failure=failure, process_stopped=result.returncode is not None,
+                              refusal=refusal)
         decoder = decode_claude if self.provider == "claude" else decode_codex
         text, self.identity = decoder(result.stdout)
         return json.dumps({"version": 1, "request_digest": hashlib.sha256(request.encode("utf-8")).hexdigest(), "text": text})

@@ -1,5 +1,7 @@
 # Harness release journey map
 
+> **Historical.** The current map is [Supported journeys and their limits](supported-journeys.md), written for 1.2.0. This record describes `plan` and `build` as absent; both now exist.
+
 Latest: the [connected capability map](specs/connected-journey-qualification/capability-map.md)
 and [qualification results](connected-journey-qualification-results.md) add the
 bound repair-to-test edge and the installed executor-led Spec journey. The
