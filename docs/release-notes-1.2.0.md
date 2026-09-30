@@ -41,3 +41,8 @@ attune-harness resume TASK_DIR
 
 Fix the cause first (log in again, or add credits). See
 [the recovery workflow](recovery-workflow.md).
+
+## Evidence
+
+The publish run, PyPI hashes and each release gate's receipts, or the gap where
+there is none, are indexed in [the project plan](project-plan.md#where-each-gates-evidence-is).
