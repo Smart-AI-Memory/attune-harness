@@ -222,11 +222,12 @@ def test_refuse_symlinked_without_a_suggestion_for_a_link_loop(tmp_path):
     assert str(refused.value) == f"Checkout cannot traverse a symlink: {loop}"
 
 
-def test_refuse_symlinked_never_suggests_repository_metadata(tmp_path):
+@pytest.mark.parametrize("metadata", [".git", ".hg", ".svn"])
+def test_refuse_symlinked_never_suggests_repository_metadata(tmp_path, metadata):
     real, alias = _alias(tmp_path)
-    (real / ".git").mkdir()
+    (real / metadata).mkdir()
     with pytest.raises(ValueError) as refused:
-        paths.refuse_symlinked("Task storage", alias / ".git" / "work")
+        paths.refuse_symlinked("Task storage", alias / metadata / "work")
     assert str(refused.value) == f"Task storage cannot traverse a symlink: {alias} links to {real.resolve()}"
 
 
