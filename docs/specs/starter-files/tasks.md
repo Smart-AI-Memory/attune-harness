@@ -1,8 +1,8 @@
 # Starter files: tasks
 
-**Status: draft, September 29, 2026. Waiting on Q1–Q6 and spec approval.**
-Requirements are in [design.md](design.md), and questions Q1–Q6 are in the
-[README](README.md). Nothing here is authorized until the spec is approved.
+**Status: approved, September 30, 2026.** Requirements are in
+[design.md](design.md), and the rulings on Q1–Q6 are in the
+[README](README.md). Each task is authorized as scoped below.
 
 ## Order
 
@@ -43,10 +43,10 @@ T5 is independent. T6 closes out.
   `/tmp` task directory and no 1,000-entry limit.
   Size: small, `src/`, different-model review.
 
-- [ ] **T6: close out and prepare 1.2.0 (Q6).**
+- [ ] **T6: close out and prepare 1.3.0 (Q6).**
   Scope: the spec's status lines, the opportunity log entries for O-70 and
   O-76, and the release notes.
-  Done when: the spec is marked complete and a 1.2.0 prepare PR is open.
+  Done when: the spec is marked complete and a 1.3.0 prepare PR is open.
   Publishing stays Patrick's.
   Size: docs only.
 

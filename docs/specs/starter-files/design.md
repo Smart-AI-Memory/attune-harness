@@ -1,8 +1,7 @@
 # Starter files: requirements and acceptance
 
-**Status: draft, September 29, 2026.** It assumes the recommended answers to
-Q1–Q6 in the [README](README.md). A different ruling rewrites the requirement
-that names it. Each requirement names what it must not change, and
+**Status: approved, September 30, 2026.** Patrick approved the recommended
+answers to Q1–Q6 in the [README](README.md), with Q6's vehicle moved to 1.3.0. Each requirement names what it must not change, and
 [the freeze](../../compatibility.md) governs anything not named.
 
 ## R1: `init --for fix` writes a starter probe (Q1, Q4)

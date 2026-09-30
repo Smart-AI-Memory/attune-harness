@@ -1,6 +1,7 @@
 # Starter files: `plan` and `fix` start from a command
 
-**Status: draft, September 29, 2026. Q1–Q6 await Patrick.** Written against
+**Status: approved, September 30, 2026.** Patrick approved Q1–Q6 as
+recommended; Q6's vehicle moves to 1.3.0 because 1.2.0 shipped first. Written against
 main `3d2dcea` (1.1.0). It takes up O-70 in
 [the opportunity log](../../opportunity-log.md), the largest gap left by
 [the first-run journey](../first-run-journey/README.md), and the macOS path
@@ -8,7 +9,7 @@ refusal in O-76 that a user meets next.
 
 Read in order:
 
-1. This page: the outcome, the evidence and the questions for Patrick.
+1. This page: the outcome, the evidence and the rulings on Q1–Q6.
 2. [Requirements and acceptance](design.md): R1–R5 and what each must not change.
 3. [Tasks](tasks.md): the order, the scope of each PR and its done condition.
 
@@ -66,7 +67,7 @@ Two more facts constrain the design:
 - **Acceptance stays a separate act.** Writing a starter request records no
   decision. The user still previews and accepts it with `plan`.
 
-## Questions for Patrick
+## Questions for Patrick, ruled September 30
 
 | | Question | Recommendation | Not chosen, and why |
 |---|---|---|---|
@@ -75,7 +76,7 @@ Two more facts constrain the design:
 | Q3 | What finishes the build in the CI journey? | A command worker shipped under `examples/starter/`, used by the guide's `plan` block and by CI. It applies one declared replacement inside scope, so the journey ends at a completed build. The `demo` registry and profile are unchanged. | Ending the CI journey at plan acceptance, which proves less than O-70's done condition asks for. Letting deterministic participants write, which changes a safety rule in `work_build`. |
 | Q4 | Does `init --for fix` run the probe? | No. `init` writes and validates, and runs nothing. `fix` already refuses a probe that passes before the repair, in words that say so ("Repair requires an observed failing baseline probe", `task_policies.py:298-299`), and the guide's `fix` block starts from a failing test. | Running the probe once and warning if it passes. That executes project code during `init`, which runs nothing today. |
 | Q5 | Is O-76 part of this spec? | Yes, the small half. The guide's examples move to a task directory outside `/tmp`, and the symlink refusals name the resolved path to use instead. The symlink rule itself is unchanged. `init --for` writes resolved paths, so the files it writes never trip it. | Accepting `/tmp` and `/var` as system aliases, which changes a safety rule and deserves its own ruling. |
-| Q6 | Release vehicle? | 1.2.0, a minor release: new optional flags and envelope keys, no break to the frozen surface. | — |
+| Q6 | Release vehicle? | 1.3.0, a minor release: new optional flags and envelope keys, no break to the frozen surface. (Drafted as 1.2.0; 1.2.0 shipped a separate fix first.) | — |
 
 ## Out of scope
 
