@@ -281,6 +281,25 @@ are not rediscovered. No work authorized.
 The entry a user would meet first is O-70: with Harness installed, `plan`
 and `fix` are the verbs that still stop before they start.
 
+O-76, 2026-09-29 — **user** lens (the live Claude Code receipt, recorded in
+[the first-run spec](specs/first-run-journey/README.md)). The CLI guide's
+`plan`/`build`/`status` examples use `--task-dir /tmp/my-work` (12 lines), and
+on macOS every one is refused: `task_contract.safe_storage` rejects any
+symlink among the directory's parents, and `/tmp` links to `private/tmp`
+(checked with the 1.1.0 tool: `/tmp/my-work` refused, `/private/tmp/my-work`
+accepted). `test` meets the same check through `test_change`. The refusal
+names its cause but not the fix. The receipt also found `--test-root .`
+refused as "Invalid relative input path", where the repository root is a
+natural answer for a flat project. Candidates, smallest first: give the guide
+a path outside `/tmp`, and add the resolved path to the refusal
+("…; use /private/tmp/my-work"); or accept a symlink that is a system
+alias the user did not create (`/tmp`, `/var` on macOS), which changes a
+safety rule and is Patrick's call; and accept `.` for `--test-root`. Done when
+the guide's `plan` block runs as printed on macOS in CI and the refusal names
+the path to use. Effort small; the refusal and `.` touch `src/`. This note
+authorizes no work. On macOS, a user who clears O-70 meets this next: the
+guide's `plan` commands are refused even with a valid `work.json`.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree
