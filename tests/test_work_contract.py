@@ -593,3 +593,25 @@ def test_each_authority_bearing_correction_revokes_previous_acceptance(work, fie
     assert revised["bindings"] == {}
     with pytest.raises(ValueError, match="Stale"):
         bind_work_acceptance(work[2]["directory"], prior["acceptance"]["decision"])
+
+
+def test_saved_project_that_no_longer_resolves_names_where_it_now_points(tmp_path):
+    """Only a saved task reaches this: the root was resolved when the task was made."""
+    from attune_harness.work_contract import _capture
+
+    state = tmp_path / "state"
+    with pytest.raises(ValueError, match="^Project must remain an existing resolved directory$"):
+        _capture({"project_root": str(tmp_path / "gone")}, state)
+    real = tmp_path / "real"
+    real.mkdir()
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip("Host lacks symlink creation permission")
+    with pytest.raises(ValueError) as refused:
+        _capture({"project_root": str(alias)}, state)
+    assert str(refused.value) == (
+        "Project must remain an existing resolved directory; it now resolves "
+        f"to {real.resolve()}, so start a new task from that path"
+    )
