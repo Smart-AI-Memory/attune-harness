@@ -57,6 +57,37 @@ No percentage-complete estimate is useful while observed acceptance is open.
 | S8 loose ends | Most historical hygiene closed; PR162 explicitly labels the old code-RAG caller/check historical and reconciles public claims | Any replacement host check needs separate scope and evidence; retained script/receipts stay untouched. |
 | S9 migration | Migration guide drafted; candidate row-by-row trial not recorded | Preserve separate environments and exercise each supported row against the installed stable artifact during stabilization. |
 
+## Where each gate's evidence is
+
+Added September 29, 2026 for the released **1.2.0** (O-09/O-16). This index
+links to existing receipts; it adds no new receipt format. Each item is
+labeled with the kind of claim it supports:
+
+- **measured:** a check the host ran, which passes or fails;
+- **replay:** recorded responses run again offline;
+- **live:** a real provider call, recorded once;
+- **model:** a model's judgment, which is never a verified result;
+- **observed:** a person's recorded use.
+
+Software checks never stand in for an observation. A gate with no observed
+receipt says so.
+
+| Gate | Evidence | Kind | Gap still open |
+| --- | --- | --- | --- |
+| S1 compatibility | [Compatibility list](compatibility.md), [envelopes](envelopes.md), the CLI [surface fixture](../tests/fixtures/compatibility/surface.json) and protocol fixtures beside it, the 33-file [saved-state capture](../tests/fixtures/compat-1.0/README.md) with its reader tests, [deprecations](deprecations.json) | measured | None for the frozen surface; each release must keep the fixtures green |
+| S2 native independence | The [R2 journey](journeys/r2-clean-environment.md) from the installed wheel with Attune AI absent, in every platform job; the [R4 import receipts](journeys/r4-legacy-spec-state.md) | measured | Attune AI's hydrate writer is still Attune AI's; Harness only reads what it writes |
+| S3 useful memory | `tests/test_memory_serving.py` (inactive nodes and `wrong` verdicts not served, prompt mode), `tests/test_memory_prompt_hook.py`; the path against a hydrated server passed once on a maintainer's machine on September 22, as the [README](../README.md#what-is-qualified-and-what-is-not) states, with no retained receipt | measured | **Observed:** fresh-session recall and exclusion in real use. Saved entries do not feed automatic recall ([journey map](supported-journeys.md#memory)) |
+| S4 signed plugins and Voyage | `tests/test_plugin_signing.py` and `tests/test_plugin_runtime.py` in the six installed-wheel jobs; the [Voyage recorded fixture](../tests/fixtures/voyage-live-recorded/README.md); [running a signed plugin](executable-plugin-run.md) | measured; live on macOS only; replay on all six jobs | No general ranking-quality claim; no live call on Ubuntu or Windows |
+| S5 platform limits | The README's [qualification table](../README.md#what-is-qualified-and-what-is-not), the [qualification guide](qualification.md), the platform receipts from the [`Qualification` run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36627949560) at the 1.2.0 commit (one `qualification-<os>-<python>` artifact per job) | measured | Windows native memory, `fix` and `test` remain written limits |
+| S6 usability | None | — | **Observed:** a named non-programmer's installed walkthrough. Not yet done |
+| S7 release mechanics | [Release runbook](release-runbook.md). Each publish run's `release-evidence` artifact holds `SHA256SUMS`, and PyPI's hashes were compared against it: 1.0.0 [run 36451826139](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36451826139), 1.0.1 [run 36466359597](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36466359597), 1.1.0 [run 36522747598](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36522747598), 1.2.0 [run 36629591220](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36629591220). For 1.2.0 the wheel is `17c3f0953d136314b199af3b72d7ce6773c9766066ac8c086742aa0d863351f7` and the sdist `2f36d6cd492738a8c737c493e222c9a66d252a9fe89d38f1bdb0a554bea638bc` | measured | None; each release repeats the runbook's steps |
+| S8 loose ends | [Qualification guide](qualification.md) (the historical `check_code_rag_host.py` is labeled as such); [documentation maintenance](documentation-maintenance.md) | measured | Any replacement host check needs its own scope |
+| S9 migration | [Migration guide](migration-from-attune-ai.md), [journey map](supported-journeys.md) | — | **Observed:** each row tried against the installed stable artifact. Not yet done |
+
+Model judgments appear in none of these rows as evidence. Review narratives,
+native model reviews and assessments are unverified proposals, and the CLI
+labels them as such ([status guidance](status-guidance-a-results.md)).
+
 ## Ordered work to stable v1
 
 1. **Voyage evidence complete (S4 bounded campaign).** The approved signed-plugin
