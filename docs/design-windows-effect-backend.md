@@ -49,8 +49,9 @@ points, multiply linked files, alternate data streams, deleted/pending
 entries, unsupported editable-file attributes, custom editable-file DACLs,
 casefold or short-name *path references*,
 trailing space/dot, colon, reserved device names, and noncanonical separators
-before dispatch. Enumeration must be complete and bounded (1000 entries,
-16 MiB total file bytes), and reopen every enumerated leaf relative to its
+before dispatch. Enumeration must be complete and bounded (2,048 snapshot
+entries including the root, 16 MiB total file bytes; originally 1,000, see the
+amendment above), and reopen every enumerated leaf relative to its
 parent before hashing. Canonical proposal paths receive the same validation
 as accepted paths. If a metadata category cannot be observed reliably, refuse
 the plan before any write. Do not reject a legitimate long filename merely

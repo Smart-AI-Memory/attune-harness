@@ -1,6 +1,7 @@
 """Whole-tree capacity, authority preservation and saved-work round trips."""
 # qualify: platform
 
+import contextlib
 import copy
 import os
 import time
@@ -8,6 +9,7 @@ import time
 import pytest
 
 from attune_harness import repair, work_effects, windows_effects as windows
+from attune_harness.effect_limits import MAX_ENTRIES
 from attune_harness.recovery import UnresolvedOperation
 from attune_harness.task_contract import read_task
 import test_work_contract as contracts
@@ -98,6 +100,45 @@ def test_windows_saved_build_and_repair_count_root_entry():
         item['before']['one-more'] = _entry(3000)
         with pytest.raises(ValueError):
             validator(item)
+
+
+class FlatTree:
+    """Fake native API: a root directory holding `count` empty files."""
+
+    def __init__(self, count):
+        self.children = [f'file-{n:04}' for n in range(count)]
+
+    @contextlib.contextmanager
+    def root(self, plan):
+        yield ''
+
+    def owned(self, handle):
+        return contextlib.nullcontext(handle)
+
+    def child(self, parent, name):
+        return name
+
+    def names(self, directory):
+        return self.children if directory == '' else []
+
+    def metadata(self, handle, parent_identity=None):
+        kind = 'directory' if handle == '' else 'file'
+        return {'kind': kind, 'identity': handle}, 0, True
+
+    def read(self, handle, size, *, limit):
+        return b''
+
+
+@pytest.mark.parametrize('children, admitted', [(MAX_ENTRIES - 1, True), (MAX_ENTRIES, False)])
+def test_windows_snapshot_bound_counts_root(children, admitted):
+    # The snapshot admits at most MAX_ENTRIES keys, root included, which is
+    # exactly what the saved-manifest validators accept.
+    if admitted:
+        snap = windows._snapshot(FlatTree(children), {})
+        assert len(snap) == MAX_ENTRIES and '' in snap
+    else:
+        with pytest.raises(ValueError, match='bounded Windows effect profile'):
+            windows._snapshot(FlatTree(children), {})
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='native Windows directory enumeration')
