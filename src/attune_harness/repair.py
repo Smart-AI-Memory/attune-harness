@@ -165,6 +165,16 @@ def validate_probe(root, allowed, probe, *, check_executable=True, windows_profi
             raise ValueError('Acceptance oracle cannot be in replacement scope')
 
 
+def validate_allowed(allowed):
+    """The replacement scope's own rules, shared by ``freeze`` and ``init --for fix``."""
+    if not isinstance(allowed, list) or not 1 <= len(allowed) <= 20 or len(set(allowed)) != len(allowed):
+        raise ValueError('Accept 1–20 distinct replacement paths')
+    for name in allowed:
+        relative(name)
+        if any((p.casefold() if os.name == 'nt' else p) in PROTECTED for p in PurePosixPath(name).parts):
+            raise ValueError('Protected state/metadata cannot be replaced')
+
+
 def freeze(root, allowed, probe, state_directory):
     root = Path(root).absolute()
     state = Path(state_directory).absolute()
@@ -172,12 +182,7 @@ def freeze(root, allowed, probe, state_directory):
         raise ValueError('Repair checkout and task state must be disjoint')
     if not (root / '.git').is_dir() or (root / '.git').is_symlink():
         raise ValueError('Repair requires a dedicated checkout with local .git directory')
-    if not isinstance(allowed, list) or not 1 <= len(allowed) <= 20 or len(set(allowed)) != len(allowed):
-        raise ValueError('Accept 1–20 distinct replacement paths')
-    for name in allowed:
-        relative(name)
-        if any((p.casefold() if os.name == 'nt' else p) in PROTECTED for p in PurePosixPath(name).parts):
-            raise ValueError('Protected state/metadata cannot be replaced')
+    validate_allowed(allowed)
     validate_probe(root, allowed, probe, windows_profile=os.name == 'nt')
     argv, oracles = probe['argv'], probe['oracle_paths']
     if os.name == 'nt':

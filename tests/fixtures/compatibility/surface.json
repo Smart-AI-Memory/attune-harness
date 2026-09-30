@@ -823,6 +823,14 @@
      ]
     },
     {
+     "choices": null,
+     "default": null,
+     "name": "interpreter",
+     "option_strings": [
+      "--interpreter"
+     ]
+    },
+    {
      "choices": [
       "demo",
       "claude",
@@ -841,13 +849,43 @@
      "option_strings": [
       "--project"
      ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "scope",
+     "option_strings": [
+      "--scope"
+     ]
+    },
+    {
+     "choices": [
+      "fix"
+     ],
+     "default": null,
+     "name": "starter",
+     "option_strings": [
+      "--for"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "tests",
+     "option_strings": [
+      "--tests"
+     ]
     }
    ],
    "one_of": [],
    "options": [
+    "--for",
     "--force",
+    "--interpreter",
     "--profile",
-    "--project"
+    "--project",
+    "--scope",
+    "--tests"
    ],
    "positionals": [],
    "required_options": []

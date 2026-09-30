@@ -18,7 +18,7 @@ T5 is independent. T6 closes out.
   Done when: both run in the six installed-wheel jobs and fail as expected.
   Size: one PR, no `src/` change.
 
-- [ ] **T2: `init --for fix` (R1).**
+- [x] **T2: `init --for fix` (R1).** Done; `fix-starter` stays red until T4.
   Scope: `init_cli.py`, `tests/test_init_cli.py`, the surface fixture, the
   `init` rows in `docs/envelopes.md`, and the changelog.
   Done when: `fix-starter` passes once T4 lands, and `init` without `--for`

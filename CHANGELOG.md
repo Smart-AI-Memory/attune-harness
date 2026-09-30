@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `init --for fix --scope FILE… --interpreter PY --tests PATH…` writes the
+  trusted probe `fix` reads, `probe.json`, and the participant registry if
+  there is none (starter-files T2). The probe runs the named tests with
+  pytest; it is checked by the repair module's own rules before anything is
+  written, and `init` runs nothing. The envelope adds `files`, every path
+  written, and its `next_action` previews the repair. New options on `init`:
+  `--for`, `--scope`, `--interpreter`, `--tests`. `init` without `--for` is
+  unchanged.
+
 ## 1.2.0
 
 A refused native Claude turn no longer strands a review task (#182). See the

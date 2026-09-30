@@ -6,18 +6,27 @@ from a named profile, validated by the same reader every verb uses. It makes no
 model call, reads no credentials and writes nothing outside the project.
 Writing a native profile authorizes nothing: a review still needs
 ``--allow-external``, and ``plan`` and ``build`` also need ``--allow-native``.
+
+``init --for fix`` also writes the trusted probe ``fix`` reads, ``probe.json``,
+validated by the repair module's own checks before it is written; it runs
+nothing (starter-files R1). Without ``--for``, the output is unchanged.
 """
 
 import json
 import os
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
 from .features import write_report
-from .review_contract import validate_registry
+from .repair import validate_allowed, validate_probe
+from .review_contract import load_registry, validate_registry
 
 REGISTRY = 'participants.json'
+PROBE = 'probe.json'
+# The CLI guide's probe limits.
+PROBE_TIMEOUT, PROBE_OUTPUT = 30, 8192
 _EVIDENCE = {'tools': ['retrieve', 'verify'], 'max_turns': 3, 'max_tool_calls': 2}
 _NATIVE = {**_EVIDENCE, 'review_mode': 'evidence', 'timeout': 300}
 
@@ -73,7 +82,14 @@ def add_command(sub):
                         help='demo: offline deterministic participants (default); claude or codex: native models')
     parser.add_argument('--project', type=Path, help='Project directory (default: the current directory)')
     parser.add_argument('--force', action='store_true',
-                        help='Replace an existing registry, keeping it as participants.json.bak')
+                        help='Replace an existing registry, keeping it as participants.json.bak '
+                             '(with --for fix: replace probe.json, keeping probe.json.bak)')
+    parser.add_argument('--for', dest='starter', choices=('fix',),
+                        help='fix: also write probe.json, the trusted probe fix reads; '
+                             'the registry is written only if there is none')
+    parser.add_argument('--scope', nargs='+', help='With --for fix: the files the repair may replace')
+    parser.add_argument('--interpreter', help='With --for fix: the Python, with pytest, that runs the tests')
+    parser.add_argument('--tests', nargs='+', help='With --for fix: the test files the probe runs, protected')
 
 
 def next_action(project: Path, target: Path, profile: str) -> str:
@@ -85,11 +101,108 @@ def next_action(project: Path, target: Path, profile: str) -> str:
             f'needs --allow-external; plan and build also need --allow-native. Either may incur provider costs')
 
 
+def backup(target: Path, what: str):
+    """Keep an existing file as ``.bak`` before it is replaced; refuse if it may not be."""
+    backup = target.with_name(target.name + '.bak')
+    if backup.exists() or backup.is_symlink():
+        raise ValueError(f'{backup} already exists; move it before replacing the {what}')
+    if target.is_symlink() or not target.is_file():
+        raise ValueError(f'Not a regular file: {target}')
+    # Copy, never move: the old file stays in place until the new one replaces it
+    # atomically, so no moment leaves the project without one. 'x' refuses a racing backup.
+    with target.open('rb') as source, backup.open('xb') as copy:
+        copy.write(source.read())
+    return str(backup)
+
+
+def interpreter(value: str) -> str:
+    """An absolute interpreter path: a bare name is looked up on PATH, a path made absolute.
+
+    Symlinks are kept, so a virtual environment's interpreter stays itself.
+    """
+    if os.sep not in value and not (os.altsep and os.altsep in value):
+        value = shutil.which(value) or value
+    return str(Path(value).expanduser().absolute())
+
+
+def starter_probe(project: Path, scope: list, python: str, tests: list) -> dict:
+    """The probe ``fix`` reads, checked by the owner's rules before anything is written."""
+    if not (project / '.git').is_dir() or (project / '.git').is_symlink():
+        raise ValueError('Repair requires a dedicated checkout with local .git directory')
+    validate_allowed(scope)
+    for name in (*scope, *tests):
+        path = project / name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f'Accepted paths must be existing regular files: {name}')
+    environment = {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
+    if os.name == 'nt':  # the Windows probe contract wants one frozen SystemRoot
+        environment['SystemRoot'] = os.environ.get('SystemRoot', r'C:\Windows')
+    else:
+        environment['PATH'] = '/usr/bin:/bin'
+    probe = {'argv': [python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', *tests], 'cwd': '.',
+             'timeout': PROBE_TIMEOUT, 'max_output_bytes': PROBE_OUTPUT,
+             'environment': environment, 'oracle_paths': list(tests)}
+    validate_probe(project, scope, probe, windows_profile=os.name == 'nt')
+    return probe
+
+
+def fix_next_action(project: Path, registry: Path, participants: list, scope: list) -> str:
+    worker = 'lead' if 'lead' in participants else participants[0]
+    others = [name for name in participants if name != worker]
+    reviewer = 'reviewer' if 'reviewer' in others else (others[0] if others else None)
+    review = f'--reviewer {quote(reviewer)} --review required' if reviewer else '--review none'
+    tasks = Path.home() / 'harness-tasks' / f'{project.name}-fix'
+    command = (f'attune-harness fix --goal "Describe the repair" --project {quote(project)} '
+               f'--checkout {quote(project)} --scope {" ".join(quote(n) for n in scope)} '
+               f'--probe {quote(project / PROBE)} --config {quote(registry)} --worker {quote(worker)} '
+               f'{review} --criteria "The frozen probe passes without changing its oracle" '
+               f'--task-dir {quote(tasks)}')
+    return (f'Preview the repair: {command}. Accepting it needs a worker that proposes a replacement, '
+            f'then --accept --allow-external')
+
+
+def execute_fix(args, project: Path) -> int:
+    if not (args.scope and args.interpreter and args.tests):
+        raise ValueError('init --for fix needs --scope, --interpreter and --tests')
+    scope, tests = list(args.scope), list(args.tests)
+    probe = starter_probe(project, scope, interpreter(args.interpreter), tests)
+    target, probe_path, files, replaced = project / REGISTRY, project / PROBE, [], None
+    written = not (target.exists() or target.is_symlink())
+    registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
+    if written:
+        validate_registry(registry, target)
+    else:
+        registry = load_registry(target)
+    if probe_path.exists() or probe_path.is_symlink():
+        if not args.force:
+            raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
+        replaced = backup(probe_path, 'probe')
+    if written:
+        write_report(target, registry)
+        files.append(str(target))
+    write_report(probe_path, probe)
+    files.append(str(probe_path))
+    participants = sorted(registry['participants'])
+    native = any(item['adapter'] in ('claude', 'codex') for item in registry['participants'].values())
+    print(json.dumps({
+        'schema_version': 1, 'operation': 'init', 'status': 'created', 'path': str(target),
+        'profile': args.profile if written else None, 'participants': participants,
+        'requires': {'allow_external': True, 'allow_native': native},
+        'replaced': replaced, 'files': files,
+        'next_action': fix_next_action(project, target, participants, scope),
+    }, indent=2))
+    return 0
+
+
 def execute(args) -> int:
     try:
         project = (args.project or Path.cwd()).absolute()
         if not project.is_dir():
             raise ValueError(f'Project is not a directory: {project}')
+        if args.starter == 'fix':
+            return execute_fix(args, project)
+        if args.scope or args.interpreter or args.tests:
+            raise ValueError('--scope, --interpreter and --tests need --for fix')
         target = project / REGISTRY
         registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
         validate_registry(registry, target)
@@ -97,16 +210,7 @@ def execute(args) -> int:
         if target.exists() or target.is_symlink():
             if not args.force:
                 raise ValueError(f'A registry already exists at {target}; pass --force to replace it')
-            backup = target.with_name(REGISTRY + '.bak')
-            if backup.exists() or backup.is_symlink():
-                raise ValueError(f'{backup} already exists; move it before replacing the registry')
-            if target.is_symlink() or not target.is_file():
-                raise ValueError(f'Not a regular file: {target}')
-            # Copy, never move: the old registry stays in place until the new one replaces it
-            # atomically, so no moment leaves the project without one. 'x' refuses a racing backup.
-            with target.open('rb') as source, backup.open('xb') as copy:
-                copy.write(source.read())
-            replaced = str(backup)
+            replaced = backup(target, 'registry')
         write_report(target, registry)
         native = args.profile != 'demo'
         print(json.dumps({
