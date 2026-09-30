@@ -3,6 +3,8 @@
 Carried from Attune AI's ``attune/security/path_validation.py`` (branch
 ``codex/shared-memory-adoption`` at ``b89f7953f``), where it was the private
 ``_validate_file_path``. The Windows check is reworked: see ``_protected``.
+``refuse_symlinked`` is not carried: it is Harness's own, shared by the task
+store and the repair checkout (O-76).
 
 Copyright 2025 Smart AI Memory, LLC
 Licensed under the Apache License, Version 2.0
@@ -100,3 +102,25 @@ def validate_file_path(path: str, allowed_dir: str | None = None) -> Path:
     if directory is not None:
         raise ValueError(f"Cannot write to system directory: {directory}")
     return resolved
+
+
+def refuse_symlinked(label, path):
+    """Refuse a path with a symlink among itself and its parents, naming the path to use.
+
+    ``/tmp`` and ``/var`` are symlinks on macOS, so the refusal names the link
+    and the resolved path rather than only the rule (O-76).
+    """
+    path = Path(path)
+    links = [p for p in (path, *path.parents) if p.is_symlink()]
+    if not links:
+        return
+    link = links[-1]  # parents run nearest first, so the last is closest to the root
+    try:
+        target, resolved = link.resolve(), path.resolve()
+        detail = f" links to {target}; use {resolved}"
+        if any(part in (".git", ".hg", ".svn") for part in resolved.parts):
+            # Repository metadata is refused in its own right; never suggest a path that is.
+            detail = f" links to {target}"
+    except (OSError, RuntimeError):  # a link loop has no path to suggest
+        detail = ""
+    raise ValueError(f"{label} cannot traverse a symlink: {link}{detail}")

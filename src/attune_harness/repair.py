@@ -10,6 +10,7 @@ import stat
 from uuid import uuid4
 from .effect_limits import MAX_ENTRIES
 from .features import FeatureUnavailable
+from .paths import refuse_symlinked
 from .review_contract import fields, parse_json, versioned, digest
 from .recovery import UnresolvedOperation
 
@@ -40,8 +41,7 @@ def root_handle(plan):
     if os.name != 'posix' or not hasattr(os, 'O_NOFOLLOW'):
         raise FeatureUnavailable('Repair effects require the qualified POSIX handle profile')
     root = Path(plan['root'])
-    if any(p.is_symlink() for p in (root, *root.parents)):
-        raise ValueError('Checkout cannot traverse a symlink')
+    refuse_symlinked('Checkout', root)
     fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
         if identity(os.fstat(fd)) != plan['root_identity']:
