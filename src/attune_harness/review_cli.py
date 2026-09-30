@@ -43,6 +43,8 @@ def add_commands(sub):
     resolution = reconcile.add_mutually_exclusive_group(required=True)
     resolution.add_argument('--reply', type=Path, help='Correlated participant reply JSON; never executes it')
     resolution.add_argument('--retry-read-only', action='store_true')
+    resolution.add_argument('--retry-refused', action='store_true',
+                            help='Retry a participant turn the Claude CLI refused with a structured error; usage may repeat')
     transfer = sub.add_parser('transfer-review', help='Assign the lead role to another accepted participant')
     transfer.add_argument('run_dir', type=Path)
     transfer.add_argument('--checkpoint', required=True)
@@ -67,7 +69,8 @@ def execute(args) -> int:
         elif args.command == 'reconcile-review':
             from .recovery import reconcile_review
             result = reconcile_review(args.run_dir, args.checkpoint, args.event,
-                                      reply_file=args.reply, retry_read_only=args.retry_read_only)
+                                      reply_file=args.reply, retry_read_only=args.retry_read_only,
+                                      retry_refused=args.retry_refused)
         elif args.command == 'transfer-review':
             from .recovery import transfer_lead
             result = transfer_lead(args.run_dir, args.checkpoint, args.lead, args.reason)

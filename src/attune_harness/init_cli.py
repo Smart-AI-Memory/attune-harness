@@ -4,8 +4,8 @@
 now nothing wrote one. ``init`` writes ``participants.json`` into a project
 from a named profile, validated by the same reader every verb uses. It makes no
 model call, reads no credentials and writes nothing outside the project.
-Writing a native profile authorizes nothing: dispatch still needs
-``--allow-external`` and ``--allow-native``.
+Writing a native profile authorizes nothing: a review still needs
+``--allow-external``, and ``plan`` and ``build`` also need ``--allow-native``.
 """
 
 import json
@@ -81,8 +81,8 @@ def next_action(project: Path, target: Path, profile: str) -> str:
                f'--project {quote(project)} --config {quote(target)} --intake-only')
     if profile == 'demo':
         return f'Show the review intake form, offline: {command}'
-    return (f'Show the review intake form: {command}. Running native participants needs '
-            f'--allow-external and --allow-native, and may incur provider costs')
+    return (f'Show the review intake form: {command}. Running a review with native participants '
+            f'needs --allow-external; plan and build also need --allow-native. Either may incur provider costs')
 
 
 def execute(args) -> int:

@@ -25,6 +25,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Stable v1 and the first two weeks after release](project-plan.md): Current release gates, observed candidate period and four bounded follow-through opportunities
 
+- [Supported journeys and their limits](supported-journeys.md): Every journey 1.2.0 carries, with its entry point, platform limit, evidence and where it stops
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
 - [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
@@ -37,6 +38,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
+- [1.2.0 release notes](release-notes-1.2.0.md): Recovery for a participant turn the Claude CLI refused, and init's flag guidance
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Coverage measurement](coverage-measurement.md): Supplemental subprocess and platform measurements, their provenance and limits
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not

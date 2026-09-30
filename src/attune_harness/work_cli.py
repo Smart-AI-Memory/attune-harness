@@ -729,7 +729,7 @@ def execute_control(args):
                 allow_native=args.allow_native,
             )
         elif args.command == "reconcile-task":
-            if args.reply or args.retry_read_only:
+            if args.reply or args.retry_read_only or args.retry_refused:
                 raise ValueError("These options support explicit file observations only; use --retry-native for eligible native timeouts")
             if not args.checkpoint:
                 raise ValueError("Feature reconciliation requires the current --checkpoint")
