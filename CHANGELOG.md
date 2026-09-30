@@ -7,9 +7,11 @@
   there is none (starter-files T2). The probe runs the named tests with
   pytest; it is checked by the repair module's own rules before anything is
   written, and `init` runs nothing. The envelope adds `files`, every path
-  written, and its `next_action` previews the repair. New options on `init`:
-  `--for`, `--scope`, `--interpreter`, `--tests`. `init` without `--for` is
-  unchanged.
+  written, and its `next_action` previews the repair; a symlinked `--project`
+  is written resolved. New options on `init`: `--for`, `--scope`,
+  `--interpreter`, `--tests`. `init` without `--for` prints what it did
+  before, with one exception: `--f` and `--fo`, which argparse used to read as
+  `--force`, are now ambiguous; spell `--force` (or `--forc`).
 
 ## 1.2.0
 

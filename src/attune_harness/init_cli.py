@@ -19,9 +19,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .features import write_report
-from .repair import validate_allowed, validate_probe
-from .review_contract import load_registry, validate_registry
+from .features import read_text, write_report
+from .repair import freeze
+from .review_contract import parse_json, validate_registry
 
 REGISTRY = 'participants.json'
 PROBE = 'probe.json'
@@ -121,19 +121,27 @@ def interpreter(value: str) -> str:
     Symlinks are kept, so a virtual environment's interpreter stays itself.
     """
     if os.sep not in value and not (os.altsep and os.altsep in value):
-        value = shutil.which(value) or value
+        found = shutil.which(value)
+        if found is None:
+            raise ValueError(f'Interpreter not found on PATH: {value}')
+        value = found
     return str(Path(value).expanduser().absolute())
 
 
-def starter_probe(project: Path, scope: list, python: str, tests: list) -> dict:
-    """The probe ``fix`` reads, checked by the owner's rules before anything is written."""
-    if not (project / '.git').is_dir() or (project / '.git').is_symlink():
-        raise ValueError('Repair requires a dedicated checkout with local .git directory')
-    validate_allowed(scope)
-    for name in (*scope, *tests):
-        path = project / name
-        if path.is_symlink() or not path.is_file():
-            raise ValueError(f'Accepted paths must be existing regular files: {name}')
+def fix_task_directory(project: Path) -> Path:
+    """Where the printed ``fix`` keeps its task: resolved, and never inside the checkout."""
+    tasks = Path.home().resolve() / 'harness-tasks' / f'{project.name}-fix'
+    if tasks.is_relative_to(project) or project.is_relative_to(tasks):
+        tasks = project.parent / f'{project.name}-fix-task'
+    return tasks
+
+
+def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path) -> dict:
+    """The probe ``fix`` reads, checked before anything is written by the same freeze ``fix`` runs.
+
+    ``repair.freeze`` reads the checkout and writes nothing, so a probe it
+    accepts here is one ``fix`` accepts, refused otherwise in its words.
+    """
     environment = {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
     if os.name == 'nt':  # the Windows probe contract wants one frozen SystemRoot
         environment['SystemRoot'] = os.environ.get('SystemRoot', r'C:\Windows')
@@ -142,16 +150,15 @@ def starter_probe(project: Path, scope: list, python: str, tests: list) -> dict:
     probe = {'argv': [python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', *tests], 'cwd': '.',
              'timeout': PROBE_TIMEOUT, 'max_output_bytes': PROBE_OUTPUT,
              'environment': environment, 'oracle_paths': list(tests)}
-    validate_probe(project, scope, probe, windows_profile=os.name == 'nt')
+    freeze(project, scope, probe, tasks)
     return probe
 
 
-def fix_next_action(project: Path, registry: Path, participants: list, scope: list) -> str:
+def fix_next_action(project: Path, registry: Path, participants: list, scope: list, tasks: Path) -> str:
     worker = 'lead' if 'lead' in participants else participants[0]
     others = [name for name in participants if name != worker]
     reviewer = 'reviewer' if 'reviewer' in others else (others[0] if others else None)
     review = f'--reviewer {quote(reviewer)} --review required' if reviewer else '--review none'
-    tasks = Path.home() / 'harness-tasks' / f'{project.name}-fix'
     command = (f'attune-harness fix --goal "Describe the repair" --project {quote(project)} '
                f'--checkout {quote(project)} --scope {" ".join(quote(n) for n in scope)} '
                f'--probe {quote(project / PROBE)} --config {quote(registry)} --worker {quote(worker)} '
@@ -164,15 +171,18 @@ def fix_next_action(project: Path, registry: Path, participants: list, scope: li
 def execute_fix(args, project: Path) -> int:
     if not (args.scope and args.interpreter and args.tests):
         raise ValueError('init --for fix needs --scope, --interpreter and --tests')
+    # Resolved, as the spec promises (Q5): the files init writes never trip fix's symlink rule.
+    project = project.resolve()
     scope, tests = list(args.scope), list(args.tests)
-    probe = starter_probe(project, scope, interpreter(args.interpreter), tests)
+    tasks = fix_task_directory(project)
+    probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks)
     target, probe_path, files, replaced = project / REGISTRY, project / PROBE, [], None
     written = not (target.exists() or target.is_symlink())
     registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
     if written:
         validate_registry(registry, target)
-    else:
-        registry = load_registry(target)
+    else:  # fix reads it with one participant allowed, so init does too
+        registry = validate_registry(parse_json(read_text(target, 131_072)), target, minimum_participants=1)
     if probe_path.exists() or probe_path.is_symlink():
         if not args.force:
             raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
@@ -189,7 +199,7 @@ def execute_fix(args, project: Path) -> int:
         'profile': args.profile if written else None, 'participants': participants,
         'requires': {'allow_external': True, 'allow_native': native},
         'replaced': replaced, 'files': files,
-        'next_action': fix_next_action(project, target, participants, scope),
+        'next_action': fix_next_action(project, target, participants, scope, tasks),
     }, indent=2))
     return 0
 
