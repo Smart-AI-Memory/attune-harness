@@ -11,7 +11,7 @@ a CI result. T2 is the smallest change that finishes a verb. T3 depends on T4
 to finish a build in CI, so the two can be one PR if that reviews more easily.
 T5 is independent. T6 closes out.
 
-- [ ] **T1: the two journeys, red first (R5).**
+- [x] **T1: the two journeys, red first (R5).** Done in [#191](https://github.com/Smart-AI-Memory/attune-harness/pull/191).
   Scope: `plan-starter` and `fix-starter` blocks in `docs/cli-guide.md`,
   their cases in `tests/test_cold_start_journey.py` as strict xfails naming
   T2–T4, and the required-tag set.
@@ -21,7 +21,11 @@ T5 is independent. T6 closes out.
 - [ ] **T2: `init --for fix` (R1).**
   Scope: `init_cli.py`, `tests/test_init_cli.py`, the surface fixture, the
   `init` rows in `docs/envelopes.md`, and the changelog.
-  Done when: `fix-starter` passes and `init` without `--for` is unchanged.
+  Done when: `fix-starter` passes once T4 lands, and `init` without `--for`
+  is unchanged. (Amended at T1: the journey's worker is T4's example.)
+  Note: today argparse reads `--for` as an abbreviation of `--force`
+  (`allow_abbrev`), so `init --for plan` fails as "unrecognized arguments:
+  plan". Test that `--for` and `--force` stay distinct.
   Size: one PR, `src/`, different-model review.
 
 - [ ] **T3: `init --for plan` (R2).**
@@ -32,8 +36,10 @@ T5 is independent. T6 closes out.
   Size: one PR, `src/`, different-model review.
 
 - [ ] **T4: the example command worker (R3).**
-  Scope: `examples/starter/`, used by `plan-starter`.
-  Done when: `plan-starter` passes on all six jobs.
+  Scope: `examples/starter/`, used by `plan-starter` and `fix-starter`: a
+  registry naming `starter-worker` and `starter-reviewer`, and a worker that
+  answers both build and repair turns.
+  Done when: both journeys pass on all six jobs.
   Size: small, no `src/` change.
 
 - [x] **T5: symlink refusals and the guide's paths (R4).** Done in [#190](https://github.com/Smart-AI-Memory/attune-harness/pull/190).
