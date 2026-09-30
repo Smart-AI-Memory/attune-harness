@@ -54,6 +54,24 @@ calls. Stdin is closed, as for an agent.
 | `fix --goal` alone | A JSON refusal on stdout, exit 2, with a `next_action`. It still needs a checkout and a trusted probe: an accepted limit, documented |
 | "Ask your agent" in Claude Code | The plugin is published by #173. The live receipt is owed after merge (it needs Patrick signed in) |
 
+**The live Claude Code receipt, September 29, 2026.** Patrick signed in to
+Claude Code with the published plugin installed (`claude plugin list`:
+`attune-harness@attune-harness` 1.1.0, user scope, enabled, commit `31fa8a6`,
+the release SHA) and typed `/attune-harness:attune-harness resume`. The skill
+loaded from the plugin's version-keyed cache (`.../attune-harness/1.1.0/.agents/skills/attune-harness`).
+Following it, the agent located the `uv tool` CLI (`attune-harness v1.1.0`),
+read `--help` and the route help, and found no saved task to resume. Asked
+instead to record this receipt, it ran a `test` journey on a scratch
+repository: preview (exit 1, a draft, one selected test), accept at that
+checkpoint (`passed`, 1 collected, 1 passed, exit 0), then
+`status --format markdown` (exit 0). Deterministic, no model calls, macOS only.
+It took three corrections to get there. A task directory under `/tmp` was
+refused ("Task storage cannot traverse a symlink": `/tmp` is a symlink on
+macOS). A test file at the repository root was not selected, as the CLI guide
+says (the fallback root is `tests/`). And `--test-root .` was refused
+("Invalid relative input path"). Each refusal named its cause. The first
+also applies to the CLI guide's own `plan`/`build` examples; see O-76.
+
 Refusals came in three shapes: argparse usage text (`fix`), an envelope with
 `next_action` (`plan`), and an envelope without one (`review`).
 
