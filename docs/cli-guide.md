@@ -182,22 +182,26 @@ and [bounded build profile](specs/plan-build/dependent-build.md).
 
 ```bash
 attune-harness plan --request work.json --project ./checkout \
-  --config participants.json --task-dir /tmp/my-work
+  --config participants.json --task-dir ~/harness-tasks/my-work
 attune-harness plan --request work.json --project ./checkout \
-  --config participants.json --task-dir /tmp/my-work \
+  --config participants.json --task-dir ~/harness-tasks/my-work \
   --import-plan ~/other-project/.claude/plans/feature.md --allow-outside-project
-attune-harness plan --task-dir /tmp/my-work --run --allow-external
-attune-harness plan --task-dir /tmp/my-work --stage --checkpoint CURRENT_CHECKPOINT
-attune-harness plan --task-dir /tmp/my-work --accept --checkpoint CURRENT_CHECKPOINT
-attune-harness build /tmp/my-work --allow-external --max-operations 4
-attune-harness status /tmp/my-work
-attune-harness resume /tmp/my-work --allow-external
+attune-harness plan --task-dir ~/harness-tasks/my-work --run --allow-external
+attune-harness plan --task-dir ~/harness-tasks/my-work --stage --checkpoint CURRENT_CHECKPOINT
+attune-harness plan --task-dir ~/harness-tasks/my-work --accept --checkpoint CURRENT_CHECKPOINT
+attune-harness build ~/harness-tasks/my-work --allow-external --max-operations 4
+attune-harness status ~/harness-tasks/my-work
+attune-harness resume ~/harness-tasks/my-work --allow-external
 ```
 
 These commands are not a copy-and-paste example yet: `work.json` must carry a
 frozen effects manifest, which no command writes. The offline plan, accept,
 build, review and status journey in `scripts/check_installed.py` (`FREEZE` and
 `journey_checks`) builds one and runs in every platform job.
+
+A task directory may not sit behind a symlink. That rules out `/tmp` on macOS,
+which links to `/private/tmp`; the refusal names the link and the resolved path
+to use instead.
 
 ### Importing a plan from another project
 
@@ -222,9 +226,9 @@ envelope, its receipt and its refusals is
 To return to a saved feature-work task, export a read-only overview:
 
 ```bash
-attune-harness status /tmp/my-work --format markdown > task-status.md
-attune-harness status /tmp/my-work --format html > task-status.html
-attune-harness status /tmp/my-work --format html --continuation pause.json > return-to-work.html
+attune-harness status ~/harness-tasks/my-work --format markdown > task-status.md
+attune-harness status ~/harness-tasks/my-work --format html > task-status.html
+attune-harness status ~/harness-tasks/my-work --format html --continuation pause.json > return-to-work.html
 ```
 
 The overview leads with the goal, next useful step, stopping point, reported
@@ -681,7 +685,7 @@ See the [navigation design](design-navigation.md) for the discovery policy.
 Supply task directories explicitly to produce one navigable HTML file:
 
 ```sh
-attune-harness status /tmp/my-work --include-task /tmp/other-work --format html > saved-tasks.html
+attune-harness status ~/harness-tasks/my-work --include-task ~/harness-tasks/other-work --format html > saved-tasks.html
 ```
 
 Re-run the same command to refresh that file. Open it to choose a task; each
