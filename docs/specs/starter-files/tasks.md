@@ -36,7 +36,7 @@ T5 is independent. T6 closes out.
   Done when: `plan-starter` passes on all six jobs.
   Size: small, no `src/` change.
 
-- [ ] **T5: symlink refusals and the guide's paths (R4).**
+- [x] **T5: symlink refusals and the guide's paths (R4).** Done in [#190](https://github.com/Smart-AI-Memory/attune-harness/pull/190).
   Scope: `task_contract.safe_storage`, `repair.root_handle`, the resolved-root
   check in `work_contract`, their tests, and `docs/cli-guide.md`.
   Done when: each refusal names the resolved path, and the guide has no
