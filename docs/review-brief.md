@@ -20,8 +20,13 @@ Read-only. Never edit a file. Work from `git archive <branch>` extracted into
 the scratchpad, never from the working tree, which another session or the
 author may switch under you. `scripts/review_prep.sh <branch>` makes that
 archive, writes the diff against the base beside it and scaffolds the
-mutation table. Write probe scripts only outside the repository. Report
-findings; the author reproduces each before fixing.
+mutation table. Run each mutant with the `mutate.sh` beside it: it copies the
+whole tree and runs pytest from inside the copy, because pyproject's
+`pythonpath = ["src"]` resolves against the rootdir and a mutated `src/`
+reached only through `PYTHONPATH` is never imported. Write probe scripts only
+outside the repository. Write the report to the `report.md` beside the
+archive as well as returning it, so a lost hand-back does not lose the
+review. Report findings; the author reproduces each before fixing.
 
 ## What to do, in order
 
