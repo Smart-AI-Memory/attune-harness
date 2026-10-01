@@ -19,6 +19,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from .effect_limits import MAX_ENTRIES
 from .features import read_text, write_report
 from .repair import freeze
 from .review_contract import parse_json, validate_registry
@@ -150,7 +151,11 @@ def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: P
     probe = {'argv': [python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', *tests], 'cwd': '.',
              'timeout': PROBE_TIMEOUT, 'max_output_bytes': PROBE_OUTPUT,
              'environment': environment, 'oracle_paths': list(tests)}
-    freeze(project, scope, probe, tasks)
+    plan = freeze(project, scope, probe, tasks)
+    # The files init is about to write count against the same entry bound fix enforces.
+    new = sum(not ((project / name).exists() or (project / name).is_symlink()) for name in (REGISTRY, PROBE))
+    if len(plan['before']) + new > MAX_ENTRIES:
+        raise ValueError('Checkout exceeds bounded repair profile')
     return probe
 
 

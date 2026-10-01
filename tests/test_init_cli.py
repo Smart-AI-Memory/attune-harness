@@ -368,3 +368,40 @@ def test_the_printed_worker_is_lead_even_when_it_does_not_sort_first(tmp_path, c
         'alpha': PROFILES['demo']['reviewer'], 'lead': PROFILES['demo']['lead']}}), encoding='utf-8')
     code, envelope = init_fix(capsys, root)
     assert code == 0 and '--worker lead --reviewer alpha --review required' in envelope['next_action'], envelope
+
+
+def test_the_files_init_writes_count_against_the_entry_bound(tmp_path, capsys, monkeypatch):
+    from attune_harness import init_cli
+    root = checkout(tmp_path.resolve() / 'repo')
+    entries = len(repair.freeze(root, ['calc.py'], json.loads(json.dumps({
+        'argv': [sys.executable, '-m', 'pytest'], 'cwd': '.', 'timeout': 30, 'max_output_bytes': 8192,
+        'environment': {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1',
+                        **({'SystemRoot': os.environ.get('SystemRoot', r'C:\Windows')} if os.name == 'nt' else {})},
+        'oracle_paths': ['tests/test_calc.py']})), tmp_path.resolve() / 'state')['before'])
+    monkeypatch.setattr(init_cli, 'MAX_ENTRIES', entries + 1)  # room for one new file, not two
+    code, envelope = init_fix(capsys, root)
+    assert code == 2 and envelope['error']['detail'] == 'Checkout exceeds bounded repair profile', envelope
+    assert not (root / 'probe.json').exists() and not (root / 'participants.json').exists()
+    monkeypatch.setattr(init_cli, 'MAX_ENTRIES', entries + 2)  # exactly at the bound is allowed
+    code, envelope = init_fix(capsys, root)
+    assert code == 0, envelope
+
+
+def test_a_task_directory_that_would_contain_the_checkout_is_not_used(tmp_path, capsys, monkeypatch):
+    home = tmp_path.resolve() / 'home'
+    root = checkout_at = home / 'harness-tasks' / 'repo-fix' / 'repo'
+    checkout_at.parent.mkdir(parents=True)
+    checkout(root)
+    monkeypatch.setenv('HOME', str(home))
+    monkeypatch.setenv('USERPROFILE', str(home))
+    code, envelope = init_fix(capsys, root)
+    assert code == 0 and quote(root.parent / 'repo-fix-task') in envelope['next_action'], envelope
+
+
+@POSIX_ONLY
+def test_a_dangling_registry_link_is_refused_not_replaced(tmp_path, capsys):
+    root = checkout(tmp_path.resolve() / 'repo')
+    (root / 'participants.json').symlink_to(tmp_path / 'nowhere.json')
+    code, envelope = init_fix(capsys, root)
+    assert code == 2 and (root / 'participants.json').is_symlink(), envelope
+    assert not (root / 'probe.json').exists()
