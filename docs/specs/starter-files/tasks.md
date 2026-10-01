@@ -35,7 +35,7 @@ T5 is independent. T6 closes out.
   in `plan`, and `plan-starter` passes once T4 lands.
   Size: one PR, `src/`, different-model review.
 
-- [ ] **T4: the example command worker (R3).**
+- [x] **T4: the example command worker (R3).** Done; both journeys pass without their xfail marks.
   Scope: `examples/starter/`, used by `plan-starter` and `fix-starter`: a
   registry naming `lead` and `reviewer` (amended at T3), and a worker that
   answers both build and repair turns.

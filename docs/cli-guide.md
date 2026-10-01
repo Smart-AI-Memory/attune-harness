@@ -176,10 +176,13 @@ From 1.3.0, two commands take a Git checkout from a named file to an accepted
 plan with a finished build. `init --for plan` writes the work request, with
 its effects manifest frozen, beside the task directory (`starter-plan.work.json`
 for `--task-dir ~/harness-tasks/starter-plan`), outside the checkout the
-manifest freezes. The example command worker in
-`examples/starter/` makes the change. On 1.2.0 `init --for` is refused; this
-journey runs in CI and is expected to fail there until the
-[starter-files spec](specs/starter-files/README.md) lands.
+manifest freezes. The example command participants in
+`examples/starter/participants.json` make the change: `lead` applies one
+declared replacement (`calc.py`, `a - b` to `a + b`) and `reviewer` approves
+without judging. They are example code, carried inline as `python -c` with a
+readable copy in `examples/starter/worker.py`, so they need `python` on PATH.
+Use your own participants for real work. On 1.2.0 `init --for` is refused.
+This journey and the `fix` one below run in CI as printed.
 
 <!-- journey: plan-starter -->
 ```sh
@@ -517,9 +520,11 @@ with more than one hard link and alternate data streams before writing. It passe
 its own native tests and is not qualified beyond them. See the
 [design note](design-windows-effect-backend.md).
 
-`fix` has no copy-and-paste example yet: it needs a dedicated checkout, a
-trusted probe you write, and a worker that proposes a replacement. Prepare a
-trusted probe JSON before the worker runs:
+The `fix-starter` block above is the copy-and-paste example: `init --for fix`
+writes the trusted probe, and the example participants propose and approve
+the replacement. For your own repairs, `fix` needs a dedicated checkout, a
+trusted probe and a worker that proposes a replacement. A probe written by
+hand looks like this:
 
 ```json
 {

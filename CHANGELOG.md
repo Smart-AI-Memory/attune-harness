@@ -25,6 +25,12 @@
   A request over the 1 MiB `plan --request` reads is refused. `init` with
   `--scope`, `--interpreter`, `--tests`, `--goal` or `--task-dir` but no
   `--for` is refused in new words: "… need --for".
+- `examples/starter/participants.json` (starter-files T4): two command
+  participants, `lead` and `reviewer`, that finish the CLI guide's
+  `plan-starter` and `fix-starter` journeys with no model call. `lead` applies
+  one declared replacement; `reviewer` approves without judging. Example code,
+  carried inline as `python -c` (a readable copy is `examples/starter/worker.py`),
+  so it needs `python` on PATH. Both journeys now run as printed in CI.
 - When the checkout changed after `init --for plan` froze it, the preview's
   "Effect preimages disagree with work evidence" refusal names
   `init --for plan --force`, and `plan`'s stale-work `next_action` names
