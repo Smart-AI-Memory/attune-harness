@@ -23,47 +23,62 @@ destination. It copies the manifest, license and complete skill, including its
 references and agent metadata. `plugins/attune-harness` is the manifest template;
 the generated directory is the installable plugin. Neither is in the Python wheel.
 
-## First personal installation
+## Prepare a local marketplace
 
-These commands use the bundled Codex `plugin-creator` skill at
-`~/.codex/skills/.system/plugin-creator`. Confirm that skill is present first.
-Run the scaffold to create the personal catalog entry and destination:
-
-```sh
-python3 "$HOME/.codex/skills/.system/plugin-creator/scripts/create_basic_plugin.py" attune-harness --with-marketplace
-```
-
-The scaffold preserves other entries and refuses an existing Harness entry or
-manifest. Inspect an existing installation before updating it. For a fresh
-installation, replace only the newly generated scaffold with the package:
+The checkout includes its own preparation tool; no bundled scaffolding skill or
+extra Python dependency is needed. Pick a fresh destination and a marketplace
+name not already in use. Names contain lowercase words separated by hyphens.
+This command creates files only in the selected output; it does not install,
+register, enable or change Codex settings:
 
 ```sh
-cp /tmp/harness-plugin-package/attune-harness/.codex-plugin/plugin.json "$HOME/plugins/attune-harness/.codex-plugin/plugin.json"
-cp -R /tmp/harness-plugin-package/attune-harness/skills "$HOME/plugins/attune-harness/skills"
-cp /tmp/harness-plugin-package/attune-harness/LICENSE "$HOME/plugins/attune-harness/LICENSE"
-python3 "$HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py" "$HOME/plugins/attune-harness"
-python3 "$HOME/.codex/skills/.system/plugin-creator/scripts/read_marketplace_name.py"
+python3 scripts/package_codex_plugin.py "$HOME/harness-plugin-catalog" --marketplace harness-local
 ```
 
-Use a Python interpreter with PyYAML available for the validator. The last command
-prints the validated marketplace name; substitute it for `personal` below if the
-existing personal catalog has another name:
+The resulting root contains `.agents/plugins/marketplace.json` and
+`plugins/attune-harness`. The tool refuses existing destinations, symlink parents,
+parent traversal, outputs inside the source checkout and an invalid source package before creating output. Use a
+new destination for every update; keep previous packages until you have reviewed
+the installed snapshot. The tool validates Harness's package contract, not an
+arbitrary third-party plugin schema.
+
+Check the exact prepared root without saving marketplace configuration:
 
 ```sh
-codex plugin list --marketplace personal --available --json
-codex plugin add attune-harness@personal
+codex plugin list -c 'marketplaces.harness-local.source_type="local"' -c "marketplaces.harness-local.source=\"$HOME/harness-plugin-catalog\"" --marketplace harness-local --available --json
 ```
 
-The default catalog at `~/.agents/plugins/marketplace.json` is discovered
-implicitly. This registers a personal plugin, not a public catalog listing.
-Start a new Codex task after installation, select **Attune Harness** from Plugins,
-and ask it to inspect a saved task or test scoped changes. Installation alone does
-not run a workflow or grant permission for paid calls.
+Expect `attune-harness@harness-local` under `available`, with `installed: false`
+and `enabled: false` for a fresh selector. If that name is already installed,
+inspect it before proceeding. These options and the catalog shape were observed
+with Codex CLI 0.153.4. Check `codex plugin list --help` on another version; a
+successful listing proves local CLI discovery, not fresh desktop skill selection.
 
-An earlier standalone copy at `~/.agents/skills/attune-harness`, or this checkout's
-repository skill, may produce an additional skill entry. Keep the copies intact
-until you have checked which one you use. For later plugin updates, use the
-plugin-creator skill's cachebuster and reinstall procedure; an installed plugin
-is a snapshot, not a live view of the checkout.
+## Register and install after reviewing the package
 
-See the [packaging design note](design-codex-plugin.md) for scope and checks.
+Registration changes Codex's marketplace configuration. Inspect the existing
+names first with `codex plugin marketplace list --json`; choose another name and
+prepare a fresh catalog if `harness-local` is already present. After approving
+registration of this prepared directory:
+
+```sh
+codex plugin marketplace add "$HOME/harness-plugin-catalog"
+```
+
+List it again with `codex plugin list --marketplace harness-local --available --json`.
+After separately approving installation of the listed selector:
+
+```sh
+codex plugin add attune-harness@harness-local
+```
+
+Start a new Codex task, select **Attune Harness** from Plugins, and inspect a saved
+task or test scoped changes. Installation alone does not run a workflow or grant
+permission for paid calls. The Python runtime remains a separate installation.
+An earlier standalone skill or the repository skill can produce another entry;
+keep those copies intact until you have checked which one is in use. Installed
+plugins are snapshots, not live views of the checkout. This guide prepares an
+independent local catalog rather than rewriting a personal catalog in place.
+
+See the [packaging design note](design-codex-plugin.md) and the
+[installation preparation design](design-codex-install-journey.md) for scope and checks.
