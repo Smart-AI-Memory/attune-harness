@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+- `init --for fix --scope FILE… --interpreter PY --tests PATH…` writes the
+  trusted probe `fix` reads, `probe.json`, and the participant registry if
+  there is none (starter-files T2). The probe runs the named tests with
+  pytest; it is checked by the repair module's own rules before anything is
+  written, and `init` runs nothing. The envelope adds `files`, every path
+  written, and its `next_action` previews the repair; a symlinked `--project`
+  is written resolved. New options on `init`: `--for`, `--scope`,
+  `--interpreter`, `--tests`. `init` without `--for` prints what it did
+  before, with one exception: `--f` and `--fo`, which argparse used to read as
+  `--force`, are now ambiguous; spell `--force` (or `--forc`).
+- `init --for plan --goal TEXT --scope FILE… --interpreter PY --tests PATH…
+  [--task-dir DIR]` writes a work request `plan --request` accepts as written
+  (starter-files T3): the goal, the scope, the named tests as acceptance, one
+  task, distinct worker and reviewer from the registry, and an effects manifest
+  frozen over the checkout with the tests protected. It goes beside the task
+  directory, as `<task-dir>.work.json`, outside the checkout (default
+  `~/harness-tasks/<project>-plan`), and is checked by every validator `plan`
+  and `build` apply before it is written; a refused `init` removes what it
+  wrote. Writing it accepts nothing. New options on `init`: `--goal`,
+  `--task-dir`; `--t` is now ambiguous between `--tests` and `--task-dir`.
+  A request over the 1 MiB `plan --request` reads is refused. `init` with
+  `--scope`, `--interpreter`, `--tests`, `--goal` or `--task-dir` but no
+  `--for` is refused in new words: "… need --for".
+- `examples/starter/participants.json` (starter-files T4): two command
+  participants, `lead` and `reviewer`, that finish the CLI guide's
+  `plan-starter` and `fix-starter` journeys with no model call. `lead` applies
+  one declared replacement; `reviewer` approves without judging. Example code,
+  carried inline as `python -c` (a readable copy is `examples/starter/worker.py`),
+  so it needs `python` on PATH. Both journeys now run as printed in CI.
+- When the checkout changed after `init --for plan` froze it, the preview's
+  "Effect preimages disagree with work evidence" refusal names
+  `init --for plan --force`, and `plan`'s stale-work `next_action` names
+  `init --for plan` with a new `--task-dir`.
+
 ## 1.2.0
 
 A refused native Claude turn no longer strands a review task (#182). See the

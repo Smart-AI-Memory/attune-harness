@@ -823,6 +823,22 @@
      ]
     },
     {
+     "choices": null,
+     "default": null,
+     "name": "goal",
+     "option_strings": [
+      "--goal"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "interpreter",
+     "option_strings": [
+      "--interpreter"
+     ]
+    },
+    {
      "choices": [
       "demo",
       "claude",
@@ -841,13 +857,54 @@
      "option_strings": [
       "--project"
      ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "scope",
+     "option_strings": [
+      "--scope"
+     ]
+    },
+    {
+     "choices": [
+      "fix",
+      "plan"
+     ],
+     "default": null,
+     "name": "starter",
+     "option_strings": [
+      "--for"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "tests",
+     "option_strings": [
+      "--tests"
+     ]
     }
    ],
    "one_of": [],
    "options": [
+    "--for",
     "--force",
+    "--goal",
+    "--interpreter",
     "--profile",
-    "--project"
+    "--project",
+    "--scope",
+    "--task-dir",
+    "--tests"
    ],
    "positionals": [],
    "required_options": []

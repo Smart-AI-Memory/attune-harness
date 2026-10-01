@@ -293,7 +293,17 @@ def starter_table(home, repo):
             '~/harness-tasks': str(home / 'harness-tasks')}
 
 
-@pending('T3/T4', 'init --for plan and the example command worker are not built yet')
+def test_the_starter_registry_carries_the_readable_worker():
+    """participants.json runs worker.py's text inline; the readable copy must be what runs (R3)."""
+    starter = ROOT / 'examples' / 'starter'
+    registry = json.loads((starter / 'participants.json').read_text(encoding='utf-8'))
+    code = (starter / 'worker.py').read_text(encoding='utf-8')
+    assert sorted(registry['participants']) == ['lead', 'reviewer']
+    for item in registry['participants'].values():
+        assert item['adapter'] == 'command' and item['command'][:3] == ['python', '-c', code]
+        assert item['command'][3:] == ['calc.py', 'a - b', 'a + b']
+
+
 def test_documented_plan_starter(home):
     """init --for plan, preview, accept, build and status, as the CLI guide writes them."""
     repo = failing_repository(home / 'repo')
@@ -301,7 +311,8 @@ def test_documented_plan_starter(home):
     init, preview, accept, build, status = doc_journeys.commands(doc_journeys.journeys()['plan-starter'])
     code, envelope, output = harness(split(doc_journeys.substitute(init, table))[1:], home)
     assert code == 0 and envelope and envelope['status'] == 'created', output
-    assert (repo / 'work.json').is_file() and str(repo / 'work.json') in envelope['files'], output
+    request = home / 'harness-tasks' / 'starter-plan.work.json'
+    assert request.is_file() and str(request) in envelope['files'], output
     code, envelope, output = harness(split(doc_journeys.substitute(preview, table))[1:], home)
     assert code == 0 and envelope and envelope['status'] == 'draft', output
     assert not envelope['questions']['missing'], output
@@ -316,7 +327,6 @@ def test_documented_plan_starter(home):
 
 
 @POSIX_ONLY
-@pending('T2/T4', 'init --for fix and the example command worker are not built yet')
 def test_documented_fix_starter(home):
     """init --for fix, then fix from the failing test to a passing probe, as the CLI guide writes them."""
     repo = failing_repository(home / 'repo')
