@@ -15,6 +15,7 @@ beside the task directory, outside the project, checked by every validator
 ``plan`` and ``build`` apply (R2). Without ``--for``, the output is unchanged.
 """
 
+import contextlib
 import json
 import os
 import shlex
@@ -121,9 +122,22 @@ def backup(target: Path, what: str):
         raise ValueError(f'Not a regular file: {target}')
     # Copy, never move: the old file stays in place until the new one replaces it
     # atomically, so no moment leaves the project without one. 'x' refuses a racing backup.
-    with target.open('rb') as source, backup.open('xb') as copy:
-        copy.write(source.read())
+    created = False
+    try:
+        with target.open('rb') as source, backup.open('xb') as copy:
+            created = True
+            copy.write(source.read())
+    except BaseException:
+        if created:  # a copy that failed midway leaves no partial backup behind
+            discard(backup)
+        raise
     return str(backup)
+
+
+def discard(path: Path):
+    """Remove a file this run wrote, best effort: a cleanup never replaces the error it cleans up after."""
+    with contextlib.suppress(OSError):
+        path.unlink()
 
 
 def interpreter(value: str) -> str:
@@ -211,14 +225,14 @@ def execute_fix(args, project: Path) -> int:
         if probe_path.exists() or probe_path.is_symlink():
             replaced = backup(probe_path, 'probe')
         if written:
+            wrote_registry = True  # set first: there was no registry, so removing one is ours to do
             write_report(target, registry)
-            wrote_registry = True
         write_report(probe_path, probe)
     except BaseException:
         if wrote_registry:
-            target.unlink()
+            discard(target)
         if replaced is not None:  # backup copies, so the old probe is still in place
-            Path(replaced).unlink()
+            discard(Path(replaced))
         raise
     if written:
         files.append(str(target))
@@ -334,9 +348,9 @@ def execute_plan(args, project: Path) -> int:
         write_report(request_path, request)
     except BaseException:
         if written:
-            target.unlink()
+            discard(target)
         if replaced is not None:  # backup copies, so the old request is still in place
-            Path(replaced).unlink()
+            discard(Path(replaced))
         for parent in made:  # nearest first; only the empty directories this run made
             try:
                 parent.rmdir()
