@@ -354,6 +354,11 @@ why. No work authorized.
 The entry a user would meet first is O-77: with T3 merged and before T4, the
 commands `init --for plan` prints stop at `build`.
 
+O-78 follow-through, 2026-10-01. `execute_fix` now rolls back what it wrote
+when a later write refuses: the registry only if this run wrote it, and a
+`.bak` it made. Tests inject a failed probe write with and without an
+existing probe, and with a kept registry. Three mutants are caught.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree
