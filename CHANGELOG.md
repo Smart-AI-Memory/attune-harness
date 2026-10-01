@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.3.0
+
+`plan` and `fix` start from a command: `init --for plan` and `init --for fix`
+write the starter files each verb reads (O-70). See the
+[release notes](docs/release-notes-1.3.0.md).
+
 - `init --for fix --scope FILE… --interpreter PY --tests PATH…` writes the
   trusted probe `fix` reads, `probe.json`, and the participant registry if
   there is none (starter-files T2). The probe runs the named tests with
@@ -31,6 +37,13 @@
   one declared replacement; `reviewer` approves without judging. Example code,
   carried inline as `python -c` (a readable copy is `examples/starter/worker.py`),
   so it needs `python` on PATH. Both journeys now run as printed in CI.
+- A refusal for a path through a symlink now names the outermost link and
+  the path to use (#190, starter-files T5, O-76), for example "Task storage
+  cannot traverse a symlink: /tmp links to /private/tmp; use
+  /private/tmp/my-work". This covers task storage, the `fix` checkout, and a
+  saved task whose project no longer resolves. The rule, the exception type
+  and the exit codes are unchanged. The CLI guide's task directories move
+  from `/tmp` to `~/harness-tasks`.
 - When the checkout changed after `init --for plan` froze it, the preview's
   "Effect preimages disagree with work evidence" refusal names
   `init --for plan --force`, and `plan`'s stale-work `next_action` names
