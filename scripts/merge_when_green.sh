@@ -58,7 +58,20 @@ while :; do
       || give_up "no Qualification check for head ${head:0:7}; push a commit, or close and reopen the pull request"
     tick; continue
   fi
-  failed=$(awk -F'\t' '$2 != "SUCCESS" && $2 != "SKIPPED" && $2 != "NEUTRAL" && $2 != "PENDING" {print $1 " (" $2 ")"}' <<<"$checks")
+  # Closing and reopening a pull request (AGENTS.md's remedy for a stale
+  # Classify gate) cancels the duplicate run it starts on the same head. A
+  # cancelled run is ignored when another run of that check is not cancelled;
+  # a check whose only run was cancelled still fails.
+  failed=$(awk -F'\t' '
+    { name[NR] = $1; result[NR] = $2; if ($2 != "CANCELLED") rerun[$1] = 1 }
+    END {
+      for (i = 1; i <= NR; i++) {
+        r = result[i]
+        if (r == "SUCCESS" || r == "SKIPPED" || r == "NEUTRAL" || r == "PENDING") continue
+        if (r == "CANCELLED" && rerun[name[i]]) continue
+        print name[i] " (" r ")"
+      }
+    }' <<<"$checks")
   if [[ -n "$failed" ]]; then
     echo "#$number is not green at ${head:0:7}:" >&2
     printf '  %s\n' "$failed" >&2
@@ -87,6 +100,8 @@ until [[ "$(view state .state)" == MERGED ]]; do tick; done
 merged=$(view mergeCommit .mergeCommit.oid)
 repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 tree() { gh api "repos/$repo/commits/$1" --jq .commit.tree.sha; }
+# Equal only because branch protection requires the head to be up to date with
+# main, so the squash of an up-to-date head is that head's tree.
 if [[ "$(tree "$merged")" != "$(tree "$head")" ]]; then
   echo "#$number merged as ${merged:0:7}, but its tree differs from the tested head ${head:0:7}" >&2
   exit 4

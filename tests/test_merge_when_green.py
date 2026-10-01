@@ -152,3 +152,19 @@ def test_a_merged_tree_that_differs_from_the_tested_head_exits_four(tmp_path):
 def test_an_expected_head_is_waited_for_first(tmp_path):
     result, state = run_gate(tmp_path, [frame(check("Qualification"))], extra_args=("aaaa",))
     assert result.returncode == 0, result.stderr
+
+
+def test_a_cancelled_duplicate_beside_a_passing_run_is_ignored(tmp_path):
+    """Close and reopen (AGENTS.md's remedy for a stale gate) cancels one of two runs."""
+    result, state = run_gate(tmp_path, [frame(check("Classify change", "CANCELLED"), check("Classify change", None),
+                                              check("Qualification", None)),
+                                        frame(check("Classify change", "CANCELLED"), check("Classify change"),
+                                              check("Qualification"))])
+    assert result.returncode == 0, result.stderr
+    assert "merge_args" in state
+
+
+def test_a_check_whose_only_run_was_cancelled_still_fails(tmp_path):
+    result, state = run_gate(tmp_path, [frame(check("Classify change", "CANCELLED"), check("Qualification"))])
+    assert result.returncode == 1 and "Classify change (CANCELLED)" in result.stderr, result.stderr
+    assert "merge_args" not in state
