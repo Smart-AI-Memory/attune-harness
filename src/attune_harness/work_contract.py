@@ -422,8 +422,8 @@ def draft_request(
 ):
     """Every check ``create_work`` makes, writing nothing; returns the request and task directory.
 
-    ``init --for plan`` runs it before writing ``work.json``, so what init
-    writes is what ``plan --request`` accepts (starter-files R2).
+    ``init --for plan`` runs it before writing its work request, so what
+    init writes is what ``plan --request`` accepts (starter-files R2).
     """
     root, target = Path(project_root).resolve(), safe_storage(directory)
     registry, config = load_task_registry(config_path)

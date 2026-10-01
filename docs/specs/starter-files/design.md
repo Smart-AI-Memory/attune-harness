@@ -52,8 +52,9 @@ beside it.)
   `validate_request_effects` before the file is written.
 - The `next_action` is the guide's `plan --request` command with the same
   paths. If the checkout changes before acceptance, `plan`'s existing
-  staleness refusal gains a `next_action` naming `init --for plan --force`;
-  so does the preview's refusal when a scope file changed before it.
+  staleness refusal gains a `next_action` naming `init --for plan` (with a
+  new `--task-dir`, since `plan` has made the old one); the preview's refusal
+  when a scope file changed before it names `init --for plan --force`.
 
 Must not change: the request schema, when `plan` refuses, or the rule that
 writing a request records no acceptance.

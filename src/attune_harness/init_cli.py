@@ -3,7 +3,8 @@
 ``plan``, ``review`` and ``fix`` all need a participant registry, and until
 now nothing wrote one. ``init`` writes ``participants.json`` into a project
 from a named profile, validated by the same reader every verb uses. It makes no
-model call, reads no credentials and writes nothing outside the project.
+model call, reads no credentials and writes nothing outside the project, except
+``init --for plan``'s work request, beside the task directory it names.
 Writing a native profile authorizes nothing: a review still needs
 ``--allow-external``, and ``plan`` and ``build`` also need ``--allow-native``.
 
@@ -282,7 +283,8 @@ def execute_plan(args, project: Path) -> int:
     if tasks.exists() or tasks.is_symlink():
         raise ValueError(f'Task directory already exists: {tasks}; plan needs a new one, so choose another --task-dir')
     request_path = tasks.with_name(tasks.name + '.work.json')
-    if (request_path.exists() or request_path.is_symlink()) and not args.force:
+    existing = request_path.exists() or request_path.is_symlink()
+    if existing and not args.force:
         raise ValueError(f'A work request already exists at {request_path}; pass --force to replace it')
     python = interpreter(args.interpreter)
     target, files, replaced = project / REGISTRY, [], None
@@ -293,27 +295,41 @@ def execute_plan(args, project: Path) -> int:
     else:  # build needs a distinct worker and reviewer, so two participants
         registry = load_registry(target)
     # The registry is part of the checkout the effects freeze, so it is written
-    # first, and removed again if anything after it refuses.
+    # first; if anything after it refuses, what this run wrote is removed again.
+    made = [parent for parent in (request_path.parent, *request_path.parent.parents) if not parent.exists()]
     if written:
         write_report(target, registry)
     try:
         request = work_request(project, registry, args.goal, scope, python, tests, tasks)
         from .work_build import preflight
+        from .work_cli import REQUEST_LIMIT
         from .work_contract import draft_request
 
         # Every check plan --request and build make, writing nothing.
         drafted, _ = draft_request(project, target, directory=tasks, **request)
         preflight(drafted)
+        # Measured as write_report writes it and plan --request reads it.
+        size = len((json.dumps(request, ensure_ascii=False, allow_nan=False, indent=2) + '\n').encode('utf-8'))
+        if size > REQUEST_LIMIT:
+            raise ValueError(f'The work request would be {size} bytes, over the {REQUEST_LIMIT} bytes plan '
+                             f'--request reads; the effects manifest lists every file in the checkout')
+        if existing:
+            replaced = backup(request_path, 'work request')
+        request_path.parent.mkdir(parents=True, exist_ok=True)
+        write_report(request_path, request)
     except BaseException:
         if written:
             target.unlink()
+        if replaced is not None:  # backup copies, so the old request is still in place
+            Path(replaced).unlink()
+        for parent in made:  # nearest first; only the empty directories this run made
+            try:
+                parent.rmdir()
+            except OSError:
+                break
         raise
     if written:
         files.append(str(target))
-    if request_path.exists() or request_path.is_symlink():
-        replaced = backup(request_path, 'work request')
-    request_path.parent.mkdir(parents=True, exist_ok=True)
-    write_report(request_path, request)
     files.append(str(request_path))
     participants = sorted(registry['participants'])
     native = any(item['adapter'] in ('claude', 'codex') for item in registry['participants'].values())

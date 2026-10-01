@@ -129,8 +129,11 @@ def _dispatch_options(parser):
     )
 
 
+REQUEST_LIMIT = 1048576  # bytes of a request, answers or revision file; init --for plan measures against it
+
+
 def _json(path):
-    return parse_json(read_text(path, 1048576), 1048576)
+    return parse_json(read_text(path, REQUEST_LIMIT), REQUEST_LIMIT)
 
 
 def present(directory, *, inspect_only=False, _record=None):
@@ -336,7 +339,7 @@ def _guidance(record, result):
         action = (
             "Inspect changed files and saved evidence. Retain the build journal; ordinary rebasing is unsupported. Resolve the mismatch before further work."
             if "build" in record
-            else "Inspect changed inputs and refresh the draft with plan --revise (or --reimport for an edited legacy plan), using this checkpoint and a current effect manifest where needed. If attune-harness init --for plan wrote the request, run that init again with --force and preview the new request in a new task directory. Review the new draft before acceptance."
+            else "Inspect changed inputs and refresh the draft with plan --revise (or --reimport for an edited legacy plan), using this checkpoint and a current effect manifest where needed. If attune-harness init --for plan wrote the request, run that init again with a new --task-dir and preview the new request. Review the new draft before acceptance."
         )
         return (
             "Saved evidence is stale; it cannot authorize the next action or establish current completion.",
