@@ -67,6 +67,23 @@ CI evidence requirement; the macOS tests cannot qualify it.
 The completed journal result must also project into `answers` before a pause is
 reported. This improves inspection without dispatching or altering authority.
 
+### Live Opus review corrections, October 1
+
+The requested and reported `claude-opus-5-5` review found that supervised
+in-flight cancellation was caught as a generic failure. Classify only the
+process owner's explicit cancellation failures as cancelled; retain the stopped
+process and unknown external effects, and refuse further dispatch. A set signal
+alone must not relabel a provider failure. Exercise a real waiting subprocess.
+Abandonment records the previous status so a failed run remains inspectable.
+Evidence line bounds count LF/CRLF source lines; embedded form-feed, vertical-tab
+or Unicode separators must not invent editor lines. Test those bytes explicitly.
+
+The proposed pause-before-journal defect is not reproduced: the actual
+`RecoveryCursor.perform` raises `ReviewPaused` only after saving a completed
+result. Keep the existing pause/replay journey as the regression. Windows CI
+correctly refused reparse points and retained CRLF bytes; fix the tests' LF
+fixture and platform-specific refusal wording without normalizing source bytes.
+
 Rejected separate host implementations: they duplicate scope and replay rules.
 Rejected porting the 703-line visual adapter as the execution authority: the
 workspace nonce validates interaction but is not a durable provider journal.
