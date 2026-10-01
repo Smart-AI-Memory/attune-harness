@@ -62,7 +62,10 @@ with `source-review abandon "$RUN" --checkpoint "$CHECKPOINT_DIGEST"` (or the
 roundtable equivalent). Abandonment retains the journal and unknown effects;
 it never establishes that charges or detached activity stopped. Ctrl-C stops
 the supervised process and leaves an unresolved checkpoint. Library callers
-can pass a cancellation `Event` to the shared `run` API.
+can pass a cancellation `Event` to the shared `run` API. A supervised cancellation
+is retained as cancelled with unknown effects; abandonment preserves the previous
+status. Read `status` explicitly: exit zero also covers prepared, paused and
+cancelled states.
 
 ## Identity and evidence limits
 
@@ -74,7 +77,7 @@ Aliases cannot establish actual model independence. Provider errors and raw
 bounded process diagnostics remain evidence, never authorization.
 
 Answers use `verdict`, `summary`, and `evidence`; each citation contains a frozen
-`path`, one-based `line`, and `detail`. Harness checks citation location, not
+`path`, one-based LF/CRLF content `line`, and `detail`. Harness checks citation location, not
 whether the reasoning or claimed defect is true. Reproduce findings before
 editing. Model verdicts never authorize a merge or publication.
 
@@ -89,3 +92,27 @@ LLM, live host invocation or model quality is qualified by offline wrapper tests
 
 The [design](design-model-consultation.md) explains the retained authority and
 replay boundaries. Documentary `review` and repair remain separate routes.
+
+## Observed development journeys
+
+On October 1, Codex chaired a source review using native `claude-opus-5-5`.
+Claude reported that model, found a cancellation defect, and approved the
+corrected three-file scope in a separate delta review. A Claude Code chair
+using a per-session candidate plugin then invoked the installed shared CLI
+for a one-round Opus/Codex roundtable: both seats completed, retained citations
+and returned `recommend`. The explicit roster was `claude-opus-5-5` and
+`gpt-6-astra`. Codex reported a thread and token usage but no actual model;
+its configured identity remains unverified.
+
+An earlier explicit `gpt-6.1-sol` Codex CLI roster failed because that account
+rejected the model identifier. The failed run remains terminal and retained;
+it was not retried or silently substituted. Desktop model names are not proof
+of CLI access. The new roster had its own prepare/accept contract. Per-seat
+reasoning effort is not part of this configuration contract; a `High` execution
+claim needs separate transport evidence.
+
+These observations qualify the bounded host journey for the selected source
+scope, not model quality, fresh desktop plugin discovery, three live seats,
+Google/Antigravity transport, or published-release availability. Three-seat
+configuration and command exchange are supported in software; a third live
+provider needs its own explicitly configured model, upload authority and evidence.
