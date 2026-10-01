@@ -7,6 +7,13 @@ root=$(git rev-parse --show-toplevel)
 snapshot=$(mktemp -d "${TMPDIR:-/tmp}/attune-harness-suite.XXXXXX")
 git -C "$root" archive --format=tar HEAD | tar -x -C "$snapshot"
 cd "$snapshot"
+# Some tests read the tracked file list (git ls-files, git rev-parse) at the
+# repository root; an archive has no .git, so give the snapshot one commit of
+# exactly HEAD's files. -f keeps tracked files that .gitignore would skip.
+git init -q
+git -c core.hooksPath=/dev/null add -A -f
+git -c core.hooksPath=/dev/null -c commit.gpgsign=false -c user.name=snapshot \
+  -c user.email=snapshot@example.invalid commit -qm "snapshot of $(git -C "$root" rev-parse --short HEAD)"
 # One environment per set of lock files, kept between runs; the editable
 # install is re-pointed at each snapshot, which is seconds once the
 # dependencies are present.
