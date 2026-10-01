@@ -11,6 +11,9 @@
 - Correct Claude refusal classification for completed nonzero exits; uncertain
   supervision failures still refuse retry classification.
 
+- `init --for fix` removes what it wrote when a later write refuses: the
+  registry if it wrote one, and the `probe.json.bak` it made under `--force`.
+  The old probe stays in place (O-78), as `init --for plan` already does.
 - `build` refused participants that carry review tools or a `review_mode`
   ("Build proposals cannot carry review tools or policies") with a generic
   next action. That covers every profile `init` writes. The refusal now names

@@ -20,8 +20,13 @@ Read-only. Never edit a file. Work from `git archive <branch>` extracted into
 the scratchpad, never from the working tree, which another session or the
 author may switch under you. `scripts/review_prep.sh <branch>` makes that
 archive, writes the diff against the base beside it and scaffolds the
-mutation table. Write probe scripts only outside the repository. Report
-findings; the author reproduces each before fixing.
+mutation table. Run each mutant with the `mutate.sh` beside it: it copies the
+whole tree and runs pytest from inside the copy, because pyproject's
+`pythonpath = ["src"]` resolves against the rootdir and a mutated `src/`
+reached only through `PYTHONPATH` is never imported. Write probe scripts only
+outside the repository. Write the report to the `report.md` beside the
+archive as well as returning it, so a lost hand-back does not lose the
+review. Report findings; the author reproduces each before fixing.
 
 ## What to do, in order
 
@@ -43,7 +48,12 @@ findings; the author reproduces each before fixing.
 5. **Python 3.10 and Windows.** No newer syntax or stdlib; nothing that only
    POSIX provides without a guard. Check the change against each entry of
    [the Windows traps](windows-traps.md): append, case folding, device
-   names, replace under an open handle, console script paths.
+   names, replace under an open handle, console script paths. In tests, a
+   checkout is undone with the `unmake_checkout` fixture (rename `.git`,
+   never delete it: Windows refuses Git's read-only objects), and an assertion
+   on a refusal's text names the Windows backend's own words where they
+   differ ("Accepted Windows paths…", "Windows protected inputs…"); both
+   failed CI on #193 and #194.
 6. **No `import attune`**, and no dependency on Attune AI, anywhere in the
    new files.
 7. **A writer of another verb's input runs that verb's own validation.** When
