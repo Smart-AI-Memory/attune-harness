@@ -8,6 +8,17 @@
 write the starter files each verb reads (O-70). See the
 [release notes](docs/release-notes-1.3.0.md).
 
+- `build` refused participants that carry review tools or a `review_mode`
+  ("Build proposals cannot carry review tools or policies") with a generic
+  next action. That covers every profile `init` writes. The refusal now names
+  the participants and says to plan the work again with participants that can
+  propose files. `init --for plan`'s `next_action` says up front that its own
+  participants cannot build (O-77). The message, type and exit code are
+  unchanged. The check now runs before `build` asks for dispatch flags, so a
+  registry whose participants carry tools gets this refusal without
+  `--allow-external` or `--allow-native`, where it used to get the
+  dispatch-authority refusal first. The CLI guide says the starter journeys
+  run from a checkout of this repository with a virtual environment activated.
 - The Claude Code plugin is served from the latest release tag, pinned by
   commit, instead of from `main`. The marketplace entry's source is `github`
   with the tag as `ref` and its commit as `sha`. Users get the released skills

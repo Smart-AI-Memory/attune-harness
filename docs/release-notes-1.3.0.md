@@ -37,6 +37,13 @@ or `--task-dir`.
   marketplace in this repository now points at `v1.3.0`, pinned by commit, so
   Claude Code users get the skills that match the package on PyPI, never
   unreleased work on `main`.
+- **`build` says when its participants cannot build.** Every profile `init`
+  writes is for review, so `build` refuses a plan made with one. The refusal
+  now names those participants, comes before any dispatch flag is asked for,
+  and says to plan again with participants that can propose files;
+  `init --for plan` says so up front (O-77). The starter journeys run from a
+  checkout of this repository with a virtual environment activated, because
+  `examples/` is not in the package.
 - **Symlink refusals name the path to use.** On macOS, `/tmp` and `/var` are
   symlinks, so a task directory under them is refused. The refusal now says
   which link and what to use instead (O-76).
@@ -57,11 +64,6 @@ See [Plan and build](cli-guide.md#plan-and-build) and
 
 ## Known limits
 
-- The registry `init` writes by default (the offline `demo` profile) can
-  preview and accept a plan but cannot build it. Its participants carry review
-  tools and cannot propose files, so `build` refuses with "Build proposals
-  cannot carry review tools or policies" (O-77). Use the example registry
-  above or your own participants for `--config`.
 - `--test-root .` is still refused (O-76).
 
 ## Evidence

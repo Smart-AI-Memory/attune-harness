@@ -732,13 +732,26 @@ def build_work(
             r: request["registry"]["participants"][a["participant"]]
             for r, a in roles.items()
         }
+        # Static, so it comes before any dispatch authority is asked for (O-77).
+        reviewing = sorted(
+            {roles[r]["participant"] for r, c in configs.items() if c["tools"] or c.get("review_mode")}
+        )
+        if reviewing:
+            error = ValueError("Build proposals cannot carry review tools or policies")
+            # The registry is captured when the work is planned, so the fix is a new plan.
+            error.next_action = (
+                f"Build needs a worker and a reviewer with no tools and no review_mode; "
+                f"{', '.join(reviewing)} {'carries' if len(reviewing) == 1 else 'carry'} them. Every "
+                f"profile attune-harness init writes does: those are review participants. Plan the "
+                f"work again with --config naming participants that can propose files, such as "
+                f"command participants; see 'Plan and build' in the CLI guide"
+            )
+            raise error
         authorize_external(configs, allow_external)
         if not allow_native and any(
             c["adapter"] in ("claude", "codex") for c in configs.values()
         ):
             raise FeatureUnavailable("Native build needs explicit trial authorization")
-        if any(c["tools"] or c.get("review_mode") for c in configs.values()):
-            raise ValueError("Build proposals cannot carry review tools or policies")
         if "build" not in record:
             check_work_fresh(record)
             names = (
