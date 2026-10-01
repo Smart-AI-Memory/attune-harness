@@ -25,6 +25,16 @@ def add_commands(sub):
         run.add_argument('--max-operations', type=int)
         status = verbs.add_parser('status', help='Inspect retained evidence without dispatch')
         status.add_argument('run_dir', type=Path)
+        evidence = verbs.add_parser('evidence', help='Inspect claims beside numbered frozen source context')
+        evidence.add_argument('run_dir', type=Path)
+        assess = verbs.add_parser('assess-citation', help='Record an advisory host decision; never dispatch')
+        assess.add_argument('run_dir', type=Path)
+        assess.add_argument('--checkpoint', required=True)
+        assess.add_argument('--round', dest='round_number', required=True, type=int)
+        assess.add_argument('--participant', required=True)
+        assess.add_argument('--citation', required=True, type=int, help='Zero-based evidence index')
+        assess.add_argument('--decision', required=True, choices=('supported', 'rejected', 'uncertain'))
+        assess.add_argument('--note', required=True)
         abandon = verbs.add_parser('abandon', help='Stop continuation while retaining uncertain effects')
         abandon.add_argument('run_dir', type=Path)
         abandon.add_argument('--checkpoint', required=True)
@@ -44,6 +54,11 @@ def execute(args):
                                           allow_native=args.allow_native, max_operations=args.max_operations)
             elif args.consultation_action == 'abandon':
                 result = consultation.abandon(args.run_dir, args.checkpoint)
+            elif args.consultation_action == 'evidence':
+                result = consultation.inspect_evidence(args.run_dir)
+            elif args.consultation_action == 'assess-citation':
+                result = consultation.assess_citation(args.run_dir, args.checkpoint, args.round_number,
+                    args.participant, args.citation, args.decision, args.note)
             else:
                 result = current
                 if result['status'] == 'running':

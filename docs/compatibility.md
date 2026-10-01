@@ -81,8 +81,8 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `retrieve` | - | `query` | one of `--corpus`, `--request` |
 | `review` | - | `[request]` | - |
 | `review-form` | - | - | - |
-| `roundtable` | abandon prepare run status | - | - |
-| `source-review` | abandon prepare run status | - | - |
+| `roundtable` | abandon assess-citation evidence prepare run status | - | - |
+| `source-review` | abandon assess-citation evidence prepare run status | - | - |
 | `spec` | intake present | - | - |
 | `status` | - | `task_dir` | - |
 | `test` | - | - | `--task-dir` |
