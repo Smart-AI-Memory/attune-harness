@@ -867,3 +867,33 @@ def test_a_cleanup_that_fails_never_hides_the_error_or_the_rest_of_the_cleanup(t
     code, envelope = init_fix(capsys, root, '--force')
     assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
     assert not (root / 'probe.json.bak').exists(), 'the backup is still removed after the registry cleanup failed'
+
+
+def test_a_backup_raced_into_place_is_never_removed(tmp_path):
+    """Second review of #204: the exclusive open loses a race, and the other writer's .bak stays."""
+    from attune_harness import init_cli
+    target = tmp_path / 'probe.json'
+    target.write_text('{"old": true}', encoding='utf-8')
+    class Racing(type(target)):
+        def open(self, mode='r', *args, **kwargs):
+            if mode == 'rb':  # another writer makes the backup after the pre-check
+                (tmp_path / 'probe.json.bak').write_text('{"theirs": true}', encoding='utf-8')
+            return super().open(mode, *args, **kwargs)
+    with pytest.raises(FileExistsError):
+        init_cli.backup(Racing(target), 'probe')
+    assert (tmp_path / 'probe.json.bak').read_text(encoding='utf-8') == '{"theirs": true}'
+
+
+def test_a_backup_interrupted_midway_leaves_no_partial_copy(tmp_path):
+    from attune_harness import init_cli
+    target = tmp_path / 'probe.json'
+    target.write_text('{"old": true}', encoding='utf-8')
+    class Interrupted(type(target)):
+        def open(self, mode='r', *args, **kwargs):
+            handle = super().open(mode, *args, **kwargs)
+            if mode == 'rb':
+                handle.read = lambda *a: (_ for _ in ()).throw(KeyboardInterrupt())
+            return handle
+    with pytest.raises(KeyboardInterrupt):
+        init_cli.backup(Interrupted(target), 'probe')
+    assert not (tmp_path / 'probe.json.bak').exists()
