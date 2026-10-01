@@ -33,6 +33,10 @@ or `--task-dir`.
   journeys with no model call. They are example code, not a profile: `lead`
   applies one declared replacement and `reviewer` approves without judging.
   They need `python` on PATH.
+- **The Claude Code plugin comes from the release tag.** The plugin
+  marketplace in this repository now points at `v1.3.0`, pinned by commit, so
+  Claude Code users get the skills that match the package on PyPI, never
+  unreleased work on `main`.
 - **Symlink refusals name the path to use.** On macOS, `/tmp` and `/var` are
   symlinks, so a task directory under them is refused. The refusal now says
   which link and what to use instead (O-76).
