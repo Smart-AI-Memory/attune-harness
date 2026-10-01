@@ -747,15 +747,13 @@ def test_root_identity_change_is_not_accepted_as_same_checkout(work):
         "changed_evidence",
     ],
 )
-def test_freeze_and_work_linkage_reject_unsafe_host_configuration(work, bad):
+def test_freeze_and_work_linkage_reject_unsafe_host_configuration(work, bad, unmake_checkout):
     case = prepare(work, accept=False)
     plan = copy.deepcopy(case[2]["request"]["effects"])
     if bad in ("state_inside", "not_git", "scope_metadata", "bad_probe"):
         state = case[0] / "state" if bad == "state_inside" else case[1]
         if bad == "not_git":
-            import shutil
-
-            shutil.rmtree(case[0] / ".git")
+            unmake_checkout(case[0])
         allowed = [".git/config"] if bad == "scope_metadata" else plan["allowed"]
         checks = [{k: c[k] for k in ("control", "probe")} for c in plan["checks"]]
         if bad == "bad_probe":
