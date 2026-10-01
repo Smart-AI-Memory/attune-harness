@@ -204,7 +204,7 @@ def test_an_existing_probe_needs_force_and_keeps_a_backup(tmp_path, capsys):
     pytest.param('hard-link', 'Repair requires bounded regular files with one hard link', marks=POSIX_ONLY),
     pytest.param('bare-name-not-on-path', 'Interpreter not found on PATH: no-such-python-here', marks=POSIX_ONLY),
 ])
-def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, detail):
+def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, detail, unmake_checkout):
     root = checkout(tmp_path.resolve() / 'repo')
     options = {}
     if case == 'oracle-in-scope':
@@ -223,8 +223,7 @@ def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, 
     elif case == 'bare-name-not-on-path':
         options['python'] = 'no-such-python-here'
     else:
-        # Renamed, not deleted: Git's read-only objects and background maintenance race a delete.
-        (root / '.git').rename(root.parent / 'moved-git')
+        unmake_checkout(root)
     code, envelope = init_fix(capsys, root, **options)
     assert code == 2 and envelope['error']['detail'] == detail, envelope
     assert not (root / 'probe.json').exists() and not (root / 'participants.json').exists()
@@ -494,7 +493,7 @@ def test_the_default_task_directory_is_under_home_and_outside_the_checkout(tmp_p
     ('one-participant', 'Registry requires 2–16 participants'),
     ('empty-goal', 'init --for plan needs --goal, --scope, --interpreter and --tests'),
 ])
-def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, capsys, case, detail):
+def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, capsys, case, detail, unmake_checkout):
     root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'refused'
     options = {}
     if case == 'oracle-in-scope':
@@ -505,7 +504,7 @@ def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, cap
     elif case == 'missing-test':
         options['tests'] = ('tests/test_absent.py',)
     elif case == 'not-a-checkout':
-        (root / '.git').rename(root.parent / 'moved-git')  # see the fix refusals above
+        unmake_checkout(root)
     elif case == 'task-dir-inside':
         tasks = root / 'tasks'
     elif case == 'task-dir-exists':
