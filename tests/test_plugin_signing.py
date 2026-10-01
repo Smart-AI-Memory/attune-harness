@@ -18,7 +18,6 @@ wrote at its creation; only the verifier-not-running refusals use a stub.
 # qualify: platform
 
 import copy
-import glob
 import json
 import os
 import re
@@ -360,8 +359,23 @@ AT_ENABLE = [unsigned, not_a_signature, stale_signature, signed_with_a_newline, 
              revoked_artifact, expired_key, revoked_key, secret_not_declared, time_beyond_declared]
 
 
-def verifier_homes():
-    return set(glob.glob(os.path.join(tempfile.gettempdir(), 'harness-plugin-verify-*')))
+def verifier_homes(monkeypatch):
+    """The verifier homes this test's own calls create, recorded as each is made.
+
+    Never a glob of the shared temporary directory: another process's live
+    home shows there (an xdist worker, a second suite on the machine), and the
+    comparison failed on homes this test never made.
+    """
+    made = []
+    real = tempfile.mkdtemp
+
+    def record(*args, **kwargs):
+        path = real(*args, **kwargs)
+        if os.path.basename(path).startswith('harness-plugin-verify-'):
+            made.append(path)
+        return path
+    monkeypatch.setattr(tempfile, 'mkdtemp', record)
+    return made
 BEFORE_CALL = [unsigned, stale_signature, unlisted_signer, revoked_artifact, revoked_key, secret_not_declared]
 
 
@@ -426,17 +440,17 @@ def test_mcp_session_records_the_plugin_receipt(case, plugin, tmp_path, signers)
 
 
 @pytest.mark.parametrize('condition', AT_ENABLE, ids=lambda c: c.__name__)
-def test_refused_at_enable(case, plugin, tmp_path, signers, condition):
+def test_refused_at_enable(case, plugin, tmp_path, signers, condition, monkeypatch):
     w = World(case, plugin, tmp_path, signers)
     expected = condition(w)
     first = w.install()
-    homes = verifier_homes()
+    homes = verifier_homes(monkeypatch)
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         w.enable(first)
     assert ext.inspect_extension(w.directory)['status'] == 'disabled'
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         ext.catalog(w.section)
-    assert verifier_homes() == homes  # the private home is removed on a refusal too
+    assert not [home for home in homes if os.path.exists(home)]  # the private home is removed on a refusal too
 
 
 @pytest.mark.parametrize('condition', BEFORE_CALL, ids=lambda c: c.__name__)
