@@ -727,3 +727,35 @@ def test_building_with_the_registry_init_wrote_says_what_to_do(tmp_path, capsys)
                                               'detail': 'Build proposals cannot carry review tools or policies'}, refused
     assert refused['next_action'].startswith('Build needs a worker and a reviewer with no tools'), refused
     assert 'lead, reviewer carry them' in refused['next_action'] and 'Plan the work again' in refused['next_action']
+
+
+@POSIX_ONLY
+def test_build_names_only_the_review_participants_before_asking_for_dispatch_authority(tmp_path, capsys):
+    """A command lead and an evidence reviewer: only the reviewer is named, with no flags given (review of #201)."""
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'mixed'
+    command = {'adapter': 'command', 'command': [sys.executable, '-c', 'pass'], 'timeout': 30, 'tools': [],
+               'max_turns': 1, 'max_tool_calls': 0}
+    registry = {'schema_version': 1, 'participants': {'lead': command, 'reviewer': PROFILES['claude']['reviewer']}}
+    (root / 'participants.json').write_text(json.dumps(registry), encoding='utf-8')
+    code, envelope = init_plan(capsys, root, tasks)
+    assert code == 0 and 'participants with tools or a review_mode cannot' in envelope['next_action'], envelope
+    assert 'the participants init writes' not in envelope['next_action']
+    code, draft = preview_work(capsys, envelope)
+    code, accepted = run(capsys, 'plan', '--task-dir', str(tasks), '--accept', '--checkpoint', draft['checkpoint_digest'])
+    assert code == 0, accepted
+    code, refused = run(capsys, 'build', str(tasks))
+    assert code == 2 and refused['error']['detail'] == 'Build proposals cannot carry review tools or policies', refused
+    assert ' reviewer carries them.' in refused['next_action'] and 'lead' not in refused['next_action'].split(';')[1]
+
+
+@POSIX_ONLY
+def test_a_native_profile_hears_it_cannot_build_before_any_paid_flag(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'native'
+    code, envelope = init_plan(capsys, root, tasks, '--profile', 'claude')
+    assert code == 0, envelope
+    code, draft = preview_work(capsys, envelope)
+    code, accepted = run(capsys, 'plan', '--task-dir', str(tasks), '--accept', '--checkpoint', draft['checkpoint_digest'])
+    assert code == 0, accepted
+    code, refused = run(capsys, 'build', str(tasks))
+    assert code == 2 and refused['error']['type'] == 'ValueError', refused
+    assert refused['next_action'].startswith('Build needs a worker and a reviewer with no tools'), refused

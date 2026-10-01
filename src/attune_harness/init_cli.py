@@ -265,13 +265,15 @@ def work_request(project: Path, registry: dict, goal: str, scope: list, python: 
     }
 
 
-def plan_next_action(project: Path, registry: Path, request: Path, tasks: Path) -> str:
+def plan_next_action(project: Path, registry: Path, request: Path, tasks: Path, written: bool) -> str:
     command = (f'attune-harness plan --request {quote(request)} --project {quote(project)} '
                f'--config {quote(registry)} --task-dir {quote(tasks)}')
+    which = ('the participants init writes are for review and cannot' if written else
+             'participants with tools or a review_mode cannot')
     return (f'Preview the work: {command}. Writing the request accepted nothing: accept the preview with '
             f'plan --accept --checkpoint. To build it, --config must name a worker and a reviewer that '
-            f'propose and critique files; the participants init writes are for review and cannot '
-            f'(see \'Plan and build\' in the CLI guide), then build with --allow-external')
+            f'propose and critique files; {which} (see \'Plan and build\' in the CLI guide), then build '
+            f'with --allow-external')
 
 
 def execute_plan(args, project: Path) -> int:
@@ -340,7 +342,7 @@ def execute_plan(args, project: Path) -> int:
         'profile': args.profile if written else None, 'participants': participants,
         'requires': {'allow_external': True, 'allow_native': native},
         'replaced': replaced, 'files': files,
-        'next_action': plan_next_action(project, target, request_path, tasks),
+        'next_action': plan_next_action(project, target, request_path, tasks, written),
     }, indent=2))
     return 0
 
