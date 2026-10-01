@@ -80,10 +80,13 @@ recorded:
    and bounded claim audit.
 3. **Candidates.** 1.0.0rc1 and rc2 were published to production PyPI on
    September 28, and rc2's fresh `[all]` install passed.
-4. **Stable 1.0.0.** Patrick accepted the shortened candidate period and
-   authorized each merge, dispatch, publication and tag under the
-   [runbook](release-runbook.md). Stable v1 does not deprecate Attune AI or
-   claim GUI/workflow parity.
+4. **Stable 1.0.0.** On September 28, after reviewing the README, Patrick
+   authorized proceeding with stable publication and shepherding
+   [#169](https://github.com/Smart-AI-Memory/attune-harness/pull/169), under
+   the [runbook](release-runbook.md). This was an accelerated release
+   decision: the fourteen-day candidate observation had not run (#169's
+   body; [release notes](release-notes-1.0.0.md)). Stable v1 does not
+   deprecate Attune AI or claim GUI/workflow parity.
 
 ## Next, ranked (September 30, R0+2)
 
