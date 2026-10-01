@@ -142,7 +142,8 @@ def checkout(root):
     (root / 'tests' / 'test_calc.py').write_text(
         'import pathlib\npathlib.Path("ran.txt").write_text("ran")\nfrom calc import add\n\n\n'
         'def test_add():\n    assert add(2, 2) == 4\n', encoding='utf-8')
-    git = ['git', '-C', str(root), '-c', 'commit.gpgsign=false', '-c', 'user.name=T', '-c', 'user.email=t@example.invalid']
+    git = ['git', '-C', str(root), '-c', 'commit.gpgsign=false', '-c', 'maintenance.auto=false',
+           '-c', 'user.name=T', '-c', 'user.email=t@example.invalid']
     subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
     subprocess.run([*git, 'add', '.'], check=True, capture_output=True)
     subprocess.run([*git, 'commit', '-qm', 'baseline'], check=True, capture_output=True)
@@ -196,7 +197,8 @@ def test_an_existing_probe_needs_force_and_keeps_a_backup(tmp_path, capsys):
     ('oracle-in-scope', 'Acceptance oracle cannot be in replacement scope'),
     ('interpreter-inside', 'Probe executable must be outside editable checkout'),
     ('missing-interpreter', 'Probe requires a bounded argv with an existing absolute executable'),
-    ('missing-scope', 'Accepted paths must be existing regular files'),
+    # The Windows repair backend names its own profile.
+    ('missing-scope', f'Accepted {"Windows " if os.name == "nt" else ""}paths must be existing regular files'),
     ('protected-scope', 'Protected state/metadata cannot be replaced'),
     ('not-a-checkout', 'Repair requires a dedicated checkout with local .git directory'),
     pytest.param('hard-link', 'Repair requires bounded regular files with one hard link', marks=POSIX_ONLY),
@@ -221,8 +223,8 @@ def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, 
     elif case == 'bare-name-not-on-path':
         options['python'] = 'no-such-python-here'
     else:
-        import shutil
-        shutil.rmtree(root / '.git')
+        # Renamed, not deleted: Git's read-only objects and background maintenance race a delete.
+        (root / '.git').rename(root.parent / 'moved-git')
     code, envelope = init_fix(capsys, root, **options)
     assert code == 2 and envelope['error']['detail'] == detail, envelope
     assert not (root / 'probe.json').exists() and not (root / 'participants.json').exists()
