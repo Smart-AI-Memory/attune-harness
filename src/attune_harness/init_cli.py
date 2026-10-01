@@ -308,8 +308,9 @@ def execute_plan(args, project: Path) -> int:
         # Every check plan --request and build make, writing nothing.
         drafted, _ = draft_request(project, target, directory=tasks, **request)
         preflight(drafted)
-        # Measured as write_report writes it and plan --request reads it.
-        size = len((json.dumps(request, ensure_ascii=False, allow_nan=False, indent=2) + '\n').encode('utf-8'))
+        # Measured as write_report writes it (text mode: os.linesep on disk) and plan --request reads it.
+        payload = json.dumps(request, ensure_ascii=False, allow_nan=False, indent=2) + '\n'
+        size = len(payload.replace('\n', os.linesep).encode('utf-8'))
         if size > REQUEST_LIMIT:
             raise ValueError(f'The work request would be {size} bytes, over the {REQUEST_LIMIT} bytes plan '
                              f'--request reads; the effects manifest lists every file in the checkout')

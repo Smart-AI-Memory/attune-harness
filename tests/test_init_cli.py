@@ -620,6 +620,22 @@ def test_every_refusal_after_the_registry_is_written_removes_it(tmp_path, capsys
         assert not request_path.exists() and not request_path.with_name('late.work.json.bak').exists()
 
 
+def test_the_read_limit_is_measured_on_the_bytes_written(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    code, envelope = init_plan(capsys, root, tmp_path.resolve() / 'probe' / 'size')
+    assert code == 0, envelope
+    written = Path(envelope['files'][-1]).stat().st_size
+    (root / 'participants.json').unlink()  # so each run below writes the same registry first
+    monkeypatch.setattr('attune_harness.work_cli.REQUEST_LIMIT', written)
+    code, envelope = init_plan(capsys, root, tmp_path.resolve() / 'at' / 'size')
+    assert code == 0, envelope
+    assert Path(envelope['files'][-1]).stat().st_size == written
+    (root / 'participants.json').unlink()
+    monkeypatch.setattr('attune_harness.work_cli.REQUEST_LIMIT', written - 1)
+    code, envelope = init_plan(capsys, root, tmp_path.resolve() / 'over' / 'size')
+    assert code == 2 and f'would be {written} bytes' in envelope['error']['detail'], envelope
+
+
 def test_a_failed_write_keeps_the_old_request_and_removes_its_backup(tmp_path, capsys, monkeypatch):
     root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'late'
     tasks.parent.mkdir()
