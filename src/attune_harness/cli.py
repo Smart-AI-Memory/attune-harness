@@ -15,6 +15,8 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(prog='attune-harness')
     sub = parser.add_subparsers(dest='command')
+    from .consultation_cli import add_commands as add_consultation
+    add_consultation(sub)
     from .review_cli import add_commands
     add_commands(sub)
     from .task_cli import add_controls, add_fix
@@ -82,6 +84,9 @@ def main(argv: list[str] | None = None) -> int:
         return memory_main(invocation[1:])
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command in ('source-review', 'roundtable'):
+        from .consultation_cli import execute as execute_consultation
+        return execute_consultation(args)
     from .human_output import VERBS, run
     if args.command in VERBS and args.format == 'markdown':
         if (args.command in ('review', 'fix') and sys.stdin.isatty() and not args.accept

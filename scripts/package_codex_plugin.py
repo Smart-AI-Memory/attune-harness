@@ -12,6 +12,8 @@ def package(destination: Path) -> Path:
     destination.mkdir(parents=True, exist_ok=False)
     shutil.copytree(ROOT / "plugins/attune-harness/.codex-plugin", destination / ".codex-plugin")
     shutil.copytree(ROOT / ".agents/skills/attune-harness", destination / "skills/attune-harness")
+    for name in ('cross-review', 'roundtable'):
+        shutil.copytree(ROOT / 'plugin/attune-harness/skills' / name, destination / 'skills' / name)
     shutil.copy2(ROOT / "LICENSE", destination / "LICENSE")
     return destination
 

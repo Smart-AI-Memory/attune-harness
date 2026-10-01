@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add bounded `source-review` and `roundtable` CLI preparation, dispatch,
+  inspection and abandonment over immutable selected source bytes. Both host
+  skill integrations use the same contract; Codex packaging includes both.
+- Preserve requested versus reported model identities, per-turn process evidence,
+  replay protection, call budgets and unresolved dispatches. Offline checks do
+  not qualify live host/model behavior.
+- Correct Claude refusal classification for completed nonzero exits; uncertain
+  supervision failures still refuse retry classification.
+
 - `build` refused participants that carry review tools or a `review_mode`
   ("Build proposals cannot carry review tools or policies") with a generic
   next action. That covers every profile `init` writes. The refusal now names

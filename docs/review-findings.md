@@ -152,3 +152,26 @@ envelopes, and attune-rag document probes were held. Reviewer ran 88
 memory/guard tests and 23 memory golden cases successfully; its broad
 selection had 159 passes and one GPG environment failure. Author's unrestricted
 targeted run passed all 160. No runtime behavior changed for this finding.
+
+### Shared model consultation — configured GPT-6 Astra review, October 1, 2026
+
+Author: GPT-6. First immutable manifest
+`3d62dc792e8917fcbcf6d64e64c8e6ca60e22bddb4cf9986bd2e32db5176ec84`:
+request changes. A removed recovery marker disabled the legacy conditional
+checkpoint check and allowed an actual command turn to repeat; a source swapped
+for an outside-root symlink after precheck was captured. A paused result also
+remained only in the journal rather than the answer projection.
+
+Fixed manifest
+`f55155218ec7279db117576c57ea14ede3727c609ef6a77cf4b3681d48dbba58`:
+approve the source delta. Mandatory profile/checkpoint validation stops the
+original replay probe at one subprocess call. Descriptor/handle-relative capture
+rejects leaf, parent and root swaps; renamed open directories remain pinned.
+Paused answers now project before return. Reviewer: 74 passed, two Windows-only
+skips. The reviewer model is the configured dispatch identity; the agent does
+not independently attest its backend model.
+
+Host-owned acceptance, call bounds, no automatic fallback/retry, uncertain-effect
+refusal, retained identities and frozen source bytes were held. No live model
+quality or host-discovery claim follows from this review. Windows behavior waits
+for its actual CI jobs. See the [design](design-model-consultation.md).
