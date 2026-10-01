@@ -201,6 +201,9 @@ ENVELOPES = (
     ('init-for-fix', 'success', 0, 1, 'created',
      ('files', 'next_action', 'operation', 'participants', 'path', 'profile', 'replaced', 'requires',
       'schema_version', 'status')),
+    ('init-for-plan', 'success', 0, 1, 'created',
+     ('files', 'next_action', 'operation', 'participants', 'path', 'profile', 'replaced', 'requires',
+      'schema_version', 'status')),
     ('init-refusal', 'refusal', 2, 1, 'failed',
      ('error', 'next_action', 'operation', 'schema_version', 'status')),
     ('fix-incomplete', 'refusal', 2, 1, 'failed',
@@ -1055,6 +1058,15 @@ def _(w):
                                               "tests/test_calc.py": "def test_add():\n    assert False\n"})
     return w.run(["init", "--for", "fix", "--project", str(project), "--scope", "calc.py",
                   "--interpreter", sys.executable, "--tests", "tests/test_calc.py"])
+
+
+@scenario("init-for-plan")
+def _(w):
+    project = repository(w.tmp / "init-plan", {"calc.py": "def add(a, b):\n    return a - b\n",
+                                               "tests/test_calc.py": "def test_add():\n    assert False\n"})
+    return w.run(["init", "--for", "plan", "--goal", "Repair addition", "--project", str(project),
+                  "--scope", "calc.py", "--interpreter", sys.executable, "--tests", "tests/test_calc.py",
+                  "--task-dir", str(w.tmp / "init-plan-task")])
 
 
 @scenario("init-refusal")

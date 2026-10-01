@@ -357,7 +357,12 @@ def validate_request_effects(request):
         raise ValueError("Authoring artifact must be a protected acceptance input")
     for path, sha in request["evidence"].items():
         if plan["before"].get(path, {}).get("sha256") != sha:
-            raise ValueError("Effect preimages disagree with work evidence")
+            error = ValueError("Effect preimages disagree with work evidence")
+            error.next_action = (
+                "The checkout changed after the effects were frozen; freeze them again. "
+                "If attune-harness init --for plan wrote the request, run it again with --force"
+            )
+            raise error
     controls = [c for c in request["controls"] if "build" in c["phases"]]
     for check in plan["checks"]:
         if check["control"] not in [identity(c) for c in controls]:

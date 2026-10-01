@@ -30,8 +30,13 @@ Must not change: the probe schema, what `fix` accepts, or `init` without
 ## R2: `init --for plan` writes a frozen starter request (Q1, Q2)
 
 `attune-harness init --for plan --goal TEXT --scope FILE… --interpreter PY
---tests PATH… [--project DIR] [--task-dir DIR] [--force]` writes `work.json`
-into the project.
+--tests PATH… [--project DIR] [--task-dir DIR] [--force]` writes the work
+request beside the task directory, as `<task-dir>.work.json`. (Amended
+September 30 at T3: the draft wrote `work.json` into the project, but the
+effects manifest snapshots the whole checkout, so a file written into it after
+the freeze makes the request stale before `plan` reads it. The task directory
+must not exist yet, because `plan` creates it. Patrick ruled the request goes
+beside it.)
 
 - `intent` carries the goal, the scope and the test files as acceptance
   evidence, so the request can be accepted as written: `plan --accept` refuses
@@ -47,7 +52,9 @@ into the project.
   `validate_request_effects` before the file is written.
 - The `next_action` is the guide's `plan --request` command with the same
   paths. If the checkout changes before acceptance, `plan`'s existing
-  staleness refusal gains a `next_action` naming `init --for plan --force`.
+  staleness refusal gains a `next_action` naming `init --for plan` (with a
+  new `--task-dir`, since `plan` has made the old one); the preview's refusal
+  when a scope file changed before it names `init --for plan --force`.
 
 Must not change: the request schema, when `plan` refuses, or the rule that
 writing a request records no acceptance.
@@ -80,9 +87,11 @@ Each of the two sections opens with a `<!-- journey: -->` block that
 `scripts/doc_journeys.py` runs as printed, on a scratch checkout, in the six
 installed-wheel jobs:
 
-Both use `examples/starter/participants.json` (R3), whose worker
-`starter-worker` and reviewer `starter-reviewer` serve build and repair turns
-alike (ruled at T1).
+Both use `examples/starter/participants.json` (R3), whose worker `lead` and
+reviewer `reviewer` serve build and repair turns alike (ruled at T1; renamed at
+T3 from `starter-worker` and `starter-reviewer` to the names `init` writes, so
+the assignments in the request `init --for plan` writes name participants the
+example registry has).
 
 - `plan-starter`: `init --for plan`, `plan --request` preview, accept,
   `build`, then `status` shows the build as completed.
