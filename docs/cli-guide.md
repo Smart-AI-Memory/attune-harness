@@ -9,10 +9,10 @@ install commands now name the published package.
 ## Installation
 
 ```sh
-pipx install 'attune-harness[all]==1.2.0'
+pipx install 'attune-harness[all]==1.3.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.2.0'`, or `pip install 'attune-harness[all]==1.2.0'`
+or `uv tool install 'attune-harness[all]==1.3.0'`, or `pip install 'attune-harness[all]==1.3.0'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The example below needs no API key or attune-ai installation;
@@ -498,8 +498,8 @@ available. See the [implementation results](test-this-change-results.md).
 From 1.3.0, `init --for fix` writes the trusted probe, `probe.json`, that
 `fix` needs, and validates it before writing. It does not run the probe. The
 repair starts from a failing test and ends when the probe passes. On 1.2.0
-`init --for` is refused; this journey runs in CI and is expected to fail there
-until the [starter-files spec](specs/starter-files/README.md) lands.
+`init --for` is refused. This journey runs in CI as printed, with the example
+participants in `examples/starter/`.
 
 <!-- journey: fix-starter -->
 ```sh

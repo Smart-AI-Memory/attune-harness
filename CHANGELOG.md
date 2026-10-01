@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.3.0
+
+`plan` and `fix` start from a command: `init --for plan` and `init --for fix`
+write the starter files each verb reads (O-70). See the
+[release notes](docs/release-notes-1.3.0.md).
+
 - `build` refused participants that carry review tools or a `review_mode`
   ("Build proposals cannot carry review tools or policies") with a generic
   next action. That covers every profile `init` writes. The refusal now names
@@ -14,8 +20,8 @@
   dispatch-authority refusal first. The CLI guide says the starter journeys
   run from a checkout of this repository with a virtual environment activated.
 - The Claude Code plugin is served from the latest release tag, pinned by
-  commit, instead of from `main`. The marketplace entry's source is now
-  `github` with `ref: v1.2.0` and its `sha`. Users get the released skills
+  commit, instead of from `main`. The marketplace entry's source is `github`
+  with the tag as `ref` and its commit as `sha`. Users get the released skills
   while `main` moves on, and `main`'s version can move ahead of PyPI. The
   catalog changes only at a release, after the tag exists (runbook step 9).
   Probed live on Claude Code 2.1.284.
@@ -48,6 +54,13 @@
   one declared replacement; `reviewer` approves without judging. Example code,
   carried inline as `python -c` (a readable copy is `examples/starter/worker.py`),
   so it needs `python` on PATH. Both journeys now run as printed in CI.
+- A refusal for a path through a symlink now names the outermost link and
+  the path to use (#190, starter-files T5, O-76), for example "Task storage
+  cannot traverse a symlink: /tmp links to /private/tmp; use
+  /private/tmp/my-work". This covers task storage, the `fix` checkout, and a
+  saved task whose project no longer resolves. The rule, the exception type
+  and the exit codes are unchanged. The CLI guide's task directories move
+  from `/tmp` to `~/harness-tasks`.
 - When the checkout changed after `init --for plan` froze it, the preview's
   "Effect preimages disagree with work evidence" refusal names
   `init --for plan --force`, and `plan`'s stale-work `next_action` names

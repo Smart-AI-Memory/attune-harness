@@ -354,6 +354,18 @@ why. No work authorized.
 The entry a user would meet first is O-77: with T3 merged and before T4, the
 commands `init --for plan` prints stop at `build`.
 
+O-70 follow-through, 2026-09-30. Closed by the starter-files spec: T1 #191, T2
+#193, T3 #194, T4 #198 and T5 #190. `init --for plan` and `init --for fix` write
+the request and the probe, each checked by the verb that reads it, and the CLI
+guide's `plan-starter` and `fix-starter` blocks run as printed in the
+installed-wheel jobs. That is this entry's done condition. Release: 1.3.0, in
+the October 6–11 window (Patrick, September 30). What a user meets next is
+O-77.
+
+O-76 follow-through, 2026-09-30. The guide's `plan` block now runs as printed
+in CI (T4 #198), which closes the second of the two items left open above.
+Still open: `--test-root .`.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree
