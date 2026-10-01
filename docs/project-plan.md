@@ -103,6 +103,13 @@ Four stable releases in two days is fast for a stabilization period. Batch
 compatible fixes into one release per window unless a critical defect needs
 its own.
 
+**O-70 is ruled a journey defect (2026-09-30 retro).** The rule above against
+starting a feature chain in the window allows defects. `plan` and `fix` stop
+before they start for a new user, so the starter-files chain (T1–T6) proceeds
+inside the window. Its release, 1.3.0, is one batched release in R0+8–R0+13
+(October 6–11), not one per task. The S3, S6 and S9 observations still come
+before any claim of acceptance. Building O-70 does not close them.
+
 ## R0 through R0+14: post-release stabilization
 
 Under the accelerated release decision, these observations include the work
