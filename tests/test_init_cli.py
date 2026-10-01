@@ -411,6 +411,11 @@ def test_a_dangling_registry_link_is_refused_not_replaced(tmp_path, capsys):
 
 # Starter files T3: init --for plan writes a frozen work request (R2).
 
+# The Windows effects backend names its own profile.
+MISSING_TEST = ('Windows protected inputs must be existing files' if os.name == 'nt'
+                else 'Protected acceptance inputs must already exist')
+
+
 def init_plan(capsys, root, tasks, *extra, goal='Repair addition', scope=('calc.py',),
               tests=('tests/test_calc.py',), python=sys.executable):
     task_dir = () if tasks is None else ('--task-dir', str(tasks))
@@ -482,7 +487,7 @@ def test_the_default_task_directory_is_under_home_and_outside_the_checkout(tmp_p
 @pytest.mark.parametrize('case, detail', [
     ('oracle-in-scope', 'Acceptance oracle cannot be in replacement scope'),
     ('interpreter-inside', 'Probe executable must be outside editable checkout'),
-    ('missing-test', 'Protected acceptance inputs must already exist'),
+    ('missing-test', MISSING_TEST),
     ('not-a-checkout', 'Build effects require a dedicated local Git checkout'),
     ('task-dir-inside', 'Effect checkout and task state must be disjoint'),
     ('task-dir-exists', 'Task directory already exists: {tasks}; plan needs a new one, so choose another --task-dir'),
@@ -500,8 +505,7 @@ def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, cap
     elif case == 'missing-test':
         options['tests'] = ('tests/test_absent.py',)
     elif case == 'not-a-checkout':
-        import shutil
-        shutil.rmtree(root / '.git')
+        (root / '.git').rename(root.parent / 'moved-git')  # see the fix refusals above
     elif case == 'task-dir-inside':
         tasks = root / 'tasks'
     elif case == 'task-dir-exists':
@@ -566,7 +570,7 @@ def test_a_refusal_never_removes_a_registry_init_did_not_write(tmp_path, capsys)
     run(capsys, 'init', '--project', str(root))
     before = (root / 'participants.json').read_bytes()
     code, envelope = init_plan(capsys, root, tasks, tests=('tests/test_absent.py',))
-    assert code == 2 and envelope['error']['detail'] == 'Protected acceptance inputs must already exist', envelope
+    assert code == 2 and envelope['error']['detail'] == MISSING_TEST, envelope
     assert (root / 'participants.json').read_bytes() == before
 
 
