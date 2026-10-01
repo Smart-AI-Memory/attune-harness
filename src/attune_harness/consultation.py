@@ -7,7 +7,6 @@ from threading import Event
 from . import Task
 from .adapters import Attempt, JsonParticipant
 from .consultation_snapshot import capture, validate as validate_snapshot
-from .features import read_text
 from .native import NativeError, NativeExchange
 from .process import invoke
 from .recovery import RecoveryCursor, ReviewPaused, validate_events
@@ -120,7 +119,9 @@ def answer(raw, snapshot):
         fields(citation, ('path', 'line', 'detail'))
         if citation['path'] not in snapshot['files']:
             raise ValueError('Evidence cites a path outside the frozen scope')
-        if type(citation['line']) is not int or not 1 <= citation['line'] <= max(1, len(snapshot['files'][citation['path']]['text'].splitlines())):
+        text = snapshot['files'][citation['path']]['text']
+        lines = max(1, text.count('\n') + (not text.endswith('\n')))
+        if type(citation['line']) is not int or not 1 <= citation['line'] <= lines:
             raise ValueError('Evidence line is outside the frozen source')
         bounded_text(citation['detail'], 'evidence detail', 2048)
     return value
@@ -157,7 +158,9 @@ def dispatch(config, turn, cwd, cancel):
         status = 'completed'
         error = None
     except Exception as exc:
-        payload, status = None, 'failed'
+        payload = None
+        status = ('cancelled' if isinstance(exc, NativeError) and exc.failure in
+                  ('cancelled_before_start', 'cancelled_effects_unknown') else 'failed')
         error = {'type': type(exc).__name__, 'detail': str(exc)[:8192],
                  'failure': getattr(exc, 'failure', None), 'refusal': getattr(exc, 'refusal', None),
                  'process_stopped': getattr(exc, 'process_stopped', False), 'effects': 'unknown'}
@@ -211,7 +214,7 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
                     answers.append({'round': round_number, 'participant': name, **result})
                     record['answers'] = answers
                     if result['status'] != 'completed':
-                        record['status'] = 'failed'
+                        record['status'] = 'cancelled' if result['status'] == 'cancelled' else 'failed'
                         store.save(record)
                         return record
                     if paused:
@@ -238,7 +241,8 @@ def abandon(directory, checkpoint):
             raise ValueError('Stale checkpoint')
         if record['status'] in ('completed', 'cancelled'):
             raise ValueError('Consultation is already terminal')
+        record['abandonment'] = {'effects': 'unknown', 'prior_checkpoint': checkpoint,
+                                 'previous_status': record['status']}
         record['status'] = 'cancelled'
-        record['abandonment'] = {'effects': 'unknown', 'prior_checkpoint': checkpoint}
         store.save(record)
         return record

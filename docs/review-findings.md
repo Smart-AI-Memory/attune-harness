@@ -175,3 +175,29 @@ Host-owned acceptance, call bounds, no automatic fallback/retry, uncertain-effec
 refusal, retained identities and frozen source bytes were held. No live model
 quality or host-discovery claim follows from this review. Windows behavior waits
 for its actual CI jobs. See the [design](design-model-consultation.md).
+
+### Shared consultation live delta — Claude Opus 5.5, October 1, 2026
+
+Native source review requested and reported `claude-opus-5-5`; first verdict
+request changes. It found supervised in-flight cancellation was projected as
+provider failure. The correction retains stopped-process evidence and unknown
+effects, classifies only the owner's explicit cancellation tags as cancelled,
+and refuses terminal continuation. Abandonment now retains previous status;
+citation bounds count LF/CRLF rather than embedded Unicode/control separators.
+
+The proposed pause-before-result defect was not reproduced: the actual recovery
+owner saves its completed result before raising `ReviewPaused`. Opus's delta
+verdict is **approve**, session `32256a00-b104-48a4-a27f-8ccabf066f8c`. It could
+inspect only the three new consultation source files; dependencies and platform
+behavior remain host-verified separately. Its optional suggestion to relabel
+errors from a set cancellation signal was not adopted: a coincident signal must
+not hide an actual provider failure.
+
+The original configured GPT-6 Astra reviewer also approved the new source delta,
+SHA256 `1e50d5059f6e0d1ffbb0f838f7c392027736877c7b9690eb3b208d5441f79357`
+for consultation.py, after real subprocess and failure-ambiguity probes:
+83 passed, two Windows-only skips. Both original Windows qualification jobs
+actually passed the native leaf/parent swap tests. Their three failures were
+LF fixture translation and refusal wording; tests now preserve explicit LF
+bytes and recognize native reparse refusal. New CI must qualify the corrected
+head before claiming it passes Windows.

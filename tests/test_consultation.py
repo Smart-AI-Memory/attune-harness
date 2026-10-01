@@ -4,7 +4,7 @@
 import copy
 import json
 from pathlib import Path
-from threading import Event
+from threading import Event, Thread
 
 import pytest
 
@@ -27,7 +27,7 @@ def config(operation='source-review'):
 def prepared(tmp_path, operation='source-review'):
     root = tmp_path / 'source'
     root.mkdir()
-    (root / 'x.py').write_text('x = 1\n')
+    (root / 'x.py').write_bytes(b'x = 1\n')
     directory = tmp_path / 'run'
     record = c.prepare(operation, root, ['x.py'], config(operation), directory)
     return root, directory, record
@@ -81,6 +81,7 @@ def test_consumed_before_dispatch_and_unknown_turn_never_repeats(tmp_path):
         c.abandon(directory, record['checkpoint_digest'])
     abandoned = c.abandon(directory, current['checkpoint_digest'])
     assert abandoned['abandonment']['effects'] == 'unknown'
+    assert abandoned['abandonment']['previous_status'] == 'unresolved'
     assert abandoned['events'][0]['phase'] == 'dispatching'
 
 
@@ -113,6 +114,62 @@ def test_native_authority_and_pre_cancel(tmp_path):
                  cancel=cancel, dispatcher=lambda *a: pytest.fail('dispatch'))['status'] == 'cancelled'
 
 
+def test_real_running_command_cancellation_is_terminal_and_effects_stay_unknown(tmp_path):
+    import sys
+    import time
+
+    root = tmp_path / 'source'
+    root.mkdir()
+    (root / 'x.py').write_bytes(b'x = 1\n')
+    ready, calls = tmp_path / 'ready', tmp_path / 'calls'
+    script = tmp_path / 'waiting-seat.py'
+    script.write_text('''import pathlib,sys,time
+with pathlib.Path(sys.argv[2]).open('ab') as calls:
+    calls.write(b'called\\n')
+pathlib.Path(sys.argv[1]).write_bytes(b'ready')
+print('ready', flush=True)
+while True:
+    time.sleep(60)
+''', encoding='utf-8')
+    cfg = config()
+    cfg['participants']['reviewer'].update(
+        command=[sys.executable, str(script), str(ready), str(calls)], timeout=20)
+    directory = tmp_path / 'run'
+    record = c.prepare('source-review', root, ['x.py'], cfg, directory)
+    cancel, finished, observed_ready = Event(), Event(), Event()
+
+    def cancel_after_ready():
+        deadline = time.monotonic() + 10
+        while not finished.is_set() and time.monotonic() < deadline:
+            if ready.exists():
+                observed_ready.set()
+                cancel.set()
+                return
+            finished.wait(0.01)
+
+    thread = Thread(target=cancel_after_ready, daemon=True)
+    thread.start()
+    try:
+        result = c.run(directory, record['contract_digest'], allow_external=True, cancel=cancel)
+    finally:
+        finished.set()
+        thread.join(timeout=2)
+    assert not thread.is_alive() and observed_ready.is_set()
+    assert result['status'] == 'cancelled'
+    turn = result['answers'][0]
+    assert turn['status'] == 'cancelled'
+    assert turn['error']['failure'] == 'cancelled_effects_unknown'
+    assert turn['error']['process_stopped'] is True
+    assert turn['error']['effects'] == 'unknown'
+    assert turn['process']['failure'] == 'cancelled_effects_unknown'
+    assert turn['process']['returncode'] is not None and turn['process']['returncode'] != 0
+    assert result['events'][0]['phase'] == 'completed'
+    assert c.load(directory)['status'] == 'cancelled'
+    with pytest.raises(ValueError, match='Terminal'):
+        c.run(directory, record['contract_digest'], allow_external=True)
+    assert calls.read_bytes() == b'called\n'
+
+
 @pytest.mark.parametrize('change', ['same_author', 'same_seats', 'rounds', 'timeout', 'alias'])
 def test_configuration_refusals(change):
     operation = 'roundtable' if change == 'same_seats' else 'source-review'
@@ -138,6 +195,36 @@ def test_source_citations_are_host_checked(tmp_path):
         with pytest.raises(ValueError):
             c.answer(json.dumps({'verdict': 'approve', 'summary': 'claim',
                                  'evidence': [{'path': path, 'line': line, 'detail': 'why'}]}), snapshot)
+
+
+@pytest.mark.parametrize('separator', ['\n', '\r\n'])
+def test_citations_count_lf_or_crlf_content_lines_without_phantom_trailing_line(tmp_path, separator):
+    root = tmp_path / 'source'
+    root.mkdir()
+    (root / 'x.py').write_bytes(f'first{separator}second{separator}'.encode('utf-8'))
+    record = c.prepare('source-review', root, ['x.py'], config(), tmp_path / 'run')
+    snapshot = record['contract']['snapshot']
+    citation = {'verdict': 'approve', 'summary': 'claim',
+                'evidence': [{'path': 'x.py', 'line': 2, 'detail': 'Second content line'}]}
+    assert c.answer(json.dumps(citation), snapshot) == citation
+    citation['evidence'][0]['line'] = 3
+    with pytest.raises(ValueError, match='line'):
+        c.answer(json.dumps(citation), snapshot)
+
+
+@pytest.mark.parametrize('separator', ['\r', '\v', '\f', '\u2028', '\u2029', '\x85'])
+def test_unicode_and_control_separators_do_not_expand_source_citation_scope(tmp_path, separator):
+    root = tmp_path / 'source'
+    root.mkdir()
+    (root / 'x.py').write_bytes(f'first{separator}second'.encode('utf-8'))
+    record = c.prepare('source-review', root, ['x.py'], config(), tmp_path / 'run')
+    snapshot = record['contract']['snapshot']
+    citation = {'verdict': 'approve', 'summary': 'claim',
+                'evidence': [{'path': 'x.py', 'line': 1, 'detail': 'Single source line'}]}
+    assert c.answer(json.dumps(citation), snapshot) == citation
+    citation['evidence'][0]['line'] = 2
+    with pytest.raises(ValueError, match='line'):
+        c.answer(json.dumps(citation), snapshot)
 
 
 def test_real_command_exchange_and_cli_journey(tmp_path, capsys):
@@ -181,6 +268,11 @@ def test_failed_turn_stops_without_fallback(tmp_path):
     assert len(calls) == 1
     with pytest.raises(ValueError, match='Terminal'):
         c.run(directory, record['contract_digest'], allow_external=True, dispatcher=failed)
+    abandoned = c.abandon(directory, result['checkpoint_digest'])
+    assert abandoned['status'] == 'cancelled'
+    assert abandoned['abandonment']['previous_status'] == 'failed'
+    assert abandoned['abandonment']['effects'] == 'unknown'
+    assert abandoned['answers'] == result['answers']
 
 
 def test_writer_lease_blocks_concurrent_dispatch(tmp_path):

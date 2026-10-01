@@ -3,7 +3,6 @@
 # qualify: platform
 
 import copy
-# qualify: platform
 import hashlib
 import os
 import shutil
@@ -79,7 +78,7 @@ def test_symlinks_are_refused_at_every_component(root, kind):
         link.symlink_to(target, target_is_directory=kind != 'file')
     except (OSError, NotImplementedError) as exc:
         pytest.skip(f'Symlinks unavailable: {exc}')
-    with pytest.raises(ValueError, match='symlink'):
+    with pytest.raises(ValueError, match='(?i)symlink|reparse'):
         snapshot.capture(link if kind == 'root' else root,
                          ['notes.md'] if kind == 'root' else
                          ['linked/calc.py' if kind == 'directory' else 'linked'])
