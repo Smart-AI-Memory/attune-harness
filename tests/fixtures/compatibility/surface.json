@@ -825,6 +825,14 @@
     {
      "choices": null,
      "default": null,
+     "name": "goal",
+     "option_strings": [
+      "--goal"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
      "name": "interpreter",
      "option_strings": [
       "--interpreter"
@@ -860,12 +868,21 @@
     },
     {
      "choices": [
-      "fix"
+      "fix",
+      "plan"
      ],
      "default": null,
      "name": "starter",
      "option_strings": [
       "--for"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "task_dir",
+     "option_strings": [
+      "--task-dir"
      ]
     },
     {
@@ -881,10 +898,12 @@
    "options": [
     "--for",
     "--force",
+    "--goal",
     "--interpreter",
     "--profile",
     "--project",
     "--scope",
+    "--task-dir",
     "--tests"
    ],
    "positionals": [],

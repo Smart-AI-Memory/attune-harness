@@ -28,7 +28,7 @@ T5 is independent. T6 closes out.
   plan". Test that `--for` and `--force` stay distinct.
   Size: one PR, `src/`, different-model review.
 
-- [ ] **T3: `init --for plan` (R2).**
+- [x] **T3: `init --for plan` (R2).** Done; `plan-starter` stays red until T4.
   Scope: `init_cli.py` calling `work_effects.freeze`, the staleness
   `next_action`, and tests.
   Done when: the written request passes the owners' validators and previews
@@ -37,7 +37,7 @@ T5 is independent. T6 closes out.
 
 - [ ] **T4: the example command worker (R3).**
   Scope: `examples/starter/`, used by `plan-starter` and `fix-starter`: a
-  registry naming `starter-worker` and `starter-reviewer`, and a worker that
+  registry naming `lead` and `reviewer` (amended at T3), and a worker that
   answers both build and repair turns.
   Done when: both journeys pass on all six jobs.
   Size: small, no `src/` change.

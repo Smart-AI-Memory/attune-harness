@@ -10,9 +10,9 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 75 rows:
+row pins, in 76 rows:
 
-- **success** (60 rows): the verb did its work offline on a small fixture;
+- **success** (61 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
 - **refusal** (12 rows): an offline refusal on purpose. `build` before the work
   is accepted; `init` over an existing registry, which it leaves unchanged;
@@ -106,6 +106,7 @@ or to rule exempt.
 | `github-checks-refusal` | refusal | 2 | 1 | `failed` | `error` `schema_version` `status` |
 | `init` | success | 0 | 1 | `created` | `next_action` `operation` `participants` `path` `profile` `replaced` `requires` `schema_version` `status` |
 | `init-for-fix` | success | 0 | 1 | `created` | `files` `next_action` `operation` `participants` `path` `profile` `replaced` `requires` `schema_version` `status` |
+| `init-for-plan` | success | 0 | 1 | `created` | `files` `next_action` `operation` `participants` `path` `profile` `replaced` `requires` `schema_version` `status` |
 | `init-refusal` | refusal | 2 | 1 | `failed` | `error` `next_action` `operation` `schema_version` `status` |
 | `fix-incomplete` | refusal | 2 | 1 | `failed` | `error` `next_action` `operation` `schema_version` `status` |
 | `test-refusal` | refusal | 2 | - | `blocked` | `error` `next_action` `status` |
@@ -186,6 +187,7 @@ What each case runs, in the order of the table.
 - `github-checks-refusal`: `github-checks INPUT --repository --revision` on an empty object
 - `init`: `init --project` on an empty directory (the default `demo` profile)
 - `init-for-fix`: `init --for fix --project --scope --interpreter --tests` on a small checkout; also writes `probe.json`
+- `init-for-plan`: `init --for plan --goal --project --scope --interpreter --tests --task-dir` on a small checkout; also writes the work request beside the task directory
 - `init-refusal`: `init --project` where a `participants.json` already exists
 - `fix-incomplete`: `fix --goal` alone; before T6 this was an argparse usage error on stderr
 - `test-refusal`: `test --task-dir` with neither `--scope` nor `--from-task`

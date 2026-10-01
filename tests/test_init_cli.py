@@ -233,7 +233,7 @@ def test_for_fix_needs_its_three_options_and_they_need_it(tmp_path, capsys):
     code, envelope = run(capsys, 'init', '--for', 'fix', '--project', str(root), '--scope', 'calc.py')
     assert code == 2 and envelope['error']['detail'] == 'init --for fix needs --scope, --interpreter and --tests'
     code, envelope = run(capsys, 'init', '--project', str(root), '--scope', 'calc.py')
-    assert code == 2 and envelope['error']['detail'] == '--scope, --interpreter and --tests need --for fix'
+    assert code == 2 and envelope['error']['detail'] == '--scope, --interpreter, --tests, --goal and --task-dir need --for'
     assert not (root / 'participants.json').exists()
 
 
@@ -405,3 +405,174 @@ def test_a_dangling_registry_link_is_refused_not_replaced(tmp_path, capsys):
     code, envelope = init_fix(capsys, root)
     assert code == 2 and (root / 'participants.json').is_symlink(), envelope
     assert not (root / 'probe.json').exists()
+
+
+# Starter files T3: init --for plan writes a frozen work request (R2).
+
+def init_plan(capsys, root, tasks, *extra, goal='Repair addition', scope=('calc.py',),
+              tests=('tests/test_calc.py',), python=sys.executable):
+    task_dir = () if tasks is None else ('--task-dir', str(tasks))
+    return run(capsys, 'init', '--for', 'plan', '--goal', goal, '--project', str(root), '--scope', *scope,
+               '--interpreter', str(python), '--tests', *tests, *task_dir, *extra)
+
+
+def preview_work(capsys, envelope):
+    import shlex
+    command = envelope['next_action'].split(': ', 1)[1].split('. Writing the request', 1)[0]
+    return run(capsys, *shlex.split(command)[1:])
+
+
+def test_for_plan_writes_a_request_beside_the_task_directory_that_previews_and_accepts(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'starter-plan'
+    code, envelope = init_plan(capsys, root, tasks)
+    assert code == 0 and envelope['status'] == 'created', envelope
+    request_path = tmp_path.resolve() / 'tasks' / 'starter-plan.work.json'
+    assert envelope['files'] == [str(root / 'participants.json'), str(request_path)]
+    assert envelope['path'] == str(root / 'participants.json') and envelope['replaced'] is None
+    assert not tasks.exists(), 'plan makes the task directory; init only names it'
+    assert not (root / 'ran.txt').exists(), 'init must not run the probe (Q4)'
+    request = json.loads(request_path.read_text(encoding='utf-8'))
+    assert request['intent'] == {'goal': 'Repair addition', 'context': [], 'scope': ['calc.py'], 'constraints': [],
+                                 'acceptance': ['tests/test_calc.py passes'], 'questions': []}
+    assert {a['role']: a['participant'] for a in request['assignments']} == {
+        'planner': 'lead', 'worker': 'lead', 'reviewer': 'reviewer'}
+    assert request['tasks'] == [{'id': 'change', 'objective': 'Repair addition', 'dependencies': [],
+                                 'outputs': ['calc.py'], 'checks': ['tests/test_calc.py passes']}]
+    assert request['inputs'] == ['calc.py'] and request['controls'] == []
+    effects = request['effects']
+    assert effects['root'] == str(root) and effects['allowed'] == ['calc.py']
+    assert effects['protected'] == ['tests/test_calc.py'] and effects['parents'] == []
+    assert [check['task_id'] for check in effects['verification']] == ['change', 'final']
+    assert 'participants.json' in effects['before'], 'the registry is written before the freeze'
+    code, draft = preview_work(capsys, envelope)
+    assert code == 0 and draft['status'] == 'draft' and not draft['questions']['missing'], draft
+    code, accepted = run(capsys, 'plan', '--task-dir', str(tasks), '--accept', '--checkpoint', draft['checkpoint_digest'])
+    assert code == 0 and accepted['status'] == 'accepted', accepted
+    assert 'readiness_error' not in accepted, 'build preflight accepts the request'
+
+
+def test_a_new_file_in_a_new_directory_is_authorized_with_its_parents(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'new'
+    code, envelope = init_plan(capsys, root, tasks, scope=('calc.py', 'pkg/sub/extra.py'))
+    assert code == 0, envelope
+    request = json.loads(Path(envelope['files'][-1]).read_text(encoding='utf-8'))
+    assert request['effects']['parents'] == ['pkg', 'pkg/sub'] and request['inputs'] == ['calc.py']
+    code, draft = preview_work(capsys, envelope)
+    assert code == 0 and draft['status'] == 'draft', draft
+
+
+def test_the_default_task_directory_is_under_home_and_outside_the_checkout(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
+    root = checkout(tmp_path.resolve() / 'repo')
+    code, envelope = init_plan(capsys, root, None)
+    assert code == 0, envelope
+    tasks = tmp_path.resolve() / 'home' / 'harness-tasks' / 'repo-plan'
+    assert envelope['files'][-1] == str(tasks.with_name('repo-plan.work.json'))
+    assert f'--task-dir {quote(tasks)}' in envelope['next_action']
+
+
+@pytest.mark.parametrize('case, detail', [
+    ('oracle-in-scope', 'Acceptance oracle cannot be in replacement scope'),
+    ('interpreter-inside', 'Probe executable must be outside editable checkout'),
+    ('missing-test', 'Protected acceptance inputs must already exist'),
+    ('not-a-checkout', 'Build effects require a dedicated local Git checkout'),
+    ('task-dir-inside', 'Effect checkout and task state must be disjoint'),
+    ('task-dir-exists', 'Task directory already exists: {tasks}; plan needs a new one, so choose another --task-dir'),
+    ('one-participant', 'Registry requires 2–16 participants'),
+    ('empty-goal', 'init --for plan needs --goal, --scope, --interpreter and --tests'),
+])
+def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, capsys, case, detail):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'refused'
+    options = {}
+    if case == 'oracle-in-scope':
+        options['scope'] = ('calc.py', 'tests/test_calc.py')
+    elif case == 'interpreter-inside':
+        (root / 'python').write_bytes(Path(sys.executable).read_bytes()[:16])
+        options['python'] = root / 'python'
+    elif case == 'missing-test':
+        options['tests'] = ('tests/test_absent.py',)
+    elif case == 'not-a-checkout':
+        import shutil
+        shutil.rmtree(root / '.git')
+    elif case == 'task-dir-inside':
+        tasks = root / 'tasks'
+    elif case == 'task-dir-exists':
+        tasks.mkdir(parents=True)
+    elif case == 'one-participant':
+        (root / 'participants.json').write_text(json.dumps(
+            {'schema_version': 1, 'participants': {'lead': PROFILES['demo']['lead']}}), encoding='utf-8')
+    elif case == 'empty-goal':
+        options['goal'] = ''
+    kept = (root / 'participants.json').read_bytes() if case == 'one-participant' else None
+    code, envelope = init_plan(capsys, root, tasks, **options)
+    assert code == 2 and envelope['error']['detail'].startswith(detail.format(tasks=tasks)), envelope
+    assert not tasks.with_name(tasks.name + '.work.json').exists()
+    if kept is None:
+        assert not (root / 'participants.json').exists(), 'a refused init removes the registry it wrote'
+    else:
+        assert (root / 'participants.json').read_bytes() == kept
+
+
+def test_an_existing_request_needs_force_and_keeps_a_backup(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'again'
+    tasks.parent.mkdir()
+    request_path = tasks.with_name('again.work.json')
+    request_path.write_text('{"old": true}', encoding='utf-8')
+    code, envelope = init_plan(capsys, root, tasks)
+    assert code == 2 and 'pass --force to replace it' in envelope['error']['detail'], envelope
+    assert not (root / 'participants.json').exists()
+    code, envelope = init_plan(capsys, root, tasks, '--force')
+    assert code == 0 and envelope['replaced'] == str(request_path) + '.bak', envelope
+    assert Path(envelope['replaced']).read_text(encoding='utf-8') == '{"old": true}'
+
+
+def test_for_plan_needs_its_options_and_fix_refuses_plans_options(tmp_path, capsys):
+    root = checkout(tmp_path.resolve() / 'repo')
+    code, envelope = run(capsys, 'init', '--for', 'plan', '--project', str(root), '--scope', 'calc.py')
+    assert code == 2 and envelope['error']['detail'] == 'init --for plan needs --goal, --scope, --interpreter and --tests'
+    code, envelope = init_fix(capsys, root, '--goal', 'Repair addition')
+    assert code == 2 and envelope['error']['detail'] == '--goal and --task-dir need --for plan', envelope
+    code, envelope = run(capsys, 'init', '--project', str(root), '--goal', 'Repair addition')
+    assert code == 2 and 'need --for' in envelope['error']['detail'], envelope
+    assert not (root / 'participants.json').exists() and not (root / 'probe.json').exists()
+
+
+def test_an_existing_registry_names_the_assignments(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'kept'
+    registry = {'schema_version': 1, 'participants': {'alpha': PROFILES['demo']['lead'],
+                                                      'beta': PROFILES['demo']['reviewer']}}
+    (root / 'participants.json').write_text(json.dumps(registry), encoding='utf-8')
+    code, envelope = init_plan(capsys, root, tasks)
+    assert code == 0 and envelope['files'] == [str(tasks.with_name('kept.work.json'))], envelope
+    assert envelope['profile'] is None
+    request = json.loads(tasks.with_name('kept.work.json').read_text(encoding='utf-8'))
+    assert {a['role']: a['participant'] for a in request['assignments']} == {
+        'planner': 'alpha', 'worker': 'alpha', 'reviewer': 'beta'}
+
+
+def test_a_checkout_changed_before_the_preview_names_init(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'changed'
+    code, envelope = init_plan(capsys, root, tasks)
+    assert code == 0, envelope
+    (root / 'calc.py').write_text('def add(a, b):\n    return 0\n', encoding='utf-8')
+    code, refused = preview_work(capsys, envelope)
+    assert code == 2 and refused['error'] == {'type': 'ValueError',
+                                              'detail': 'Effect preimages disagree with work evidence'}, refused
+    assert 'init --for plan' in refused['next_action'] and '--force' in refused['next_action']
+
+
+def test_a_checkout_changed_before_acceptance_names_init(tmp_path, capsys):
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'stale'
+    code, envelope = init_plan(capsys, root, tasks)
+    code, draft = preview_work(capsys, envelope)
+    assert code == 0, draft
+    (root / 'calc.py').write_text('def add(a, b):\n    return 0\n', encoding='utf-8')
+    code, refused = run(capsys, 'plan', '--task-dir', str(tasks), '--accept', '--checkpoint', draft['checkpoint_digest'])
+    assert code == 2 and refused['error']['type'] == 'ValueError', refused
+    assert 'init --for plan' in refused['next_action'] and 'new task directory' in refused['next_action']
+
+
+def test_for_plan_task_dir_and_tests_stay_distinct_options():
+    from attune_harness.cli import build_parser
+    args = build_parser().parse_args(['init', '--for', 'plan', '--task-dir', 'x', '--tests', 't.py'])
+    assert args.task_dir == Path('x') and args.tests == ['t.py'] and args.starter == 'plan'

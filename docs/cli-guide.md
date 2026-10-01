@@ -173,8 +173,10 @@ refusal's `next_action` names `init`.
 ## Plan and build
 
 From 1.3.0, two commands take a Git checkout from a named file to an accepted
-plan with a finished build. `init --for plan` writes `work.json`, with its
-effects manifest frozen, and the example command worker in
+plan with a finished build. `init --for plan` writes the work request, with
+its effects manifest frozen, beside the task directory (`starter-plan.work.json`
+for `--task-dir ~/harness-tasks/starter-plan`), outside the checkout the
+manifest freezes. The example command worker in
 `examples/starter/` makes the change. On 1.2.0 `init --for` is refused; this
 journey runs in CI and is expected to fail there until the
 [starter-files spec](specs/starter-files/README.md) lands.
@@ -185,7 +187,7 @@ attune-harness init --for plan --goal "Repair addition" \
   --project /path/to/repo --scope calc.py \
   --interpreter /path/to/venv/bin/python --tests tests/test_calc.py \
   --task-dir ~/harness-tasks/starter-plan
-attune-harness plan --request /path/to/repo/work.json --project /path/to/repo \
+attune-harness plan --request ~/harness-tasks/starter-plan.work.json --project /path/to/repo \
   --config /path/to/examples/starter/participants.json \
   --task-dir ~/harness-tasks/starter-plan
 attune-harness plan --task-dir ~/harness-tasks/starter-plan --accept \
@@ -498,7 +500,7 @@ attune-harness init --for fix --project /path/to/repo --scope calc.py \
 attune-harness fix --goal "Repair addition" --project /path/to/repo \
   --checkout /path/to/repo --scope calc.py --probe /path/to/repo/probe.json \
   --config /path/to/examples/starter/participants.json \
-  --worker starter-worker --reviewer starter-reviewer --review required \
+  --worker lead --reviewer reviewer --review required \
   --criteria "The frozen probe passes without changing its oracle" \
   --task-dir ~/harness-tasks/starter-fix --accept --allow-external
 ```

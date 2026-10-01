@@ -9,7 +9,9 @@ Writing a native profile authorizes nothing: a review still needs
 
 ``init --for fix`` also writes the trusted probe ``fix`` reads, ``probe.json``,
 validated by the repair module's own checks before it is written; it runs
-nothing (starter-files R1). Without ``--for``, the output is unchanged.
+nothing (starter-files R1). ``init --for plan`` writes a frozen work request
+beside the task directory, outside the project, checked by every validator
+``plan`` and ``build`` apply (R2). Without ``--for``, the output is unchanged.
 """
 
 import json
@@ -17,12 +19,13 @@ import os
 import shlex
 import shutil
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from .effect_limits import MAX_ENTRIES
 from .features import read_text, write_report
 from .repair import freeze
-from .review_contract import parse_json, validate_registry
+from .review_contract import load_registry, parse_json, validate_registry
+from .task_contract import DEFAULT_BUDGETS
 
 REGISTRY = 'participants.json'
 PROBE = 'probe.json'
@@ -84,13 +87,19 @@ def add_command(sub):
     parser.add_argument('--project', type=Path, help='Project directory (default: the current directory)')
     parser.add_argument('--force', action='store_true',
                         help='Replace an existing registry, keeping it as participants.json.bak '
-                             '(with --for fix: replace probe.json, keeping probe.json.bak)')
-    parser.add_argument('--for', dest='starter', choices=('fix',),
+                             '(with --for fix: replace probe.json, keeping probe.json.bak; '
+                             'with --for plan: replace the work request, keeping a .bak)')
+    parser.add_argument('--for', dest='starter', choices=('fix', 'plan'),
                         help='fix: also write probe.json, the trusted probe fix reads; '
+                             'plan: also write a work request beside --task-dir; '
                              'the registry is written only if there is none')
-    parser.add_argument('--scope', nargs='+', help='With --for fix: the files the repair may replace')
-    parser.add_argument('--interpreter', help='With --for fix: the Python, with pytest, that runs the tests')
-    parser.add_argument('--tests', nargs='+', help='With --for fix: the test files the probe runs, protected')
+    parser.add_argument('--scope', nargs='+', help='With --for: the files the change may replace or create')
+    parser.add_argument('--interpreter', help='With --for: the Python, with pytest, that runs the tests')
+    parser.add_argument('--tests', nargs='+', help='With --for: the test files the probe runs, protected')
+    parser.add_argument('--goal', help='With --for plan: what the work should achieve')
+    parser.add_argument('--task-dir', type=Path,
+                        help='With --for plan: the new task directory plan will use; the request is '
+                             'written beside it as <name>.work.json (default: ~/harness-tasks/<project>-plan)')
 
 
 def next_action(project: Path, target: Path, profile: str) -> str:
@@ -129,12 +138,24 @@ def interpreter(value: str) -> str:
     return str(Path(value).expanduser().absolute())
 
 
-def fix_task_directory(project: Path) -> Path:
-    """Where the printed ``fix`` keeps its task: resolved, and never inside the checkout."""
-    tasks = Path.home().resolve() / 'harness-tasks' / f'{project.name}-fix'
+def task_directory(project: Path, verb: str) -> Path:
+    """Where the printed command keeps its task: resolved, and never inside the checkout."""
+    tasks = Path.home().resolve() / 'harness-tasks' / f'{project.name}-{verb}'
     if tasks.is_relative_to(project) or project.is_relative_to(tasks):
-        tasks = project.parent / f'{project.name}-fix-task'
+        tasks = project.parent / f'{project.name}-{verb}-task'
     return tasks
+
+
+def pytest_probe(python: str, tests: list) -> dict:
+    """A trusted probe that runs the named tests with pytest, in the environment repair allows."""
+    environment = {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
+    if os.name == 'nt':  # the Windows probe contract wants one frozen SystemRoot
+        environment['SystemRoot'] = os.environ.get('SystemRoot', r'C:\Windows')
+    else:
+        environment['PATH'] = '/usr/bin:/bin'
+    return {'argv': [python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', *tests], 'cwd': '.',
+            'timeout': PROBE_TIMEOUT, 'max_output_bytes': PROBE_OUTPUT,
+            'environment': environment, 'oracle_paths': list(tests)}
 
 
 def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path) -> dict:
@@ -143,14 +164,7 @@ def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: P
     ``repair.freeze`` reads the checkout and writes nothing, so a probe it
     accepts here is one ``fix`` accepts, refused otherwise in its words.
     """
-    environment = {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
-    if os.name == 'nt':  # the Windows probe contract wants one frozen SystemRoot
-        environment['SystemRoot'] = os.environ.get('SystemRoot', r'C:\Windows')
-    else:
-        environment['PATH'] = '/usr/bin:/bin'
-    probe = {'argv': [python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', *tests], 'cwd': '.',
-             'timeout': PROBE_TIMEOUT, 'max_output_bytes': PROBE_OUTPUT,
-             'environment': environment, 'oracle_paths': list(tests)}
+    probe = pytest_probe(python, tests)
     plan = freeze(project, scope, probe, tasks)
     # The files init is about to write count against the same entry bound fix enforces.
     new = sum(not ((project / name).exists() or (project / name).is_symlink()) for name in (REGISTRY, PROBE))
@@ -179,7 +193,7 @@ def execute_fix(args, project: Path) -> int:
     # Resolved, as the spec promises (Q5): the files init writes never trip fix's symlink rule.
     project = project.resolve()
     scope, tests = list(args.scope), list(args.tests)
-    tasks = fix_task_directory(project)
+    tasks = task_directory(project, 'fix')
     probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks)
     target, probe_path, files, replaced = project / REGISTRY, project / PROBE, [], None
     written = not (target.exists() or target.is_symlink())
@@ -209,15 +223,123 @@ def execute_fix(args, project: Path) -> int:
     return 0
 
 
+def work_request(project: Path, registry: dict, goal: str, scope: list, python: str, tests: list,
+                 tasks: Path) -> dict:
+    """The fields of a work request ``plan --request`` reads, with the effects frozen over the checkout.
+
+    One task changes the scope; the named tests, protected, are its check and
+    the final one. Worker and reviewer are distinct participants (R2).
+    """
+    from .work_effects import freeze as freeze_effects
+
+    participants = sorted(registry['participants'])
+    worker = 'lead' if 'lead' in participants else participants[0]
+    others = [name for name in participants if name != worker]
+    reviewer = 'reviewer' if 'reviewer' in others else others[0]
+    acceptance = [f'{test} passes' for test in tests]
+    parents = sorted({str(parent) for name in scope for parent in PurePosixPath(name).parents
+                      if str(parent) != '.' and not (project / parent).is_dir()})
+    probe = pytest_probe(python, tests)
+    effects = freeze_effects(project, scope, parents, tests, [], tasks,
+                             verification=[{'task_id': 'change', 'probe': probe},
+                                           {'task_id': 'final', 'probe': probe}])
+    def assign(role, participant, contract):
+        return {'role': role, 'participant': participant, 'output_contract': contract,
+                'budgets': dict(DEFAULT_BUDGETS)}
+    from .work_contract import SIGNALS
+
+    return {
+        'intent': {'goal': goal, 'context': [], 'scope': list(scope), 'constraints': [],
+                   'acceptance': acceptance, 'questions': []},
+        'signals': {**dict.fromkeys(SIGNALS, False), 'existing_artifact': None},
+        'assignments': [assign('planner', worker, 'Ordered task plan'),
+                        assign('worker', worker, 'Scoped file proposal'),
+                        assign('reviewer', reviewer, 'Evidence-backed critique')],
+        'controls': [],
+        'tasks': [{'id': 'change', 'objective': goal, 'dependencies': [], 'outputs': list(scope),
+                   'checks': acceptance}],
+        'inputs': [name for name in scope if (project / name).is_file()],
+        'budget': dict(DEFAULT_BUDGETS),
+        'effects': effects,
+    }
+
+
+def plan_next_action(project: Path, registry: Path, request: Path, tasks: Path) -> str:
+    command = (f'attune-harness plan --request {quote(request)} --project {quote(project)} '
+               f'--config {quote(registry)} --task-dir {quote(tasks)}')
+    return (f'Preview the work: {command}. Writing the request accepted nothing: accept the preview with '
+            f'plan --accept --checkpoint, then build it with a worker that proposes the change '
+            f'and --allow-external')
+
+
+def execute_plan(args, project: Path) -> int:
+    if not (args.goal and args.scope and args.interpreter and args.tests):
+        raise ValueError('init --for plan needs --goal, --scope, --interpreter and --tests')
+    project = project.resolve()
+    scope, tests = list(args.scope), list(args.tests)
+    tasks = (args.task_dir.expanduser().absolute() if args.task_dir is not None
+             else task_directory(project, 'plan'))
+    if tasks.exists() or tasks.is_symlink():
+        raise ValueError(f'Task directory already exists: {tasks}; plan needs a new one, so choose another --task-dir')
+    request_path = tasks.with_name(tasks.name + '.work.json')
+    if (request_path.exists() or request_path.is_symlink()) and not args.force:
+        raise ValueError(f'A work request already exists at {request_path}; pass --force to replace it')
+    python = interpreter(args.interpreter)
+    target, files, replaced = project / REGISTRY, [], None
+    written = not (target.exists() or target.is_symlink())
+    if written:
+        registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
+        validate_registry(registry, target)
+    else:  # build needs a distinct worker and reviewer, so two participants
+        registry = load_registry(target)
+    # The registry is part of the checkout the effects freeze, so it is written
+    # first, and removed again if anything after it refuses.
+    if written:
+        write_report(target, registry)
+    try:
+        request = work_request(project, registry, args.goal, scope, python, tests, tasks)
+        from .work_build import preflight
+        from .work_contract import draft_request
+
+        # Every check plan --request and build make, writing nothing.
+        drafted, _ = draft_request(project, target, directory=tasks, **request)
+        preflight(drafted)
+    except BaseException:
+        if written:
+            target.unlink()
+        raise
+    if written:
+        files.append(str(target))
+    if request_path.exists() or request_path.is_symlink():
+        replaced = backup(request_path, 'work request')
+    request_path.parent.mkdir(parents=True, exist_ok=True)
+    write_report(request_path, request)
+    files.append(str(request_path))
+    participants = sorted(registry['participants'])
+    native = any(item['adapter'] in ('claude', 'codex') for item in registry['participants'].values())
+    print(json.dumps({
+        'schema_version': 1, 'operation': 'init', 'status': 'created', 'path': str(target),
+        'profile': args.profile if written else None, 'participants': participants,
+        'requires': {'allow_external': True, 'allow_native': native},
+        'replaced': replaced, 'files': files,
+        'next_action': plan_next_action(project, target, request_path, tasks),
+    }, indent=2))
+    return 0
+
+
 def execute(args) -> int:
     try:
         project = (args.project or Path.cwd()).absolute()
         if not project.is_dir():
             raise ValueError(f'Project is not a directory: {project}')
         if args.starter == 'fix':
+            if args.goal or args.task_dir:
+                raise ValueError('--goal and --task-dir need --for plan')
             return execute_fix(args, project)
-        if args.scope or args.interpreter or args.tests:
-            raise ValueError('--scope, --interpreter and --tests need --for fix')
+        if args.starter == 'plan':
+            return execute_plan(args, project)
+        if args.scope or args.interpreter or args.tests or args.goal or args.task_dir:
+            raise ValueError('--scope, --interpreter, --tests, --goal and --task-dir need --for')
         target = project / REGISTRY
         registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
         validate_registry(registry, target)

@@ -301,7 +301,8 @@ def test_documented_plan_starter(home):
     init, preview, accept, build, status = doc_journeys.commands(doc_journeys.journeys()['plan-starter'])
     code, envelope, output = harness(split(doc_journeys.substitute(init, table))[1:], home)
     assert code == 0 and envelope and envelope['status'] == 'created', output
-    assert (repo / 'work.json').is_file() and str(repo / 'work.json') in envelope['files'], output
+    request = home / 'harness-tasks' / 'starter-plan.work.json'
+    assert request.is_file() and str(request) in envelope['files'], output
     code, envelope, output = harness(split(doc_journeys.substitute(preview, table))[1:], home)
     assert code == 0 and envelope and envelope['status'] == 'draft', output
     assert not envelope['questions']['missing'], output

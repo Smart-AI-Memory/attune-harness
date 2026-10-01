@@ -336,7 +336,7 @@ def _guidance(record, result):
         action = (
             "Inspect changed files and saved evidence. Retain the build journal; ordinary rebasing is unsupported. Resolve the mismatch before further work."
             if "build" in record
-            else "Inspect changed inputs and refresh the draft with plan --revise (or --reimport for an edited legacy plan), using this checkpoint and a current effect manifest where needed. Review the new draft before acceptance."
+            else "Inspect changed inputs and refresh the draft with plan --revise (or --reimport for an edited legacy plan), using this checkpoint and a current effect manifest where needed. If attune-harness init --for plan wrote the request, run that init again with --force and preview the new request in a new task directory. Review the new draft before acceptance."
         )
         return (
             "Saved evidence is stale; it cannot authorize the next action or establish current completion.",
