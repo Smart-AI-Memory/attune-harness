@@ -389,6 +389,40 @@ def test_the_files_init_writes_count_against_the_entry_bound(tmp_path, capsys, m
     assert code == 0, envelope
 
 
+@pytest.mark.parametrize('existing_registry', [False, True])
+@pytest.mark.parametrize('over_bound', [False, True])
+def test_forced_probe_backup_counts_before_any_write(tmp_path, capsys, existing_registry, over_bound):
+    from attune_harness import init_cli
+    from attune_harness.effect_limits import MAX_ENTRIES
+
+    root = checkout(tmp_path.resolve() / 'repo')
+    probe = init_cli.pytest_probe(sys.executable, ['tests/test_calc.py'])
+    (root / 'probe.json').write_text(json.dumps(probe), encoding='utf-8')
+    if existing_registry:
+        (root / 'participants.json').write_text(json.dumps({
+            'schema_version': 1, 'participants': PROFILES['demo']}), encoding='utf-8')
+    tasks = tmp_path.resolve() / 'state'
+    entries = len(repair.freeze(root, ['calc.py'], probe, tasks)['before'])
+    future_entries = 1 if existing_registry else 2  # probe backup, and an optional registry
+    for index in range(MAX_ENTRIES - future_entries + int(over_bound) - entries):
+        (root / f'padding-{index}').write_bytes(b'')
+    before = repair.freeze(root, ['calc.py'], probe, tasks)['before']
+    old_probe = (root / 'probe.json').read_bytes()
+    code, envelope = init_fix(capsys, root, '--force')
+    if over_bound:
+        assert code == 2 and envelope['error'] == {
+            'type': 'ValueError', 'detail': 'Checkout exceeds bounded repair profile'}, envelope
+        assert repair.freeze(root, ['calc.py'], probe, tasks)['before'] == before
+        assert not (root / 'probe.json.bak').exists()
+        assert (root / 'participants.json').exists() is existing_registry
+    else:
+        assert code == 0 and envelope['status'] == 'created', envelope
+        assert (root / 'probe.json.bak').read_bytes() == old_probe
+        assert (root / 'participants.json').exists()
+        accepted = repair.freeze(root, ['calc.py'], json.loads((root / 'probe.json').read_text()), tasks)
+        assert len(accepted['before']) == MAX_ENTRIES
+
+
 def test_a_task_directory_that_would_contain_the_checkout_is_not_used(tmp_path, capsys, monkeypatch):
     home = tmp_path.resolve() / 'home'
     root = checkout_at = home / 'harness-tasks' / 'repo-fix' / 'repo'
