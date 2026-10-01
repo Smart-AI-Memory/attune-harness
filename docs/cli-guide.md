@@ -181,7 +181,12 @@ manifest freezes. The example command participants in
 declared replacement (`calc.py`, `a - b` to `a + b`) and `reviewer` approves
 without judging. They are example code, carried inline as `python -c` with a
 readable copy in `examples/starter/worker.py`, so they need `python` on PATH.
-Use your own participants for real work. On 1.2.0 `init --for` is refused.
+`examples/` is in the repository, not the installed package: run any block
+that names it from a checkout of this repository, with a virtual
+environment activated so that `python` is on PATH on every platform
+(`source .venv/bin/activate`, or `.venv\Scripts\activate` on Windows).
+Use your own participants for real work: the participants `init` writes are
+for review and cannot build. On 1.2.0 `init --for` is refused.
 This journey and the `fix` one below run in CI as printed.
 
 <!-- journey: plan-starter -->
