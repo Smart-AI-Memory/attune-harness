@@ -50,6 +50,9 @@ if args[:2] == ["pr", "view"]:
     if state.get("merged"):
         frame.update(state="MERGED", mergeCommit={"oid": state["merged"]})
     jq({field: frame.get(field) for field in fields}, query)
+elif args[:2] == ["pr", "list"]:
+    base = args[args.index("--base") + 1]
+    jq([{"number": n} for n in state.get("dependents", {}).get(base, [])], args[args.index("--jq") + 1])
 elif args[:2] == ["pr", "merge"]:
     state["merge_args"] = args
     state["merged"] = state["merge_commit"]
@@ -76,7 +79,7 @@ def frame(*checks, merge_state="CLEAN", head=HEAD):
     return {"headRefOid": head, "mergeStateStatus": merge_state, "statusCheckRollup": list(checks)}
 
 
-def run_gate(tmp_path, frames, *, trees=None, runs=None, extra_args=(), wait=30, grace=30):
+def run_gate(tmp_path, frames, *, trees=None, runs=None, extra_args=(), wait=30, grace=30, dependents=None):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     (bin_dir / "fake_gh.py").write_text(FAKE_GH, encoding="utf-8")
@@ -84,6 +87,7 @@ def run_gate(tmp_path, frames, *, trees=None, runs=None, extra_args=(), wait=30,
     gh.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{bin_dir / "fake_gh.py"}" "$@"\n', encoding="utf-8")
     gh.chmod(0o755)
     state = {"frames": frames, "merge_commit": MERGED, "trees": trees or {HEAD: "t1", MERGED: "t1"},
+             "dependents": dependents or {},
              "runs": runs or {}}
     (bin_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
     repo = tmp_path / "repo"
@@ -183,3 +187,15 @@ def test_a_check_whose_only_run_was_cancelled_still_fails(tmp_path):
     result, state = run_gate(tmp_path, [frame(check("Classify change", "CANCELLED"), check("Qualification"))])
     assert result.returncode == 1 and "Classify change (CANCELLED)" in result.stderr, result.stderr
     assert "merge_args" not in state
+
+
+def test_a_branch_other_pull_requests_are_based_on_is_not_merged(tmp_path):
+    """Merging deletes the head branch, stranding its dependents (#193 and #194)."""
+    result, state = run_gate(tmp_path, [frame(check("Qualification"))], dependents={"fix/gate": [21, 22]})
+    assert result.returncode == 2 and "is the base of #21, #22" in result.stderr, result.stderr
+    assert "retarget them to main first" in result.stderr and "merge_args" not in state
+
+
+def test_dependents_of_another_branch_do_not_block(tmp_path):
+    result, state = run_gate(tmp_path, [frame(check("Qualification"))], dependents={"other/branch": [21]})
+    assert result.returncode == 0 and "merge_args" in state, result.stderr

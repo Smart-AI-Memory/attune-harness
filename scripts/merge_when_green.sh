@@ -98,6 +98,11 @@ done
 
 title=$(view title .title)
 [[ -n "${title// /}" ]] || { echo "#$number has an empty title; refusing an empty squash subject" >&2; exit 1; }
+# The merge deletes the head branch, which strands every open pull request
+# based on it (#194 was retargeted by hand before #193 merged): refuse first.
+branch=$(view headRefName .headRefName)
+dependents=$(gh pr list --base "$branch" --state open --json number --jq 'map("#\(.number)") | join(", ")')
+[[ -z "$dependents" ]] || { echo "#$number is the base of $dependents: retarget them to main first, then run again" >&2; exit 2; }
 gh pr merge "$number" --squash --match-head-commit "$head" --subject "$title (#$number)" >/dev/null
 until [[ "$(view state .state)" == MERGED ]]; do tick; done
 
@@ -111,7 +116,6 @@ if [[ "$(tree "$merged")" != "$(tree "$head")" ]]; then
   exit 4
 fi
 
-branch=$(view headRefName .headRefName)
 # The repository deletes the head branch on merge; this covers a repository that does not.
 git push origin --delete "$branch" >/dev/null 2>&1 || true
 if [[ "$(git branch --show-current 2>/dev/null)" == "$branch" ]]; then
