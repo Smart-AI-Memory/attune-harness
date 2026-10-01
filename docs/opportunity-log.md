@@ -307,6 +307,53 @@ and the refusal names the link and the path to use ("…: /tmp links to
 touches the saved `test_root` field and needs its own scope, and the guide's
 `plan` block running as printed in CI, which waits on O-70's `work.json`.
 
+O-77, 2026-09-30 — **user** lens (starter-files T3, #194). The path `init --for
+plan` prints stops at `build` when the registry is the one `init` wrote. On a
+scratch checkout with `init`'s demo registry, the printed preview gave a draft
+and `--accept` gave accepted, but `build --allow-external` refused: "Build
+proposals cannot carry review tools or policies". The demo participants carry
+`retrieve`/`verify` tools and cannot propose files. The `next_action` says a
+worker that proposes the change is needed, but it names none. With a command
+worker in `--config`, the same request built and repaired the file. Candidate:
+once T4 ships `examples/starter/`, have `init --for plan`'s `next_action` name
+that registry for `--config`; or have `build`'s refusal say which participant
+lacks what. Done when following `init`'s printed commands reaches a completed
+build or a refusal naming the fix. Effort small. No work authorized.
+
+O-78, 2026-09-30 — **review** lens (#194's two passes). A verb that writes two
+files and refuses in between left the first behind. T3's first pass found five
+cases in which `participants.json` stayed after the request write refused;
+fixed by one rollback over every write. The same shape is in T2's
+`execute_fix`: the registry is written, then `probe.json`, and a failed probe
+write leaves the registry (by reading; not reproduced). Candidate: the same
+rollback in `execute_fix`, with one injected-failure test. Done when a failed
+probe write leaves the project as it was. Effort small, `src/`, needs a
+different-model review. No work authorized.
+
+O-79, 2026-09-30 — **review** lens, the **bound** class again (#67, then #194
+S2 and N1). A size bound was measured on something other than the bytes
+written. `write_report` writes indented JSON in text mode, so CRLF on Windows,
+and `plan --request` reads at most 1 MiB. A long-named 1,700-file checkout gave
+a 1,051,370-byte request that `init` wrote and `plan` refused. Fixed in #194 by
+measuring the written bytes, `os.linesep` included. Candidate: have the writer
+take the reader's limit (for example `write_report(path, value, limit=...)`),
+so the next writer-reader pair cannot drift. Done when every reader's limit has
+a matching writer check or a note that none is needed. Effort small. No work
+authorized.
+
+O-80, 2026-09-30 — **next-rung** lens (T4). The build half of T4's worker is
+proven: a 15-line command peer in the R2 journey's protocol completed the
+build from `init --for plan`'s request. Still unproven: the repair turn
+`fix-starter` needs, and the Windows run of `plan-starter`. Its preview-driven
+unit tests are POSIX-only because `shlex` cannot read `list2cmdline` output,
+but the R2 journey built on Windows. Candidate for T4's scope: one peer that
+answers both turn kinds, and a note on whether `plan-starter` is required on
+the Windows jobs. Done when both journeys pass in the six jobs or a skip says
+why. No work authorized.
+
+The entry a user would meet first is O-77: with T3 merged and before T4, the
+commands `init --for plan` prints stop at `build`.
+
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.
 Main `38a5663909139a1811013c8f30d072a516c0067e` matches PR161's tested tree

@@ -13,7 +13,12 @@
     {
       "name": "attune-harness",
       "description": "Run Attune Harness task workflows from Claude Code: plan, build, evidence review, scoped repair, testing a change, and inspecting or resuming saved tasks. Also includes independent cross-review and test-gap skills. Needs the attune-harness CLI from PyPI (uv tool install 'attune-harness[all]'); installing the plugin authorizes no paid calls.",
-      "source": "./",
+      "source": {
+        "source": "github",
+        "repo": "Smart-AI-Memory/attune-harness",
+        "ref": "v1.2.0",
+        "sha": "d833c371f5fb132ddc2af35e5cb069169dae1df3"
+      },
       "version": "1.2.0",
       "author": {
         "name": "Smart AI Memory",

@@ -56,9 +56,11 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 
 1. **Prepare.** One pull request sets the final `version` in `pyproject.toml`,
    adds a `## X.Y.Z` heading to `CHANGELOG.md`, pins README links to the
-   `vX.Y.Z` tag, and sets the same version in `.claude-plugin/marketplace.json`
-   (both fields) and in both `plugin/attune-harness` manifests;
-   `tests/test_claude_plugin.py` fails until they match. Build locally and run `twine check --strict`, then install the
+   `vX.Y.Z` tag, and sets the same version in both `plugin/attune-harness`
+   manifests; `tests/test_claude_plugin.py` fails until they match. It does not
+   touch `.claude-plugin/marketplace.json`: that catalog serves Claude Code
+   users from `main`, and it points at a release tag that does not exist yet
+   (step 9). Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.
 2. **Merge.** The squash commit on `main` is the release SHA. Use all 40
    characters everywhere below.
@@ -92,7 +94,15 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    attaching the two files from the publish run. Do this straight after step 7:
    the README on PyPI links to the tag, and those links return 404 until it
    exists.
-9. **Reopen development.** A pull request moves `main` to the next `.dev0`
+9. **Point the Claude plugin at the tag.** A pull request sets the plugin
+   entry in `.claude-plugin/marketplace.json` to the new tag: `ref` to
+   `vX.Y.Z`, `sha` to the release SHA, and `version` and `metadata.version` to
+   `X.Y.Z`. Claude Code reads that catalog from `main` and installs the plugin
+   from the pinned commit, so users get the released skills and never an
+   unreleased `main`. `tests/test_claude_plugin.py` checks the pin against the
+   tag when tags are present. Users receive it on their next marketplace
+   update, because the version changed.
+10. **Reopen development.** A pull request moves `main` to the next `.dev0`
    version, so a build from `main` cannot be mistaken for the release.
 
 ## Things that look wrong and are not

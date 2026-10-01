@@ -46,6 +46,15 @@ findings; the author reproduces each before fixing.
    names, replace under an open handle, console script paths.
 6. **No `import attune`**, and no dependency on Attune AI, anywhere in the
    new files.
+7. **A writer of another verb's input runs that verb's own validation.** When
+   the change writes something another verb reads (a starter file, a printed
+   command, a saved request), check that the writer calls the reader's
+   validation as a dry run, not a copy of it, and calls it after anything the
+   writer itself adds. Construct the inputs the reader refuses and confirm the
+   writer refuses each one first, in the reader's words. Added after the
+   starter-files T2 review (#193), where `init --for fix` accepted a symlinked
+   project, hard-linked files and a symlinked HOME that `fix` then refused.
+   Classes: round-trip, input.
 
 ## The report
 

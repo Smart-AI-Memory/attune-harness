@@ -28,3 +28,6 @@ CLAUDE.md
 # Files already tracked there stay tracked; a new one is added by name with git add -f.
 docs/handoffs/
 docs/reflections/
+
+# The repo pins with requirements-*.lock; `uv run` would add a second, conflicting pin.
+uv.lock

@@ -18,7 +18,7 @@ T5 is independent. T6 closes out.
   Done when: both run in the six installed-wheel jobs and fail as expected.
   Size: one PR, no `src/` change.
 
-- [ ] **T2: `init --for fix` (R1).**
+- [x] **T2: `init --for fix` (R1).** Done; `fix-starter` stays red until T4.
   Scope: `init_cli.py`, `tests/test_init_cli.py`, the surface fixture, the
   `init` rows in `docs/envelopes.md`, and the changelog.
   Done when: `fix-starter` passes once T4 lands, and `init` without `--for`
@@ -28,16 +28,16 @@ T5 is independent. T6 closes out.
   plan". Test that `--for` and `--force` stay distinct.
   Size: one PR, `src/`, different-model review.
 
-- [ ] **T3: `init --for plan` (R2).**
+- [x] **T3: `init --for plan` (R2).** Done; `plan-starter` stays red until T4.
   Scope: `init_cli.py` calling `work_effects.freeze`, the staleness
   `next_action`, and tests.
   Done when: the written request passes the owners' validators and previews
   in `plan`, and `plan-starter` passes once T4 lands.
   Size: one PR, `src/`, different-model review.
 
-- [ ] **T4: the example command worker (R3).**
+- [x] **T4: the example command worker (R3).** Done; both journeys pass without their xfail marks.
   Scope: `examples/starter/`, used by `plan-starter` and `fix-starter`: a
-  registry naming `starter-worker` and `starter-reviewer`, and a worker that
+  registry naming `lead` and `reviewer` (amended at T3), and a worker that
   answers both build and repair turns.
   Done when: both journeys pass on all six jobs.
   Size: small, no `src/` change.

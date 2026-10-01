@@ -80,10 +80,13 @@ recorded:
    and bounded claim audit.
 3. **Candidates.** 1.0.0rc1 and rc2 were published to production PyPI on
    September 28, and rc2's fresh `[all]` install passed.
-4. **Stable 1.0.0.** Patrick accepted the shortened candidate period and
-   authorized each merge, dispatch, publication and tag under the
-   [runbook](release-runbook.md). Stable v1 does not deprecate Attune AI or
-   claim GUI/workflow parity.
+4. **Stable 1.0.0.** On September 28, after reviewing the README, Patrick
+   authorized proceeding with stable publication and shepherding
+   [#169](https://github.com/Smart-AI-Memory/attune-harness/pull/169), under
+   the [runbook](release-runbook.md). This was an accelerated release
+   decision: the fourteen-day candidate observation had not run (#169's
+   body; [release notes](release-notes-1.0.0.md)). Stable v1 does not
+   deprecate Attune AI or claim GUI/workflow parity.
 
 ## Next, ranked (September 30, R0+2)
 
@@ -102,6 +105,13 @@ equal; each item is a separate pull request.
 Four stable releases in two days is fast for a stabilization period. Batch
 compatible fixes into one release per window unless a critical defect needs
 its own.
+
+**O-70 is ruled a journey defect (2026-09-30 retro).** The rule above against
+starting a feature chain in the window allows defects. `plan` and `fix` stop
+before they start for a new user, so the starter-files chain (T1–T6) proceeds
+inside the window. Its release, 1.3.0, is one batched release in R0+8–R0+13
+(October 6–11), not one per task. The S3, S6 and S9 observations still come
+before any claim of acceptance. Building O-70 does not close them.
 
 ## R0 through R0+14: post-release stabilization
 
