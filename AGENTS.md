@@ -112,6 +112,13 @@ those limits. No agent can widen them.
 - The author of a change does not review it. Before merging anything that
   touches `src/`, get a review from a different model or from Patrick, and
   record in the pull request who reviewed it and what they found.
+- A review covers the commit it read. A commit that touches `src/` after the
+  reviewer approves goes back to that reviewer as a delta, the new diff only,
+  before the pull request merges, even when it is exactly the reviewer's own
+  suggestion; record that pass with the review. Test-only and docs-only
+  commits after approval are listed in the body and need no second pass.
+  (Ratified in the 2026-09-30 retro, after #194 merged a one-line `src/`
+  change made after its approval.)
 - Record the review in the body before the push that carries the fix
   commits. The `Classify change` gate reads the body once, from the event
   that started its run, and fails a `src/` pull request whose body still says
