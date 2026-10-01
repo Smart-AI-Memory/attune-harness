@@ -43,7 +43,12 @@ findings; the author reproduces each before fixing.
 5. **Python 3.10 and Windows.** No newer syntax or stdlib; nothing that only
    POSIX provides without a guard. Check the change against each entry of
    [the Windows traps](windows-traps.md): append, case folding, device
-   names, replace under an open handle, console script paths.
+   names, replace under an open handle, console script paths. In tests, a
+   checkout is undone with the `unmake_checkout` fixture (rename `.git`,
+   never delete it: Windows refuses Git's read-only objects), and an assertion
+   on a refusal's text names the Windows backend's own words where they
+   differ ("Accepted Windows paths…", "Windows protected inputs…"); both
+   failed CI on #193 and #194.
 6. **No `import attune`**, and no dependency on Attune AI, anywhere in the
    new files.
 7. **A writer of another verb's input runs that verb's own validation.** When
