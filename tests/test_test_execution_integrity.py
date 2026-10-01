@@ -183,7 +183,15 @@ def test_interpreter_drift_is_detected_without_modifying_installed_python(projec
         f'home = {Path(sys._base_executable).resolve().parent}\n'
         'include-system-site-packages = true\n', encoding='utf-8'
     )
-    (environment / 'lib').symlink_to(Path(sys.prefix) / 'lib', target_is_directory=True)
+    # Keep the environment's packages, and give a copied binary that links a shared
+    # libpython through @executable_path/../lib (python-build-standalone on macOS) its
+    # library; without it dyld aborts the child with SIGABRT before pytest starts.
+    (environment / 'lib').mkdir()
+    for entry in (Path(sys.prefix) / 'lib').iterdir():
+        (environment / 'lib' / entry.name).symlink_to(entry)
+    for library in (Path(sys.base_prefix) / 'lib').glob('libpython*'):
+        if not (environment / 'lib' / library.name).exists():
+            (environment / 'lib' / library.name).symlink_to(library)
     directory = tmp_path / 'task'
     draft = test_change.create_test_task(project, directory, scope=['src/demo/logic.py'],
                                         interpreter=str(executable))
