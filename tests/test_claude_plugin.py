@@ -1,7 +1,11 @@
 """The published Claude Code plugin (first-run journey T2, R4 and Q4).
 
-``.claude-plugin/marketplace.json`` publishes one plugin whose source is the
-repository root. Because the entry lists its skill folders, Claude Code loads
+``.claude-plugin/marketplace.json`` publishes one plugin whose source is this
+repository at the latest release tag, pinned by commit, so Claude Code users get
+the released skills while ``main`` moves on (retro 2026-09-30, item 1; probed
+live on Claude Code 2.1.284). Claude Code reads the catalog from ``main``, so it
+changes only at a release, after the tag exists. Because the entry lists its
+skill folders, Claude Code loads
 exactly those and does not scan a default ``skills/``: the Harness skill from
 its one source, ``.agents/skills/attune-harness``, plus ``cross-review`` and
 ``smart-test``. The Spec workspace skill, its MCP server and the two
@@ -17,7 +21,10 @@ version (docs/codex-plugin.md).
 import json
 import re
 import shlex
+import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKETPLACE = ROOT / '.claude-plugin' / 'marketplace.json'
@@ -37,9 +44,32 @@ def entry():
     return plugin
 
 
-def test_marketplace_carries_the_package_version():
+def release(value):
+    """A final release version as a comparable tuple; a development or candidate suffix is dropped."""
+    return tuple(int(part) for part in re.match(r'(\d+)\.(\d+)\.(\d+)', value).groups())
+
+
+def test_marketplace_serves_a_released_tag():
+    """The published plugin is a released version (D30.2), pinned to its tag's commit, never main."""
     marketplace = json.loads(MARKETPLACE.read_text(encoding='utf-8'))
-    assert marketplace['metadata']['version'] == entry()['version'] == version()
+    published = entry()['version']
+    assert re.fullmatch(r'\d+\.\d+\.\d+', published), published
+    assert marketplace['metadata']['version'] == published
+    assert entry()['source'] == {'source': 'github', 'repo': 'Smart-AI-Memory/attune-harness',
+                                 'ref': f'v{published}', 'sha': entry()['source']['sha']}
+    assert re.fullmatch(r'[0-9a-f]{40}', entry()['source']['sha'])
+    # main may be at the release or ahead of it, never behind.
+    assert release(published) <= release(version())
+
+
+def test_the_pinned_commit_is_the_tag_when_tags_are_present():
+    """A shallow CI checkout has no tags; a full clone checks the pin against the tag."""
+    source = entry()['source']
+    found = subprocess.run(['git', '-C', str(ROOT), 'rev-parse', '--verify', '-q', f"{source['ref']}^{{commit}}"],
+                           capture_output=True, text=True)
+    if found.returncode != 0:
+        pytest.skip(f"tag {source['ref']} is not in this checkout")
+    assert found.stdout.strip() == source['sha']
 
 
 def test_shared_plugin_manifests_carry_the_package_version():
@@ -50,13 +80,13 @@ def test_shared_plugin_manifests_carry_the_package_version():
 
 def test_entry_publishes_exactly_the_chosen_skills():
     plugin = entry()
-    assert plugin['name'] == 'attune-harness' and plugin['source'] == './'
+    assert plugin['name'] == 'attune-harness' and plugin['source']['source'] == 'github'
     assert tuple(plugin['skills']) == PUBLISHED_SKILLS
     for path in plugin['skills']:
         assert (ROOT / path / 'SKILL.md').is_file(), path
     # No MCP server: the workspace server belongs with the Spec skill, which waits for M3.
     assert not {'mcpServers', 'lspServers', 'hooks', 'commands', 'agents'} & set(plugin)
-    # A root-source plugin must not have a plugin.json at the root, or the entry stops being its manifest.
+    # The plugin is the repository root at the tag: a root plugin.json would replace the entry as its manifest.
     assert not (ROOT / '.claude-plugin' / 'plugin.json').exists()
 
 

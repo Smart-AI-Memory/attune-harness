@@ -11,8 +11,14 @@
   unchanged. The check now runs before `build` asks for dispatch flags, so a
   registry whose participants carry tools gets this refusal without
   `--allow-external` or `--allow-native`, where it used to get the
-  dispatch-authority refusal first. The CLI guide says the starter journeys run from a checkout of
-  this repository with a virtual environment activated.
+  dispatch-authority refusal first. The CLI guide says the starter journeys
+  run from a checkout of this repository with a virtual environment activated.
+- The Claude Code plugin is served from the latest release tag, pinned by
+  commit, instead of from `main`. The marketplace entry's source is now
+  `github` with `ref: v1.2.0` and its `sha`. Users get the released skills
+  while `main` moves on, and `main`'s version can move ahead of PyPI. The
+  catalog changes only at a release, after the tag exists (runbook step 9).
+  Probed live on Claude Code 2.1.284.
 - `init --for fix --scope FILE… --interpreter PY --tests PATH…` writes the
   trusted probe `fix` reads, `probe.json`, and the participant registry if
   there is none (starter-files T2). The probe runs the named tests with
