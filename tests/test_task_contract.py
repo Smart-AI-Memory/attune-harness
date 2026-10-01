@@ -14,7 +14,7 @@ from attune_harness.cli import main
 from attune_harness.review_contract import load_registry
 from attune_harness.review_store import RunStore, PersistenceError
 from attune_harness.task_contract import (accept_task, check_fresh, create_task,
-                                         read_task, revise_task)
+                                         read_task, revise_task, safe_storage)
 from attune_harness.task_cli import (clear_template_cache, present_task, task_template)
 from test_review import case, change
 
@@ -429,6 +429,21 @@ def test_symlink_task_storage_is_rejected(case):
     with pytest.raises(ValueError, match='symlink'):
         draft(case, directory=alias / 'task')
     assert not (real / 'task').exists()
+
+
+def test_symlink_refusal_names_the_link_and_the_path_to_use(tmp_path):
+    real = tmp_path / 'real'; real.mkdir()
+    alias = tmp_path / 'alias'
+    try:
+        alias.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip('Host lacks symlink creation permission')
+    with pytest.raises(ValueError) as refused:
+        safe_storage(alias / 'my-work')
+    message = str(refused.value)
+    assert f'{alias} links to {real.resolve()}' in message
+    assert message.endswith(f'use {(real / "my-work").resolve()}')
+    assert safe_storage((real / 'my-work').resolve()) == (real / 'my-work').resolve()
 
 
 def test_declined_interactive_intake_remains_unaccepted(case, monkeypatch, capsys):

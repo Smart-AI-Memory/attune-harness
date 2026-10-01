@@ -108,7 +108,7 @@ def home(tmp_path):
 def test_documented_journeys_are_tagged():
     """The tags this test runs exist; losing one would silently drop its journey."""
     assert {'checks-and-receipts', 'test-this-change', 'review-bundled-example', 'init',
-            'first-run'} <= set(doc_journeys.journeys())
+            'first-run', 'plan-starter', 'fix-starter'} <= set(doc_journeys.journeys())
 
 
 def test_demo(home):
@@ -265,3 +265,77 @@ def test_documented_init(home):
     other.mkdir()
     code, envelope, output = harness(split(doc_journeys.substitute(second, {'/path/to/repo': str(other)}))[1:], home)
     assert code == 0 and envelope['profile'] == 'claude' and envelope['requires']['allow_native'], output
+
+
+# Starter files (docs/specs/starter-files): plan and fix from commands alone (R5).
+
+def failing_repository(root):
+    """A committed project whose one test fails: ``add`` subtracts. The starter worker repairs it."""
+    root.mkdir()
+    (root / 'tests').mkdir()
+    (root / 'calc.py').write_text('def add(a, b):\n    return a - b\n', encoding='utf-8')
+    (root / 'tests' / 'test_calc.py').write_text('from calc import add\n\n\ndef test_add():\n    assert add(2, 2) == 4\n',
+                                                 encoding='utf-8')
+    hooks = root.parent / 'no-hooks'
+    hooks.mkdir(exist_ok=True)
+    git = ['git', '-C', str(root), '-c', 'commit.gpgsign=false', '-c', f'core.hooksPath={hooks}',
+           '-c', 'user.name=Journey', '-c', 'user.email=journey@example.invalid']
+    subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
+    subprocess.run([*git, 'add', '.'], check=True, capture_output=True)
+    subprocess.run([*git, 'commit', '-qm', 'baseline'], check=True, capture_output=True)
+    return root
+
+
+def starter_table(home, repo):
+    """The starter journeys' placeholders; ``~/harness-tasks`` stays inside this case's directory."""
+    return {'/path/to/repo': str(repo), '/path/to/venv/bin/python': sys.executable,
+            '/path/to/examples/starter/participants.json': str(ROOT / 'examples' / 'starter' / 'participants.json'),
+            '~/harness-tasks': str(home / 'harness-tasks')}
+
+
+def test_the_starter_registry_carries_the_readable_worker():
+    """participants.json runs worker.py's text inline; the readable copy must be what runs (R3)."""
+    starter = ROOT / 'examples' / 'starter'
+    registry = json.loads((starter / 'participants.json').read_text(encoding='utf-8'))
+    code = (starter / 'worker.py').read_text(encoding='utf-8')
+    assert sorted(registry['participants']) == ['lead', 'reviewer']
+    for item in registry['participants'].values():
+        assert item['adapter'] == 'command' and item['command'][:3] == ['python', '-c', code]
+        assert item['command'][3:] == ['calc.py', 'a - b', 'a + b']
+
+
+def test_documented_plan_starter(home):
+    """init --for plan, preview, accept, build and status, as the CLI guide writes them."""
+    repo = failing_repository(home / 'repo')
+    table = starter_table(home, repo)
+    init, preview, accept, build, status = doc_journeys.commands(doc_journeys.journeys()['plan-starter'])
+    code, envelope, output = harness(split(doc_journeys.substitute(init, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'created', output
+    request = home / 'harness-tasks' / 'starter-plan.work.json'
+    assert request.is_file() and str(request) in envelope['files'], output
+    code, envelope, output = harness(split(doc_journeys.substitute(preview, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'draft', output
+    assert not envelope['questions']['missing'], output
+    table['<preview-checkpoint>'] = envelope['checkpoint_digest']
+    code, envelope, output = harness(split(doc_journeys.substitute(accept, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'accepted', output
+    code, envelope, output = harness(split(doc_journeys.substitute(build, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'completed', output
+    code, envelope, output = harness(split(doc_journeys.substitute(status, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'completed', output
+    assert (repo / 'calc.py').read_text(encoding='utf-8') == 'def add(a, b):\n    return a + b\n'
+
+
+@POSIX_ONLY
+def test_documented_fix_starter(home):
+    """init --for fix, then fix from the failing test to a passing probe, as the CLI guide writes them."""
+    repo = failing_repository(home / 'repo')
+    table = starter_table(home, repo)
+    init, repair = doc_journeys.commands(doc_journeys.journeys()['fix-starter'])
+    code, envelope, output = harness(split(doc_journeys.substitute(init, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'created', output
+    assert (repo / 'probe.json').is_file() and str(repo / 'probe.json') in envelope['files'], output
+    code, envelope, output = harness(split(doc_journeys.substitute(repair, table))[1:], home)
+    assert code == 0 and envelope and envelope['status'] == 'completed', output
+    assert (repo / 'calc.py').read_text(encoding='utf-8') == 'def add(a, b):\n    return a + b\n'
+

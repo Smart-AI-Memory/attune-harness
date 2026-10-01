@@ -335,8 +335,15 @@ def _sha(value):
 
 def _capture(request, directory):
     root = Path(request["project_root"])
-    if not root.is_dir() or root.resolve() != root:
+    if not root.is_dir():
         raise ValueError("Project must remain an existing resolved directory")
+    if root.resolve() != root:
+        # The root is resolved when the task is made, so only a saved task reaches
+        # this: the checkout moved or a link was put in its place since then.
+        raise ValueError(
+            "Project must remain an existing resolved directory; it now resolves "
+            f"to {root.resolve()}, so start a new task from that path"
+        )
     if directory.is_relative_to(root) or root.is_relative_to(directory):
         raise ValueError("Feature-work state must be outside the project")
     paths = request["inputs"] + (
@@ -373,7 +380,30 @@ def missing_information(request: dict) -> list:
     return missing
 
 
-def create_work(
+def create_work(project_root, config_path, *, directory, **request_fields) -> dict:
+    """Capture a local work proposal without granting effects or provider calls."""
+    request, target = draft_request(project_root, config_path, directory=directory, **request_fields)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    store = RunStore(target)
+    record = {
+        "schema_version": 1,
+        "operation": "task",
+        "task_profile": PROFILE,
+        "status": "draft",
+        "request": request,
+        "record_path": str(store.path),
+        "acceptance": None,
+        "bindings": {},
+        "events": [],
+        "history": [],
+        "recovery": copy.deepcopy(RECOVERY),
+    }
+    with store.lease():
+        store.save(record)
+    return record
+
+
+def draft_request(
     project_root,
     config_path,
     *,
@@ -389,8 +419,12 @@ def create_work(
     budget=None,
     effects=None,
     legacy=None,
-) -> dict:
-    """Capture a local work proposal without granting effects or provider calls."""
+):
+    """Every check ``create_work`` makes, writing nothing; returns the request and task directory.
+
+    ``init --for plan`` runs it before writing its work request, so what
+    init writes is what ``plan --request`` accepts (starter-files R2).
+    """
     root, target = Path(project_root).resolve(), safe_storage(directory)
     registry, config = load_task_registry(config_path)
     # Extensions/retrieval need their own later operation qualification.
@@ -424,24 +458,7 @@ def create_work(
     )
     request["evidence"] = _capture(request, target)
     _validate_request(request)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    store = RunStore(target)
-    record = {
-        "schema_version": 1,
-        "operation": "task",
-        "task_profile": PROFILE,
-        "status": "draft",
-        "request": request,
-        "record_path": str(store.path),
-        "acceptance": None,
-        "bindings": {},
-        "events": [],
-        "history": [],
-        "recovery": copy.deepcopy(RECOVERY),
-    }
-    with store.lease():
-        store.save(record)
-    return record
+    return request, target
 
 
 def decision_binding(record: dict) -> dict:

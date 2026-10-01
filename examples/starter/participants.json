@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "participants": {
+    "lead": {
+      "adapter": "command",
+      "command": [
+        "python",
+        "-c",
+        "\"\"\"The starter command participant (starter-files R3). Example code, not a profile or a default.\n\nApplies one declared replacement, `PATH OLD NEW` from its arguments, as the\nworker of a build or a repair, and approves as the reviewer without judging.\nNo model call. participants.json carries this file inline (`python -c`), so it\nneeds `python` on PATH; tests/test_cold_start_journey.py checks the two match.\n\"\"\"\nimport hashlib, json, sys\npath, old, new = sys.argv[1:4]\nrequest = json.load(sys.stdin)\nturn = request['turn']\nrepair = turn.get('repair')\n\n\ndef swap(text):\n    if text.count(old) != 1:\n        raise SystemExit(f'starter worker: expected exactly one {old!r} in {path}')\n    return text.replace(old, new)\n\n\nif repair is not None and turn['role'] == 'worker':\n    value = {'schema_version': 1, 'replacements': [\n        {'path': path, 'before_sha256': repair['before_hashes'][path], 'text': swap(repair['before_files'][path])}]}\nelif repair is not None:\n    value = {'schema_version': 1, 'artifact_digest': repair['artifact_digest'],\n             'probe_digest': repair['probe_digest'], 'verdict': 'approve', 'findings': []}\nelif turn['role'] == 'worker':\n    step, source = turn['step'], turn['source_evidence']\n    value = {'schema_version': 1, 'task_id': step['id'], 'dependencies': step['dependencies'], 'files': [\n        {'path': path, 'before_sha256': hashlib.sha256(source[path].encode('utf-8')).hexdigest(),\n         'text': swap(source[path])}]}\nelse:\n    value = {'kind': 'critique', 'findings': [],\n             'notes': ['The starter reviewer approves without judging; it is an example, not a review.']}\nprint(json.dumps({'schema_version': 1, 'request_digest': request['request_digest'],\n                  'action': {'kind': 'final', 'text': json.dumps(value)}}))\n",
+        "calc.py",
+        "a - b",
+        "a + b"
+      ],
+      "timeout": 30,
+      "tools": [],
+      "max_turns": 1,
+      "max_tool_calls": 0
+    },
+    "reviewer": {
+      "adapter": "command",
+      "command": [
+        "python",
+        "-c",
+        "\"\"\"The starter command participant (starter-files R3). Example code, not a profile or a default.\n\nApplies one declared replacement, `PATH OLD NEW` from its arguments, as the\nworker of a build or a repair, and approves as the reviewer without judging.\nNo model call. participants.json carries this file inline (`python -c`), so it\nneeds `python` on PATH; tests/test_cold_start_journey.py checks the two match.\n\"\"\"\nimport hashlib, json, sys\npath, old, new = sys.argv[1:4]\nrequest = json.load(sys.stdin)\nturn = request['turn']\nrepair = turn.get('repair')\n\n\ndef swap(text):\n    if text.count(old) != 1:\n        raise SystemExit(f'starter worker: expected exactly one {old!r} in {path}')\n    return text.replace(old, new)\n\n\nif repair is not None and turn['role'] == 'worker':\n    value = {'schema_version': 1, 'replacements': [\n        {'path': path, 'before_sha256': repair['before_hashes'][path], 'text': swap(repair['before_files'][path])}]}\nelif repair is not None:\n    value = {'schema_version': 1, 'artifact_digest': repair['artifact_digest'],\n             'probe_digest': repair['probe_digest'], 'verdict': 'approve', 'findings': []}\nelif turn['role'] == 'worker':\n    step, source = turn['step'], turn['source_evidence']\n    value = {'schema_version': 1, 'task_id': step['id'], 'dependencies': step['dependencies'], 'files': [\n        {'path': path, 'before_sha256': hashlib.sha256(source[path].encode('utf-8')).hexdigest(),\n         'text': swap(source[path])}]}\nelse:\n    value = {'kind': 'critique', 'findings': [],\n             'notes': ['The starter reviewer approves without judging; it is an example, not a review.']}\nprint(json.dumps({'schema_version': 1, 'request_digest': request['request_digest'],\n                  'action': {'kind': 'final', 'text': json.dumps(value)}}))\n",
+        "calc.py",
+        "a - b",
+        "a + b"
+      ],
+      "timeout": 30,
+      "tools": [],
+      "max_turns": 1,
+      "max_tool_calls": 0
+    }
+  }
+}
