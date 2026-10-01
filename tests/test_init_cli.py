@@ -711,3 +711,19 @@ def test_for_plan_task_dir_and_tests_stay_distinct_options():
     assert args.task_dir == Path('x') and args.tests == ['t.py'] and args.starter == 'plan'
     with pytest.raises(SystemExit):  # ambiguous, as the changelog says
         build_parser().parse_args(['init', '--t', 'x'])
+
+
+@POSIX_ONLY
+def test_building_with_the_registry_init_wrote_says_what_to_do(tmp_path, capsys):
+    """O-77: init's own participants are review participants; build names them and the fix."""
+    root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'demo'
+    code, envelope = init_plan(capsys, root, tasks)
+    assert "the participants init writes are for review and cannot" in envelope['next_action']
+    code, draft = preview_work(capsys, envelope)
+    code, accepted = run(capsys, 'plan', '--task-dir', str(tasks), '--accept', '--checkpoint', draft['checkpoint_digest'])
+    assert code == 0, accepted
+    code, refused = run(capsys, 'build', str(tasks), '--allow-external')
+    assert code == 2 and refused['error'] == {'type': 'ValueError',
+                                              'detail': 'Build proposals cannot carry review tools or policies'}, refused
+    assert refused['next_action'].startswith('Build needs a worker and a reviewer with no tools'), refused
+    assert 'lead, reviewer carry them' in refused['next_action'] and 'Plan the work again' in refused['next_action']

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `build` refused participants that carry review tools or a `review_mode`
+  ("Build proposals cannot carry review tools or policies") with a generic
+  next action. That covers every profile `init` writes. The refusal now names
+  the participants and says to plan the work again with participants that can
+  propose files. `init --for plan`'s `next_action` says up front that its own
+  participants cannot build (O-77). The message, type and exit code are
+  unchanged. The CLI guide says the starter journeys run from a checkout of
+  this repository with a virtual environment activated.
 - `init --for fix --scope FILE… --interpreter PY --tests PATH…` writes the
   trusted probe `fix` reads, `probe.json`, and the participant registry if
   there is none (starter-files T2). The probe runs the named tests with
