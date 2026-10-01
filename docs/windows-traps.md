@@ -92,3 +92,11 @@ without the attribute. **Where.** `.gitattributes`,
 - **A stale installed check is a Windows failure first.** The Windows jobs
   run the installed wheel from outside the source tree with `-I`; a path
   assumption the macOS job tolerates fails there.
+- **A copied Python binary may not start (macOS).** python-build-standalone
+  (uv's Python, and so this repo's usual venv) links a shared
+  `libpython` through `@executable_path/../lib`, so a copy of the binary
+  outside its install aborts in dyld with `-6` before running a line. The code
+  signature is not the cause; appending to the copy afterwards is fine. A test
+  that copies an interpreter must put the base prefix's `libpython*` beside
+  it. `test_interpreter_drift_is_detected_without_modifying_installed_python`
+  does. CI never showed it: the full suite runs only on Linux.
