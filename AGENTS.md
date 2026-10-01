@@ -225,6 +225,18 @@ that way.
 - Report what happened. If a check failed, a step was skipped, or you did not
   verify something, say so.
 
+## Walk the journey before a spec is approved
+
+A spec that promises a journey of commands states, for each command in order,
+what that command's owner refuses, and shows that the inputs the earlier steps
+produce satisfy every refusal. Cite the `raise` that each condition comes from.
+Put the walk in the spec's README as a table, before asking Patrick to approve
+the spec. A journey nobody has walked fails one step at a time, after
+approval. The starter-files spec was approved with two such contradictions:
+an empty goal that `plan --accept` refuses, and a `work.json` written into the
+checkout the effects freeze has already snapshotted. Both surfaced only during
+implementation (ratified in the 2026-09-30 retro).
+
 ## Validate before you ask for a merge
 
 - Run the tests for what you changed, then the full suite. It passes on a clean
