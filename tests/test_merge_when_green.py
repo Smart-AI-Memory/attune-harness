@@ -55,6 +55,9 @@ elif args[:2] == ["pr", "merge"]:
     state["merged"] = state["merge_commit"]
 elif args[:2] == ["repo", "view"]:
     print("owner/repo")
+elif args[:2] == ["run", "list"]:
+    sha = args[args.index("--commit") + 1]
+    jq([{"databaseId": i} for i in range(state["runs"].get(sha, 1))], args[args.index("--jq") + 1])
 elif args[0] == "api":
     sha = args[1].rsplit("/", 1)[1]
     jq({"commit": {"tree": {"sha": state["trees"][sha]}}}, args[args.index("--jq") + 1])
@@ -73,14 +76,15 @@ def frame(*checks, merge_state="CLEAN", head=HEAD):
     return {"headRefOid": head, "mergeStateStatus": merge_state, "statusCheckRollup": list(checks)}
 
 
-def run_gate(tmp_path, frames, *, trees=None, extra_args=(), wait=30, grace=30):
+def run_gate(tmp_path, frames, *, trees=None, runs=None, extra_args=(), wait=30, grace=30):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     (bin_dir / "fake_gh.py").write_text(FAKE_GH, encoding="utf-8")
     gh = bin_dir / "gh"
     gh.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{bin_dir / "fake_gh.py"}" "$@"\n', encoding="utf-8")
     gh.chmod(0o755)
-    state = {"frames": frames, "merge_commit": MERGED, "trees": trees or {HEAD: "t1", MERGED: "t1"}}
+    state = {"frames": frames, "merge_commit": MERGED, "trees": trees or {HEAD: "t1", MERGED: "t1"},
+             "runs": runs or {}}
     (bin_dir / "state.json").write_text(json.dumps(state), encoding="utf-8")
     repo = tmp_path / "repo"
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
@@ -107,17 +111,28 @@ def test_a_failed_check_exits_one_instead_of_waiting(tmp_path):
     assert "merge_args" not in state
 
 
-def test_a_head_with_no_qualification_run_gives_up_after_the_grace(tmp_path):
-    result, state = run_gate(tmp_path, [frame(check("CodeQL"), merge_state="BLOCKED")], grace=0)
-    assert result.returncode == 3 and "no Qualification check" in result.stderr, result.stderr
+def test_a_head_with_no_workflow_run_gives_up_after_the_grace(tmp_path):
+    result, state = run_gate(tmp_path, [frame(check("CodeQL"), merge_state="BLOCKED")], runs={HEAD: 0}, grace=0)
+    assert result.returncode == 3 and "no workflow run" in result.stderr, result.stderr
     assert "close and reopen" in result.stderr and "merge_args" not in state
 
 
-def test_a_qualification_check_that_registers_late_is_waited_for(tmp_path):
-    result, state = run_gate(tmp_path, [frame(check("CodeQL"), merge_state="BLOCKED"),
-                                        frame(check("CodeQL"), check("Qualification"))])
+def test_a_qualification_check_that_registers_late_is_waited_for_past_the_grace(tmp_path):
+    """The verdict job waits on the platform jobs (needs:), so its check appears late;
+    with runs on the head, the grace never fires (the false alarm #196's first gate run hit)."""
+    result, state = run_gate(tmp_path, [frame(check("CodeQL"), check("ubuntu / Python 3.10", None), merge_state="BLOCKED"),
+                                        frame(check("CodeQL"), check("ubuntu / Python 3.10"), merge_state="BLOCKED"),
+                                        frame(check("CodeQL"), check("ubuntu / Python 3.10"), check("Qualification"))],
+                             grace=0)
     assert result.returncode == 0, result.stderr
     assert "merge_args" in state
+
+
+def test_a_failure_stops_the_gate_before_qualification_appears(tmp_path):
+    result, state = run_gate(tmp_path, [frame(check("CodeQL"), check("ubuntu / Python 3.10", "FAILURE"),
+                                              merge_state="BLOCKED")])
+    assert result.returncode == 1 and "ubuntu / Python 3.10 (FAILURE)" in result.stderr, result.stderr
+    assert "merge_args" not in state
 
 
 def test_two_qualification_successes_merge_a_release_pull_request(tmp_path):

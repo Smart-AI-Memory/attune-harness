@@ -11,12 +11,12 @@
 #
 # Exit 0 merged; 1 a check failed; 2 the branch is behind main, conflicts, or
 # its head moved while waiting (update it, then run again); 3 gave up waiting:
-# no Qualification run appeared for the head (push a commit, or close and
-# reopen the pull request), or the deadline passed; 4 merged, but main's tree
+# no workflow run appeared for the head (push a commit, or close and reopen
+# the pull request), or the deadline passed; 4 merged, but main's tree
 # differs from the tested head's.
 #
 # MERGE_WAIT_SECONDS bounds the whole wait (default 3600); MERGE_RUN_GRACE_SECONDS
-# bounds how long a head may go without any Qualification check (default 300);
+# bounds how long a head may go without any workflow run (default 300);
 # MERGE_POLL_SECONDS is the polling interval (default 15).
 set -euo pipefail
 number=${1:?pull request number}
@@ -51,13 +51,6 @@ while :; do
   [[ "${snapshot%%$'\n'*}" == "$head" ]] \
     || { echo "#$number: the head moved from ${head:0:7} while waiting; run again" >&2; exit 2; }
   checks=$(tail -n +2 <<<"$snapshot")
-  # A force-push can leave a head with no workflow run at all (#191): without a
-  # Qualification check there is nothing to wait for, so stop after the grace.
-  if ! grep -q $'^Qualification\t' <<<"$checks"; then
-    (($(date +%s) < grace)) \
-      || give_up "no Qualification check for head ${head:0:7}; push a commit, or close and reopen the pull request"
-    tick; continue
-  fi
   # Closing and reopening a pull request (AGENTS.md's remedy for a stale
   # Classify gate) cancels the duplicate run it starts on the same head. A
   # cancelled run is ignored when another run of that check is not cancelled;
@@ -76,6 +69,17 @@ while :; do
     echo "#$number is not green at ${head:0:7}:" >&2
     printf '  %s\n' "$failed" >&2
     exit 1
+  fi
+  # The Qualification verdict job waits on the platform jobs (needs:), so its
+  # check appears only when they finish; until then, keep waiting. A force-push
+  # can leave a head with no workflow run at all (#191), and then nothing will
+  # ever appear: stop after the grace if the head has no run.
+  if ! grep -q $'^Qualification\t' <<<"$checks"; then
+    if [[ "$(gh run list --commit "$head" --json databaseId --jq length)" == 0 ]]; then
+      (($(date +%s) < grace)) \
+        || give_up "no workflow run for head ${head:0:7}; push a commit, or close and reopen the pull request"
+    fi
+    tick; continue
   fi
   grep -q $'\tPENDING$' <<<"$checks" || break
   tick
