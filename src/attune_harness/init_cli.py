@@ -203,14 +203,25 @@ def execute_fix(args, project: Path) -> int:
         validate_registry(registry, target)
     else:  # fix reads it with one participant allowed, so init does too
         registry = validate_registry(parse_json(read_text(target, 131_072)), target, minimum_participants=1)
-    if probe_path.exists() or probe_path.is_symlink():
-        if not args.force:
-            raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
-        replaced = backup(probe_path, 'probe')
+    if (probe_path.exists() or probe_path.is_symlink()) and not args.force:
+        raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
+    # If a write refuses, remove what this run wrote, as init --for plan does (O-78).
+    wrote_registry = False
+    try:
+        if probe_path.exists() or probe_path.is_symlink():
+            replaced = backup(probe_path, 'probe')
+        if written:
+            write_report(target, registry)
+            wrote_registry = True
+        write_report(probe_path, probe)
+    except BaseException:
+        if wrote_registry:
+            target.unlink()
+        if replaced is not None:  # backup copies, so the old probe is still in place
+            Path(replaced).unlink()
+        raise
     if written:
-        write_report(target, registry)
         files.append(str(target))
-    write_report(probe_path, probe)
     files.append(str(probe_path))
     participants = sorted(registry['participants'])
     native = any(item['adapter'] in ('claude', 'codex') for item in registry['participants'].values())

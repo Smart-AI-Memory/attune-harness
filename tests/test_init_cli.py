@@ -759,3 +759,37 @@ def test_a_native_profile_hears_it_cannot_build_before_any_paid_flag(tmp_path, c
     code, refused = run(capsys, 'build', str(tasks))
     assert code == 2 and refused['error']['type'] == 'ValueError', refused
     assert refused['next_action'].startswith('Build needs a worker and a reviewer with no tools'), refused
+
+
+@pytest.mark.parametrize('existing_probe', [False, True])
+def test_a_failed_probe_write_leaves_the_project_as_it_was(tmp_path, capsys, monkeypatch, existing_probe):
+    """O-78: init --for fix removes the registry and backup it wrote when the probe write fails."""
+    root = checkout(tmp_path.resolve() / 'repo')
+    if existing_probe:
+        (root / 'probe.json').write_text('{"old": true}', encoding='utf-8')
+    from attune_harness import init_cli
+    real = init_cli.write_report
+    def failing(path, value, *args):
+        if Path(path).name == 'probe.json':
+            raise OSError('disk full')
+        return real(path, value, *args)
+    monkeypatch.setattr(init_cli, 'write_report', failing)
+    code, envelope = init_fix(capsys, root, *(('--force',) if existing_probe else ()))
+    assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
+    assert not (root / 'participants.json').exists() and not (root / 'probe.json.bak').exists()
+    assert (root / 'probe.json').exists() is existing_probe
+    if existing_probe:
+        assert (root / 'probe.json').read_text(encoding='utf-8') == '{"old": true}'
+
+
+def test_a_failed_probe_write_never_removes_a_registry_init_did_not_write(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    run(capsys, 'init', '--project', str(root))
+    before = (root / 'participants.json').read_bytes()
+    from attune_harness import init_cli
+    def failing(path, value, *args):
+        raise OSError('disk full')
+    monkeypatch.setattr(init_cli, 'write_report', failing)
+    code, envelope = init_fix(capsys, root)
+    assert code == 2, envelope
+    assert (root / 'participants.json').read_bytes() == before
