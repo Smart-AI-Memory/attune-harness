@@ -124,12 +124,14 @@ def prepare_body_build(work, *, two_steps=False):
             "from source import value\nfrom second import second\n"
             "assert value()==42 and second()==42\n"
         )
-    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "maintenance.auto=false", "add", "."], check=True)
     subprocess.run(
         [
             "git",
             "-C",
             str(root),
+            "-c",
+            "maintenance.auto=false",
             "-c",
             "commit.gpgsign=false",
             "-c",
