@@ -252,7 +252,12 @@ class NativeExchange:
                     and isinstance(envelope.get("result"), str)
                 ):
                     diagnostic = f"{envelope['result']}\n{diagnostic}"
-                refusal = claude_refusal(envelope, None if result.failure else result.returncode)
+                # A normal nonzero exit is a completed CLI report. Supervision
+                # failures can leave partial output and never prove a refusal.
+                refusal = claude_refusal(
+                    envelope, result.returncode
+                    if result.failure in (None, 'nonzero_exit') else None,
+                )
             failure = result.failure or 'nonzero_exit'
             raise NativeError(f"{self.provider}: {failure}: {diagnostic}",
                               failure=failure, process_stopped=result.returncode is not None,

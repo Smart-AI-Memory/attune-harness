@@ -12,6 +12,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
+- [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
+
 - [First-run journey — complete spec](specs/first-run-journey/README.md): A cold 1.0.1 walkthrough, and making every verb work from a fresh install; released in 1.1.0
 - [First-run journey requirements](specs/first-run-journey/design.md): R1–R7 and what each must not change
 - [First-run journey tasks](specs/first-run-journey/tasks.md): Seven ordered PRs, cold-start CI test first
