@@ -22,6 +22,9 @@ def test_package_from_another_directory_carries_complete_skill(tmp_path):
     installed = destination / "skills/attune-harness"
     assert {str(p.relative_to(installed)): p.read_bytes() for p in installed.rglob("*") if p.is_file()} == expected
     assert (destination / "LICENSE").read_bytes() == (ROOT / "LICENSE").read_bytes()
+    for name in ('cross-review', 'roundtable'):
+        assert (destination / 'skills' / name / 'SKILL.md').read_bytes() == (
+            ROOT / 'plugin/attune-harness/skills' / name / 'SKILL.md').read_bytes()
     assert sorted(p.name for p in destination.iterdir()) == [".codex-plugin", "LICENSE", "skills"]
 
 

@@ -14,9 +14,19 @@ the reviewer edit, merge, publication or spending authority. If no authorized
 independent participant is available, report that limitation and request one;
 do not silently call a paid API or substitute another provider.
 
-For a repository already configured for Harness review, inspect `attune-harness
-review --help` and use its accepted request and participant registry. Keep its
-scope, provider and budget requirements. The CLI does not confer permission to
-spend. Report partial/refused runs honestly. Reproduce findings before fixing,
-run affected tests, and retain the reviewer's verdict with the exact reviewed
-revision. No Attune AI roundtable imports, ledger or promotion commands are used.
+For shared Harness source review, inspect `attune-harness source-review --help`.
+Use `source-review prepare --project ROOT --path FILE --config CONFIG --run-dir
+RUN` to freeze explicitly selected files with the named author and different
+reviewer model. Inspect the returned contract, scope and call budget, then use
+`source-review run RUN --accept DIGEST --allow-external --allow-native` only with
+the user's provider/upload/spend authority. Command participants need external
+authority but no native flag. `source-review status RUN` is read-only. A pause
+resumes with the same run and contract; uncertain dispatch never retries.
+`source-review abandon RUN --checkpoint DIGEST` stops continuation and preserves
+unknown effects. Never edit a record to get past refusal.
+
+Both Claude Code and Codex use this same CLI and configuration. Preserve requested
+and runtime-reported identities separately; absent actual-model metadata stays
+unknown. `review` remains documentary evidence review. Reproduce findings before
+fixing, run affected tests and retain the exact frozen scope and verdict. CLI
+acceptance is host-owned and does not grant merge or publication authority.
