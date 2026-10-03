@@ -57,7 +57,10 @@ def qualify(output, *, coverage_instrumented=False):
             except FeatureUnavailable:receipt['checks'].append('native recovery explicitly unsupported')
             else:raise AssertionError('Update the Windows qualification suite before claiming support')
         receipt['native_process_and_recovery']='unsupported'
+    # Retain the active Python stacks before the outer budget kills pytest.
+    # This reports slow tests; it does not stop them or extend their deadlines.
     argv=[sys.executable,'-m','pytest','-vv','-o','pythonpath=',
+          '-o','faulthandler_timeout=60','--durations=20',
           '--junitxml='+str(output/'tests.xml'),*[str(ROOT/'tests'/t) for t in tests]]
     if os.name != 'posix':
         argv += ['-k', 'not actual_cli_process_through_full_adapter']
