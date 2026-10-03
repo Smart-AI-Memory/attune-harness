@@ -15,12 +15,14 @@ the commands it shows against that checkout's CLI.
 From the repository root, create a new output directory named `attune-harness`:
 
 ```sh
-python3 scripts/package_codex_plugin.py /tmp/harness-plugin-package/attune-harness
+python3 scripts/package_codex_plugin.py "$HOME/harness-plugin-package/attune-harness"
 ```
 
 Choose a fresh parent directory on repeated runs. The command refuses an existing
-destination. It copies the manifest, license and complete skill, including its
-references and agent metadata. `plugins/attune-harness` is the manifest template;
+destination and symlinked parents; choose a path under your home directory rather
+than a temporary-directory alias such as macOS `/tmp`. It copies the manifest,
+license and all three complete skills, including their references and agent
+metadata. `plugins/attune-harness` is the manifest template;
 the generated directory is the installable plugin. Neither is in the Python wheel.
 
 ## Prepare a local marketplace
