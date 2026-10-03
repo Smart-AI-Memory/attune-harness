@@ -81,6 +81,54 @@ Answers use `verdict`, `summary`, and `evidence`; each citation contains a froze
 whether the reasoning or claimed defect is true. Reproduce findings before
 editing. Model verdicts never authorize a merge or publication.
 
+Inspect each citation beside its numbered frozen source context, even after the
+checkout changes. The support state starts `unchecked`:
+
+```sh
+attune-harness source-review evidence "$RUN"
+attune-harness source-review assess-citation "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --round 0 --participant reviewer --citation 0 --decision rejected --note "The cited line does not support the claim"
+```
+
+Take the checkpoint and selectors from the current evidence view. Round and
+citation indexes are zero-based; displayed source lines are one-based. Decisions
+are `supported`, `rejected` or `uncertain`, with a required host note. This appends
+an advisory host assessment without changing the model answer or journal, makes
+no provider calls, and grants no action authority. A stale checkpoint refuses;
+there are at most 128 assessments. Use `roundtable` for roundtable owners.
+Successful `assess-citation` commands exit zero even when the owner's retained
+status is failed or unresolved. The assessment does not clear that status;
+inspect it separately. Refused assessments exit 2 without appending a decision.
+
+## Direct Antigravity seat
+
+The development candidate accepts this explicit native consultation seat:
+
+```json
+{
+  "adapter": "antigravity",
+  "identity": {"provider": "google-antigravity", "model": "gemini-3.1-pro-high"},
+  "timeout": 210,
+  "effort": "high"
+}
+```
+
+Use it in the existing participant map; native and external authority are both
+required. The signed-in `agy` binary must already exist on PATH. No sign-in,
+settings or credentials are changed. Terminal output must report the configured
+model and session, successful structured answer and matched finish lifecycle.
+Raw process evidence and available usage are retained. External tool/subagent
+stream events refuse the answer; this post-hoc check does not prove isolation or
+undo effects. Native software output remains bounded to 64 KiB. No fallback,
+automatic retries or replay of old provider responses occurs in this adapter.
+Each invocation sends one NDJSON user event through stdin and ends input at EOF,
+following the [documented headless protocol](https://antigravity.google/docs/cli/headless/#stream-prompts-from-stdin).
+Frozen source and prior-round context stay out of command-line arguments.
+
+Codex seats may include an optional explicit `reasoning_effort`, such as `high`;
+it becomes part of the accepted contract and native invocation. Missing effort
+remains the runtime default. This does not establish Sol 6.1 account availability
+or authenticated backend effort. See the [bounded design](design-consultation-evidence-google.md).
+
 ## Other agent seam
 
 An explicit `command` adapter supplies `identity`, `timeout`, and `command`
