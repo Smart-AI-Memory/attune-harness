@@ -134,14 +134,18 @@ distinguish a suite timeout from an assertion failure or the outer job's
 timeout. A larger job budget does not extend the suite budget. Investigate
 recurring overruns before changing a deadline.
 
-Supplemental coverage is a separate measurement: its hosted jobs allow
-25 minutes; the measurement wrapper allows 1,080 seconds for the Windows
-platform measurement or 1,200 seconds for the full POSIX suite. The
-instrumented platform suite still has its own 900-second bound and does not
-constitute platform qualification. **Where.**
+Supplemental coverage is a separate measurement. Windows temporarily has a
+1,200-second instrumented suite budget, a 1,380-second measurement-wrapper
+budget, and a 30-minute hosted job budget while recurring overruns are
+investigated. The full POSIX measurement retains its 1,200-second wrapper
+and 25-minute hosted job. Normal installed qualification remains at 900
+seconds, and individual operation deadlines remain unchanged. A successful
+instrumented measurement does not constitute platform qualification.
+**Where.**
 `scripts/qualify_platform.py`, `scripts/measure_coverage.py`,
 `.github/workflows/qualification.yml`, `.github/workflows/coverage.yml`,
-[qualification guide](qualification.md).
+[qualification guide](qualification.md),
+[coverage measurement guide](coverage-measurement.md).
 
 ## Also worth remembering
 
