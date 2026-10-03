@@ -119,15 +119,21 @@ before release. Those readiness tasks do not lift the hold.
 
 ## Next, ranked (October 3, R0+5)
 
+The [Windows-traps guidance](windows-traps.md) is complete in
+[#215](https://github.com/Smart-AI-Memory/attune-harness/pull/215). It covers
+signed-bundle bytes, GPG discovery, portable capture paths and separate
+qualification/measurement budgets. The temporary Windows measurement
+headroom in [#216](https://github.com/Smart-AI-Memory/attune-harness/pull/216)
+does not close the O-11 investigation or broaden platform qualification.
+
 New critical defects preempt this list. Smallest first where the value is
 equal; each item is a separate pull request.
 
 | Rank | Work | Why here | Status |
 |---|---|---|---|
 | 1 | **S3/S6/S9 observations** | The open acceptance gaps; software checks cannot close them | Needs Patrick or named participants, including a non-programmer for S6 |
-| 2 | **Windows-traps guidance** (quick opportunity 3) | Bounded guidance for supported installations | Separate documentation work; may proceed during the publication hold |
-| 3 | **O-11 timing baseline** (quick opportunity 4) | Diagnose recurring suite-budget pressure using retained evidence | #212 adds timing diagnostics; the baseline report remains open |
-| 4 | **T6 / 1.3.0 release readiness** | Deliver already implemented starter journeys in one batch | Prepared in draft #199; integrate and qualify before release, preserving the hold |
+| 2 | **O-11 timing baseline** (quick opportunity 4) | Diagnose recurring suite-budget pressure using retained evidence | #212 adds timing diagnostics; #216 adds temporary measurement headroom; the investigation remains open |
+| 3 | **T6 / 1.3.0 release readiness** | Deliver already implemented starter journeys in one batch | Prepared in draft #199; integrate and qualify before release, preserving the hold |
 
 Four stable releases in two days is fast for a stabilization period. Batch
 compatible fixes into one release per window unless a critical defect needs
@@ -173,7 +179,7 @@ skip anything already completed by release-gate work.
 |---|---|---|---|
 | 1 — O-04, supported journey map | Refresh the existing map for install, plan/build/review, memory, Voyage and recovery. Each row names entry point, platform limit, evidence and workaround. Distinguish explicit saved capture from automatic recall. Done: no stale claim that merged implementation is absent or unqualified behavior is complete. | 1–2 hours | **Done:** [#186](https://github.com/Smart-AI-Memory/attune-harness/pull/186), for 1.2.0 |
 | 2 — O-09/O-16, evidence navigation | Add links in existing release documentation to artifact hashes, CI, observed receipts and known limits. Label measured checks versus model judgments and live versus replay. No receipt-schema change or duplicate evidence system. Done: a reviewer reaches each S1–S9 receipt or explicit gap from one index. | 1–2 hours | **Done:** [#187](https://github.com/Smart-AI-Memory/attune-harness/pull/187), the index above |
-| 3 — existing Windows-traps follow-through | Document byte-exact signed bundles, GPG path rules, drive-qualified capture refusal, and the 15-minute suite/20-minute job distinction. Verify each statement against shipped behavior. Done: targeted guidance and links; no runtime edits. | 0.5–1 hour | Week 2, or earlier if needed for walkthrough |
+| 3 — existing Windows-traps follow-through | Document byte-exact signed bundles, GPG path rules, drive-qualified capture refusal, and distinct qualification/measurement budgets. Each statement is checked against shipped behavior. | 0.5–1 hour | **Done:** [#215](https://github.com/Smart-AI-Memory/attune-harness/pull/215), targeted guidance and links; no runtime edits |
 | 4 — O-11, timing baseline only | Summarize existing qualification/coverage job durations and slow test cases for the final candidate/stable head; separate setup, suite and instrumentation. Done: reproducible report and at most one measured bottleneck proposed for later work. No caching or automatic timeout increase. | 1 hour | Week 2 |
 
 The known Windows suite took 601.218 seconds on a successful PR159 run; the old
@@ -198,7 +204,7 @@ Goal: stable interfaces backed by live and installed evidence, with remaining
 human observations retained as named gaps during stabilization. Stable v1 is
 published and the software gates are met; the highest-value remaining
 distinction is between software checks and observed user acceptance. Quick
-opportunities 1 and 2 and starter tasks T1–T5 are done on main. T6 is prepared
+opportunities 1–3 and starter tasks T1–T5 are done on main. T6 is prepared
 in held draft #199; 1.3.0 is not published. The next acceptance evidence is
 the S3/S6/S9 observations, while bounded guidance and timing work can proceed
 during the hold. This refresh covers this roadmap and its linked status
