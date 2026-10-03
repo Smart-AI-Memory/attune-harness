@@ -14,6 +14,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
+- [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
 
 - [First-run journey — complete spec](specs/first-run-journey/README.md): A cold 1.0.1 walkthrough, and making every verb work from a fresh install; released in 1.1.0
 - [First-run journey requirements](specs/first-run-journey/design.md): R1–R7 and what each must not change
@@ -95,6 +96,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | File | Title | Dated |
 | --- | --- | --- |
 | [design-codex-plugin.md](design-codex-plugin.md) | Codex plugin packaging | 2026-09-24 |
+| [design-codex-install-journey.md](design-codex-install-journey.md) | Self-contained Codex installation preparation | 2026-10-01 |
 | [design-a2a-increment.md](design-a2a-increment.md) | A2A local peer profile — design before implementation | 2026-09-14 |
 | [design-active-workflow-coverage.md](design-active-workflow-coverage.md) | Active workflow coverage | 2026-09-24 |
 | [design-adapter-increment.md](design-adapter-increment.md) | Adapter boundary experiment |  |

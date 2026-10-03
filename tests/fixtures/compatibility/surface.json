@@ -2819,6 +2819,110 @@
       "--checkpoint"
      ]
     },
+    "assess-citation": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "citation",
+       "option_strings": [
+        "--citation"
+       ]
+      },
+      {
+       "choices": [
+        "supported",
+        "rejected",
+        "uncertain"
+       ],
+       "default": null,
+       "name": "decision",
+       "option_strings": [
+        "--decision"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "note",
+       "option_strings": [
+        "--note"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ]
+    },
+    "evidence": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
+    },
     "prepare": {
      "arguments": [
       {
@@ -2985,6 +3089,110 @@
      "required_options": [
       "--checkpoint"
      ]
+    },
+    "assess-citation": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "citation",
+       "option_strings": [
+        "--citation"
+       ]
+      },
+      {
+       "choices": [
+        "supported",
+        "rejected",
+        "uncertain"
+       ],
+       "default": null,
+       "name": "decision",
+       "option_strings": [
+        "--decision"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "note",
+       "option_strings": [
+        "--note"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ]
+    },
+    "evidence": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
     },
     "prepare": {
      "arguments": [

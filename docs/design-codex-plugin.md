@@ -11,8 +11,9 @@ The Python distribution and the Attune-AI plugin remain separate installations.
 - Refuse an existing destination before writing anything; never silently replace
   a user plugin or a retained package.
 - Package from an arbitrary working directory using paths relative to the script.
-- Register through Codex's plugin-creator personal-marketplace scaffold, preserving
-  other entries. Verify discovery and installation through the actual Codex CLI.
+- Prepare a fresh local marketplace using the checkout tool, preserving existing
+  catalogs. Verify discovery through the actual Codex CLI before separately
+  approving registration and installation.
 - Compare the installed skill bytes with the repository source. Opening a new task
   is still needed to check the app's refreshed skill selector.
 
@@ -31,3 +32,10 @@ copies only the manifest, license and skill, avoiding checkout files and receipt
 Reject a second maintained skill copy because its workflow instructions could
 silently diverge. Use the personal marketplace for local discovery; a public or
 team catalog is a separate distribution decision.
+
+## October 1 installation follow-up
+
+The bundled scaffold mentioned in the original experiment is not required by
+the supported preparation path. The [A3 design](design-codex-install-journey.md)
+records the local catalog shape and explicit-path listing probe. Fresh desktop
+discovery and installation remain separate checks.
