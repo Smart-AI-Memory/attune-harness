@@ -90,7 +90,13 @@ jobs:
         with:
           name: windows-comparison-${{ matrix.kind }}
           path: |
-            ${{ runner.temp }}/comparison-result/
+            ${{ runner.temp }}/comparison-result/.coverage*
+            ${{ runner.temp }}/comparison-result/*.json
+            ${{ runner.temp }}/comparison-result/*.ini
+            ${{ runner.temp }}/comparison-result/*.txt
+            ${{ runner.temp }}/comparison-result/*.xml
+            ${{ runner.temp }}/comparison-result/html/
+            ${{ runner.temp }}/comparison-result/instrumented-platform/
             ${{ runner.temp }}/comparison-hardware.json
             ${{ runner.temp }}/comparison-packages.txt
           include-hidden-files: true
