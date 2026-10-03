@@ -44,6 +44,10 @@ parent traversal, outputs inside the source checkout and an invalid source packa
 new destination for every update; keep previous packages until you have reviewed
 the installed snapshot. The tool validates Harness's package contract, not an
 arbitrary third-party plugin schema.
+All fields in the Harness manifest template are required, with matching identity,
+repository, license and skills path, nonempty metadata, empty capabilities and
+bounded default prompts. Its version must follow SemVer 2.0; this is Harness's
+package convention, not a requirement of Codex 0.153.4's legacy parser.
 
 Check the exact prepared root without saving marketplace configuration:
 
@@ -53,7 +57,10 @@ codex plugin list -c 'marketplaces.harness-local.source_type="local"' -c "market
 
 Expect `attune-harness@harness-local` under `available`, with `installed: false`
 and `enabled: false` for a fresh selector. If that name is already installed,
-inspect it before proceeding. These options and the catalog shape were observed
+inspect it before proceeding. Verify that the entry comes from the exact prepared
+root with AVAILABLE policy. A successful command with an empty `available` list
+or a missing selector is insufficient; stop and check the path/name before
+approving registration. These options and the catalog shape were observed
 with Codex CLI 0.153.4. Check `codex plugin list --help` on another version; a
 successful listing proves local CLI discovery, not fresh desktop skill selection.
 

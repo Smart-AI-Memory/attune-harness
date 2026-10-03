@@ -15,6 +15,56 @@ def skill_sources() -> list[Path]:
             ROOT / 'plugin/attune-harness/skills/roundtable']
 
 
+def _manifest_object(pairs):
+    data = {}
+    for key, value in pairs:
+        if key in data:
+            raise ValueError('Manifest contains duplicate fields')
+        data[key] = value
+    return data
+
+
+def _nonempty(value):
+    return isinstance(value, str) and bool(value.strip())
+
+
+def validate_manifest(data) -> None:
+    """Require our complete emitted manifest, not the looser Codex schema."""
+    fields = {'name', 'version', 'description', 'author', 'skills', 'interface',
+              'repository', 'license', 'keywords'}
+    if not isinstance(data, dict) or set(data) != fields:
+        raise ValueError('Manifest differs from the Harness plugin contract')
+    if (data['name'] != 'attune-harness' or data['skills'] != './skills/'
+            or data['author'] != {'name': 'Smart AI Memory'}
+            or data['repository'] != 'https://github.com/Smart-AI-Memory/attune-harness'
+            or data['license'] != 'Apache-2.0' or not _nonempty(data['description'])):
+        raise ValueError('Manifest differs from the Harness plugin contract')
+    # SemVer is Harness's own convention; Codex's legacy parser only trims it.
+    version = data['version']
+    pattern = (r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)'
+               r'(?:-(?P<prerelease>[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?'
+               r'(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?')
+    matched = re.fullmatch(pattern, version) if isinstance(version, str) else None
+    if matched is None or any(part.isdecimal() and len(part) > 1 and part.startswith('0')
+                              for part in (matched.group('prerelease') or '').split('.')):
+        raise ValueError('Harness plugin version must be SemVer 2.0')
+    keywords = data['keywords']
+    if not isinstance(keywords, list) or not keywords or not all(_nonempty(k) for k in keywords):
+        raise ValueError('Harness plugin keywords require nonempty strings')
+    interface = data['interface']
+    text_fields = {'displayName', 'shortDescription', 'longDescription', 'developerName', 'category'}
+    if (not isinstance(interface, dict) or set(interface) != text_fields | {'capabilities', 'defaultPrompt'}
+            or not all(_nonempty(interface[k]) for k in text_fields)
+            or interface['displayName'] != 'Attune Harness'
+            or interface['developerName'] != 'Smart AI Memory' or interface['category'] != 'Productivity'
+            or interface['capabilities'] != []):
+        raise ValueError('Interface differs from the Harness plugin contract')
+    prompts = interface['defaultPrompt']
+    if (not isinstance(prompts, list) or not 1 <= len(prompts) <= 3
+            or not all(_nonempty(p) and len(p) <= 128 for p in prompts)):
+        raise ValueError('Harness plugin prompts require 1-3 nonempty strings of at most 128 characters')
+
+
 def validate_sources() -> None:
     """Validate the Harness package contract, not arbitrary Codex plugins."""
     manifest = ROOT / 'plugins/attune-harness/.codex-plugin/plugin.json'
@@ -35,13 +85,7 @@ def validate_sources() -> None:
         raise ValueError('Each packaged skill must contain SKILL.md')
     if any(not path.is_file() and not path.is_dir() for path in sources):
         raise ValueError('Package sources must be regular files or directories')
-    data = json.loads(manifest.read_text(encoding='utf-8'))
-    if (not isinstance(data, dict) or data.get('name') != 'attune-harness'
-            or data.get('skills') != './skills/'
-            or not isinstance(data.get('version'), str) or not data['version'].strip()
-            or not isinstance(data.get('interface'), dict)
-            or data['interface'].get('displayName') != 'Attune Harness'):
-        raise ValueError('Manifest differs from the Harness plugin contract')
+    validate_manifest(json.loads(manifest.read_text(encoding='utf-8'), object_pairs_hook=_manifest_object))
 
 
 def package(destination: Path, *, marketplace: str | None = None) -> Path:

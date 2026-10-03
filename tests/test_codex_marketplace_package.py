@@ -182,3 +182,106 @@ def test_case_alias_cannot_place_output_inside_source_checkout(tmp_path):
         module.package(output, marketplace='harness-local')
     assert list(skill.iterdir()) == [marker]
     assert marker.read_bytes() == b'preserve canonical source'
+
+
+def manifest_fixture(tmp_path):
+    module = packager()
+    source = tmp_path / 'source'
+    source.mkdir()
+    shutil.copy2(ROOT / 'LICENSE', source / 'LICENSE')
+    for path in ('plugins/attune-harness/.codex-plugin', '.agents/skills/attune-harness',
+                 'plugin/attune-harness/skills'):
+        shutil.copytree(ROOT / path, source / path)
+    module.ROOT = source
+    manifest = source / 'plugins/attune-harness/.codex-plugin/plugin.json'
+    return module, manifest, json.loads(manifest.read_text(encoding='utf-8'))
+
+
+@pytest.mark.parametrize('field', [
+    'name', 'version', 'description', 'author', 'skills', 'interface', 'repository', 'license', 'keywords',
+    'author.name', 'interface.displayName', 'interface.shortDescription', 'interface.longDescription',
+    'interface.developerName', 'interface.category', 'interface.capabilities', 'interface.defaultPrompt',
+])
+@pytest.mark.parametrize('marketplace', [None, 'harness-local'])
+def test_missing_required_manifest_field_creates_no_output(tmp_path, field, marketplace):
+    module, manifest, data = manifest_fixture(tmp_path)
+    owner = data
+    parts = field.split('.')
+    for part in parts[:-1]:
+        owner = owner[part]
+    del owner[parts[-1]]
+    manifest.write_text(json.dumps(data), encoding='utf-8')
+    parent = tmp_path / 'uncreated'
+    with pytest.raises(ValueError):
+        module.package(parent / 'attune-harness', marketplace=marketplace)
+    assert not parent.exists()
+
+
+@pytest.mark.parametrize('field,value', [
+    ('description', ''), ('description', 1), ('author', 'Smart AI Memory'),
+    ('author.name', 'other'), ('repository', False), ('license', 'other'),
+    ('keywords', 'testing'), ('keywords', []), ('keywords', ['']), ('keywords', [1]),
+    ('interface', []), ('interface.shortDescription', False), ('interface.longDescription', '  '),
+    ('interface.developerName', 'other'), ('interface.category', 'other'),
+    ('interface.capabilities', ['external-effect']), ('interface.capabilities', None),
+    ('interface.defaultPrompt', 'Use Harness'), ('interface.defaultPrompt', []),
+    ('interface.defaultPrompt', ['x'] * 4), ('interface.defaultPrompt', ['x' * 129]),
+    ('interface.defaultPrompt', ['']), ('interface.defaultPrompt', [None]),
+    ('apps', './apps.json'), ('interface.authority', True),
+])
+@pytest.mark.parametrize('marketplace', [None, 'harness-local'])
+def test_invalid_manifest_metadata_creates_no_output(tmp_path, field, value, marketplace):
+    module, manifest, data = manifest_fixture(tmp_path)
+    owner = data
+    parts = field.split('.')
+    for part in parts[:-1]:
+        owner = owner[part]
+    owner[parts[-1]] = value
+    manifest.write_text(json.dumps(data), encoding='utf-8')
+    parent = tmp_path / 'uncreated'
+    with pytest.raises(ValueError):
+        module.package(parent / 'attune-harness', marketplace=marketplace)
+    assert not parent.exists()
+
+
+@pytest.mark.parametrize('version', ['dev', '1', '1.2', '01.2.3', '1.2.3-01', '1.2.3-',
+                                     '1.2.3+', 'v1.2.3', '1.2.3 ', '\u0661.2.3', 1])
+def test_invalid_harness_version_refuses_before_output(tmp_path, version):
+    module, manifest, data = manifest_fixture(tmp_path)
+    data['version'] = version
+    manifest.write_text(json.dumps(data), encoding='utf-8')
+    output = tmp_path / 'uncreated/catalog'
+    with pytest.raises(ValueError, match='SemVer'):
+        module.package(output, marketplace='harness-local')
+    assert not output.parent.exists()
+
+
+@pytest.mark.parametrize('version', ['0.1.0', '1.2.3', '1.2.3-alpha.1+build.01', '1.2.3-0',
+                                     '1.2.3-01x', '1.2.3-x-y-z.--+001'])
+@pytest.mark.parametrize('marketplace', [None, 'harness-local'])
+def test_valid_version_and_prompt_boundary_preserve_manifest(tmp_path, version, marketplace):
+    module, manifest, data = manifest_fixture(tmp_path)
+    data['version'] = version
+    data['interface']['defaultPrompt'] = ['x' * 128, '\u00e9' * 128, 'Inspect saved work']
+    manifest.write_text(json.dumps(data), encoding='utf-8')
+    output = tmp_path / 'attune-harness'
+    module.package(output, marketplace=marketplace)
+    plugin = output / 'plugins/attune-harness' if marketplace else output
+    assert (plugin / '.codex-plugin/plugin.json').read_bytes() == manifest.read_bytes()
+    assert sorted(path.name for path in (plugin / 'skills').iterdir()) == [
+        'attune-harness', 'cross-review', 'roundtable']
+
+
+@pytest.mark.parametrize('defect', ['duplicate_field', 'invalid_json'])
+def test_ambiguous_or_malformed_manifest_creates_no_output(tmp_path, defect):
+    module, manifest, _ = manifest_fixture(tmp_path)
+    text = manifest.read_text(encoding='utf-8')
+    if defect == 'duplicate_field':
+        text = text.replace('"version": "0.1.0"', '"version": "dev", "version": "0.1.0"')
+    else:
+        text += ' not-json'
+    manifest.write_text(text, encoding='utf-8')
+    parent = tmp_path / 'uncreated'
+    with pytest.raises(ValueError):
+        module.package(parent / 'catalog', marketplace='harness-local')
+    assert not parent.exists()
