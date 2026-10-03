@@ -173,7 +173,7 @@ def pytest_probe(python: str, tests: list) -> dict:
             'environment': environment, 'oracle_paths': list(tests)}
 
 
-def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path) -> dict:
+def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path, *, force=False) -> dict:
     """The probe ``fix`` reads, checked before anything is written by the same freeze ``fix`` runs.
 
     ``repair.freeze`` reads the checkout and writes nothing, so a probe it
@@ -183,6 +183,10 @@ def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: P
     plan = freeze(project, scope, probe, tasks)
     # The files init is about to write count against the same entry bound fix enforces.
     new = sum(not ((project / name).exists() or (project / name).is_symlink()) for name in (REGISTRY, PROBE))
+    probe_path = project / PROBE
+    backup_path = probe_path.with_name(PROBE + '.bak')
+    if force and probe_path.exists() and not (backup_path.exists() or backup_path.is_symlink()):
+        new += 1
     if len(plan['before']) + new > MAX_ENTRIES:
         raise ValueError('Checkout exceeds bounded repair profile')
     return probe
@@ -209,7 +213,7 @@ def execute_fix(args, project: Path) -> int:
     project = project.resolve()
     scope, tests = list(args.scope), list(args.tests)
     tasks = task_directory(project, 'fix')
-    probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks)
+    probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks, force=args.force)
     target, probe_path, files, replaced = project / REGISTRY, project / PROBE, [], None
     written = not (target.exists() or target.is_symlink())
     registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
