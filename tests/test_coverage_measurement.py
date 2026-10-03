@@ -234,6 +234,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         calls.append(argv)
         if '-m' in argv:
             assert kwargs['timeout'] == expected_timeout
+            assert 'faulthandler_timeout=60' in argv
             (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
                 step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
             if timed_out:
@@ -267,3 +268,20 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         failed = {**measurement.identity(), 'test_exit': 124, 'input_drift': False}
         with pytest.raises(ValueError, match='unfinished'):
             measurement.compatible([failed], measurement.identity())
+
+
+def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path):
+    """Exercise pytest's diagnostic in a child killed by an outer budget."""
+    test = tmp_path / 'test_wait.py'
+    test.write_text('import time\ndef test_wait():\n    time.sleep(30)\n')
+    log = tmp_path / 'tests.txt'
+    with log.open('wb') as stream:
+        with pytest.raises(subprocess.TimeoutExpired):
+            subprocess.run([sys.executable, '-m', 'pytest', '-vv',
+                            '-o', 'faulthandler_timeout=0.1', str(test)],
+                           cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT,
+                           timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1'})
+    transcript = log.read_text()
+    assert 'Timeout (0:00:00.100000)!' in transcript
+    assert str(test) in transcript
+    assert 'in test_wait' in transcript
