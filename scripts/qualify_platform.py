@@ -18,9 +18,10 @@ PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest',
 
 
 def qualify(output, *, coverage_instrumented=False):
-    # Allow 15 minutes for the installed selection on every platform. Keep
-    # each test's own deadline; the workflow gives setup and evidence headroom.
-    suite_timeout = 900
+    # Normal qualification keeps 15 minutes on every platform. Temporarily
+    # allow 20 minutes only for instrumented Windows coverage, pending the
+    # retained-timing investigation; operation deadlines stay unchanged.
+    suite_timeout = 1200 if coverage_instrumented and platform.system() == 'Windows' else 900
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
@@ -147,6 +148,6 @@ def qualify(output, *, coverage_instrumented=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--coverage-instrumented',action='store_true',
-                   help='Allow 900 seconds for coverage instrumentation; never qualify this run')
+                   help='Allow 1200 seconds on Windows, 900 elsewhere, for coverage instrumentation; never qualify this run')
     args=p.parse_args()
     raise SystemExit(qualify(args.output.absolute(),coverage_instrumented=args.coverage_instrumented))

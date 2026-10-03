@@ -121,7 +121,8 @@ def test_symlinked_fixture_is_refused(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('suite', ['full', 'platform'])
 @pytest.mark.parametrize('changed', ['checkout_test', 'installed_package'])
-def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite):
+@pytest.mark.parametrize('windows', [False, True])
+def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite, windows):
     import attune_harness
 
     root = tmp_path / 'checkout'
@@ -150,10 +151,11 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
                         base_prefix='base', executable=sys.executable))
     monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Windows' if windows else 'Linux')
 
     def successful_child(argv, **kwargs):
         assert ('--coverage-instrumented' in argv) == (suite == 'platform')
-        assert kwargs['timeout'] == (1080 if suite == 'platform' else 1200)
+        assert kwargs['timeout'] == ((1380 if windows else 1080) if suite == 'platform' else 1200)
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
@@ -217,7 +219,8 @@ def test_startup_hook_measures_scrubbed_and_isolated_children(tmp_path, monkeypa
 
 @pytest.mark.parametrize('instrumented', [False, True])
 @pytest.mark.parametrize('timed_out', [False, True])
-def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out):
+@pytest.mark.parametrize('windows', [False, True])
+def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out, windows):
     import attune_harness
     spec = importlib.util.spec_from_file_location('qualifier', SCRIPT.with_name('qualify_platform.py'))
     qualifier = importlib.util.module_from_spec(spec)
@@ -228,7 +231,8 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
     output = tmp_path / 'result'
     calls = []
-    expected_timeout = 900
+    monkeypatch.setattr(qualifier.platform, 'system', lambda: 'Windows' if windows else 'Linux')
+    expected_timeout = 1200 if windows and instrumented else 900
 
     def child(argv, **kwargs):
         calls.append(argv)
