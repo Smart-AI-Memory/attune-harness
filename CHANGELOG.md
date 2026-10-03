@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Add bounded `source-review` and `roundtable` CLI preparation, dispatch,
+  inspection and abandonment over immutable selected source bytes. Both host
+  skill integrations use the same contract; Codex packaging includes both.
+- Preserve requested versus reported model identities, per-turn process evidence,
+  replay protection, call budgets and unresolved dispatches. Offline checks do
+  not qualify live host/model behavior.
+- Correct Claude refusal classification for completed nonzero exits; uncertain
+  supervision failures still refuse retry classification.
+
 - `init --for fix` removes what it wrote when a later write refuses: the
   registry if it wrote one, and the `probe.json.bak` it made under `--force`.
   The old probe stays in place (O-78), as `init --for plan` already does.

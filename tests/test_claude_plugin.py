@@ -94,7 +94,7 @@ def test_codex_sees_the_harness_skill_once():
     """The shared skills folder, read by both hosts' manifests, does not gain the Harness skill."""
     shared = sorted(p.name for p in (SHARED / 'skills').iterdir() if p.is_dir())
     assert 'attune-harness' not in shared
-    assert shared == ['attune-release-check', 'cross-review', 'release-execute', 'smart-test', 'spec']
+    assert shared == ['attune-release-check', 'cross-review', 'release-execute', 'roundtable', 'smart-test', 'spec']
     for host in ('.claude-plugin', '.codex-plugin'):
         assert json.loads((SHARED / host / 'plugin.json').read_text(encoding='utf-8'))['skills'] == './skills/', host
     codex = json.loads((ROOT / 'plugins' / 'attune-harness' / '.codex-plugin' / 'plugin.json').read_text(encoding='utf-8'))
