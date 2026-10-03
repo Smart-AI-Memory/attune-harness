@@ -492,20 +492,22 @@ def test_metadata_text_drift_refuses_before_child(run_plugin, monkeypatch):
     ('/outside.dist-info/METADATA', 'unsafe METADATA path'),
     ('nested/pkg.dist-info/METADATA', 'one recorded wheel METADATA'),
 ])
-def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative, error):
+@pytest.mark.parametrize('supplied_files', [False, True], ids=['legacy', 'reused'])
+def test_distribution_metadata_rejects_unbounded_paths(tmp_path, relative, error, supplied_files):
     class Dist:
         files, version = [relative], '1'
         def locate_file(self, value):
             return tmp_path / str(value)
     with pytest.raises(ValueError, match=error):
-        runtime.distribution_metadata(Dist(), 'pkg')
+        runtime.distribution_metadata(Dist(), 'pkg', **({'files': Dist.files} if supplied_files else {}))
 
 
 @pytest.mark.parametrize('relative', [
     '../outside.dist-info/METADATA', '/outside.dist-info/METADATA',
     r'..\outside.dist-info\METADATA', r'C:\outside.dist-info\METADATA',
 ])
-def test_distribution_metadata_rejects_escaping_record_alongside_valid_one(tmp_path, relative):
+@pytest.mark.parametrize('supplied_files', [False, True], ids=['legacy', 'reused'])
+def test_distribution_metadata_rejects_escaping_record_alongside_valid_one(tmp_path, relative, supplied_files):
     class Dist:
         files, version = ['pkg-1.dist-info/METADATA', relative], '1'
         def locate_file(self, value):
@@ -514,11 +516,12 @@ def test_distribution_metadata_rejects_escaping_record_alongside_valid_one(tmp_p
     path.parent.mkdir()
     path.write_text('Name: pkg\nVersion: 1\n')
     with pytest.raises(ValueError, match='unsafe METADATA path'):
-        runtime.distribution_metadata(Dist(), 'pkg')
+        runtime.distribution_metadata(Dist(), 'pkg', **({'files': Dist.files} if supplied_files else {}))
 
 
 @pytest.mark.parametrize('newline', ['\n', '\r\n'], ids=['lf', 'crlf'])
-def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path, newline):
+@pytest.mark.parametrize('supplied_files', [False, True], ids=['legacy', 'reused'])
+def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path, newline, supplied_files):
     class Dist:
         files = ['demo/METADATA', 'demo/nested/METADATA', 'METADATA', 'demo-1.dist-info/METADATA']
         version = '1'
@@ -530,13 +533,14 @@ def test_package_data_metadata_does_not_collide_with_wheel_metadata(tmp_path, ne
         path.write_text('package data, not distribution metadata')
     metadata_text = f'Name: demo{newline}Version: 1{newline}'
     (tmp_path / Dist.files[-1]).write_bytes(metadata_text.encode('utf-8'))
-    assert runtime.distribution_metadata(Dist(), 'demo') == metadata_text
+    assert runtime.distribution_metadata(Dist(), 'demo', **({'files': Dist.files} if supplied_files else {})) == metadata_text
     Dist.files.append('other-1.dist-info/METADATA')
     with pytest.raises(ValueError, match='one recorded wheel METADATA'):
-        runtime.distribution_metadata(Dist(), 'demo')
+        runtime.distribution_metadata(Dist(), 'demo', **({'files': Dist.files} if supplied_files else {}))
 
 
-def test_distribution_metadata_bounds_and_identity(tmp_path, monkeypatch):
+@pytest.mark.parametrize('supplied_files', [False, True], ids=['legacy', 'reused'])
+def test_distribution_metadata_bounds_and_identity(tmp_path, monkeypatch, supplied_files):
     class Dist:
         files, version = ['pkg.dist-info/METADATA'], '1'
         def locate_file(self, value):
@@ -545,11 +549,140 @@ def test_distribution_metadata_bounds_and_identity(tmp_path, monkeypatch):
     path.parent.mkdir()
     path.write_text('Name: other\nVersion: 1\n')
     with pytest.raises(ValueError, match='identity'):
-        runtime.distribution_metadata(Dist(), 'pkg')
+        runtime.distribution_metadata(Dist(), 'pkg', **({'files': Dist.files} if supplied_files else {}))
     path.write_text('Name: pkg\nVersion: 1\n' + 'x' * 100)
     monkeypatch.setattr(runtime, 'METADATA_LIMIT', 64)
     with pytest.raises(ValueError, match='exceeds'):
-        runtime.distribution_metadata(Dist(), 'pkg')
+        runtime.distribution_metadata(Dist(), 'pkg', **({'files': Dist.files} if supplied_files else {}))
+
+
+@pytest.fixture
+def recorded_distribution(tmp_path, monkeypatch):
+    """Actual wheel metadata, with independently counted RECORD enumerations."""
+    class Dist(runtime.metadata.PathDistribution):
+        evaluations = 0
+
+        @property
+        def files(self):
+            self.evaluations += 1
+            return super().files
+
+    distributions = {}
+    original = runtime.metadata.distribution
+
+    def make(name='demo', requires=()):
+        info = tmp_path / (name + '-1.dist-info')
+        info.mkdir()
+        package = tmp_path / name.replace('-', '_')
+        package.mkdir()
+        (package / '__init__.py').write_text('', encoding='utf-8')
+        (info / 'METADATA').write_text('Name: ' + name + '\nVersion: 1\n' +
+            ''.join('Requires-Dist: ' + req + '\n' for req in requires), encoding='utf-8')
+        (info / 'RECORD').write_text(f'{package.name}/__init__.py,,\n'
+            f'{info.name}/METADATA,,\n{info.name}/RECORD,,\n', encoding='utf-8')
+        distributions[name] = Dist(info)
+        return distributions[name], info, package
+
+    def distribution(name):
+        return distributions[name] if name in distributions else original(name)
+
+    monkeypatch.setattr(runtime.metadata, 'distribution', distribution)
+    monkeypatch.setattr(runtime.metadata, 'packages_distributions', lambda: {})
+    return make
+
+
+def test_record_enumeration_reused_only_within_one_selection(recorded_distribution):
+    dist, _, _ = recorded_distribution()
+    first = runtime.resolve_imports(['demo', 'demo'])
+    assert dist.evaluations == 1
+    assert first['versions'] == {'demo': '1'} and first['top_levels'] == ['demo']
+    assert runtime.resolve_imports(['demo']) == first
+    assert dist.evaluations == 2
+    assert runtime.distribution_metadata(dist, 'demo') == first['metadata']['demo']
+    assert dist.evaluations == 3  # Legacy helper still obtains fresh files itself.
+    files = dist.files
+    assert runtime.distribution_metadata(dist, 'demo', files=files) == first['metadata']['demo']
+    assert dist.evaluations == 4  # Supplied enumeration never gets reread.
+    with pytest.raises(ValueError, match='one recorded wheel METADATA'):
+        runtime.distribution_metadata(dist, 'demo', files=[])
+    assert dist.evaluations == 4
+
+
+def test_later_extra_selection_reads_again_and_retains_transitive_dependencies(recorded_distribution):
+    parent, _, _ = recorded_distribution('parent', ['child>=1', 'extra-dep; extra == "feature"'])
+    child, _, _ = recorded_distribution('child')
+    extra, _, _ = recorded_distribution('extra-dep', ['child>=1'])
+    # The LIFO queue visits the plain parent first, then revisits for its extra.
+    closure = runtime.resolve_imports(['parent[feature]', 'parent'])
+    assert closure['versions'] == {'child': '1', 'extra-dep': '1', 'parent': '1'}
+    assert (parent.evaluations, child.evaluations, extra.evaluations) == (2, 1, 1)
+    assert runtime.resolve_imports(['parent[feature]', 'parent']) == closure
+    assert (parent.evaluations, child.evaluations, extra.evaluations) == (4, 2, 2)
+
+
+@pytest.mark.parametrize('change_kind', ['metadata', 'record'])
+def test_physical_distribution_drift_is_read_on_next_closure(recorded_distribution, change_kind):
+    dist, info, package = recorded_distribution()
+    first = runtime.resolve_imports(['demo'])
+    if change_kind == 'metadata':
+        with (info / 'METADATA').open('a', encoding='utf-8') as stream:
+            stream.write('\nChanged description\n')
+    else:
+        (package / 'new.py').write_text('', encoding='utf-8')
+        with (info / 'RECORD').open('a', encoding='utf-8') as stream:
+            stream.write('demo/new.py,,\n')
+    second = runtime.resolve_imports(['demo'])
+    assert second != first and second['versions'] == first['versions']
+    assert dist.evaluations == 2
+    field = 'metadata' if change_kind == 'metadata' else 'files'
+    assert second[field] != first[field]
+
+
+@pytest.mark.parametrize('files,error', [(None, 'no installed file metadata'),
+                                       ([], 'one recorded wheel METADATA')])
+def test_missing_or_empty_recorded_files_refused(recorded_distribution, monkeypatch, files, error):
+    dist, _, _ = recorded_distribution()
+    monkeypatch.setattr(type(dist), 'files', property(lambda self: files))
+    with pytest.raises(FeatureUnavailable, match=error):
+        runtime.resolve_imports(['demo'])
+
+
+@pytest.mark.parametrize('when', ['before', 'after'])
+@pytest.mark.parametrize('change_kind', ['metadata', 'record'])
+def test_physical_import_drift_refused_at_dispatch_boundaries(
+        run_plugin, recorded_distribution, monkeypatch, when, change_kind):
+    _, info, package = recorded_distribution()
+    _, enable = run_plugin
+    bindings, _ = enable(declares={'imports': ['demo']})
+    dispatched = []
+    original = runtime.invoke
+
+    def change_files():
+        if change_kind == 'metadata':
+            with (info / 'METADATA').open('a', encoding='utf-8') as stream:
+                stream.write('\nChanged description\n')
+        else:
+            (package / 'new.py').write_text('', encoding='utf-8')
+            with (info / 'RECORD').open('a', encoding='utf-8') as stream:
+                stream.write('demo/new.py,,\n')
+
+    def dispatch(*args, **kwargs):
+        dispatched.append(True)
+        outcome = original(*args, **kwargs)
+        change_files()
+        return outcome
+
+    monkeypatch.setattr(runtime, 'invoke', dispatch)
+    if when == 'before':
+        change_files()
+        with pytest.raises(FeatureUnavailable, match='closure changed'):
+            invoke(bindings)
+        assert dispatched == []
+    else:
+        with pytest.raises(runtime.PluginUnresolved, match='closure changed') as error:
+            invoke(bindings)
+        assert dispatched == [True]
+        assert error.value.receipt['exit_status'] == 0
 
 
 def test_bundle_metadata_cannot_advertise_undeclared_distribution(run_plugin):
@@ -637,8 +770,8 @@ Path(sys.argv[2]).write_text(json.dumps({'nearest': rows[0]['id'], 'version': vo
 
 def test_call_receipt_binds_large_metadata_without_repeating_snapshot(run_plugin, monkeypatch):
     original = runtime.distribution_metadata
-    def expanded(dist, name):
-        text = original(dist, name)
+    def expanded(dist, name, **kwargs):
+        text = original(dist, name, **kwargs)
         return text + '\n' + 'private-metadata-description ' * 30000
     monkeypatch.setattr(runtime, 'distribution_metadata', expanded)
     _, enable = run_plugin
