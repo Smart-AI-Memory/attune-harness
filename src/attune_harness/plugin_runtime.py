@@ -131,11 +131,13 @@ def record_top_levels(files):
     return result
 
 
-def distribution_metadata(dist, name):
+def distribution_metadata(dist, name, *, files=None):
     """Snapshot only the selected wheel's bounded METADATA, never a site directory."""
     from packaging.utils import canonicalize_name
+    if files is None:
+        files = dist.files
     candidates = []
-    for file in dist.files:
+    for file in files:
         path = PurePosixPath(str(file))
         windows_path = PureWindowsPath(str(file))
         if ((path.name == 'METADATA' or windows_path.name == 'METADATA') and
@@ -188,15 +190,16 @@ def resolve_imports(declarations):
                 continue
             selected[name] = dist.version
             extras.setdefault(name, set()).update(requested)
-            if dist.files is None:
+            recorded_files = dist.files
+            if recorded_files is None:
                 raise ValueError(f'{name} has no installed file metadata')
-            metadata_text[name] = distribution_metadata(dist, name)
+            metadata_text[name] = distribution_metadata(dist, name, files=recorded_files)
             if sum(len(text.encode('utf-8')) for text in metadata_text.values()) > METADATA_LIMIT:
                 raise ValueError('Declared distribution metadata exceeds 1 MiB')
-            inferred_tops.update(record_top_levels(dist.files))
+            inferred_tops.update(record_top_levels(recorded_files))
             root = Path(dist.locate_file('')).resolve()
             roots.add(str(root))
-            files.update(str(Path(dist.locate_file(file)).resolve()) for file in dist.files)
+            files.update(str(Path(dist.locate_file(file)).resolve()) for file in recorded_files)
             for text in dist.requires or []:
                 child = Requirement(text)
                 if child.marker is None or any(child.marker.evaluate({'extra': extra})
