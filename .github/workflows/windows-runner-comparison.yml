@@ -32,12 +32,18 @@ jobs:
         env:
           CANDIDATE_SHA: ${{ github.sha }}
           COMPARISON_KIND: ${{ matrix.kind }}
+          COMPARISON_ENVIRONMENT: ${{ runner.environment }}
+          COMPARISON_OS: ${{ runner.os }}
+          COMPARISON_ARCH: ${{ runner.arch }}
         run: |
           if ($env:CANDIDATE_SHA -cnotmatch '^[0-9a-f]{40}$') {
             throw 'A full lowercase commit SHA is required'
           }
           if ($env:GITHUB_REF -ne 'refs/heads/main') {
             throw 'The comparison must be dispatched from main'
+          }
+          if ($env:COMPARISON_ENVIRONMENT -ne 'github-hosted' -or $env:COMPARISON_OS -ne 'Windows' -or $env:COMPARISON_ARCH -ne 'X64') {
+            throw 'Both comparison jobs require GitHub-hosted Windows x64 runners'
           }
           $cpu = Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
           $memory = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
