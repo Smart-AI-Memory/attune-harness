@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add consultation `evidence` inspection of frozen cited lines and checkpoint-bound
+  `assess-citation` judgments without rewriting answers or dispatching a model.
+  Preserve assessed answers when cancellation interrupts saved replay.
+- Add explicit Antigravity consultation seats with frozen model/effort, bounded
+  single-use supervision and correlated session/finish stream checks. These checks
+  do not establish tool isolation. Codex seats can request explicit reasoning effort.
+
 - Add bounded `source-review` and `roundtable` CLI preparation, dispatch,
   inspection and abandonment over immutable selected source bytes. Both host
   skill integrations use the same contract; Codex packaging includes both.
