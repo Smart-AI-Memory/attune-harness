@@ -57,20 +57,27 @@ def qualify(output, *, coverage_instrumented=False):
             except FeatureUnavailable:receipt['checks'].append('native recovery explicitly unsupported')
             else:raise AssertionError('Update the Windows qualification suite before claiming support')
         receipt['native_process_and_recovery']='unsupported'
-    # Retain the active Python stacks before the outer budget kills pytest.
-    # This reports slow tests; it does not stop them or extend their deadlines.
+    # Retain slow-test stacks with Python frame references. CPython's timed
+    # native frame walker crashed mid-dump in Linux and Windows 3.12 receipts.
+    # The Python watchdog needs the GIL; the outer budget remains independent.
     argv=[sys.executable,'-m','pytest','-vv','-o','pythonpath=',
-          '-o','faulthandler_timeout=60','--durations=20',
+          '-p','harness_qualification_stacks','-o','faulthandler_timeout=0','--durations=20',
           '--junitxml='+str(output/'tests.xml'),*[str(ROOT/'tests'/t) for t in tests]]
     if os.name != 'posix':
         argv += ['-k', 'not actual_cli_process_through_full_adapter']
     # Keep progress even if the whole suite exhausts its orchestration budget.
     # Individual operation deadlines and test assertions are unchanged.
+    # The watchdog owns slow-stacks.txt separately: Windows append across
+    # independent file handles is not atomic. Both files remain in the receipt.
+    receipt['slow_test_stacks'] = 'slow-stacks.txt; Python watchdog requires the GIL'
+    receipt['test_timings'] = ('test-timings.jsonl; monotonic seconds since pytest configuration; '
+                               'case and setup/call/teardown start/end events survive suite timeout')
     with (output/'tests.txt').open('wb') as log:
         try:
             # The plugin probe (D29.1) writes its receipt into the output directory it is told.
             run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=suite_timeout,
-                               env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output)})
+                               env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output),
+                                    'PYTHONPATH':str(ROOT/'scripts')})
         except subprocess.TimeoutExpired:
             run=subprocess.CompletedProcess(argv,124)
             receipt['failure']='suite_timeout'
