@@ -74,6 +74,75 @@ and hash line-ending-normalised bytes as the backstop for a clone made
 without the attribute. **Where.** `.gitattributes`,
 `tests/test_memory_fixture_contract.py` (#79).
 
+Signed plugin bundles need the same protection. A manifest or skill converted
+from LF to CRLF changes its artifact digest, so a previously signed bundle
+refuses with "Plugin artifact changed after it was signed". Preserve the
+manifest, skill and archive bytes from signing through installation; mark
+the signed text files `-text` before signing when keeping them in Git. Do
+not normalize an already signed bundle to make it pass: restore the original
+bytes, or deliberately sign the changed artifact again. **Where.**
+`extensions.discover`, `plugin_signing.verify_bundle` (#118),
+[signed plugin guidance](executable-plugin-run.md).
+
+## 7. GPG discovery can select the working directory
+
+**Symptom.** A local `gpg.exe` or `gpg.bat` is selected instead of the intended
+verifier, or Git for Windows' GPG is reported missing because it is not on
+PATH. **Why.** Python 3.10/3.11 `shutil.which` prefers the working directory
+on Windows; Git for Windows also ships GPG outside the usual PATH. **Do.**
+Use `plugin_signing.find_gpg`, which searches absolute PATH entries directly,
+then known install locations, and returns an absolute executable. Inspect the
+recorded verifier path if discovery surprises you; install GnuPG or add its
+directory to PATH when it is absent. **Where.**
+`plugin_signing.find_gpg`, `known_gpg_locations`,
+`tests/test_plugin_signing.py` (#118).
+
+## 8. GPG builds disagree about home-directory paths
+
+**Symptom.** Git for Windows' GPG cannot start its agent when given
+`C:\\Users\\...` or `C:/Users/...` as `--homedir`. **Why.** Its MSYS build
+treats paths without a leading slash as relative when composing lock-file
+names. Native Windows GPG uses drive-qualified paths. **Do.** Use
+`plugin_signing.probe_gpg` and `gpg_path`: MSYS receives `/c/Users/...`,
+native GPG receives `C:/Users/...`. Forward slashes alone do not fix the
+MSYS case. Cygwin's `/cygdrive/c/` spelling is not handled. Verification uses
+a private home with `--no-options`, not the user's keyring or option files.
+**Where.** `plugin_signing.gpg_path`, `probe_gpg`, and the verifier-home
+spy test in `tests/test_plugin_signing.py` (#118).
+
+## 9. A drive-relative capture path can escape its root
+
+**Symptom.** A capture entry such as `C:x` looks relative but names a Windows
+drive; `C:/x` is also invalid as a capture member. **Why.** POSIX path parsing
+does not recognize Windows drives, while Windows distinguishes a drive's
+current directory from its root. **Do.** Capture members use canonical
+relative POSIX names such as `task/record.json`, with no drive, backslash or
+traversal. Keep the absolute capture root separate from its member names.
+The capture validator rejects Windows drives on every host, so producing a
+capture on POSIX does not make a drive-qualified member portable.
+**Where.** `scripts/compat_capture.py` (`_relative`) and
+`tests/test_compat_capture.py`.
+
+## 10. Suite and CI job deadlines are different budgets
+
+**Symptom.** An installed qualification suite exits 124 while the hosted job
+still has time left. **Why.** `qualify_platform.py` allows 900 seconds
+(15 minutes) for its selected suite, while the installed qualification job
+allows 20 minutes for setup, checks and evidence upload. Individual operation
+deadlines still apply. **Do.** Read the retained receipt and test timings;
+distinguish a suite timeout from an assertion failure or the outer job's
+timeout. A larger job budget does not extend the suite budget. Investigate
+recurring overruns before changing a deadline.
+
+Supplemental coverage is a separate measurement: its hosted jobs allow
+25 minutes; the measurement wrapper allows 1,080 seconds for the Windows
+platform measurement or 1,200 seconds for the full POSIX suite. The
+instrumented platform suite still has its own 900-second bound and does not
+constitute platform qualification. **Where.**
+`scripts/qualify_platform.py`, `scripts/measure_coverage.py`,
+`.github/workflows/qualification.yml`, `.github/workflows/coverage.yml`,
+[qualification guide](qualification.md).
+
 ## Also worth remembering
 
 - **Text mode translates newlines.** A writer that must produce exact bytes
