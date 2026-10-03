@@ -3,10 +3,12 @@
 This watchdog needs the GIL: it cannot diagnose a C extension that holds it.
 The qualifier's separate process budget still terminates such a stuck suite.
 """
+import json
 import os
 from pathlib import Path
 import sys
 import threading
+import time
 
 import pytest
 
@@ -17,14 +19,56 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    config._harness_timing_epoch = time.monotonic()
     config._harness_stack_log = (
         Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'slow-stacks.txt').open('wb', buffering=0)
+    # One main-thread writer, separate from pytest capture and stack timers.
+    # Each event is written immediately, including starts whose test is killed.
+    config._harness_timing_log = (
+        Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'test-timings.jsonl').open('wb', buffering=0)
+    _timing(config, 'suite_start')
 
 
 def pytest_unconfigure(config):
-    stream = getattr(config, '_harness_stack_log', None)
-    if stream is not None:
-        stream.close()
+    for name in ('_harness_stack_log', '_harness_timing_log'):
+        stream = getattr(config, name, None)
+        if stream is not None:
+            stream.close()
+
+
+def _timing(config, event, **details):
+    record = {'schema_version': 1, 'event': event,
+              'elapsed_seconds': round(time.monotonic() - config._harness_timing_epoch, 6),
+              **details}
+    config._harness_timing_log.write((json.dumps(record, ensure_ascii=True,
+                                                allow_nan=False) + '\n').encode('ascii'))
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    _timing(item.config, 'phase_start', nodeid=item.nodeid, phase='setup')
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_call(item):
+    _timing(item.config, 'phase_start', nodeid=item.nodeid, phase='call')
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_teardown(item):
+    _timing(item.config, 'phase_start', nodeid=item.nodeid, phase='teardown')
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    result = yield
+    report = result.get_result()
+    _timing(item.config, 'phase_end', nodeid=report.nodeid, phase=report.when,
+            outcome=report.outcome, duration_seconds=report.duration)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    _timing(session.config, 'suite_end', exit_status=int(exitstatus))
 
 
 def _dump(nodeid, stream):
@@ -50,6 +94,8 @@ def _dump(nodeid, stream):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):
+    started = time.monotonic()
+    _timing(item.config, 'case_start', nodeid=item.nodeid)
     delay = float(item.config.getini('harness_stack_timeout'))
     timer = threading.Timer(delay, _dump, (item.nodeid, item.config._harness_stack_log))
     timer.daemon = True
@@ -60,3 +106,5 @@ def pytest_runtest_protocol(item, nextitem):
         timer.cancel()
         # A dump already in progress must finish before the log can be closed.
         timer.join()
+        _timing(item.config, 'case_end', nodeid=item.nodeid,
+                duration_seconds=time.monotonic() - started)

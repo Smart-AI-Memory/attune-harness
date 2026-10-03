@@ -70,6 +70,8 @@ def qualify(output, *, coverage_instrumented=False):
     # The watchdog owns slow-stacks.txt separately: Windows append across
     # independent file handles is not atomic. Both files remain in the receipt.
     receipt['slow_test_stacks'] = 'slow-stacks.txt; Python watchdog requires the GIL'
+    receipt['test_timings'] = ('test-timings.jsonl; monotonic seconds since pytest configuration; '
+                               'case and setup/call/teardown start/end events survive suite timeout')
     with (output/'tests.txt').open('wb') as log:
         try:
             # The plugin probe (D29.1) writes its receipt into the output directory it is told.

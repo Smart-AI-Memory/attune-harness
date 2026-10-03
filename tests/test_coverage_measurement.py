@@ -256,6 +256,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     assert qualifier.qualify(output, **kwargs) == (124 if timed_out else 0)
     receipt = json.loads((output / 'platform.json').read_text())
     assert receipt['suite_timeout_seconds'] == expected_timeout
+    assert receipt['test_timings'].startswith('test-timings.jsonl;')
     assert len(calls) == 2
     if instrumented:
         assert receipt['status'] == ('instrumented_failed' if timed_out else 'instrumented_checks_passed')
@@ -298,6 +299,63 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
     assert str(test) in transcript
     assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
     assert 'End slow-test Python stacks' in transcript
+    timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[0]['event'] == 'suite_start'
+    starts = [record for record in timings if record['event'] == 'case_start']
+    assert len(starts) == 1 and starts[0]['nodeid'].endswith('test_wait.py::test_wait')
+    assert timings[-1]['event'] == 'phase_start' and timings[-1]['phase'] == phase
+    assert not any(record['event'] in ('case_end', 'suite_end') for record in timings)
+    assert all(record['elapsed_seconds'] >= 0 for record in timings)
+    assert [record['elapsed_seconds'] for record in timings] == sorted(
+        record['elapsed_seconds'] for record in timings)
+
+
+def test_timing_journal_retains_outcomes_durations_and_bypasses_capture(tmp_path):
+    test = tmp_path / 'test_timing.py'
+    test.write_text('''import pytest, time
+@pytest.fixture
+def bad_setup():
+    raise RuntimeError('setup remains failed')
+@pytest.fixture
+def bad_teardown():
+    yield
+    raise RuntimeError('teardown remains failed')
+def test_pass(capfd):
+    time.sleep(0.02)
+    captured = capfd.readouterr()
+    assert 'elapsed_seconds' not in captured.out + captured.err
+def test_fail(): assert False, 'call remains failed'
+def test_skip(): pytest.skip('skip remains skipped')
+def test_setup(bad_setup): pass
+def test_teardown(bad_teardown): pass
+''')
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks', '-o', 'faulthandler_timeout=0',
+                          str(test)], cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[0]['event'] == 'suite_start'
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    starts = [record['nodeid'] for record in timings if record['event'] == 'case_start']
+    ends = [record for record in timings if record['event'] == 'case_end']
+    assert len(starts) == 5 and [record['nodeid'] for record in ends] == starts
+    assert all(record['duration_seconds'] >= 0 for record in ends)
+    assert ends[0]['duration_seconds'] >= 0.02
+    phases = {(record['nodeid'].split('::')[-1], record['phase']): record
+              for record in timings if record['event'] == 'phase_end'}
+    assert phases['test_pass', 'call']['outcome'] == 'passed'
+    assert phases['test_pass', 'call']['duration_seconds'] >= 0.02
+    assert phases['test_fail', 'call']['outcome'] == 'failed'
+    assert phases['test_skip', 'call']['outcome'] == 'skipped'
+    assert phases['test_setup', 'setup']['outcome'] == 'failed'
+    assert phases['test_teardown', 'teardown']['outcome'] == 'failed'
+    assert [record['elapsed_seconds'] for record in timings] == sorted(
+        record['elapsed_seconds'] for record in timings)
+    assert all(record['schema_version'] == 1 for record in timings)
+    assert (tmp_path / 'slow-stacks.txt').read_bytes() == b''
 
 
 @pytest.mark.parametrize('fails', [False, True])
