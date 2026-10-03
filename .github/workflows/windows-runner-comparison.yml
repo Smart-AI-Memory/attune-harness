@@ -5,10 +5,6 @@ name: Bounded Windows runner comparison
 on:
   workflow_dispatch:
     inputs:
-      candidate_sha:
-        description: Full SHA of the frozen candidate to compare
-        required: true
-        type: string
       larger_runner:
         description: Exact label of the authorized 8-core Windows x64 runner
         required: true
@@ -19,6 +15,7 @@ permissions:
 
 jobs:
   compare:
+    if: github.ref == 'refs/heads/main'
     strategy:
       fail-fast: false
       matrix:
@@ -33,11 +30,14 @@ jobs:
       - name: Validate frozen candidate and retain hardware identity
         shell: pwsh
         env:
-          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          CANDIDATE_SHA: ${{ github.sha }}
           COMPARISON_KIND: ${{ matrix.kind }}
         run: |
           if ($env:CANDIDATE_SHA -cnotmatch '^[0-9a-f]{40}$') {
             throw 'A full lowercase commit SHA is required'
+          }
+          if ($env:GITHUB_REF -ne 'refs/heads/main') {
+            throw 'The comparison must be dispatched from main'
           }
           $cpu = Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
           $memory = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
@@ -51,7 +51,6 @@ jobs:
         run: git config --global core.autocrlf false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ inputs.candidate_sha }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
