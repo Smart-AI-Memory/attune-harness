@@ -18,7 +18,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config._harness_stack_log = (
-        Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'tests.txt').open('ab', buffering=0)
+        Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'slow-stacks.txt').open('wb', buffering=0)
 
 
 def pytest_unconfigure(config):

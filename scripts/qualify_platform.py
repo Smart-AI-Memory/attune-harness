@@ -67,9 +67,10 @@ def qualify(output, *, coverage_instrumented=False):
         argv += ['-k', 'not actual_cli_process_through_full_adapter']
     # Keep progress even if the whole suite exhausts its orchestration budget.
     # Individual operation deadlines and test assertions are unchanged.
-    # Both pytest and the watchdog append, so one writer cannot overwrite the
-    # other's retained output. The qualification directory is always new.
-    with (output/'tests.txt').open('ab') as log:
+    # The watchdog owns slow-stacks.txt separately: Windows append across
+    # independent file handles is not atomic. Both files remain in the receipt.
+    receipt['slow_test_stacks'] = 'slow-stacks.txt; Python watchdog requires the GIL'
+    with (output/'tests.txt').open('wb') as log:
         try:
             # The plugin probe (D29.1) writes its receipt into the output directory it is told.
             run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=suite_timeout,

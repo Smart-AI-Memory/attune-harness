@@ -283,7 +283,7 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
                + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
     test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
     log = tmp_path / 'tests.txt'
-    with log.open('ab') as stream:
+    with log.open('wb') as stream:
         with pytest.raises(subprocess.TimeoutExpired):
             subprocess.run([sys.executable, '-m', 'pytest', '-vv',
                             '-p', 'harness_qualification_stacks',
@@ -293,7 +293,7 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
                            timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                                             'PYTHONPATH': str(SCRIPT.parent),
                                             'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
-    transcript = log.read_text()
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
     assert 'Slow test Python stacks:' in transcript
     assert str(test) in transcript
     assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
@@ -327,7 +327,7 @@ def test_churn(capsys):
 ''' + ('    assert False, "intentional failure remains a failure"\n' if fails else '') +
                     '\ndef test_fast(): pass\n')
     log = tmp_path / 'tests.txt'
-    with log.open('ab') as stream:
+    with log.open('wb') as stream:
         run = subprocess.run([sys.executable, '-m', 'pytest', '-vv',
                               '-p', 'harness_qualification_stacks',
                               '-o', 'faulthandler_timeout=0',
@@ -336,8 +336,8 @@ def test_churn(capsys):
                              env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                                   'PYTHONPATH': str(SCRIPT.parent),
                                   'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
-    transcript = log.read_text()
-    assert run.returncode == (1 if fails else 0), transcript
+    assert run.returncode == (1 if fails else 0), log.read_text()
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
     assert 'Slow test Python stacks: test_churn.py::test_churn' in transcript
     assert 'in test_churn' in transcript
     assert 'Slow test Python stacks: test_churn.py::test_fast' not in transcript
