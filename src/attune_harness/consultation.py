@@ -6,8 +6,10 @@ from threading import Event
 
 from . import Task
 from .adapters import Attempt, JsonParticipant
+from .antigravity import AntigravityExchange
+from .consultation_evidence import assessment, claims
 from .consultation_snapshot import capture, validate as validate_snapshot
-from .native import NativeError, NativeExchange
+from .native import NativeError, NativeExchange, validate_reasoning_effort
 from .process import invoke
 from .recovery import RecoveryCursor, ReviewPaused, validate_events
 from .review_contract import bounded_text, canonical, digest, fields, parse_json
@@ -40,12 +42,19 @@ def configuration(value, operation):
         if not isinstance(name, str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}', name):
             raise ValueError('Invalid participant name')
         adapter = item.get('adapter') if isinstance(item, dict) else None
-        if adapter not in ('claude', 'codex', 'command'):
-            raise ValueError('Configure claude, codex or command explicitly; no fallback')
-        fields(item, ('adapter', 'identity', 'timeout', *(['command'] if adapter == 'command' else [])))
+        if adapter not in ('claude', 'codex', 'antigravity', 'command'):
+            raise ValueError('Configure claude, codex, antigravity or command explicitly; no fallback')
+        fields(item, ('adapter', 'identity', 'timeout', *(['command'] if adapter == 'command' else []),
+                      *(['effort'] if adapter == 'antigravity' else []),
+                      *(['reasoning_effort'] if adapter == 'codex' and 'reasoning_effort' in item else [])))
         pair = identity(item['identity'])
-        if adapter != 'command' and pair[0] != adapter:
+        provider = 'google-antigravity' if adapter == 'antigravity' else adapter
+        if adapter != 'command' and pair[0] != provider:
             raise ValueError('Native provider must match the selected adapter')
+        if adapter == 'antigravity' and item['effort'] not in ('low', 'medium', 'high', 'max'):
+            raise ValueError('Explicit Antigravity effort required')
+        if 'reasoning_effort' in item:
+            validate_reasoning_effort(item['reasoning_effort'])
         if pair in pairs or (operation == 'source-review' and pair == author):
             raise ValueError('Review and seats require distinct configured provider/model identities')
         pairs.append(pair)
@@ -104,6 +113,21 @@ def load(directory):
     if len(record['events']) > expected['max_calls']:
         raise ValueError('Call budget exceeded')
     validate_events(record, kinds=('consultation_turn',))
+    decisions = record.get('citation_assessments', [])
+    if not isinstance(decisions, list) or len(decisions) > 128:
+        raise ValueError('Invalid citation assessment list')
+    for item in decisions:
+        fields(item, ('round', 'participant', 'citation', 'decision', 'note', 'snapshot_digest',
+                      'prior_checkpoint', 'authority'))
+        if (type(item['round']) is not int or type(item['citation']) is not int
+                or item['decision'] not in ('supported', 'rejected', 'uncertain')
+                or item['snapshot_digest'] != contract['snapshot']['digest']
+                or item['authority'] != 'advisory_host_assessment'
+                or not isinstance(item['prior_checkpoint'], str) or len(item['prior_checkpoint']) != 64):
+            raise ValueError('Invalid retained citation assessment')
+        bounded_text(item['note'], 'host citation assessment', 2048)
+        if not any(all(row[k] == item[k] for k in ('round', 'participant', 'citation')) for row in claims(record)):
+            raise ValueError('Unknown retained citation assessment')
     return record
 
 
@@ -146,9 +170,14 @@ def dispatch(config, turn, cwd, cancel):
                 raise NativeError(f'Command failed: {result.failure}', failure=result.failure,
                                   process_stopped=result.returncode is not None)
             return result.stdout
+    elif config['adapter'] == 'antigravity':
+        native = AntigravityExchange(model=config['identity']['model'], effort=config['effort'],
+                                     timeout=config['timeout'], max_output_bytes=65536, cancel=cancel)
+        exchange = native
     else:
         native = NativeExchange(config['adapter'], cwd=cwd, model=config['identity']['model'],
-                                timeout=config['timeout'], max_output_bytes=65536, cancel=cancel)
+                                reasoning_effort=config.get('reasoning_effort'), timeout=config['timeout'],
+                                max_output_bytes=65536, cancel=cancel)
         exchange = native
     try:
         output = JsonParticipant(attempt, exchange).run(task)
@@ -169,6 +198,7 @@ def dispatch(config, turn, cwd, cancel):
             'identity': {'configured': config['identity'],
                          'reported': asdict(native.identity) if native and native.identity else None,
                          'authenticated_model': False},
+            'provider_usage': getattr(native, 'usage', None),
             'process': asdict(process) if process else None}
 
 
@@ -212,7 +242,10 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
                         result = cursor.events[key]['result']
                         paused = True
                     answers.append({'round': round_number, 'participant': name, **result})
-                    record['answers'] = answers
+                    replayed = {(a['round'], a['participant']) for a in answers}
+                    # Keep later saved answers if cancellation interrupts journal replay.
+                    record['answers'] = answers + [a for a in record['answers']
+                        if (a['round'], a['participant']) not in replayed]
                     if result['status'] != 'completed':
                         record['status'] = 'cancelled' if result['status'] == 'cancelled' else 'failed'
                         store.save(record)
@@ -244,5 +277,26 @@ def abandon(directory, checkpoint):
         record['abandonment'] = {'effects': 'unknown', 'prior_checkpoint': checkpoint,
                                  'previous_status': record['status']}
         record['status'] = 'cancelled'
+        store.save(record)
+        return record
+
+
+def inspect_evidence(directory):
+    record = load(directory)
+    return {'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
+            'contract_digest': record['contract_digest'], 'checkpoint_digest': record['checkpoint_digest'],
+            'snapshot_digest': record['contract']['snapshot']['digest'], 'claims': claims(record),
+            'authority': 'inspection_only'}
+
+
+def assess_citation(directory, checkpoint, round_number, participant, citation, decision, note):
+    """Append an explicit host judgment, preserving model answers and call authority."""
+    store = RunStore(Path(directory), existing=True)
+    with store.lease():
+        record = load(directory)
+        if record['checkpoint_digest'] != checkpoint:
+            raise ValueError('Stale citation assessment checkpoint')
+        item = assessment(record, round_number, participant, citation, decision, note)
+        record.setdefault('citation_assessments', []).append(item)
         store.save(record)
         return record
