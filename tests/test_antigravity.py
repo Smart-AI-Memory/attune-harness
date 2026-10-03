@@ -87,11 +87,20 @@ def test_real_process_uses_empty_cwd_explicit_effort_and_single_use(tmp_path):
     # An injected argument prefix keeps this a portable real subprocess fixture.
     script = tmp_path / 'fixture.py'
     output = encoded(stream())
-    script.write_text('import pathlib,sys\n'
+    script.write_text('import json,pathlib,sys\n'
                       'assert not list(pathlib.Path.cwd().iterdir())\n'
                       'assert "--disable-slash-commands" in sys.argv\n'
                       'assert sys.argv[sys.argv.index("--effort")+1]=="high"\n'
                       'assert sys.argv[sys.argv.index("--print-timeout")+1]=="3s"\n'
+                      'assert "--print" not in sys.argv\n'
+                      'assert sys.argv[sys.argv.index("--input-format")+1]=="stream-json"\n'
+                      'assert sys.argv[sys.argv.index("--output-format")+1]=="stream-json"\n'
+                      'event=json.loads(sys.stdin.readline())\n'
+                      'assert event["event"]=="user" and set(event)=={"event","message"}\n'
+                      'assert set(event["message"])=={"content"}\n'
+                      'assert json.loads(event["message"]["content"].split("\\n",1)[1])=='
+                      '{"version":1,"attempt":{"accepted":"offline fixture"}}\n'
+                      'assert sys.stdin.read()==""\n'
                       f'print({output!r})\n', encoding='utf-8')
     from attune_harness.process import invoke
     seen = []
@@ -105,6 +114,64 @@ def test_real_process_uses_empty_cwd_explicit_effort_and_single_use(tmp_path):
     with pytest.raises(NativeError, match='already dispatched'):
         exchange(raw)
     assert len(seen) == 1
+
+
+@pytest.mark.parametrize('source', ['x' * 131072, '"' * 65536, '\u00e9' * 32768],
+                         ids=['ascii-exact-bound', 'quote-expansion', 'unicode-expansion'])
+def test_accepted_large_roundtable_source_reaches_stdin_intact(tmp_path, monkeypatch, source):
+    from attune_harness import consultation as c
+    from attune_harness.process import invoke
+
+    root = tmp_path / 'source'
+    root.mkdir()
+    (root / 'x.py').write_text(source, encoding='utf-8')
+    expected = tmp_path / 'expected.json'
+    script = tmp_path / 'fixture.py'
+    script.write_text('import json,pathlib,sys\n'
+                      'assert "--print" not in sys.argv\n'
+                      'assert sys.argv[sys.argv.index("--input-format")+1]=="stream-json"\n'
+                      'assert sys.argv[sys.argv.index("--output-format")+1]=="stream-json"\n'
+                      'line=sys.stdin.readline()\n'
+                      'assert line.endswith("\\n") and sys.stdin.read()==""\n'
+                      'event=json.loads(line)\n'
+                      'assert set(event)=={"event","message"} and event["event"]=="user"\n'
+                      'assert set(event["message"])=={"content"}\n'
+                      'request=json.loads(event["message"]["content"].split("\\n",1)[1])\n'
+                      f'assert request==json.loads(pathlib.Path({str(expected)!r}).read_text())\n'
+                      f'events=json.loads({json.dumps(stream())!r})\n'
+                      'events[0]["init"]["model"]=sys.argv[sys.argv.index("--model")+1]\n'
+                      'for output in events: print(json.dumps(output))\n', encoding='utf-8')
+    seen = []
+    def factory(**kwargs):
+        def runner(argv, stdin, **options):
+            # The child must read the exact request handed to process supervision.
+            request = json.loads(json.loads(stdin)['message']['content'].split('\n', 1)[1])
+            seen.append(request)
+            assert max(len(arg.encode('utf-8')) for arg in argv) < 4096
+            expected.write_text(json.dumps(request), encoding='utf-8')
+            return invoke((sys.executable, str(script), *argv[1:]), stdin, **options)
+        return AntigravityExchange(**kwargs, runner=runner)
+    monkeypatch.setattr(c, 'AntigravityExchange', factory)
+    seat = {'adapter': 'antigravity', 'identity': {'provider': 'google-antigravity', 'model': MODEL},
+            'timeout': 3, 'effort': 'high'}
+    cfg = {'schema_version': 1, 'question': 'Inspect', 'author': {'provider': 'codex', 'model': 'gpt-6'},
+           'participants': {'first': seat, 'second': {**seat, 'identity': {
+               'provider': 'google-antigravity', 'model': MODEL + '-offline-fixture'}}}, 'rounds': 2}
+    directory = tmp_path / 'run'
+    prepared = c.prepare('roundtable', root, ['x.py'], cfg, directory)
+    (root / 'x.py').write_text('changed after prepare', encoding='utf-8')
+    result = c.run(directory, prepared['contract_digest'], allow_external=True, allow_native=True)
+    assert result['status'] == 'completed', result.get('answers')
+    assert len(seen) == 4
+    turns = [json.loads(request['attempt']['task']['objective']) for request in seen]
+    assert [len(turn['previous_rounds']) for turn in turns] == [0, 0, 2, 2]
+    assert all(turn['snapshot']['files']['x.py']['text'] == source for turn in turns)
+    assert all(turn['snapshot'] == prepared['contract']['snapshot'] for turn in turns)
+    assert all(turn['contract_digest'] == prepared['contract_digest'] for turn in turns)
+    assert turns[2]['previous_rounds'] == turns[3]['previous_rounds']
+    with pytest.raises(ValueError, match='Terminal'):
+        c.run(directory, prepared['contract_digest'], allow_external=True, allow_native=True)
+    assert len(seen) == 4
 
 
 def test_pre_cancel_never_launches_and_does_not_claim_no_external_effects(tmp_path):

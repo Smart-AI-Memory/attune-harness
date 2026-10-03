@@ -110,6 +110,72 @@ def test_assessment_bound_and_writer_lease_refuse(tmp_path):
         assessment(value, 0, 'critic', 0, 'rejected', 'No support')
 
 
+@pytest.mark.parametrize('status', ['failed', 'unresolved', 'paused', 'cancelled', 'completed'])
+def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_path, capsys, status):
+    import json
+    from attune_harness import consultation as c
+    from attune_harness.cli import main
+    from attune_harness.review_store import RunStore
+    from test_consultation import prepared, completed
+
+    _, directory, initial = prepared(tmp_path, 'roundtable')
+    calls = []
+    def dispatcher(config, turn, *args):
+        calls.append(turn['participant'])
+        if len(calls) == 2:
+            if status == 'unresolved':
+                raise KeyboardInterrupt
+            if status in ('failed', 'cancelled'):
+                return {'status': status, 'answer': None, 'identity': {},
+                        'error': {'effects': 'unknown'}, 'process': None}
+        result = completed()
+        result['answer']['evidence'] = [{'path': 'x.py', 'line': 1, 'detail': 'Assignment'}]
+        return result
+    if status == 'unresolved':
+        with pytest.raises(KeyboardInterrupt):
+            c.run(directory, initial['contract_digest'], allow_external=True, dispatcher=dispatcher)
+    else:
+        c.run(directory, initial['contract_digest'], allow_external=True, dispatcher=dispatcher,
+              max_operations=1 if status == 'paused' else None)
+    before = c.load(directory)
+    assert before['status'] == status
+    dispatch_count = len(calls)
+    first = before['answers'][0]
+    common = ['roundtable', 'assess-citation', str(directory), '--round', str(first['round']),
+              '--participant', first['participant'], '--citation', '0', '--decision', 'supported',
+              '--note', 'The assignment is present', '--checkpoint', before['checkpoint_digest']]
+    saved_bytes = (directory / 'record.json').read_bytes()
+    for option, invalid in [('--participant', 'unknown'), ('--citation', '1'), ('--note', '')]:
+        refused = common.copy()
+        refused[refused.index(option) + 1] = invalid
+        assert main(refused) == 2
+        assert json.loads(capsys.readouterr().out)['status'] == 'refused'
+        assert (directory / 'record.json').read_bytes() == saved_bytes
+    with RunStore(directory, existing=True).lease():
+        assert main(common) == 2
+        assert json.loads(capsys.readouterr().out)['status'] == 'refused'
+        assert (directory / 'record.json').read_bytes() == saved_bytes
+    assert main(common) == 0
+    emitted = json.loads(capsys.readouterr().out)
+    after = c.load(directory)
+    assert emitted == after
+    assert after['status'] == status
+    assert after['answers'] == before['answers'] and after['events'] == before['events']
+    assert after['checkpoint_digest'] != before['checkpoint_digest']
+    assert len(after['citation_assessments']) == 1
+    assert c.inspect_evidence(directory)['claims'][0]['support'] == 'supported'
+    # Status/evidence still report the underlying failed/unresolved owner at exit 2.
+    for action in ('status', 'evidence'):
+        assert main(['roundtable', action, str(directory)]) == (2 if status in ('failed', 'unresolved') else 0)
+        assert json.loads(capsys.readouterr().out)['status'] == status
+    persisted = (directory / 'record.json').read_bytes()
+    assert main(common) == 2
+    retry = json.loads(capsys.readouterr().out)
+    assert retry['status'] == 'refused' and 'Stale citation assessment checkpoint' in retry['error']['detail']
+    assert (directory / 'record.json').read_bytes() == persisted
+    assert len(calls) == dispatch_count
+
+
 def test_assessed_answer_survives_cancellation_during_saved_replay(tmp_path, monkeypatch):
     from threading import Event
     from attune_harness import consultation as c

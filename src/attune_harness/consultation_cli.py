@@ -41,6 +41,7 @@ def add_commands(sub):
 
 
 def execute(args):
+    assessment_saved = False
     try:
         if args.consultation_action == 'prepare':
             config = parse_json(read_text(args.config, 131072))
@@ -59,6 +60,7 @@ def execute(args):
             elif args.consultation_action == 'assess-citation':
                 result = consultation.assess_citation(args.run_dir, args.checkpoint, args.round_number,
                     args.participant, args.citation, args.decision, args.note)
+                assessment_saved = True
             else:
                 result = current
                 if result['status'] == 'running':
@@ -67,4 +69,4 @@ def execute(args):
         result = {'schema_version': 1, 'operation': args.command, 'status': 'refused',
                   'error': {'type': type(exc).__name__, 'detail': str(exc)}}
     print(json.dumps(result, indent=2, allow_nan=False))
-    return 0 if result['status'] in ('prepared', 'paused', 'completed', 'cancelled') else 2
+    return 0 if assessment_saved or result['status'] in ('prepared', 'paused', 'completed', 'cancelled') else 2

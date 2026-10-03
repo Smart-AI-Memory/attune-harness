@@ -95,6 +95,9 @@ are `supported`, `rejected` or `uncertain`, with a required host note. This appe
 an advisory host assessment without changing the model answer or journal, makes
 no provider calls, and grants no action authority. A stale checkpoint refuses;
 there are at most 128 assessments. Use `roundtable` for roundtable owners.
+Successful `assess-citation` commands exit zero even when the owner's retained
+status is failed or unresolved. The assessment does not clear that status;
+inspect it separately. Refused assessments exit 2 without appending a decision.
 
 ## Direct Antigravity seat
 
@@ -117,6 +120,9 @@ Raw process evidence and available usage are retained. External tool/subagent
 stream events refuse the answer; this post-hoc check does not prove isolation or
 undo effects. Native software output remains bounded to 64 KiB. No fallback,
 automatic retries or replay of old provider responses occurs in this adapter.
+Each invocation sends one NDJSON user event through stdin and ends input at EOF,
+following the [documented headless protocol](https://antigravity.google/docs/cli/headless/#stream-prompts-from-stdin).
+Frozen source and prior-round context stay out of command-line arguments.
 
 Codex seats may include an optional explicit `reasoning_effort`, such as `high`;
 it becomes part of the accepted contract and native invocation. Missing effort
