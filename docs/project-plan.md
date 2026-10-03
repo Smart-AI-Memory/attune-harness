@@ -1,7 +1,7 @@
 # Stable v1 and the first two weeks after release
 
-Refreshed September 30, 2026 against main
-`374826f9372cb0df7be1a622b72d7f27fe056f2a`, after the 1.2.0 release. This
+Refreshed October 3, 2026 against main
+`4276c3503470a286fda33104e6d4fffb495bb54d`, with 1.2.0 still the latest release. This
 updates the execution focus of [the v1 roadmap](plan-1.0.md), retaining
 [S1–S9 and D25–D30](specs/release-1.0/addendum-2026-09-23.md). The earlier
 phased and October plans remain historical inputs, not an extra release
@@ -30,8 +30,12 @@ installed walkthrough, and each migration row tried against the installed
 artifact. Green software checks do not close them, and no percentage-complete
 estimate is useful while they are open.
 
-Main stays at the released version with no `.dev0` suffix, because the Claude
-Code plugin marketplace is served from `main`.
+Main still declares 1.2.0, but includes changes not yet published in that
+artifact. Since [#202](https://github.com/Smart-AI-Memory/attune-harness/pull/202),
+the Claude Code marketplace catalog on `main` pins the plugin to the release
+tag. The [runbook](release-runbook.md) now calls for reopening development
+with a `.dev0` version after 1.3.0. Source availability, publication and
+observed user acceptance are separate states.
 
 ## Where each gate's evidence is
 
@@ -88,28 +92,52 @@ recorded:
    body; [release notes](release-notes-1.0.0.md)). Stable v1 does not
    deprecate Attune AI or claim GUI/workflow parity.
 
-## Next, ranked (September 30, R0+2)
+## Completed since the September 30 refresh
+
+The [starter-files task list](specs/starter-files/tasks.md) records T1–T5
+complete: documented journeys (#191), `init --for fix` (#193),
+`init --for plan` (#194), the example command worker (#198), and resolved-path
+guidance (#190). The `plan-starter` journey completes plan/build; the
+`fix-starter` journey completes on POSIX. This does not qualify Windows `fix`
+or close the S3/S6/S9 observations. O-76's separate `--test-root .` refusal
+remains outside the smaller path remedy.
+
+Follow-up corrections for participant guidance (#201), partial starter writes
+(#204), and forced probe-backup accounting (#209) are on main. The Codex
+plugin preparation fix (#210), consultation citation inspection and direct
+Google seats (#211), qualification timing diagnostics (#212), and explicit
+mistake escalation policy (#213) also merged. These are source changes, not
+claims about the published 1.2.0 artifact.
+
+**T6 is prepared, with integration and release still pending.**
+[PR #199](https://github.com/Smart-AI-Memory/attune-harness/pull/199) contains
+the spec closeout and 1.3.0 preparation. It remains a draft under the deliberate
+publication hold. At this refresh, it conflicts with current main and retains
+an older failed macOS supplemental check; its owner must integrate current
+main, reconcile the release inventory, and obtain fresh exact-head checks
+before release. Those readiness tasks do not lift the hold.
+
+## Next, ranked (October 3, R0+5)
 
 New critical defects preempt this list. Smallest first where the value is
 equal; each item is a separate pull request.
 
 | Rank | Work | Why here | Status |
 |---|---|---|---|
-| 1 | **O-76:** the CLI guide's `--task-dir /tmp/...` examples are refused on macOS | A documented journey that fails as printed; the R0–R0+2 window's own focus | Recorded in [#180](https://github.com/Smart-AI-Memory/attune-harness/pull/180) (merged); the fix is the starter-files spec's T5, under different-model review |
-| 2 | **This refresh** | The status above still described preparing 1.0.0 | This pull request |
-| 3 | **S3/S6/S9 observations** | The only open acceptance gaps; software checks cannot close them | Needs a person: Patrick, or someone he names for S6 |
-| 4 | **Windows-traps guidance** (quick opportunity 3) | Documentation only | R0+8 onward |
-| 5 | **O-11 timing baseline** (quick opportunity 4) | A report only | R0+8 onward |
-| 6 | **O-70 starter files** ([#181](https://github.com/Smart-AI-Memory/attune-harness/pull/181)) | The largest product gap, and a feature chain | Spec approved September 30 (Q1–Q6 as recommended; targets 1.3.0). T5 is rank 1; T1–T4 follow |
+| 1 | **S3/S6/S9 observations** | The open acceptance gaps; software checks cannot close them | Needs Patrick or named participants, including a non-programmer for S6 |
+| 2 | **Windows-traps guidance** (quick opportunity 3) | Bounded guidance for supported installations | Separate documentation work; may proceed during the publication hold |
+| 3 | **O-11 timing baseline** (quick opportunity 4) | Diagnose recurring suite-budget pressure using retained evidence | #212 adds timing diagnostics; the baseline report remains open |
+| 4 | **T6 / 1.3.0 release readiness** | Deliver already implemented starter journeys in one batch | Prepared in draft #199; integrate and qualify before release, preserving the hold |
 
 Four stable releases in two days is fast for a stabilization period. Batch
 compatible fixes into one release per window unless a critical defect needs
 its own.
 
 **O-70 is ruled a journey defect (2026-09-30 retro).** The rule above against
-starting a feature chain in the window allows defects. `plan` and `fix` stop
-before they start for a new user, so the starter-files chain (T1–T6) proceeds
-inside the window. Its release, 1.3.0, is one batched release in R0+8–R0+13
+starting a feature chain in the window allows defects. Starter files address
+the missing setup path for `plan` and `fix`; T1–T5 are now implemented, while
+T6 and publication remain pending. Its release, 1.3.0, remains held for one
+batched release in R0+8–R0+13
 (October 6–11), not one per task. The S3, S6 and S9 observations still come
 before any claim of acceptance. Building O-70 does not close them.
 
@@ -121,8 +149,8 @@ originally planned for the candidate period. R0 is September 28, 2026.
 | Window | Focus | Exit evidence |
 |---|---|---|
 | R0–R0+2 (Sep 28–30) | Verify the published install and documented journeys; triage installation, recovery, saved-state and unexpected-spend reports first | Artifact identities, reproduced issues and clear dispositions; any urgent patch is independently reviewed and separately released |
-| R0+3–R0+7 (Oct 1–5) | Check real usage and support friction; complete shortlist items 1–2 only while incident load permits | Supported-journey map and evidence index tied to stable artifacts |
-| R0+8–R0+13 (Oct 6–11) | Complete shortlist items 3–4 if still useful; review CI durations and recurring failures | Small documentation/report deliverables, no unmeasured speed claims |
+| R0+3–R0+7 (Oct 1–5) | Check real usage and support friction; collect S3/S6/S9 observations and prepare bounded documentation while incident load permits | Observed receipts or explicit gaps, with source changes distinguished from stable artifacts |
+| R0+8–R0+13 (Oct 6–11) | Complete bounded guidance/timing work if still useful; qualify the batched 1.3.0 candidate under the existing release hold and gates | Small documentation/report deliverables and exact-candidate release evidence; publication still requires Patrick's authority |
 | R0+14 (Oct 12) | Review stability, unresolved defects and user feedback; choose the next bounded milestone | Written go/hold decision for GUI discovery, workflow restoration or further stabilization; no automatic GUI implementation |
 
 New critical defects preempt the opportunity queue. Preserve saved state and use
@@ -170,7 +198,10 @@ Goal: stable interfaces backed by live and installed evidence, with remaining
 human observations retained as named gaps during stabilization. Stable v1 is
 published and the software gates are met; the highest-value remaining
 distinction is between software checks and observed user acceptance. Quick
-opportunities 1 and 2 are done. The next user-facing item is O-76, a documented
-journey that fails as printed on macOS. This review narrows existing
+opportunities 1 and 2 and starter tasks T1–T5 are done on main. T6 is prepared
+in held draft #199; 1.3.0 is not published. The next acceptance evidence is
+the S3/S6/S9 observations, while bounded guidance and timing work can proceed
+during the hold. This refresh covers this roadmap and its linked status
+sources, not a complete documentation-corpus review. It narrows existing
 opportunities rather than inventing a new register or reopening closed work.
 Completion review: complete for planning; release acceptance remains open.
