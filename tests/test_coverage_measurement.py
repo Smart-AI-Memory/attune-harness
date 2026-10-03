@@ -234,7 +234,9 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         calls.append(argv)
         if '-m' in argv:
             assert kwargs['timeout'] == expected_timeout
-            assert 'faulthandler_timeout=60' in argv
+            assert 'faulthandler_timeout=0' in argv
+            assert 'harness_qualification_stacks' in argv
+            assert kwargs['env']['PYTHONPATH'] == str(qualifier.ROOT / 'scripts')
             (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
                 step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
             if timed_out:
@@ -270,18 +272,73 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
             measurement.compatible([failed], measurement.identity())
 
 
-def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path):
-    """Exercise pytest's diagnostic in a child killed by an outer budget."""
+@pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
+def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
+    """Retain the Python watchdog's stack before the independent outer kill."""
     test = tmp_path / 'test_wait.py'
-    test.write_text('import time\ndef test_wait():\n    time.sleep(30)\n')
+    wait = 'time.sleep(30)' if phase == 'call' else 'pass'
+    fixture = ('import pytest\n@pytest.fixture\ndef stall():\n'
+               + ('    time.sleep(30)\n' if phase == 'setup' else '')
+               + '    yield\n'
+               + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
+    test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
     log = tmp_path / 'tests.txt'
-    with log.open('wb') as stream:
+    with log.open('ab') as stream:
         with pytest.raises(subprocess.TimeoutExpired):
             subprocess.run([sys.executable, '-m', 'pytest', '-vv',
-                            '-o', 'faulthandler_timeout=0.1', str(test)],
+                            '-p', 'harness_qualification_stacks',
+                            '-o', 'faulthandler_timeout=0',
+                            '-o', 'harness_stack_timeout=0.1', str(test)],
                            cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT,
-                           timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1'})
+                           timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                                            'PYTHONPATH': str(SCRIPT.parent),
+                                            'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
     transcript = log.read_text()
-    assert 'Timeout (0:00:00.100000)!' in transcript
+    assert 'Slow test Python stacks:' in transcript
     assert str(test) in transcript
-    assert 'in test_wait' in transcript
+    assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
+    assert 'End slow-test Python stacks' in transcript
+
+
+@pytest.mark.parametrize('fails', [False, True])
+def test_python_watchdog_handles_frame_churn_and_preserves_test_verdict(tmp_path, fails):
+    test = tmp_path / 'test_churn.py'
+    test.write_text('''import faulthandler, threading, time, types
+from pathlib import Path
+def template(): return 1
+def test_churn(capsys):
+    # The timed native walker must not be used, even for a slow test.
+    def native_dump(*args, **kwargs):
+        Path('native-called').write_text('called')
+        raise AssertionError('native timed walker invoked')
+    faulthandler.dump_traceback_later = native_dump
+    stop = threading.Event()
+    def churn():
+        while not stop.is_set():
+            types.FunctionType(template.__code__.replace(), {})()
+    worker = threading.Thread(target=churn)
+    worker.start()
+    try: time.sleep(0.3)
+    finally:
+        stop.set()
+        worker.join()
+    captured = capsys.readouterr()
+    assert 'Slow test Python stacks:' not in captured.out + captured.err
+''' + ('    assert False, "intentional failure remains a failure"\n' if fails else '') +
+                    '\ndef test_fast(): pass\n')
+    log = tmp_path / 'tests.txt'
+    with log.open('ab') as stream:
+        run = subprocess.run([sys.executable, '-m', 'pytest', '-vv',
+                              '-p', 'harness_qualification_stacks',
+                              '-o', 'faulthandler_timeout=0',
+                              '-o', 'harness_stack_timeout=0.1', str(test)],
+                             cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT, timeout=10,
+                             env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                                  'PYTHONPATH': str(SCRIPT.parent),
+                                  'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    transcript = log.read_text()
+    assert run.returncode == (1 if fails else 0), transcript
+    assert 'Slow test Python stacks: test_churn.py::test_churn' in transcript
+    assert 'in test_churn' in transcript
+    assert 'Slow test Python stacks: test_churn.py::test_fast' not in transcript
+    assert not (tmp_path / 'native-called').exists()
