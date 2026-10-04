@@ -44,6 +44,7 @@ def test_read_only_snapshot_is_owner_rendered_and_records_unchanged(companion):
 @pytest.mark.parametrize('kwargs', [
     {'token': False},
     {'headers': {'X-Attune-Session': 'wrong'}},
+    {'headers': {'X-Attune-Session': 'é'}},
     {'headers': {'Origin': 'https://foreign.example'}},
     {'headers': {'Host': 'foreign.example'}},
 ])
@@ -77,3 +78,33 @@ def test_registration_bounds(work):
     contracts.make(work)
     with pytest.raises(ValueError):
         gui.CompanionServer([work[2]['directory']] * 2)
+
+
+@pytest.mark.parametrize('mode', ['manual', 'browser-false', 'browser-error'])
+def test_launcher_exposes_authenticated_fallback(companion, monkeypatch, capsys, mode):
+    class ExistingServer:
+        def __enter__(self):
+            return self
+        def __exit__(self, *_args):
+            pass
+        origin = companion.origin
+        launch_url = companion.launch_url
+        def serve_forever(self):
+            raise KeyboardInterrupt
+    monkeypatch.setattr(gui, 'CompanionServer', lambda *args, **kwargs: ExistingServer())
+    def open_browser(url):
+        assert mode != 'manual', 'Manual launch must not open a browser'
+        assert url == companion.launch_url
+        if mode == 'browser-error':
+            raise gui.webbrowser.Error('No browser')
+        return False
+    monkeypatch.setattr(gui.webbrowser, 'open', open_browser)
+    args = ['--task', str(companion.tasks[0])]
+    if mode == 'manual':
+        args.append('--no-open')
+    assert gui.main(args) == 0
+    output = capsys.readouterr()
+    assert companion.launch_url in output.out
+    if mode != 'manual':
+        assert 'Browser did not open' in output.err
+    assert request(companion)[0] == 200

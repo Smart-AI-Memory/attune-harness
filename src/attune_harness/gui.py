@@ -9,6 +9,7 @@ import base64
 import hashlib
 import hmac
 import secrets
+import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -66,7 +67,7 @@ class CompanionServer(HTTPServer):
 
     @property
     def launch_url(self):
-        # Fragment is not sent in HTTP requests. Never log the capability.
+        # Fragment is not sent in HTTP requests. Only display it to the launcher.
         return self.origin + '/#' + self.token
 
     def get_request(self):
@@ -120,7 +121,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/snapshot':
             return self.send(404, 'No such companion resource')
         tokens = self.headers.get_all('X-Attune-Session')
-        if len(tokens or []) != 1 or not hmac.compare_digest(tokens[0], self.server.token):
+        if len(tokens or []) != 1 or not hmac.compare_digest(tokens[0].encode('utf-8'), self.server.token.encode('ascii')):
             return self.send(403, 'Open this workspace using its local launcher link')
         try:
             entries = task_view.inspect_saved_tasks(self.server.tasks[0], self.server.tasks[1:])
@@ -144,8 +145,14 @@ def main(argv=None):
     args = parser.parse_args(argv)
     with CompanionServer(args.task, port=args.port) as server:
         print(f'Read-only companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
+        print(f'Private launcher link (grants local read access): {server.launch_url}', flush=True)
         if not args.no_open:
-            webbrowser.open(server.launch_url)
+            try:
+                opened = webbrowser.open(server.launch_url)
+            except webbrowser.Error:
+                opened = False
+            if not opened:
+                print('Browser did not open. Paste the private launcher link into your browser.', file=sys.stderr, flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:

@@ -32,7 +32,7 @@ renderer supplies content; the companion does not infer completion.
 
 ## Not verified
 
-Full suite, wheel/install qualification, independent source review, Windows GUI,
+Full suite, wheel/install qualification, Windows GUI,
 new native runs, screen-reader audit and real-user usability remain open.
 No prior prototype result is relabeled as production qualification. This increment
 uses private task_view style/script constants to preserve its CSP hashes; review
@@ -41,7 +41,23 @@ snapshot frame is not qualified; select-and-copy remains available.
 
 ## Next
 
-Complete source review and packaging/full-suite checks for this increment, then
+Complete packaging/full-suite checks for this increment, then
 bind intake and decisions to existing owners. Preserve the prototype interaction
 inventory and refusal tests. Experiment 23 identity and model-selection evidence
 remain separate pending work; neither is silently replaced with a new trial.
+
+## Qualification repair
+
+The documentation index now includes both specification files. A different-model
+review (requested GPT-6 Astra, high reasoning) inspected the original source at
+e6e7c1c and the final source delta. It approved this bounded read-only increment
+after two corrections: authenticated manual/browser-failure launch instructions,
+and non-ASCII invalid session headers returning 403 rather than raising TypeError.
+The reviewer independently ran all 15 companion tests and a real loopback probe.
+
+Reviewed source SHA-256: c9e9eca7d79b5466e4396379b3e1463b64ebea3c55b05680c7824fe8c1675d2e.
+Reviewed test SHA-256: 5cc26eb9b3dbe3a4c45f350172f49573f6a345486bdea08fd57cbd55ca4ae056.
+Documentation links and 15 focused tests passed locally. The attempted full local
+suite stopped during collection because the selected environment lacks requests;
+no dependency was added to a retained environment. The fresh CI run is required
+for complete-suite/platform status. Approval is not production readiness.
