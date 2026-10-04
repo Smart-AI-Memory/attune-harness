@@ -12,6 +12,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Shepherd: a named autonomous workflow](journeys/shepherd.md): Conversational invocation, authority, refusal boundaries, recovery and the verified #221 example
+
 - [Graphical companion specification](specs/graphical-companion/README.md): Four milestones, existing-journey reuse, owner boundaries and preservation gates
 - [Graphical companion progress](specs/graphical-companion/progress.md): Verified increments, remaining qualification and next work
 
