@@ -291,9 +291,38 @@ python -m attune_harness.gui --task /absolute/path/to/task --edit
 The default is read-only. In edit mode, **Open current form** retains the owner's
 current questions or decision. Save partial answers to see what remains; choice
 labels preserve the proposal, rationale, counter-case, evidence and uncertainty.
-Only a separate approval action accepts intent. Neither mode calls a model,
-builds, or creates new tasks. Use `plan --request` to create a draft first.
+Only a separate approval action accepts intent. These two launch modes do not
+dispatch participants, build, or create new tasks. Use `plan --request` to create a draft first.
 Resolve or stage a saved planning run in the CLI before opening its decision.
+
+To enable separately confirmed builds with registered command participants:
+
+```bash
+python -m attune_harness.gui --task /absolute/path/to/task --edit --allow-build-commands
+```
+
+The task must already carry accepted intent, an effect manifest, protected checks
+and distinct command worker/reviewer assignments. **Preview command build** shows
+the registered commands, accepted tasks, file effects, checks and budgets. Only
+**Grant these commands and build** starts execution. The launch flag alone does
+not start a build. Commands can access host resources and are not network-sandboxed;
+this mode is not a guarantee of offline execution. Native/provider adapters are
+unavailable, and the browser cannot supply a command or filesystem path.
+
+**Inspect progress and evidence** shows saved completed steps, checks, next actions
+and final reviewer findings. It refreshes while this companion's worker is active;
+refreshing never repeats execution. Reviewer output is evidence, not human
+acceptance. This is the build's final review, not a standalone document/corpus
+assessment (`review`, J06).
+
+Only one build runs at a time. Closing the page does not cancel it; normal service
+shutdown waits for the authorized owner call. There is no GUI pause, cancel or
+reconciliation control. After a service restart or lost response, inspect first.
+A saved resumable run requires a fresh preview and **Grant resume of these commands**
+with its original permissions. Changed source/configuration, a stale grant,
+terminal outcomes or uncertain dispatched operations refuse execution. Reconcile
+uncertain outcomes through the owner using its displayed next action; never replay
+the old submission. Restart does not restore grants or automatically dispatch.
 
 The private launcher link grants access to that launch mode; keep it private.
 Use `--no-open` for a manual launcher link. Another tab opening the same task's

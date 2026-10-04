@@ -1,8 +1,8 @@
 """Browser controls for owner-selected forms; all untrusted text uses textContent."""
 
 FORM_PAGE = ('<section id="decisions" hidden aria-labelledby="decision-heading">'
-             '<div><p class="eyebrow">CONNECTED JOURNEY · INTAKE → REVIEW → ACCEPT INTENT</p>'
-             '<h1 id="decision-heading">Continue a draft</h1>'
+             '<div><p class="eyebrow">CONNECTED JOURNEY · INTENT → BUILD → EVIDENCE</p>'
+             '<h1 id="decision-heading">Continue saved work</h1>'
              '<p>Harness chooses the form from saved work. Saving answers does not approve the plan. '
              'Accepting intent does not run a model or build.</p></div>'
              '<div id="tasks"></div><div id="form-panel"></div></section>')
@@ -26,16 +26,23 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 FORM_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
 let busy=false;
+const buildCards=new Map();
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
 async function api(path,payload){
  const res=await fetch(path,{method:payload?'POST':'GET',headers:{'X-Attune-Session':token||'',...(payload?{'Content-Type':'application/json'}:{})},...(payload?{body:JSON.stringify(payload)}:{}),cache:'no-store'});
  if(!res.ok)throw Error(await res.text());return await res.json();
 }
 async function loadTasks(){
- panel.replaceChildren();tasks.replaceChildren();
+ panel.replaceChildren();tasks.replaceChildren();buildCards.clear();
  try{const data=await api('/workspace');document.querySelector('#decisions').hidden=!data.editable;
  for(const task of data.tasks){
-  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.label,card);node('p',task.status+' · '+task.note,card);
+  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.label,card);node('p',task.status+(task.status==='accepted'&&task.build?' · Intent accepted': ' · '+task.note),card);
+  if(task.build){
+   const build=task.build,note=node('p','',card),error=node('p','',card);
+   if(build.view){const inspect=node('button','Inspect progress and evidence',card);inspect.type='button';inspect.onclick=()=>watchBuild(task.task);}
+   const preview=node('button','Preview command build',card);preview.type='button';
+   buildCards.set(task.task,{note,error,preview});updateBuildCard(task);
+  }
   if(task.available){const open=node('button','Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
    status.textContent='Current decision retained. Review before responding.';
@@ -43,6 +50,13 @@ async function loadTasks(){
  }
  return true;
  }catch(e){status.textContent='Decision inspection failed. '+e.message;return false;}
+}
+function updateBuildCard(task){
+ const card=buildCards.get(task.task),build=task.build;if(!card||!build)return;
+ card.note.textContent=build.note;card.error.hidden=!build.error;
+ card.error.textContent=build.error?'Last command attempt: '+build.error:'';
+ card.preview.hidden=!build.available;
+ card.preview.onclick=()=>act(async()=>renderBuildGrant(await api('/build/preview',{task:task.task,checkpoint:task.checkpoint})));
 }
 async function act(operation){
  if(busy)return;busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);
@@ -54,12 +68,14 @@ async function submit(shown,response){
  await refreshWorkspace(result.message);
 }
 async function refreshWorkspace(message=''){
+ stopBuildWatch();
  panel.replaceChildren();
  const fresh=await refresh();const snapshotWarning=fresh?'':status.textContent;
  const loaded=await loadTasks();const decisionWarning=loaded?'':status.textContent;
  status.textContent=[message|| (fresh?'Snapshot refreshed. Inspection makes no decisions or model calls.':''),snapshotWarning,decisionWarning].filter(Boolean).join(' ');
 }
 function renderDecision(shown){
+ stopBuildWatch();
  panel.replaceChildren();const display=shown.display;
  const title=node('h2',display.kind==='spec'?'Review draft intent':display.title,panel);title.tabIndex=-1;title.focus();
  node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',panel);
@@ -112,6 +128,38 @@ function renderDecision(shown){
   }
   if(!display.actions.length)node('p','The owner has no available action. Inspect the blocking evidence above.',panel);
  }
+}
+
+let watchedBuild=null,buildTimer=null,watchRevision=0;
+function stopBuildWatch(){watchRevision++;watchedBuild=null;clearTimeout(buildTimer);}
+async function watchBuild(task,focus=true){
+ stopBuildWatch();watchedBuild=task;const revision=watchRevision;
+ try{const data=await api('/workspace');if(watchedBuild!==task||revision!==watchRevision)return;
+ for(const item of data.tasks)updateBuildCard(item);
+ const build=data.tasks.find(item=>item.task===task)?.build;
+ if(!build?.view)throw Error(build?.note||'Task inspection unavailable');
+ renderBuildEvidence(build,focus);
+ if(build.running)buildTimer=setTimeout(()=>watchBuild(task,false),1000);
+ }catch(e){if(watchedBuild===task&&revision===watchRevision){node('p','Progress inspection failed. '+e.message+' Refresh before acting; no execution was retried.',panel);stopBuildWatch();}}
+}
+function renderBuildEvidence(build,focus=true){
+ panel.replaceChildren();const view=build.view;
+ const heading=node('h2','Recorded progress and evidence',panel);heading.tabIndex=-1;if(focus)heading.focus();
+ node('p',view.summary,panel);node('p',build.note,panel);
+ node('p','Next: '+view.next_action,panel);
+ node('p','Completed steps: '+(view.completed.join(', ')||'None recorded'),panel);
+ node('pre',JSON.stringify(view.evidence,null,2),panel);
+ if(build.reviews?.length){node('h3','Recorded reviewer findings',panel);node('pre',JSON.stringify(build.reviews,null,2),panel);}
+ node('small','Reviewer output is evidence to inspect, not human acceptance. Refresh reads saved state and never repeats execution.',panel);
+}
+function renderBuildGrant(shown){
+ stopBuildWatch();
+ panel.replaceChildren();const heading=node('h2',shown.resume?'Resume accepted command build':'Run accepted command build',panel);heading.tabIndex=-1;heading.focus();
+ node('p',shown.goal,panel);
+ node('p','This grants the configured commands and accepted file effects. Commands can access their host resources; they are not guaranteed offline. Native/provider adapters are unavailable in this GUI slice.',panel);
+ for(const [label,value] of [['Participants and commands',shown.participants],['Accepted tasks',shown.tasks],['File effects and protected checks',shown.effects],['Budgets',shown.budgets]]){node('h3',label,panel);node('pre',JSON.stringify(value,null,2),panel);}
+ const confirm=node('button',shown.resume?'Grant resume of these commands':'Grant these commands and build',panel);confirm.type='button';
+ confirm.onclick=()=>act(async()=>{const result=await api('/build/start',{task:shown.task,checkpoint:shown.checkpoint,grant:shown.grant,confirmed:true});await refreshWorkspace(result.message);await watchBuild(shown.task);});
 }
 refreshWorkspace();
 """

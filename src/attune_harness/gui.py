@@ -1,7 +1,8 @@
-"""Read-only loopback companion for explicitly registered saved tasks.
+"""Loopback companion for explicitly registered saved tasks, read-only by default.
 
 Run with ``python -m attune_harness.gui --task /absolute/task``. Add ``--edit`` to complete existing draft intake and collect owner decisions.
-No mode dispatches models or builds. Owners render fresh snapshots.
+Only --edit --allow-build-commands enables separately confirmed configured command builds.
+Native/provider adapters are unavailable; commands are not network-sandboxed. Owners retain authority.
 """
 
 import argparse
@@ -60,7 +61,9 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
 class CompanionServer(HTTPServer):
     """A bounded local reader. No caller-supplied filesystem paths or commands."""
 
-    def __init__(self, tasks, *, port=0, edit=False):
+    def __init__(self, tasks, *, port=0, edit=False, allow_build_commands=False):
+        if allow_build_commands and not edit:
+            raise ValueError("Command builds require explicit edit mode")
         paths = tuple(Path(path) for path in tasks)
         if not paths or len(paths) > task_view.MAX_SAVED_TASKS:
             raise ValueError('Register between one and 20 saved tasks')
@@ -73,13 +76,19 @@ class CompanionServer(HTTPServer):
         self.tasks = paths
         self.token = secrets.token_urlsafe(32)
         self.decisions = None
+        self.builds = None
         if edit:
             from .gui_decisions import Decisions
             self.decisions = Decisions(paths)
+        if allow_build_commands:
+            from .gui_build import Builds
+            self.builds = Builds(self.decisions)
         super().__init__(('127.0.0.1', port), Handler)
         self.origin = f'http://127.0.0.1:{self.server_port}'
 
     def server_close(self):
+        if self.builds is not None:
+            self.builds.close()
         if self.decisions is not None:
             self.decisions.close()
         super().server_close()
@@ -166,8 +175,14 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authenticated():
             return
         if self.path == '/workspace':
-            return self.send_json({'editable': self.server.decisions is not None,
-                                   'tasks': self.server.decisions.inspect() if self.server.decisions else []})
+            tasks = self.server.decisions.inspect() if self.server.decisions else []
+            if self.server.builds is not None:
+                for task in tasks:
+                    try:
+                        task['build'] = self.server.builds.inspect(task['task'])
+                    except (ValueError, OSError, RuntimeError) as exc:
+                        task['build'] = {'available': False, 'running': False, 'note': str(exc)}
+            return self.send_json({'editable': self.server.decisions is not None, 'tasks': tasks})
         try:
             entries = task_view.inspect_saved_tasks(self.server.tasks[0], self.server.tasks[1:])
             body = task_view.render_saved_tasks(entries, 'html')
@@ -199,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.headers.get_all('Origin') != [self.server.origin]:
             return self.send(403, 'Same-origin browser action required')
-        if self.path not in ('/decision/open', '/decision/submit'):
+        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start'):
             return self.send(404, 'No such companion action')
         lengths = self.headers.get_all('Content-Length')
         if (self.headers.get_all('Transfer-Encoding') or len(lengths or []) != 1
@@ -218,9 +233,16 @@ class Handler(BaseHTTPRequestHandler):
             expected = {'task', 'checkpoint'}
             if self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
+            elif self.path == '/build/start':
+                expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:
                 raise ValueError('Unsupported action fields')
-            if self.path == '/decision/open':
+            if self.path.startswith('/build/'):
+                if self.server.builds is None:
+                    raise ValueError('Relaunch with --edit --allow-build-commands to enable explicit command grants')
+                owner = self.server.builds.preview if self.path == '/build/preview' else self.server.builds.start
+                result = owner(**payload)
+            elif self.path == '/decision/open':
                 result = self.server.decisions.open(**payload)
             else:
                 result = self.server.decisions.submit(**payload)
@@ -232,11 +254,12 @@ class Handler(BaseHTTPRequestHandler):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
-    parser.add_argument('--edit', action='store_true', help='Enable existing draft intake and explicit intent decisions; no dispatch')
+    parser.add_argument('--edit', action='store_true', help='Enable existing draft intake and explicit intent decisions; builds require a separate flag')
+    parser.add_argument('--allow-build-commands', action='store_true', help='Permit separately confirmed configured command builds and accepted file effects; commands are not network-sandboxed')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
     args = parser.parse_args(argv)
-    with CompanionServer(args.task, port=args.port, edit=args.edit) as server:
+    with CompanionServer(args.task, port=args.port, edit=args.edit, allow_build_commands=args.allow_build_commands) as server:
         mode = 'Draft decision' if args.edit else 'Read-only'
         print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
         print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
