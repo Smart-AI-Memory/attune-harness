@@ -18,9 +18,10 @@ PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest',
 
 
 def qualify(output, *, coverage_instrumented=False):
-    # Allow 15 minutes for the installed selection on every platform. Keep
-    # each test's own deadline; the workflow gives setup and evidence headroom.
-    suite_timeout = 900
+    # Normal qualification keeps 15 minutes on every platform. Temporarily
+    # allow 20 minutes only for instrumented Windows coverage, pending the
+    # retained-timing investigation; operation deadlines stay unchanged.
+    suite_timeout = 1200 if coverage_instrumented and platform.system() == 'Windows' else 900
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
@@ -57,17 +58,27 @@ def qualify(output, *, coverage_instrumented=False):
             except FeatureUnavailable:receipt['checks'].append('native recovery explicitly unsupported')
             else:raise AssertionError('Update the Windows qualification suite before claiming support')
         receipt['native_process_and_recovery']='unsupported'
+    # Retain slow-test stacks with Python frame references. CPython's timed
+    # native frame walker crashed mid-dump in Linux and Windows 3.12 receipts.
+    # The Python watchdog needs the GIL; the outer budget remains independent.
     argv=[sys.executable,'-m','pytest','-vv','-o','pythonpath=',
+          '-p','harness_qualification_stacks','-o','faulthandler_timeout=0','--durations=20',
           '--junitxml='+str(output/'tests.xml'),*[str(ROOT/'tests'/t) for t in tests]]
     if os.name != 'posix':
         argv += ['-k', 'not actual_cli_process_through_full_adapter']
     # Keep progress even if the whole suite exhausts its orchestration budget.
     # Individual operation deadlines and test assertions are unchanged.
+    # The watchdog owns slow-stacks.txt separately: Windows append across
+    # independent file handles is not atomic. Both files remain in the receipt.
+    receipt['slow_test_stacks'] = 'slow-stacks.txt; Python watchdog requires the GIL'
+    receipt['test_timings'] = ('test-timings.jsonl; monotonic seconds since pytest configuration; '
+                               'case and setup/call/teardown start/end events survive suite timeout')
     with (output/'tests.txt').open('wb') as log:
         try:
             # The plugin probe (D29.1) writes its receipt into the output directory it is told.
             run=subprocess.run(argv,cwd=output,stdout=log,stderr=subprocess.STDOUT,timeout=suite_timeout,
-                               env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output)})
+                               env={**os.environ,'HARNESS_QUALIFICATION_OUTPUT':str(output),
+                                    'PYTHONPATH':str(ROOT/'scripts')})
         except subprocess.TimeoutExpired:
             run=subprocess.CompletedProcess(argv,124)
             receipt['failure']='suite_timeout'
@@ -137,6 +148,6 @@ def qualify(output, *, coverage_instrumented=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--coverage-instrumented',action='store_true',
-                   help='Allow 900 seconds for coverage instrumentation; never qualify this run')
+                   help='Allow 1200 seconds on Windows, 900 elsewhere, for coverage instrumentation; never qualify this run')
     args=p.parse_args()
     raise SystemExit(qualify(args.output.absolute(),coverage_instrumented=args.coverage_instrumented))

@@ -204,7 +204,7 @@ def test_an_existing_probe_needs_force_and_keeps_a_backup(tmp_path, capsys):
     pytest.param('hard-link', 'Repair requires bounded regular files with one hard link', marks=POSIX_ONLY),
     pytest.param('bare-name-not-on-path', 'Interpreter not found on PATH: no-such-python-here', marks=POSIX_ONLY),
 ])
-def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, detail):
+def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, detail, unmake_checkout):
     root = checkout(tmp_path.resolve() / 'repo')
     options = {}
     if case == 'oracle-in-scope':
@@ -223,8 +223,7 @@ def test_what_the_owner_refuses_is_refused_in_its_words(tmp_path, capsys, case, 
     elif case == 'bare-name-not-on-path':
         options['python'] = 'no-such-python-here'
     else:
-        # Renamed, not deleted: Git's read-only objects and background maintenance race a delete.
-        (root / '.git').rename(root.parent / 'moved-git')
+        unmake_checkout(root)
     code, envelope = init_fix(capsys, root, **options)
     assert code == 2 and envelope['error']['detail'] == detail, envelope
     assert not (root / 'probe.json').exists() and not (root / 'participants.json').exists()
@@ -389,6 +388,40 @@ def test_the_files_init_writes_count_against_the_entry_bound(tmp_path, capsys, m
     assert code == 0, envelope
 
 
+@pytest.mark.parametrize('existing_registry', [False, True])
+@pytest.mark.parametrize('over_bound', [False, True])
+def test_forced_probe_backup_counts_before_any_write(tmp_path, capsys, existing_registry, over_bound):
+    from attune_harness import init_cli
+    from attune_harness.effect_limits import MAX_ENTRIES
+
+    root = checkout(tmp_path.resolve() / 'repo')
+    probe = init_cli.pytest_probe(sys.executable, ['tests/test_calc.py'])
+    (root / 'probe.json').write_text(json.dumps(probe), encoding='utf-8')
+    if existing_registry:
+        (root / 'participants.json').write_text(json.dumps({
+            'schema_version': 1, 'participants': PROFILES['demo']}), encoding='utf-8')
+    tasks = tmp_path.resolve() / 'state'
+    entries = len(repair.freeze(root, ['calc.py'], probe, tasks)['before'])
+    future_entries = 1 if existing_registry else 2  # probe backup, and an optional registry
+    for index in range(MAX_ENTRIES - future_entries + int(over_bound) - entries):
+        (root / f'padding-{index}').write_bytes(b'')
+    before = repair.freeze(root, ['calc.py'], probe, tasks)['before']
+    old_probe = (root / 'probe.json').read_bytes()
+    code, envelope = init_fix(capsys, root, '--force')
+    if over_bound:
+        assert code == 2 and envelope['error'] == {
+            'type': 'ValueError', 'detail': 'Checkout exceeds bounded repair profile'}, envelope
+        assert repair.freeze(root, ['calc.py'], probe, tasks)['before'] == before
+        assert not (root / 'probe.json.bak').exists()
+        assert (root / 'participants.json').exists() is existing_registry
+    else:
+        assert code == 0 and envelope['status'] == 'created', envelope
+        assert (root / 'probe.json.bak').read_bytes() == old_probe
+        assert (root / 'participants.json').exists()
+        accepted = repair.freeze(root, ['calc.py'], json.loads((root / 'probe.json').read_text()), tasks)
+        assert len(accepted['before']) == MAX_ENTRIES
+
+
 def test_a_task_directory_that_would_contain_the_checkout_is_not_used(tmp_path, capsys, monkeypatch):
     home = tmp_path.resolve() / 'home'
     root = checkout_at = home / 'harness-tasks' / 'repo-fix' / 'repo'
@@ -494,7 +527,7 @@ def test_the_default_task_directory_is_under_home_and_outside_the_checkout(tmp_p
     ('one-participant', 'Registry requires 2–16 participants'),
     ('empty-goal', 'init --for plan needs --goal, --scope, --interpreter and --tests'),
 ])
-def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, capsys, case, detail):
+def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, capsys, case, detail, unmake_checkout):
     root, tasks = checkout(tmp_path.resolve() / 'repo'), tmp_path.resolve() / 'tasks' / 'refused'
     options = {}
     if case == 'oracle-in-scope':
@@ -505,7 +538,7 @@ def test_what_plan_and_build_refuse_is_refused_and_nothing_is_left(tmp_path, cap
     elif case == 'missing-test':
         options['tests'] = ('tests/test_absent.py',)
     elif case == 'not-a-checkout':
-        (root / '.git').rename(root.parent / 'moved-git')  # see the fix refusals above
+        unmake_checkout(root)
     elif case == 'task-dir-inside':
         tasks = root / 'tasks'
     elif case == 'task-dir-exists':
@@ -759,3 +792,141 @@ def test_a_native_profile_hears_it_cannot_build_before_any_paid_flag(tmp_path, c
     code, refused = run(capsys, 'build', str(tasks))
     assert code == 2 and refused['error']['type'] == 'ValueError', refused
     assert refused['next_action'].startswith('Build needs a worker and a reviewer with no tools'), refused
+
+
+@pytest.mark.parametrize('existing_probe', [False, True])
+def test_a_failed_probe_write_leaves_the_project_as_it_was(tmp_path, capsys, monkeypatch, existing_probe):
+    """O-78: init --for fix removes the registry and backup it wrote when the probe write fails."""
+    root = checkout(tmp_path.resolve() / 'repo')
+    if existing_probe:
+        (root / 'probe.json').write_text('{"old": true}', encoding='utf-8')
+    from attune_harness import init_cli
+    real = init_cli.write_report
+    def failing(path, value, *args):
+        if Path(path).name == 'probe.json':
+            raise OSError('disk full')
+        return real(path, value, *args)
+    monkeypatch.setattr(init_cli, 'write_report', failing)
+    code, envelope = init_fix(capsys, root, *(('--force',) if existing_probe else ()))
+    assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
+    assert not (root / 'participants.json').exists() and not (root / 'probe.json.bak').exists()
+    assert (root / 'probe.json').exists() is existing_probe
+    if existing_probe:
+        assert (root / 'probe.json').read_text(encoding='utf-8') == '{"old": true}'
+
+
+def test_a_failed_probe_write_never_removes_a_registry_init_did_not_write(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    run(capsys, 'init', '--project', str(root))
+    before = (root / 'participants.json').read_bytes()
+    from attune_harness import init_cli
+    def failing(path, value, *args):
+        raise OSError('disk full')
+    monkeypatch.setattr(init_cli, 'write_report', failing)
+    code, envelope = init_fix(capsys, root)
+    assert code == 2, envelope
+    assert (root / 'participants.json').read_bytes() == before
+
+
+# The review of O-78: every refusal after the first write, and a cleanup that itself fails.
+
+def failing_writes(monkeypatch, name, error):
+    from attune_harness import init_cli
+    real = init_cli.write_report
+    def failing(path, value, *args):
+        if Path(path).name == name:
+            raise error
+        return real(path, value, *args)
+    monkeypatch.setattr(init_cli, 'write_report', failing)
+
+
+def test_an_interrupted_probe_write_rolls_back_and_propagates(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    failing_writes(monkeypatch, 'probe.json', KeyboardInterrupt())
+    with pytest.raises(KeyboardInterrupt):
+        main(['init', '--for', 'fix', '--project', str(root), '--scope', 'calc.py',
+              '--interpreter', sys.executable, '--tests', 'tests/test_calc.py'])
+    assert not (root / 'participants.json').exists() and not (root / 'probe.json').exists()
+
+
+def test_a_failed_registry_write_keeps_the_old_probe_and_no_backup(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    (root / 'probe.json').write_text('{"old": true}', encoding='utf-8')
+    failing_writes(monkeypatch, 'participants.json', OSError('disk full'))
+    code, envelope = init_fix(capsys, root, '--force')
+    assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
+    assert not (root / 'participants.json').exists() and not (root / 'probe.json.bak').exists()
+    assert (root / 'probe.json').read_text(encoding='utf-8') == '{"old": true}'
+
+
+def test_a_backup_that_was_not_ours_is_never_removed(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    (root / 'probe.json.bak').write_text('{"mine": true}', encoding='utf-8')
+    failing_writes(monkeypatch, 'probe.json', OSError('disk full'))
+    code, envelope = init_fix(capsys, root)
+    assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
+    assert (root / 'probe.json.bak').read_text(encoding='utf-8') == '{"mine": true}'
+    (root / 'probe.json').write_text('{"old": true}', encoding='utf-8')
+    code, envelope = init_fix(capsys, root, '--force')
+    assert code == 2 and 'move it before replacing the probe' in envelope['error']['detail'], envelope
+    assert (root / 'probe.json.bak').read_text(encoding='utf-8') == '{"mine": true}'
+
+
+def test_a_backup_that_fails_midway_leaves_no_partial_copy(tmp_path):
+    from attune_harness import init_cli
+    target = tmp_path / 'probe.json'
+    target.write_text('{"old": true}', encoding='utf-8')
+    class Unreadable(type(target)):
+        def open(self, mode='r', *args, **kwargs):
+            handle = super().open(mode, *args, **kwargs)
+            if mode == 'rb':
+                handle.read = lambda *a: (_ for _ in ()).throw(OSError('read failed'))
+            return handle
+    with pytest.raises(OSError, match='read failed'):
+        init_cli.backup(Unreadable(target), 'probe')
+    assert not (tmp_path / 'probe.json.bak').exists() and target.read_text(encoding='utf-8') == '{"old": true}'
+
+
+def test_a_cleanup_that_fails_never_hides_the_error_or_the_rest_of_the_cleanup(tmp_path, capsys, monkeypatch):
+    root = checkout(tmp_path.resolve() / 'repo')
+    (root / 'probe.json').write_text('{"old": true}', encoding='utf-8')
+    failing_writes(monkeypatch, 'probe.json', OSError('disk full'))
+    real_unlink = Path.unlink
+    def locked(self, *args, **kwargs):
+        if self.name == 'participants.json':
+            raise PermissionError('locked by another process')
+        return real_unlink(self, *args, **kwargs)
+    monkeypatch.setattr(Path, 'unlink', locked)
+    code, envelope = init_fix(capsys, root, '--force')
+    assert code == 2 and envelope['error']['detail'] == 'disk full', envelope
+    assert not (root / 'probe.json.bak').exists(), 'the backup is still removed after the registry cleanup failed'
+
+
+def test_a_backup_raced_into_place_is_never_removed(tmp_path):
+    """Second review of #204: the exclusive open loses a race, and the other writer's .bak stays."""
+    from attune_harness import init_cli
+    target = tmp_path / 'probe.json'
+    target.write_text('{"old": true}', encoding='utf-8')
+    class Racing(type(target)):
+        def open(self, mode='r', *args, **kwargs):
+            if mode == 'rb':  # another writer makes the backup after the pre-check
+                (tmp_path / 'probe.json.bak').write_text('{"theirs": true}', encoding='utf-8')
+            return super().open(mode, *args, **kwargs)
+    with pytest.raises(FileExistsError):
+        init_cli.backup(Racing(target), 'probe')
+    assert (tmp_path / 'probe.json.bak').read_text(encoding='utf-8') == '{"theirs": true}'
+
+
+def test_a_backup_interrupted_midway_leaves_no_partial_copy(tmp_path):
+    from attune_harness import init_cli
+    target = tmp_path / 'probe.json'
+    target.write_text('{"old": true}', encoding='utf-8')
+    class Interrupted(type(target)):
+        def open(self, mode='r', *args, **kwargs):
+            handle = super().open(mode, *args, **kwargs)
+            if mode == 'rb':
+                handle.read = lambda *a: (_ for _ in ()).throw(KeyboardInterrupt())
+            return handle
+    with pytest.raises(KeyboardInterrupt):
+        init_cli.backup(Interrupted(target), 'probe')
+    assert not (tmp_path / 'probe.json.bak').exists()

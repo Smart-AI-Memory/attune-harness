@@ -15,6 +15,7 @@ beside the task directory, outside the project, checked by every validator
 ``plan`` and ``build`` apply (R2). Without ``--for``, the output is unchanged.
 """
 
+import contextlib
 import json
 import os
 import shlex
@@ -121,9 +122,22 @@ def backup(target: Path, what: str):
         raise ValueError(f'Not a regular file: {target}')
     # Copy, never move: the old file stays in place until the new one replaces it
     # atomically, so no moment leaves the project without one. 'x' refuses a racing backup.
-    with target.open('rb') as source, backup.open('xb') as copy:
-        copy.write(source.read())
+    created = False
+    try:
+        with target.open('rb') as source, backup.open('xb') as copy:
+            created = True
+            copy.write(source.read())
+    except BaseException:
+        if created:  # a copy that failed midway leaves no partial backup behind
+            discard(backup)
+        raise
     return str(backup)
+
+
+def discard(path: Path):
+    """Remove a file this run wrote, best effort: a cleanup never replaces the error it cleans up after."""
+    with contextlib.suppress(OSError):
+        path.unlink()
 
 
 def interpreter(value: str) -> str:
@@ -159,7 +173,7 @@ def pytest_probe(python: str, tests: list) -> dict:
             'environment': environment, 'oracle_paths': list(tests)}
 
 
-def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path) -> dict:
+def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: Path, *, force=False) -> dict:
     """The probe ``fix`` reads, checked before anything is written by the same freeze ``fix`` runs.
 
     ``repair.freeze`` reads the checkout and writes nothing, so a probe it
@@ -169,6 +183,10 @@ def starter_probe(project: Path, scope: list, python: str, tests: list, tasks: P
     plan = freeze(project, scope, probe, tasks)
     # The files init is about to write count against the same entry bound fix enforces.
     new = sum(not ((project / name).exists() or (project / name).is_symlink()) for name in (REGISTRY, PROBE))
+    probe_path = project / PROBE
+    backup_path = probe_path.with_name(PROBE + '.bak')
+    if force and probe_path.exists() and not (backup_path.exists() or backup_path.is_symlink()):
+        new += 1
     if len(plan['before']) + new > MAX_ENTRIES:
         raise ValueError('Checkout exceeds bounded repair profile')
     return probe
@@ -195,7 +213,7 @@ def execute_fix(args, project: Path) -> int:
     project = project.resolve()
     scope, tests = list(args.scope), list(args.tests)
     tasks = task_directory(project, 'fix')
-    probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks)
+    probe = starter_probe(project, scope, interpreter(args.interpreter), tests, tasks, force=args.force)
     target, probe_path, files, replaced = project / REGISTRY, project / PROBE, [], None
     written = not (target.exists() or target.is_symlink())
     registry = {'schema_version': 1, 'participants': PROFILES[args.profile]}
@@ -203,14 +221,25 @@ def execute_fix(args, project: Path) -> int:
         validate_registry(registry, target)
     else:  # fix reads it with one participant allowed, so init does too
         registry = validate_registry(parse_json(read_text(target, 131_072)), target, minimum_participants=1)
-    if probe_path.exists() or probe_path.is_symlink():
-        if not args.force:
-            raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
-        replaced = backup(probe_path, 'probe')
+    if (probe_path.exists() or probe_path.is_symlink()) and not args.force:
+        raise ValueError(f'A probe already exists at {probe_path}; pass --force to replace it')
+    # If a write refuses, remove what this run wrote, as init --for plan does (O-78).
+    wrote_registry = False
+    try:
+        if probe_path.exists() or probe_path.is_symlink():
+            replaced = backup(probe_path, 'probe')
+        if written:
+            wrote_registry = True  # set first: there was no registry, so removing one is ours to do
+            write_report(target, registry)
+        write_report(probe_path, probe)
+    except BaseException:
+        if wrote_registry:
+            discard(target)
+        if replaced is not None:  # backup copies, so the old probe is still in place
+            discard(Path(replaced))
+        raise
     if written:
-        write_report(target, registry)
         files.append(str(target))
-    write_report(probe_path, probe)
     files.append(str(probe_path))
     participants = sorted(registry['participants'])
     native = any(item['adapter'] in ('claude', 'codex') for item in registry['participants'].values())
@@ -323,9 +352,9 @@ def execute_plan(args, project: Path) -> int:
         write_report(request_path, request)
     except BaseException:
         if written:
-            target.unlink()
+            discard(target)
         if replaced is not None:  # backup copies, so the old request is still in place
-            Path(replaced).unlink()
+            discard(Path(replaced))
         for parent in made:  # nearest first; only the empty directories this run made
             try:
                 parent.rmdir()

@@ -121,7 +121,8 @@ def test_symlinked_fixture_is_refused(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('suite', ['full', 'platform'])
 @pytest.mark.parametrize('changed', ['checkout_test', 'installed_package'])
-def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite):
+@pytest.mark.parametrize('windows', [False, True])
+def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite, windows):
     import attune_harness
 
     root = tmp_path / 'checkout'
@@ -150,10 +151,11 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
                         base_prefix='base', executable=sys.executable))
     monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Windows' if windows else 'Linux')
 
     def successful_child(argv, **kwargs):
         assert ('--coverage-instrumented' in argv) == (suite == 'platform')
-        assert kwargs['timeout'] == (1080 if suite == 'platform' else 1200)
+        assert kwargs['timeout'] == ((1380 if windows else 1080) if suite == 'platform' else 1200)
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
@@ -217,7 +219,8 @@ def test_startup_hook_measures_scrubbed_and_isolated_children(tmp_path, monkeypa
 
 @pytest.mark.parametrize('instrumented', [False, True])
 @pytest.mark.parametrize('timed_out', [False, True])
-def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out):
+@pytest.mark.parametrize('windows', [False, True])
+def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out, windows):
     import attune_harness
     spec = importlib.util.spec_from_file_location('qualifier', SCRIPT.with_name('qualify_platform.py'))
     qualifier = importlib.util.module_from_spec(spec)
@@ -228,12 +231,16 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
     output = tmp_path / 'result'
     calls = []
-    expected_timeout = 900
+    monkeypatch.setattr(qualifier.platform, 'system', lambda: 'Windows' if windows else 'Linux')
+    expected_timeout = 1200 if windows and instrumented else 900
 
     def child(argv, **kwargs):
         calls.append(argv)
         if '-m' in argv:
             assert kwargs['timeout'] == expected_timeout
+            assert 'faulthandler_timeout=0' in argv
+            assert 'harness_qualification_stacks' in argv
+            assert kwargs['env']['PYTHONPATH'] == str(qualifier.ROOT / 'scripts')
             (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
                 step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
             if timed_out:
@@ -253,6 +260,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     assert qualifier.qualify(output, **kwargs) == (124 if timed_out else 0)
     receipt = json.loads((output / 'platform.json').read_text())
     assert receipt['suite_timeout_seconds'] == expected_timeout
+    assert receipt['test_timings'].startswith('test-timings.jsonl;')
     assert len(calls) == 2
     if instrumented:
         assert receipt['status'] == ('instrumented_failed' if timed_out else 'instrumented_checks_passed')
@@ -267,3 +275,132 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         failed = {**measurement.identity(), 'test_exit': 124, 'input_drift': False}
         with pytest.raises(ValueError, match='unfinished'):
             measurement.compatible([failed], measurement.identity())
+
+
+@pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
+def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
+    """Retain the Python watchdog's stack before the independent outer kill."""
+    test = tmp_path / 'test_wait.py'
+    wait = 'time.sleep(30)' if phase == 'call' else 'pass'
+    fixture = ('import pytest\n@pytest.fixture\ndef stall():\n'
+               + ('    time.sleep(30)\n' if phase == 'setup' else '')
+               + '    yield\n'
+               + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
+    test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
+    log = tmp_path / 'tests.txt'
+    with log.open('wb') as stream:
+        with pytest.raises(subprocess.TimeoutExpired):
+            subprocess.run([sys.executable, '-m', 'pytest', '-vv',
+                            '-p', 'harness_qualification_stacks',
+                            '-o', 'faulthandler_timeout=0',
+                            '-o', 'harness_stack_timeout=0.1', str(test)],
+                           cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT,
+                           timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                                            'PYTHONPATH': str(SCRIPT.parent),
+                                            'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
+    assert 'Slow test Python stacks:' in transcript
+    assert str(test) in transcript
+    assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
+    assert 'End slow-test Python stacks' in transcript
+    timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[0]['event'] == 'suite_start'
+    starts = [record for record in timings if record['event'] == 'case_start']
+    assert len(starts) == 1 and starts[0]['nodeid'].endswith('test_wait.py::test_wait')
+    assert timings[-1]['event'] == 'phase_start' and timings[-1]['phase'] == phase
+    assert not any(record['event'] in ('case_end', 'suite_end') for record in timings)
+    assert all(record['elapsed_seconds'] >= 0 for record in timings)
+    assert [record['elapsed_seconds'] for record in timings] == sorted(
+        record['elapsed_seconds'] for record in timings)
+
+
+def test_timing_journal_retains_outcomes_durations_and_bypasses_capture(tmp_path):
+    test = tmp_path / 'test_timing.py'
+    test.write_text('''import pytest, time
+@pytest.fixture
+def bad_setup():
+    raise RuntimeError('setup remains failed')
+@pytest.fixture
+def bad_teardown():
+    yield
+    raise RuntimeError('teardown remains failed')
+def test_pass(capfd):
+    time.sleep(0.02)
+    captured = capfd.readouterr()
+    assert 'elapsed_seconds' not in captured.out + captured.err
+def test_fail(): assert False, 'call remains failed'
+def test_skip(): pytest.skip('skip remains skipped')
+def test_setup(bad_setup): pass
+def test_teardown(bad_teardown): pass
+''')
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks', '-o', 'faulthandler_timeout=0',
+                          str(test)], cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[0]['event'] == 'suite_start'
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    starts = [record['nodeid'] for record in timings if record['event'] == 'case_start']
+    ends = [record for record in timings if record['event'] == 'case_end']
+    assert len(starts) == 5 and [record['nodeid'] for record in ends] == starts
+    assert all(record['duration_seconds'] >= 0 for record in ends)
+    assert ends[0]['duration_seconds'] >= 0.02
+    phases = {(record['nodeid'].split('::')[-1], record['phase']): record
+              for record in timings if record['event'] == 'phase_end'}
+    assert phases['test_pass', 'call']['outcome'] == 'passed'
+    assert phases['test_pass', 'call']['duration_seconds'] >= 0.02
+    assert phases['test_fail', 'call']['outcome'] == 'failed'
+    assert phases['test_skip', 'call']['outcome'] == 'skipped'
+    assert phases['test_setup', 'setup']['outcome'] == 'failed'
+    assert phases['test_teardown', 'teardown']['outcome'] == 'failed'
+    assert [record['elapsed_seconds'] for record in timings] == sorted(
+        record['elapsed_seconds'] for record in timings)
+    assert all(record['schema_version'] == 1 for record in timings)
+    assert (tmp_path / 'slow-stacks.txt').read_bytes() == b''
+
+
+@pytest.mark.parametrize('fails', [False, True])
+def test_python_watchdog_handles_frame_churn_and_preserves_test_verdict(tmp_path, fails):
+    test = tmp_path / 'test_churn.py'
+    test.write_text('''import faulthandler, threading, time, types
+from pathlib import Path
+def template(): return 1
+def test_churn(capsys):
+    # The timed native walker must not be used, even for a slow test.
+    def native_dump(*args, **kwargs):
+        Path('native-called').write_text('called')
+        raise AssertionError('native timed walker invoked')
+    faulthandler.dump_traceback_later = native_dump
+    stop = threading.Event()
+    def churn():
+        while not stop.is_set():
+            types.FunctionType(template.__code__.replace(), {})()
+    worker = threading.Thread(target=churn)
+    worker.start()
+    try: time.sleep(0.3)
+    finally:
+        stop.set()
+        worker.join()
+    captured = capsys.readouterr()
+    assert 'Slow test Python stacks:' not in captured.out + captured.err
+''' + ('    assert False, "intentional failure remains a failure"\n' if fails else '') +
+                    '\ndef test_fast(): pass\n')
+    log = tmp_path / 'tests.txt'
+    with log.open('wb') as stream:
+        run = subprocess.run([sys.executable, '-m', 'pytest', '-vv',
+                              '-p', 'harness_qualification_stacks',
+                              '-o', 'faulthandler_timeout=0',
+                              '-o', 'harness_stack_timeout=0.1', str(test)],
+                             cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT, timeout=10,
+                             env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                                  'PYTHONPATH': str(SCRIPT.parent),
+                                  'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == (1 if fails else 0), log.read_text()
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
+    assert 'Slow test Python stacks: test_churn.py::test_churn' in transcript
+    assert 'in test_churn' in transcript
+    assert 'Slow test Python stacks: test_churn.py::test_fast' not in transcript
+    assert not (tmp_path / 'native-called').exists()

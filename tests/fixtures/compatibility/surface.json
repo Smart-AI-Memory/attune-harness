@@ -2781,6 +2781,548 @@
    "positionals": [],
    "required_options": []
   },
+  "roundtable": {
+   "arguments": [],
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "abandon": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint"
+     ]
+    },
+    "assess-citation": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "citation",
+       "option_strings": [
+        "--citation"
+       ]
+      },
+      {
+       "choices": [
+        "supported",
+        "rejected",
+        "uncertain"
+       ],
+       "default": null,
+       "name": "decision",
+       "option_strings": [
+        "--decision"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "note",
+       "option_strings": [
+        "--note"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ]
+    },
+    "evidence": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
+    },
+    "prepare": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "path",
+       "option_strings": [
+        "--path"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "project",
+       "option_strings": [
+        "--project"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": [
+        "--run-dir"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config",
+      "--path",
+      "--project",
+      "--run-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config",
+      "--path",
+      "--project",
+      "--run-dir"
+     ]
+    },
+    "run": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "accept",
+       "option_strings": [
+        "--accept"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_external",
+       "option_strings": [
+        "--allow-external"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_native",
+       "option_strings": [
+        "--allow-native"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "max_operations",
+       "option_strings": [
+        "--max-operations"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--accept",
+      "--allow-external",
+      "--allow-native",
+      "--max-operations"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--accept"
+     ]
+    },
+    "status": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
+    }
+   }
+  },
+  "source-review": {
+   "arguments": [],
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "abandon": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint"
+     ]
+    },
+    "assess-citation": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "citation",
+       "option_strings": [
+        "--citation"
+       ]
+      },
+      {
+       "choices": [
+        "supported",
+        "rejected",
+        "uncertain"
+       ],
+       "default": null,
+       "name": "decision",
+       "option_strings": [
+        "--decision"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "note",
+       "option_strings": [
+        "--note"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--citation",
+      "--decision",
+      "--note",
+      "--participant",
+      "--round"
+     ]
+    },
+    "evidence": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
+    },
+    "prepare": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "path",
+       "option_strings": [
+        "--path"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "project",
+       "option_strings": [
+        "--project"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": [
+        "--run-dir"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config",
+      "--path",
+      "--project",
+      "--run-dir"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config",
+      "--path",
+      "--project",
+      "--run-dir"
+     ]
+    },
+    "run": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "accept",
+       "option_strings": [
+        "--accept"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_external",
+       "option_strings": [
+        "--allow-external"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "allow_native",
+       "option_strings": [
+        "--allow-native"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "max_operations",
+       "option_strings": [
+        "--max-operations"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--accept",
+      "--allow-external",
+      "--allow-native",
+      "--max-operations"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--accept"
+     ]
+    },
+    "status": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": []
+    }
+   }
+  },
   "spec": {
    "arguments": [],
    "one_of": [],

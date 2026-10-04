@@ -38,7 +38,7 @@ def test_the_surface_matches_the_committed_file():
 def test_the_verbs_and_the_journey_are_all_there():
     value = surface()
     verbs = value["verbs"]
-    assert len(verbs) == 30
+    assert len(verbs) == 32
     assert {"init", "plan", "build", "review", "fix", "test", "status", "resume"} <= set(verbs)
     assert value["options"] == ["--help-all"]
     assert set(verbs["extension"]["subcommands"]) == {

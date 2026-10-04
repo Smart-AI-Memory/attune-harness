@@ -359,12 +359,17 @@ O-70 follow-through, 2026-09-30. Closed by the starter-files spec: T1 #191, T2
 the request and the probe, each checked by the verb that reads it, and the CLI
 guide's `plan-starter` and `fix-starter` blocks run as printed in the
 installed-wheel jobs. That is this entry's done condition. Release: 1.3.0, in
-the October 6–11 window (Patrick, September 30). What a user meets next is
-O-77.
+the October 6–11 window (Patrick, September 30). O-77 was subsequently addressed by #201; the remaining `--test-root .`
+refusal stays tracked under O-76.
 
 O-76 follow-through, 2026-09-30. The guide's `plan` block now runs as printed
 in CI (T4 #198), which closes the second of the two items left open above.
 Still open: `--test-root .`.
+
+O-78 follow-through, 2026-10-01. `execute_fix` now rolls back what it wrote
+when a later write refuses: the registry only if this run wrote it, and a
+`.bak` it made. Tests inject a failed probe write with and without an
+existing probe, and with a kept registry. Three mutants are caught.
 
 O-04 follow-through, 2026-09-27 — **user** lens. PR160 commit review found its
 execution snapshot still calling the now-completed Voyage campaign pending.

@@ -8,6 +8,37 @@
 write the starter files each verb reads (O-70). See the
 [release notes](docs/release-notes-1.3.0.md).
 
+- Add a read-only loopback graphical companion for explicitly registered tasks.
+  It displays existing owner-rendered snapshots; it has no execution or write
+  endpoint. The broader GUI program remains in progress.
+- Retain native-memory failure receipts when a provider returns a non-object
+  content entry; reject malformed entries through the structured refusal path.
+  Add offline regression coverage for native responses, Spec evidence handoff
+  and saved-history integrity.
+- Prepare Codex plugin onboarding without relying on helpers outside the installed
+  plugin, and include the shared roundtable skill in its package.
+- Count forced probe backups before starter writes, preserving the existing
+  entry bound. Retain qualification timing and slow-stack diagnostics.
+
+- Add consultation `evidence` inspection of frozen cited lines and checkpoint-bound
+  `assess-citation` judgments without rewriting answers or dispatching a model.
+  Preserve assessed answers when cancellation interrupts saved replay.
+- Add explicit Antigravity consultation seats with frozen model/effort, bounded
+  single-use supervision and correlated session/finish stream checks. These checks
+  do not establish tool isolation. Codex seats can request explicit reasoning effort.
+
+- Add bounded `source-review` and `roundtable` CLI preparation, dispatch,
+  inspection and abandonment over immutable selected source bytes. Both host
+  skill integrations use the same contract; Codex packaging includes both.
+- Preserve requested versus reported model identities, per-turn process evidence,
+  replay protection, call budgets and unresolved dispatches. Offline checks do
+  not qualify live host/model behavior.
+- Correct Claude refusal classification for completed nonzero exits; uncertain
+  supervision failures still refuse retry classification.
+
+- `init --for fix` removes what it wrote when a later write refuses: the
+  registry if it wrote one, and the `probe.json.bak` it made under `--force`.
+  The old probe stays in place (O-78), as `init --for plan` already does.
 - `build` refused participants that carry review tools or a `review_mode`
   ("Build proposals cannot carry review tools or policies") with a generic
   next action. That covers every profile `init` writes. The refusal now names

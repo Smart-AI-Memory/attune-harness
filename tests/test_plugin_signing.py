@@ -18,7 +18,6 @@ wrote at its creation; only the verifier-not-running refusals use a stub.
 # qualify: platform
 
 import copy
-import glob
 import json
 import os
 import re
@@ -360,9 +359,26 @@ AT_ENABLE = [unsigned, not_a_signature, stale_signature, signed_with_a_newline, 
              revoked_artifact, expired_key, revoked_key, secret_not_declared, time_beyond_declared]
 
 
-def verifier_homes():
-    return set(glob.glob(os.path.join(tempfile.gettempdir(), 'harness-plugin-verify-*')))
 BEFORE_CALL = [unsigned, stale_signature, unlisted_signer, revoked_artifact, revoked_key, secret_not_declared]
+
+
+@pytest.fixture
+def private_tempdir(monkeypatch):
+    """A temporary directory of the test's own, made the default when the test calls it, and removed after.
+
+    Never the shared one: another process's live verifier home shows there (an
+    xdist worker, a second suite on the machine), and a glob of it failed on
+    homes the test never made. Setting ``tempfile.tempdir`` covers every
+    tempfile call the verifier could make its home with. Called after the
+    signers exist, so their homes stay short and outside it.
+    """
+    private = Path(tempfile.mkdtemp(prefix='hs-tmp-'))
+
+    def use():
+        monkeypatch.setattr(tempfile, 'tempdir', str(private))
+        return private
+    yield use
+    shutil.rmtree(private, ignore_errors=True)
 
 
 def test_signed_plugin_enables_runs_and_is_receipted(case, plugin, tmp_path, signers):
@@ -426,17 +442,17 @@ def test_mcp_session_records_the_plugin_receipt(case, plugin, tmp_path, signers)
 
 
 @pytest.mark.parametrize('condition', AT_ENABLE, ids=lambda c: c.__name__)
-def test_refused_at_enable(case, plugin, tmp_path, signers, condition):
+def test_refused_at_enable(case, plugin, tmp_path, signers, condition, private_tempdir):
     w = World(case, plugin, tmp_path, signers)
     expected = condition(w)
     first = w.install()
-    homes = verifier_homes()
+    private = private_tempdir()
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         w.enable(first)
     assert ext.inspect_extension(w.directory)['status'] == 'disabled'
     with pytest.raises(FeatureUnavailable, match=re.escape(expected)):
         ext.catalog(w.section)
-    assert verifier_homes() == homes  # the private home is removed on a refusal too
+    assert not list(private.glob('harness-plugin-verify-*'))  # the private home is removed on a refusal too
 
 
 @pytest.mark.parametrize('condition', BEFORE_CALL, ids=lambda c: c.__name__)
