@@ -83,3 +83,33 @@ have been dispatched. Check accessibility, security and recovery per increment;
 M4 remains the final candidate qualification. Completion review: complete for
 this clarification; it resolves sequencing ambiguity without adding a new gate
 or opportunity log entry.
+
+
+## M2: existing-draft intake and decisions
+
+The second bounded increment adds explicit `--edit` mode to the same local
+companion. The default remains read-only. Registered feature-work drafts can
+complete missing goal/scope/acceptance, material questions and choices, save
+partial responses, inspect the owner-selected review, reconsider, and accept
+intent. Opening a form is an explicit write; GET inspection remains read-only.
+Each response is bound to the exact live decision and checkpoint. No request
+can select an arbitrary path, launch a participant, or invoke build. Restart,
+a replaced decision or an uncertain submission requires inspection and reopening.
+
+Forty focused tests pass against real owners. The independent GPT-6 Astra review
+found a stale-refresh warning that could be overwritten by success; the fix is
+re-reviewed and five deterministic JavaScript regression probes pass. The tests
+now join installed-platform qualification. Full-suite and wheel qualification
+are recorded in the pull request before this increment is ready for merge.
+
+Browser verification exercises partial intake, full option wording, remaining
+questions, readable intent review, reconsideration, explicit acceptance and
+retained state. Chrome renders the existing owner snapshot; Codex's embedded
+browser leaves its blob frame blank while the new controls work. The page gives
+an explicit Chrome fallback. This is a remaining embedded-browser qualification
+gap, not a platform-completion claim.
+
+New-task creation, build dispatch/recovery controls, the shared author gallery,
+M3 research/memory/opportunity execution and M4 accessibility/user/platform
+qualification remain separate increments. Earlier prototypes and receipts are
+preserved. Completion review for this increment is retained with the PR handoff.

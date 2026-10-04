@@ -8,9 +8,10 @@
 write the starter files each verb reads (O-70). See the
 [release notes](docs/release-notes-1.3.0.md).
 
-- Add a read-only loopback graphical companion for explicitly registered tasks.
-  It displays existing owner-rendered snapshots; it has no execution or write
-  endpoint. The broader GUI program remains in progress.
+- Add a loopback graphical companion with a read-only default for explicitly
+  registered tasks. Explicit `--edit` mode saves partial draft answers and supports
+  reconsideration and current-checkpoint intent acceptance through existing owners.
+  It does not create tasks or dispatch models/builds. The GUI remains in progress.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

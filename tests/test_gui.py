@@ -1,3 +1,4 @@
+# qualify: platform
 """Real owner snapshots behind a read-only loopback boundary; no model calls."""
 import http.client
 from threading import Thread

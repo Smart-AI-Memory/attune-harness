@@ -62,10 +62,13 @@ or `--task-dir`.
   checkpoint-bound citation judgments. Explicit Antigravity seats record model,
   effort and correlated process evidence; Codex seats can specify reasoning
   effort. This does not establish tool isolation or native plan/build parity.
-- **Read-only graphical companion:** `python -m attune_harness.gui --task PATH`
-  displays existing task-owner snapshots over a loopback capability boundary.
-  It has no write or execution endpoint. GUI M1 is complete; M2 is underway;
-  M3/M4 and production GUI qualification remain open.
+- **Graphical companion:** `python -m attune_harness.gui --task PATH` displays
+  existing task-owner snapshots over a loopback capability boundary, read-only
+  by default. Explicit `--edit` mode completes missing intent, saves partial
+  answers, shows choices and material answers, and supports reconsideration and
+  current-checkpoint intent acceptance. It does not create tasks or dispatch
+  models/builds. GUI M1 is complete; M2 is underway; M3/M4 and production GUI
+  qualification remain open.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification
@@ -103,13 +106,18 @@ See [Plan and build](cli-guide.md#plan-and-build) and
 - The Claude marketplace explicitly lists Harness, `cross-review` and `smart-test`.
   The bundled `roundtable` skill is included in Codex packaging but is not selected
   by that marketplace entry. A tag-pointer update alone does not add it.
+- Chrome renders the companion's owner snapshots. Codex's embedded browser can
+  leave the snapshot pane blank while decision controls work; the page discloses
+  a Chrome fallback. Claude desktop preview content and interactions remain
+  unverified.
 - Research and general opportunity mining are not production GUI capabilities;
   retained prototypes are not installed-product qualification.
 
 ## Evidence
 
-This preparation integrates main through `85bc4da` (#223). The PR handoff records
-fresh candidate checks. Earlier library results do not qualify the versioned
+This preparation integrates main through `2bd8e49` (#224). The PR handoff records
+which checks apply to this refreshed candidate; earlier candidate results are
+historical evidence until fresh qualification completes. Earlier library results do not qualify the versioned
 release artifact by themselves. The publish run and 1.3.0 PyPI hashes do not yet
 exist; they must be recorded during release under the [runbook](release-runbook.md).
 The [project plan](project-plan.md#where-each-gates-evidence-is) retains the 1.2.0
