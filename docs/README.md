@@ -12,6 +12,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Graphical companion specification](specs/graphical-companion/README.md): Four milestones, existing-journey reuse, owner boundaries and preservation gates
+- [Graphical companion progress](specs/graphical-companion/progress.md): Verified increments, remaining qualification and next work
+
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
 - [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
