@@ -97,6 +97,17 @@ def test_incomplete_or_mismatched_provider_message_is_not_a_proposal(message, fi
     assert raised.value.evidence == receipt
 
 
+@pytest.mark.parametrize('content', [None, 'text', [], 42], ids=['null', 'string', 'list', 'number'])
+def test_non_object_content_block_retains_native_error_evidence(message, content):
+    message['content'] = [content]
+    receipt = receipt_for(message)
+    before = deepcopy(receipt)
+    with pytest.raises(native.NativeMemoryError, match='Invalid or incomplete Anthropic message envelope') as raised:
+        native.decode_provider(receipt, {'model': message['model']})
+    assert raised.value.evidence == before
+    assert receipt == before
+
+
 def run_stubbed(monkeypatch, config, stdout, returncode=0, failure=None):
     calls = []
     def invoke(argv, packet, **kwargs):

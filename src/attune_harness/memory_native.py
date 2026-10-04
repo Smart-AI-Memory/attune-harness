@@ -342,6 +342,7 @@ def decode_provider(receipt: dict, body: dict) -> tuple[dict, dict]:
             or not isinstance(value.get("id"), str)
             or not isinstance(value.get("content"), list)
             or len(value["content"]) != 1
+            or not isinstance(value["content"][0], dict)
             or value["content"][0].get("type") != "text"
             or not isinstance(value["content"][0].get("text"), str)
         ):
