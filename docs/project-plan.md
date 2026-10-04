@@ -1,11 +1,14 @@
-# Stable v1 and the first two weeks after release
+# Stabilization, release readiness and phased GUI delivery
 
-Refreshed October 3, 2026 against main
-`4276c3503470a286fda33104e6d4fffb495bb54d`, with 1.2.0 still the latest release. This
+Phased delivery update October 3, 2026 against main
+`23d6e7e1c6ef35f698fbc1f0462e951c41b099a8`. The release evidence below retains
+its 1.2.0 baseline; it is not a new publication check. This
 updates the execution focus of [the v1 roadmap](plan-1.0.md), retaining
 [S1–S9 and D25–D30](specs/release-1.0/addendum-2026-09-23.md). The earlier
 phased and October plans remain historical inputs, not an extra release
-backlog. Planning scope: the fourteen days of stabilization after stable v1.
+backlog. Planning scope: stabilization through October 12 and the dependency-gated
+GUI phases afterward. The existing four GUI milestones remain the acceptance
+structure; the delivery phases below sequence them around release work.
 This document selects work; it does not authorize merges, paid calls, workflow
 dispatch, publication, repository settings changes or a deprecation notice.
 
@@ -37,6 +40,66 @@ tag. The [runbook](release-runbook.md) now calls for reopening development
 with a `.dev0` version after 1.3.0. Source availability, publication and
 observed user acceptance are separate states.
 
+## Delivery phases
+
+PR #199 remains held for the October 6–11 release window; October 12 is a review point,
+not an automatic release or end to compatibility obligations. Patrick subsequently
+authorized the four-milestone [GUI program](specs/graphical-companion/README.md).
+That permits bounded M2 work alongside stabilization, superseding the earlier
+blanket GUI deferral. Critical defects and release acceptance work take priority.
+Keep GUI increments in separate PRs; do not start M3 during the stabilization window.
+Dates below are 2026, in Patrick's US Eastern calendar. Later phases have evidence
+gates rather than promised dates. Unfinished observations remain explicit gaps;
+the calendar does not close them.
+
+| Phase | Window / entry | Work and responsibility | Exit evidence |
+|---|---|---|---|
+| 1 — Stabilize and learn | Now–October 5; active | Agent triages defects, prepares observation steps and completes bounded documentation/timing analysis. Patrick or participants supply real-use observations. Agent may advance a bounded M2 owner integration separately. | Current S3/S6/S9 observation status, reproduced friction and dispositions; each GUI increment has its own tests/review, without a production-readiness claim. |
+| 2 — Prepare the batched release | October 6–11; publication remains held until explicitly approved | #199's owner integrates current main, reconciles the release inventory and GUI maturity claims, then qualifies the exact candidate. Continue observation collection; GUI work must not displace release qualification. | Current release notes, full/installed/platform evidence, recorded limits and Patrick's publication decision under the runbook. If blocked, retain the hold. |
+| 3 — Review stabilization and choose scope | October 12 review | Patrick and agent review defects, observations, release outcome and M2 evidence. Choose continued bounded M2, broader work after M2 passes, or extended stabilization. | Written go/hold and next bounded scope. Open gaps have explicit disposition; no automatic M3 start or publication. |
+| 4 — Complete connected GUI journeys | Existing M2 authority; main delivery focus after Phase 3 permits it | Agent binds intake, decisions, build/review, progress and recovery to existing owners, retaining author inspection and prototype behavior. Bounded increments may begin in Phases 1–2. | M2's real offline owner chain, stale/replay refusals, restart and uncertain-outcome recovery pass through the browser. Required source review and evidence accompany each PR. |
+| 5 — Broaden journey coverage | Phase 3 permits broadening and M2 exit passes | M3 adds fix/test, research, opportunities, memory, import and host entry in owner-specific slices. Resolve provider/budget choices before any new live dispatch. | Every required journey row has executable evidence; unsupported required capabilities remain open gates. Preserve research, opportunity selection, retention controls and author inspection. |
+| 6 — Qualify and release the GUI | Required M3 coverage implemented | M4 covers clean install/upgrade, accessibility, security, recovery, claimed hosts/platforms and named user walkthroughs. Agent prepares evidence; participants provide observations; Patrick decides release. | M4 criteria met and a reviewed release handoff. Production claims and publication wait for their existing gates. |
+
+### Current GUI baseline
+
+- **M1 complete:** 16 journey rows, reuse inventory, owner refusal walk and
+  preservation rules in the graphical-companion spec.
+- **M2 started:** #219 merged the read-only task companion. Intake, decisions,
+  execution and recovery controls remain to be connected and qualified.
+- **M3/M4 not started:** merged source and prototypes do not establish production
+  qualification. #220 adds shared collaboration guidance, not a GUI capability.
+
+The first M2 delivery slice is intake and owner-selected decisions after checking
+the read-only increment's qualification evidence. Reuse the existing forms and
+owners; complete their stale/refusal states before adding execution controls.
+Use the spec's acceptance criteria rather than inventing another milestone system.
+
+### Early user feedback and the next observation
+
+Patrick reports that a real user downloaded the product, read available
+documentation, reacted positively and gave the repository a star. This is
+preliminary, second-hand adoption feedback, not an independently observed installed
+walkthrough. The version, installation outcome, completed task and whether the
+participant meets S6's non-programmer criterion are not yet established. No
+identity or private conversation is published here.
+
+For the next voluntary walkthrough, record the installed version/platform, chosen
+task, expected result, actual outcome, help needed and friction. Keep identifying
+material private with appropriate consent. A positive reaction or star must not
+stand in for task completion; equally, do not describe early user feedback as absent.
+S3 still needs fresh-session recall/exclusion evidence, and S9 needs each migration
+row tried against the installed artifact. These can be collected independently.
+
+### Working through the phases
+
+Use verified lessons to inform the next bounded task, acceptance criteria to choose
+checks, and the results to improve the next handoff. Apply the shared disciplines
+without duplicate forms or approval steps. At a meaningful completion point, update
+the existing plan/progress evidence and complete the proportional opportunity review.
+Autonomous work covers in-scope inspection, implementation, tests and draft PRs;
+merges, releases, additional spend and settings retain their existing gates.
+
 ## Where each gate's evidence is
 
 Added September 29, 2026 for the released **1.2.0** (O-09/O-16). This index
@@ -47,7 +110,8 @@ labeled with the kind of claim it supports:
 - **replay:** recorded responses run again offline;
 - **live:** a real provider call, recorded once;
 - **model:** a model's judgment, which is never a verified result;
-- **observed:** a person's recorded use.
+- **observed:** a person's recorded use;
+- **reported:** second-hand feedback, with unconfirmed details stated explicitly.
 
 Software checks never stand in for an observation. A gate with no observed
 receipt says so.
@@ -59,7 +123,7 @@ receipt says so.
 | S3 useful memory | `tests/test_memory_serving.py` (inactive nodes and `wrong` verdicts not served, prompt mode), `tests/test_memory_prompt_hook.py`; the path against a hydrated server passed once on a maintainer's machine on September 22, as the [README](../README.md#what-is-qualified-and-what-is-not) states, with no retained receipt | measured | **Observed:** fresh-session recall and exclusion in real use. Saved entries do not feed automatic recall ([journey map](supported-journeys.md#memory)) |
 | S4 signed plugins and Voyage | `tests/test_plugin_signing.py` and `tests/test_plugin_runtime.py` in the six installed-wheel jobs; the [Voyage recorded fixture](../tests/fixtures/voyage-live-recorded/README.md); [running a signed plugin](executable-plugin-run.md) | measured; live on macOS only; replay on all six jobs | No general ranking-quality claim; no live call on Ubuntu or Windows |
 | S5 platform limits | The README's [qualification table](../README.md#what-is-qualified-and-what-is-not), the [qualification guide](qualification.md), the platform receipts from the [`Qualification` run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36627949560) at the 1.2.0 commit (one `qualification-<os>-<python>` artifact per job) | measured | Windows native memory, `fix` and `test` remain written limits |
-| S6 usability | None | — | **Observed:** a named non-programmer's installed walkthrough. Not yet done |
+| S6 usability | Preliminary user feedback, described above; no installed-walkthrough receipt | reported | **Observed:** a named non-programmer's installed walkthrough. Still unconfirmed |
 | S7 release mechanics | [Release runbook](release-runbook.md). Each publish run's `release-evidence` artifact holds `SHA256SUMS`, and PyPI's hashes were compared against it: 1.0.0 [run 36451826139](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36451826139), 1.0.1 [run 36466359597](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36466359597), 1.1.0 [run 36522747598](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36522747598), 1.2.0 [run 36629591220](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36629591220). For 1.2.0 the wheel is `17c3f0953d136314b199af3b72d7ce6773c9766066ac8c086742aa0d863351f7` and the sdist `2f36d6cd492738a8c737c493e222c9a66d252a9fe89d38f1bdb0a554bea638bc` | measured | None; each release repeats the runbook's steps |
 | S8 loose ends | [Qualification guide](qualification.md) (the historical `check_code_rag_host.py` is labeled as such); [documentation maintenance](documentation-maintenance.md) | measured | Any replacement host check needs its own scope |
 | S9 migration | [Migration guide](migration-from-attune-ai.md), [journey map](supported-journeys.md) | — | **Observed:** each row tried against the installed stable artifact. Not yet done |
@@ -157,7 +221,7 @@ originally planned for the candidate period. R0 is September 28, 2026.
 | R0–R0+2 (Sep 28–30) | Verify the published install and documented journeys; triage installation, recovery, saved-state and unexpected-spend reports first | Artifact identities, reproduced issues and clear dispositions; any urgent patch is independently reviewed and separately released |
 | R0+3–R0+7 (Oct 1–5) | Check real usage and support friction; collect S3/S6/S9 observations and prepare bounded documentation while incident load permits | Observed receipts or explicit gaps, with source changes distinguished from stable artifacts |
 | R0+8–R0+13 (Oct 6–11) | Complete bounded guidance/timing work if still useful; qualify the batched 1.3.0 candidate under the existing release hold and gates | Small documentation/report deliverables and exact-candidate release evidence; publication still requires Patrick's authority |
-| R0+14 (Oct 12) | Review stability, unresolved defects and user feedback; choose the next bounded milestone | Written go/hold decision for GUI discovery, workflow restoration or further stabilization; no automatic GUI implementation |
+| R0+14 (Oct 12) | Review stability, unresolved defects and user feedback; choose the next bounded milestone | Written go/hold for continued M2, broadening after M2 acceptance, or further stabilization; no automatic M3 start |
 
 New critical defects preempt the opportunity queue. Preserve saved state and use
 existing rollback guidance; do not automatically delete data, alter security
@@ -190,7 +254,8 @@ repeatedly exhausted, investigate before changing it again.
 
 ## Explicitly deferred
 
-GUI implementation (any prototype is a separate track); extra RAG
+GUI M3 broadening during stabilization and GUI production-release claims before
+M4 acceptance. Bounded M2 implementation is authorized as described above. Extra RAG
 providers/OpenAI retrieval fallback; automatic
 provider switching; broad memory/workflow parity and Spec lifecycle expansion;
 new cross-provider model campaigns; general caching/performance redesign;
@@ -210,4 +275,8 @@ the S3/S6/S9 observations, while bounded guidance and timing work can proceed
 during the hold. This refresh covers this roadmap and its linked status
 sources, not a complete documentation-corpus review. It narrows existing
 opportunities rather than inventing a new register or reopening closed work.
-Completion review: complete for planning; release acceptance remains open.
+Completion review: complete for this phase alignment. The highest-value finding
+is that early adoption feedback and an observed installed walkthrough are different
+evidence states; the next user-facing step is the voluntary walkthrough already
+covered by S6. No separate opportunity entry is needed. Release acceptance remains
+open, and this planning change supplies no new execution or qualification receipt.
