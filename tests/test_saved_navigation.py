@@ -33,7 +33,7 @@ def chrome_dom(path, tmp_path):
                              '--disable-extensions', '--disable-component-update',
                              '--user-data-dir=' + str(tmp_path / 'chrome-profile'),
                              '--virtual-time-budget=4000', '--dump-dom', path.as_uri()],
-                            capture_output=True, text=True, timeout=30)
+                            capture_output=True, text=True, encoding='utf-8', timeout=30)
     assert result.returncode == 0, result.stderr[-2000:]
     return result.stdout
 
@@ -104,7 +104,7 @@ window.addEventListener('message',event=>{
 });
 frame.src=url;
 </script>""".replace('SNAPSHOT', json.dumps(snapshot).replace('<', '\\u003c')).replace('FRAGMENT', json.dumps(fragment))
-    path = tmp_path / 'navigation.html'; path.write_text(wrapper)
+    path = tmp_path / 'navigation.html'; path.write_text(wrapper, encoding='utf-8')
     dom = chrome_dom(path, tmp_path)
     assert '<pre id="result">PASS navigation and reload</pre>' in dom, dom[-3000:]
 
@@ -149,7 +149,7 @@ window.fetch=async(path,options)=>{
 """
     page = gui.PAGE.replace('<script src="/app.js"></script>',
                             '<pre id="result">PENDING</pre><script>' + stub + gui.SCRIPT + probe + '</script>')
-    path = tmp_path / 'refresh.html'; path.write_text(page)
+    path = tmp_path / 'refresh.html'; path.write_text(page, encoding='utf-8')
     dom = chrome_dom(path, tmp_path)
     assert '<pre id="result">PASS refresh and full page reload</pre>' in dom, dom[-3000:]
 
@@ -190,7 +190,7 @@ for(const fragment of ['', '#missing', '#'+html.match(/data-saved-target="(task-
 }
 console.log('PASS DOM selection, focus, repeats and fresh document');
 """
-    result = subprocess.run([node, '-e', runner], input=snapshot, text=True, capture_output=True, timeout=15)
+    result = subprocess.run([node, '-e', runner], input=snapshot, text=True, encoding='utf-8', capture_output=True, timeout=15)
     assert result.returncode == 0, result.stderr
     assert 'PASS DOM selection' in result.stdout
 
@@ -238,6 +238,108 @@ function check(ok,label){if(!ok)throw Error(label);}
 })().catch(error=>{console.error(error);process.exitCode=1;});
 """
     result = subprocess.run([node, '-e', runner], input=json.dumps({'page': gui.PAGE, 'script': gui.SCRIPT}),
-                            text=True, capture_output=True, timeout=15)
+                            text=True, encoding='utf-8', capture_output=True, timeout=15)
     assert result.returncode == 0, result.stderr
     assert 'PASS DOM refresh' in result.stdout
+
+
+def test_refresh_fixture_html_is_utf8_even_with_cp1252_default(tmp_path, monkeypatch):
+    write = Path.write_text
+
+    def locale_write(path, text, encoding=None, **kwargs):
+        return write(path, text, encoding=encoding or 'cp1252', **kwargs)
+
+    def inspect_html(path, _tmp_path):
+        assert '\u2192' in path.read_bytes().decode('utf-8')
+        return '<pre id="result">PASS refresh and full page reload</pre>'
+
+    monkeypatch.setattr(Path, 'write_text', locale_write)
+    monkeypatch.setitem(test_refresh_click_identical_snapshot_failure_and_page_reload.__globals__,
+                        'chrome_dom', inspect_html)
+    test_refresh_click_identical_snapshot_failure_and_page_reload(tmp_path)
+
+
+def test_dom_snapshot_stdin_is_utf8_even_with_cp1252_default(work, monkeypatch):
+    run = subprocess.run
+
+    def locale_run(*args, **kwargs):
+        if kwargs.get('text') and not kwargs.get('encoding'):
+            kwargs['encoding'] = 'cp1252'
+        return run(*args, **kwargs)
+
+    monkeypatch.setattr(subprocess, 'run', locale_run)
+    test_dom_briefing_selection_focus_repeat_and_fresh_document(work)
+
+
+def test_dom_modified_clicks_hash_changes_and_print_cascade(work):
+    node = shutil.which('node')
+    if not node or subprocess.run([node, '-e', "require('jsdom')"], capture_output=True).returncode:
+        pytest.skip('Node with jsdom is required for the optional DOM regression')
+    contracts.make(work)
+    entries = task_view.inspect_saved_tasks(work[2]['directory'], [second_task(work)])
+    payload = {'saved': task_view.render_saved_tasks(entries, 'html'),
+               'single': task_view.render(entries[0]['view'], 'html')}
+    runner = r"""
+const {JSDOM}=require('jsdom');const fs=require('fs'),input=JSON.parse(fs.readFileSync(0,'utf8'));
+function check(ok,label){if(!ok)throw Error(label);}
+const create=html=>new JSDOM(html,{url:'http://127.0.0.1/snapshot',runScripts:'dangerously',
+ beforeParse(w){w.HTMLElement.prototype.scrollIntoView=function(){};}});
+(async()=>{
+ const dom=create(input.saved),w=dom.window,d=w.document,home=d.getElementById('saved-tasks');
+ const tasks=[...d.querySelectorAll('.saved-task')],panes=[home,...tasks];
+ const visible=()=>panes.filter(p=>w.getComputedStyle(p).display!=='none');
+ const link=home.querySelector('[data-saved-target]');
+ for(const options of [{button:1},{ctrlKey:true},{metaKey:true},{shiftKey:true},{altKey:true}]){
+  let intercepted;
+  // Observe the target handler, then cancel the test's native navigation.
+  d.addEventListener('click',event=>{intercepted=event.defaultPrevented;event.preventDefault();},{once:true});
+  link.dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true,button:0,...options}));
+  check(!intercepted,'modified click intercepted');
+  check(visible().length===1&&visible()[0]===home,'modified click changed pane');
+ }
+ for(const id of [tasks[0].id,tasks[1].id,'missing','',tasks[0].id]){
+  w.location.hash=id;await new Promise(r=>w.setTimeout(r,10));
+  const expected=tasks.find(p=>p.id===id)||home;
+  check(visible().length===1&&visible()[0]===expected,'hash change selection/fallback');
+ }
+ // Deterministic display-cascade check for this stylesheet's pane selectors.
+ // jsdom does not implement print media and mishandles !important in computed
+ // style, so compare CSSOM declarations with importance/specificity/order.
+ // This proves the declared print override, not physical browser printing.
+ const rules=[];
+ function collect(list,printing=false){for(const rule of list){
+  if(rule.type===1)rules.push({rule,printing,order:rules.length});
+  else if(rule.type===4&&rule.conditionText==='print')collect(rule.cssRules,true);
+ }}
+ for(const sheet of d.styleSheets)collect(sheet.cssRules);
+ const priority=selector=>{
+  const ids=(selector.match(/#[\w-]+/g)||[]).length;
+  const classes=(selector.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+/g)||[]).length;
+  const types=(selector.replace(/\[[^\]]*\]|#[\w-]+|\.[\w-]+|:{1,2}[\w-]+/g,'').match(/[a-zA-Z][\w-]*/g)||[]).length;
+  return [ids,classes,types];
+ };
+ const compare=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
+ for(const pane of panes){
+  let winner;
+  for(const {rule,printing,order} of rules){
+   const display=rule.style.getPropertyValue('display');if(!display)continue;
+   for(const selector of rule.selectorText.split(','))if(pane.matches(selector.trim())){
+    const score=[rule.style.getPropertyPriority('display')==='important'?1:0,...priority(selector),order];
+    if(!winner||compare(score,winner.score)>0)winner={score,display,printing};
+   }
+  }
+  check(winner&&winner.printing&&winner.display==='block','print must expose every pane despite hidden');
+ }
+ dom.window.close();
+ const single=create(input.single),panel=single.window.document.querySelector('[data-reply]');
+ check(!single.window.document.getElementById('saved-tasks'),'standalone fixture');
+ panel.querySelector('[data-choice="question"]').click();
+ check(panel.querySelector('[data-notes]').required,'missing home must preserve reply handlers');
+ single.window.close();
+ console.log('PASS modifiers, hash changes, print declaration cascade and standalone reply');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"""
+    result = subprocess.run([node, '-e', runner], input=json.dumps(payload), text=True, encoding='utf-8',
+                            capture_output=True, timeout=15)
+    assert result.returncode == 0, result.stderr
+    assert 'PASS modifiers' in result.stdout
