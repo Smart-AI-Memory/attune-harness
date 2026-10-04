@@ -8,7 +8,8 @@ Baseline: origin/main bd517064507bac1264b0dbf01287837b25b4df0c.
 - M2: first increment implemented: `python -m attune_harness.gui --task PATH`
   serves existing owner-rendered snapshots behind a loopback capability boundary.
   Multiple explicit task directories are supported. It has no write/action endpoint.
-- M3/M4: not started. This draft is not production-ready or merge-ready.
+- M3/M4: not started. The M2 read-only increment merged in #219; the overall
+  GUI is not production-ready. Merge status is distinct from qualification.
 - Completion review: complete for M1 and the bounded read-only M2 increment;
   private review notes retained. The larger milestone remains in progress.
 
@@ -61,3 +62,24 @@ Documentation links and 15 focused tests passed locally. The attempted full loca
 suite stopped during collection because the selected environment lacks requests;
 no dependency was added to a retained environment. The fresh CI run is required
 for complete-suite/platform status. Approval is not production readiness.
+
+## Delivery sequence
+
+The [project plan](../../project-plan.md#delivery-phases) owns scheduling around
+the publication hold: stabilize/observe, prepare 1.3.0, review on October 12,
+complete M2, broaden through M3, then qualify M4. The first two phases permit
+bounded M2 work without displacing defects or release acceptance. M3 needs the
+scope review and M2 exit evidence. Prior verification entries above are historical
+receipts, not claims about final CI or a subsequently published artifact.
+
+Completion review: complete for phase alignment; no new GUI execution evidence.
+The next user-facing evidence is a voluntary installed walkthrough. Preliminary
+feedback is recorded in the project plan without claiming S6 completion.
+
+Parallel-work clarification: release preparation starts now, while publication
+remains held. One stabilization/release effort and one GUI effort can proceed
+alongside voluntary user feedback. This is scheduling, not a claim that workers
+have been dispatched. Check accessibility, security and recovery per increment;
+M4 remains the final candidate qualification. Completion review: complete for
+this clarification; it resolves sequencing ambiguity without adding a new gate
+or opportunity log entry.

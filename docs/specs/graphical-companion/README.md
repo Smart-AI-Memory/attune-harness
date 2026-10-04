@@ -14,6 +14,12 @@ Harness remains the authority for state, acceptance, effects and reconciliation.
 The GUI must explain the difference between a proposal, a user's decision,
 a successful operation, and verified completion.
 
+Delivery timing and stabilization priority follow the [project plan](../../project-plan.md#delivery-phases).
+M1 is complete and M2 has a merged read-only increment. During stabilization,
+bounded M2 work may proceed behind defects and release acceptance work; M3 waits
+for the October 12 scope review and M2 acceptance. The dates do not grant release
+authority or establish production readiness.
+
 The program has four milestones:
 
 1. Inventory existing journeys, map owners and refusals, define architecture and
@@ -177,6 +183,11 @@ gate, not a way to declare complete coverage. Existing prototype interactions
 are checked against their replacements; retained user drafts are not discarded.
 
 ### M4 — release qualification
+
+Accessibility, security and recovery are checked in each relevant M2/M3 increment.
+This milestone consolidates that evidence and verifies the final candidate; it
+does not defer those checks until all features have been implemented. Parallel
+work follows the project plan's two-implementation-effort limit and ownership rules.
 
 Run targeted and full suites, build/install wheel and platform qualification,
 package asset checks, clean launch, upgrade/migration and recovery tests. Check
