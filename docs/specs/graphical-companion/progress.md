@@ -113,3 +113,41 @@ New-task creation, build dispatch/recovery controls, the shared author gallery,
 M3 research/memory/opportunity execution and M4 accessibility/user/platform
 qualification remain separate increments. Earlier prototypes and receipts are
 preserved. Completion review for this increment is retained with the PR handoff.
+
+## M2: accepted command build and evidence
+
+This bounded increment adds `--edit --allow-build-commands`. Registered accepted
+feature work can preview its commands, tasks, effects, protected checks and budgets,
+then separately grant the full build. One background worker runs the existing
+build owner while HTTP inspection remains available. Plain launch remains
+read-only, and `--edit` alone cannot dispatch a build.
+
+The GUI shows saved progress, checks and final reviewer findings. A fresh preview
+and grant can resume eligible saved work with its original authority. Stale or
+replayed grants, changed inputs, terminal outcomes and uncertain dispatched
+operations refuse execution. Closing the page does not cancel an operation;
+normal shutdown waits for the owner, and restart neither restores grants nor
+dispatches automatically. There are no GUI pause/cancel/reconciliation controls.
+
+Command adapters are allowed; native/provider adapters are refused. Commands are
+not network-sandboxed, so the operational mode is not described as guaranteed
+offline. `tests/test_gui_build.py` uses the installed-journey subprocess peer for
+the real offline chain, with protected probes and retained review evidence. Its
+cases cover duplicate/replaced grants, drift, responsive inspection, paused
+resume, lost acknowledgements, consistent evidence revisions and high findings.
+The final build reviewer is not J06's standalone document/corpus assessment.
+
+Local validation passes: 61 focused GUI tests, 3,979 full-suite tests plus five
+subtests (53 skipped), and 2,150 installed-wheel tests (nine skipped). Wheel build,
+metadata checks, dependency checks and core-only installation pass. Independent
+GPT-6 Astra source and task-card delta reviews found no remaining material issue.
+Two evidence/completion races found during review are covered by regressions.
+
+The Codex browser exercised the real offline command fixture: preview, explicit
+grant, polling to completed checks/reviewer evidence, and reload/inspection without
+a new dispatch. The task card and result now agree after completion. Its existing
+snapshot frame remains blank with an explicit fallback; Claude content/interactions,
+Windows CI for this head, accessibility and real-user acceptance remain unverified.
+New-task creation, standalone assessment, the shared author gallery, M3 and final
+M4 qualification remain open. Completion review is retained in the PR handoff;
+this increment does not complete M2.

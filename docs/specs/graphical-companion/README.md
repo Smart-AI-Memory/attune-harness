@@ -144,6 +144,36 @@ The first GUI integration must run equivalent calls against an isolated fixture,
 then show stale and interrupted variants. A full refusal inventory for J03 and
 J07–J14 is required before their respective write routes are implemented.
 
+### Bounded M2 command-build route
+
+`python -m attune_harness.gui --task PATH --edit --allow-build-commands`
+enables command-build previews and separate execution grants for registered,
+accepted work. Plain launch stays read-only; `--edit` alone enables decisions.
+The browser cannot provide paths or commands. The GUI permits command adapters
+only, with no review tools/policies; it does not sandbox their host or network
+access. Offline evidence uses a fixed local subprocess peer, not an assertion
+that arbitrary commands are offline.
+
+| Step | Source-bound refusal | How this route supplies it / evidence |
+| --- | --- | --- |
+| Enable build controls | `gui.py`, `CompanionServer.__init__`: `Command builds require explicit edit mode` | Both launch flags are required; `test_build_requires_launch_permission` checks refusal without them |
+| Preview accepted scope | `gui_build.py:27`, `_ready`, raises at 30/32/35/42; `work_build.py:95`, `preflight`, raises at 99/105/108/118/124/128 | Re-read registered owner and exact checkpoint; require accepted effects, unchanged registry, command worker/reviewer, ordered tasks, protected task/final checks and budgets. Display those saved inputs; missing manifests and unsupported peers remain refusals |
+| Grant execution | `gui_build.py:114`, `start`, raises at 116/119/123/125; `work_runtime.py:306`, `_effect_owner`, raises at 312/315/318 | Explicit confirmation consumes the preview grant bound to the full record digest; owner rechecks accepted authority under its lease. One active build, fixed `allow_external=True`, `allow_native=False`; replay/replaced preview/source-drift HTTP tests cover refusal |
+| Apply and verify | `work_build.py:709`, `build_work`; `decode` raises at 234/250/276/280; `validate_build` raises at 478/532/536 | Existing owner dispatches registered peers, validates proposals, journals effects, runs protected checks and final reviewer. `test_browser_grant_real_build_and_evidence` uses the installed-journey subprocess peer; `test_high_review_finding_is_visible_and_blocks_completion` checks the blocking outcome |
+| Inspect progress and review evidence | `gui_build.py:57`, `inspect`, raises at 69 if the record keeps changing | Read-only projection and decoded final review use one unchanged record; responsive-progress and same-revision tests exercise concurrent saves. Polling reports failures and never retries execution |
+| Restart or resume | `gui_build.py:27`, `_ready`, raises at 48/50/52; `work_build.py:793/809` | Fresh preview/grant preserves original authority; saved dispatch uncertainty and terminal outcomes refuse another run. Paused-owner resume and lost-acknowledgement tests cover retained journals; no startup dispatch or GUI reconciliation |
+
+The route runs the full owner build on one background worker. Closing the page
+does not cancel it; normal service shutdown waits for the authorized call. A killed
+process leaves saved journal state for inspection, without an inferred retry.
+GUI pause/cancel controls and evidence-specific reconciliation remain outside
+this increment.
+
+Final reviewer findings and protected-check receipts cover the build part of J05.
+They do not implement J06's standalone document/corpus assessment or establish
+human acceptance, native model quality, complete M2 coverage or production readiness.
+See [progress](progress.md) for the current verification boundary.
+
 ## Milestones and acceptance
 
 ### M1 — reuse and specification
