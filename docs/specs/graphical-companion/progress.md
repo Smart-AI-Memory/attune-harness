@@ -75,3 +75,11 @@ receipts, not claims about final CI or a subsequently published artifact.
 Completion review: complete for phase alignment; no new GUI execution evidence.
 The next user-facing evidence is a voluntary installed walkthrough. Preliminary
 feedback is recorded in the project plan without claiming S6 completion.
+
+Parallel-work clarification: release preparation starts now, while publication
+remains held. One stabilization/release effort and one GUI effort can proceed
+alongside voluntary user feedback. This is scheduling, not a claim that workers
+have been dispatched. Check accessibility, security and recovery per increment;
+M4 remains the final candidate qualification. Completion review: complete for
+this clarification; it resolves sequencing ambiguity without adding a new gate
+or opportunity log entry.

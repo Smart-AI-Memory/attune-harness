@@ -55,11 +55,35 @@ the calendar does not close them.
 | Phase | Window / entry | Work and responsibility | Exit evidence |
 |---|---|---|---|
 | 1 — Stabilize and learn | Now–October 5; active | Agent triages defects, prepares observation steps and completes bounded documentation/timing analysis. Patrick or participants supply real-use observations. Agent may advance a bounded M2 owner integration separately. | Current S3/S6/S9 observation status, reproduced friction and dispositions; each GUI increment has its own tests/review, without a production-readiness claim. |
-| 2 — Prepare the batched release | October 6–11; publication remains held until explicitly approved | #199's owner integrates current main, reconciles the release inventory and GUI maturity claims, then qualifies the exact candidate. Continue observation collection; GUI work must not displace release qualification. | Current release notes, full/installed/platform evidence, recorded limits and Patrick's publication decision under the runbook. If blocked, retain the hold. |
+| 2 — Prepare the batched release | Preparation starts now; release window October 6–11, with explicit publication approval | #199's owner integrates current main, reconciles the release inventory and GUI maturity claims, then qualifies the exact candidate. Continue observation collection; GUI work must not displace release qualification. | Current release notes, full/installed/platform evidence, recorded limits and Patrick's publication decision under the runbook. If blocked, retain the hold. |
 | 3 — Review stabilization and choose scope | October 12 review | Patrick and agent review defects, observations, release outcome and M2 evidence. Choose continued bounded M2, broader work after M2 passes, or extended stabilization. | Written go/hold and next bounded scope. Open gaps have explicit disposition; no automatic M3 start or publication. |
 | 4 — Complete connected GUI journeys | Existing M2 authority; main delivery focus after Phase 3 permits it | Agent binds intake, decisions, build/review, progress and recovery to existing owners, retaining author inspection and prototype behavior. Bounded increments may begin in Phases 1–2. | M2's real offline owner chain, stale/replay refusals, restart and uncertain-outcome recovery pass through the browser. Required source review and evidence accompany each PR. |
 | 5 — Broaden journey coverage | Phase 3 permits broadening and M2 exit passes | M3 adds fix/test, research, opportunities, memory, import and host entry in owner-specific slices. Resolve provider/budget choices before any new live dispatch. | Every required journey row has executable evidence; unsupported required capabilities remain open gates. Preserve research, opportunity selection, retention controls and author inspection. |
 | 6 — Qualify and release the GUI | Required M3 coverage implemented | M4 covers clean install/upgrade, accessibility, security, recovery, claimed hosts/platforms and named user walkthroughs. Agent prepares evidence; participants provide observations; Patrick decides release. | M4 criteria met and a reviewed release handoff. Production claims and publication wait for their existing gates. |
+
+### Parallel work and dependencies
+
+Start three workstreams now, with at most two active implementation efforts:
+
+| Workstream | Owner and first bounded action | Boundary |
+|---|---|---|
+| Stabilization and release readiness (Phases 1–2) | One assigned owner audits #199's release inventory against current main and prepares remaining observation steps; critical defects come first. | Preparation can begin before October 6. Final qualification uses the exact candidate; early checks do not qualify later changes. Publication stays held. |
+| GUI M2 (Phase 4) | A separate owner checks #219's final evidence, then takes the intake/decision slice through real-owner and refusal tests. | Own worktree and PR; no shared-file edits with the release owner. M3 implementation waits for the Phase 3 decision and M2 acceptance. |
+| User feedback (Phase 1) | Patrick coordinates voluntary participation; the agent prepares a short walkthrough and records reported or observed outcomes accurately. | Runs alongside development, without claiming the agent can supply human observations or authorizing unsolicited outreach. |
+
+Assign owners before dispatch; a workstream is not evidence that an agent is
+already running. Keep one owner for shared planning files and serialize merges
+through main. Separate branches isolate edits, not release contents: any merged
+GUI change must be reconciled into the release inventory before final qualification.
+When stabilization demand exceeds capacity, pause GUI work at a clean boundary
+rather than adding another competing implementation effort.
+
+Phases 1 and 2 overlap with bounded Phase 4 work. Phase 3 reviews their results.
+Phase 5 implementation requires both the Phase 3 scope decision and M2 acceptance;
+Phase 6 final qualification requires the implemented M3 coverage. Accessibility,
+security and recovery checks begin with the first relevant M2 increment and
+continue through M3. M4 consolidates and repeats them against the release candidate;
+it is not the first time those qualities are checked.
 
 ### Current GUI baseline
 

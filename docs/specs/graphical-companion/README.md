@@ -184,6 +184,11 @@ are checked against their replacements; retained user drafts are not discarded.
 
 ### M4 — release qualification
 
+Accessibility, security and recovery are checked in each relevant M2/M3 increment.
+This milestone consolidates that evidence and verifies the final candidate; it
+does not defer those checks until all features have been implemented. Parallel
+work follows the project plan's two-implementation-effort limit and ownership rules.
+
 Run targeted and full suites, build/install wheel and platform qualification,
 package asset checks, clean launch, upgrade/migration and recovery tests. Check
 keyboard-only usage, focus restoration, labels/errors, contrast, zoom and screen
