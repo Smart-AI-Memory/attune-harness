@@ -3,6 +3,8 @@
 import copy
 import http.client
 import json
+import socket
+import time
 from threading import Thread
 
 import pytest
@@ -246,3 +248,60 @@ def test_reconsideration_records_response_without_accepting(draft):
     assert status == 200 and 'remains unaccepted' in value['message']
     assert read_task(draft.tasks[0])['status'] == 'draft'
     assert json.loads((draft.tasks[0] / 'decision.json').read_text())['response']['action'] == 'redo_task'
+
+
+def test_material_answer_survives_intake_review_and_acceptance(work):
+    question = {'id': 'audience', 'question': 'Who consumes the export?',
+                'answer': None, 'material': True}
+    work[2]['intent']['questions'] = [question]
+    contracts.make(work)
+    with gui.CompanionServer([work[2]['directory']], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            shown = open_form(server)
+            assert shown['display']['kind'] == 'questions'
+            assert call(server, '/decision/submit', submission(shown, {
+                'answers': {'answer_0': 'CLI users <not HTML>'}}))[0] == 200
+            shown = open_form(server)
+            assert shown['display']['kind'] == 'spec'
+            expected = question | {'answer': 'CLI users <not HTML>'}
+            assert shown['summary']['intent']['questions'] == [expected]
+            status, _ = call(server, '/decision/submit', submission(shown, {
+                'action': 'approve_task', 'confirmed': True}))
+            assert status == 200
+            record = read_task(server.tasks[0])
+            assert record['status'] == 'accepted'
+            assert record['request']['intent']['questions'] == [expected]
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+
+
+def test_early_refusal_delivers_response_before_delayed_body(draft):
+    # Split headers/body like a slow client: rejection must arrive without
+    # waiting for the body, yet permit the already-in-flight bytes to drain.
+    with socket.create_connection(('127.0.0.1', draft.server_port), timeout=2) as client:
+        client.sendall(b'POST /decision/open HTTP/1.1\r\nHost: foreign.example\r\nContent-Length: 4\r\n\r\n')
+        response = http.client.HTTPResponse(client)
+        response.begin()
+        assert response.status == 403
+        assert response.getheader('Connection') == 'close'
+        assert b'Unrecognized local host' in response.read()
+        client.sendall(b'null')
+        client.shutdown(socket.SHUT_WR)
+    assert not (draft.tasks[0] / 'decision.json').exists()
+    assert selected(draft)['available']
+
+
+def test_early_refusal_does_not_wait_indefinitely_for_body(draft):
+    with socket.create_connection(('127.0.0.1', draft.server_port), timeout=2) as client:
+        client.sendall(b'POST /decision/open HTTP/1.1\r\nHost: foreign.example\r\nContent-Length: 4\r\n\r\n')
+        response = http.client.HTTPResponse(client)
+        response.begin()
+        assert response.status == 403
+        response.read()
+        start = time.monotonic()
+        assert selected(draft)['available']
+        assert time.monotonic() - start < 2
+    assert not (draft.tasks[0] / 'decision.json').exists()

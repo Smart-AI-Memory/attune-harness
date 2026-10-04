@@ -10,6 +10,8 @@ import hashlib
 import hmac
 import json
 import secrets
+import socket
+import time
 import sys
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -97,10 +99,34 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_args):
         pass  # Avoid persisting user paths, request data or local capabilities.
 
+    def finish(self):
+        # Closing with unread POST bytes can reset the connection on Windows,
+        # discarding the refusal response. Half-close first, then discard a
+        # bounded amount without parsing it or invoking any task owner.
+        if getattr(self, '_unread_post', False):
+            try:
+                self.wfile.flush()
+                self.connection.shutdown(socket.SHUT_WR)
+                deadline = time.monotonic() + 0.25
+                remaining = 65536
+                while remaining:
+                    budget = deadline - time.monotonic()
+                    if budget <= 0:
+                        break
+                    self.connection.settimeout(budget)
+                    chunk = self.connection.recv(min(8192, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+            except OSError:
+                pass  # Disconnected clients cannot receive the refusal.
+        super().finish()
+
     def send(self, status, body, content_type='text/plain; charset=utf-8'):
         raw = body.encode('utf-8')
         self.send_response(status)
         self.send_header('Content-Type', content_type)
+        self.send_header('Connection', 'close')
         self.send_header('Content-Length', str(len(raw)))
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -165,6 +191,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send(200, body, 'application/json; charset=utf-8')
 
     def do_POST(self):
+        self._unread_post = True
         self.close_connection = True
         if self.server.decisions is None:
             return self.send(405, 'This workspace is read-only; no action was performed')
@@ -184,6 +211,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             size = int(lengths[0])
             raw = self.rfile.read(size)
+            self._unread_post = False
             if len(raw) != size:
                 raise ValueError('Incomplete request; inspect before retrying')
             payload = parse_json(raw.decode('utf-8'), 65536)

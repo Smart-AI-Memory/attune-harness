@@ -69,6 +69,11 @@ function renderDecision(shown){
   for(const [key,label] of [['scope','Files in scope'],['acceptance','Done when'],['constraints','Constraints'],['context','Context']]){
    if(intent[key].length){node('h3',label,panel);const list=node('ul',undefined,panel);for(const item of intent[key])node('li',item,list);}
   }
+  for(const question of intent.questions){
+   node('h3',question.question,panel);
+   node('small',question.material?'Required for acceptance':'Optional question',panel);
+   node('p',question.answer===null?'Not answered':question.answer,panel);
+  }
   for(const choice of summary.choices){
    node('h3',choice.question,panel);const option=choice.options.find(o=>o.id===choice.selected);
    node('p',option?option.proposal:'Undecided',panel);
