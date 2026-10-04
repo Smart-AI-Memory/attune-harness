@@ -3,6 +3,10 @@
 Say **“Shepherd #222”** to ask the agent to bring that pull request to a verified
 merge under the repository's existing rules.
 
+This reference covers one PR. Under the repository's default delegation, a PR
+changing `src/` or `tests/` stops for Patrick rather than being merged by the agent.
+Named stacks follow the separate procedure in the repository rules.
+
 - **Outcome:** the named PR is merged and verified, or a specific blocker is reported.
 - **Autonomy:** perform authorized preparation, review coordination, checks and merge
   without asking again for routine steps.
