@@ -275,6 +275,36 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
+For a refreshing local browser view, register existing task directories:
+
+```bash
+python -m attune_harness.gui --task /absolute/path/to/task
+```
+
+Add `--edit` to complete a registered feature-work draft's missing intent and
+choices, then review and explicitly accept its current scope:
+
+```bash
+python -m attune_harness.gui --task /absolute/path/to/task --edit
+```
+
+The default is read-only. In edit mode, **Open current form** retains the owner's
+current questions or decision. Save partial answers to see what remains; choice
+labels preserve the proposal, rationale, counter-case, evidence and uncertainty.
+Only a separate approval action accepts intent. Neither mode calls a model,
+builds, or creates new tasks. Use `plan --request` to create a draft first.
+Resolve or stage a saved planning run in the CLI before opening its decision.
+
+The private launcher link grants access to that launch mode; keep it private.
+Use `--no-open` for a manual launcher link. Another tab opening the same task's
+form invalidates your old form. After a restart, stale answer, lost response or
+write failure, refresh saved state and explicitly reopen; do not replay a
+submission. The owner validates each checkpoint and retains the decision beside
+its work record. Opening or refreshing the page never approves anything.
+The snapshot pane is verified in Chrome. Codex’s embedded browser can leave the
+blob-based snapshot pane blank even when the decision controls work; use the
+private launcher link in Chrome for the complete snapshot.
+
 Optionally retain a pause note yourself or ask your assistant to prepare one.
 Use the actual task ID and revision from `status`; this example is a format template:
 
