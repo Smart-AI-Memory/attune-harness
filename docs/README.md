@@ -12,6 +12,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
+
 - [Graphical companion specification](specs/graphical-companion/README.md): Four milestones, existing-journey reuse, owner boundaries and preservation gates
 - [Graphical companion progress](specs/graphical-companion/progress.md): Verified increments, remaining qualification and next work
 
