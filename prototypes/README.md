@@ -22,5 +22,7 @@ session notes are intentionally not published. A verified local preservation
 archive contains those original artifacts. The live-mining server requires a
 user-supplied `context.txt` beside it. Clicking its live-run action invokes the
 configured Codex CLI and consumes usage; publishing this source authorizes no run.
-The production companion is `python -m attune_harness.gui --task ABSOLUTE_TASK`.
-It currently provides read-only owner snapshots, with no dispatch endpoint.
+The retained companion implementation is development code for the deferred
+1.4.0 GUI release. In 1.3.0, module launch and imported server construction
+refuse before task, listener or browser effects. These prototypes do not grant
+installed GUI availability or release acceptance.
