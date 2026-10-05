@@ -257,16 +257,41 @@ textarea[readonly]{background:var(--wash);min-height:150px}.controls{display:fle
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px}h1,h2,p,dt,dd,li{overflow-wrap:anywhere}
 .task-card{border-top:1px solid var(--line);padding:24px 0}.task-card a{display:inline-block;padding:10px 0;min-height:44px}
 .saved-task{display:none}.saved-task:target{display:block}.saved-task:target~#saved-tasks{display:none}
+[data-saved-navigation]>.saved-task,[data-saved-navigation]>#saved-tasks{display:block}
 @media(max-width:650px){main{padding:22px 16px}.destination{grid-template-columns:1fr}.brief>section,.destination{padding:18px}dl{grid-template-columns:1fr;gap:3px}dd{margin-bottom:10px}.controls button{flex:1 1 100%}}
 
 .role-label{position:relative;display:flex;align-items:center;gap:8px;font-size:22px;font-weight:750;line-height:1.25;color:var(--ink);margin:0 0 16px;padding-left:12px;border-left:4px solid var(--accent)}
 .role-help{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;min-height:44px;padding:0;border:0;background:transparent;color:var(--accent);font-size:17px}
 .role-tooltip{position:absolute;z-index:2;top:100%;left:0;width:26rem;max-width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);box-shadow:0 4px 14px #0002;font:400 14px/1.5 system-ui,sans-serif}
 [hidden]{display:none!important}
-@media print{.saved-task{display:block}.controls{display:none}}
+@media print{.saved-task,#saved-tasks{display:block!important}.controls{display:none}}
 """
 _REPLY_SCRIPT = """
 'use strict';
+// Keep briefing selection inside the snapshot, without navigating its blob URL.
+(() => {
+ const home=document.getElementById('saved-tasks');
+ if(!home)return;
+ const tasks=[...document.querySelectorAll('.saved-task')];
+ const panes=[home,...tasks];
+ function show(id, focus=false){
+  const selected=panes.find(pane=>pane.id===id);
+  if(!selected)return false;
+  panes.forEach(pane=>{pane.hidden=pane!==selected;});
+  if(focus){const heading=selected.querySelector('h1');
+   if(heading){heading.setAttribute('tabindex','-1');heading.focus();heading.scrollIntoView();}}
+  return true;
+ }
+ home.parentElement.setAttribute('data-saved-navigation','');
+ show(location.hash.slice(1))||show(home.id);
+ document.querySelectorAll('[data-saved-target]').forEach(link=>{
+  link.addEventListener('click',event=>{
+   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+   if(show(link.dataset.savedTarget,true))event.preventDefault();
+  });
+ });
+ window.addEventListener('hashchange',()=>{show(location.hash.slice(1))||show(home.id);});
+})();
 document.querySelectorAll('[data-reply]').forEach(panel => {
  const reply=panel.querySelector('[data-text]'), notes=panel.querySelector('[data-notes]');
  const status=panel.querySelector('[role=status]'), copy=panel.querySelector('[data-copy]');
@@ -569,8 +594,8 @@ def render_saved_tasks(entries, format):
         cards.append(f'<section class="task-card"><h2>{_escape(brief["title"])}</h2>'
                      f'<p>{_escape(brief["goal"])}</p><p><strong>Where you left off:</strong> {_escape(position)}</p>'
                      f'<p class="muted">{_escape(view["summary"])} · Revision {_escape(view["revision"])}</p>'
-                     f'<a href="#{key}">Open briefing →</a></section>')
-        bodies.append(f'<div class="saved-task" id="{key}"><nav><a href="#saved-tasks">← Saved tasks</a></nav>' +
+                     f'<a href="#{key}" data-saved-target="{key}">Open briefing →</a></section>')
+        bodies.append(f'<div class="saved-task" id="{key}"><nav><a href="#saved-tasks" data-saved-target="saved-tasks">← Saved tasks</a></nav>' +
                       _body(view, key) + '</div>')
     home = ('<div id="saved-tasks"><header><p class="eyebrow">Attune Harness</p><h1>Saved Tasks</h1>'
             '<p>Choose the work you want to pick up.</p>' + f'<p class="muted">{_escape(SNAPSHOT_NOTE)}</p>'
