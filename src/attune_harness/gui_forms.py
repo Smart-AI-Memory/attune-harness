@@ -25,7 +25,16 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 
 FORM_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
-let busy=false;
+let busy=false,expired=false;
+function expirePanel(){
+ expired=true;stopBuildWatch();
+ if(!panel.children.length)return;
+ for(const input of panel.querySelectorAll('textarea'))input.readOnly=true;
+ for(const control of panel.querySelectorAll('button,select'))control.disabled=true;
+ const answers=Array.from(panel.querySelectorAll('textarea,select')).filter(input=>input.value).map(input=>(input.getAttribute('data-recovery-label')||input.name)+': '+input.value);
+ if(answers.length&&!panel.querySelector('.retained-answers')){const recovery=node('pre',answers.join('\n\n'),panel);recovery.className='retained-answers';recovery.setAttribute('aria-label','Retained answers for copying');}
+ if(!panel.querySelector('.expired-notice')){const notice=node('p','Retained for copying only. This form has expired. Refresh saved state, then deliberately open the current form or preview; answers are never replayed.',panel);notice.className='expired-notice';notice.setAttribute('role','status');}
+}
 const buildCards=new Map();
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
 async function api(path,payload){
@@ -33,8 +42,7 @@ async function api(path,payload){
  if(!res.ok)throw Error(await res.text());return await res.json();
 }
 async function loadTasks(){
- panel.replaceChildren();tasks.replaceChildren();buildCards.clear();
- try{const data=await api('/workspace');document.querySelector('#decisions').hidden=!data.editable;
+ try{const data=await api('/workspace');tasks.replaceChildren();buildCards.clear();document.querySelector('#decisions').hidden=!data.editable;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.label,card);node('p',task.status+(task.status==='accepted'&&task.build?' · Intent accepted': ' · '+task.note),card);
   if(task.build){
@@ -59,23 +67,24 @@ function updateBuildCard(task){
  card.preview.onclick=()=>act(async()=>renderBuildGrant(await api('/build/preview',{task:task.task,checkpoint:task.checkpoint})));
 }
 async function act(operation){
- if(busy)return;busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);
- try{await operation();}catch(e){panel.replaceChildren();status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
- finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);}
+ if(busy)return;busy=true;const disabled=new Map(Array.from(document.querySelectorAll('button'),b=>[b,b.disabled]));disabled.forEach((_,b)=>b.disabled=true);
+ try{await operation();}catch(e){expirePanel();status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
+ finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=(expired&&panel.contains(b))||disabled.get(b)||false);}
 }
 async function submit(shown,response){
+ if(expired)return;
+ expirePanel();
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
  await refreshWorkspace(result.message);
 }
 async function refreshWorkspace(message=''){
- stopBuildWatch();
- panel.replaceChildren();
+ expirePanel();
  const fresh=await refresh();const snapshotWarning=fresh?'':status.textContent;
  const loaded=await loadTasks();const decisionWarning=loaded?'':status.textContent;
  status.textContent=[message|| (fresh?'Snapshot refreshed. Inspection makes no decisions or model calls.':''),snapshotWarning,decisionWarning].filter(Boolean).join(' ');
 }
 function renderDecision(shown){
- stopBuildWatch();
+ stopBuildWatch();expired=false;
  panel.replaceChildren();const display=shown.display;
  const title=node('h2',display.kind==='spec'?'Review draft intent':display.title,panel);title.tabIndex=-1;title.focus();
  node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',panel);
@@ -109,10 +118,10 @@ function renderDecision(shown){
     for(const text of field.options){node('option',text,input).value=text;}
    }else if(field.type==='text_input'){input=node('textarea',undefined,form);}
    else{node('p','This field requires the CLI collector.',form);return;}
-   input.id=id;input.name=field.id;inputs.push([field.id,input]);
+   input.id=id;input.name=field.id;input.setAttribute('data-recovery-label',field.text);inputs.push([field.id,input]);
   }
   const save=node('button','Save answers',form);save.type='submit';
-  form.onsubmit=e=>{e.preventDefault();const answers=Object.fromEntries(inputs.filter(([,input])=>input.value.trim()).map(([key,input])=>[key,input.value]));
+  form.onsubmit=e=>{e.preventDefault();if(expired)return;const answers=Object.fromEntries(inputs.filter(([,input])=>input.value.trim()).map(([key,input])=>[key,input.value]));
    if(!Object.keys(answers).length){status.textContent='Enter at least one answer to save.';return;}
    act(()=>submit(shown,{answers}));};
  }else{
@@ -130,36 +139,53 @@ function renderDecision(shown){
  }
 }
 
-let watchedBuild=null,buildTimer=null,watchRevision=0;
-function stopBuildWatch(){watchRevision++;watchedBuild=null;clearTimeout(buildTimer);}
+let watchedBuild=null,buildTimer=null,watchRevision=0,evidenceNodes=null;
+function stopBuildWatch(){watchRevision++;watchedBuild=null;clearTimeout(buildTimer);evidenceNodes=null;}
 async function watchBuild(task,focus=true){
  stopBuildWatch();watchedBuild=task;const revision=watchRevision;
- try{const data=await api('/workspace');if(watchedBuild!==task||revision!==watchRevision)return;
- for(const item of data.tasks)updateBuildCard(item);
- const build=data.tasks.find(item=>item.task===task)?.build;
- if(!build?.view)throw Error(build?.note||'Task inspection unavailable');
- renderBuildEvidence(build,focus);
- if(build.running)buildTimer=setTimeout(()=>watchBuild(task,false),1000);
- }catch(e){if(watchedBuild===task&&revision===watchRevision){node('p','Progress inspection failed. '+e.message+' Refresh before acting; no execution was retried.',panel);stopBuildWatch();}}
+ async function poll(){
+  try{const data=await api('/workspace');if(watchedBuild!==task||revision!==watchRevision)return;
+  for(const item of data.tasks)updateBuildCard(item);
+  const build=data.tasks.find(item=>item.task===task)?.build;
+  if(!build?.view)throw Error(build?.note||'Task inspection unavailable');
+  renderBuildEvidence(build,focus);focus=false;
+  if(build.running)buildTimer=setTimeout(poll,1000);
+  }catch(e){if(watchedBuild===task&&revision===watchRevision){node('p','Progress inspection failed. '+e.message+' Refresh before acting; no execution was retried.',panel);stopBuildWatch();}}
+ }
+ await poll();
 }
 function renderBuildEvidence(build,focus=true){
- panel.replaceChildren();const view=build.view;
- const heading=node('h2','Recorded progress and evidence',panel);heading.tabIndex=-1;if(focus)heading.focus();
- node('p',view.summary,panel);node('p',build.note,panel);
- node('p','Next: '+view.next_action,panel);
- node('p','Completed steps: '+(view.completed.join(', ')||'None recorded'),panel);
- node('pre',JSON.stringify(view.evidence,null,2),panel);
- if(build.reviews?.length){node('h3','Recorded reviewer findings',panel);node('pre',JSON.stringify(build.reviews,null,2),panel);}
- node('small','Reviewer output is evidence to inspect, not human acceptance. Refresh reads saved state and never repeats execution.',panel);
+ const view=build.view;
+ if(!evidenceNodes){
+  expired=false;panel.replaceChildren();
+  const heading=node('h2','Recorded progress and evidence',panel);heading.tabIndex=-1;if(focus)heading.focus();
+  evidenceNodes={summary:node('p','',panel),note:node('p','',panel),next:node('p','',panel),completed:node('p','',panel),evidence:node('pre','',panel),reviewsHeading:node('h3','Recorded reviewer findings',panel),reviews:node('pre','',panel)};
+  node('small','Reviewer output is evidence to inspect, not human acceptance. Refresh reads saved state and never repeats execution.',panel);
+ }
+ const values={summary:view.summary,note:build.note,next:'Next: '+view.next_action,completed:'Completed steps: '+(view.completed.join(', ')||'None recorded'),evidence:JSON.stringify(view.evidence,null,2),reviews:JSON.stringify(build.reviews||[],null,2)};
+ const scroll=[window.scrollX,window.scrollY,panel.scrollLeft,panel.scrollTop];
+ const selection=window.getSelection();
+ let anchor=selection?.anchorNode,focusNode=selection?.focusNode;
+ let anchorOffset=selection?.anchorOffset,focusOffset=selection?.focusOffset,restoreSelection=false;
+ for(const [key,value] of Object.entries(values)){
+  const el=evidenceNodes[key];if(el.textContent===value)continue;
+  const ownsAnchor=anchor&&el.contains(anchor),ownsFocus=focusNode&&el.contains(focusNode);
+  el.textContent=value;
+  if(ownsAnchor){anchor=el.firstChild||el;anchorOffset=Math.min(anchorOffset,value.length);restoreSelection=true;}
+  if(ownsFocus){focusNode=el.firstChild||el;focusOffset=Math.min(focusOffset,value.length);restoreSelection=true;}
+ }
+ if(restoreSelection&&anchor&&focusNode)selection.setBaseAndExtent(anchor,anchorOffset,focusNode,focusOffset);
+ panel.scrollLeft=scroll[2];panel.scrollTop=scroll[3];window.scrollTo(scroll[0],scroll[1]);
+ evidenceNodes.reviews.hidden=evidenceNodes.reviewsHeading.hidden=!build.reviews?.length;
 }
 function renderBuildGrant(shown){
- stopBuildWatch();
+ stopBuildWatch();expired=false;
  panel.replaceChildren();const heading=node('h2',shown.resume?'Resume accepted command build':'Run accepted command build',panel);heading.tabIndex=-1;heading.focus();
  node('p',shown.goal,panel);
  node('p','This grants the configured commands and accepted file effects. Commands can access their host resources; they are not guaranteed offline. Native/provider adapters are unavailable in this GUI slice.',panel);
  for(const [label,value] of [['Participants and commands',shown.participants],['Accepted tasks',shown.tasks],['File effects and protected checks',shown.effects],['Budgets',shown.budgets]]){node('h3',label,panel);node('pre',JSON.stringify(value,null,2),panel);}
  const confirm=node('button',shown.resume?'Grant resume of these commands':'Grant these commands and build',panel);confirm.type='button';
- confirm.onclick=()=>act(async()=>{const result=await api('/build/start',{task:shown.task,checkpoint:shown.checkpoint,grant:shown.grant,confirmed:true});await refreshWorkspace(result.message);await watchBuild(shown.task);});
+ confirm.onclick=()=>act(async()=>{if(expired)return;expirePanel();const result=await api('/build/start',{task:shown.task,checkpoint:shown.checkpoint,grant:shown.grant,confirmed:true});await refreshWorkspace(result.message);await watchBuild(shown.task);});
 }
 refreshWorkspace();
 """
