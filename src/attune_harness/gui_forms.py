@@ -31,7 +31,7 @@ function expirePanel(){
  if(!panel.children.length)return;
  for(const input of panel.querySelectorAll('textarea'))input.readOnly=true;
  for(const control of panel.querySelectorAll('button,select'))control.disabled=true;
- const answers=Array.from(panel.querySelectorAll('textarea,select')).filter(input=>input.value).map(input=>input.name+': '+input.value);
+ const answers=Array.from(panel.querySelectorAll('textarea,select')).filter(input=>input.value).map(input=>(input.getAttribute('data-recovery-label')||input.name)+': '+input.value);
  if(answers.length&&!panel.querySelector('.retained-answers')){const recovery=node('pre',answers.join('\n\n'),panel);recovery.className='retained-answers';recovery.setAttribute('aria-label','Retained answers for copying');}
  if(!panel.querySelector('.expired-notice')){const notice=node('p','Retained for copying only. This form has expired. Refresh saved state, then deliberately open the current form or preview; answers are never replayed.',panel);notice.className='expired-notice';notice.setAttribute('role','status');}
 }
@@ -118,7 +118,7 @@ function renderDecision(shown){
     for(const text of field.options){node('option',text,input).value=text;}
    }else if(field.type==='text_input'){input=node('textarea',undefined,form);}
    else{node('p','This field requires the CLI collector.',form);return;}
-   input.id=id;input.name=field.id;inputs.push([field.id,input]);
+   input.id=id;input.name=field.id;input.setAttribute('data-recovery-label',field.text);inputs.push([field.id,input]);
   }
   const save=node('button','Save answers',form);save.type='submit';
   form.onsubmit=e=>{e.preventDefault();if(expired)return;const answers=Object.fromEntries(inputs.filter(([,input])=>input.value.trim()).map(([key,input])=>[key,input.value]));
