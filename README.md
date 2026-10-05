@@ -190,12 +190,8 @@ Built by Patrick Roebuck, working with Codex and Claude.
 
 ## Graphical companion status
 
-The loopback companion inspects explicitly registered tasks, read-only by default.
-Explicit `--edit` supports draft intake and owner decisions; separately enabled
-`--edit --allow-build-commands` previews and grants accepted command builds and
-eligible resumes, retaining progress, checks and reviewer evidence. Saved navigation
-preserves task identity. Commands are not network-sandboxed; native/provider build
-adapters and new-task creation are unsupported. M2 remains incomplete, including
-broader recovery controls, standalone assessment and the shared author gallery.
-M3/M4 and production GUI qualification remain open. See the
-[release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/release-notes-1.3.0.md).
+GUI delivery is deferred to 1.4.0. The 1.3.0 module launcher and imported server
+refuse before task, listener or browser effects. Experimental GUI code/assets
+remain packaged but unavailable; CLI owners and static task snapshots remain
+available. M2/M3/M4 and human acceptance gates still govern future GUI delivery.
+See the [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/release-notes-1.3.0.md).

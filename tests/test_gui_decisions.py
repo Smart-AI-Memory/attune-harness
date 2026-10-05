@@ -8,6 +8,9 @@ import time
 from threading import Thread
 
 import pytest
+
+pytestmark = pytest.mark.usefixtures('gui_development_profile')
+
 import test_work_contract as contracts
 from attune_harness import gui, work_contract, work_decisions
 from attune_harness.gui_decisions import Decisions

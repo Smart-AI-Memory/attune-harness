@@ -4,6 +4,9 @@ import http.client
 from threading import Thread
 
 import pytest
+
+pytestmark = pytest.mark.usefixtures('gui_development_profile')
+
 import test_work_contract as contracts
 from attune_harness import gui
 

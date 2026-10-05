@@ -1,5 +1,14 @@
 # Stabilization, release readiness and phased GUI delivery
 
+**Approved release boundary (October 5):** GUI delivery is deferred to 1.4.0.
+The 1.3.0 candidate refuses module launch/server construction before task,
+listener or browser effects; internal experimental GUI code remains inert.
+The progress/receipts below describe development, not available 1.3.0 features.
+M2/M3/M4 gates remain; full M2 implementation is not required for the bounded
+non-GUI 1.3.0 candidate. S3/S6/S9 observations remain open for explicit disposition,
+not closed by GUI deferral. October 6–11 publication needs an explicit decision;
+October 12 remains the scope review, with no automatic M3.
+
 Phased delivery update October 3, 2026 against main
 `23d6e7e1c6ef35f698fbc1f0462e951c41b099a8`. The release evidence below retains
 its 1.2.0 baseline; it is not a new publication check. This

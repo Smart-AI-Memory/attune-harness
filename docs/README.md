@@ -14,8 +14,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
-- [Graphical companion specification](specs/graphical-companion/README.md): Four milestones, existing-journey reuse, owner boundaries and preservation gates
-- [Graphical companion progress](specs/graphical-companion/progress.md): Verified increments, remaining qualification and next work
+- [Graphical companion specification](specs/graphical-companion/README.md): 1.4.0 development contract; GUI unavailable in 1.3.0
+- [Graphical companion progress](specs/graphical-companion/progress.md): Historical development increments and remaining 1.4.0 qualification; no 1.3.0 GUI availability
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries

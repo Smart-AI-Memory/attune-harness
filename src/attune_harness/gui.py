@@ -1,8 +1,7 @@
-"""Loopback companion for explicitly registered saved tasks, read-only by default.
+"""Graphical companion development code; GUI delivery is deferred to 1.4.0.
 
-Run with ``python -m attune_harness.gui --task /absolute/task``. Add ``--edit`` to complete existing draft intake and collect owner decisions.
-Only --edit --allow-build-commands enables separately confirmed configured command builds.
-Native/provider adapters are unavailable; commands are not network-sandboxed. Owners retain authority.
+The 1.3.0 release refuses module launch and server construction before task,
+listener or browser effects. Use the supported CLI journeys instead.
 """
 
 import argparse
@@ -58,10 +57,21 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
         '<script src="/app.js"></script></body></html>')
 
 
+GUI_UNAVAILABLE = ('GUI is unavailable in 1.3.0; delivery is deferred to 1.4.0. '
+                   'Use the supported attune-harness CLI journeys.')
+
+
+def _require_gui_release():
+    # Explicit release policy, changed only by a reviewed GUI release decision.
+    # There is no launch flag or environment override in the shipped product.
+    raise FeatureUnavailable(GUI_UNAVAILABLE)
+
+
 class CompanionServer(HTTPServer):
     """A bounded local reader. No caller-supplied filesystem paths or commands."""
 
     def __init__(self, tasks, *, port=0, edit=False, allow_build_commands=False):
+        _require_gui_release()
         if allow_build_commands and not edit:
             raise ValueError("Command builds require explicit edit mode")
         paths = tuple(Path(path) for path in tasks)
@@ -252,6 +262,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main(argv=None):
+    try:
+        _require_gui_release()
+    except FeatureUnavailable as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
     parser.add_argument('--edit', action='store_true', help='Enable existing draft intake and explicit intent decisions; builds require a separate flag')

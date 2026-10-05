@@ -20,3 +20,14 @@ def unmake_checkout():
                 (root / '.git').rename(moved)
                 return moved
     return unmake
+
+
+@pytest.fixture
+def gui_development_profile(monkeypatch):
+    """Exercise retained 1.4.0 development code; never qualify release availability.
+
+    Release-policy tests intentionally do not select this fixture. No shipped
+    flag/environment can enable this test-only substitution.
+    """
+    from attune_harness import gui
+    monkeypatch.setattr(gui, '_require_gui_release', lambda: None)

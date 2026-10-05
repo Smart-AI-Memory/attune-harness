@@ -12,6 +12,7 @@ from pathlib import Path
 
 def check(python: Path, mode: str) -> dict:
     cases = []
+    gui_release = gui_release_checks(python)
     with tempfile.TemporaryDirectory(prefix='harness-installed-') as tmp:
         root = Path(tmp)
         project = root/'project'
@@ -91,8 +92,42 @@ def check(python: Path, mode: str) -> dict:
         catalog=subprocess.run([str(console_script(python)),'--help-all'],cwd=root,text=True,capture_output=True)
         assert catalog.returncode==0 and all(
             command in catalog.stdout for command in ('verify', 'retrieve', 'memory'))
-    return {'mode':mode,'cases':cases,'provider_dependencies_absent':True,'memory':memory,'journey':journey}
+    return {'gui_release':gui_release,'mode':mode,'cases':cases,'provider_dependencies_absent':True,'memory':memory,'journey':journey}
 
+
+
+def gui_release_checks(python: Path) -> dict:
+    """Prove the installed release policy without enabling development fixtures."""
+    with tempfile.TemporaryDirectory(prefix='harness-gui-denied-') as tmp:
+        root = Path(tmp)
+        task = root / 'uncreated-task'
+        result = subprocess.run([str(python), '-I', '-m', 'attune_harness.gui',
+                                 '--task', str(task), '--edit', '--allow-build-commands'],
+                                cwd=root, text=True, capture_output=True, timeout=10)
+        assert result.returncode == 2 and not result.stdout, (result.stdout, result.stderr)
+        assert 'unavailable in 1.3.0' in result.stderr and not task.exists()
+        code = """
+from unittest.mock import patch
+from attune_harness import gui
+from attune_harness.features import FeatureUnavailable
+def forbidden(*args, **kwargs):
+    raise AssertionError('Release refusal happened after an effect')
+class Untouched:
+    def __iter__(self):
+        raise AssertionError('Tasks inspected before refusal')
+with patch.object(gui.HTTPServer, '__init__', forbidden), patch.object(gui.task_view, 'inspect_saved_tasks', forbidden), patch.object(gui.webbrowser, 'open', forbidden):
+    try:
+        gui.CompanionServer(Untouched(), edit=True, allow_build_commands=True)
+    except FeatureUnavailable as exc:
+        assert 'deferred to 1.4.0' in str(exc)
+    else:
+        raise AssertionError('Imported server was available')
+    assert gui.main(['--task', '/missing']) == 2
+"""
+        subprocess.run([str(python), '-I', '-c', code], cwd=root, check=True, capture_output=True)
+        assert not list(root.iterdir())
+    return {'status': 'unavailable', 'delivery_target': '1.4.0',
+            'module_exit': 2, 'task_listener_browser_effects': 'none'}
 
 def console_script(python):
     """The installed ``attune-harness`` entry point beside this interpreter, on any platform.
