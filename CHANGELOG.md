@@ -11,7 +11,11 @@ write the starter files each verb reads (O-70). See the
 - Add a loopback graphical companion with a read-only default for explicitly
   registered tasks. Explicit `--edit` mode saves partial draft answers and supports
   reconsideration and current-checkpoint intent acceptance through existing owners.
-  It does not create tasks or dispatch models/builds. The GUI remains in progress.
+  Explicit `--edit --allow-build-commands` previews and separately grants accepted
+  command builds and eligible resumes through the existing owner, with saved
+  progress, checks and reviewer evidence. Saved navigation preserves registered
+  task identity. Native/provider builds and new-task creation remain unsupported;
+  broader M2 recovery, standalone assessment and author-gallery work remain open.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

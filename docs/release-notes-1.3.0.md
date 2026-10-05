@@ -66,8 +66,14 @@ or `--task-dir`.
   existing task-owner snapshots over a loopback capability boundary, read-only
   by default. Explicit `--edit` mode completes missing intent, saves partial
   answers, shows choices and material answers, and supports reconsideration and
-  current-checkpoint intent acceptance. It does not create tasks or dispatch
-  models/builds. GUI M1 is complete; M2 is underway; M3/M4 and production GUI
+  current-checkpoint intent acceptance. Separately enabled
+  `--edit --allow-build-commands` previews and explicitly grants accepted command
+  builds and eligible resumes through the existing build owner. Saved progress,
+  checks and final reviewer evidence remain inspectable; navigation preserves
+  registered task identity. Commands are not network-sandboxed. Native/provider
+  adapters, new-task creation, pause/cancel/reconciliation controls, standalone
+  assessment and the shared author gallery remain unsupported or open. GUI M1 is
+  complete; this bounded increment does not complete M2. M3/M4 and production GUI
   qualification remain open.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
@@ -115,7 +121,8 @@ See [Plan and build](cli-guide.md#plan-and-build) and
 
 ## Evidence
 
-This preparation integrates main through `2bd8e49` (#224). The PR handoff records
+This preparation integrates main through `5539b362faeb85c1724e37c5881df5d015190962` (#226), including
+#225 command build/evidence/eligible resume and #226 saved navigation. The PR handoff records
 which checks apply to this refreshed candidate; earlier candidate results are
 historical evidence until fresh qualification completes. Earlier library results do not qualify the versioned
 release artifact by themselves. The publish run and 1.3.0 PyPI hashes do not yet
