@@ -23,9 +23,9 @@ write the starter files each verb reads (O-70). See the
 - Keep browser intake and Refresh usable when session storage is unavailable.
   Private launcher links still authenticate the current page and remove the
   fragment; reopening the complete link restores access after a page reload.
-- Explain the next form after saving: continue remaining intake questions or
-  review the intent, using the named Open current form control in Saved work.
-  Accepted cards explicitly say intake and intent review are complete.
+- Explain the next form after saving with a bold Tip and a Continue form or
+  Review your answers button in Saved work, selected from saved state. Accepted cards
+  explicitly say intake and intent review are complete.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

@@ -46,7 +46,7 @@ async function loadTasks(){
  try{const data=await api('/workspace');tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
-  if(data.editable&&task.available){node('small','Click Open current form below to continue.',card);const open=node('button','Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
+  if(data.editable&&task.available){const tip=node('p',undefined,card);node('strong','Tip: ',tip);node('span',task.action_tip||'Open the current form to continue.',tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
    status.textContent='Current decision retained. Review before responding.';
   });}
@@ -99,7 +99,7 @@ function renderDecision(shown){
  const details=node('details',undefined,panel);node('summary','Read retained owner decision',details);node('pre',display.markdown,details);
  if(display.kind==='questions'){
   const form=node('form',undefined,panel),inputs=[];
-  node('p','Answer what you know. You can save partial answers; Harness will ask only what remains. After saving, click Open current form in Saved work above to continue.',form);
+  node('p','Answer what you know. You can save partial answers; Harness will ask only what remains. After saving, use the next-step button in Saved work above to continue.',form);
   for(const field of display.definition.fields){
    const id='field-'+field.id;const label=node('label',field.text,form);label.htmlFor=id;
    let input;

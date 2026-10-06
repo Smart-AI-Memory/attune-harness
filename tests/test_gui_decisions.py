@@ -87,10 +87,13 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     answer = submission(shown, {'answers': {'answer_0': 'Export all findings'}})
     status, result = call(draft, '/decision/submit', answer)
     assert status == 200
-    assert 'continue intake' in result['message'] and 'Open current form' in result['message']
+    assert 'Continue form' in result['message'] and 'Saved work above' in result['message']
     assert selected(draft)['heading'] == 'Draft saved — more answers needed'
-    assert 'continue intake' in selected(draft)['note']
+    assert 'continue form' in selected(draft)['note']
     assert 'Click' not in selected(draft)['note']  # Mode-specific controls belong to the browser.
+    assert selected(draft)['action_label'] == 'Continue form'
+    assert selected(draft)['action_tip'] == 'Answer the remaining questions.'
+    assert 'No model calls' not in selected(draft)['note']
     assert call(draft, '/decision/submit', answer)[0] == 409
     shown = open_form(draft)
     fields = shown['display']['definition']['fields']
@@ -99,12 +102,13 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     answers = {'answer_0': 'Every finding survives export', 'answer_1': fields[1]['options'][0]}
     status, result = call(draft, '/decision/submit', submission(shown, {'answers': answers}))
     assert status == 200
-    assert 'review this intent' in result['message'] and 'Open current form' in result['message']
+    assert 'Review your answers' in result['message'] and 'Saved work above' in result['message']
     record = read_task(path)
     assert record['request']['choices'][0]['selected'] == 'jsonl'
     assert record['status'] == 'draft'
     assert selected(draft)['heading'] == 'Draft saved — ready for review'
-    assert 'review this intent' in selected(draft)['note']
+    assert 'review your answers' in selected(draft)['note']
+    assert selected(draft)['action_label'] == 'Review your answers'
     shown = open_form(draft)
     assert shown['display']['kind'] == 'spec'
     assert any(a['id'] == 'approve_task' for a in shown['display']['actions'])

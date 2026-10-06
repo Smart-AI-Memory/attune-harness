@@ -52,8 +52,8 @@ class Decisions:
 
     @staticmethod
     def _draft_next_step(record):
-        return ("continue intake" if missing_information(record["request"])
-                else "review this intent")
+        return ("Continue form" if missing_information(record["request"])
+                else "Review your answers")
 
     def inspect(self):
         result = []
@@ -73,7 +73,12 @@ class Decisions:
                         self._draft(record)
                         item["available"] = True
                         item["heading"] = self._draft_heading(record)
-                        item["note"] = f"Next: {self._draft_next_step(record)}. No model calls."
+                        next_step = self._draft_next_step(record)
+                        item["note"] = f"Next: {next_step.lower()}."
+                        item["action_label"] = next_step
+                        item["action_tip"] = ("Answer the remaining questions."
+                                              if next_step == "Continue form"
+                                              else "Check your answers, then approve them.")
                     except (ValueError, OSError) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:
@@ -131,8 +136,8 @@ class Decisions:
                 raise ValueError("Supply at least one answer, then reopen to continue")
             saved = answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
                                                      "answers": response["answers"]})
-            message = (f"Answers saved. Next: {self._draft_next_step(saved)}. "
-                       "Click “Open current form” in Saved work above.")
+            message = (f"Answers saved. Click “{self._draft_next_step(saved)}” "
+                       "in Saved work above.")
             heading = self._draft_heading(saved)
         else:
             if set(response) != {"action", "confirmed"} or type(response["confirmed"]) is not bool:
@@ -144,6 +149,6 @@ class Decisions:
                 {**saved["display"]["response_template"], **response}
             ))
             message = ("Intent accepted. Implementation and paid dispatch are not authorized by this decision."
-                       if accepted is not None else "Response recorded; work remains unaccepted. Click “Open current form” in Saved work above to continue.")
+                       if accepted is not None else "Response recorded; work remains unaccepted. Click “Review your answers” in Saved work above to continue.")
             heading = "Intent accepted" if accepted is not None else self._draft_heading(record)
         return {"message": message, "heading": heading}
