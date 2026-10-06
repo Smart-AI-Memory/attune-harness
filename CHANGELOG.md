@@ -13,6 +13,10 @@ write the starter files each verb reads (O-70). See the
   serves form assets and registered-task navigation only; build grants, dispatch,
   resume and general snapshot navigation are deferred to 1.4.0. Direct HTTP
   execution routes and the build launch flag refuse before owner execution.
+- Distinguish confirmed browser form saves and intent acceptance from unconfirmed
+  submissions. Retained read-only forms show the owner’s success message; accepted
+  cards no longer display a draft-only warning. Stale checks, disabled controls
+  and no-replay behavior remain unchanged.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

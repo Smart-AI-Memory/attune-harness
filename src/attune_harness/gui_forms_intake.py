@@ -26,14 +26,16 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 INTAKE_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
 let busy=false,expired=false;
-function expirePanel(){
+function expirePanel(message){
  expired=true;
  if(!panel.children.length)return;
  for(const input of panel.querySelectorAll('textarea'))input.readOnly=true;
  for(const control of panel.querySelectorAll('button,select'))control.disabled=true;
  const answers=Array.from(panel.querySelectorAll('textarea,select')).filter(input=>input.value).map(input=>(input.getAttribute('data-recovery-label')||input.name)+': '+input.value);
  if(answers.length&&!panel.querySelector('.retained-answers')){const recovery=node('pre',answers.join('\n\n'),panel);recovery.className='retained-answers';recovery.setAttribute('aria-label','Retained answers for copying');}
- if(!panel.querySelector('.expired-notice')){const notice=node('p','Retained for copying only. This form has expired. Refresh saved state, then deliberately open the current form or preview; answers are never replayed.',panel);notice.className='expired-notice';notice.setAttribute('role','status');}
+ let notice=panel.querySelector('.expired-notice');
+ if(!notice){notice=node('p','This previous form is now read-only. Answers remain available for copying. Deliberately open the current form or preview to continue; answers are never replayed.',panel);notice.className='expired-notice';notice.setAttribute('role','status');}
+ if(message)notice.textContent=message;
 }
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
 async function api(path,payload){
@@ -54,13 +56,14 @@ async function loadTasks(){
 }
 async function act(operation){
  if(busy)return;busy=true;const disabled=new Map(Array.from(document.querySelectorAll('button'),b=>[b,b.disabled]));disabled.forEach((_,b)=>b.disabled=true);
- try{await operation();}catch(e){expirePanel();status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
+ try{await operation();}catch(e){expirePanel('Action not confirmed. Keep these answers and inspect saved state before continuing; this response will not be replayed.');status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
  finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=(expired&&panel.contains(b))||disabled.get(b)||false);}
 }
 async function submit(shown,response){
  if(expired)return;
- expirePanel();
+ expirePanel('Submitting this response. This form is now read-only; answers remain available for copying.');
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
+ expirePanel(result.message+' This previous form is now read-only.');
  await refreshWorkspace(result.message);
 }
 async function refreshWorkspace(message=''){

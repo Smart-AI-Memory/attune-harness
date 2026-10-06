@@ -53,12 +53,15 @@ class Decisions:
                 item = {"task": task, "checkpoint": record["checkpoint_digest"],
                         "label": record.get("request", {}).get("intent", {}).get("goal") or "Unfinished draft",
                         "status": record["status"], "available": False}
-                try:
-                    self._draft(record)
-                    item["available"] = True
-                    item["note"] = "Open the current intake or approval form. No model calls."
-                except (ValueError, OSError) as exc:
-                    item["note"] = str(exc)
+                if record["task_profile"] == PROFILE and record["status"] == "accepted":
+                    item["note"] = "Intent accepted. No further intent decision is needed; execution remains separate."
+                else:
+                    try:
+                        self._draft(record)
+                        item["available"] = True
+                        item["note"] = "Open the current intake or approval form. No model calls."
+                    except (ValueError, OSError) as exc:
+                        item["note"] = str(exc)
             except (ValueError, OSError) as exc:
                 item = {"task": task, "label": "Unavailable saved task", "available": False,
                         "status": "unavailable", "note": str(exc)}

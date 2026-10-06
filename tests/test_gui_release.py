@@ -41,7 +41,10 @@ def test_release_forms_real_intake_preview_accept_and_replay(forms):
     assert call(forms, '/decision/submit', payload)[0] == 200
     assert read_task(path)['status'] == 'accepted'
     assert call(forms, '/decision/submit', payload)[0] == 409
-    assert not selected(forms)['available']
+    card = selected(forms)
+    assert not card['available']
+    assert card['note'] == 'Intent accepted. No further intent decision is needed; execution remains separate.'
+    assert 'Only feature-work drafts' not in card['note']
     assert not {'planning', 'build'} & read_task(path).keys()
 
 

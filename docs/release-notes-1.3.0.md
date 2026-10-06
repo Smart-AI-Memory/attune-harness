@@ -68,7 +68,10 @@ or `--task-dir`.
   origin, checkpoint and single-use decision checks. Browser build grants,
   dispatch, resume and broader GUI navigation are deferred to 1.4.0; neither
   launch flags nor direct HTTP execution routes enable them. M2 completion is
-  not required for this bounded forms release.
+  not required for this bounded forms release. Confirmed saves and intent
+  acceptance show inline success; unsuccessful submissions remain explicitly
+  unconfirmed, with copyable answers and disabled controls. Accepted cards show
+  intent acceptance.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification
