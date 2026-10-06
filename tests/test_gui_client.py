@@ -36,3 +36,14 @@ def test_shipped_intake_bootstrap(tmp_path, mode):
                             capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     assert 'client regressions passed' in result.stdout
+
+
+def test_shipped_browser_handoff_client(tmp_path):
+    node = shutil.which('node')
+    assert node, 'GUI client verification requires Node.js; install Node and rerun (no skip).'
+    source = tmp_path / 'app.js'
+    source.write_text(INTAKE_BOOTSTRAP, encoding='utf-8')
+    runner = Path(__file__).parent / 'client' / 'gui_browser_navigation.cjs'
+    result = subprocess.run([node, str(runner), str(source)], capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'client regressions passed' in result.stdout

@@ -20,12 +20,29 @@ textarea{min-height:86px;resize:vertical}select{white-space:normal}pre{white-spa
 .action-row{border-top:1px solid #dce4da;margin-top:16px;padding-top:16px}.action-row p{margin-bottom:8px}
 button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #c18529;outline-offset:3px}
 #form-panel button{margin-top:12px}#form-panel small{display:block;margin:8px 0;color:#4b6353}
+#browser-tip:not([hidden]){flex-basis:100%;padding:10px 12px;background:#e7efe5;border-radius:7px}
 @media(max-width:600px){#decisions{padding:16px}#form-panel:not(:empty){padding:16px}header{padding:12px 16px}}
 """
 
 INTAKE_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
 let busy=false,expired=false;
+const browserButton=document.querySelector('#browser-open'),browserTip=document.querySelector('#browser-tip');
+let workspaceReady=false;
+function syncBrowserButton(){if(browserButton)browserButton.disabled=busy||!workspaceReady;}
+if(browserButton){
+ const narrow=window.matchMedia('(max-width:600px)');
+ const recommend=()=>{if(browserTip)browserTip.hidden=!narrow.matches;};
+ recommend();narrow.addEventListener('change',recommend);
+ browserButton.addEventListener('click',event=>{
+  if(!event.isTrusted||busy||!workspaceReady)return;
+  act(async()=>{
+   expirePanel('Opening another view. This form is now read-only; unsaved answers remain here for copying. Open the current form in the new view to continue.');
+   try{const result=await api('/browser/open',{confirmed:true});status.textContent=result.message;}
+   catch(e){status.textContent='Browser opening could not be confirmed. Copy the private launcher link from Terminal into your browser. Unsaved answers stay here for copying.';}
+  });
+ });
+}
 function expirePanel(message){
  expired=true;
  if(!panel.children.length)return;
@@ -43,7 +60,7 @@ async function api(path,payload){
  if(!res.ok)throw Error(await res.text());return await res.json();
 }
 async function loadTasks(){
- try{const data=await api('/workspace');tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
+ try{const data=await api('/workspace');workspaceReady=true;syncBrowserButton();tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
   if(data.editable&&task.available){const tip=node('p',undefined,card);node('strong','Tip: ',tip);node('span',task.action_tip||'Open the current form to continue.',tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
@@ -52,12 +69,12 @@ async function loadTasks(){
   });}
  }
  return true;
- }catch(e){status.textContent='Decision inspection failed. '+e.message;return false;}
+ }catch(e){workspaceReady=false;syncBrowserButton();status.textContent='Decision inspection failed. '+e.message;return false;}
 }
 async function act(operation){
  if(busy)return;busy=true;const disabled=new Map(Array.from(document.querySelectorAll('button'),b=>[b,b.disabled]));disabled.forEach((_,b)=>b.disabled=true);
  try{await operation();}catch(e){expirePanel('Action not confirmed. Keep these answers and inspect saved state before continuing; this response will not be replayed.');status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
- finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=(expired&&panel.contains(b))||disabled.get(b)||false);}
+ finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=(expired&&panel.contains(b))||disabled.get(b)||false);syncBrowserButton();}
 }
 async function submit(shown,response){
  if(expired)return;

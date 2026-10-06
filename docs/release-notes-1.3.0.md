@@ -82,6 +82,12 @@ or `--task-dir`.
   and a Continue form or Review your answers button, selected from the saved owner
   state. Accepted cards explain that intake and review are complete; execution
   stays separate.
+  Open in browser is available in editable and read-only forms views. Panels
+  at most 600 pixels wide recommend it; opening requires a click. The launcher
+  requests the same private workspace in the system browser, which decides
+  whether to use a tab or window. Copy unsaved answers before switching views;
+  they remain read-only in the original view and are never transferred or saved
+  automatically. This does not resize host panels or choose a monitor.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification

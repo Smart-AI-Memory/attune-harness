@@ -289,6 +289,15 @@ accept its intent. Saving answers is not approval; approval is not execution or
 paid dispatch. Stale checkpoints, replaced forms and foreign-origin submissions
 refuse. A restart requires opening a fresh form; retained text is evidence only.
 
+**Open in browser** requests the same private workspace in your system browser.
+It stays available at every width; panels at most 600 pixels wide recommend it.
+Click to open, and copy any unsaved answers first. Switching makes the old form
+read-only without saving or transferring its answers. Use the current form in
+the new view to continue. The system browser decides between a tab and a window;
+Harness cannot resize the chat panel or move a window to another monitor. If
+opening cannot be confirmed, paste the complete private launcher link from
+Terminal into your browser.
+
 Browser build grants, dispatch, resume and broader GUI navigation are deferred
 to **1.4.0**. `--allow-build-commands` exits 2 before task/listener/browser effects;
 imported server construction with that option also refuses. `/build/preview`,

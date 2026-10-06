@@ -83,6 +83,9 @@ INTAKE_DOCUMENT = ('<!doctype html><html lang=en><head><meta charset=utf-8>'
     '<title>Attune · Intake and intent approval</title><link rel="stylesheet" href="/style.css">'
     '</head><body><header><strong>ATTUNE / Intake and intent approval</strong>'
     '<button id="refresh" type="button">Refresh forms</button>'
+    '<button id="browser-open" type="button" disabled>Open in browser</button>'
+    '<p id="browser-tip" hidden><strong>Tip: </strong>This panel is narrow. '
+    'Open in browser for more room. Copy any unsaved answers first.</p>'
     '<p id="status" role="status" aria-live="polite">Connecting…</p></header>'
     + INTAKE_PAGE + '<script src="/app.js"></script></body></html>')
 
@@ -110,6 +113,7 @@ class CompanionServer(HTTPServer):
         self.editable = edit
         self.decisions = None
         self.builds = None
+        self._browser_attempt = None
         if edit or self.forms_only:
             from .gui_decisions import Decisions
             self.decisions = Decisions(paths)
@@ -135,6 +139,25 @@ class CompanionServer(HTTPServer):
         connection, address = super().get_request()
         connection.settimeout(5)
         return connection, address
+
+    def open_browser(self, confirmed):
+        """Request the fixed private launch URL, never a caller-selected target."""
+        if confirmed is not True:
+            raise ValueError('Opening the browser requires an explicit click')
+        now = time.monotonic()
+        if self._browser_attempt is not None and now - self._browser_attempt[0] < 2:
+            return self._browser_attempt[1]
+        try:
+            opened = webbrowser.open(self.launch_url, new=1)
+        except (webbrowser.Error, OSError):
+            opened = False
+        result = {'requested': bool(opened), 'message': (
+            'Browser opening requested. Continue in the new browser view. '
+            'Unsaved answers stay here for copying.' if opened else
+            'Browser opening could not be confirmed. Copy the private launcher link from '
+            'Terminal into your browser. Unsaved answers stay here for copying.')}
+        self._browser_attempt = (time.monotonic(), result)
+        return result
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -243,15 +266,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._unread_post = True
         self.close_connection = True
-        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit'):
+        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit', '/browser/open'):
             return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
-        if not self.server.editable:
+        if not self.server.editable and self.path != '/browser/open':
             return self.send(405, 'This workspace is read-only; no action was performed')
         if not self.boundary() or not self.authenticated():
             return
         if self.headers.get_all('Origin') != [self.server.origin]:
             return self.send(403, 'Same-origin browser action required')
-        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start'):
+        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
             return self.send(404, 'No such companion action')
         lengths = self.headers.get_all('Content-Length')
         if (self.headers.get_all('Transfer-Encoding') or len(lengths or []) != 1
@@ -268,13 +291,17 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError('Incomplete request; inspect before retrying')
             payload = parse_json(raw.decode('utf-8'), 65536)
             expected = {'task', 'checkpoint'}
-            if self.path == '/decision/submit':
+            if self.path == '/browser/open':
+                expected = {'confirmed'}
+            elif self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
             elif self.path == '/build/start':
                 expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:
                 raise ValueError('Unsupported action fields')
-            if self.path.startswith('/build/'):
+            if self.path == '/browser/open':
+                result = self.server.open_browser(**payload)
+            elif self.path.startswith('/build/'):
                 if self.server.builds is None:
                     raise ValueError('Relaunch with --edit --allow-build-commands to enable explicit command grants')
                 owner = self.server.builds.preview if self.path == '/build/preview' else self.server.builds.start
