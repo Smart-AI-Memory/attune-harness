@@ -9,7 +9,7 @@ import secrets
 
 from .task_contract import read_task
 from .work_accept import WorkAcceptance
-from .work_contract import PROFILE, check_work_fresh
+from .work_contract import PROFILE, check_work_fresh, missing_information
 from .work_decisions import require_current_decision, retain_questions
 from .work_runtime import answer_planning, planning_questions
 
@@ -45,6 +45,11 @@ class Decisions:
             raise ValueError("Resolve or stage the saved run before opening a decision")
         check_work_fresh(record)
 
+    @staticmethod
+    def _draft_heading(record):
+        return ("Draft saved — more answers needed" if missing_information(record["request"])
+                else "Draft saved — ready for review")
+
     def inspect(self):
         result = []
         for task in self.tasks:
@@ -52,18 +57,22 @@ class Decisions:
                 record = self._record(task)
                 item = {"task": task, "checkpoint": record["checkpoint_digest"],
                         "label": record.get("request", {}).get("intent", {}).get("goal") or "Unfinished draft",
-                        "status": record["status"], "available": False}
+                        "status": record["status"], "heading": "Saved task", "available": False}
                 if record["task_profile"] == PROFILE and record["status"] == "accepted":
-                    item["note"] = "Intent accepted. No further intent decision is needed; execution remains separate."
+                    item["heading"] = "Intent accepted"
+                    item["note"] = "No further intent decision is needed; execution remains separate."
                 else:
+                    if record["task_profile"] == PROFILE and record["status"] == "draft":
+                        item["heading"] = "Draft saved"
                     try:
                         self._draft(record)
                         item["available"] = True
+                        item["heading"] = self._draft_heading(record)
                         item["note"] = "Open the current intake or approval form. No model calls."
                     except (ValueError, OSError) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:
-                item = {"task": task, "label": "Unavailable saved task", "available": False,
+                item = {"task": task, "label": "Unavailable saved task", "heading": "Saved task unavailable", "available": False,
                         "status": "unavailable", "note": str(exc)}
             result.append(item)
         return result
@@ -115,9 +124,10 @@ class Decisions:
                 value is not None and value != "" for value in response["answers"].values()
             ):
                 raise ValueError("Supply at least one answer, then reopen to continue")
-            answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
-                                               "answers": response["answers"]})
+            saved = answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
+                                                     "answers": response["answers"]})
             message = "Answers saved. Open the next form to review the current draft."
+            heading = self._draft_heading(saved)
         else:
             if set(response) != {"action", "confirmed"} or type(response["confirmed"]) is not bool:
                 raise ValueError("Choose an action from the displayed decision")
@@ -129,4 +139,5 @@ class Decisions:
             ))
             message = ("Intent accepted. Implementation and paid dispatch are not authorized by this decision."
                        if accepted is not None else "Response recorded; work remains unaccepted. Reopen to continue.")
-        return {"message": message}
+            heading = "Intent accepted" if accepted is not None else self._draft_heading(record)
+        return {"message": message, "heading": heading}

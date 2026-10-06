@@ -2,7 +2,7 @@
 
 INTAKE_PAGE = ('<section id="decisions" hidden aria-labelledby="decision-heading">'
              '<div><p class="eyebrow">DRAFT INTAKE · INTENT APPROVAL</p>'
-             '<h1 id="decision-heading">Review saved drafts</h1>'
+             '<h1 id="decision-heading">Saved work</h1>'
              '<p>Harness chooses the form from saved work. Saving answers does not approve the plan. '
              'Accepting intent does not run a model or build.</p></div>'
              '<div id="tasks"></div><div id="form-panel"></div></section>')
@@ -12,7 +12,7 @@ FORM_STYLE = """
 h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-spacing:.09em}
 #tasks{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
 .task-card{background:white;border:1px solid #dce4da;border-radius:10px;padding:16px;flex:1;min-width:220px}
-.task-card p{margin:8px 0}.task-card h2{margin:0;overflow-wrap:anywhere}
+.task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}
@@ -45,7 +45,7 @@ async function api(path,payload){
 async function loadTasks(){
  try{const data=await api('/workspace');tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
  for(const task of data.tasks){
-  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.label,card);node('p',task.status+' · '+task.note,card);
+  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
   if(data.editable&&task.available){const open=node('button','Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
    status.textContent='Current decision retained. Review before responding.';
@@ -63,6 +63,7 @@ async function submit(shown,response){
  if(expired)return;
  expirePanel('Submitting this response. This form is now read-only; answers remain available for copying.');
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
+ const title=panel.querySelector('h2');if(title&&typeof result.heading==='string')title.textContent=result.heading;
  expirePanel(result.message+' This previous form is now read-only.');
  await refreshWorkspace(result.message);
 }

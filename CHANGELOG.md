@@ -17,6 +17,9 @@ write the starter files each verb reads (O-70). See the
   submissions. Retained read-only forms show the owner’s success message; accepted
   cards no longer display a draft-only warning. Stale checks, disabled controls
   and no-replay behavior remain unchanged.
+- Lead browser cards with the saved or accepted state, keeping the work goal
+  beneath it. The list is headed “Saved work”; confirmed forms update their
+  headings, and partial drafts remain labeled as needing more answers.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

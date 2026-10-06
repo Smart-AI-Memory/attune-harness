@@ -78,6 +78,7 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     path = draft.tasks[0]
     before = (path / 'record.json').read_bytes()
     assert selected(draft)['available']
+    assert selected(draft)['heading'] == 'Draft saved — more answers needed'
     assert (path / 'record.json').read_bytes() == before
     assert not (path / 'decision.json').exists()  # GET creates no decision.
     shown = open_form(draft)
@@ -85,6 +86,7 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     assert 'response_template' not in shown['display']
     answer = submission(shown, {'answers': {'answer_0': 'Export all findings'}})
     assert call(draft, '/decision/submit', answer)[0] == 200
+    assert selected(draft)['heading'] == 'Draft saved — more answers needed'
     assert call(draft, '/decision/submit', answer)[0] == 409
     shown = open_form(draft)
     fields = shown['display']['definition']['fields']
@@ -95,6 +97,7 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     record = read_task(path)
     assert record['request']['choices'][0]['selected'] == 'jsonl'
     assert record['status'] == 'draft'
+    assert selected(draft)['heading'] == 'Draft saved — ready for review'
     shown = open_form(draft)
     assert shown['display']['kind'] == 'spec'
     assert any(a['id'] == 'approve_task' for a in shown['display']['actions'])
@@ -102,9 +105,11 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     status, result = call(draft, '/decision/submit', payload)
     assert status == 200, result
     assert 'Intent accepted' in result['message']
+    assert result['heading'] == 'Intent accepted'
     assert read_task(path)['status'] == 'accepted'
     assert call(draft, '/decision/submit', payload)[0] == 409
     assert selected(draft)['available'] is False
+    assert selected(draft)['heading'] == 'Intent accepted'
     with gui.CompanionServer([path], edit=True) as restarted:
         assert restarted.decisions.inspect()[0]['status'] == 'accepted'
     assert 'planning' not in read_task(path) and 'build' not in read_task(path)
@@ -143,6 +148,10 @@ def test_drift_refuses_submission_without_acceptance(draft, work, drift):
     status, _ = call(draft, '/decision/submit', submission(shown, {'action': 'approve_task', 'confirmed': True}))
     assert status == 409
     assert read_task(draft.tasks[0])['status'] == 'draft'
+    if drift in ('source', 'config'):
+        card = selected(draft)
+        assert not card['available']
+        assert card['heading'] == 'Draft saved'
 
 
 def test_failed_persistence_after_collection_is_not_replayed(draft, monkeypatch):

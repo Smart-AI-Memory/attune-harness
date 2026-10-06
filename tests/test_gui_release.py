@@ -43,7 +43,8 @@ def test_release_forms_real_intake_preview_accept_and_replay(forms):
     assert call(forms, '/decision/submit', payload)[0] == 409
     card = selected(forms)
     assert not card['available']
-    assert card['note'] == 'Intent accepted. No further intent decision is needed; execution remains separate.'
+    assert card['heading'] == 'Intent accepted'
+    assert card['note'] == 'No further intent decision is needed; execution remains separate.'
     assert 'Only feature-work drafts' not in card['note']
     assert not {'planning', 'build'} & read_task(path).keys()
 
@@ -71,6 +72,7 @@ def test_forms_assets_and_navigation_exclude_broader_gui(forms):
     page = request(forms, '/', token=False)[2]
     script = request(forms, '/app.js', token=False)[2]
     assert 'Intake and intent approval' in page and '<iframe' not in page
+    assert '<h1 id="decision-heading">Saved work</h1>' in page
     for forbidden in ('/build/', '/snapshot', 'renderBuildGrant', 'watchBuild', 'auto_run_remaining'):
         assert forbidden not in script
 

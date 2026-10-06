@@ -71,7 +71,10 @@ or `--task-dir`.
   not required for this bounded forms release. Confirmed saves and intent
   acceptance show inline success; unsuccessful submissions remain explicitly
   unconfirmed, with copyable answers and disabled controls. Accepted cards show
-  intent acceptance.
+  intent acceptance. Cards lead with “Draft saved — ready for review” or
+  “Intent accepted”, with the work goal beneath. Partial drafts say more answers
+  are needed. The “Saved work” list includes both states, and confirmed retained
+  forms update their headings while staying read-only.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification
