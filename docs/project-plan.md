@@ -99,15 +99,18 @@ it is not the first time those qualities are checked.
 
 - **M1 complete:** 16 journey rows, reuse inventory, owner refusal walk and
   preservation rules in the graphical-companion spec.
-- **M2 started:** #219 merged the read-only task companion. Intake, decisions,
-  execution and recovery controls remain to be connected and qualified.
+- **M2 started:** #219 merged the read-only task companion. #225–#227 connected
+  browser draft intake, partial-answer recovery, preview and explicit intent
+  approval through existing owners. This bounded slice is included in the
+  1.3.0 candidate and requires exact-candidate qualification and Patrick's
+  personal acceptance. Execution and recovery controls remain deferred to 1.4.0.
 - **M3/M4 not started:** merged source and prototypes do not establish production
   qualification. #220 adds shared collaboration guidance, not a GUI capability.
 
-The first M2 delivery slice is intake and owner-selected decisions after checking
-the read-only increment's qualification evidence. Reuse the existing forms and
-owners; complete their stale/refusal states before adding execution controls.
-Use the spec's acceptance criteria rather than inventing another milestone system.
+The first M2 intake and intent-decision slice is implemented; source integration
+does not establish full M2 acceptance. Retain its owner checks, stale/refusal
+states and answer recovery when planning the deferred execution controls. Use
+the spec's acceptance criteria rather than inventing another milestone system.
 
 ### Early user feedback and the next observation
 

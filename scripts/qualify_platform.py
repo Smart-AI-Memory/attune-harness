@@ -1,5 +1,6 @@
 """Run installed-library platform checks and preserve actual OS qualification status."""
 import argparse
+import base64
 import hashlib
 import importlib.metadata
 import json
@@ -17,7 +18,35 @@ PROBE_STEPS=('discovery','build','verified','unlisted_signer','tampered_digest',
              'bootstrap_prepared','bootstrap_launched','bootstrap')
 
 
+def installed_source():
+    """Require the imported package to be a recorded, noneditable wheel install."""
+    import attune_harness
+    distribution = importlib.metadata.distribution('attune-harness')
+    direct_url = distribution.read_text('direct_url.json')
+    if direct_url and json.loads(direct_url).get('dir_info', {}).get('editable'):
+        raise ValueError('Install the wheel before qualification; editable installs are refused')
+    source = Path(attune_harness.__file__).resolve().parent
+    recorded_init = Path(distribution.locate_file('attune_harness/__init__.py')).resolve()
+    if (source == ROOT/'src/attune_harness' or source/'__init__.py' != recorded_init
+            or not distribution.read_text('WHEEL')):
+        raise ValueError('Install the wheel before qualification; imported source is not the installed artifact')
+    recorded = {item.name: item for item in distribution.files or ()
+                if item.parent.as_posix() == 'attune_harness' and item.suffix == '.py'}
+    if not recorded or set(recorded) != {path.name for path in source.glob('*.py')}:
+        raise ValueError('Installed package sources differ from the wheel RECORD')
+    for name, item in recorded.items():
+        path = source/name
+        if path.is_symlink() or item.hash is None or item.hash.mode != 'sha256':
+            raise ValueError('Installed package source lacks a regular SHA-256 wheel RECORD entry: '+name)
+        observed = base64.urlsafe_b64encode(hashlib.sha256(path.read_bytes()).digest()).decode().rstrip('=')
+        if observed != item.hash.value:
+            raise ValueError('Installed package source differs from the wheel RECORD: '+name)
+    return source
+
+
 def qualify(output, *, coverage_instrumented=False):
+    if sys.flags.optimize or not __debug__:
+        raise ValueError('Platform qualification requires unoptimized Python; run without -O or PYTHONOPTIMIZE')
     # Normal qualification keeps 15 minutes on every platform. Temporarily
     # allow 20 minutes only for instrumented Windows coverage, pending the
     # retained-timing investigation; operation deadlines stay unchanged.
@@ -26,9 +55,8 @@ def qualify(output, *, coverage_instrumented=False):
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
     from attune_harness.features import FeatureUnavailable
+    source=installed_source()
     output.mkdir(parents=True,exist_ok=False)
-    source=Path(attune_harness.__file__).resolve().parent
-    if source==ROOT/'src/attune_harness':raise ValueError('Install the wheel before qualification')
     receipt={'schema_version':1,'system':platform.system(),'machine':platform.machine(),
         'python':platform.python_version(),'package':importlib.metadata.version('attune-harness'),
         'installed_source':source.as_posix(),'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.glob('*.py')},
@@ -83,7 +111,7 @@ def qualify(output, *, coverage_instrumented=False):
             run=subprocess.CompletedProcess(argv,124)
             receipt['failure']='suite_timeout'
     receipt['suite_timeout_seconds']=suite_timeout
-    receipt['exit']=run.returncode;receipt['command']=argv
+    receipt['pytest_exit']=run.returncode;receipt['command']=argv
     # The memory verbs from this installed wheel, with the redis extra present
     # and no server: the extra absent is the release gate's core check.
     memory=subprocess.run([sys.executable,'-I',str(ROOT/'scripts/check_installed.py'),'--python',sys.executable,
@@ -135,6 +163,7 @@ def qualify(output, *, coverage_instrumented=False):
         receipt['plugin_probe']='missing: tests/test_plugin_probe.py wrote no receipt; see tests.txt'
         receipt['checks'].append('plugin probe receipt missing')
         if run.returncode==0:run=subprocess.CompletedProcess(argv,1)
+    receipt['exit']=run.returncode
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'
     if coverage_instrumented:

@@ -229,6 +229,8 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     installed.mkdir()
     (installed / '__init__.py').write_text('')
     monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    # This fixture exercises timeout accounting; wheel provenance has its own guard tests.
+    monkeypatch.setattr(qualifier, 'installed_source', lambda: installed)
     output = tmp_path / 'result'
     calls = []
     monkeypatch.setattr(qualifier.platform, 'system', lambda: 'Windows' if windows else 'Linux')

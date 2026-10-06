@@ -79,10 +79,17 @@ or `--task-dir`.
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification
   distinguishes completed refusals from uncertain supervision failures.
+  Native-root recall, refresh and document resolve retain generated status,
+  staleness and provenance, including recorded WRONG verdicts; tombstones remain
+  inspectable. Source and sidecar changes invalidate existing handles. Nonfinite
+  raw-memory timestamps expire instead of bypassing the age check.
 - **Packaging and diagnostics:** Codex onboarding no longer assumes unbundled
   helper scripts; qualification retains timing and slow-stack evidence. Windows
   supplemental coverage has temporary measurement headroom, not broader platform
   qualification. The Windows-traps guide and compact Shepherd reference are added.
+  Installed qualification rejects editable or copied-source imports and optimized
+  Python before effects, and its receipt records the final aggregate exit as well
+  as the pytest exit.
 
 See [model consultation](model-consultation.md), [the GUI specification](specs/graphical-companion/README.md),
 [Windows guidance](windows-traps.md) and [Shepherd](journeys/shepherd.md).

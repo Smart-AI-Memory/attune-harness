@@ -28,7 +28,8 @@ refusal. No source is truncated to fit a limit or silently rewritten.
 other line is an object. `id` is a nonempty string unique within the file;
 `text` is a string; `topics` defaults to an empty list and must be a list.
 `cwd` must equal the root's scope for the row to be served. `ts` is a numeric
-timestamp (numeric strings accepted); an unreadable timestamp expires the row.
+timestamp (finite numeric strings accepted); an unreadable or nonfinite timestamp
+expires the row.
 Rows older than 30 days are expired. Unknown stored fields remain metadata.
 One `type:` topic gives the kind; missing or ambiguous type topics give `unknown`.
 
@@ -65,6 +66,12 @@ Source versions bind content and file identity/timestamps/size. Sidecar
 absence is also versioned. Changing a source or either sidecar invalidates
 an old handle. Provenance and staleness annotations are produced by
 `memory_controls`; the native reader never emits attune-ai telemetry.
+
+Host recall and refresh carry a bounded selection of these generated annotations
+in each document item's `metadata`, alongside the excerpt and handle. Document
+resolve recomputes annotations from the captured source and verdict bytes bound
+to the handle. This preserves specific WRONG/stale warnings without forwarding
+arbitrary frontmatter into the context packet or treating provenance as authority.
 
 ## Hydrated Redis keyspace
 

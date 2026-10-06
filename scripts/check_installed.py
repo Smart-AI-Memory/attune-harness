@@ -5,12 +5,15 @@ import importlib.metadata
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
 
 
 def check(python: Path, mode: str) -> dict:
+    if sys.flags.optimize or not __debug__:
+        raise ValueError('Installed checks require unoptimized Python; run without -O or PYTHONOPTIMIZE')
     cases = []
     gui_release = gui_release_checks(python)
     with tempfile.TemporaryDirectory(prefix='harness-installed-') as tmp:

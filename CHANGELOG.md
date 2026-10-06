@@ -28,6 +28,13 @@ write the starter files each verb reads (O-70). See the
   plugin, and include the shared roundtable skill in its package.
 - Count forced probe backups before starter writes, preserving the existing
   entry bound. Retain qualification timing and slow-stack diagnostics.
+- Preserve generated native-memory status, staleness and provenance in bounded
+  recall/refresh context and document resolution, including known-WRONG
+  tombstones. Source and verdict changes still invalidate old handles. Expire
+  raw rows with nonfinite timestamps.
+- Make installed qualification reject editable, copied-source and optimized
+  Python runs before effects. Record the final aggregate exit separately from
+  the pytest exit so later memory/plugin failures cannot leave a zero receipt exit.
 
 - Add consultation `evidence` inspection of frozen cited lines and checkpoint-bound
   `assess-citation` judgments without rewriting answers or dispatching a model.
