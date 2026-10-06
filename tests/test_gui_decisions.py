@@ -90,6 +90,7 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     assert 'continue intake' in result['message'] and 'Open current form' in result['message']
     assert selected(draft)['heading'] == 'Draft saved — more answers needed'
     assert 'continue intake' in selected(draft)['note']
+    assert 'Click' not in selected(draft)['note']  # Mode-specific controls belong to the browser.
     assert call(draft, '/decision/submit', answer)[0] == 409
     shown = open_form(draft)
     fields = shown['display']['definition']['fields']

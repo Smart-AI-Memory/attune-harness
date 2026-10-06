@@ -73,8 +73,7 @@ class Decisions:
                         self._draft(record)
                         item["available"] = True
                         item["heading"] = self._draft_heading(record)
-                        item["note"] = (f"Next: {self._draft_next_step(record)}. "
-                                        "Click “Open current form” below. No model calls.")
+                        item["note"] = f"Next: {self._draft_next_step(record)}. No model calls."
                     except (ValueError, OSError) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:

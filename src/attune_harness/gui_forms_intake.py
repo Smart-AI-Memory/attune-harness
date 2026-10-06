@@ -46,7 +46,7 @@ async function loadTasks(){
  try{const data=await api('/workspace');tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
-  if(data.editable&&task.available){const open=node('button','Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
+  if(data.editable&&task.available){node('small','Click Open current form below to continue.',card);const open=node('button','Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
    status.textContent='Current decision retained. Review before responding.';
   });}
