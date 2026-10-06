@@ -67,8 +67,14 @@ def _development_profile():
     return False
 
 
-INTAKE_BOOTSTRAP = """let token=location.hash.slice(1)||sessionStorage.getItem('attune-gui-token');
-if(location.hash){sessionStorage.setItem('attune-gui-token',token);history.replaceState(null,'',location.pathname);}
+INTAKE_BOOTSTRAP = """let token=location.hash.slice(1);
+// Storage is optional: private-link access must survive a browser storage refusal.
+if(location.hash){
+ try{sessionStorage.setItem('attune-gui-token',token);}catch(e){}
+ history.replaceState(null,'',location.pathname);
+}else{
+ try{token=sessionStorage.getItem('attune-gui-token')||'';}catch(e){}
+}
 const status=document.querySelector('#status');
 document.querySelector('#refresh').addEventListener('click',()=>act(()=>refreshWorkspace()));
 """ + INTAKE_SCRIPT

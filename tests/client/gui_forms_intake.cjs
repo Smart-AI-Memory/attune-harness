@@ -17,6 +17,7 @@ class Element {
  remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(c=>c!==this);}
 }
 function match(el,s){if(s.includes(','))return s.split(',').some(x=>match(el,x.trim()));if(s==='button')return el.tagName==='BUTTON';if(s==='textarea')return el.tagName==='TEXTAREA';if(s==='select')return el.tagName==='SELECT';if(s==='form')return el.tagName==='FORM';if(s==='pre')return el.tagName==='PRE';if(s.startsWith('#'))return el.id===s.slice(1);if(s.startsWith('.'))return (el.className||'').split(/\s+/).includes(s.slice(1));return el.tagName===s.toUpperCase();}
+module.exports={Element};
 async function setup(){
  const doc={activeElement:null,createElement(tag){return new Element(tag,this);}};
  const root=new Element('main',doc);for(const id of ['form-panel','tasks','decisions']){const el=new Element('div',doc);el.id=id;root.append(el);}
@@ -32,7 +33,7 @@ async function flush(){for(let i=0;i<60;i++)await Promise.resolve();}
 const shown={task:'A',checkpoint:'checkpoint-old',decision:'single-use',display:{kind:'questions',title:'Intake',markdown:'Owner',definition:{fields:[{id:'answer_0',type:'text_input',text:'Goal'},{id:'answer_1',type:'single_select',text:'Choice',options:['One','Two']}]}}};
 function build(running=true,evidence={receipt:'one'}){return {note:'Inspect saved state',running,view:{summary:'Recorded',next_action:'review',completed:['one'],evidence},reviews:[]};}
 function workspace(task='A',data=build()){return {editable:true,tasks:[{task,label:task,status:'accepted',checkpoint:'cp',build:data}]};}
-(async()=>{
+if(require.main===module)(async()=>{
  for(const failure of [{ok:false,error:'409 conflict'},new Error('network lost')]){
   const h=await setup();h.run(`renderDecision(${JSON.stringify(shown)})`);const input=h.panel.querySelector('textarea');input.value='Recover this answer';const select=h.panel.querySelector('select');select.value='Two';input.focus();input.setSelectionRange(2,7);
   h.queue.push(failure);h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();

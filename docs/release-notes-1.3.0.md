@@ -75,6 +75,9 @@ or `--task-dir`.
   “Intent accepted”, with the work goal beneath. Partial drafts say more answers
   are needed. The “Saved work” list includes both states, and confirmed retained
   forms update their headings while staying read-only.
+  Browser storage refusals no longer abort startup or disable Refresh. The
+  private launcher link works for the current page; if session storage is
+  unavailable, reopen that complete link after reloading the page.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification

@@ -20,6 +20,9 @@ write the starter files each verb reads (O-70). See the
 - Lead browser cards with the saved or accepted state, keeping the work goal
   beneath it. The list is headed “Saved work”; confirmed forms update their
   headings, and partial drafts remain labeled as needing more answers.
+- Keep browser intake and Refresh usable when session storage is unavailable.
+  Private launcher links still authenticate the current page and remove the
+  fragment; reopening the complete link restores access after a page reload.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff
