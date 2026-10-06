@@ -19,8 +19,8 @@ from pathlib import Path
 from . import task_view
 from .features import FeatureUnavailable
 from .review_contract import parse_json
-from .gui_forms import FORM_SCRIPT, FORM_STYLE, FORM_PAGE
-from .gui_forms_intake import INTAKE_SCRIPT, INTAKE_PAGE
+from .gui_forms import FORM_SCRIPT, FORM_PAGE
+from .gui_forms_intake import INTAKE_SCRIPT, INTAKE_PAGE, FORM_STYLE
 
 SCRIPT = """let token=location.hash.slice(1)||sessionStorage.getItem('attune-gui-token');
 if(location.hash){sessionStorage.setItem('attune-gui-token',token);history.replaceState(null,'',location.pathname);}

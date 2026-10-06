@@ -73,6 +73,7 @@ def test_forms_assets_and_navigation_exclude_broader_gui(forms):
     script = request(forms, '/app.js', token=False)[2]
     stylesheet = request(forms, '/style.css', token=False)[2]
     assert '.task-card p{margin:8px 0;overflow-wrap:anywhere}' in stylesheet
+    assert '#browser-tip:not([hidden]){flex-basis:100%;' in stylesheet
     assert 'Intake and intent approval' in page and '<iframe' not in page
     assert '<h1 id="decision-heading">Saved work</h1>' in page
     for forbidden in ('/build/', '/snapshot', 'renderBuildGrant', 'watchBuild', 'auto_run_remaining'):
