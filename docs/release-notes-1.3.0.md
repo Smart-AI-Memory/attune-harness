@@ -62,12 +62,13 @@ or `--task-dir`.
   checkpoint-bound citation judgments. Explicit Antigravity seats record model,
   effort and correlated process evidence; Codex seats can specify reasoning
   effort. This does not establish tool isolation or native plan/build parity.
-- **GUI delivery deferred to 1.4.0:** 1.3.0 refuses module launch and imported
-  server construction before task inspection, listener or browser effects. Internal
-  experimental GUI modules/assets remain packaged but unavailable. CLI owners and
-  static saved-task snapshots remain available. M2 completion and M3/M4 GUI
-  qualification remain future gates, not requirements to implement the GUI in this
-  bounded non-GUI release.
+- **Browser intake and intent approval:** register existing feature-work drafts,
+  save partial answers, inspect the current preview and explicitly accept intent.
+  Existing CLI/agent forms remain supported. The loopback server retains session,
+  origin, checkpoint and single-use decision checks. Browser build grants,
+  dispatch, resume and broader GUI navigation are deferred to 1.4.0; neither
+  launch flags nor direct HTTP execution routes enable them. M2 completion is
+  not required for this bounded forms release.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification
@@ -106,7 +107,8 @@ See [Plan and build](cli-guide.md#plan-and-build) and
   The bundled `roundtable` skill is included in Codex packaging but is not selected
   by that marketplace entry. A tag-pointer update alone does not add it.
 - GUI browser, embedded-host, accessibility and real-user observations remain
-  development evidence/gaps for 1.4.0. No GUI capability is available in 1.3.0.
+  open acceptance gaps. Browser forms require fresh exact-candidate qualification
+  and Patrick’s personal acceptance; broader GUI remains deferred to 1.4.0.
   Retained research/opportunity prototypes are not installed-product qualification.
 
 ## Evidence

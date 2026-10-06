@@ -8,11 +8,11 @@
 write the starter files each verb reads (O-70). See the
 [release notes](docs/release-notes-1.3.0.md).
 
-- Defer graphical companion delivery to 1.4.0. In 1.3.0, module launch and
-  imported server construction refuse before task inspection, listener or browser
-  effects. Internal experimental GUI modules/assets remain packaged but inert;
-  non-GUI task snapshots and CLI owners remain available. Retained GUI development
-  tests and historical receipts do not claim released GUI availability.
+- Include browser draft intake, preview and explicit intent approval in 1.3.0,
+  retaining the existing CLI/agent forms and owner authority. The local server
+  serves form assets and registered-task navigation only; build grants, dispatch,
+  resume and general snapshot navigation are deferred to 1.4.0. Direct HTTP
+  execution routes and the build launch flag refuse before owner execution.
 - Retain native-memory failure receipts when a provider returns a non-object
   content entry; reject malformed entries through the structured refusal path.
   Add offline regression coverage for native responses, Spec evidence handoff

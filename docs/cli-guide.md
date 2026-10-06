@@ -275,20 +275,27 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
-The refreshing graphical companion is unavailable in **1.3.0**; GUI delivery is
-reserved for **1.4.0** under its existing acceptance gates. This command exits 2
-with deferral guidance, before task inspection, listener construction or browser
-opening; edit/build flags cannot enable it:
+For browser draft intake and explicit intent approval in **1.3.0**, register a
+canonical absolute saved feature-work draft directory and enable form actions:
 
 ```bash
-python -m attune_harness.gui --task /absolute/path/to/task
+python -m attune_harness.gui --task /absolute/path/to/task --edit
 ```
 
-Imported `CompanionServer` construction also refuses. Internal experimental GUI
-code/assets remain packaged but inert. Use the CLI's static HTML/Markdown status
-above and existing work/build/review owners. Retained GUI development instructions
-and evidence in the [specification](specs/graphical-companion/README.md) do not
-claim installed 1.3.0 GUI availability.
+The private launcher link grants access only to this local forms session. Without
+`--edit`, inspection is read-only. Refresh lists registered drafts; open the
+current form, save partial answers, reopen the current preview, then deliberately
+accept its intent. Saving answers is not approval; approval is not execution or
+paid dispatch. Stale checkpoints, replaced forms and foreign-origin submissions
+refuse. A restart requires opening a fresh form; retained text is evidence only.
+
+Browser build grants, dispatch, resume and broader GUI navigation are deferred
+to **1.4.0**. `--allow-build-commands` exits 2 before task/listener/browser effects;
+imported server construction with that option also refuses. `/build/preview`,
+`/build/start`, resume/grant routes and general `/snapshot` navigation are absent
+from the release server. CLI owners and static status remain separately available
+under their existing authorization boundaries. Future development instructions in
+the [specification](specs/graphical-companion/README.md) are not released scope.
 
 Optionally retain a pause note yourself or ask your assistant to prepare one.
 Use the actual task ID and revision from `status`; this example is a format template:

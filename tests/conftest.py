@@ -30,4 +30,4 @@ def gui_development_profile(monkeypatch):
     flag/environment can enable this test-only substitution.
     """
     from attune_harness import gui
-    monkeypatch.setattr(gui, '_require_gui_release', lambda: None)
+    monkeypatch.setattr(gui, '_development_profile', lambda: True)

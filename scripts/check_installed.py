@@ -105,7 +105,7 @@ def gui_release_checks(python: Path) -> dict:
                                  '--task', str(task), '--edit', '--allow-build-commands'],
                                 cwd=root, text=True, capture_output=True, timeout=10)
         assert result.returncode == 2 and not result.stdout, (result.stdout, result.stderr)
-        assert 'unavailable in 1.3.0' in result.stderr and not task.exists()
+        assert 'Browser build controls are unavailable in 1.3.0' in result.stderr and not task.exists()
         code = """
 from unittest.mock import patch
 from attune_harness import gui
@@ -122,12 +122,12 @@ with patch.object(gui.HTTPServer, '__init__', forbidden), patch.object(gui.task_
         assert 'deferred to 1.4.0' in str(exc)
     else:
         raise AssertionError('Imported server was available')
-    assert gui.main(['--task', '/missing']) == 2
+    assert gui.main(['--task', '/missing', '--allow-build-commands']) == 2
 """
         subprocess.run([str(python), '-I', '-c', code], cwd=root, check=True, capture_output=True)
         assert not list(root.iterdir())
-    return {'status': 'unavailable', 'delivery_target': '1.4.0',
-            'module_exit': 2, 'task_listener_browser_effects': 'none'}
+    return {'status': 'forms-only', 'build_delivery_target': '1.4.0',
+            'module_exit': 2, 'build_flag_task_listener_browser_effects': 'none'}
 
 def console_script(python):
     """The installed ``attune-harness`` entry point beside this interpreter, on any platform.

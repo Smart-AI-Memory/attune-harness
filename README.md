@@ -190,8 +190,9 @@ Built by Patrick Roebuck, working with Codex and Claude.
 
 ## Graphical companion status
 
-GUI delivery is deferred to 1.4.0. The 1.3.0 module launcher and imported server
-refuse before task, listener or browser effects. Experimental GUI code/assets
-remain packaged but unavailable; CLI owners and static task snapshots remain
-available. M2/M3/M4 and human acceptance gates still govern future GUI delivery.
+1.3.0 includes local browser draft intake, preview and explicit intent approval,
+alongside CLI/agent forms. Browser build grants, dispatch, resume and broader GUI
+controls are deferred to 1.4.0 and cannot be enabled by launch flags. Registration,
+loopback/session/origin checks and owner checkpoints bound the forms server.
+M2/M3/M4 and human acceptance gates remain explicit for future delivery.
 See the [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/release-notes-1.3.0.md).

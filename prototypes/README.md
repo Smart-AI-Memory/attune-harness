@@ -22,7 +22,6 @@ session notes are intentionally not published. A verified local preservation
 archive contains those original artifacts. The live-mining server requires a
 user-supplied `context.txt` beside it. Clicking its live-run action invokes the
 configured Codex CLI and consumes usage; publishing this source authorizes no run.
-The retained companion implementation is development code for the deferred
-1.4.0 GUI release. In 1.3.0, module launch and imported server construction
-refuse before task, listener or browser effects. These prototypes do not grant
-installed GUI availability or release acceptance.
+The installed 1.3.0 companion is limited to draft intake and intent approval.
+Build grants, dispatch, resume and broader GUI controls remain deferred to 1.4.0.
+These retained prototypes do not qualify the installed release or human acceptance.

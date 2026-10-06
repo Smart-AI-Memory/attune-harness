@@ -1,7 +1,6 @@
-"""Graphical companion development code; GUI delivery is deferred to 1.4.0.
+"""Local browser intake and intent approval forms for registered saved drafts.
 
-The 1.3.0 release refuses module launch and server construction before task,
-listener or browser effects. Use the supported CLI journeys instead.
+Build grants, dispatch, resume and broader GUI navigation are deferred to 1.4.0.
 """
 
 import argparse
@@ -21,6 +20,7 @@ from . import task_view
 from .features import FeatureUnavailable
 from .review_contract import parse_json
 from .gui_forms import FORM_SCRIPT, FORM_STYLE, FORM_PAGE
+from .gui_forms_intake import INTAKE_SCRIPT, INTAKE_PAGE
 
 SCRIPT = """let token=location.hash.slice(1)||sessionStorage.getItem('attune-gui-token');
 if(location.hash){sessionStorage.setItem('attune-gui-token',token);history.replaceState(null,'',location.pathname);}
@@ -57,21 +57,37 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
         '<script src="/app.js"></script></body></html>')
 
 
-GUI_UNAVAILABLE = ('GUI is unavailable in 1.3.0; delivery is deferred to 1.4.0. '
-                   'Use the supported attune-harness CLI journeys.')
+BUILD_UNAVAILABLE = ('Browser build controls are unavailable in 1.3.0; '
+                     'delivery is deferred to 1.4.0. Use separately authorized CLI execution.')
 
 
-def _require_gui_release():
-    # Explicit release policy, changed only by a reviewed GUI release decision.
-    # There is no launch flag or environment override in the shipped product.
-    raise FeatureUnavailable(GUI_UNAVAILABLE)
+def _development_profile():
+    # Retained development tests substitute this function. The installed product
+    # has no flag or environment override for deferred GUI execution.
+    return False
+
+
+INTAKE_BOOTSTRAP = """let token=location.hash.slice(1)||sessionStorage.getItem('attune-gui-token');
+if(location.hash){sessionStorage.setItem('attune-gui-token',token);history.replaceState(null,'',location.pathname);}
+const status=document.querySelector('#status');
+document.querySelector('#refresh').addEventListener('click',()=>act(()=>refreshWorkspace()));
+""" + INTAKE_SCRIPT
+INTAKE_DOCUMENT = ('<!doctype html><html lang=en><head><meta charset=utf-8>'
+    '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    '<title>Attune · Intake and intent approval</title><link rel="stylesheet" href="/style.css">'
+    '</head><body><header><strong>ATTUNE / Intake and intent approval</strong>'
+    '<button id="refresh" type="button">Refresh forms</button>'
+    '<p id="status" role="status" aria-live="polite">Connecting…</p></header>'
+    + INTAKE_PAGE + '<script src="/app.js"></script></body></html>')
 
 
 class CompanionServer(HTTPServer):
     """A bounded local reader. No caller-supplied filesystem paths or commands."""
 
     def __init__(self, tasks, *, port=0, edit=False, allow_build_commands=False):
-        _require_gui_release()
+        self.forms_only = not _development_profile()
+        if allow_build_commands and self.forms_only:
+            raise FeatureUnavailable(BUILD_UNAVAILABLE)
         if allow_build_commands and not edit:
             raise ValueError("Command builds require explicit edit mode")
         paths = tuple(Path(path) for path in tasks)
@@ -85,9 +101,10 @@ class CompanionServer(HTTPServer):
         task_view.inspect_saved_tasks(paths[0], paths[1:])
         self.tasks = paths
         self.token = secrets.token_urlsafe(32)
+        self.editable = edit
         self.decisions = None
         self.builds = None
-        if edit:
+        if edit or self.forms_only:
             from .gui_decisions import Decisions
             self.decisions = Decisions(paths)
         if allow_build_commands:
@@ -174,12 +191,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self.boundary():
             return
-        static = {'/': (PAGE, 'text/html; charset=utf-8'),
-                  '/app.js': (SCRIPT, 'text/javascript; charset=utf-8'),
+        static = {'/': (INTAKE_DOCUMENT if self.server.forms_only else PAGE, 'text/html; charset=utf-8'),
+                  '/app.js': (INTAKE_BOOTSTRAP if self.server.forms_only else SCRIPT, 'text/javascript; charset=utf-8'),
                   '/style.css': (STYLE, 'text/css; charset=utf-8')}
         if self.path in static:
             body, kind = static[self.path]
             return self.send(200, body, kind)
+        if self.server.forms_only and self.path != '/workspace':
+            return self.send(404, 'No such forms resource')
         if self.path not in ('/snapshot', '/workspace'):
             return self.send(404, 'No such companion resource')
         if not self.authenticated():
@@ -192,7 +211,7 @@ class Handler(BaseHTTPRequestHandler):
                         task['build'] = self.server.builds.inspect(task['task'])
                     except (ValueError, OSError, RuntimeError) as exc:
                         task['build'] = {'available': False, 'running': False, 'note': str(exc)}
-            return self.send_json({'editable': self.server.decisions is not None, 'tasks': tasks})
+            return self.send_json({'editable': self.server.editable, 'tasks': tasks})
         try:
             entries = task_view.inspect_saved_tasks(self.server.tasks[0], self.server.tasks[1:])
             body = task_view.render_saved_tasks(entries, 'html')
@@ -218,7 +237,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._unread_post = True
         self.close_connection = True
-        if self.server.decisions is None:
+        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit'):
+            return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
+        if not self.server.editable:
             return self.send(405, 'This workspace is read-only; no action was performed')
         if not self.boundary() or not self.authenticated():
             return
@@ -262,20 +283,18 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main(argv=None):
-    try:
-        _require_gui_release()
-    except FeatureUnavailable as exc:
-        print(str(exc), file=sys.stderr)
-        return 2
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
-    parser.add_argument('--edit', action='store_true', help='Enable existing draft intake and explicit intent decisions; builds require a separate flag')
-    parser.add_argument('--allow-build-commands', action='store_true', help='Permit separately confirmed configured command builds and accepted file effects; commands are not network-sandboxed')
+    parser.add_argument('--edit', action='store_true', help='Enable draft intake answers and explicit intent decisions only; no execution')
+    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in 1.3.0; browser build controls are deferred to 1.4.0')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
     args = parser.parse_args(argv)
+    if args.allow_build_commands and not _development_profile():
+        print(BUILD_UNAVAILABLE, file=sys.stderr)
+        return 2
     with CompanionServer(args.task, port=args.port, edit=args.edit, allow_build_commands=args.allow_build_commands) as server:
-        mode = 'Draft decision' if args.edit else 'Read-only'
+        mode = 'Intake and intent approval' if args.edit else 'Read-only forms'
         print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
         print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
         if not args.no_open:
