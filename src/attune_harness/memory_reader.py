@@ -377,7 +377,11 @@ def _document_annotations(text, relative, mtime_ns, sidecars):
     latest = None
     stem = Path(relative).stem
     verdict_bytes = sidecars['.verdicts.jsonl'][0]
-    for line in verdict_bytes.decode('utf-8').splitlines():
+    try:
+        verdict_text = verdict_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        verdict_text = ''  # Match latest_verdicts: unreadable sidecars add no verdict.
+    for line in verdict_text.splitlines():
         try:
             record = json.loads(line)
             record = {key: record[key] for key in ('stem', 'verdict', 'digest', 'who', 'at')}

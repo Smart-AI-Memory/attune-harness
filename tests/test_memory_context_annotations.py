@@ -108,6 +108,22 @@ def test_recall_refresh_resolve_follow_document_and_verdict_owners(tmp_path):
     assert 'judged WRONG' in host.invoke('resolve', {'handle': tombstone['handle']})['metadata']['status']
 
 
+def test_unreadable_verdict_bytes_preserve_recall_resolve_policy(tmp_path):
+    root = tmp_path / 'documents'
+    source = document(root)
+    sidecar = root / '.verdicts.jsonl'
+    sidecar.write_bytes(b'\xff\n')
+    host = MemoryHost(config_for(('p', root, 'personal', 'global')))
+    packet = host.invoke('recall', dict(query='Aurora policy', k=1, max_chars=4))
+    assert packet['status'] == 'available' and packet['problems'] == []
+    item = packet['items'][0]
+    assert 'unbound' in item['metadata']['status']
+    resolved = host.invoke('resolve', {'handle': item['handle']})
+    assert resolved['text'] == source.read_text(encoding='utf-8')
+    assert warning(resolved['metadata']) == warning(item['metadata'])
+    assert sidecar.read_bytes() == b'\xff\n'
+
+
 @pytest.mark.parametrize('basis', ['mtime', 'unbound', 'verified', 'sharper', 'edited', 'wrong', 'wrong-edited'])
 def test_resolve_warnings_match_existing_snapshot_policy(tmp_path, basis):
     root = tmp_path / 'documents'
