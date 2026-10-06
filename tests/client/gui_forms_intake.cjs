@@ -5,7 +5,7 @@ class Element {
  constructor(tag,doc){this.tagName=tag.toUpperCase();this.doc=doc;this.children=[];this._text='';this.value='';this.disabled=false;this.hidden=false;this.scrollTop=0;}
  set textContent(v){this._text=String(v);this.children=[];this.firstChild={parentNode:this,textContent:this._text};}
  get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
- append(...els){for(const el of els){el.parentNode=this;this.children.push(el);}}
+ append(...els){for(const el of els){if(el.parentNode)el.remove();el.parentNode=this;this.children.push(el);}}
  replaceChildren(...els){for(const c of this.children)c.parentNode=null;this.children=[];this._text='';this.append(...els);}
  querySelectorAll(selector){return this.children.flatMap(c=>[...(match(c,selector)?[c]:[]),...c.querySelectorAll(selector)]);}
  querySelector(s){return this.querySelectorAll(s)[0]||null;}
@@ -14,7 +14,7 @@ class Element {
  setAttribute(k,v){this[k]=String(v);}
  getAttribute(k){return this[k]??null;}
  contains(el){return this===el||el?.parentNode===this||this.children.some(c=>c.contains(el));}
- remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(c=>c!==this);}
+ remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(c=>c!==this);this.parentNode=null;}
 }
 function match(el,s){if(s.includes(','))return s.split(',').some(x=>match(el,x.trim()));if(s==='button')return el.tagName==='BUTTON';if(s==='textarea')return el.tagName==='TEXTAREA';if(s==='select')return el.tagName==='SELECT';if(s==='form')return el.tagName==='FORM';if(s==='pre')return el.tagName==='PRE';if(s.startsWith('#'))return el.id===s.slice(1);if(s.startsWith('.'))return (el.className||'').split(/\s+/).includes(s.slice(1));return el.tagName===s.toUpperCase();}
 module.exports={Element};

@@ -14,6 +14,7 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 .task-card{background:white;border:1px solid #dce4da;border-radius:10px;padding:16px;flex:1;min-width:220px}
 .task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
+.saved-answers{overflow-wrap:anywhere}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}
 textarea{min-height:86px;resize:vertical}select{white-space:normal}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 system-ui;background:#f5f6f2;padding:16px;border-radius:6px}
@@ -89,6 +90,27 @@ async function refreshWorkspace(message=''){
  const loaded=await loadTasks();
  if(loaded)status.textContent=message||'Forms refreshed. Inspection makes no decisions or model calls.';
 }
+function renderSavedAnswers(summary){
+ const intent=summary?.intent;if(!intent)return;
+ const entries=[];
+ if(typeof intent.goal==='string'&&intent.goal.trim())entries.push(['Goal',[intent.goal]]);
+ if(intent.acceptance?.length)entries.push(['Done when',intent.acceptance]);
+ for(const question of intent.questions||[]){
+  if(typeof question.answer==='string'&&question.answer.trim())entries.push([question.question,[question.answer]]);
+ }
+ for(const choice of summary.choices||[]){
+  const option=choice.options.find(o=>o.id===choice.selected);
+  if(option)entries.push([choice.question,[option.proposal]]);
+ }
+ if(!entries.length)return;
+ const saved=node('section',undefined,panel);saved.className='saved-answers';saved.setAttribute('aria-label','Saved answers');
+ node('h3','Saved answers',saved);
+ for(const [label,answers] of entries){
+  node('h4',label,saved);
+  if(label==='Done when'){const list=node('ul',undefined,saved);for(const answer of answers)node('li',answer,list);}
+  else node('p',answers[0],saved);
+ }
+}
 function renderDecision(shown){
  expired=false;
  panel.replaceChildren();const display=shown.display;
@@ -115,7 +137,9 @@ function renderDecision(shown){
  }
  const details=node('details',undefined,panel);node('summary','Read retained owner decision',details);node('pre',display.markdown,details);
  if(display.kind==='questions'){
+  renderSavedAnswers(shown.summary);
   const form=node('form',undefined,panel),inputs=[];
+  details.querySelector('summary').textContent='Technical details (optional)';details.open=false;panel.append(details);
   node('p','Answer what you know. You can save partial answers; Harness will ask only what remains. After saving, use the next-step button in Saved work above to continue.',form);
   for(const field of display.definition.fields){
    const id='field-'+field.id;const label=node('label',field.text,form);label.htmlFor=id;

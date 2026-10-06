@@ -289,6 +289,13 @@ accept its intent. Saving answers is not approval; approval is not execution or
 paid dispatch. Stale checkpoints, replaced forms and foreign-origin submissions
 refuse. A restart requires opening a fresh form; retained text is evidence only.
 
+Reopened intake forms show **Saved answers** above the remaining questions,
+including the saved goal, success criteria, answered questions and selected
+choices. Remaining fields start empty; saved answers are never remapped into
+new questions. The full unchanged owner record stays below the form under
+**Technical details (optional)**. The approval preview still shows the complete
+intent and blocking evidence before an explicit decision.
+
 **Open in browser** requests the same private workspace in your system browser.
 It stays available at every width; panels at most 600 pixels wide recommend it.
 Click to open, and copy any unsaved answers first. Switching makes the old form

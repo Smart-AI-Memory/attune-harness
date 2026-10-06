@@ -82,6 +82,10 @@ or `--task-dir`.
   and a Continue form or Review your answers button, selected from the saved owner
   state. Accepted cards explain that intake and review are complete; execution
   stays separate.
+  Reopened intake forms show Saved answers above the remaining questions.
+  The full owner record stays below the form under Technical details (optional).
+  Saved answers remain evidence, never prefilled into a newly issued field;
+  the explicit approval preview and its blocking evidence remain unchanged.
   Open in browser is available in editable and read-only forms views. Panels
   at most 600 pixels wide recommend it; opening requires a click. The launcher
   requests the same private workspace in the system browser, which decides
