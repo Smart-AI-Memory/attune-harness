@@ -78,6 +78,9 @@ or `--task-dir`.
   Browser storage refusals no longer abort startup or disable Refresh. The
   private launcher link works for the current page; if session storage is
   unavailable, reopen that complete link after reloading the page.
+  Saved answers and cards name the next step and point to Open current form in
+  Saved work: remaining intake questions or intent review. Accepted cards explain
+  that intake and review are complete; execution stays separate.
 - **Reliability:** malformed native-memory content entries now retain structured
   refusal evidence. Starter failures clean up their own partial writes, forced
   probe backups count toward the entry bound, and Claude refusal classification

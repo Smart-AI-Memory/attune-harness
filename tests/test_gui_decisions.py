@@ -85,19 +85,25 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     assert shown['display']['kind'] == 'questions'
     assert 'response_template' not in shown['display']
     answer = submission(shown, {'answers': {'answer_0': 'Export all findings'}})
-    assert call(draft, '/decision/submit', answer)[0] == 200
+    status, result = call(draft, '/decision/submit', answer)
+    assert status == 200
+    assert 'continue intake' in result['message'] and 'Open current form' in result['message']
     assert selected(draft)['heading'] == 'Draft saved — more answers needed'
+    assert 'continue intake' in selected(draft)['note']
     assert call(draft, '/decision/submit', answer)[0] == 409
     shown = open_form(draft)
     fields = shown['display']['definition']['fields']
     assert 'observable' in fields[0]['text']  # answer_0 now means acceptance.
     assert 'Counter-case' in fields[1]['options'][0]
     answers = {'answer_0': 'Every finding survives export', 'answer_1': fields[1]['options'][0]}
-    assert call(draft, '/decision/submit', submission(shown, {'answers': answers}))[0] == 200
+    status, result = call(draft, '/decision/submit', submission(shown, {'answers': answers}))
+    assert status == 200
+    assert 'review this intent' in result['message'] and 'Open current form' in result['message']
     record = read_task(path)
     assert record['request']['choices'][0]['selected'] == 'jsonl'
     assert record['status'] == 'draft'
     assert selected(draft)['heading'] == 'Draft saved — ready for review'
+    assert 'review this intent' in selected(draft)['note']
     shown = open_form(draft)
     assert shown['display']['kind'] == 'spec'
     assert any(a['id'] == 'approve_task' for a in shown['display']['actions'])
@@ -110,6 +116,7 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     assert call(draft, '/decision/submit', payload)[0] == 409
     assert selected(draft)['available'] is False
     assert selected(draft)['heading'] == 'Intent accepted'
+    assert 'Intake and intent review are complete' in selected(draft)['note']
     with gui.CompanionServer([path], edit=True) as restarted:
         assert restarted.decisions.inspect()[0]['status'] == 'accepted'
     assert 'planning' not in read_task(path) and 'build' not in read_task(path)

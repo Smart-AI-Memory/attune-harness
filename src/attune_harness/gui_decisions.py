@@ -50,6 +50,11 @@ class Decisions:
         return ("Draft saved — more answers needed" if missing_information(record["request"])
                 else "Draft saved — ready for review")
 
+    @staticmethod
+    def _draft_next_step(record):
+        return ("continue intake" if missing_information(record["request"])
+                else "review this intent")
+
     def inspect(self):
         result = []
         for task in self.tasks:
@@ -60,7 +65,7 @@ class Decisions:
                         "status": record["status"], "heading": "Saved task", "available": False}
                 if record["task_profile"] == PROFILE and record["status"] == "accepted":
                     item["heading"] = "Intent accepted"
-                    item["note"] = "No further intent decision is needed; execution remains separate."
+                    item["note"] = "Intake and intent review are complete. No further intent form is needed; execution remains separate."
                 else:
                     if record["task_profile"] == PROFILE and record["status"] == "draft":
                         item["heading"] = "Draft saved"
@@ -68,7 +73,8 @@ class Decisions:
                         self._draft(record)
                         item["available"] = True
                         item["heading"] = self._draft_heading(record)
-                        item["note"] = "Open the current intake or approval form. No model calls."
+                        item["note"] = (f"Next: {self._draft_next_step(record)}. "
+                                        "Click “Open current form” below. No model calls.")
                     except (ValueError, OSError) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:
@@ -126,7 +132,8 @@ class Decisions:
                 raise ValueError("Supply at least one answer, then reopen to continue")
             saved = answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
                                                      "answers": response["answers"]})
-            message = "Answers saved. Open the next form to review the current draft."
+            message = (f"Answers saved. Next: {self._draft_next_step(saved)}. "
+                       "Click “Open current form” in Saved work above.")
             heading = self._draft_heading(saved)
         else:
             if set(response) != {"action", "confirmed"} or type(response["confirmed"]) is not bool:
@@ -138,6 +145,6 @@ class Decisions:
                 {**saved["display"]["response_template"], **response}
             ))
             message = ("Intent accepted. Implementation and paid dispatch are not authorized by this decision."
-                       if accepted is not None else "Response recorded; work remains unaccepted. Reopen to continue.")
+                       if accepted is not None else "Response recorded; work remains unaccepted. Click “Open current form” in Saved work above to continue.")
             heading = "Intent accepted" if accepted is not None else self._draft_heading(record)
         return {"message": message, "heading": heading}

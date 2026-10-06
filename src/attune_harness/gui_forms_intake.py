@@ -99,7 +99,7 @@ function renderDecision(shown){
  const details=node('details',undefined,panel);node('summary','Read retained owner decision',details);node('pre',display.markdown,details);
  if(display.kind==='questions'){
   const form=node('form',undefined,panel),inputs=[];
-  node('p','Answer what you know. You can save partial answers; Harness will ask only what remains.',form);
+  node('p','Answer what you know. You can save partial answers; Harness will ask only what remains. After saving, click Open current form in Saved work above to continue.',form);
   for(const field of display.definition.fields){
    const id='field-'+field.id;const label=node('label',field.text,form);label.htmlFor=id;
    let input;

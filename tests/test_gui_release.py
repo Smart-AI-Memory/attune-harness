@@ -44,7 +44,7 @@ def test_release_forms_real_intake_preview_accept_and_replay(forms):
     card = selected(forms)
     assert not card['available']
     assert card['heading'] == 'Intent accepted'
-    assert card['note'] == 'No further intent decision is needed; execution remains separate.'
+    assert card['note'] == 'Intake and intent review are complete. No further intent form is needed; execution remains separate.'
     assert 'Only feature-work drafts' not in card['note']
     assert not {'planning', 'build'} & read_task(path).keys()
 
