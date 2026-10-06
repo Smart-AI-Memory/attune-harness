@@ -114,8 +114,9 @@ See [Plan and build](cli-guide.md#plan-and-build) and
 ## Evidence
 
 This preparation integrates main through `9229da0edcfe02146130a3133c79dc2fd77d6354` (#227).
-Merged GUI implementation and recovery changes are retained only as inert
-development code; a separate release policy enforces 1.3.0 deferral. The PR handoff records
+Merged intake/approval implementation and recovery changes support the bounded
+browser forms slice; broader GUI execution remains deferred and unreachable from
+the release server. The PR handoff records
 which checks apply to this refreshed candidate; earlier candidate results are
 historical evidence until fresh qualification completes. Earlier library results do not qualify the versioned
 release artifact by themselves. The publish run and 1.3.0 PyPI hashes do not yet
