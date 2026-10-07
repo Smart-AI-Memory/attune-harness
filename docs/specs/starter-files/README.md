@@ -1,6 +1,6 @@
 # Starter files: `plan` and `fix` start from a command
 
-**Status: approved, September 30, 2026.** Patrick approved Q1–Q6 as
+**Status: implementation and release preparation complete; 1.3.0 publication pending.** Approved September 30, 2026. Patrick approved Q1–Q6 as
 recommended; Q6's vehicle moves to 1.3.0 because 1.2.0 shipped first. Written against
 main `3d2dcea` (1.1.0). It takes up O-70 in
 [the opportunity log](../../opportunity-log.md), the largest gap left by

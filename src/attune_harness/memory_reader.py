@@ -15,6 +15,7 @@ Licensed under the Apache License, Version 2.0
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, datetime
 import hashlib
 import json
 import math
@@ -27,7 +28,11 @@ import time
 
 from .features import FeatureUnavailable, require_feature
 from .memory_contract import CLASSIFICATIONS, bounded_json, strings
-from .memory_controls import AUTHOR_CURATED, guard, latest_verdicts, provenance_fields, staleness
+from .memory_controls import (
+    AUTHOR_CURATED, VERDICT_VALUES, _parse_date, canonical_digest, curated_fields,
+    format_age_annotation, format_status_annotation, guard, latest_verdicts,
+    provenance_fields, scan_instructions, staleness,
+)
 from .paths import validate_file_path
 from .review_contract import bounded_text, digest, fields, parse_json, versioned
 
@@ -321,9 +326,17 @@ class NativeReader:
             item = self._item(root, {"record_id": row["id"]}, row["text"], version, _kind(row), row)
         else:
             fields(locator, ("root_id", "path"))
-            content, version, _ = self._capture(root, locator["path"])
-            item = self._item(root, {"path": locator["path"]}, content.decode("utf-8"),
-                              self._document_version(version, self._sidecars(root)), Path(locator["path"]).stem, {})
+            content, version, mtime_ns = self._capture(root, locator["path"])
+            sidecars = self._sidecars(root)
+            text = content.decode("utf-8")
+            item = self._item(root, {"path": locator["path"]}, text,
+                              self._document_version(version, sidecars), Path(locator["path"]).stem,
+                              _document_annotations(text, locator["path"], mtime_ns, sidecars))
+            # Annotation uses captured bytes only. Recheck both owners before
+            # returning so a concurrent correction cannot retain an old warning.
+            if (self._capture(root, locator["path"])[1] != version
+                    or self._document_version(version, self._sidecars(root)) != item["version"]):
+                raise ValueError("Source was corrected, deleted or replaced; refresh context")
         if item["version"] != handle.get("version") or item["id"] != handle.get("id"):
             raise ValueError("Source was corrected, deleted or replaced; refresh context")
         return item
@@ -353,9 +366,52 @@ def _kind(row):
 
 def _timestamp(row):
     try:
-        return float(row.get("ts", 0.0))
-    except (TypeError, ValueError):
+        value = float(row.get("ts", 0.0))
+        return value if math.isfinite(value) else None
+    except (TypeError, ValueError, OverflowError):
         return None
+
+
+def _document_annotations(text, relative, mtime_ns, sidecars):
+    """The existing annotation policy over captured bytes, without reopening a source."""
+    latest = None
+    stem = Path(relative).stem
+    verdict_bytes = sidecars['.verdicts.jsonl'][0]
+    try:
+        verdict_text = verdict_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        verdict_text = ''  # Match latest_verdicts: unreadable sidecars add no verdict.
+    for line in verdict_text.splitlines():
+        try:
+            record = json.loads(line)
+            record = {key: record[key] for key in ('stem', 'verdict', 'digest', 'who', 'at')}
+        except (ValueError, KeyError, TypeError):
+            continue  # The frozen annotation policy skips unreadable verdict rows.
+        if (record['stem'] == stem and isinstance(record['verdict'], str)
+                and record['verdict'] in VERDICT_VALUES):
+            latest = record
+    labels, body = curated_fields(text)
+    verified = _parse_date(labels.get('verified'))
+    mtime_date = datetime.fromtimestamp(mtime_ns / 1_000_000_000).date()
+    if latest is not None and latest['verdict'] == 'wrong':
+        basis_date, basis = mtime_date, 'tombstoned'
+    elif verified is None:
+        basis_date, basis = mtime_date, 'mtime'
+    elif latest is None:
+        basis_date, basis = verified, 'verified-unbound'
+    elif latest['digest'] == canonical_digest(labels.get('description'), body):
+        basis_date, basis = verified, 'verified'
+    else:
+        basis_date, basis = mtime_date, 'invalidated'
+    days = max(0, (date.today() - basis_date).days)
+    return {
+        'unverified_days': days,
+        'staleness': format_age_annotation(days),
+        'status': format_status_annotation(labels.get('metadata.type'), basis, days),
+        'provenance': {'tier': 'curated', 'source': relative,
+                       'author_class': AUTHOR_CURATED,
+                       'instruction_flags': list(scan_instructions(text, tier='curated'))},
+    }
 
 
 def _rank_raw(content, query, *, limit):

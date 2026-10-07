@@ -1,6 +1,6 @@
 # Starter files: requirements and acceptance
 
-**Status: approved, September 30, 2026.** Patrick approved the recommended
+**Status: implementation and release preparation complete; 1.3.0 publication pending.** Approved September 30, 2026. Patrick approved the recommended
 answers to Q1–Q6 in the [README](README.md), with Q6's vehicle moved to 1.3.0. Each requirement names what it must not change, and
 [the freeze](../../compatibility.md) governs anything not named.
 

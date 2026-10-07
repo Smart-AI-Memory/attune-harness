@@ -12,7 +12,7 @@ FORM_STYLE = """
 h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-spacing:.09em}
 #tasks{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
 .task-card{background:white;border:1px solid #dce4da;border-radius:10px;padding:16px;flex:1;min-width:220px}
-.task-card p{margin:8px 0}.task-card h2{margin:0;overflow-wrap:anywhere}
+.task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}

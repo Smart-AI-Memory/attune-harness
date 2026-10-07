@@ -9,7 +9,7 @@ import secrets
 
 from .task_contract import read_task
 from .work_accept import WorkAcceptance
-from .work_contract import PROFILE, check_work_fresh
+from .work_contract import PROFILE, check_work_fresh, missing_information
 from .work_decisions import require_current_decision, retain_questions
 from .work_runtime import answer_planning, planning_questions
 
@@ -45,6 +45,16 @@ class Decisions:
             raise ValueError("Resolve or stage the saved run before opening a decision")
         check_work_fresh(record)
 
+    @staticmethod
+    def _draft_heading(record):
+        return ("Draft saved — more answers needed" if missing_information(record["request"])
+                else "Draft saved — ready for review")
+
+    @staticmethod
+    def _draft_next_step(record):
+        return ("Continue form" if missing_information(record["request"])
+                else "Review your answers")
+
     def inspect(self):
         result = []
         for task in self.tasks:
@@ -52,15 +62,27 @@ class Decisions:
                 record = self._record(task)
                 item = {"task": task, "checkpoint": record["checkpoint_digest"],
                         "label": record.get("request", {}).get("intent", {}).get("goal") or "Unfinished draft",
-                        "status": record["status"], "available": False}
-                try:
-                    self._draft(record)
-                    item["available"] = True
-                    item["note"] = "Open the current intake or approval form. No model calls."
-                except (ValueError, OSError) as exc:
-                    item["note"] = str(exc)
+                        "status": record["status"], "heading": "Saved task", "available": False}
+                if record["task_profile"] == PROFILE and record["status"] == "accepted":
+                    item["heading"] = "Intent accepted"
+                    item["note"] = "Intake and intent review are complete. No further intent form is needed; execution remains separate."
+                else:
+                    if record["task_profile"] == PROFILE and record["status"] == "draft":
+                        item["heading"] = "Draft saved"
+                    try:
+                        self._draft(record)
+                        item["available"] = True
+                        item["heading"] = self._draft_heading(record)
+                        next_step = self._draft_next_step(record)
+                        item["note"] = f"Next: {next_step.lower()}."
+                        item["action_label"] = next_step
+                        item["action_tip"] = ("Answer the remaining questions."
+                                              if next_step == "Continue form"
+                                              else "Check your answers, then approve them.")
+                    except (ValueError, OSError) as exc:
+                        item["note"] = str(exc)
             except (ValueError, OSError) as exc:
-                item = {"task": task, "label": "Unavailable saved task", "available": False,
+                item = {"task": task, "label": "Unavailable saved task", "heading": "Saved task unavailable", "available": False,
                         "status": "unavailable", "note": str(exc)}
             result.append(item)
         return result
@@ -75,12 +97,16 @@ class Decisions:
         self.live.pop(task, None)
         shown = planning_questions(self.tasks[task])
         bridge = None
+        blocking_reasons = []
         if shown["missing"]:
             decision = retain_questions(record, shown)
         else:
             supported = [c["control"] for c in record["request"].get("effects", {}).get("checks", [])]
             bridge = WorkAcceptance(self.tasks[task], supported_controls=supported)
-            self.loop.run_until_complete(bridge.open())
+            opened = self.loop.run_until_complete(bridge.open())
+            # Project the exact retained owner receipts; never rerun readiness here.
+            blocking_reasons = [receipt.detail for receipt in opened.record.state.lifecycle_receipts
+                                if receipt.state in {"BLOCKED", "REVISE", "CHAIR_REQUIRED"}]
             decision = bridge.decision
         identity = secrets.token_urlsafe(24)
         self.live[task] = (identity, checkpoint, decision, bridge)
@@ -92,7 +118,8 @@ class Decisions:
         request = record["request"]
         return {"task": task, "checkpoint": checkpoint, "decision": identity, "display": display,
                 "summary": {"intent": request["intent"], "choices": request["choices"],
-                            "authoring": request["authoring"], "effects": request.get("effects")}}
+                            "authoring": request["authoring"], "effects": request.get("effects"),
+                            "blocking_reasons": blocking_reasons}}
 
     def submit(self, task, checkpoint, decision, response):
         record = self._record(task)
@@ -112,9 +139,11 @@ class Decisions:
                 value is not None and value != "" for value in response["answers"].values()
             ):
                 raise ValueError("Supply at least one answer, then reopen to continue")
-            answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
-                                               "answers": response["answers"]})
-            message = "Answers saved. Open the next form to review the current draft."
+            saved = answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
+                                                     "answers": response["answers"]})
+            message = (f"Answers saved. Click “{self._draft_next_step(saved)}” "
+                       "in Saved work above.")
+            heading = self._draft_heading(saved)
         else:
             if set(response) != {"action", "confirmed"} or type(response["confirmed"]) is not bool:
                 raise ValueError("Choose an action from the displayed decision")
@@ -125,5 +154,6 @@ class Decisions:
                 {**saved["display"]["response_template"], **response}
             ))
             message = ("Intent accepted. Implementation and paid dispatch are not authorized by this decision."
-                       if accepted is not None else "Response recorded; work remains unaccepted. Reopen to continue.")
-        return {"message": message}
+                       if accepted is not None else "Response recorded; work remains unaccepted. Click “Review your answers” in Saved work above to continue.")
+            heading = "Intent accepted" if accepted is not None else self._draft_heading(record)
+        return {"message": message, "heading": heading}

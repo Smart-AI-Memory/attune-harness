@@ -9,10 +9,10 @@ install commands now name the published package.
 ## Installation
 
 ```sh
-pipx install 'attune-harness[all]==1.2.0'
+pipx install 'attune-harness[all]==1.3.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.2.0'`, or `pip install 'attune-harness[all]==1.2.0'`
+or `uv tool install 'attune-harness[all]==1.3.0'`, or `pip install 'attune-harness[all]==1.3.0'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The example below needs no API key or attune-ai installation;
@@ -275,64 +275,71 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
-For a refreshing local browser view, register existing task directories:
-
-```bash
-python -m attune_harness.gui --task /absolute/path/to/task
-```
-
-Add `--edit` to complete a registered feature-work draft's missing intent and
-choices, then review and explicitly accept its current scope:
+For browser draft intake and explicit intent approval in **1.3.0**, register a
+canonical absolute saved feature-work draft directory and enable form actions:
 
 ```bash
 python -m attune_harness.gui --task /absolute/path/to/task --edit
 ```
 
-The default is read-only. In edit mode, **Open current form** retains the owner's
-current questions or decision. Save partial answers to see what remains; choice
-labels preserve the proposal, rationale, counter-case, evidence and uncertainty.
-Only a separate approval action accepts intent. These two launch modes do not
-dispatch participants, build, or create new tasks. Use `plan --request` to create a draft first.
-Resolve or stage a saved planning run in the CLI before opening its decision.
+The private launcher link grants access only to this local forms session. Without
+`--edit`, inspection is read-only. Refresh lists registered drafts; open the
+current form, save partial answers, reopen the current preview, then deliberately
+accept its intent. Saving answers is not approval; approval is not execution or
+paid dispatch. Stale checkpoints, replaced forms and foreign-origin submissions
+refuse. A restart requires opening a fresh form; retained text is evidence only.
 
-To enable separately confirmed builds with registered command participants:
+Reopened intake forms show **Saved answers** above the remaining questions,
+including the saved goal, success criteria, answered questions and selected
+choices. Remaining fields start empty; saved answers are never remapped into
+new questions. The full unchanged owner record stays below the form under
+**Technical details (optional)**. The approval preview still shows the complete
+intent and blocking evidence before an explicit decision. Its main view shows
+the questions and their saved answers in plain language. The full unchanged
+owner record, action definitions, checkpoint and file-effects JSON stay inside
+the initially collapsed **Technical details** disclosure. Blocking reasons from
+the owner's retained readiness receipts remain visible above it; unavailable
+approval actions remain unavailable.
+
+**Open in browser** requests the same private workspace in your system browser.
+It stays available at every width; panels at most 600 pixels wide recommend it.
+Click to open, and copy any unsaved answers first. Switching makes the old form
+read-only without saving or transferring its answers. Use the current form in
+the new view to continue. The system browser decides between a tab and a window;
+Harness cannot resize the chat panel or move a window to another monitor. If
+opening cannot be confirmed, paste the complete private launcher link from
+Terminal into your browser.
+
+For host integrations, `--launch-json` emits one private JSON launch record on
+stdout and suppresses automatic external-browser opening:
 
 ```bash
-python -m attune_harness.gui --task /absolute/path/to/task --edit --allow-build-commands
+python -m attune_harness.gui --task /absolute/path/to/task --edit --launch-json
 ```
 
-The task must already carry accepted intent, an effect manifest, protected checks
-and distinct command worker/reviewer assignments. **Preview command build** shows
-the registered commands, accepted tasks, file effects, checks and budgets. Only
-**Grant these commands and build** starts execution. The launch flag alone does
-not start a build. Commands can access host resources and are not network-sandboxed;
-this mode is not a guarantee of offline execution. Native/provider adapters are
-unavailable, and the browser cannot supply a command or filesystem path.
+The record contains `type: attune-harness.browser-launch`, `version: 1`,
+`origin`, `launch_url`, `editable`, `task_count` and `execution_enabled`.
+The server keeps running after this line. Treat `launch_url` as private access
+data: it includes a fragment token for this listener, not a permanent task link.
+Do not retain it in a shared artifact. A new listener produces a new link.
+`execution_enabled` is false in the 1.3.0 forms-only release; structured launch
+does not enable browser builds or dispatch.
 
-**Inspect progress and evidence** shows saved completed steps, checks, next actions
-and final reviewer findings. It refreshes while this companion's worker is active;
-refreshing never repeats execution. Reviewer output is evidence, not human
-acceptance. This is the build's final review, not a standalone document/corpus
-assessment (`review`, J06).
+An assistant can pass the exact link to an available host browser-opening tool.
+Use the built-in browser's **Enter split view** control for chat beside the form;
+an opening request alone does not verify rendering or pane order. Reopen the same
+link while the listener is alive, refresh, and open the current form to retrieve
+saved answers. Unsaved typing needs separate preservation. This is a browser
+integration, not a native MCP conversation-panel registration.
+See [the opening and resume workflow](../.agents/skills/attune-harness/references/browser.md).
 
-Only one build runs at a time. Closing the page does not cancel it; normal service
-shutdown waits for the authorized owner call. There is no GUI pause, cancel or
-reconciliation control. After a service restart or lost response, inspect first.
-A saved resumable run requires a fresh preview and **Grant resume of these commands**
-with its original permissions. Changed source/configuration, a stale grant,
-terminal outcomes or uncertain dispatched operations refuse execution. Reconcile
-uncertain outcomes through the owner using its displayed next action; never replay
-the old submission. Restart does not restore grants or automatically dispatch.
-
-The private launcher link grants access to that launch mode; keep it private.
-Use `--no-open` for a manual launcher link. Another tab opening the same task's
-form invalidates your old form. After a restart, stale answer, lost response or
-write failure, refresh saved state and explicitly reopen; do not replay a
-submission. The owner validates each checkpoint and retains the decision beside
-its work record. Opening or refreshing the page never approves anything.
-The snapshot pane is verified in Chrome. Codex’s embedded browser can leave the
-blob-based snapshot pane blank even when the decision controls work; use the
-private launcher link in Chrome for the complete snapshot.
+Browser build grants, dispatch, resume and broader GUI navigation are deferred
+to **1.4.0**. `--allow-build-commands` exits 2 before task/listener/browser effects;
+imported server construction with that option also refuses. `/build/preview`,
+`/build/start`, resume/grant routes and general `/snapshot` navigation are absent
+from the release server. CLI owners and static status remain separately available
+under their existing authorization boundaries. Future development instructions in
+the [specification](specs/graphical-companion/README.md) are not released scope.
 
 Optionally retain a pause note yourself or ask your assistant to prepare one.
 Use the actual task ID and revision from `status`; this example is a format template:
@@ -557,8 +564,8 @@ available. See the [implementation results](test-this-change-results.md).
 From 1.3.0, `init --for fix` writes the trusted probe, `probe.json`, that
 `fix` needs, and validates it before writing. It does not run the probe. The
 repair starts from a failing test and ends when the probe passes. On 1.2.0
-`init --for` is refused; this journey runs in CI and is expected to fail there
-until the [starter-files spec](specs/starter-files/README.md) lands.
+`init --for` is refused. This journey runs in CI as printed, with the example
+participants in `examples/starter/`.
 
 <!-- journey: fix-starter -->
 ```sh

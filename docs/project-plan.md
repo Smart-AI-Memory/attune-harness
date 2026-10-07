@@ -1,5 +1,15 @@
 # Stabilization, release readiness and phased GUI delivery
 
+**Approved release boundary (October 6):** 1.3.0 includes browser draft intake,
+preview and explicit intent approval, alongside CLI/agent forms. The local server
+exposes only registered-task form navigation and the existing decision owners.
+Browser build grants, dispatch, resume and broader GUI controls are deferred to
+1.4.0; launch flags cannot enable them. Historical development receipts below do
+not qualify this revised candidate. M2/M3/M4 gates remain; full M2 is not required
+for this bounded forms release. S3/S6/S9 observations remain open for explicit
+disposition. October 6–11 publication needs an explicit decision; October 12
+remains the scope review, with no automatic M3.
+
 Phased delivery update October 3, 2026 against main
 `23d6e7e1c6ef35f698fbc1f0462e951c41b099a8`. The release evidence below retains
 its 1.2.0 baseline; it is not a new publication check. This
@@ -89,15 +99,18 @@ it is not the first time those qualities are checked.
 
 - **M1 complete:** 16 journey rows, reuse inventory, owner refusal walk and
   preservation rules in the graphical-companion spec.
-- **M2 started:** #219 merged the read-only task companion. Intake, decisions,
-  execution and recovery controls remain to be connected and qualified.
+- **M2 started:** #219 merged the read-only task companion. #225–#227 connected
+  browser draft intake, partial-answer recovery, preview and explicit intent
+  approval through existing owners. This bounded slice is included in the
+  1.3.0 candidate and requires exact-candidate qualification and Patrick's
+  personal acceptance. Execution and recovery controls remain deferred to 1.4.0.
 - **M3/M4 not started:** merged source and prototypes do not establish production
   qualification. #220 adds shared collaboration guidance, not a GUI capability.
 
-The first M2 delivery slice is intake and owner-selected decisions after checking
-the read-only increment's qualification evidence. Reuse the existing forms and
-owners; complete their stale/refusal states before adding execution controls.
-Use the spec's acceptance criteria rather than inventing another milestone system.
+The first M2 intake and intent-decision slice is implemented; source integration
+does not establish full M2 acceptance. Retain its owner checks, stale/refusal
+states and answer recovery when planning the deferred execution controls. Use
+the spec's acceptance criteria rather than inventing another milestone system.
 
 ### Early user feedback and the next observation
 

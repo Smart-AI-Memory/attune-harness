@@ -8,10 +8,14 @@ import time
 from threading import Thread
 
 import pytest
+
+pytestmark = pytest.mark.usefixtures('gui_development_profile')
+
 import test_work_contract as contracts
 from attune_harness import gui, work_contract, work_decisions
 from attune_harness.gui_decisions import Decisions
 from attune_harness.task_contract import read_task
+from attune_harness.work_accept import WorkAcceptance
 from test_gui import request
 
 work = contracts.work
@@ -75,23 +79,37 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     path = draft.tasks[0]
     before = (path / 'record.json').read_bytes()
     assert selected(draft)['available']
+    assert selected(draft)['heading'] == 'Draft saved — more answers needed'
     assert (path / 'record.json').read_bytes() == before
     assert not (path / 'decision.json').exists()  # GET creates no decision.
     shown = open_form(draft)
     assert shown['display']['kind'] == 'questions'
     assert 'response_template' not in shown['display']
     answer = submission(shown, {'answers': {'answer_0': 'Export all findings'}})
-    assert call(draft, '/decision/submit', answer)[0] == 200
+    status, result = call(draft, '/decision/submit', answer)
+    assert status == 200
+    assert 'Continue form' in result['message'] and 'Saved work above' in result['message']
+    assert selected(draft)['heading'] == 'Draft saved — more answers needed'
+    assert 'continue form' in selected(draft)['note']
+    assert 'Click' not in selected(draft)['note']  # Mode-specific controls belong to the browser.
+    assert selected(draft)['action_label'] == 'Continue form'
+    assert selected(draft)['action_tip'] == 'Answer the remaining questions.'
+    assert 'No model calls' not in selected(draft)['note']
     assert call(draft, '/decision/submit', answer)[0] == 409
     shown = open_form(draft)
     fields = shown['display']['definition']['fields']
     assert 'observable' in fields[0]['text']  # answer_0 now means acceptance.
     assert 'Counter-case' in fields[1]['options'][0]
     answers = {'answer_0': 'Every finding survives export', 'answer_1': fields[1]['options'][0]}
-    assert call(draft, '/decision/submit', submission(shown, {'answers': answers}))[0] == 200
+    status, result = call(draft, '/decision/submit', submission(shown, {'answers': answers}))
+    assert status == 200
+    assert 'Review your answers' in result['message'] and 'Saved work above' in result['message']
     record = read_task(path)
     assert record['request']['choices'][0]['selected'] == 'jsonl'
     assert record['status'] == 'draft'
+    assert selected(draft)['heading'] == 'Draft saved — ready for review'
+    assert 'review your answers' in selected(draft)['note']
+    assert selected(draft)['action_label'] == 'Review your answers'
     shown = open_form(draft)
     assert shown['display']['kind'] == 'spec'
     assert any(a['id'] == 'approve_task' for a in shown['display']['actions'])
@@ -99,9 +117,12 @@ def test_real_partial_intake_choices_acceptance_and_reload(draft):
     status, result = call(draft, '/decision/submit', payload)
     assert status == 200, result
     assert 'Intent accepted' in result['message']
+    assert result['heading'] == 'Intent accepted'
     assert read_task(path)['status'] == 'accepted'
     assert call(draft, '/decision/submit', payload)[0] == 409
     assert selected(draft)['available'] is False
+    assert selected(draft)['heading'] == 'Intent accepted'
+    assert 'Intake and intent review are complete' in selected(draft)['note']
     with gui.CompanionServer([path], edit=True) as restarted:
         assert restarted.decisions.inspect()[0]['status'] == 'accepted'
     assert 'planning' not in read_task(path) and 'build' not in read_task(path)
@@ -140,6 +161,10 @@ def test_drift_refuses_submission_without_acceptance(draft, work, drift):
     status, _ = call(draft, '/decision/submit', submission(shown, {'action': 'approve_task', 'confirmed': True}))
     assert status == 409
     assert read_task(draft.tasks[0])['status'] == 'draft'
+    if drift in ('source', 'config'):
+        card = selected(draft)
+        assert not card['available']
+        assert card['heading'] == 'Draft saved'
 
 
 def test_failed_persistence_after_collection_is_not_replayed(draft, monkeypatch):
@@ -236,9 +261,49 @@ def test_auto_run_is_not_a_gui_action(draft):
     shown = open_form(draft)
     assert {a['id'] for a in shown['display']['actions']} == {'approve_task', 'redo_task'}
     assert shown['summary']['intent']['goal'] == 'Export all findings'
+    assert shown['summary']['blocking_reasons'] == []
     status, _ = call(draft, '/decision/submit', submission(shown, {'action': 'auto_run_remaining', 'confirmed': True}))
     assert status == 409
     assert read_task(draft.tasks[0])['status'] == 'draft'
+
+
+@pytest.mark.parametrize('case,reason', [
+    ('planner', 'A planner assignment is required'),
+    ('control', 'Unavailable required control: independent-tests'),
+    ('chair', 'A high planning finding awaits acknowledgment'),
+    ('revise', 'The current scope needs revision'),
+])
+def test_approval_projects_owner_blockers_without_granting_actions(work, monkeypatch, case, reason):
+    if case == 'planner':
+        work[2]['assignments'][0]['role'] = 'worker'
+    elif case == 'control':
+        work[2]['controls'] = [contracts.control()]
+    else:
+        state = 'CHAIR_REQUIRED' if case == 'chair' else 'REVISE'
+        monkeypatch.setattr(WorkAcceptance, 'readiness', lambda self, request: [
+            {'gate_id': 'review', 'boundary': 'execution', 'state': state, 'detail': reason}])
+    contracts.make(work)
+    path = work[2]['directory']
+    with gui.CompanionServer([path], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            shown = open_form(server)
+            assert shown['display']['kind'] == 'spec'
+            assert shown['summary']['blocking_reasons'] == [reason]
+            assert shown['display']['actions'] == []
+            retained = json.loads((path / 'decision.json').read_text())
+            assert shown['display']['markdown'] == retained['display']['markdown']
+            assert reason in retained['display']['markdown']
+            before = (path / 'record.json').read_bytes()
+            status, _ = call(server, '/decision/submit', submission(shown, {
+                'action': 'approve_task', 'confirmed': True}))
+            assert status == 409
+            assert (path / 'record.json').read_bytes() == before
+            assert read_task(path)['status'] == 'draft'
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
 
 
 def test_reconsideration_records_response_without_accepting(draft):

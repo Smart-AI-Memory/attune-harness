@@ -2,6 +2,46 @@
 
 ## Unreleased
 
+## 1.3.0
+
+`plan` and `fix` start from a command: `init --for plan` and `init --for fix`
+write the starter files each verb reads (O-70). See the
+[release notes](docs/release-notes-1.3.0.md).
+
+- Include browser draft intake, preview and explicit intent approval in 1.3.0,
+  retaining the existing CLI/agent forms and owner authority. The local server
+  serves form assets and registered-task navigation only; build grants, dispatch,
+  resume and general snapshot navigation are deferred to 1.4.0. Direct HTTP
+  execution routes and the build launch flag refuse before owner execution.
+- Distinguish confirmed browser form saves and intent acceptance from unconfirmed
+  submissions. Retained read-only forms show the owner’s success message; accepted
+  cards no longer display a draft-only warning. Stale checks, disabled controls
+  and no-replay behavior remain unchanged.
+- Lead browser cards with the saved or accepted state, keeping the work goal
+  beneath it. The list is headed “Saved work”; confirmed forms update their
+  headings, and partial drafts remain labeled as needing more answers.
+- Keep browser intake and Refresh usable when session storage is unavailable.
+  Private launcher links still authenticate the current page and remove the
+  fragment; reopening the complete link restores access after a page reload.
+- Explain the next form after saving with a bold Tip and a Continue form or
+  Review your answers button in Saved work, selected from saved state. Accepted cards
+  explicitly say intake and intent review are complete.
+- Retain native-memory failure receipts when a provider returns a non-object
+  content entry; reject malformed entries through the structured refusal path.
+  Add offline regression coverage for native responses, Spec evidence handoff
+  and saved-history integrity.
+- Prepare Codex plugin onboarding without relying on helpers outside the installed
+  plugin, and include the shared roundtable skill in its package.
+- Count forced probe backups before starter writes, preserving the existing
+  entry bound. Retain qualification timing and slow-stack diagnostics.
+- Preserve generated native-memory status, staleness and provenance in bounded
+  recall/refresh context and document resolution, including known-WRONG
+  tombstones. Source and verdict changes still invalidate old handles. Expire
+  raw rows with nonfinite timestamps.
+- Make installed qualification reject editable, copied-source and optimized
+  Python runs before effects. Record the final aggregate exit separately from
+  the pytest exit so later memory/plugin failures cannot leave a zero receipt exit.
+
 - Add consultation `evidence` inspection of frozen cited lines and checkpoint-bound
   `assess-citation` judgments without rewriting answers or dispatching a model.
   Preserve assessed answers when cancellation interrupts saved replay.
@@ -33,8 +73,8 @@
   dispatch-authority refusal first. The CLI guide says the starter journeys
   run from a checkout of this repository with a virtual environment activated.
 - The Claude Code plugin is served from the latest release tag, pinned by
-  commit, instead of from `main`. The marketplace entry's source is now
-  `github` with `ref: v1.2.0` and its `sha`. Users get the released skills
+  commit, instead of from `main`. The marketplace entry's source is `github`
+  with the tag as `ref` and its commit as `sha`. Users get the released skills
   while `main` moves on, and `main`'s version can move ahead of PyPI. The
   catalog changes only at a release, after the tag exists (runbook step 9).
   Probed live on Claude Code 2.1.284.
@@ -67,6 +107,13 @@
   one declared replacement; `reviewer` approves without judging. Example code,
   carried inline as `python -c` (a readable copy is `examples/starter/worker.py`),
   so it needs `python` on PATH. Both journeys now run as printed in CI.
+- A refusal for a path through a symlink now names the outermost link and
+  the path to use (#190, starter-files T5, O-76), for example "Task storage
+  cannot traverse a symlink: /tmp links to /private/tmp; use
+  /private/tmp/my-work". This covers task storage, the `fix` checkout, and a
+  saved task whose project no longer resolves. The rule, the exception type
+  and the exit codes are unchanged. The CLI guide's task directories move
+  from `/tmp` to `~/harness-tasks`.
 - When the checkout changed after `init --for plan` froze it, the preview's
   "Effect preimages disagree with work evidence" refusal names
   `init --for plan --force`, and `plan`'s stale-work `next_action` names

@@ -6,6 +6,9 @@ import time
 from threading import Thread
 
 import pytest
+
+pytestmark = pytest.mark.usefixtures('gui_development_profile')
+
 import test_work_build as builds
 import test_work_contract as contracts
 from test_gui_decisions import call, selected

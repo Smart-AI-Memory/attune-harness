@@ -1,8 +1,6 @@
-"""Loopback companion for explicitly registered saved tasks, read-only by default.
+"""Local browser intake and intent approval forms for registered saved drafts.
 
-Run with ``python -m attune_harness.gui --task /absolute/task``. Add ``--edit`` to complete existing draft intake and collect owner decisions.
-Only --edit --allow-build-commands enables separately confirmed configured command builds.
-Native/provider adapters are unavailable; commands are not network-sandboxed. Owners retain authority.
+Build grants, dispatch, resume and broader GUI navigation are deferred to 1.4.0.
 """
 
 import argparse
@@ -21,7 +19,8 @@ from pathlib import Path
 from . import task_view
 from .features import FeatureUnavailable
 from .review_contract import parse_json
-from .gui_forms import FORM_SCRIPT, FORM_STYLE, FORM_PAGE
+from .gui_forms import FORM_SCRIPT, FORM_PAGE
+from .gui_forms_intake import INTAKE_SCRIPT, INTAKE_PAGE, FORM_STYLE
 
 SCRIPT = """let token=location.hash.slice(1)||sessionStorage.getItem('attune-gui-token');
 if(location.hash){sessionStorage.setItem('attune-gui-token',token);history.replaceState(null,'',location.pathname);}
@@ -58,10 +57,46 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
         '<script src="/app.js"></script></body></html>')
 
 
+BUILD_UNAVAILABLE = ('Browser build controls are unavailable in 1.3.0; '
+                     'delivery is deferred to 1.4.0. Use separately authorized CLI execution.')
+
+
+def _development_profile():
+    # Retained development tests substitute this function. The installed product
+    # has no flag or environment override for deferred GUI execution.
+    return False
+
+
+INTAKE_BOOTSTRAP = """let token=location.hash.slice(1);
+// Storage is optional: private-link access must survive a browser storage refusal.
+if(location.hash){
+ try{sessionStorage.setItem('attune-gui-token',token);}catch(e){}
+ history.replaceState(null,'',location.pathname);
+}else{
+ try{token=sessionStorage.getItem('attune-gui-token')||'';}catch(e){}
+}
+const status=document.querySelector('#status');
+document.querySelector('#refresh').addEventListener('click',()=>act(()=>refreshWorkspace()));
+""" + INTAKE_SCRIPT
+INTAKE_DOCUMENT = ('<!doctype html><html lang=en><head><meta charset=utf-8>'
+    '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    '<title>Attune · Intake and intent approval</title><link rel="stylesheet" href="/style.css">'
+    '</head><body><header><strong>ATTUNE / Intake and intent approval</strong>'
+    '<button id="refresh" type="button">Refresh forms</button>'
+    '<button id="browser-open" type="button" disabled>Open in browser</button>'
+    '<p id="browser-tip" hidden><strong>Tip: </strong>This panel is narrow. '
+    'Open in browser for more room. Copy any unsaved answers first.</p>'
+    '<p id="status" role="status" aria-live="polite">Connecting…</p></header>'
+    + INTAKE_PAGE + '<script src="/app.js"></script></body></html>')
+
+
 class CompanionServer(HTTPServer):
     """A bounded local reader. No caller-supplied filesystem paths or commands."""
 
     def __init__(self, tasks, *, port=0, edit=False, allow_build_commands=False):
+        self.forms_only = not _development_profile()
+        if allow_build_commands and self.forms_only:
+            raise FeatureUnavailable(BUILD_UNAVAILABLE)
         if allow_build_commands and not edit:
             raise ValueError("Command builds require explicit edit mode")
         paths = tuple(Path(path) for path in tasks)
@@ -75,9 +110,11 @@ class CompanionServer(HTTPServer):
         task_view.inspect_saved_tasks(paths[0], paths[1:])
         self.tasks = paths
         self.token = secrets.token_urlsafe(32)
+        self.editable = edit
         self.decisions = None
         self.builds = None
-        if edit:
+        self._browser_attempt = None
+        if edit or self.forms_only:
             from .gui_decisions import Decisions
             self.decisions = Decisions(paths)
         if allow_build_commands:
@@ -102,6 +139,25 @@ class CompanionServer(HTTPServer):
         connection, address = super().get_request()
         connection.settimeout(5)
         return connection, address
+
+    def open_browser(self, confirmed):
+        """Request the fixed private launch URL, never a caller-selected target."""
+        if confirmed is not True:
+            raise ValueError('Opening the browser requires an explicit click')
+        now = time.monotonic()
+        if self._browser_attempt is not None and now - self._browser_attempt[0] < 2:
+            return self._browser_attempt[1]
+        try:
+            opened = webbrowser.open(self.launch_url, new=1)
+        except (webbrowser.Error, OSError):
+            opened = False
+        result = {'requested': bool(opened), 'message': (
+            'Browser opening requested. Continue in the new browser view. '
+            'Unsaved answers stay here for copying.' if opened else
+            'Browser opening could not be confirmed. Copy the private launcher link from '
+            'Terminal into your browser. Unsaved answers stay here for copying.')}
+        self._browser_attempt = (time.monotonic(), result)
+        return result
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -164,12 +220,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self.boundary():
             return
-        static = {'/': (PAGE, 'text/html; charset=utf-8'),
-                  '/app.js': (SCRIPT, 'text/javascript; charset=utf-8'),
+        static = {'/': (INTAKE_DOCUMENT if self.server.forms_only else PAGE, 'text/html; charset=utf-8'),
+                  '/app.js': (INTAKE_BOOTSTRAP if self.server.forms_only else SCRIPT, 'text/javascript; charset=utf-8'),
                   '/style.css': (STYLE, 'text/css; charset=utf-8')}
         if self.path in static:
             body, kind = static[self.path]
             return self.send(200, body, kind)
+        if self.server.forms_only and self.path != '/workspace':
+            return self.send(404, 'No such forms resource')
         if self.path not in ('/snapshot', '/workspace'):
             return self.send(404, 'No such companion resource')
         if not self.authenticated():
@@ -182,7 +240,7 @@ class Handler(BaseHTTPRequestHandler):
                         task['build'] = self.server.builds.inspect(task['task'])
                     except (ValueError, OSError, RuntimeError) as exc:
                         task['build'] = {'available': False, 'running': False, 'note': str(exc)}
-            return self.send_json({'editable': self.server.decisions is not None, 'tasks': tasks})
+            return self.send_json({'editable': self.server.editable, 'tasks': tasks})
         try:
             entries = task_view.inspect_saved_tasks(self.server.tasks[0], self.server.tasks[1:])
             body = task_view.render_saved_tasks(entries, 'html')
@@ -208,13 +266,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._unread_post = True
         self.close_connection = True
-        if self.server.decisions is None:
+        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit', '/browser/open'):
+            return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
+        if not self.server.editable and self.path != '/browser/open':
             return self.send(405, 'This workspace is read-only; no action was performed')
         if not self.boundary() or not self.authenticated():
             return
         if self.headers.get_all('Origin') != [self.server.origin]:
             return self.send(403, 'Same-origin browser action required')
-        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start'):
+        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
             return self.send(404, 'No such companion action')
         lengths = self.headers.get_all('Content-Length')
         if (self.headers.get_all('Transfer-Encoding') or len(lengths or []) != 1
@@ -231,13 +291,17 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError('Incomplete request; inspect before retrying')
             payload = parse_json(raw.decode('utf-8'), 65536)
             expected = {'task', 'checkpoint'}
-            if self.path == '/decision/submit':
+            if self.path == '/browser/open':
+                expected = {'confirmed'}
+            elif self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
             elif self.path == '/build/start':
                 expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:
                 raise ValueError('Unsupported action fields')
-            if self.path.startswith('/build/'):
+            if self.path == '/browser/open':
+                result = self.server.open_browser(**payload)
+            elif self.path.startswith('/build/'):
                 if self.server.builds is None:
                     raise ValueError('Relaunch with --edit --allow-build-commands to enable explicit command grants')
                 owner = self.server.builds.preview if self.path == '/build/preview' else self.server.builds.start
@@ -254,16 +318,29 @@ class Handler(BaseHTTPRequestHandler):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
-    parser.add_argument('--edit', action='store_true', help='Enable existing draft intake and explicit intent decisions; builds require a separate flag')
-    parser.add_argument('--allow-build-commands', action='store_true', help='Permit separately confirmed configured command builds and accepted file effects; commands are not network-sandboxed')
+    parser.add_argument('--edit', action='store_true', help='Enable draft intake answers and explicit intent decisions only; no execution')
+    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in 1.3.0; browser build controls are deferred to 1.4.0')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
+    parser.add_argument('--launch-json', action='store_true',
+                        help='Emit one private launch record as JSON; do not open an external browser')
     args = parser.parse_args(argv)
+    if args.allow_build_commands and not _development_profile():
+        print(BUILD_UNAVAILABLE, file=sys.stderr)
+        return 2
     with CompanionServer(args.task, port=args.port, edit=args.edit, allow_build_commands=args.allow_build_commands) as server:
-        mode = 'Draft decision' if args.edit else 'Read-only'
-        print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
-        print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
-        if not args.no_open:
+        mode = 'Intake and intent approval' if args.edit else 'Read-only forms'
+        if args.launch_json:
+            print(json.dumps({
+                'type': 'attune-harness.browser-launch', 'version': 1,
+                'origin': server.origin, 'launch_url': server.launch_url,
+                'editable': args.edit, 'task_count': len(args.task),
+                'execution_enabled': server.builds is not None,
+            }), flush=True)
+        else:
+            print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
+            print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
+        if not (args.no_open or args.launch_json):
             try:
                 opened = webbrowser.open(server.launch_url)
             except webbrowser.Error:
