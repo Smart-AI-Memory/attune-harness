@@ -15,6 +15,7 @@ import test_work_contract as contracts
 from attune_harness import gui, work_contract, work_decisions
 from attune_harness.gui_decisions import Decisions
 from attune_harness.task_contract import read_task
+from attune_harness.work_accept import WorkAcceptance
 from test_gui import request
 
 work = contracts.work
@@ -260,9 +261,49 @@ def test_auto_run_is_not_a_gui_action(draft):
     shown = open_form(draft)
     assert {a['id'] for a in shown['display']['actions']} == {'approve_task', 'redo_task'}
     assert shown['summary']['intent']['goal'] == 'Export all findings'
+    assert shown['summary']['blocking_reasons'] == []
     status, _ = call(draft, '/decision/submit', submission(shown, {'action': 'auto_run_remaining', 'confirmed': True}))
     assert status == 409
     assert read_task(draft.tasks[0])['status'] == 'draft'
+
+
+@pytest.mark.parametrize('case,reason', [
+    ('planner', 'A planner assignment is required'),
+    ('control', 'Unavailable required control: independent-tests'),
+    ('chair', 'A high planning finding awaits acknowledgment'),
+    ('revise', 'The current scope needs revision'),
+])
+def test_approval_projects_owner_blockers_without_granting_actions(work, monkeypatch, case, reason):
+    if case == 'planner':
+        work[2]['assignments'][0]['role'] = 'worker'
+    elif case == 'control':
+        work[2]['controls'] = [contracts.control()]
+    else:
+        state = 'CHAIR_REQUIRED' if case == 'chair' else 'REVISE'
+        monkeypatch.setattr(WorkAcceptance, 'readiness', lambda self, request: [
+            {'gate_id': 'review', 'boundary': 'execution', 'state': state, 'detail': reason}])
+    contracts.make(work)
+    path = work[2]['directory']
+    with gui.CompanionServer([path], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            shown = open_form(server)
+            assert shown['display']['kind'] == 'spec'
+            assert shown['summary']['blocking_reasons'] == [reason]
+            assert shown['display']['actions'] == []
+            retained = json.loads((path / 'decision.json').read_text())
+            assert shown['display']['markdown'] == retained['display']['markdown']
+            assert reason in retained['display']['markdown']
+            before = (path / 'record.json').read_bytes()
+            status, _ = call(server, '/decision/submit', submission(shown, {
+                'action': 'approve_task', 'confirmed': True}))
+            assert status == 409
+            assert (path / 'record.json').read_bytes() == before
+            assert read_task(path)['status'] == 'draft'
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
 
 
 def test_reconsideration_records_response_without_accepting(draft):

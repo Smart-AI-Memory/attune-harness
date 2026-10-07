@@ -85,7 +85,11 @@ or `--task-dir`.
   Reopened intake forms show Saved answers above the remaining questions.
   The full owner record stays below the form under Technical details (optional).
   Saved answers remain evidence, never prefilled into a newly issued field;
-  the explicit approval preview and its blocking evidence remain unchanged.
+  the explicit approval boundary remains unchanged.
+  Approval previews show questions with their saved answers in plain language.
+  Full owner markdown, action definitions, checkpoint metadata and file-effects
+  JSON stay in a collapsed Technical details disclosure. Owner readiness
+  blockers remain visible outside it, with no unavailable action enabled.
   Open in browser is available in editable and read-only forms views. Panels
   at most 600 pixels wide recommend it; opening requires a click. The launcher
   requests the same private workspace in the system browser, which decides

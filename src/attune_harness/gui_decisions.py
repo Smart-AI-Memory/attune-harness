@@ -97,12 +97,16 @@ class Decisions:
         self.live.pop(task, None)
         shown = planning_questions(self.tasks[task])
         bridge = None
+        blocking_reasons = []
         if shown["missing"]:
             decision = retain_questions(record, shown)
         else:
             supported = [c["control"] for c in record["request"].get("effects", {}).get("checks", [])]
             bridge = WorkAcceptance(self.tasks[task], supported_controls=supported)
-            self.loop.run_until_complete(bridge.open())
+            opened = self.loop.run_until_complete(bridge.open())
+            # Project the exact retained owner receipts; never rerun readiness here.
+            blocking_reasons = [receipt.detail for receipt in opened.record.state.lifecycle_receipts
+                                if receipt.state in {"BLOCKED", "REVISE", "CHAIR_REQUIRED"}]
             decision = bridge.decision
         identity = secrets.token_urlsafe(24)
         self.live[task] = (identity, checkpoint, decision, bridge)
@@ -114,7 +118,8 @@ class Decisions:
         request = record["request"]
         return {"task": task, "checkpoint": checkpoint, "decision": identity, "display": display,
                 "summary": {"intent": request["intent"], "choices": request["choices"],
-                            "authoring": request["authoring"], "effects": request.get("effects")}}
+                            "authoring": request["authoring"], "effects": request.get("effects"),
+                            "blocking_reasons": blocking_reasons}}
 
     def submit(self, task, checkpoint, decision, response):
         record = self._record(task)

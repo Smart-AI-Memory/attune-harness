@@ -15,6 +15,7 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 .task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 .saved-answers{overflow-wrap:anywhere}
+.approval-answers,.approval-blockers{overflow-wrap:anywhere}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}
 textarea{min-height:86px;resize:vertical}select{white-space:normal}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 system-ui;background:#f5f6f2;padding:16px;border-radius:6px}
@@ -114,28 +115,39 @@ function renderSavedAnswers(summary){
 function renderDecision(shown){
  expired=false;
  panel.replaceChildren();const display=shown.display;
- const title=node('h2',display.kind==='spec'?'Review draft intent':display.title,panel);title.tabIndex=-1;title.focus();
- node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',panel);
+ const title=node('h2',display.kind==='spec'?'Review your answers':display.title,panel);title.tabIndex=-1;title.focus();
+ const checkpoint=node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',display.kind==='questions'?panel:undefined);
  if(display.kind==='spec'){
   const summary=shown.summary,intent=summary.intent;
-  node('h3','Goal',panel);node('p',intent.goal,panel);
-  for(const [key,label] of [['scope','Files in scope'],['acceptance','Done when'],['constraints','Constraints'],['context','Context']]){
-   if(intent[key].length){node('h3',label,panel);const list=node('ul',undefined,panel);for(const item of intent[key])node('li',item,list);}
+  const answers=node('section',undefined,panel);answers.className='approval-answers';answers.setAttribute('aria-label','Questions and answers');
+  node('h3','What should this work accomplish?',answers);node('p',intent.goal,answers);
+  for(const [key,label] of [['acceptance','What observable result establishes success?'],['scope','Which exact files are in scope?'],['constraints','What constraints should guide this work?'],['context','What context should inform this work?']]){
+   if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key])node('li',item,list);}
   }
   for(const question of intent.questions){
-   node('h3',question.question,panel);
-   node('small',question.material?'Required for acceptance':'Optional question',panel);
-   node('p',question.answer===null?'Not answered':question.answer,panel);
+   node('h3',question.question,answers);
+   node('small',question.material?'Required for acceptance':'Optional question',answers);
+   node('p',question.answer===null?'Not answered':question.answer,answers);
   }
   for(const choice of summary.choices){
-   node('h3',choice.question,panel);const option=choice.options.find(o=>o.id===choice.selected);
-   node('p',option?option.proposal:'Undecided',panel);
-   if(option){node('p','Rationale: '+option.rationale+' Counter-case: '+option.counter_case,panel);}
+   node('h3',choice.question,answers);const option=choice.options.find(o=>o.id===choice.selected);
+   node('p',option?option.proposal:'Undecided',answers);
+   if(option){node('p','Rationale: '+option.rationale+' Counter-case: '+option.counter_case,answers);}
   }
-  node('small','Authoring format: '+summary.authoring.tier,panel);
-  if(summary.effects){const effects=node('details',undefined,panel);node('summary','Configured file effects and checks',effects);node('pre',JSON.stringify(summary.effects,null,2),effects);}
+  if(summary.blocking_reasons?.length){
+   const blocked=node('section',undefined,panel);blocked.className='approval-blockers';blocked.setAttribute('aria-label','Approval blocked');
+   node('h3','Approval is blocked',blocked);const reasons=node('ul',undefined,blocked);for(const reason of summary.blocking_reasons)node('li',reason,reasons);
+  }
  }
- const details=node('details',undefined,panel);node('summary','Read retained owner decision',details);node('pre',display.markdown,details);
+ const details=node('details',undefined,panel);node('summary','Technical details',details);details.open=false;
+ const owner=node('pre',display.markdown,details);owner.className='owner-record';
+ if(display.kind!=='questions'){
+  details.append(checkpoint);
+  if(display.kind==='spec'){
+   node('small','Authoring format: '+shown.summary.authoring.tier,details);
+   if(shown.summary.effects){node('h3','Configured file effects and checks',details);node('pre',JSON.stringify(shown.summary.effects,null,2),details);}
+  }
+ }
  if(display.kind==='questions'){
   renderSavedAnswers(shown.summary);
   const form=node('form',undefined,panel),inputs=[];
@@ -155,8 +167,6 @@ function renderDecision(shown){
    if(!Object.keys(answers).length){status.textContent='Enter at least one answer to save.';return;}
    act(()=>submit(shown,{answers}));};
  }else{
-  // Owner markdown contains the actual intent, readiness and review evidence.
-  details.open=display.actions.length===0;
   node('p','Choose explicitly. These controls record an intent decision only; execution remains a separate step.',panel);
   for(const action of display.actions){
    const row=node('div',undefined,panel);row.className='action-row';
@@ -165,7 +175,7 @@ function renderDecision(shown){
    const choose=node('button',labels[action.id]||action.label,row);choose.type='button';
    choose.onclick=()=>act(()=>submit(shown,{action:action.id,confirmed:true}));
   }
-  if(!display.actions.length)node('p','The owner has no available action. Inspect the blocking evidence above.',panel);
+  if(!display.actions.length)node('p','No approval action is available in this view. Resolve the blocking reasons or inspect the full decision in Technical details before continuing.',panel);
  }
 }
 

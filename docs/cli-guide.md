@@ -294,7 +294,12 @@ including the saved goal, success criteria, answered questions and selected
 choices. Remaining fields start empty; saved answers are never remapped into
 new questions. The full unchanged owner record stays below the form under
 **Technical details (optional)**. The approval preview still shows the complete
-intent and blocking evidence before an explicit decision.
+intent and blocking evidence before an explicit decision. Its main view shows
+the questions and their saved answers in plain language. The full unchanged
+owner record, action definitions, checkpoint and file-effects JSON stay inside
+the initially collapsed **Technical details** disclosure. Blocking reasons from
+the owner's retained readiness receipts remain visible above it; unavailable
+approval actions remain unavailable.
 
 **Open in browser** requests the same private workspace in your system browser.
 It stays available at every width; panels at most 600 pixels wide recommend it.

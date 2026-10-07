@@ -21,7 +21,8 @@ const intent={goal:'The saved goal <script> is literal',acceptance:[],questions:
 const decision={task:'A',checkpoint:'remaining-cp',decision:'single-use',summary:{intent,choices:[],authoring:{tier:'bounded'}},
  display:{kind:'questions',title:'Clarify the work',markdown:original,definition:{fields:[{id:'answer_0',type:'text_input',text:'What observable result establishes success?'}]}}};
 function render(h,shown=decision){h.run(`renderDecision(${JSON.stringify(shown)})`);}
-(async()=>{
+module.exports={setup,flush};
+if(require.main===module)(async()=>{
  const h=await setup();render(h);
  const saved=h.panel.querySelector('.saved-answers'),form=h.panel.querySelector('form'),details=h.panel.querySelector('details');
  assert(saved,'retained answers must be immediately visible');assert.equal(saved.getAttribute('aria-label'),'Saved answers');
@@ -58,10 +59,10 @@ function render(h,shown=decision){h.run(`renderDecision(${JSON.stringify(shown)}
 
  for(const actions of [[],[{id:'approve_task',label:'Accept',consequence:'Record intent'}]]){
   const preview=await setup();render(preview,{...decision,display:{kind:'spec',title:'Review',markdown:original,actions}});
-  assert.equal(preview.panel.querySelector('.saved-answers'),null,'approval keeps its existing complete structured preview');
-  assert.equal(preview.panel.querySelector('h2').textContent,'Review draft intent');assert.equal(preview.panel.querySelector('h3').textContent,'Goal');
-  assert.equal(preview.panel.querySelector('details').querySelector('summary').textContent,'Read retained owner decision');
-  assert.equal(preview.panel.querySelector('details').open,actions.length===0,'blocking evidence remains expanded when approval is unavailable');
+  assert.equal(preview.panel.querySelector('.saved-answers'),null,'approval renders its own question-and-answer preview');
+  assert.equal(preview.panel.querySelector('h2').textContent,'Review your answers');assert.equal(preview.panel.querySelector('h3').textContent,'What should this work accomplish?');
+  assert.equal(preview.panel.querySelector('details').querySelector('summary').textContent,'Technical details');
+  assert.equal(preview.panel.querySelector('details').open,false,'raw protocol stays collapsed in approval views');
   assert.equal(preview.panel.querySelectorAll('button').length,actions.length);assert.equal(preview.panel.querySelector('pre').textContent,original);
  }
  const readonly=await setup();readonly.queue.push({editable:false,tasks:[{task:'A',label:'Saved goal',status:'draft',available:true}]});await readonly.run('loadTasks()');
