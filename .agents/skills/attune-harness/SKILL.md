@@ -24,11 +24,16 @@ because the skill was opened.
 | Test working-tree changes | `test` | Git checkout, changed scope, interpreter with pytest |
 | Inspect progress or outcome | `status` | Saved task directory |
 | Continue saved work | `resume` | Saved task directory; inspect it first |
+| Open or reopen saved forms | Browser companion | Saved task directory and explicit read-only/edit intent |
 
 `review` assesses documentary evidence; it is not a general source-code security
 audit. `test` executes checks; it does not generate a test suite. `ship` and
 `reflect` are not implemented task routes. Explain unsupported requests rather
 than silently routing them through Attune AI or claiming Harness ran them.
+
+For browser forms, use [the browser companion reference](references/browser.md).
+Opening or reopening a form is inspection, not workflow execution. Do not call
+`resume` merely to reopen the form; it may dispatch saved work.
 
 ## Establish the runtime
 

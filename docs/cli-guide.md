@@ -310,6 +310,29 @@ Harness cannot resize the chat panel or move a window to another monitor. If
 opening cannot be confirmed, paste the complete private launcher link from
 Terminal into your browser.
 
+For host integrations, `--launch-json` emits one private JSON launch record on
+stdout and suppresses automatic external-browser opening:
+
+```bash
+python -m attune_harness.gui --task /absolute/path/to/task --edit --launch-json
+```
+
+The record contains `type: attune-harness.browser-launch`, `version: 1`,
+`origin`, `launch_url`, `editable`, `task_count` and `execution_enabled`.
+The server keeps running after this line. Treat `launch_url` as private access
+data: it includes a fragment token for this listener, not a permanent task link.
+Do not retain it in a shared artifact. A new listener produces a new link.
+`execution_enabled` is false in the 1.3.0 forms-only release; structured launch
+does not enable browser builds or dispatch.
+
+An assistant can pass the exact link to an available host browser-opening tool.
+Use the built-in browser's **Enter split view** control for chat beside the form;
+an opening request alone does not verify rendering or pane order. Reopen the same
+link while the listener is alive, refresh, and open the current form to retrieve
+saved answers. Unsaved typing needs separate preservation. This is a browser
+integration, not a native MCP conversation-panel registration.
+See [the opening and resume workflow](../.agents/skills/attune-harness/references/browser.md).
+
 Browser build grants, dispatch, resume and broader GUI navigation are deferred
 to **1.4.0**. `--allow-build-commands` exits 2 before task/listener/browser effects;
 imported server construction with that option also refuses. `/build/preview`,

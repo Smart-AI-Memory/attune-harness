@@ -322,15 +322,25 @@ def main(argv=None):
     parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in 1.3.0; browser build controls are deferred to 1.4.0')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
+    parser.add_argument('--launch-json', action='store_true',
+                        help='Emit one private launch record as JSON; do not open an external browser')
     args = parser.parse_args(argv)
     if args.allow_build_commands and not _development_profile():
         print(BUILD_UNAVAILABLE, file=sys.stderr)
         return 2
     with CompanionServer(args.task, port=args.port, edit=args.edit, allow_build_commands=args.allow_build_commands) as server:
         mode = 'Intake and intent approval' if args.edit else 'Read-only forms'
-        print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
-        print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
-        if not args.no_open:
+        if args.launch_json:
+            print(json.dumps({
+                'type': 'attune-harness.browser-launch', 'version': 1,
+                'origin': server.origin, 'launch_url': server.launch_url,
+                'editable': args.edit, 'task_count': len(args.task),
+                'execution_enabled': server.builds is not None,
+            }), flush=True)
+        else:
+            print(f'{mode} companion at {server.origin}; Ctrl-C stops the listener.', flush=True)
+            print(f'Private launcher link (grants access to this launch mode): {server.launch_url}', flush=True)
+        if not (args.no_open or args.launch_json):
             try:
                 opened = webbrowser.open(server.launch_url)
             except webbrowser.Error:
