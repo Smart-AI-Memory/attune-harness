@@ -5,6 +5,17 @@ INTAKE_PAGE = ('<section id="decisions" hidden aria-labelledby="decision-heading
              '<h1 id="decision-heading">Saved work</h1>'
              '<p>Harness chooses the form from saved work. Saving answers does not approve the plan. '
              'Accepting intent does not run a model or build.</p></div>'
+             '<p>Your answers help shape a clear work request for the AI: what to accomplish, '
+             'what context matters, and how to judge success.</p>'
+             '<details><summary>How this becomes a prompt</summary>'
+             '<p>A well-prepared prompt separates the goal, context, constraints, and success criteria. '
+             'XML tags can label these sections so they are easier to identify and review. '
+             'Clear content still matters: tags cannot supply missing facts or resolve an unclear goal.</p>'
+             '<p>Harness distinguishes plain prompts, XML-enhanced prompts, and fuller specifications '
+             'according to the work’s requirements. You can answer in ordinary language.</p>'
+             '<p>Illustrative XML format:</p><pre>&lt;goal&gt;Group saved work by the decision it needs&lt;/goal&gt;\n'
+             '&lt;success&gt;Each saved task shows its next decision&lt;/success&gt;</pre>'
+             '<p>This example explains structure; it is not a submitted answer or an execution grant.</p></details>'
              '<div id="tasks"></div><div id="form-panel"></div></section>')
 
 FORM_STYLE = """
@@ -65,6 +76,17 @@ async function loadTasks(){
  try{const data=await api('/workspace');workspaceReady=true;syncBrowserButton();tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
+  if(task.saved_request){
+   const saved=task.saved_request;
+   if(!saved.fresh){const warning=node('p','Saved inputs have changed. '+saved.freshness_note,card);warning.setAttribute('role','status');}
+   const view=node('details',undefined,card);view.className='saved-request';
+   node('summary',saved.accepted?'View accepted request':'View saved request',view);view.open=false;
+   node('p','Saved revision '+saved.revision+'. Refresh saved state to inspect the latest record.',view);
+   renderIntent(saved,view);
+   node('p',saved.accepted?'Intent accepted. Implementation and paid dispatch are not authorized by this decision.':'Saving answers does not accept intent. Review the current form before deciding.',view);
+   const identity=node('details',undefined,view);node('summary','Technical details',identity);identity.open=false;
+   node('pre','Task '+saved.task_id+'\nCheckpoint '+saved.checkpoint+'\nAuthoring format: '+saved.authoring.tier,identity);
+  }
   if(data.editable&&task.available){const tip=node('p',undefined,card);node('strong','Tip: ',tip);node('span',task.action_tip||'Open the current form to continue.',tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
    status.textContent='Current decision retained. Review before responding.';
@@ -112,28 +134,31 @@ function renderSavedAnswers(summary){
   else node('p',answers[0],saved);
  }
 }
+function renderIntent(summary,parent){
+ const intent=summary.intent;
+ const answers=node('section',undefined,parent);answers.className='approval-answers';answers.setAttribute('aria-label','Questions and answers');
+ node('h3','What should this work accomplish?',answers);node('p',intent.goal||'Not answered',answers);
+ for(const [key,label] of [['acceptance','What observable result establishes success?'],['scope','Which exact files are in scope?'],['constraints','What constraints should guide this work?'],['context','What context should inform this work?']]){
+  if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key])node('li',item,list);}
+ }
+ for(const question of intent.questions){
+  node('h3',question.question,answers);node('small',question.material?'Required for acceptance':'Optional question',answers);
+  node('p',question.answer===null?'Not answered':question.answer,answers);
+ }
+ for(const choice of summary.choices){
+  node('h3',choice.question,answers);const option=choice.options.find(o=>o.id===choice.selected);
+  node('p',option?option.proposal:'Undecided',answers);
+  if(option)node('p','Rationale: '+option.rationale+' Counter-case: '+option.counter_case,answers);
+ }
+}
 function renderDecision(shown){
  expired=false;
  panel.replaceChildren();const display=shown.display;
  const title=node('h2',display.kind==='spec'?'Review your answers':display.title,panel);title.tabIndex=-1;title.focus();
  const checkpoint=node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',display.kind==='questions'?panel:undefined);
  if(display.kind==='spec'){
-  const summary=shown.summary,intent=summary.intent;
-  const answers=node('section',undefined,panel);answers.className='approval-answers';answers.setAttribute('aria-label','Questions and answers');
-  node('h3','What should this work accomplish?',answers);node('p',intent.goal,answers);
-  for(const [key,label] of [['acceptance','What observable result establishes success?'],['scope','Which exact files are in scope?'],['constraints','What constraints should guide this work?'],['context','What context should inform this work?']]){
-   if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key])node('li',item,list);}
-  }
-  for(const question of intent.questions){
-   node('h3',question.question,answers);
-   node('small',question.material?'Required for acceptance':'Optional question',answers);
-   node('p',question.answer===null?'Not answered':question.answer,answers);
-  }
-  for(const choice of summary.choices){
-   node('h3',choice.question,answers);const option=choice.options.find(o=>o.id===choice.selected);
-   node('p',option?option.proposal:'Undecided',answers);
-   if(option){node('p','Rationale: '+option.rationale+' Counter-case: '+option.counter_case,answers);}
-  }
+  const summary=shown.summary;
+  renderIntent(summary,panel);
   if(summary.blocking_reasons?.length){
    const blocked=node('section',undefined,panel);blocked.className='approval-blockers';blocked.setAttribute('aria-label','Approval blocked');
    node('h3','Approval is blocked',blocked);const reasons=node('ul',undefined,blocked);for(const reason of summary.blocking_reasons)node('li',reason,reasons);
