@@ -83,25 +83,43 @@ def require_registry(path, project):
 
 
 def add_command(sub):
-    parser = sub.add_parser('init', help='Write a starter participant registry for plan, review and fix')
+    parser = sub.add_parser('init', help='Write starter files for plan, review, fix or roundtable')
     parser.add_argument('--profile', choices=tuple(PROFILES), default='demo',
                         help='demo: offline deterministic participants (default); claude or codex: native models')
     parser.add_argument('--project', type=Path, help='Project directory (default: the current directory)')
     parser.add_argument('--force', action='store_true',
                         help='Replace an existing registry, keeping it as participants.json.bak '
                              '(with --for fix: replace probe.json, keeping probe.json.bak; '
-                             'with --for plan: replace the work request, keeping a .bak)')
-    parser.add_argument('--for', dest='starter', choices=('fix', 'plan'),
+                             'with --for plan: replace the work request, keeping a .bak; '
+                             'with --for roundtable: keep roundtable.json.bak)')
+    parser.add_argument('--for', dest='starter', choices=('fix', 'plan', 'roundtable'),
                         help='fix: also write probe.json, the trusted probe fix reads; '
                              'plan: also write a work request beside --task-dir; '
-                             'the registry is written only if there is none')
-    parser.add_argument('--scope', nargs='+', help='With --for: the files the change may replace or create')
+                             'roundtable: write a validated roundtable.json; '
+                             'fix/plan write the registry only if there is none')
+    parser.add_argument('--scope', nargs='+', help='With --for fix/plan: files the change may replace or create; '
+                        'with --for roundtable: selected source paths for the next prepare command')
     parser.add_argument('--interpreter', help='With --for: the Python, with pytest, that runs the tests')
     parser.add_argument('--tests', nargs='+', help='With --for: the test files the probe runs, protected')
     parser.add_argument('--goal', help='With --for plan: what the work should achieve')
     parser.add_argument('--task-dir', type=Path,
                         help='With --for plan: the new task directory plan will use; the request is '
-                             'written beside it as <name>.work.json (default: ~/harness-tasks/<project>-plan)')
+                             'written beside it as <name>.work.json (default: ~/harness-tasks/<project>-plan); '
+                             'with --for roundtable: the future run directory outside the project '
+                             '(default: sibling <project>-roundtable)')
+    parser.add_argument('--question', help='With --for roundtable: the bounded question to discuss')
+    parser.add_argument('--seats', help='With --for roundtable: two or three comma-separated adapters '
+                        '(default: claude,codex; optional third: antigravity)')
+    parser.add_argument('--model', dest='seat_models', action='append', metavar='SEAT=MODEL',
+                        help='With --for roundtable: repeat for every seat; no model IDs are guessed')
+    parser.add_argument('--rounds', type=int, choices=(1, 2),
+                        help='With --for roundtable: one or two rounds (default: 1)')
+    parser.add_argument('--timeout', type=float,
+                        help='With --for roundtable: timeout per seat, 1..300 seconds (default: 120)')
+    parser.add_argument('--author', help='With --for roundtable: author identity from this seat '
+                        '(default: the first selected seat)')
+    parser.add_argument('--effort', dest='seat_efforts', action='append', metavar='SEAT=EFFORT',
+                        help='With --for roundtable: explicit antigravity=low|medium|high|max')
 
 
 def next_action(project: Path, target: Path, profile: str) -> str:
@@ -376,11 +394,99 @@ def execute_plan(args, project: Path) -> int:
     return 0
 
 
+def seat_assignments(values, seats, flag):
+    """Refuse ambiguous assignments before any probe or file write."""
+    result = {}
+    for value in values or []:
+        name, separator, setting = value.partition('=')
+        if not separator or name not in seats or not setting or name in result:
+            raise ValueError(f'{flag} requires one SEAT=VALUE per selected seat; invalid assignment: {value}')
+        result[name] = setting
+    return result
+
+
+def execute_roundtable(args, project: Path) -> int:
+    from .consultation_preflight import preflight
+
+    if args.question is None:
+        raise ValueError('init --for roundtable needs --question TEXT')
+    if args.interpreter or args.tests or args.goal or args.profile != 'demo':
+        raise ValueError('--for roundtable uses --seats and --model, not --profile, --goal, --interpreter or --tests')
+    seats = (args.seats if args.seats is not None else 'claude,codex').split(',')
+    if not 2 <= len(seats) <= 3 or len(set(seats)) != len(seats) or any(
+            seat not in ('claude', 'codex', 'antigravity') for seat in seats):
+        raise ValueError('--seats requires two or three distinct adapters: claude,codex[,antigravity]')
+    models = seat_assignments(args.seat_models, seats, '--model')
+    for seat in seats:
+        if seat not in models:
+            raise ValueError(f'Missing explicit model ID for {seat}; add --model {seat}=YOUR_EXPLICIT_MODEL_ID')
+    efforts = seat_assignments(args.seat_efforts, seats, '--effort')
+    if any(seat != 'antigravity' for seat in efforts):
+        raise ValueError('--effort applies only to the antigravity seat')
+    if 'antigravity' in seats and 'antigravity' not in efforts:
+        raise ValueError('Antigravity needs explicit effort; add --effort antigravity=high (or low, medium, max)')
+    author = args.author if args.author is not None else seats[0]
+    if author not in seats:
+        raise ValueError('--author must name a selected seat')
+    roster = {}
+    for seat in seats:
+        roster[seat] = {'adapter': seat, 'identity': {
+            'provider': 'google-antigravity' if seat == 'antigravity' else seat,
+            'model': models[seat]}, 'timeout': args.timeout if args.timeout is not None else 120}
+        if seat in efforts:
+            roster[seat]['effort'] = efforts[seat]
+    config = {'schema_version': 1, 'question': args.question,
+              'author': dict(roster[author]['identity']), 'participants': roster,
+              'rounds': args.rounds if args.rounds is not None else 1}
+    project = project.resolve()
+    target = project / 'roundtable.json'
+    directory = (args.task_dir.expanduser().absolute() if args.task_dir is not None
+                 else project.with_name(project.name + '-roundtable'))
+    if directory.resolve().is_relative_to(project):
+        raise ValueError('Roundtable run state must be outside the source checkout; choose another --task-dir')
+    if directory.exists() or directory.is_symlink() or not directory.parent.is_dir():
+        raise ValueError('Roundtable needs a new run directory with an existing parent; choose another --task-dir')
+    existing = target.exists() or target.is_symlink()
+    if existing and not args.force:
+        raise ValueError(f'A roundtable config already exists at {target}; pass --force to replace it')
+    # The same configuration checks as prepare, followed only by local status probes.
+    # Missing/unknown host readiness remains advisory; it never changes the roster.
+    reports = preflight(config)
+    replaced = None
+    try:
+        if existing:
+            replaced = backup(target, 'roundtable config')
+        write_report(target, config)
+    except BaseException:
+        if replaced is not None:
+            # An interrupt may arrive after atomic replacement. Keep the backup
+            # unless the original bytes demonstrably survive in the target.
+            with contextlib.suppress(OSError):
+                if not target.is_symlink() and target.read_bytes() == Path(replaced).read_bytes():
+                    discard(Path(replaced))
+        raise
+    selected = args.scope or ['SELECTED_SOURCE_FILE']
+    paths = ' '.join(f'--path={quote(path)}' for path in selected)
+    command = (f'attune-harness roundtable prepare --project {quote(project)} {paths} '
+               f'--config {quote(target)} --run-dir {quote(directory)}')
+    print(json.dumps({'schema_version': 1, 'operation': 'init', 'status': 'created',
+                      'path': str(target), 'files': [str(target)], 'profile': None,
+                      'participants': seats, 'replaced': replaced, 'preflight': reports,
+                      'requires': {'allow_external': True, 'allow_native': True},
+                      'next_action': command}, indent=2))
+    return 0
+
+
 def execute(args) -> int:
     try:
         project = (args.project or Path.cwd()).absolute()
         if not project.is_dir():
             raise ValueError(f'Project is not a directory: {project}')
+        if args.starter == 'roundtable':
+            return execute_roundtable(args, project)
+        if any(value is not None for value in (args.question, args.seats, args.seat_models,
+                                               args.rounds, args.timeout, args.author, args.seat_efforts)):
+            raise ValueError('--question, --seats, --model, --rounds, --timeout, --author and --effort need --for roundtable')
         if args.starter == 'fix':
             if args.goal or args.task_dir:
                 raise ValueError('--goal and --task-dir need --for plan')

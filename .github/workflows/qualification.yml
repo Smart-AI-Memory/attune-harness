@@ -127,6 +127,14 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
+      - name: Create isolated Windows Python environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $libraryQualificationVenv = Join-Path $env:RUNNER_TEMP 'attune-library-venv'
+          python -m venv $libraryQualificationVenv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$libraryQualificationVenv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Build and install library
         shell: bash
         run: |
