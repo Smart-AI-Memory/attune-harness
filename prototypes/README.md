@@ -25,3 +25,38 @@ configured Codex CLI and consumes usage; publishing this source authorizes no ru
 The installed 1.3.0 companion is limited to draft intake and intent approval.
 Build grants, dispatch, resume and broader GUI controls remain deferred to 1.4.0.
 These retained prototypes do not qualify the installed release or human acceptance.
+
+## Reproduce the retained browser checks
+
+The public checks use Playwright's Chromium browser and an ephemeral loopback
+fixture host. The host implements only the presentation `widgetState` API used
+by the three fragments; it stores authored demo state in the browser session.
+It does not need generated preview wrappers or private session records.
+
+In a separate test environment, install Playwright and its Chromium browser:
+
+```sh
+python -m pip install playwright
+python -m playwright install chromium
+```
+
+From the repository root, run each check with a new output directory outside the
+checkout. Existing output directories are refused so older evidence stays intact.
+If `--output` is omitted, a new temporary directory is retained for the results.
+Each run prints its output directory. Optimized Python (`-O` or
+`PYTHONOPTIMIZE`) is refused because it disables the checks' assertions.
+
+```sh
+python prototypes/spec-workflow/verify.py --output ../prototype-checks/spec
+python prototypes/spec-workflow/review-use-cases.py --output ../prototype-checks/review
+python prototypes/refined-workspace/verify.py --output ../prototype-checks/refined
+python prototypes/session-continuity/verify.py --output ../prototype-checks/continuity
+```
+
+The scripts exercise validation, revision acceptance, context selection,
+opportunity drafts, session reconciliation, reload persistence and responsive
+layouts. [The retained spec review](spec-workflow/use-case-review.md) describes
+three observed scenario limitations that the review script reproduces.
+JSON results and screenshots are run artifacts and stay outside Git. These checks
+exercise a fixture host, not the original AI-host wrapper or a production memory
+service. They make no model calls and do not grant execution permission.

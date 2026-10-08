@@ -3,6 +3,17 @@ name: roundtable
 description: Consult two or three explicitly named model seats through the shared bounded Harness CLI.
 ---
 
+Start a new roster with `attune-harness init --for roundtable --question TEXT
+--model claude=EXPLICIT_MODEL_ID --model codex=EXPLICIT_MODEL_ID`. Add `--project`,
+selected `--scope` paths and an outside `--task-dir` for a concrete next prepare
+command. This writes `roundtable.json` and reports local preflight, without model
+calls or run state. Missing model IDs refuse; the default roster is claude,codex.
+For a third antigravity seat, pass its model and explicit `--effort antigravity=high`.
+Read the participant-schema mapping in `docs/model-consultation.md`; documentary
+review tools and turn settings are not consultation fields. Existing configs need
+`--force`, which keeps a backup. Resolve missing login/binaries and unknown model
+access before dispatch; successful configuration creation is not host readiness.
+
 Read the repository's authority and budget rules. Reuse the user's question,
 scope and configured participants; do not invent provider access or substitute
 models. Keep the chair's lean out of the first-round participant brief.
