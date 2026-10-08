@@ -67,6 +67,34 @@ is retained as cancelled with unknown effects; abandonment preserves the previou
 status. Read `status` explicitly: exit zero also covers prepared, paused and
 cancelled states.
 
+## Seat preflight before prepare
+
+Run the check before preparing either consultation:
+
+```sh
+attune-harness roundtable check --config "$CONFIG"
+attune-harness source-review check --config "$CONFIG"
+```
+
+The check validates the same configuration rules as `prepare`, including seat
+count, distinct provider/model pairs and rounds. It returns each participant's
+`state`, resolved `binary`, `version` when available, and `fix`. No run directory,
+contract, provider/model call or authority is created. Only native Claude/Codex
+version and local login-status commands are executed; configured command wrappers
+are never run. Authentication diagnostics and credentials are not printed.
+
+States are `ready`, `not_signed_in`, `missing_binary` or `unknown`. A recognized
+missing login reports `not_signed_in` for that seat only. A signed-in host still
+reports `unknown`: a local login report proves neither token freshness nor access
+to the configured model. `ready` is reserved for a free probe that proves model
+access; current probes supply no such proof. Antigravity and custom wrappers have
+no verified local auth/version probe here and stay `unknown` when found on PATH.
+No paid test or fallback is used to resolve uncertainty.
+
+Exit 2 means invalid configuration or a detected missing binary/login. Exit 0
+means the check found no such failure, and may still include `unknown` seats.
+Read every seat and its fix before `prepare`; the check grants no spend authority.
+
 ## Identity and evidence limits
 
 The author and selected provider/model pair are host declarations. Claude's
