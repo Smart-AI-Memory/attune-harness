@@ -16,6 +16,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Graphical companion specification](specs/graphical-companion/README.md): 1.3.0 browser forms boundary and broader 1.4.0 development contract
 - [Graphical companion progress](specs/graphical-companion/progress.md): Historical increments and remaining forms/1.4.0 qualification gaps
+- [Saved-request GUI journey](specs/saved-request-journey/README.md): Candidate intake, save/reopen, read-only accepted request and populated sample; execution remains separate
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
