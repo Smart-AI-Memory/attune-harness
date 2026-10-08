@@ -291,12 +291,35 @@ def inspect_evidence(directory):
 
 def assess_citation(directory, checkpoint, round_number, participant, citation, decision, note):
     """Append an explicit host judgment, preserving model answers and call authority."""
+    return assess_citations(directory, checkpoint, [{'round': round_number, 'participant': participant,
+                            'citation': citation, 'decision': decision, 'note': note}])
+
+
+def assess_citations(directory, checkpoint, decisions):
+    """Append host judgments made against one evidence view: all of them, or none."""
+    if not isinstance(decisions, list) or not decisions:
+        raise ValueError('Citation decisions require a non-empty list')
     store = RunStore(Path(directory), existing=True)
     with store.lease():
         record = load(directory)
         if record['checkpoint_digest'] != checkpoint:
             raise ValueError('Stale citation assessment checkpoint')
-        item = assessment(record, round_number, participant, citation, decision, note)
-        record.setdefault('citation_assessments', []).append(item)
+        existing = record.get('citation_assessments', [])
+        if len(existing) + len(decisions) > 128:
+            raise ValueError('Citation assessment bound reached')
+        items, seen = [], set()
+        for index, entry in enumerate(decisions):
+            try:
+                fields(entry, ('round', 'participant', 'citation', 'decision', 'note'))
+                item = assessment(record, entry['round'], entry['participant'], entry['citation'],
+                                  entry['decision'], entry['note'])
+                key = (item['round'], item['participant'], item['citation'])
+                if key in seen:
+                    raise ValueError('Duplicate citation selector in one batch')
+                seen.add(key)
+                items.append(item)
+            except ValueError as exc:
+                raise ValueError(f'Citation decision {index}: {exc}') from None
+        record['citation_assessments'] = existing + items
         store.save(record)
         return record
