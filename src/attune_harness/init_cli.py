@@ -452,10 +452,17 @@ def execute_roundtable(args, project: Path) -> int:
     # The same configuration checks as prepare, followed only by local status probes.
     # Missing/unknown host readiness remains advisory; it never changes the roster.
     reports = preflight(config)
-    replaced = backup(target, 'roundtable config') if existing else None
-    write_report(target, config)
+    replaced = None
+    try:
+        if existing:
+            replaced = backup(target, 'roundtable config')
+        write_report(target, config)
+    except BaseException:
+        if replaced is not None:  # backup copies; the old config stays until replacement
+            discard(Path(replaced))
+        raise
     selected = args.scope or ['SELECTED_SOURCE_FILE']
-    paths = ' '.join(f'--path {quote(path)}' for path in selected)
+    paths = ' '.join(f'--path={quote(path)}' for path in selected)
     command = (f'attune-harness roundtable prepare --project {quote(project)} {paths} '
                f'--config {quote(target)} --run-dir {quote(directory)}')
     print(json.dumps({'schema_version': 1, 'operation': 'init', 'status': 'created',

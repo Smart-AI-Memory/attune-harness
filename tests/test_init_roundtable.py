@@ -2,9 +2,15 @@
 # qualify: platform
 
 import json
+import os
+from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
+import attune_harness
+from attune_harness import init_cli
 from attune_harness import consultation_preflight as p
 from attune_harness.cli import main
 
@@ -119,6 +125,80 @@ def test_existing_config_force_and_backup_are_preserved(tmp_path, capsys):
     code, result = init(capsys, tmp_path, '--force')
     assert code == 2 and 'already exists' in result['error']['detail']
     assert target.read_bytes() == before
+
+
+@pytest.mark.parametrize('error', [OSError('synthetic full disk'), KeyboardInterrupt()])
+def test_failed_replacement_removes_its_backup_and_can_retry(tmp_path, capsys, monkeypatch, error):
+    target, backup = tmp_path / 'roundtable.json', tmp_path / 'roundtable.json.bak'
+    original = b'old config\n'
+    target.write_bytes(original)
+    with monkeypatch.context() as patch:
+        def failed_write(*args, **kwargs):
+            assert backup.read_bytes() == original
+            raise error
+        patch.setattr(init_cli, 'write_report', failed_write)
+        if isinstance(error, KeyboardInterrupt):
+            with pytest.raises(KeyboardInterrupt):
+                init(capsys, tmp_path, '--force')
+            capsys.readouterr()
+        else:
+            code, result = init(capsys, tmp_path, '--force')
+            assert code == 2 and result['error']['detail'] == 'synthetic full disk'
+    assert target.read_bytes() == original and not backup.exists()
+    code, result = init(capsys, tmp_path, '--force')
+    assert code == 0 and result['status'] == 'created'
+    assert backup.read_bytes() == original
+
+
+def test_preexisting_backup_is_never_removed_or_overwritten(tmp_path, capsys, monkeypatch):
+    target, backup = tmp_path / 'roundtable.json', tmp_path / 'roundtable.json.bak'
+    target.write_bytes(b'old config\n')
+    backup.write_bytes(b'retained backup\n')
+    monkeypatch.setattr(init_cli, 'write_report', lambda *args: pytest.fail('must refuse before write'))
+    code, result = init(capsys, tmp_path, '--force')
+    assert code == 2 and 'already exists' in result['error']['detail']
+    assert target.read_bytes() == b'old config\n' and backup.read_bytes() == b'retained backup\n'
+
+
+@pytest.mark.parametrize('name', ['-x', '-file with spaces.py', 'file with spaces.py'])
+def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, name):
+    project = tmp_path / 'source with spaces'
+    project.mkdir()
+    names = [name] if name.startswith('-') else [name, 'another file.py']
+    for selected in names:
+        (project / selected).write_text('selected synthetic source\n')
+    directory = tmp_path / 'run with spaces'
+    scope = [f'--scope={name}'] if name.startswith('-') else ['--scope', *names]
+    code, result = init(capsys, project, *scope, '--task-dir', str(directory))
+    assert code == 0
+    config = (project / 'roundtable.json').read_bytes()
+    # Execute the printed shell command unchanged through this test's actual
+    # source/wheel CLI, not whichever daily tool happens to be on the host PATH.
+    launchers = tmp_path / 'bin'
+    launchers.mkdir()
+    script = launchers / 'cli.py'
+    package_root = str(Path(attune_harness.__file__).parent.parent)
+    script.write_text(f'import sys\nsys.path.insert(0, {package_root!r})\n'
+                      'from attune_harness.cli import main\nraise SystemExit(main())\n')
+    if os.name == 'nt':
+        launcher = launchers / 'attune-harness.cmd'
+        launcher.write_text(f'@"{sys.executable}" "{script}" %*\n')
+    else:
+        launcher = launchers / 'attune-harness'
+        launcher.write_text(f'#!/bin/sh\nexec {init_cli.quote(sys.executable)} '
+                            f'{init_cli.quote(script)} "$@"\n')
+        launcher.chmod(0o700)
+    environment = {k: v for k, v in os.environ.items() if not k.startswith(
+        ('ANTHROPIC_', 'CLAUDE_CODE_OAUTH', 'CLAUDE_CODE_USE_', 'AWS_', 'GOOGLE_', 'OPENAI_'))}
+    environment.pop('PYTHONPATH', None)
+    environment['PATH'] = str(launchers) + os.pathsep + environment.get('PATH', '')
+    prepared = subprocess.run(result['next_action'], shell=True, cwd=tmp_path,
+                              env=environment, capture_output=True, text=True, timeout=30)
+    assert prepared.returncode == 0, prepared.stdout + prepared.stderr
+    assert json.loads(prepared.stdout)['status'] == 'prepared'
+    record = json.loads((directory / 'record.json').read_text())
+    assert record['events'] == [] and set(record['contract']['snapshot']['files']) == set(names)
+    assert (project / 'roundtable.json').read_bytes() == config
 
 
 def test_bad_run_location_refuses_without_writes(tmp_path, capsys):
