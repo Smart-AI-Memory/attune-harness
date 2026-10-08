@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- List the `roundtable` skill in the Claude Code marketplace entry. The skill
+  shipped in the v1.3.0 tag but the entry named only the Harness skill,
+  `cross-review` and `smart-test`, so Claude Code never loaded it.
+
 ## 1.3.0
 
 `plan` and `fix` start from a command: `init --for plan` and `init --for fix`

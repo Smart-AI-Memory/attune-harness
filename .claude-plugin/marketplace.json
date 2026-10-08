@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "attune-harness",
-      "description": "Run Attune Harness task workflows from Claude Code: plan, build, evidence review, scoped repair, testing a change, and inspecting or resuming saved tasks. Also includes independent cross-review and test-gap skills. Needs the attune-harness CLI from PyPI (uv tool install 'attune-harness[all]'); installing the plugin authorizes no paid calls.",
+      "description": "Run Attune Harness task workflows from Claude Code: plan, build, evidence review, scoped repair, testing a change, and inspecting or resuming saved tasks. Also includes independent cross-review, roundtable and test-gap skills. Needs the attune-harness CLI from PyPI (uv tool install 'attune-harness[all]'); installing the plugin authorizes no paid calls.",
       "source": {
         "source": "github",
         "repo": "Smart-AI-Memory/attune-harness",
@@ -38,6 +38,7 @@
       "skills": [
         "./.agents/skills/attune-harness",
         "./plugin/attune-harness/skills/cross-review",
+        "./plugin/attune-harness/skills/roundtable",
         "./plugin/attune-harness/skills/smart-test"
       ]
     }
