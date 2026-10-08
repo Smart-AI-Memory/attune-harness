@@ -2908,6 +2908,26 @@
       "--checkpoint"
      ]
     },
+    "check": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
+     ]
+    },
     "evidence": {
      "arguments": [
       {
@@ -3181,6 +3201,26 @@
      ],
      "required_options": [
       "--checkpoint"
+     ]
+    },
+    "check": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
      ]
     },
     "evidence": {
