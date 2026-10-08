@@ -1,10 +1,12 @@
 # Training walkthroughs for the next Harness candidate
 
-Local review draft. These GUI procedures describe the unmerged
-[saved-request candidate](https://github.com/Smart-AI-Memory/attune-harness/pull/243)
-at `0e1a285307b3f9593e504ba0139a3f9e8e83992a`. The next release's version,
-date and combined source commit have not been selected. The separate form
-guidance in #242 is absent from this candidate and its captures.
+Local review draft. These GUI procedures describe the
+[saved-request GUI](https://github.com/Smart-AI-Memory/attune-harness/pull/243)
+reviewed and qualified at `0e1a285307b3f9593e504ba0139a3f9e8e83992a`, now merged
+as signed squash `82cdff9379b62e1858eb44366d0923721ff037e5` with an identical
+complete tree. The next release's version, date and combined source commit have
+not been selected. The separate form guidance in #242 is absent from this
+tested tree and its captures.
 
 The [released 1.3.0 walkthroughs](tutorials-1.3.0.md) and their PowerPoint/HTML
 files retain their original instructions and evidence. This draft stages the
@@ -131,8 +133,8 @@ wording remains a recorded discrepancy, not current installation guidance.
 The GUI owner retained ten actual synthetic captures at installed source
 `a51460dfcd15701b36955d74a5e1324adc1a4f80`, unchanged in #243's final head
 `0e1a285307b3f9593e504ba0139a3f9e8e83992a`. Documentation-only `af34fe4` and
-the main prototype-check update change no browser source or tests. The capture
-manifest SHA-256 is `110b358caa4b3cafa85af611e0ead2e83d9b96314de6f3c3b8c2a5928b7386a8`;
+the main prototype-check update change no browser source or tests. The current
+capture manifest SHA-256 is `07065ac63bd783140dd9c7ab751d3848021248acbb1fc4c7783f9fe484b9097f`;
 the installed sample wheel SHA-256 is
 `b38c302de95cce80e528fe0d60f6b5e63bbbfbf7bd34369ba99598468671942e`.
 
@@ -143,6 +145,13 @@ Captured accepted revision 3 has no planning/build, and drift inspection
 preserves owner bytes. Captures 06/07 show accepted request and optional prompt
 details; 09/10 show the warning and retained historical answers. They exclude
 #242 hints.
+
+Patrick merged #243 on October 8, 2026 at 7:43 p.m. America/New_York. GitHub
+reports a valid signature on the squash. Its complete tree
+`9ef266723c972a7c8e61ec9440d81d94eeee29b6` equals the qualified head and CI
+synthetic tree. All twelve original receipt hashes and ten capture hashes
+remain unchanged. This reconciles the merge with existing evidence; no new
+post-merge main qualification or release claim follows from it.
 
 The tutorial owner independently walked both staged GUI procedures against the
 installed candidate, checking all 103 installed modules against the pinned
