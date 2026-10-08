@@ -143,7 +143,7 @@ For a consultation, use `init --for roundtable --question "Review the selected s
 with an explicit `--model claude=YOUR_CLAUDE_MODEL_ID` and
 `--model codex=YOUR_CODEX_MODEL_ID`. It writes `roundtable.json`, reports local
 seat preflight and prints the next prepare command. See the
-[roundtable starter and participant mapping](docs/model-consultation.md#initialize-a-roundtable).
+[roundtable starter and participant mapping](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/model-consultation.md#initialize-a-roundtable).
 
 ## What is qualified and what is not
 
