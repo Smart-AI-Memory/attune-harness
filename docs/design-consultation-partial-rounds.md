@@ -1,6 +1,6 @@
 # Design: parallel consultation rounds and partial outcomes (#233)
 
-Status: design note, before code. Revision 2, after a Codex review. Owner: Lane A (see the coordination brief
+Status: design note, before code. Revision 3: Codex review, then a delta re-review that resolved all nine findings and added one (`runtime_origin` on retry), fixed here. Owner: Lane A (see the coordination brief
 for #232–#236). Core path: the consultation run loop, its recovery journal and
 saved status.
 
@@ -80,7 +80,11 @@ A new `roundtable reconcile RUN --checkpoint DIGEST --round R --participant P
 - **One transition:** a consultation's failed turn is journaled as event
   `completed` with `result.status == 'failed'` (probe P1). The transition copies
   the event as `previous`, resets it to `prepared`/`pending`, increments `attempts`
-  exactly once, and removes the stale answer from `record['answers']`. It appends
+  exactly once, and removes `result`, `error`, `effects` and `runtime_origin`, as
+  `reconcile_record` does (recovery.py:345). Keeping an origin on a `prepared`
+  event fails `validate_events`. The removed values survive in `previous`. Attempt
+  2 captures a fresh origin at its own `begin`. The transition also removes the
+  stale answer from `record['answers']`. It appends
   `{event_id, checkpoint, previous, evidence}` to
   `record['recovery']['reconciliations']`, the same list the review path writes.
   The evidence carries `retry_basis` and the provenance text. The status becomes
@@ -117,6 +121,9 @@ admitted workers, each with a bound of its seat timeout plus a grace period:
   --retry-refused` for A: `paused`, attempt 2, history in
   `recovery.reconciliations`, then `run` calls A only and reaches `completed`.
 - A second reconcile of the same turn is refused with zero dispatches.
+- `load()` passes immediately after reconcile: no `runtime_origin`, `result` or
+  `error` on the reopened event, all of them preserved in `previous`. With a capture
+  policy present, attempt 2 records a fresh origin with `attempt == 2`.
 - Mixed candidates: one turn with its attempt cap exhausted next to a fresh one.
   Only the fresh one can reopen; the exhausted one refuses without mutating.
 - A round-2 refusal and retry: round-1 context is identical before and after.
