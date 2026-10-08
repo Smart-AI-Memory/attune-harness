@@ -30,11 +30,14 @@ def add_commands(sub):
         assess = verbs.add_parser('assess-citation', help='Record an advisory host decision; never dispatch')
         assess.add_argument('run_dir', type=Path)
         assess.add_argument('--checkpoint', required=True)
-        assess.add_argument('--round', dest='round_number', required=True, type=int)
-        assess.add_argument('--participant', required=True)
-        assess.add_argument('--citation', required=True, type=int, help='Zero-based evidence index')
-        assess.add_argument('--decision', required=True, choices=('supported', 'rejected', 'uncertain'))
-        assess.add_argument('--note', required=True)
+        assess.add_argument('--decisions', type=Path,
+                            help='JSON list of {round, participant, citation, decision, note}; '
+                                 'all are recorded or none. Replaces the single-decision options')
+        assess.add_argument('--round', dest='round_number', type=int)
+        assess.add_argument('--participant')
+        assess.add_argument('--citation', type=int, help='Zero-based evidence index')
+        assess.add_argument('--decision', choices=('supported', 'rejected', 'uncertain'))
+        assess.add_argument('--note')
         abandon = verbs.add_parser('abandon', help='Stop continuation while retaining uncertain effects')
         abandon.add_argument('run_dir', type=Path)
         abandon.add_argument('--checkpoint', required=True)
@@ -58,8 +61,17 @@ def execute(args):
             elif args.consultation_action == 'evidence':
                 result = consultation.inspect_evidence(args.run_dir)
             elif args.consultation_action == 'assess-citation':
-                result = consultation.assess_citation(args.run_dir, args.checkpoint, args.round_number,
-                    args.participant, args.citation, args.decision, args.note)
+                single = (args.round_number, args.participant, args.citation, args.decision, args.note)
+                if args.decisions is not None:
+                    if any(value is not None for value in single):
+                        raise ValueError('Use --decisions or the single-decision options, not both')
+                    decisions = parse_json(read_text(args.decisions, 524288), 524288)
+                    result = consultation.assess_citations(args.run_dir, args.checkpoint, decisions)
+                elif any(value is None for value in single):
+                    raise ValueError('A single decision needs --round, --participant, --citation, '
+                                     '--decision and --note')
+                else:
+                    result = consultation.assess_citation(args.run_dir, args.checkpoint, *single)
                 assessment_saved = True
             else:
                 result = current
