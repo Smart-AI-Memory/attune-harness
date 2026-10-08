@@ -60,9 +60,10 @@ jobs:
       - name: Create isolated Python environment
         shell: pwsh
         run: |
-          python -m venv .ci-venv
+          $qualificationVenv = Join-Path $env:RUNNER_TEMP 'attune-effects-venv'
+          python -m venv $qualificationVenv
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          (Resolve-Path .ci-venv/Scripts).Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          (Resolve-Path "$qualificationVenv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Build and install the isolated candidate
         shell: pwsh
         run: |
