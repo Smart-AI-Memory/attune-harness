@@ -139,6 +139,12 @@ form for an evidence review: the document, its evidence and who assesses it.
 Nothing here calls a model. CI runs these commands, as written, on every
 platform job.
 
+For a consultation, use `init --for roundtable --question "Review the selected source"`
+with an explicit `--model claude=YOUR_CLAUDE_MODEL_ID` and
+`--model codex=YOUR_CODEX_MODEL_ID`. It writes `roundtable.json`, reports local
+seat preflight and prints the next prepare command. See the
+[roundtable starter and participant mapping](docs/model-consultation.md#initialize-a-roundtable).
+
 ## What is qualified and what is not
 
 I would rather you find the limits here than in your own checkout. Green software

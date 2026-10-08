@@ -27,6 +27,57 @@ you have authorized:
 }
 ```
 
+## Initialize a roundtable
+
+Generate a consultation configuration with explicit models:
+
+```sh
+attune-harness init --for roundtable --project "$PROJECT" \
+  --question "Review the selected source boundary" --seats claude,codex \
+  --model claude=YOUR_EXPLICIT_CLAUDE_MODEL_ID \
+  --model codex=YOUR_EXPLICIT_CODEX_MODEL_ID --rounds 1 \
+  --scope src/example.py --task-dir "$RUN"
+```
+
+This writes only `$PROJECT/roundtable.json`, leaving `participants.json` intact.
+The selected roster defaults to `claude,codex`; it never switches seats or guesses
+a model ID from `--profile`, a login or PATH discovery. A missing model refuses
+with the exact `--model SEAT=YOUR_EXPLICIT_MODEL_ID` flag to add. The same checks
+as prepare validate the configuration before writing. Local preflight uses only
+the version/login checks and grants no provider, upload or spending authority.
+Missing binaries/login and unknown model access are advisory in the creation
+result: valid configuration creation exits 0 even when a host is unavailable.
+Inspect those reports and resolve them before running a consultation.
+
+`--timeout` defaults to 120 seconds per seat; `--rounds` defaults to 1.
+The author identity defaults to the first selected seat; `--author codex` selects
+another configured identity. A third `antigravity` seat needs its own `--model`
+and explicit `--effort antigravity=high` (or low, medium, max).
+`--task-dir` names the future run directory, outside the source with an existing
+parent; it is not created. Its default is the sibling `<project>-roundtable`.
+`--scope` supplies the repeated `--path` values in the next prepare command;
+without it, replace `SELECTED_SOURCE_FILE` with your selected regular source file.
+Prepare validates those source paths. This initializer creates no run or accepted
+contract and never dispatches a model. Existing `roundtable.json` needs `--force`,
+which preserves `roundtable.json.bak` and refuses to overwrite an earlier backup.
+
+To reuse identities from `participants.json`, copy these values explicitly into
+the initializer or consultation config. The initializer does not import a registry:
+
+| Registry field | Consultation seat field |
+| --- | --- |
+| `adapter` (`claude` or `codex`) | Same adapter; use it as the selected `--seats` name |
+| `model` | `identity.model`, supplied through `--model SEAT=MODEL` |
+| Native adapter | `identity.provider` equals the adapter; Antigravity uses `google-antigravity` |
+| `timeout` | `timeout`; set `--timeout` or edit each validated seat |
+| Codex `reasoning_effort` | Same optional field, when editing the configuration |
+| `tools`, `review_mode`, `max_turns`, `max_tool_calls`, `skills_context_tokens` | Documentary-review settings; do not copy into consultation seats |
+
+Registry participant names such as `lead` and `reviewer` can be the keys of a
+handwritten consultation's `participants` object. Its provider/model pairs must
+be distinct. Deterministic registry seats are not consultation adapters; command
+wrappers require the consultation's explicit identity, command and timeout.
+
 ## Seat preflight before prepare
 
 Run the check before preparing either consultation:
