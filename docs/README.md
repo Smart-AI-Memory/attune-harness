@@ -101,6 +101,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 | File | Title | Dated |
 | --- | --- | --- |
+| [forms-accessibility-assessment.md](forms-accessibility-assessment.md) | Browser form accessibility: WAI-informed gaps and acceptance checklist; no conformance claim | 2026-10-08 |
 | [design-codex-plugin.md](design-codex-plugin.md) | Codex plugin packaging | 2026-09-24 |
 | [design-codex-install-journey.md](design-codex-install-journey.md) | Self-contained Codex installation preparation | 2026-10-01 |
 | [design-a2a-increment.md](design-a2a-increment.md) | A2A local peer profile — design before implementation | 2026-09-14 |
