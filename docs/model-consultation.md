@@ -27,6 +27,34 @@ you have authorized:
 }
 ```
 
+## Seat preflight before prepare
+
+Run the check before preparing either consultation:
+
+```sh
+attune-harness roundtable check --config "$CONFIG"
+attune-harness source-review check --config "$CONFIG"
+```
+
+The check validates the same configuration rules as `prepare`, including seat
+count, distinct provider/model pairs and rounds. It returns each participant's
+`state`, resolved `binary`, `version` when available, and `fix`. No run directory,
+contract, provider/model call or authority is created. Only native Claude/Codex
+version and local login-status commands are executed; configured command wrappers
+are never run. Authentication diagnostics and credentials are not printed.
+
+States are `ready`, `not_signed_in`, `missing_binary` or `unknown`. A recognized
+missing login reports `not_signed_in` for that seat only. A signed-in host still
+reports `unknown`: a local login report proves neither token freshness nor access
+to the configured model. `ready` is reserved for a free probe that proves model
+access; current probes supply no such proof. Antigravity and custom wrappers have
+no verified local auth/version probe here and stay `unknown` when found on PATH.
+No paid test or fallback is used to resolve uncertainty.
+
+Exit 2 means invalid configuration or a detected missing binary/login. Exit 0
+means the check found no such failure, and may still include `unknown` seats.
+Read every seat and its fix before `prepare`; the check grants no spend authority.
+
 ```sh
 attune-harness source-review prepare --project "$PROJECT" --path src/example.py --config "$CONFIG" --run-dir "$RUN"
 attune-harness source-review status "$RUN"
@@ -88,6 +116,19 @@ checkout changes. The support state starts `unchecked`:
 attune-harness source-review evidence "$RUN"
 attune-harness source-review assess-citation "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --round 0 --participant reviewer --citation 0 --decision rejected --note "The cited line does not support the claim"
 ```
+
+To record several decisions made against one evidence view, pass a JSON list
+of `{round, participant, citation, decision, note}` objects instead of the
+single-decision options:
+
+```sh
+attune-harness source-review assess-citation "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --decisions decisions.json
+```
+
+The batch is recorded whole or not at all: one invalid entry, a repeated
+selector or a total over 128 refuses every entry, and the error names the
+zero-based entry. Each saved entry keeps the checkpoint you judged against, and
+the run's checkpoint advances once.
 
 Take the checkpoint and selectors from the current evidence view. Round and
 citation indexes are zero-based; displayed source lines are one-based. Decisions

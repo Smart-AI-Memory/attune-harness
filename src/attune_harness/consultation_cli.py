@@ -12,6 +12,8 @@ def add_commands(sub):
     for name in ('source-review', 'roundtable'):
         parser = sub.add_parser(name, help='Bounded model consultation over frozen selected source files')
         verbs = parser.add_subparsers(dest='consultation_action', required=True)
+        check = verbs.add_parser('check', help='Check configuration and local seats; no model calls')
+        check.add_argument('--config', type=Path, required=True)
         prepare = verbs.add_parser('prepare', help='Freeze scope and return the contract; no provider calls')
         prepare.add_argument('--project', type=Path, required=True)
         prepare.add_argument('--path', action='append', required=True)
@@ -30,11 +32,14 @@ def add_commands(sub):
         assess = verbs.add_parser('assess-citation', help='Record an advisory host decision; never dispatch')
         assess.add_argument('run_dir', type=Path)
         assess.add_argument('--checkpoint', required=True)
-        assess.add_argument('--round', dest='round_number', required=True, type=int)
-        assess.add_argument('--participant', required=True)
-        assess.add_argument('--citation', required=True, type=int, help='Zero-based evidence index')
-        assess.add_argument('--decision', required=True, choices=('supported', 'rejected', 'uncertain'))
-        assess.add_argument('--note', required=True)
+        assess.add_argument('--decisions', type=Path,
+                            help='JSON list of {round, participant, citation, decision, note}; '
+                                 'all are recorded or none. Replaces the single-decision options')
+        assess.add_argument('--round', dest='round_number', type=int)
+        assess.add_argument('--participant')
+        assess.add_argument('--citation', type=int, help='Zero-based evidence index')
+        assess.add_argument('--decision', choices=('supported', 'rejected', 'uncertain'))
+        assess.add_argument('--note')
         abandon = verbs.add_parser('abandon', help='Stop continuation while retaining uncertain effects')
         abandon.add_argument('run_dir', type=Path)
         abandon.add_argument('--checkpoint', required=True)
@@ -43,7 +48,17 @@ def add_commands(sub):
 def execute(args):
     assessment_saved = False
     try:
-        if args.consultation_action == 'prepare':
+        if args.consultation_action == 'check':
+            from .consultation_preflight import preflight
+            config = parse_json(read_text(args.config, 131072))
+            consultation.configuration(config, args.command)
+            participants = preflight(config)
+            print(json.dumps({'schema_version': 1, 'operation': args.command, 'status': 'checked',
+                              'participants': participants, 'authority': 'inspection_only',
+                              'model_calls': 0}, indent=2, allow_nan=False))
+            return 2 if any(seat['state'] in ('not_signed_in', 'missing_binary')
+                            for seat in participants.values()) else 0
+        elif args.consultation_action == 'prepare':
             config = parse_json(read_text(args.config, 131072))
             result = consultation.prepare(args.command, args.project, args.path, config, args.run_dir)
         else:
@@ -58,8 +73,17 @@ def execute(args):
             elif args.consultation_action == 'evidence':
                 result = consultation.inspect_evidence(args.run_dir)
             elif args.consultation_action == 'assess-citation':
-                result = consultation.assess_citation(args.run_dir, args.checkpoint, args.round_number,
-                    args.participant, args.citation, args.decision, args.note)
+                single = (args.round_number, args.participant, args.citation, args.decision, args.note)
+                if args.decisions is not None:
+                    if any(value is not None for value in single):
+                        raise ValueError('Use --decisions or the single-decision options, not both')
+                    decisions = parse_json(read_text(args.decisions, 524288), 524288)
+                    result = consultation.assess_citations(args.run_dir, args.checkpoint, decisions)
+                elif any(value is None for value in single):
+                    raise ValueError('A single decision needs --round, --participant, --citation, '
+                                     '--decision and --note')
+                else:
+                    result = consultation.assess_citation(args.run_dir, args.checkpoint, *single)
                 assessment_saved = True
             else:
                 result = current

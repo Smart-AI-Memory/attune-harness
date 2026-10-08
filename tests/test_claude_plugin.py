@@ -7,8 +7,8 @@ live on Claude Code 2.1.284). Claude Code reads the catalog from ``main``, so it
 changes only at a release, after the tag exists. Because the entry lists its
 skill folders, Claude Code loads
 exactly those and does not scan a default ``skills/``: the Harness skill from
-its one source, ``.agents/skills/attune-harness``, plus ``cross-review`` and
-``smart-test``. The Spec workspace skill, its MCP server and the two
+its one source, ``.agents/skills/attune-harness``, plus ``cross-review``,
+``roundtable`` and ``smart-test``. The Spec workspace skill, its MCP server and the two
 maintainer-only release skills stay out until their own gates land.
 
 Codex must not notice any of this. Codex reads ``.codex-plugin`` manifests and
@@ -31,7 +31,7 @@ MARKETPLACE = ROOT / '.claude-plugin' / 'marketplace.json'
 SKILL = ROOT / '.agents' / 'skills' / 'attune-harness'
 SHARED = ROOT / 'plugin' / 'attune-harness'
 PUBLISHED_SKILLS = ('./.agents/skills/attune-harness', './plugin/attune-harness/skills/cross-review',
-                    './plugin/attune-harness/skills/smart-test')
+                    './plugin/attune-harness/skills/roundtable', './plugin/attune-harness/skills/smart-test')
 
 
 def version():

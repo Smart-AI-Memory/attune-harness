@@ -2852,6 +2852,14 @@
       {
        "choices": null,
        "default": null,
+       "name": "decisions",
+       "option_strings": [
+        "--decisions"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
        "name": "note",
        "option_strings": [
         "--note"
@@ -2885,6 +2893,7 @@
       "--checkpoint",
       "--citation",
       "--decision",
+      "--decisions",
       "--note",
       "--participant",
       "--round"
@@ -2896,12 +2905,27 @@
       }
      ],
      "required_options": [
-      "--checkpoint",
-      "--citation",
-      "--decision",
-      "--note",
-      "--participant",
-      "--round"
+      "--checkpoint"
+     ]
+    },
+    "check": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
      ]
     },
     "evidence": {
@@ -3123,6 +3147,14 @@
       {
        "choices": null,
        "default": null,
+       "name": "decisions",
+       "option_strings": [
+        "--decisions"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
        "name": "note",
        "option_strings": [
         "--note"
@@ -3156,6 +3188,7 @@
       "--checkpoint",
       "--citation",
       "--decision",
+      "--decisions",
       "--note",
       "--participant",
       "--round"
@@ -3167,12 +3200,27 @@
       }
      ],
      "required_options": [
-      "--checkpoint",
-      "--citation",
-      "--decision",
-      "--note",
-      "--participant",
-      "--round"
+      "--checkpoint"
+     ]
+    },
+    "check": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "config",
+       "option_strings": [
+        "--config"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--config"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--config"
      ]
     },
     "evidence": {

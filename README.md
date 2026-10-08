@@ -71,7 +71,8 @@ For an **Attune Harness** entry in Codex Plugins, use the
 another project. Installing the Python package alone installs neither integration.
 
 In **Claude Code**, add this repository as a plugin marketplace, then install the
-plugin. It carries the Harness skill plus `cross-review` and `smart-test`, and
+plugin. It carries the Harness skill plus `cross-review`, `roundtable` and
+`smart-test`, and
 it calls the `attune-harness` command installed above:
 
 ```text

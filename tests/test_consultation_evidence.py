@@ -208,3 +208,101 @@ def test_assessed_answer_survives_cancellation_during_saved_replay(tmp_path, mon
     assert retained['citation_assessments'] == assessed['citation_assessments']
     assert c.inspect_evidence(directory)['claims'][1]['support'] == 'rejected'
     assert len(calls) == 2
+
+
+def assessed_roundtable(tmp_path):
+    from attune_harness import consultation as c
+    from test_consultation import prepared, completed
+
+    _, directory, initial = prepared(tmp_path, 'roundtable')
+    def dispatcher(*args):
+        result = completed()
+        result['answer']['evidence'] = [{'path': 'x.py', 'line': 1, 'detail': 'Assignment'}]
+        return result
+    c.run(directory, initial['contract_digest'], allow_external=True, dispatcher=dispatcher)
+    return directory, c.load(directory)
+
+
+def batch(record, decision='rejected'):
+    return [{'round': a['round'], 'participant': a['participant'], 'citation': 0, 'decision': decision,
+             'note': f'Checked {a["participant"]}'} for a in record['answers']]
+
+
+def test_batch_assessment_appends_all_against_one_checkpoint(tmp_path, capsys):
+    import json
+    from attune_harness import consultation as c
+    from attune_harness.cli import main
+
+    directory, before = assessed_roundtable(tmp_path)
+    decisions = batch(before)
+    assert len(decisions) == len(before['answers']) == 4  # two seats, two rounds
+    path = tmp_path / 'decisions.json'
+    path.write_text(json.dumps(decisions), encoding='utf-8')
+    assert main(['roundtable', 'assess-citation', str(directory), '--checkpoint', before['checkpoint_digest'],
+                 '--decisions', str(path)]) == 0
+    capsys.readouterr()
+    after = c.load(directory)  # The saved batch passes owner validation.
+    assert after['answers'] == before['answers'] and after['events'] == before['events']
+    assert [(i['participant'], i['decision']) for i in after['citation_assessments']] == \
+        [(d['participant'], 'rejected') for d in decisions]
+    assert {i['prior_checkpoint'] for i in after['citation_assessments']} == {before['checkpoint_digest']}
+    assert {row['support'] for row in c.inspect_evidence(directory)['claims']} == {'rejected'}
+    # One advance: the pre-batch checkpoint is now stale for a second batch.
+    assert main(['roundtable', 'assess-citation', str(directory), '--checkpoint', before['checkpoint_digest'],
+                 '--decisions', str(path)]) == 2
+    assert 'Stale' in json.loads(capsys.readouterr().out)['error']['detail']
+
+
+@pytest.mark.parametrize('mutate,message', [
+    (lambda d: d[1].update(participant='unknown'), 'Citation decision 1: Unknown saved citation'),
+    (lambda d: d.append(dict(d[0])), 'Citation decision 4: Duplicate citation selector'),
+    (lambda d: d[0].update(extra=True), 'Citation decision 0: Expected fields'),
+    (lambda d: d[1].update(note=''), 'Citation decision 1:'),
+    (lambda d: d[0].update(round=True), 'Citation decision 0: Citation selectors must be integers'),
+    (lambda d: d.clear(), 'non-empty list'),
+])
+def test_one_invalid_entry_refuses_the_whole_batch(tmp_path, capsys, mutate, message):
+    import json
+    from attune_harness.cli import main
+
+    directory, before = assessed_roundtable(tmp_path)
+    decisions = batch(before)
+    mutate(decisions)
+    path = tmp_path / 'decisions.json'
+    path.write_text(json.dumps(decisions), encoding='utf-8')
+    saved = (directory / 'record.json').read_bytes()
+    assert main(['roundtable', 'assess-citation', str(directory), '--checkpoint', before['checkpoint_digest'],
+                 '--decisions', str(path)]) == 2
+    refused = json.loads(capsys.readouterr().out)
+    assert refused['status'] == 'refused' and message in refused['error']['detail']
+    assert (directory / 'record.json').read_bytes() == saved
+
+
+def test_batch_counts_toward_the_assessment_bound(tmp_path):
+    from attune_harness import consultation as c
+
+    directory, record = assessed_roundtable(tmp_path)
+    first = batch(record)[0]
+    for _ in range(127):
+        record = c.assess_citations(directory, record['checkpoint_digest'], [first])
+    saved = (directory / 'record.json').read_bytes()
+    with pytest.raises(ValueError, match='bound'):
+        c.assess_citations(directory, record['checkpoint_digest'], batch(record))
+    assert (directory / 'record.json').read_bytes() == saved
+    assert len(c.assess_citations(directory, record['checkpoint_digest'], [first])['citation_assessments']) == 128
+
+
+@pytest.mark.parametrize('extra,message', [(['--note', 'Also single'], 'not both'), ([], 'needs --round')])
+def test_cli_single_and_batch_options_are_exclusive(tmp_path, capsys, extra, message):
+    import json
+    from attune_harness.cli import main
+
+    directory, before = assessed_roundtable(tmp_path)
+    path = tmp_path / 'decisions.json'
+    path.write_text(json.dumps(batch(before)), encoding='utf-8')
+    args = ['roundtable', 'assess-citation', str(directory), '--checkpoint', before['checkpoint_digest']]
+    args += ['--decisions', str(path), *extra] if extra else ['--participant', 'x']
+    saved = (directory / 'record.json').read_bytes()
+    assert main(args) == 2
+    assert message in json.loads(capsys.readouterr().out)['error']['detail']
+    assert (directory / 'record.json').read_bytes() == saved
