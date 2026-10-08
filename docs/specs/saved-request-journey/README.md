@@ -93,4 +93,9 @@ A named real-task trial by Patrick or a collaborator remains necessary to
 establish comprehension and usefulness. Synthetic software/capture evidence
 cannot supply that observation. The article/post follows that trial and reports
 observed benefit, confusion and recovery. Publication is a separate decision.
-Completion review: pending until the implementation evidence handoff.
+Completion review is complete for this bounded source increment. The changed
+vantage reveals a recovery-guidance opportunity: a readable historical request
+still needs a clear next step when its inputs change. A task-local opportunity
+draft records that observation and the need to test it with a real user; it
+authorizes no additional implementation. Real-task observation, combined-candidate
+qualification and release decisions remain open as described above.

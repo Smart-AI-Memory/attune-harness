@@ -71,7 +71,7 @@ the task's authoritative record. Do not silently replay the previous submission.
 In a candidate with saved-request inspection, View saved request / View accepted
 request opens a read-only summary of that owner revision. A stale-input warning
 means its acceptance is historical; inspect before continuing. This addition is
-not a claim about the released 1.3.0 interface.
+not a claim about a published runtime that lacks saved-request inspection.
 Unsaved typing is not guaranteed to survive tab closure; copy it before closing.
 
 After the listener stops, its old launcher is invalid. Start a new listener for
