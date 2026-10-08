@@ -22,7 +22,7 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
     assert 'client regressions passed' in result.stdout
 
 
-@pytest.mark.parametrize('script', [FORM_SCRIPT, INTAKE_SCRIPT])
+@pytest.mark.parametrize('script', [FORM_SCRIPT, INTAKE_SCRIPT], ids=['development', 'intake'])
 def test_shipped_browser_form_instructions(tmp_path, script):
     node = shutil.which('node')
     assert node, 'GUI client verification requires Node.js; install Node and rerun (no skip).'

@@ -12,6 +12,7 @@ async function setup(){
   refresh:async()=>true,clearTimeout(){},fetch:async(path,opts)=>{
    calls.push({path,opts});assert(queue.length,`Unexpected request ${path}`);const next=queue.shift();
    if(next instanceof Error)throw next;
+   if(typeof next==='function')return next();
    return {ok:next.ok!==false,text:async()=>next.error||'409 conflict',json:async()=>next};
   }});
  vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);await flush();
@@ -65,5 +66,15 @@ function verify(h){
  const after=h.calls.length;form.onsubmit({preventDefault(){}});await flush();assert.equal(h.calls.length,after,'expired form never replays');
  const current={...shown,checkpoint:'fresh-cp',decision:'fresh-decision'};h.run(`renderDecision(${JSON.stringify(current)})`);verify(h);
  assert(h.calls.every(c=>['/workspace','/decision/submit'].includes(c.path)),'guidance never grants execution');
+ // A second event while the first POST is unresolved must not duplicate it.
+ const pending=await setup();pending.run(`renderDecision(${JSON.stringify(shown)})`);
+ const pendingForm=pending.panel.querySelector('form');pendingForm.querySelector('textarea').value='One explicit answer';let resolvePost;
+ pending.queue.push(()=>new Promise(resolve=>resolvePost=resolve));
+ pendingForm.onsubmit({preventDefault(){}});await flush();
+ pendingForm.onsubmit({preventDefault(){}});await flush();
+ assert.equal(pending.calls.filter(c=>c.path==='/decision/submit').length,1,'unresolved submission is never duplicated');
+ assert(pendingForm.querySelector('button').disabled);
+ pending.queue.push({editable:true,tasks:[]});resolvePost({ok:true,json:async()=>({message:'Answers saved'})});await flush();
+ assert.equal(pending.calls.filter(c=>c.path==='/decision/submit').length,1);
  console.log('client regressions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
