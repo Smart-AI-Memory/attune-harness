@@ -1,6 +1,6 @@
 # Design: parallel consultation rounds and partial outcomes (#233)
 
-Status: design note, before code. Owner: Lane A (see the coordination brief
+Status: design note, before code. Revision 2, after a Codex review. Owner: Lane A (see the coordination brief
 for #232–#236). Core path: the consultation run loop, its recovery journal and
 saved status.
 
@@ -26,80 +26,113 @@ seat timeouts: up to 3 × 300 s per round.
 
 ## Decisions
 
-**D1. Seats within a round run concurrently. Bookkeeping stays on one thread.**
-`RecoveryCursor.perform` is split into `begin(key, …)` (create the event and make
-the `dispatching` phase durable) and `finish(key, result)` (record completion).
-`perform` becomes `begin`, then call, then `finish`, with identical behavior, so
-review recovery code is untouched. For each round, the run loop:
+Revised 2026-10-08 after a Codex review (`source-review`, verdict
+`request_changes`, nine citations, all checked against the source). The revision
+adopts the existing refused-turn retry in `recovery.reconcile_record`
+(recovery.py:322-366) instead of inventing a weaker one.
 
-- `begin`s every pending seat in configuration order, on the main thread;
-- runs only `dispatcher(...)` on worker threads, which never touch the record;
-- `finish`es results in configuration order, on the main thread.
+**D1. Seats within a round run concurrently, within an admitted budget.
+Bookkeeping stays on one thread.**
 
-The saved record is the same whichever seat finishes first. Concurrency width is
-the number of seats, or the remaining `max_operations` budget when one is set.
-So `--max-operations 1` keeps today's exact one-saved-turn pause.
+- **Admission comes before `begin`.** For each round, the loop first replays
+  completed turns (no call, no budget use). It then admits the first *k* pending
+  seats in configuration order, where *k* is the remaining `max_operations` budget,
+  or all seats when none is set. Only admitted seats reach `begin`. Seats outside
+  the admission are never marked `dispatching`, so a pause never strands a
+  never-called seat as unresolved.
+- **The split keeps every `perform` branch.** `RecoveryCursor.perform` is split
+  into `begin` (replay check, request-mismatch and unresolved-phase rejection,
+  event creation, dispatch-origin capture, durable `dispatching`) and `finish` /
+  `fail` (the success save, and the existing exception path with effects and
+  native evidence). The pause check moves to the caller, which `finish`es every
+  admitted result before raising `ReviewPaused`. `perform` keeps its exact
+  behavior as `begin`, then call, then `finish`/`fail`, then the pause check,
+  including the `Exception` versus `BaseException` split. Existing review callers
+  get regression tests, including replay under an operation limit.
+- Worker threads run only `dispatcher(...)`. `finish` runs on the main thread in
+  configuration order, so the saved record doesn't depend on finish order.
+  `--max-operations 1` admits one seat, which is today's behavior.
 
-**D2. Rounds stay sequential, and round 2 needs a complete round 1.** The
-documented promise ("second-round seats receive only the completed preceding
-round") is unchanged. If any seat in a round fails, the run stops after that
-round instead of after that seat.
+**D2. Rounds stay sequential, and round 2 needs a complete round 1.** Unchanged
+from the first draft. A failure stops the run after its round, not after its seat.
 
-**D3. A new status, `partial`.** At the end of a stopped round: at least one
-completed turn gives `partial`; none gives `failed`. All answers are kept in
-configuration order. `partial` exits 2, like `failed`, because not every seat
-answered. The JSON envelope grows one status value (additive, with a changelog
-line), and `status`/`evidence` report it.
+**D3. A new status, `partial`.** Unchanged: at least one completed turn in the
+stopped round gives `partial`, otherwise `failed`. Both exit 2.
 
-**D4. `effects: 'none'` only where the evidence proves no call ran.**
-`dispatch()` classifies a failed turn as `effects: 'none'` in exactly these cases,
-and `'unknown'` otherwise:
+**D4 (revised). No new `effects` value; record retry evidence instead.** Every
+failed turn keeps `effects: 'unknown'`. `dispatch()` adds a `retry_basis` to the
+error only in these cases, as evidence for an operator, not a claim of no call:
 
-| Evidence | Why it proves no model call |
-|---|---|
-| `failure` is `not_found` or `launch_failed` | `Popen` raised. P3: `returncode None`, so the process never started. |
-| `refusal.kind == 'claude_structured_error'` | The CLI exited with its own error result and `modelUsage == {}` (`native.claude_refusal`). |
+| `retry_basis` | Condition | What it does and doesn't show |
+|---|---|---|
+| `not_launched` | `failure in ('not_found', 'launch_failed')` **and** `returncode is None` | The launch raised before a process existed. The post-supervision `job.launch_failure()` path on Windows (process.py:116) has a return code, so it is excluded. Windows launch-raise provenance is qualified only by its own CI jobs. |
+| `cli_refusal` | `refusal.kind == 'claude_structured_error'` | The CLI exited with its own error result and **no reported** model usage. It does not prove no request was made, so usage may repeat (the existing provenance wording, recovery.py:347-348). |
 
-`cancelled_before_start` stays `status: 'cancelled'`, as now. Codex reports no
-equivalent structured refusal, so a Codex sign-in failure stays `unknown`. #232's
-preflight is the remedy there, not optimistic classification.
+**D5 (revised). Retry is an explicit operator action, reusing the reconcile pattern.**
+A new `roundtable reconcile RUN --checkpoint DIGEST --round R --participant P
+--retry-refused` (and the `source-review` twin). It never runs automatically, and
+`run` alone never retries.
 
-**D5. One retry, only for turns that provably made no call.** `run` with the same
-accepted digest may continue a `partial` or `failed` run only when **every**
-non-completed turn of the stopped round has `effects: 'none'`. Otherwise it
-refuses as terminal, as today.
+- **Gate, checked before any mutation:** the stopped round's turn exists, its saved
+  result is `failed` with a `retry_basis`, the run is `partial` or `failed`, and
+  `attempts < 2`. Anything else refuses with zero dispatches. The cap is checked
+  here explicitly, not left to `load()`.
+- **One transition:** a consultation's failed turn is journaled as event
+  `completed` with `result.status == 'failed'` (probe P1). The transition copies
+  the event as `previous`, resets it to `prepared`/`pending`, increments `attempts`
+  exactly once, and removes the stale answer from `record['answers']`. It appends
+  `{event_id, checkpoint, previous, evidence}` to
+  `record['recovery']['reconciliations']`, the same list the review path writes.
+  The evidence carries `retry_basis` and the provenance text. The status becomes
+  `paused`.
+- **Then** `run` with the same accepted digest replays completed turns and calls
+  only the reopened seat.
+- **Budget, stated honestly:** the contract's `max_calls` bounds first attempts.
+  Each retry is a separate operator-authorized call, at most one per turn, and its
+  usage may repeat. `status` reports total attempts per turn.
 
-- A retry moves the event to attempt 2. The prior attempt goes into the event's
-  existing `reconciliations` history, with `reason: 'refused_before_start'`.
-  P2: `load()` accepts attempt 2 with that history and refuses attempt 3, so the
-  existing journal bound caps it at one retry per turn.
-- Completed turns replay without a call.
-- The contract's `max_calls` is unchanged: a retried turn's first attempt made
-  no model call by D4's evidence.
+**D6 (revised). Interrupts and cancellation separate three worker outcomes.** On
+`KeyboardInterrupt`, the main thread sets the shared cancel event and joins
+admitted workers, each with a bound of its seat timeout plus a grace period:
 
-**D6. Interrupts.** On `KeyboardInterrupt` the main thread sets the shared cancel
-event, which makes each worker's `invoke` stop its process group. It joins the
-workers, `finish`es those that returned, and leaves the rest in `dispatching`.
-The status is `unresolved` and effects unknown, as today. An exception raised
-inside a worker, outside `dispatch()`'s own catch, is re-raised on the main
-thread after the join, so it also leaves the run `unresolved`.
+- **Returned a result:** `finish`, as normal. A cancelled `invoke` returns
+  `cancelled_effects_unknown`, which `dispatch()` turns into a `cancelled` result
+  journaled as completed. The run status is `cancelled`, as today.
+- **Raised outside `dispatch()`'s catch:** `fail` with effects unknown, then
+  re-raise on the main thread. The run is `unresolved`.
+- **Still alive after the join bound:** left `dispatching`. The run is
+  `unresolved` and resume refuses until reconciled.
 
 ## Cases the tests must drive
 
-- All seats complete, in rounds 1 and 2: `completed`, same saved bytes in
-  either finish order (stub seats with reversed sleep times).
-- Seat A refused (`claude_structured_error`), B completes: `partial`, B's answer
-  kept, round 2 not run. A same-digest `run` retries A only (attempt 2), B is
-  not called again, and the run reaches `completed`.
-- Seat A `timeout_effects_unknown`, B completes: `partial`, and a retry is refused.
-- A refused **and** C unknown in one round: retry refused (D5 "every").
-- All seats `not_found`: `failed`, and a retry is allowed.
-- A second retry of the same turn: refused (attempt cap).
-- `--max-operations 1`: pauses after one saved turn, with no concurrency.
-- Interrupt mid-round: `unresolved`, the finished turn kept, the others in
-  `dispatching`. Resume refuses until reconciled.
-- Exit codes: `partial` and `failed` exit 2; existing statuses are unchanged.
-- Old records (all `effects: 'unknown'`) load unchanged, and a retry is refused.
+- Real overlap: two stub seats meet at a `threading.Barrier`, so the test hangs
+  if dispatch is serial. Same saved bytes in either finish order, with UUIDs and
+  process diagnostics controlled.
+- `--max-operations 1` and `2`: admission bound, pause after `finish`ing every
+  admitted result, then continuing across a round boundary and after replay. No
+  seat outside the admission is marked `dispatching`.
+- Existing review callers of `perform`: replay, mismatch rejection, the exception
+  path with native evidence, and pause after save are all unchanged.
+- Seat A `cli_refusal`, B completes: `partial`, round 2 not run. `reconcile
+  --retry-refused` for A: `paused`, attempt 2, history in
+  `recovery.reconciliations`, then `run` calls A only and reaches `completed`.
+- A second reconcile of the same turn is refused with zero dispatches.
+- Mixed candidates: one turn with its attempt cap exhausted next to a fresh one.
+  Only the fresh one can reopen; the exhausted one refuses without mutating.
+- A round-2 refusal and retry: round-1 context is identical before and after.
+- `timeout_effects_unknown` (no `retry_basis`): reconcile refused.
+- `not_launched` with `not_found`, and with `launch_failed`.
+- Negative refusal cases: non-empty or missing `modelUsage`, any
+  `structured_output`, and a supervision failure with refusal-shaped stdout all
+  give no `retry_basis`.
+- A worker exception next to a successful sibling: the sibling is kept and the
+  run is `unresolved`.
+- Cancellation set before dispatch, cancellation during launch, and an interrupt
+  mid-round, covering all three D6 outcomes.
+- A crash after `begin`, and after the reconcile transition but before `run`:
+  resume behavior matches the saved phase.
+- Exit codes: `partial` and `failed` exit 2; existing statuses are unchanged. Old
+  records load unchanged, and reconcile refuses them (no `retry_basis`).
 
 ## Experiments run (disposable, scratch)
 
@@ -108,7 +141,9 @@ thread after the join, so it also leaves the run `unresolved`.
   `completed` with `result.status == 'failed'`, so D5 has to reopen the event
   rather than add a new one.
 - P2: on a real consultation record, attempt 2 with `reconciliations`, `prepared`
-  phase. `load()` accepts it. Attempt 3: `Invalid saved attempt count`.
+  phase. `load()` accepts it. Attempt 3: `Invalid saved attempt count`. This only
+  proves the load-time shape check. The retry gate checks the cap itself before
+  mutating (D5).
 - P3: `invoke` of a missing binary gives `not_found`; of a directory path,
   `launch_failed`. Both have `returncode None`.
 
@@ -118,6 +153,11 @@ thread after the join, so it also leaves the run `unresolved`.
   concurrency. Finer locks would need `perform` to be lock-aware anyway.
 - **A process pool:** turns are already subprocesses waiting on I/O, so threads
   suffice and keep cancellation in-process.
+- **Classifying a Claude refusal as "no call"** (first draft): `claude_refusal`
+  shows no *reported* usage, not that no request happened. The review path
+  already says usage may repeat.
+- **Automatic retry on `run`** (first draft): retries spend again, so they stay
+  operator-authorized, as `reconcile_record`'s `retry_refused` already is.
 - **Retrying any failed seat:** it would re-send frozen source after a call of
   unknown effect. That breaks "no automatic retries" in spirit, and the cost
   can't be accounted for.
@@ -128,9 +168,10 @@ thread after the join, so it also leaves the run `unresolved`.
 
 ## Files
 
-`src/attune_harness/recovery.py` (the `begin`/`finish` split, with `perform`
-unchanged), `src/attune_harness/consultation.py` (`run`, `dispatch`
-classification, and the retry gate), `src/attune_harness/consultation_cli.py`
-(the exit code for `partial`), `tests/test_consultation.py`, a compatibility
-fixture if the envelope test pins statuses, `docs/model-consultation.md`, the
-roundtable `SKILL.md`, and `CHANGELOG.md`.
+`src/attune_harness/recovery.py` (the `begin`/`finish`/`fail` split, with
+`perform` unchanged), `src/attune_harness/consultation.py` (`run`, the `dispatch`
+`retry_basis`, and a consultation `reconcile`), `src/attune_harness/consultation_cli.py`
+(a `reconcile` verb and the `partial` exit code; this is a new parser beside
+Lane B's `check`, so whichever merges second rebases), `tests/test_consultation.py`,
+`tests/test_recovery*.py` regressions, the compatibility fixture, `docs/model-consultation.md`,
+the roundtable `SKILL.md`, and `CHANGELOG.md`.
