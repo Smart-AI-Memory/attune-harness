@@ -15,6 +15,14 @@ most 20 distinct tasks by repeating --task. Resolve relative paths first. Add
 --edit only when the user's intent covers answering intake or recording explicit
 intent decisions. Never add --allow-build-commands as part of opening a form.
 
+If the user starts with an idea and has no saved draft, prepare it through the
+existing plan/work owner using the actual project, supplied scope and configured
+participants; follow the plan/build workflow reference. Leave missing material
+intent unanswered rather than inventing it. Preparation creates a draft, not
+acceptance or dispatch. The source checkout's
+docs/specs/saved-request-journey/README.md contains the owner walk and a synthetic
+training example; do not treat the sample as the user's real task.
+
 ## Open in the host
 
 Run the server as a retained process. Structured mode emits one JSON startup
@@ -60,6 +68,10 @@ companion can render directly in the built-in browser.
 While the same listener is running, reopen its same private launch URL. Refresh
 saved state and deliberately open the current form. Saved answers are read from
 the task's authoritative record. Do not silently replay the previous submission.
+In a candidate with saved-request inspection, View saved request / View accepted
+request opens a read-only summary of that owner revision. A stale-input warning
+means its acceptance is historical; inspect before continuing. This addition is
+not a claim about the released 1.3.0 interface.
 Unsaved typing is not guaranteed to survive tab closure; copy it before closing.
 
 After the listener stops, its old launcher is invalid. Start a new listener for

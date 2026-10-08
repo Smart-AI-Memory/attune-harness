@@ -55,6 +55,21 @@ class Decisions:
         return ("Continue form" if missing_information(record["request"])
                 else "Review your answers")
 
+    @staticmethod
+    def _saved_request(record):
+        """Project retained intent for inspection; never open a decision or grant."""
+        request = record["request"]
+        try:
+            check_work_fresh(record)
+            fresh, note = True, ""
+        except (ValueError, OSError) as exc:
+            fresh, note = False, str(exc)
+        return {"task_id": request["task_id"], "revision": request["revision"],
+                "checkpoint": record["checkpoint_digest"], "intent": request["intent"],
+                "choices": request["choices"], "authoring": request["authoring"],
+                "fresh": fresh, "freshness_note": note,
+                "accepted": record["acceptance"] is not None}
+
     def inspect(self):
         result = []
         for task in self.tasks:
@@ -63,9 +78,14 @@ class Decisions:
                 item = {"task": task, "checkpoint": record["checkpoint_digest"],
                         "label": record.get("request", {}).get("intent", {}).get("goal") or "Unfinished draft",
                         "status": record["status"], "heading": "Saved task", "available": False}
+                if record["task_profile"] == PROFILE:
+                    item["saved_request"] = self._saved_request(record)
                 if record["task_profile"] == PROFILE and record["status"] == "accepted":
                     item["heading"] = "Intent accepted"
                     item["note"] = "Intake and intent review are complete. No further intent form is needed; execution remains separate."
+                    if not item["saved_request"]["fresh"]:
+                        item["heading"] = "Accepted intent — inputs changed"
+                        item["note"] = "This saved acceptance is historical. Inspect changed inputs before continuing; execution remains separate."
                 else:
                     if record["task_profile"] == PROFILE and record["status"] == "draft":
                         item["heading"] = "Draft saved"
