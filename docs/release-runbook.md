@@ -62,6 +62,17 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    users from `main`, and it points at a release tag that does not exist yet
    (step 9). Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.
+   **Documentation readiness is part of preparation for every new version
+   publication.** Update affected official topics and their help, tutorial and
+   deck derivatives against the candidate's code and reproducible tests. Record
+   the tested version, examples, expected results, limits and checked links;
+   distinguish changed content from unchanged content explicitly reviewed for
+   this version. Retain or explicitly supersede relevant older-version guidance.
+   Use the small [documentation readiness record](#documentation-readiness),
+   coordinate with each content owner, and include it in the release PR evidence
+   before requesting publication. Link/build checks support this review; they
+   do not establish that a walkthrough is semantically correct. A website/help
+   publication remains a separately authorized outward step.
 2. **Merge.** The squash commit on `main` is the release SHA. Use all 40
    characters everywhere below.
 3. **Wait for qualification on that SHA.** The push to `main` starts it. The
@@ -104,6 +115,66 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    update, because the version changed.
 10. **Reopen development.** A pull request moves `main` to the next `.dev0`
    version, so a build from `main` cannot be mistaken for the release.
+
+## Documentation readiness
+
+Official documentation must be updated with each new version publication.
+Complete this small record during the release runbook's preparation step, before
+requesting publication. Use the release PR description or its linked review
+artifact; no new workflow or release system is required.
+
+### Ground the review
+
+Versioned code and reproducible tests establish the behavior an instruction can
+claim. Approved project policies and the style guide govern requirements and
+presentation. Project-specific approved exceptions take precedence over general
+[Google developer documentation guidance](https://developers.google.com/style).
+If code, policy or an example conflicts, record the discrepancy and resolve it
+with the responsible owner before calling the content ready. Current code does
+not automatically approve a policy change; do not edit policy to make it agree.
+
+### Record affected topics once
+
+Start with the candidate's changed behavior, dependency pins, compatibility and
+deprecations. Identify its canonical topics, then their actual published or
+prepared derivatives. Do not invent derivatives or generate every format.
+
+| Canonical topic/source | Candidate version and code/test evidence | Disposition | Derivatives and owners | Walkthrough result and limits | Older guidance |
+| --- | --- | --- | --- | --- | --- |
+| Path or stable topic ID | Exact version/commit; reproducible check or retained receipt | Changed, or unchanged but reviewed for this version | Help route, tutorial/deck ID or editorial item; owner; changed/reviewed/pending/not applicable | Observed result; platform/input boundary; semantic review performed or still pending | Retained versioned link, or replacement and explicit supersession |
+
+For the existing four walkthroughs, the tutorial lane owns
+`docs/tutorials-1.3.0.md` and its action tables. A prepared local copy is not a
+public release source. The topic set covers Navigation (deck title **Start and
+continue work**), Specification Workflow, Four Workflows and Session Continuity.
+Coordinate with that owner before refreshing help or deck projections. Preserve
+the procedure, example, expected result, limits and tested-version record as one
+unit. Help, self-paced tutorials and class materials can adapt their framing;
+articles, posts and future books can add editorial context around the same unit.
+
+### Close the preparation record
+
+1. Update affected canonical instructions, exact control names, literal inputs,
+   examples, dependency/integration guidance and limitations for the candidate.
+   Mark unchanged topics as reviewed only after checking their behavior.
+2. Reproduce changed task walkthroughs on the candidate, or cite retained
+   evidence only when its inputs and behavior remain applicable. State what was
+   not tested; do not promote a software check into a model-quality claim.
+3. Coordinate the actual derivative updates with their owners. For generated
+   projections, record upstream source path/commit/hash and run the drift check.
+   Do not hand-edit the generated derivative to conceal a canonical discrepancy.
+4. Check local links, version links and the relevant documentation/site build.
+   Record these results separately from the explicit walkthrough review.
+5. Retain useful old-version guidance with version labels, or name its
+   replacement and supersession. A new main/prototype page is not released help.
+6. Include the topic record, review outcome and remaining publication decisions
+   in the release PR evidence. Report any pending official-doc update before
+   requesting release approval. Package and website publishing retain their
+   existing authorization boundaries.
+
+The first Help Center is prepared separately in the existing Attune-AI website
+repository. Its topic manifest and pinned walkthrough provenance support these
+records; an unpublished local route or reviewed branch is not a live help URL.
 
 ## Things that look wrong and are not
 
