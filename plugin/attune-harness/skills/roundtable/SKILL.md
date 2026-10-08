@@ -7,6 +7,18 @@ Read the repository's authority and budget rules. Reuse the user's question,
 scope and configured participants; do not invent provider access or substitute
 models. Keep the chair's lean out of the first-round participant brief.
 
+## Seat preflight
+
+Before `prepare`, run `attune-harness roundtable check --config CONFIG`. Inspect
+each seat's `state`, `binary`, `version` and `fix`. The check validates the same
+seat/identity/round rules as prepare, runs no models, prepares nothing and grants
+no authority. Fix `missing_binary` and `not_signed_in` locally, then rerun check.
+`unknown` includes a signed-in host whose configured model and token freshness
+cannot be verified for free; never resolve it by an unauthorized paid call.
+Antigravity and command wrappers have no verified local auth/version probe here.
+Exit 0 may contain unknown seats; exit 2 reports invalid configuration or a known
+missing binary/login. `ready` is reserved for proof from a free model-access probe.
+
 Inspect `attune-harness roundtable --help`. Prepare with `roundtable prepare
 --project ROOT --path FILE --config CONFIG --run-dir RUN`; repeat `--path` for
 each selected file. Configuration names the author, two or three distinct

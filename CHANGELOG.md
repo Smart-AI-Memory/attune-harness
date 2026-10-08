@@ -11,6 +11,7 @@
   options are no longer argparse-required: a call that omits one still exits 2,
   now with a JSON refusal naming the missing options instead of a usage error.
   The surface fixture is rewritten for the new `--decisions` option.
+- Add no-spend `roundtable check` and `source-review check` with per-seat local binary/login checks, fixes and explicit model-access uncertainty (#232).
 
 ## 1.3.0
 

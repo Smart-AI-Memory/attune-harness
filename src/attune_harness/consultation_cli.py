@@ -12,6 +12,8 @@ def add_commands(sub):
     for name in ('source-review', 'roundtable'):
         parser = sub.add_parser(name, help='Bounded model consultation over frozen selected source files')
         verbs = parser.add_subparsers(dest='consultation_action', required=True)
+        check = verbs.add_parser('check', help='Check configuration and local seats; no model calls')
+        check.add_argument('--config', type=Path, required=True)
         prepare = verbs.add_parser('prepare', help='Freeze scope and return the contract; no provider calls')
         prepare.add_argument('--project', type=Path, required=True)
         prepare.add_argument('--path', action='append', required=True)
@@ -46,7 +48,17 @@ def add_commands(sub):
 def execute(args):
     assessment_saved = False
     try:
-        if args.consultation_action == 'prepare':
+        if args.consultation_action == 'check':
+            from .consultation_preflight import preflight
+            config = parse_json(read_text(args.config, 131072))
+            consultation.configuration(config, args.command)
+            participants = preflight(config)
+            print(json.dumps({'schema_version': 1, 'operation': args.command, 'status': 'checked',
+                              'participants': participants, 'authority': 'inspection_only',
+                              'model_calls': 0}, indent=2, allow_nan=False))
+            return 2 if any(seat['state'] in ('not_signed_in', 'missing_binary')
+                            for seat in participants.values()) else 0
+        elif args.consultation_action == 'prepare':
             config = parse_json(read_text(args.config, 131072))
             result = consultation.prepare(args.command, args.project, args.path, config, args.run_dir)
         else:
