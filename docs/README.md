@@ -20,7 +20,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
 - [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
-- [Parallel rounds and partial outcomes](design-consultation-partial-rounds.md): Concurrent seats, `partial` status and proven-no-call retries (#233, design before code)
+- [Parallel rounds and partial outcomes](design-consultation-partial-rounds.md): Concurrent seats, `partial` status and operator-authorized refused-turn retries (#233, design before code)
 
 - [First-run journey — complete spec](specs/first-run-journey/README.md): A cold 1.0.1 walkthrough, and making every verb work from a fresh install; released in 1.1.0
 - [First-run journey requirements](specs/first-run-journey/design.md): R1–R7 and what each must not change
