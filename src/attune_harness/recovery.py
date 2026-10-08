@@ -163,13 +163,28 @@ class RecoveryCursor:
         self.dispatch_origin = callback
 
     def perform(self, key, kind, call, *, effect_class, **details):
+        replayed, value = self.begin(key, kind, effect_class=effect_class, **details)
+        if replayed:
+            return value
+        try:
+            result = call()
+        except Exception as exc:
+            self.fail(value, exc)
+            raise
+        self.finish(value, result)
+        if self.limit_reached():
+            raise ReviewPaused('Operation budget reached at a saved checkpoint')
+        return result
+
+    def begin(self, key, kind, *, effect_class, **details):
+        """Return (True, saved result) to replay, or (False, event) once its dispatch is durable."""
         expected = {'kind': kind, 'effect_class': effect_class, **details}
         event = self.events.get(key)
         if event is not None:
             if any(event.get(name) != value for name, value in expected.items()):
                 raise ValueError('Saved operation does not match the reconstructed request')
             if event['state'] == 'completed':
-                return copy.deepcopy(event['result'])
+                return True, copy.deepcopy(event['result'])
             if event['phase'] != 'prepared':
                 raise UnresolvedOperation(f"Operation {event['event_id']} may have executed; reconcile before resume")
         else:
@@ -185,32 +200,39 @@ class RecoveryCursor:
             event["runtime_origin"] = origin
         event['phase'] = 'dispatching'
         self.store.save(self.record)  # No call until the dispatch boundary is durable.
-        try:
-            result = call()
-        except Exception as exc:
-            event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
-                         effects='read_only' if effect_class == 'read_only' else 'unknown')
-            from .plugin_runtime import PluginUnresolved
-            if isinstance(exc, PluginUnresolved):
-                event['plugin_receipt'] = exc.receipt
-            # Preserve host process evidence, never infer it from diagnostic text.
-            from .native import NativeError
-            if (self.record.get('profile') == 'feature-build-v1'
-                    and kind == 'participant_turn' and isinstance(exc, NativeError)
-                    and exc.failure is not None):
-                event['native_failure'] = {
-                    'failure': exc.failure, 'process_stopped': exc.process_stopped,
-                }
-            elif (self.record.get('profile') is None and kind == 'participant_turn'
-                    and isinstance(exc, NativeError) and exc.refusal is not None):
-                event['native_refusal'] = copy.deepcopy(exc.refusal)
-            raise
+        return False, event
+
+    def fail(self, event, exc):
+        """Record an Exception from a begun call; effects stay unknown unless read-only."""
+        kind, effect_class = event['kind'], event['effect_class']
+        event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
+                     effects='read_only' if effect_class == 'read_only' else 'unknown')
+        from .plugin_runtime import PluginUnresolved
+        if isinstance(exc, PluginUnresolved):
+            event['plugin_receipt'] = exc.receipt
+        # Preserve host process evidence, never infer it from diagnostic text.
+        from .native import NativeError
+        if (self.record.get('profile') == 'feature-build-v1'
+                and kind == 'participant_turn' and isinstance(exc, NativeError)
+                and exc.failure is not None):
+            event['native_failure'] = {
+                'failure': exc.failure, 'process_stopped': exc.process_stopped,
+            }
+        elif (self.record.get('profile') is None and kind == 'participant_turn'
+                and isinstance(exc, NativeError) and exc.refusal is not None):
+            event['native_refusal'] = copy.deepcopy(exc.refusal)
+
+    def finish(self, event, result):
         event.update(state='completed', phase='completed', result=copy.deepcopy(result))
         self.store.save(self.record)
         self.completed += 1
-        if self.limit is not None and self.completed >= self.limit:
-            raise ReviewPaused('Operation budget reached at a saved checkpoint')
-        return result
+
+    def limit_reached(self):
+        return self.limit is not None and self.completed >= self.limit
+
+    def remaining(self):
+        """New operations still admissible before the pause threshold, or None when unlimited."""
+        return None if self.limit is None else max(0, self.limit - self.completed)
 
 
 def load_recovery(store: RunStore, checkpoint: str) -> dict:
