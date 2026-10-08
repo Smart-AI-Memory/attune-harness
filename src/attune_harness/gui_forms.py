@@ -109,8 +109,8 @@ function renderDecision(shown){
  }
  const details=node('details',undefined,panel);node('summary','Read retained owner decision',details);node('pre',display.markdown,details);
  if(display.kind==='questions'){
+  const instructions=node('p','Answer what you know. You can save partial answers; Harness will ask only what remains.',panel);instructions.id='answer-instructions';
   const form=node('form',undefined,panel),inputs=[];
-  node('p','Answer what you know. You can save partial answers; Harness will ask only what remains.',form);
   for(const field of display.definition.fields){
    const id='field-'+field.id;const label=node('label',field.text,form);label.htmlFor=id;
    let input;
@@ -119,6 +119,8 @@ function renderDecision(shown){
    }else if(field.type==='text_input'){input=node('textarea',undefined,form);}
    else{node('p','This field requires the CLI collector.',form);return;}
    input.id=id;input.name=field.id;input.setAttribute('data-recovery-label',field.text);inputs.push([field.id,input]);
+   const hint=node('small',(field.required===true?'Required before intent acceptance. ':'')+'You can leave this blank when saving partial answers.',form);hint.id=id+'-hint';
+   input.setAttribute('aria-describedby',instructions.id+' '+hint.id);
   }
   const save=node('button','Save answers',form);save.type='submit';
   form.onsubmit=e=>{e.preventDefault();if(expired)return;const answers=Object.fromEntries(inputs.filter(([,input])=>input.value.trim()).map(([key,input])=>[key,input.value]));
