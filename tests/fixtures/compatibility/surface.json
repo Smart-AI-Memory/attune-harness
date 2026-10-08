@@ -816,6 +816,14 @@
    "arguments": [
     {
      "choices": null,
+     "default": null,
+     "name": "author",
+     "option_strings": [
+      "--author"
+     ]
+    },
+    {
+     "choices": null,
      "default": false,
      "name": "force",
      "option_strings": [
@@ -861,15 +869,59 @@
     {
      "choices": null,
      "default": null,
+     "name": "question",
+     "option_strings": [
+      "--question"
+     ]
+    },
+    {
+     "choices": [
+      1,
+      2
+     ],
+     "default": null,
+     "name": "rounds",
+     "option_strings": [
+      "--rounds"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
      "name": "scope",
      "option_strings": [
       "--scope"
      ]
     },
     {
+     "choices": null,
+     "default": null,
+     "name": "seat_efforts",
+     "option_strings": [
+      "--effort"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "seat_models",
+     "option_strings": [
+      "--model"
+     ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "seats",
+     "option_strings": [
+      "--seats"
+     ]
+    },
+    {
      "choices": [
       "fix",
-      "plan"
+      "plan",
+      "roundtable"
      ],
      "default": null,
      "name": "starter",
@@ -892,19 +944,34 @@
      "option_strings": [
       "--tests"
      ]
+    },
+    {
+     "choices": null,
+     "default": null,
+     "name": "timeout",
+     "option_strings": [
+      "--timeout"
+     ]
     }
    ],
    "one_of": [],
    "options": [
+    "--author",
+    "--effort",
     "--for",
     "--force",
     "--goal",
     "--interpreter",
+    "--model",
     "--profile",
     "--project",
+    "--question",
+    "--rounds",
     "--scope",
+    "--seats",
     "--task-dir",
-    "--tests"
+    "--tests",
+    "--timeout"
    ],
    "positionals": [],
    "required_options": []
