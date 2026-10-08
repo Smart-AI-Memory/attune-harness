@@ -458,8 +458,12 @@ def execute_roundtable(args, project: Path) -> int:
             replaced = backup(target, 'roundtable config')
         write_report(target, config)
     except BaseException:
-        if replaced is not None:  # backup copies; the old config stays until replacement
-            discard(Path(replaced))
+        if replaced is not None:
+            # An interrupt may arrive after atomic replacement. Keep the backup
+            # unless the original bytes demonstrably survive in the target.
+            with contextlib.suppress(OSError):
+                if not target.is_symlink() and target.read_bytes() == Path(replaced).read_bytes():
+                    discard(Path(replaced))
         raise
     selected = args.scope or ['SELECTED_SOURCE_FILE']
     paths = ' '.join(f'--path={quote(path)}' for path in selected)

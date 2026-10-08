@@ -10,7 +10,7 @@ import sys
 import pytest
 
 import attune_harness
-from attune_harness import init_cli
+from attune_harness import features, init_cli
 from attune_harness import consultation_preflight as p
 from attune_harness.cli import main
 
@@ -158,6 +158,50 @@ def test_preexisting_backup_is_never_removed_or_overwritten(tmp_path, capsys, mo
     code, result = init(capsys, tmp_path, '--force')
     assert code == 2 and 'already exists' in result['error']['detail']
     assert target.read_bytes() == b'old config\n' and backup.read_bytes() == b'retained backup\n'
+
+
+@pytest.mark.parametrize('error', [OSError('synthetic post-replacement failure'), KeyboardInterrupt()])
+def test_failed_return_after_replacement_preserves_original_backup(tmp_path, capsys, monkeypatch, error):
+    target, backup = tmp_path / 'roundtable.json', tmp_path / 'roundtable.json.bak'
+    original = b'old config\n'
+    target.write_bytes(original)
+    replace = features.replace_file
+    with monkeypatch.context() as patch:
+        def interrupted_replace(source, destination, **kwargs):
+            replace(source, destination, **kwargs)
+            raise error
+        patch.setattr(features, 'replace_file', interrupted_replace)
+        if isinstance(error, KeyboardInterrupt):
+            with pytest.raises(KeyboardInterrupt):
+                init(capsys, tmp_path, '--force')
+            capsys.readouterr()
+        else:
+            code, result = init(capsys, tmp_path, '--force')
+            assert code == 2 and result['error']['detail'] == 'synthetic post-replacement failure'
+    assert json.loads(target.read_text())['participants']['claude']['identity']['model'] == 'fixture-claude'
+    assert backup.read_bytes() == original
+    code, result = init(capsys, tmp_path, '--force')
+    assert code == 2 and 'already exists' in result['error']['detail']
+    assert backup.read_bytes() == original
+
+
+def test_failed_write_preserves_backup_when_target_cannot_be_checked(tmp_path, capsys, monkeypatch):
+    target, backup = tmp_path / 'roundtable.json', tmp_path / 'roundtable.json.bak'
+    original = b'old config\n'
+    target.write_bytes(original)
+    read = Path.read_bytes
+    with monkeypatch.context() as patch:
+        def unreadable(path):
+            if path == target:
+                raise OSError('synthetic unreadable target')
+            return read(path)
+        def failed_write(*args, **kwargs):
+            raise OSError('synthetic full disk')
+        patch.setattr(Path, 'read_bytes', unreadable)
+        patch.setattr(init_cli, 'write_report', failed_write)
+        code, result = init(capsys, tmp_path, '--force')
+        assert code == 2 and result['error']['detail'] == 'synthetic full disk'
+    assert target.read_bytes() == original and backup.read_bytes() == original
 
 
 @pytest.mark.parametrize('name', ['-x', '-file with spaces.py', 'file with spaces.py'])
