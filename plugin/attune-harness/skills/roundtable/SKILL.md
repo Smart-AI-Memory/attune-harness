@@ -18,6 +18,9 @@ and spend authority run `roundtable run RUN --accept DIGEST --allow-external
 --allow-native`. Command wrappers need external authority but no native flag.
 Both coding hosts use the same run directory and CLI, never parallel authority.
 
+Record host judgments of cited lines with `roundtable assess-citation RUN
+--checkpoint DIGEST --decisions FILE` (all or none, one checkpoint advance).
+
 Use `roundtable status RUN` to inspect without calls. A paused run continues
 with its accepted contract; completed turns replay. An uncertain dispatch stays
 unresolved. Stop continuation with `roundtable abandon RUN --checkpoint DIGEST`

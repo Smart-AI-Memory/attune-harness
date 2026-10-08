@@ -89,6 +89,19 @@ attune-harness source-review evidence "$RUN"
 attune-harness source-review assess-citation "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --round 0 --participant reviewer --citation 0 --decision rejected --note "The cited line does not support the claim"
 ```
 
+To record several decisions made against one evidence view, pass a JSON list
+of `{round, participant, citation, decision, note}` objects instead of the
+single-decision options:
+
+```sh
+attune-harness source-review assess-citation "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --decisions decisions.json
+```
+
+The batch is recorded whole or not at all: one invalid entry, a repeated
+selector or a total over 128 refuses every entry, and the error names the
+zero-based entry. Each saved entry keeps the checkpoint you judged against, and
+the run's checkpoint advances once.
+
 Take the checkpoint and selectors from the current evidence view. Round and
 citation indexes are zero-based; displayed source lines are one-based. Decisions
 are `supported`, `rejected` or `uncertain`, with a required host note. This appends

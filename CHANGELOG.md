@@ -5,6 +5,12 @@
 - List the `roundtable` skill in the Claude Code marketplace entry. The skill
   shipped in the v1.3.0 tag but the entry named only the Harness skill,
   `cross-review` and `smart-test`, so Claude Code never loaded it.
+- `assess-citation --decisions FILE` records several citation decisions made
+  against one evidence view in one call: all of them or none, with one
+  checkpoint advance (#235). Single-decision calls behave as before. Those five
+  options are no longer argparse-required: a call that omits one still exits 2,
+  now with a JSON refusal naming the missing options instead of a usage error.
+  The surface fixture is rewritten for the new `--decisions` option.
 
 ## 1.3.0
 
