@@ -12,6 +12,7 @@ from .work_accept import WorkAcceptance
 from .work_contract import PROFILE, check_work_fresh, missing_information
 from .work_decisions import require_current_decision, retain_questions
 from .work_runtime import answer_planning, planning_questions
+from .recovery import UnresolvedOperation
 
 
 GUI_ACTIONS = {"approve_task", "redo_task"}
@@ -62,7 +63,7 @@ class Decisions:
         try:
             check_work_fresh(record)
             fresh, note = True, ""
-        except (ValueError, OSError) as exc:
+        except (ValueError, OSError, UnresolvedOperation) as exc:
             fresh, note = False, str(exc)
         return {"task_id": request["task_id"], "revision": request["revision"],
                 "checkpoint": record["checkpoint_digest"], "intent": request["intent"],
