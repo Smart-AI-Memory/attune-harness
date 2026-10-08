@@ -9,7 +9,14 @@ source. Keep those tables, expected results and limits together when revising
 the training files. The concepts that follow the walkthroughs remain useful
 for real work, where participants, scope and independent review matter.
 
+Control names are bold; literal values and commands use code font. Writing
+follows the [Google developer documentation style guide](https://developers.google.com/style),
+with agreed project exceptions. Match verified labels and use accessible names
+for icons. Preserve the tutorials' visual design.
+
 ## Navigation: an accepted intent
+
+Deck title: **Start and continue work**.
 
 <!-- walkthrough:navigation -->
 Title: What happens when you accept an intent?
@@ -18,14 +25,14 @@ Prerequisite: Harness 1.3.0 with a registered editable draft missing its goal an
 
 | Step | Action |
 | --- | --- |
-| 1 | Click Continue form. |
-| 2 | In “What should this work accomplish?”, enter “Group saved work by the decision it needs”. |
-| 3 | In “What observable result establishes success? Enter one item per line.”, enter “Each saved task shows its next decision”. |
-| 4 | Click Save answers. |
-| 5 | Click Review your answers. Check the goal, success criteria and allowed files. |
-| 6 | If those answers are correct, click Accept this intent. |
+| 1 | Click **Continue form**. |
+| 2 | In “**What should this work accomplish?**”, enter “`Group saved work by the decision it needs`”. |
+| 3 | In “**What observable result establishes success? Enter one item per line.**”, enter “`Each saved task shows its next decision`”. |
+| 4 | Click **Save answers**. |
+| 5 | Click **Review your answers**. Check the goal, success criteria and allowed files. |
+| 6 | If those answers are correct, click **Accept this intent**. |
 
-Expected: Saved work shows “Intent accepted”. Execution requires separate authority.
+Expected: **Saved work** shows “Intent accepted”. Execution requires separate authority.
 
 Limit: Browser build dispatch and execution resume are unavailable in 1.3.0.
 <!-- /walkthrough -->
@@ -52,9 +59,9 @@ Prerequisite: Harness 1.3.0. P = prepared Git checkout, T = new task outside P, 
 
 | Step | Action |
 | --- | --- |
-| 1 | Run: attune-harness init --for plan --goal "Repair addition" --project "$P" --scope calc.py --interpreter "$PY" --tests tests/test_calc.py --task-dir "$T" |
-| 2 | Run: attune-harness plan --request "$T.work.json" --project "$P" --config "$R/examples/starter/participants.json" --task-dir "$T". Copy checkpoint_digest into C. |
-| 3 | Inspect the preview. If its scope is correct, run: attune-harness plan --task-dir "$T" --accept --checkpoint "$C" |
+| 1 | Run: `attune-harness init --for plan --goal "Repair addition" --project "$P" --scope calc.py --interpreter "$PY" --tests tests/test_calc.py --task-dir "$T"` |
+| 2 | Run: `attune-harness plan --request "$T.work.json" --project "$P" --config "$R/examples/starter/participants.json" --task-dir "$T"`. Copy `checkpoint_digest` into `C`. |
+| 3 | Inspect the preview. If its scope is correct, run: `attune-harness plan --task-dir "$T" --accept --checkpoint "$C"` |
 
 Expected: JSON shows status “accepted”. calc.py still contains a - b.
 
@@ -104,9 +111,9 @@ Prerequisite: A normal Harness 1.3.0 installation includes rag and verify. E = c
 
 | Step | Action |
 | --- | --- |
-| 1 | Run: attune-harness retrieve "quartz retention policy" --corpus "$E/project" --output "$E/retrieval-report.json" |
+| 1 | Run: `attune-harness retrieve "quartz retention policy" --corpus "$E/project" --output "$E/retrieval-report.json"` |
 | 2 | Read retrieval-report.json, then project/reference.md. Inspect both returned sources. |
-| 3 | Run: attune-harness verify "$E/project/guide.md" --context "$E/context.json" --output "$E/verification-report.json" |
+| 3 | Run: `attune-harness verify "$E/project/guide.md" --context "$E/context.json" --output "$E/verification-report.json"` |
 | 4 | Read verification-report.json. Check status, passed, coverage and semantic_ran. |
 
 Expected: Two matching sources. Verification shows “verified”, passed true and one link claim.
@@ -141,13 +148,13 @@ Prerequisite: Harness 1.3.0 with a registered editable draft missing its goal an
 
 | Step | Action |
 | --- | --- |
-| 1 | Click Continue form. |
-| 2 | In “What should this work accomplish?”, enter “Review quartz retention documentation”. |
-| 3 | Click Save answers. Leave the success question empty. |
-| 4 | Stop the listener with Ctrl-C. Run: python -m attune_harness.gui --task "$TASK" --edit --launch-json |
-| 5 | Open the new private launch_url. Click Continue form. |
+| 1 | Click **Continue form**. |
+| 2 | In “**What should this work accomplish?**”, enter “`Review quartz retention documentation`”. |
+| 3 | Click **Save answers**. Leave the success question empty. |
+| 4 | Stop the listener with `Ctrl-C`. Run: `python -m attune_harness.gui --task "$TASK" --edit --launch-json` |
+| 5 | Open the new private `launch_url`. Click **Continue form**. |
 
-Expected: “Saved answers” retains the goal above the empty success question.
+Expected: “**Saved answers**” retains the goal above the empty success question.
 
 Limit: Reopening a form continues intake. Eligible execution resumes through the CLI.
 <!-- /walkthrough -->
