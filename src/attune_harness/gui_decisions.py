@@ -100,7 +100,7 @@ class Decisions:
                         item["action_tip"] = ("Answer the remaining questions."
                                               if next_step == "Continue form"
                                               else "Check your answers, then approve them.")
-                    except (ValueError, OSError) as exc:
+                    except (ValueError, OSError, UnresolvedOperation) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:
                 item = {"task": task, "label": "Unavailable saved task", "heading": "Saved task unavailable", "available": False,

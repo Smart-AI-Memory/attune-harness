@@ -10,6 +10,7 @@ from attune_harness import gui
 from attune_harness.task_contract import read_task
 from test_gui import request
 from test_gui_decisions import call, open_form, submission
+from test_work_contract import work
 
 
 def prepare(tmp_path):
@@ -97,3 +98,31 @@ def test_training_preparation_refuses_existing_directory(tmp_path):
     with pytest.raises(FileExistsError):
         runpy.run_path(str(example))['prepare'](tmp_path / 'training')
     assert (path / 'record.json').read_bytes() == before
+
+
+def test_draft_effects_drift_keeps_every_saved_request_readable(work, tmp_path):
+    from test_work_build import prepare as prepare_effects
+    prepare_effects(work, accept=False)
+    path = work[2]['directory']
+    other = prepare(tmp_path)
+    before = (path / 'record.json').read_bytes()
+    other_before = (other / 'record.json').read_bytes()
+    (work[0] / 'unrelated.txt').write_text('Changed frozen input', encoding='utf-8')
+    with gui.CompanionServer([path, other]) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            code, _, raw = request(server, '/workspace')
+            assert code == 200
+            stale, fresh = json.loads(raw)['tasks']
+            assert stale['status'] == 'draft' and not stale['available']
+            assert not stale['saved_request']['fresh']
+            assert 'reconcile' in stale['saved_request']['freshness_note']
+            assert stale['saved_request']['intent']['goal'] == 'Export every finding'
+            assert fresh['saved_request']['fresh'] and fresh['available']
+            assert not server.decisions.live
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+    assert (path / 'record.json').read_bytes() == before
+    assert (other / 'record.json').read_bytes() == other_before
