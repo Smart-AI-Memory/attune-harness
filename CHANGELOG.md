@@ -4,6 +4,7 @@
 
 - Add `init --for roundtable` to write a validated explicit-model seat config,
   report no-spend preflight and print the next prepare command (#236).
+- Run Windows installed-wheel qualification in fresh virtual environments to prevent runner-wide package conflicts.
 - List the `roundtable` skill in the Claude Code marketplace entry. The skill
   shipped in the v1.3.0 tag but the entry named only the Harness skill,
   `cross-review` and `smart-test`, so Claude Code never loaded it.
