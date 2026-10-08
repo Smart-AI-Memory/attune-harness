@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Run isolated Windows qualification in a fresh virtual environment to prevent runner-wide package conflicts.
 - List the `roundtable` skill in the Claude Code marketplace entry. The skill
   shipped in the v1.3.0 tag but the entry named only the Harness skill,
   `cross-review` and `smart-test`, so Claude Code never loaded it.
