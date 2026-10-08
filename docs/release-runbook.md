@@ -143,9 +143,19 @@ prepared derivatives. Do not invent derivatives or generate every format.
 | --- | --- | --- | --- | --- | --- |
 | Path or stable topic ID | Exact version/commit; reproducible check or retained receipt | Changed, or unchanged but reviewed for this version | Help route, tutorial/deck ID or editorial item; owner; changed/reviewed/pending/not applicable | Observed result; platform/input boundary; semantic review performed or still pending | Retained versioned link, or replacement and explicit supersession |
 
-For the existing four walkthroughs, the tutorial lane owns
-`docs/tutorials-1.3.0.md` and its action tables. A prepared local copy is not a
-public release source. The topic set covers Navigation (deck title **Start and
+For the existing four walkthroughs, the tutorial owner holds the current
+preparation input in an **unpublished local** `tutorial-walkthroughs` branch of
+[attune-harness](https://github.com/Smart-AI-Memory/attune-harness). Its source is
+`docs/tutorials-1.3.0.md` at commit
+`86e83c6e29a27f605128600ff011176265e4e431`, with source SHA-256
+`a31a785ce28a5b035cc202e06959f2832048f235e0724f753fd84f50102a2d97`.
+This file is absent from current main and the released 1.3.0 checkout; the local
+commit is not a published remote source. Obtain the owner-supplied committed
+input or review artifact before editing its action tables, and record its
+actual path, commit/hash and publication status in the release topic record.
+Do not treat this local source path as a checkout link or public help URL.
+
+The topic set covers Navigation (deck title **Start and
 continue work**), Specification Workflow, Four Workflows and Session Continuity.
 Coordinate with that owner before refreshing help or deck projections. Preserve
 the procedure, example, expected result, limits and tested-version record as one
