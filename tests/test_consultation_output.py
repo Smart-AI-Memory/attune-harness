@@ -2,8 +2,10 @@
 # qualify: platform
 
 import copy
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import shlex
 import unittest
+from unittest.mock import patch
 
 from attune_harness import consultation_output as renderer
 
@@ -32,9 +34,29 @@ class ConsultationOutputPreparationTests(unittest.TestCase):
         out = renderer.markdown(prepared(), view='prepare')
         command = next(line for line in out.splitlines() if line.startswith('attune-harness '))
         self.assertEqual(shlex.split(command), ['attune-harness', 'roundtable', 'run',
-                                               '--accept', 'c' * 64, '--', '/tmp/a run'])
+                                               '--accept', 'c' * 64, '--', str(Path('/tmp/a run'))])
         self.assertNotIn('--allow-external', command)
         self.assertNotIn('--allow-native', command)
+
+    def test_accept_command_preserves_both_path_flavors_with_shell_metacharacters(self):
+        cases = [
+            (PurePosixPath, "/tmp/team folder/run's $HOME & `tag`/record.json",
+             "/tmp/team folder/run's $HOME & `tag`"),
+            (PureWindowsPath, r"C:\team folder\run's $HOME & `tag`\record.json",
+             r"C:\team folder\run's $HOME & `tag`"),
+        ]
+        for path_type, record_path, expected_run_path in cases:
+            with self.subTest(path_type=path_type.__name__):
+                record = prepared(); record['record_path'] = record_path
+                before = copy.deepcopy(record)
+                with patch.object(renderer, 'Path', path_type):
+                    out = renderer.markdown(record, view='prepare')
+                command = next(line for line in out.splitlines() if line.startswith('attune-harness '))
+                self.assertEqual(shlex.split(command), ['attune-harness', 'roundtable', 'run',
+                                                       '--accept', 'c' * 64, '--', expected_run_path])
+                self.assertNotIn('--allow-external', command)
+                self.assertNotIn('--allow-native', command)
+                self.assertEqual(record, before)
 
     def test_no_record_mutation_or_dispatch(self):
         record = prepared()
