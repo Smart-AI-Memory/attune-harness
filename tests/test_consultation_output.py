@@ -175,6 +175,28 @@ class ConsultationOutputPreparationTests(unittest.TestCase):
         out = renderer.markdown(record, view='prepare')
         self.assertFalse(any(char in out for char in controls))
 
+    def test_unicode_format_controls_are_visible_inline_and_in_frozen_evidence(self):
+        controls = '\u061c\u200b\u200d\u202e\u2066\ufeff\U000e0001'
+        visible = r'\u061c\u200b\u200d\u202e\u2066\ufeff\U000e0001'
+        self.assertEqual(renderer._block(controls), '```text\n' + visible + '\n```')
+        self.assertEqual(renderer._visible('é文🙂\n\t'), 'é文🙂\n\t')
+        record = prepared(); record['contract']['configuration']['question'] = controls
+        before = copy.deepcopy(record)
+        out = renderer.markdown(record, view='prepare')
+        self.assertFalse(any(char in out for char in controls))
+        for escaped in (r'\u061c', r'\u200b', r'\u200d', r'\u202e', r'\u2066', r'\ufeff', r'\U000e0001'):
+            self.assertIn(escaped.replace('\\', '\\\\'), out)
+        evidence = {'operation': 'roundtable', 'status': 'completed', 'claims': [
+            {'round': 0, 'participant': 'critic', 'citation': 0, 'path': controls,
+             'line': 1, 'support': 'unchecked', 'detail': controls,
+             'source': [{'line': 1, 'text': controls}], 'assessments': []}]}
+        old_evidence = copy.deepcopy(evidence)
+        out = renderer.markdown(evidence, view='evidence', retained=record)
+        self.assertFalse(any(char in out for char in controls))
+        self.assertIn('```text\n1: ' + visible + '\n```', out)
+        self.assertEqual(record, before)
+        self.assertEqual(evidence, old_evidence)
+
 
 if __name__ == '__main__':
     unittest.main()

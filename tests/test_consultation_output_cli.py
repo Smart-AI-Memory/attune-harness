@@ -150,15 +150,30 @@ def test_unresolved_journal_is_not_hidden_by_readable_projection(tmp_path, capsy
     assert (directory / 'record.json').read_bytes() == before
 
 
-def test_old_running_status_retains_persisted_status_and_checkpoint(tmp_path, capsys):
-    _, directory, record, _ = prepare(tmp_path, 'source-review')
+@pytest.mark.parametrize('operation', ['source-review', 'roundtable'])
+@pytest.mark.parametrize('view', ['status', 'evidence'])
+def test_old_running_status_retains_persisted_status_and_checkpoint(tmp_path, capsys, monkeypatch, operation, view):
+    _, directory, record, _ = prepare(tmp_path, operation)
     record['status'] = 'running'
     RunStore(directory, existing=True).save(record)
     original = (directory / 'record.json').read_bytes()
-    assert main(['source-review', 'status', str(directory), '--format', 'markdown']) == 2
+    saved = c.load(directory)
+    original_evidence = c.inspect_evidence(directory)
+    def no_second_inspection(*args):
+        pytest.fail('Readable evidence loaded a second retained snapshot')
+    monkeypatch.setattr(c, 'inspect_evidence', no_second_inspection)
+    monkeypatch.setattr(c, 'run', no_dispatch)
+    assert main([operation, view, str(directory), '--format', 'markdown']) == 2
     out = capsys.readouterr().out
     assert '**Status:** unresolved' in out and '**Persisted status:** running' in out
+    assert saved['checkpoint_digest'] in out
+    monkeypatch.setattr(c, 'inspect_evidence', lambda *args: original_evidence)
+    for format_args in ([], ['--format', 'json']):
+        assert main([operation, 'evidence', str(directory), *format_args]) == 2
+        assert capsys.readouterr().out == json.dumps(original_evidence, indent=2, allow_nan=False) + '\n'
+        assert original_evidence['status'] == 'running' and 'persisted_status' not in original_evidence
     assert (directory / 'record.json').read_bytes() == original
+    assert c.load(directory)['checkpoint_digest'] == saved['checkpoint_digest']
 
 
 @pytest.mark.parametrize('operation', ['source-review', 'roundtable'])

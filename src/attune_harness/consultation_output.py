@@ -7,14 +7,23 @@ The caller supplies an already-loaded record; this module never opens source.
 import html
 import re
 import shlex
+import unicodedata
 from pathlib import Path
 
 from .consultation_evidence import claims
 
 
 def _visible(value):
-    return ''.join(f'\\x{ord(char):02x}' if (ord(char) < 32 and char not in '\n\t')
-                   or 127 <= ord(char) <= 159 else char for char in str(value))
+    characters = []
+    for char in str(value):
+        code = ord(char)
+        if (code < 32 and char not in '\n\t') or 127 <= code <= 159:
+            characters.append(f'\\x{code:02x}')
+        elif unicodedata.category(char) == 'Cf':
+            characters.append(f'\\u{code:04x}' if code <= 0xffff else f'\\U{code:08x}')
+        else:
+            characters.append(char)
+    return ''.join(characters)
 
 
 def _text(value):
@@ -39,10 +48,13 @@ def _reported(identity):
 
 def evidence_view(record):
     """Project the existing v1 evidence fields from one already-loaded record."""
-    return {'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
+    view = {'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
             'contract_digest': record['contract_digest'], 'checkpoint_digest': record['checkpoint_digest'],
             'snapshot_digest': record['contract']['snapshot']['digest'], 'claims': claims(record),
             'authority': 'inspection_only'}
+    if view['status'] == 'running':
+        view = {**view, 'status': 'unresolved', 'persisted_status': 'running'}
+    return view
 
 
 def markdown(envelope, *, view, retained=None):
