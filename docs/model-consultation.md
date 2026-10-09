@@ -1,8 +1,8 @@
 # Source review and roundtable from either coding host
 
-These additive CLI routes are a development candidate. Install this branch's
-wheel to use them; the published 1.2.0 runtime and pinned Claude marketplace
-release do not expose them. The shared development plugin contains both skills;
+Source review and roundtable are included in released 1.3.0. The opt-in Markdown
+views below are an unreleased development candidate; install this branch's wheel
+to use those views. The shared development plugin contains both skills;
 `scripts/package_codex_plugin.py` packages the same skill bytes for Codex.
 No host settings or credentials need changing to exercise the CLI.
 
@@ -145,6 +145,38 @@ can pass a cancellation `Event` to the shared `run` API. A supervised cancellati
 is retained as cancelled with unknown effects; abandonment preserves the previous
 status. Read `status` explicitly: exit zero also covers prepared, paused and
 cancelled states.
+
+## Readable consultation views
+
+`prepare`, `status` and `evidence` accept `--format json|markdown` for both
+`source-review` and `roundtable`. JSON remains the default, with the same v1
+envelopes and exit codes. Markdown is an opt-in presentation of the same retained
+data; it is not a new record format or an execution grant.
+
+```sh
+attune-harness source-review prepare --project "$PROJECT" --path src/example.py --config "$CONFIG" --run-dir "$RUN" --format markdown
+attune-harness source-review status "$RUN" --format markdown
+attune-harness source-review evidence "$RUN" --format markdown
+```
+
+Prepare lists the question, configured seats, adapter/timeouts, frozen file
+hashes and UTF-8 byte sizes, budgets and digests without printing whole source
+files. Its POSIX-shell acceptance command quotes the saved run directory and
+omits provider/native grant flags: add those only under separate authorization.
+Use the digests from this view to inspect and accept the scope; `--format json`
+still exposes the complete contract.
+
+Status and evidence show retained turn verdicts, summaries and errors, configured
+versus reported identities, and citations beside numbered **frozen** source
+lines. Host support assessments stay advisory. Neither view reopens source files,
+dispatches a model, changes a checkpoint or authenticates the reported model.
+Both readable views project a retained `running` status as `unresolved`, showing
+the original persisted status without changing the record. Unresolved journal
+entries remain visible when no answer was saved. Unicode formatting controls,
+including bidirectional controls, are shown as visible escapes. Markdown is
+a summary; JSON retains the complete journal, raw process diagnostics and usage.
+The same prepared/paused/completed/cancelled statuses exit 0; failed, unresolved
+and refused views exit 2. This presentation adds no retry or continuation path.
 
 ## Identity and evidence limits
 

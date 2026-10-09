@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add opt-in `--format markdown` to consultation `prepare`, `status` and
+  `evidence` for both verbs (#234). Prepare omits full frozen source text;
+  status/evidence show retained identities, answers and numbered citations.
+  JSON stays the default with unchanged v1 envelopes, bytes and exit statuses.
+  The compatibility fixture adds the six optional format arguments deliberately.
+
 - Allow 25 minutes for the instrumented Windows coverage process, with matching
   enclosing limits; ordinary qualification and non-Windows limits are unchanged.
 - Add `init --for roundtable` to write a validated explicit-model seat config,
