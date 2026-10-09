@@ -19,6 +19,8 @@ def add_commands(sub):
         prepare.add_argument('--path', action='append', required=True)
         prepare.add_argument('--config', type=Path, required=True)
         prepare.add_argument('--run-dir', type=Path, required=True)
+        prepare.add_argument('--format', choices=('json', 'markdown'), default='json',
+                             help='Presentation only; JSON remains the default')
         run = verbs.add_parser('run', help='Dispatch or resume only the exact accepted contract')
         run.add_argument('run_dir', type=Path)
         run.add_argument('--accept', required=True)
@@ -27,8 +29,12 @@ def add_commands(sub):
         run.add_argument('--max-operations', type=int)
         status = verbs.add_parser('status', help='Inspect retained evidence without dispatch')
         status.add_argument('run_dir', type=Path)
+        status.add_argument('--format', choices=('json', 'markdown'), default='json',
+                            help='Presentation only; never dispatches')
         evidence = verbs.add_parser('evidence', help='Inspect claims beside numbered frozen source context')
         evidence.add_argument('run_dir', type=Path)
+        evidence.add_argument('--format', choices=('json', 'markdown'), default='json',
+                              help='Presentation of retained frozen evidence only')
         assess = verbs.add_parser('assess-citation', help='Record an advisory host decision; never dispatch')
         assess.add_argument('run_dir', type=Path)
         assess.add_argument('--checkpoint', required=True)
@@ -47,6 +53,7 @@ def add_commands(sub):
 
 def execute(args):
     assessment_saved = False
+    current = None
     try:
         if args.consultation_action == 'check':
             from .consultation_preflight import preflight
@@ -92,5 +99,9 @@ def execute(args):
     except Exception as exc:
         result = {'schema_version': 1, 'operation': args.command, 'status': 'refused',
                   'error': {'type': type(exc).__name__, 'detail': str(exc)}}
-    print(json.dumps(result, indent=2, allow_nan=False))
+    if getattr(args, 'format', 'json') == 'markdown':
+        from .consultation_output import markdown
+        print(markdown(result, view=args.consultation_action, retained=current), end='')
+    else:
+        print(json.dumps(result, indent=2, allow_nan=False))
     return 0 if assessment_saved or result['status'] in ('prepared', 'paused', 'completed', 'cancelled') else 2

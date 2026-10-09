@@ -114,6 +114,14 @@ Tasks collection for HTML/Markdown; JSON refuses that option. The optional `desi
 question without changing saved authority. No saved-task
 record schema or execution route changes.
 
+Consultation `source-review` and `roundtable` add optional
+`--format json|markdown` to `prepare`, `status` and `evidence`, default `json`.
+Default and explicit JSON keep the existing v1 bytes and exit statuses.
+Markdown summarizes retained data without changing a saved record, checkpoint
+or dispatch authority. The compatibility fixture adds only these six optional
+arguments and their choices/defaults; `check`, `run`, `assess-citation` and
+`abandon` retain their existing surfaces. See [consultation views](model-consultation.md#readable-consultation-views).
+
 ## 2. Envelopes
 
 [The envelope table](envelopes.md): rows pinned by

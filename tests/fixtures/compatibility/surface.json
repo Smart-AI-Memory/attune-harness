@@ -2998,6 +2998,17 @@
     "evidence": {
      "arguments": [
       {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
+       ]
+      },
+      {
        "choices": null,
        "default": null,
        "name": "run_dir",
@@ -3005,7 +3016,9 @@
       }
      ],
      "one_of": [],
-     "options": [],
+     "options": [
+      "--format"
+     ],
      "positionals": [
       {
        "name": "run_dir",
@@ -3022,6 +3035,17 @@
        "name": "config",
        "option_strings": [
         "--config"
+       ]
+      },
+      {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
        ]
       },
       {
@@ -3052,6 +3076,7 @@
      "one_of": [],
      "options": [
       "--config",
+      "--format",
       "--path",
       "--project",
       "--run-dir"
@@ -3125,6 +3150,17 @@
     "status": {
      "arguments": [
       {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
+       ]
+      },
+      {
        "choices": null,
        "default": null,
        "name": "run_dir",
@@ -3132,7 +3168,9 @@
       }
      ],
      "one_of": [],
-     "options": [],
+     "options": [
+      "--format"
+     ],
      "positionals": [
       {
        "name": "run_dir",
@@ -3293,6 +3331,17 @@
     "evidence": {
      "arguments": [
       {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
+       ]
+      },
+      {
        "choices": null,
        "default": null,
        "name": "run_dir",
@@ -3300,7 +3349,9 @@
       }
      ],
      "one_of": [],
-     "options": [],
+     "options": [
+      "--format"
+     ],
      "positionals": [
       {
        "name": "run_dir",
@@ -3317,6 +3368,17 @@
        "name": "config",
        "option_strings": [
         "--config"
+       ]
+      },
+      {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
        ]
       },
       {
@@ -3347,6 +3409,7 @@
      "one_of": [],
      "options": [
       "--config",
+      "--format",
       "--path",
       "--project",
       "--run-dir"
@@ -3420,6 +3483,17 @@
     "status": {
      "arguments": [
       {
+       "choices": [
+        "json",
+        "markdown"
+       ],
+       "default": "json",
+       "name": "format",
+       "option_strings": [
+        "--format"
+       ]
+      },
+      {
        "choices": null,
        "default": null,
        "name": "run_dir",
@@ -3427,7 +3501,9 @@
       }
      ],
      "one_of": [],
-     "options": [],
+     "options": [
+      "--format"
+     ],
      "positionals": [
       {
        "name": "run_dir",
