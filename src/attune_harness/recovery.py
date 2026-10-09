@@ -177,7 +177,12 @@ class RecoveryCursor:
         return result
 
     def begin(self, key, kind, *, effect_class, **details):
-        """Return (True, saved result) to replay, or (False, event) once its dispatch is durable."""
+        """Return (True, saved result) to replay, or (False, event) once its dispatch is durable.
+
+        A replayed result must not be passed to ``finish``. ``begin`` and ``finish``
+        save the whole shared record and ``fail`` mutates it, so call all three from
+        one thread only; worker threads may run only the call itself.
+        """
         expected = {'kind': kind, 'effect_class': effect_class, **details}
         event = self.events.get(key)
         if event is not None:
@@ -203,7 +208,13 @@ class RecoveryCursor:
         return False, event
 
     def fail(self, event, exc):
-        """Record an Exception from a begun call; effects stay unknown unless read-only."""
+        """Record an Exception from a begun call; effects stay unknown unless read-only.
+
+        This does not save: the event stays ``dispatching``/``failed`` in memory until
+        the caller saves the record or re-raises, as ``perform`` does. Pass only an
+        ``Exception``; a ``BaseException`` such as ``KeyboardInterrupt`` must leave the
+        dispatch unresolved.
+        """
         kind, effect_class = event.get('kind'), event.get('effect_class')
         event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
                      effects='read_only' if effect_class == 'read_only' else 'unknown')
@@ -231,7 +242,11 @@ class RecoveryCursor:
         return self.limit is not None and self.completed >= self.limit
 
     def remaining(self):
-        """New operations still admissible before the pause threshold, or None when unlimited."""
+        """New operations still admissible before the pause threshold, or None when unlimited.
+
+        Only finished operations count, not begun ones, so size a batch of
+        admissions once, before its first ``begin``.
+        """
         return None if self.limit is None else max(0, self.limit - self.completed)
 
 
