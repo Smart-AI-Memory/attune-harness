@@ -22,6 +22,19 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
     assert 'client regressions passed' in result.stdout
 
 
+@pytest.mark.parametrize('script', [FORM_SCRIPT, INTAKE_SCRIPT], ids=['development', 'intake'])
+def test_shipped_browser_form_instructions(tmp_path, script):
+    node = shutil.which('node')
+    assert node, 'GUI client verification requires Node.js; install Node and rerun (no skip).'
+    source = tmp_path / 'forms.js'
+    source.write_text(script, encoding='utf-8')
+    runner = Path(__file__).parent / 'client' / 'gui_form_instructions.cjs'
+    result = subprocess.run([node, str(runner), str(source)],
+                            capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'client regressions passed' in result.stdout
+
+
 @pytest.mark.parametrize('mode', [
     'fragment', 'stored', 'missing', 'read-denied', 'read-property-denied',
     'write-denied', 'write-property-denied', 'first-fetch-fails',
