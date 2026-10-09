@@ -204,7 +204,7 @@ class RecoveryCursor:
 
     def fail(self, event, exc):
         """Record an Exception from a begun call; effects stay unknown unless read-only."""
-        kind, effect_class = event['kind'], event['effect_class']
+        kind, effect_class = event.get('kind'), event.get('effect_class')
         event.update(state='failed', error={'type': type(exc).__name__, 'detail': str(exc)},
                      effects='read_only' if effect_class == 'read_only' else 'unknown')
         from .plugin_runtime import PluginUnresolved

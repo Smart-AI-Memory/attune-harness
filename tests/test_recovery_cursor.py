@@ -5,7 +5,13 @@ import copy
 import pytest
 
 from attune_harness.native import NativeError
-from attune_harness.recovery import RecoveryCursor, ReviewPaused, UnresolvedOperation
+from attune_harness.plugin_runtime import PluginUnresolved
+from attune_harness.recovery import (
+    CAPTURE_POLICY,
+    RecoveryCursor,
+    ReviewPaused,
+    UnresolvedOperation,
+)
 
 
 class Store:
@@ -182,3 +188,89 @@ def test_begin_and_finish_save_what_perform_saves():
 def test_begin_replays_a_completed_operation():
     cur = cursor([completed("k", {"answer": 1})])
     assert cur.begin("k", "participant_turn", effect_class="external") == (True, {"answer": 1})
+
+
+def raising(exc):
+    def call():
+        raise exc
+
+    return call
+
+
+def test_exception_keeps_the_plugin_receipt():
+    cur = cursor()
+    with pytest.raises(PluginUnresolved):
+        cur.perform("k", "plugin_call", raising(PluginUnresolved("unsure", {"child": 1})), effect_class="external")
+    assert cur.events["k"]["plugin_receipt"] == {"child": 1}
+
+
+@pytest.mark.parametrize(
+    "profile, kind, error",
+    [
+        ("feature-build-v1", "plugin_call", NativeError("stopped", failure="timeout")),
+        ("feature-build-v1", "participant_turn", NativeError("refused", refusal={"kind": "x"})),
+        (None, "plugin_call", NativeError("refused", refusal={"kind": "x"})),
+        (None, "participant_turn", NativeError("stopped", failure="timeout")),
+    ],
+)
+def test_native_evidence_is_kept_only_for_its_profile_and_kind(profile, kind, error):
+    cur = cursor(profile=profile)
+    with pytest.raises(NativeError):
+        cur.perform("k", kind, raising(error), effect_class="external")
+    assert "native_failure" not in cur.events["k"]
+    assert "native_refusal" not in cur.events["k"]
+
+
+def test_saved_refusal_and_result_are_copies():
+    refusal = {"kind": "claude_structured_error"}
+    failed = cursor()
+    with pytest.raises(NativeError):
+        failed.perform("k", "participant_turn", raising(NativeError("refused", refusal=refusal)), effect_class="external")
+    refusal["kind"] = "changed"
+    assert failed.events["k"]["native_refusal"] == {"kind": "claude_structured_error"}
+
+    result = {"answer": 1}
+    done = cursor()
+    _, event = done.begin("k", "participant_turn", effect_class="external")
+    done.finish(event, result)
+    result["answer"] = 2
+    assert done.events["k"]["result"] == {"answer": 1}
+
+
+def test_finish_counts_only_after_a_durable_save():
+    cur = cursor()
+    _, event = cur.begin("k", "participant_turn", effect_class="external")
+
+    def broken(record):
+        raise OSError("disk full")
+
+    cur.store.save = broken
+    with pytest.raises(OSError):
+        cur.finish(event, {"answer": 1})
+    assert cur.completed == 0
+
+
+def test_remaining_never_goes_below_zero():
+    cur = cursor(limit=1)
+    for key in ("a", "b"):
+        _, event = cur.begin(key, "participant_turn", effect_class="external")
+        cur.finish(event, key)
+    assert (cur.completed, cur.remaining(), cur.limit_reached()) == (2, 0, True)
+
+
+def test_invalid_dispatch_origin_is_refused_before_dispatch():
+    record = {"events": [], "capture_policy": copy.deepcopy(CAPTURE_POLICY)}
+    cur = RecoveryCursor(record, Store(), dispatch_origin=lambda: {"version": 1})
+    with pytest.raises(ValueError, match="dispatch origin"):
+        cur.perform("k", "participant_turn", pytest.fail, effect_class="external")
+    assert [save["events"][0]["phase"] for save in cur.store.saves] == ["prepared"]
+
+
+def test_failure_on_an_event_without_effect_class_keeps_the_original_error():
+    event = completed("k", None)
+    event.update(state="pending", phase="prepared")
+    del event["result"], event["effect_class"]
+    cur = cursor([event])
+    with pytest.raises(RuntimeError, match="boom"):
+        cur.perform("k", "participant_turn", raising(RuntimeError("boom")), effect_class=None)
+    assert (cur.events["k"]["state"], cur.events["k"]["effects"]) == ("failed", "unknown")
