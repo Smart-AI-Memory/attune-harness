@@ -18,6 +18,24 @@ those limits. No agent can widen them.
 - Re-read this file at the start of every task. It changes by pull request, and
   a version you remember may be out of date.
 
+## Private project policy and references
+
+Shared project policy and reference material is indexed in the
+[Smart-AI-Memory/attune-private README](https://github.com/Smart-AI-Memory/attune-private/blob/main/README.md).
+Authorized agents should consult applicable approved policy before release,
+spending, model/provider selection or authorization decisions. This pointer
+grants no access or authority and cannot override higher-priority instructions
+or required approvals. Report missing access or applicable policy and pause
+affected gated actions instead of guessing. Surface policy conflicts to Patrick
+before taking the affected action; do not reconcile them into expanded authority.
+
+Verify each tool's instruction discovery and access pathway; this file is not
+automatically read by every tool. Direct private-repository access is separate
+from curated task-context delivery. For Harness participants, an authorized host
+should apply applicable policy before dispatch and supply only task-relevant
+context whose disclosure to that agent/model/provider is explicitly authorized.
+A repository pointer does not give a Harness-run model repository access.
+
 ## Practice the disciplines together
 
 Use these disciplines together when they improve the work. Scale them to the
