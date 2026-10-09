@@ -12,6 +12,9 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Four training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
+- [Next-candidate training walkthroughs](tutorials-next-release-candidate.md): Unreleased saved-request GUI procedures and remaining combined-source review; released 1.3.0 guidance retained
+
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
 - [Graphical companion specification](specs/graphical-companion/README.md): 1.3.0 browser forms boundary and broader 1.4.0 development contract
