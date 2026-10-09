@@ -121,6 +121,14 @@ bash treat square brackets as glob characters.
 
 ## Your first five minutes
 
+Start with [your first checked repair](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/first-repair-1.3.0.md).
+It names the released 1.3.0 source and takes a disposable addition bug through
+preview, explicit approval, a pause and a checked result. It includes setup and
+recovery steps, makes no model calls, and explains the deterministic reviewer's
+limits. Main's later development features require their own source boundary.
+
+For a quick preview in a project you have already prepared:
+
 From a Git project with an uncommitted change and a virtual environment that
 has pytest, after the install above:
 

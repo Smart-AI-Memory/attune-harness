@@ -12,6 +12,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [First checked repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
+
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
 - [Graphical companion specification](specs/graphical-companion/README.md): 1.3.0 browser forms boundary and broader 1.4.0 development contract
