@@ -136,6 +136,23 @@ class ConsultationOutputPreparationTests(unittest.TestCase):
             '```text\n1: frozen\n```\n\n**Assessment:** supported: Checked locally\n')
         self.assertEqual(renderer.markdown(evidence, view='evidence', retained=record), expected)
 
+    def test_unassessed_citation_is_not_attributed_to_a_host_assessment(self):
+        evidence = {'operation': 'roundtable', 'status': 'completed', 'claims': [
+            {'round': 0, 'participant': 'critic', 'citation': 0, 'path': 'x.py', 'line': 1,
+             'support': 'unchecked', 'detail': 'An untested claim',
+             'source': [{'line': 1, 'text': 'frozen'}], 'assessments': []}]}
+        out = renderer.markdown(evidence, view='evidence', retained=prepared())
+        self.assertIn('**Support:** unchecked (no host assessment recorded)', out)
+        self.assertNotIn('advisory host assessment', out)
+
+    def test_all_c1_controls_are_visible_instead_of_terminal_controls(self):
+        controls = ''.join(chr(value) for value in range(128, 160))
+        expected = ''.join('\\x' + format(value, '02x') for value in range(128, 160))
+        self.assertEqual(renderer._block(controls), '```text\n' + expected + '\n```')
+        record = prepared(); record['contract']['configuration']['question'] = controls
+        out = renderer.markdown(record, view='prepare')
+        self.assertFalse(any(char in out for char in controls))
+
 
 if __name__ == '__main__':
     unittest.main()

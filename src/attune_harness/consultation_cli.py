@@ -78,7 +78,11 @@ def execute(args):
             elif args.consultation_action == 'abandon':
                 result = consultation.abandon(args.run_dir, args.checkpoint)
             elif args.consultation_action == 'evidence':
-                result = consultation.inspect_evidence(args.run_dir)
+                if args.format == 'markdown':
+                    from .consultation_output import evidence_view
+                    result = evidence_view(current)
+                else:
+                    result = consultation.inspect_evidence(args.run_dir)
             elif args.consultation_action == 'assess-citation':
                 single = (args.round_number, args.participant, args.citation, args.decision, args.note)
                 if args.decisions is not None:

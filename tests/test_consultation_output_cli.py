@@ -7,6 +7,7 @@ import shlex
 import pytest
 
 from attune_harness import consultation as c
+from attune_harness.consultation_output import evidence_view
 from attune_harness.cli import main
 from attune_harness.review_store import RunStore
 
@@ -166,3 +167,24 @@ def test_run_surface_does_not_accept_presentation_or_gain_authority(capsys, oper
         main([operation, 'run', 'unused', '--accept', 'a' * 64, '--format', 'markdown'])
     assert error.value.code == 2
     assert 'unrecognized arguments: --format markdown' in capsys.readouterr().err
+
+
+def test_markdown_evidence_uses_one_snapshot_while_json_retains_original_route(tmp_path, capsys, monkeypatch):
+    _, directory, initial, _ = prepare(tmp_path, 'source-review')
+    done = complete(directory, initial)
+    original_view = c.inspect_evidence(directory)
+    assert evidence_view(done) == original_view
+    inspected = []
+    def concurrent_inspection(*args):
+        inspected.append(True)
+        return {**original_view, 'checkpoint_digest': 'newer-checkpoint', 'claims': []}
+    monkeypatch.setattr(c, 'inspect_evidence', concurrent_inspection)
+    assert main(['source-review', 'evidence', str(directory), '--format', 'markdown']) == 0
+    out = capsys.readouterr().out
+    assert not inspected
+    assert done['checkpoint_digest'] in out and 'newer-checkpoint' not in out
+    assert 'A retained claim' in out
+    assert '**Support:** unchecked (no host assessment recorded)' in out
+    assert main(['source-review', 'evidence', str(directory)]) == 0
+    assert inspected == [True]
+    assert json.loads(capsys.readouterr().out)['checkpoint_digest'] == 'newer-checkpoint'

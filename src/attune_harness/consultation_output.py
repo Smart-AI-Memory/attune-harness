@@ -13,8 +13,8 @@ from .consultation_evidence import claims
 
 
 def _visible(value):
-    return ''.join(f'\\x{ord(char):02x}' if ord(char) < 32 and char not in '\n\t'
-                   or ord(char) == 127 else char for char in str(value))
+    return ''.join(f'\\x{ord(char):02x}' if (ord(char) < 32 and char not in '\n\t')
+                   or 127 <= ord(char) <= 159 else char for char in str(value))
 
 
 def _text(value):
@@ -35,6 +35,14 @@ def _reported(identity):
         return 'not recorded'
     models = ', '.join(identity.get('reported_models', ())) or 'no model reported'
     return f'{identity.get("provider", "unknown provider")}: {models}'
+
+
+def evidence_view(record):
+    """Project the existing v1 evidence fields from one already-loaded record."""
+    return {'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
+            'contract_digest': record['contract_digest'], 'checkpoint_digest': record['checkpoint_digest'],
+            'snapshot_digest': record['contract']['snapshot']['digest'], 'claims': claims(record),
+            'authority': 'inspection_only'}
 
 
 def markdown(envelope, *, view, retained=None):
@@ -104,7 +112,9 @@ def markdown(envelope, *, view, retained=None):
         for claim in citations:
             output += ['', f'### Citation {_text(claim["citation"])} / round {_text(claim["round"])} / {_text(claim["participant"])}', '',
                        f'**Source:** {_text(claim["path"])}:{_text(claim["line"])}',
-                       '**Support:** ' + _text(claim['support']) + ' (advisory host assessment)', '',
+                       '**Support:** ' + _text(claim['support']) + (
+                           ' (advisory host assessment)' if claim.get('assessments')
+                           else ' (no host assessment recorded)'), '',
                        _text(claim['detail']), '',
                        _block('\n'.join(f'{row["line"]}: {row["text"]}' for row in claim['source']))]
             for assessment in claim.get('assessments', []):
