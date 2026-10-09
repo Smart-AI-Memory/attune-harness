@@ -20,7 +20,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     # Temporary Windows measurement headroom; ordinary qualification is unchanged.
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 30 || 25 }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     steps:
       - name: Preserve Git source bytes on every OS
         shell: bash
