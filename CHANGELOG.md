@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Allow 25 minutes for the instrumented Windows coverage process, with matching
+  enclosing limits; ordinary qualification and non-Windows limits are unchanged.
 - Add `init --for roundtable` to write a validated explicit-model seat config,
   report no-spend preflight and print the next prepare command (#236).
 - Run Windows installed-wheel qualification in fresh virtual environments to prevent runner-wide package conflicts.

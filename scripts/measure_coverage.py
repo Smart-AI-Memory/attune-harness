@@ -153,7 +153,7 @@ def measure(output, suite):
         with (output / 'tests.txt').open('w', encoding='utf-8') as log:
             run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
                                  stderr=subprocess.STDOUT,
-                                 timeout=(1380 if platform.system() == 'Windows' else 1080)
+                                 timeout=(1680 if platform.system() == 'Windows' else 1080)
                                  if suite == 'platform' else 1200)
         receipt['test_exit'] = run.returncode
     finally:
