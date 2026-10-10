@@ -95,3 +95,14 @@ def test_shipped_saved_request_inspection(tmp_path):
     result = subprocess.run([node, str(runner), str(source)], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     assert 'client regressions passed' in result.stdout
+
+
+def test_shipped_direct_form_journey(tmp_path):
+    node = shutil.which('node')
+    assert node, 'GUI client verification requires Node.js.'
+    source = tmp_path / 'forms.js'
+    source.write_text(INTAKE_SCRIPT, encoding='utf-8')
+    runner = Path(__file__).parent / 'client' / 'gui_direct_form.cjs'
+    result = subprocess.run([node, str(runner), str(source)], capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert 'client regressions passed' in result.stdout

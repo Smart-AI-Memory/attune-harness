@@ -72,6 +72,15 @@ In a candidate with saved-request inspection, View saved request / View accepted
 request opens a read-only summary of that owner revision. A stale-input warning
 means its acceptance is historical; inspect before continuing. This addition is
 not a claim about a published runtime that lacks saved-request inspection.
+
+In the direct-form candidate increment, one eligible draft in an editable
+workspace displays its current form automatically. A confirmed save shows the
+remaining questions or review. Automatic opening refuses to replace a form
+already live in another view; deliberate reopening remains available. Refresh
+keeps unconfirmed typing read-only for copying and never replays it. Accepted
+answers display read-only without another collector. Multiple tasks require
+selection. Check the actual installed behavior before using this procedure;
+do not assume that an earlier released runtime supports this behavior.
 Unsaved typing is not guaranteed to survive tab closure; copy it before closing.
 
 After the listener stops, its old launcher is invalid. Start a new listener for

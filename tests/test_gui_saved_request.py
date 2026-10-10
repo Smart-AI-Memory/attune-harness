@@ -100,6 +100,56 @@ def test_training_preparation_refuses_existing_directory(tmp_path):
     assert (path / 'record.json').read_bytes() == before
 
 
+def test_automatic_open_preserves_another_live_form_and_never_accepts(tmp_path):
+    path = prepare(tmp_path)
+    with gui.CompanionServer([path], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            item = inspect(server)
+            payload = {k: item[k] for k in ('task', 'checkpoint')} | {'replace': False}
+            before = (path / 'record.json').read_bytes()
+            status, first = call(server, '/decision/open', payload)
+            assert status == 200
+            retained = (path / 'decision.json').read_bytes()
+            status, refusal = call(server, '/decision/open', payload)
+            assert status == 409 and 'already open' in refusal
+            assert (path / 'decision.json').read_bytes() == retained
+            assert (path / 'record.json').read_bytes() == before
+            assert server.decisions.live[item['task']][0] == first['decision']
+            assert call(server, '/decision/submit', submission(first, {'answers': {
+                'answer_0': 'My Capitalized goal\nwith a second line'}}))[0] == 200
+            item = inspect(server)
+            assert item['saved_request']['intent']['goal'] == 'My Capitalized goal\nwith a second line'
+            payload = {k: item[k] for k in ('task', 'checkpoint')} | {'replace': False}
+            status, remaining = call(server, '/decision/open', payload)
+            assert status == 200 and len(remaining['display']['definition']['fields']) == 1
+            assert 'observable result' in remaining['display']['definition']['fields'][0]['text']
+            assert read_task(path)['acceptance'] is None
+            assert not {'planning', 'build'} & read_task(path).keys()
+            assert server.builds is None
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+
+
+@pytest.mark.parametrize('replace', [None, 0, 1, 'false', [], {}])
+def test_automatic_open_requires_boolean_replacement(tmp_path, replace):
+    path = prepare(tmp_path)
+    with gui.CompanionServer([path], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            item = inspect(server)
+            payload = {k: item[k] for k in ('task', 'checkpoint')} | {'replace': replace}
+            assert call(server, '/decision/open', payload)[0] == 409
+            assert not server.decisions.live
+            assert not (path / 'decision.json').exists()
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+
+
 def test_draft_effects_drift_keeps_every_saved_request_readable(work, tmp_path):
     from test_work_build import prepare as prepare_effects
     prepare_effects(work, accept=False)

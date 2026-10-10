@@ -95,11 +95,13 @@ class Decisions:
                         item["available"] = True
                         item["heading"] = self._draft_heading(record)
                         next_step = self._draft_next_step(record)
-                        item["note"] = f"Next: {next_step.lower()}."
+                        item["note"] = ("More answers are needed before intent review."
+                                        if next_step == "Continue form"
+                                        else "Your answers are ready for intent review.")
                         item["action_label"] = next_step
                         item["action_tip"] = ("Answer the remaining questions."
                                               if next_step == "Continue form"
-                                              else "Check your answers, then approve them.")
+                                              else "Review your answers, then choose whether to accept this intent.")
                     except (ValueError, OSError, UnresolvedOperation) as exc:
                         item["note"] = str(exc)
             except (ValueError, OSError) as exc:
@@ -108,11 +110,15 @@ class Decisions:
             result.append(item)
         return result
 
-    def open(self, task, checkpoint):
+    def open(self, task, checkpoint, *, replace=True):
+        if type(replace) is not bool:
+            raise ValueError("Form replacement must be an explicit boolean")
         record = self._record(task)
         self._draft(record)
         if checkpoint != record["checkpoint_digest"]:
             raise ValueError("Task changed; refresh before opening its decision")
+        if not replace and task in self.live:
+            raise ValueError("A form is already open for this task; deliberately reopen to replace it")
         # One live decision per task. A second tab invalidates the first even
         # if retaining an identical question form produces the same digest.
         self.live.pop(task, None)
@@ -162,8 +168,7 @@ class Decisions:
                 raise ValueError("Supply at least one answer, then reopen to continue")
             saved = answer_planning(self.tasks[task], {"schema_version": 1, "checkpoint_digest": checkpoint,
                                                      "answers": response["answers"]})
-            message = (f"Answers saved. Click “{self._draft_next_step(saved)}” "
-                       "in Saved work above.")
+            message = "Answers saved. Continue with the remaining questions or review the current intent."
             heading = self._draft_heading(saved)
         else:
             if set(response) != {"action", "confirmed"} or type(response["confirmed"]) is not bool:
@@ -175,6 +180,6 @@ class Decisions:
                 {**saved["display"]["response_template"], **response}
             ))
             message = ("Intent accepted. Implementation and paid dispatch are not authorized by this decision."
-                       if accepted is not None else "Response recorded; work remains unaccepted. Click “Review your answers” in Saved work above to continue.")
+                       if accepted is not None else "Response recorded; work remains unaccepted. Review the current answers before deciding.")
             heading = "Intent accepted" if accepted is not None else self._draft_heading(record)
         return {"message": message, "heading": heading}
