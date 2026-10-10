@@ -93,6 +93,9 @@ submission do not restore that collector. Inspect saved state
 and click the displayed **Continue form** or **Review your answers** to reopen
 deliberately. Browsers without the ownership primitives retain this fallback.
 A restarted listener needs a new private launcher and a fresh collector.
+Refresh does not clear a recovery refusal; reopen through the displayed task
+control. A page that has left cannot become editable from a delayed response.
+If browser history returns an expired page, reload it before continuing.
 Unsaved typing is not restored. This behavior is absent from published 1.3.0;
 verify the combined installed candidate before promising it to a user.
 

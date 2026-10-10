@@ -11,6 +11,7 @@ async function setup({globals={},responses=[{editable:true,tasks:[]}]}={}){
  const context=vm.createContext({document:doc,status,token:'test',console,Map,JSON,Error,Object,fetch:async(path,opts)=>{
   calls.push({path,opts});assert(queue.length,`Unexpected request ${path}`);const next=queue.shift();
   if(next instanceof Error)throw next;
+  if(typeof next==='function')return next();
   return {ok:next.ok!==false,text:async()=>next.error||'409 conflict',json:async()=>next};
  },...globals});
  vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);await flush();

@@ -42,10 +42,10 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 INTAKE_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
 let busy=false,expired=false,automaticOpenNotice='';
-let formView=null,formRecovery=null,reloadRecovery=false,recoveryBlocked=false,releaseView=null;
+let formView=null,formRecovery=null,reloadRecovery=false,recoveryBlocked=false,releaseView=null,viewGone=false;
 const recoveryKey='attune-gui-form';
 function rememberForm(shown,blocked=false){
- if(!formView)return;
+ if(!formView||viewGone)return;
  formRecovery=shown?{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision}:null;
  recoveryBlocked=blocked;
  // Write the no-replay barrier before submitting. If storage becomes unavailable,
@@ -70,22 +70,29 @@ async function claimFormView(){
     return new Promise(release=>{releaseView=release;resolve(true);});
    }).catch(()=>resolve(false));
   });
-  if(!held)return;
+  if(!held){
+   recoveryBlocked=true;reloadRecovery=true;
+   // A rejected copied identity must not become usable when its owner leaves.
+   sessionStorage.setItem(recoveryKey,JSON.stringify({session:token,view:crypto.randomUUID(),recovery:null,blocked:true}));
+   return;
+  }
   formView=candidate;formRecovery=saved?.recovery||null;recoveryBlocked=saved?.blocked===true;
   reloadRecovery=!!formRecovery||recoveryBlocked;
   sessionStorage.setItem(recoveryKey,JSON.stringify({session:token,view:formView,recovery:formRecovery,blocked:recoveryBlocked}));
-  window.addEventListener('pagehide',()=>{
-   expirePanel('This view is leaving. Unsaved answers are not restored after reload.');
-   formView=null;formRecovery=null;reloadRecovery=false;releaseView();
-  },{once:true});
  }catch(e){formView=null;formRecovery=null;reloadRecovery=recoveryBlocked;if(releaseView)releaseView();}
 }
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('pagehide',()=>{
+ viewGone=true;
+ expirePanel('This view is no longer active. Reload the page to continue. Unsaved answers are not restored.');
+ document.querySelectorAll('button').forEach(b=>b.disabled=true);
+ formView=null;formRecovery=null;reloadRecovery=false;if(releaseView)releaseView();
+},{once:true});
 function openPayload(task,automatic=false){
  return {task:task.task,checkpoint:task.checkpoint,...(automatic?{replace:false}:{}),...(formView?{view:formView}:{})};
 }
 const browserButton=document.querySelector('#browser-open'),browserTip=document.querySelector('#browser-tip');
 let workspaceReady=false;
-function syncBrowserButton(){if(browserButton)browserButton.disabled=busy||!workspaceReady;}
+function syncBrowserButton(){if(browserButton)browserButton.disabled=busy||viewGone||!workspaceReady;}
 if(browserButton){
  const narrow=window.matchMedia('(max-width:600px)');
  const recommend=()=>{if(browserTip)browserTip.hidden=!narrow.matches;};
@@ -113,8 +120,10 @@ function expirePanel(message){
 }
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
 async function api(path,payload){
+ if(viewGone)throw Error('This view is no longer active. Reload the page to continue.');
  const res=await fetch(path,{method:payload?'POST':'GET',headers:{'X-Attune-Session':token||'',...(payload?{'Content-Type':'application/json'}:{})},...(payload?{body:JSON.stringify(payload)}:{}),cache:'no-store'});
- if(!res.ok)throw Error(await res.text());return await res.json();
+ if(!res.ok)throw Error(await res.text());const value=await res.json();
+ if(viewGone)throw Error('This view is no longer active. Reload the page to continue.');return value;
 }
 async function loadTasks({advance=false}={}){
  automaticOpenNotice='';
@@ -151,14 +160,15 @@ async function loadTasks({advance=false}={}){
   const controls=presentations.get(task.task);controls.open.disabled=true;
   try{
    let shown;
+   if(recoveryBlocked)throw Error('A previous form was submitted or left. Inspect saved answers, then deliberately reopen the current form.');
    if(reloadRecovery){
-    if(recoveryBlocked)throw Error('A previous form was submitted or left. Inspect saved answers, then deliberately reopen the current form.');
     if(formRecovery.task!==task.task||formRecovery.checkpoint!==task.checkpoint)throw Error('Saved form recovery changed; deliberately reopen the current form.');
     shown=await api('/decision/restore',{...formRecovery,view:formView});
    }else shown=await api('/decision/open',openPayload(task,true));
    renderDecision(shown);controls.open.hidden=true;controls.tip.hidden=true;
    controls.note.textContent='The current form is ready. Viewing it does not accept intent or authorize execution.';
   }catch(e){
+   recoveryBlocked=true;try{rememberForm(null,true);}catch(storageError){}
    automaticOpenNotice='The current form was not opened. '+e.message;
   }finally{reloadRecovery=false;controls.open.disabled=false;}
  }
@@ -166,15 +176,16 @@ async function loadTasks({advance=false}={}){
  }catch(e){workspaceReady=false;syncBrowserButton();status.textContent='Decision inspection failed. '+e.message;return false;}
 }
 async function act(operation){
- if(busy)return;busy=true;const disabled=new Map(Array.from(document.querySelectorAll('button'),b=>[b,b.disabled]));disabled.forEach((_,b)=>b.disabled=true);
+ if(busy||viewGone)return;busy=true;const disabled=new Map(Array.from(document.querySelectorAll('button'),b=>[b,b.disabled]));disabled.forEach((_,b)=>b.disabled=true);
  try{await operation();}catch(e){expirePanel('Action not confirmed. Keep these answers and inspect saved state before continuing; this response will not be replayed.');status.textContent='Action not confirmed. '+e.message+' Refresh saved state before continuing.';}
- finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=(expired&&panel.contains(b))||disabled.get(b)||false);syncBrowserButton();}
+ finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=viewGone||(expired&&panel.contains(b))||disabled.get(b)||false);syncBrowserButton();}
 }
 async function submit(shown,response){
  if(expired)return;
  rememberForm(null,true);
  expirePanel('Submitting this response. This form is now read-only; answers remain available for copying.');
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
+ rememberForm(null);
  const title=panel.querySelector('h2');if(title&&typeof result.heading==='string')title.textContent=result.heading;
  expirePanel(result.message+' This previous form is now read-only.');
  await refreshWorkspace(result.message,{advance:true});
@@ -223,6 +234,7 @@ function renderIntent(summary,parent){
  }
 }
 function renderDecision(shown){
+ if(viewGone)return;
  rememberForm(shown);
  expired=false;
  panel.replaceChildren();const display=shown.display;

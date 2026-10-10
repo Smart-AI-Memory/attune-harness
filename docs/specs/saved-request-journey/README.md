@@ -61,6 +61,11 @@ refusal keep deliberate reopening. Saved prose stays in the authoritative task
 record; recovery metadata stores no answers. Unsaved typing is not restored.
 This source contract needs exact-candidate installed and human observation;
 historical captures do not establish the new journey.
+Recovery refusal persists through repeated refreshes until deliberate reopening
+or a confirmed save allows advancement. Page departure invalidates pending
+responses before releasing the view lock; a cached departed page stays expired
+until reloaded. A rejected copied identity is discarded even if its former
+owner subsequently leaves.
 
 Every step uses one registered owner and its current revision. The complete
 transitive schema/path/text/budget/registry validators remain authoritative.
