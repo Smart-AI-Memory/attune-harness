@@ -292,6 +292,27 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
 @pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
 def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, phase):
     """Exercise the full driver, keeping a killed run unusable as coverage."""
+    if sys.prefix == sys.base_prefix:
+        # The source-suite CI invokes base Python. Satisfy the real driver's
+        # disposable-venv precondition without changing its admission guard.
+        venv = tmp_path / 'driver-venv'
+        subprocess.run([sys.executable, '-m', 'venv', '--without-pip', str(venv)],
+                       check=True, timeout=30)
+        python = venv / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+        site = Path(subprocess.check_output([str(python), '-c',
+            'import sysconfig; print(sysconfig.get_path("purelib"))'],
+            text=True, timeout=10).strip())
+        # Reuse pytest's dependencies read-only; install nothing into either host.
+        (site / 'fixture_dependencies.pth').write_text(
+            str(Path(pytest.__file__).resolve().parent.parent) + '\n', encoding='utf-8')
+        subprocess.run([str(python), '-I', '-B', '-m', 'pytest', '-p', 'no:cacheprovider',
+                        '-q', f'{Path(__file__).resolve()}::'
+                        f'test_full_measurement_timeout_retains_active_phase[{phase}]',
+                        '--basetemp=' + str(tmp_path / 'child-tests')],
+                       cwd=SCRIPT.parent.parent, check=True, timeout=30,
+                       env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                            'PYTHONDONTWRITEBYTECODE': '1'})
+        return
     import attune_harness
 
     root = tmp_path / 'checkout'
