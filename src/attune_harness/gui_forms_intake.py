@@ -13,7 +13,7 @@ INTAKE_PAGE = ('<section id="decisions" hidden aria-labelledby="decision-heading
              'Clear content still matters: tags cannot supply missing facts or resolve an unclear goal.</p>'
              '<p>Harness distinguishes plain prompts, XML-enhanced prompts, and fuller specifications '
              'according to the work’s requirements. You can answer in ordinary language.</p>'
-             '<p>Illustrative XML format:</p><pre>&lt;goal&gt;Group saved work by the decision it needs&lt;/goal&gt;\n'
+             '<p>Illustrative XML format:</p><pre class="technical-input">&lt;goal&gt;Group saved work by the decision it needs&lt;/goal&gt;\n'
              '&lt;success&gt;Each saved task shows its next decision&lt;/success&gt;</pre>'
              '<p>This example explains structure; it is not a submitted answer or an execution grant.</p></details>'
              '<div id="tasks"></div><div id="form-panel"></div></section>')
@@ -27,6 +27,8 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 .saved-answers{overflow-wrap:anywhere}
 .approval-answers,.approval-blockers{overflow-wrap:anywhere}
+.saved-answers p,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}
+.technical-input,.owner-record{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}
 textarea{min-height:86px;resize:vertical}select{white-space:normal}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 system-ui;background:#f5f6f2;padding:16px;border-radius:6px}
@@ -39,7 +41,7 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 
 INTAKE_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
-let busy=false,expired=false;
+let busy=false,expired=false,automaticOpenNotice='';
 const browserButton=document.querySelector('#browser-open'),browserTip=document.querySelector('#browser-tip');
 let workspaceReady=false;
 function syncBrowserButton(){if(browserButton)browserButton.disabled=busy||!workspaceReady;}
@@ -72,25 +74,46 @@ async function api(path,payload){
  const res=await fetch(path,{method:payload?'POST':'GET',headers:{'X-Attune-Session':token||'',...(payload?{'Content-Type':'application/json'}:{})},...(payload?{body:JSON.stringify(payload)}:{}),cache:'no-store'});
  if(!res.ok)throw Error(await res.text());return await res.json();
 }
-async function loadTasks(){
+async function loadTasks({advance=false}={}){
+ automaticOpenNotice='';
  try{const data=await api('/workspace');workspaceReady=true;syncBrowserButton();tasks.replaceChildren();document.querySelector('#decisions').hidden=false;
+ const presentations=new Map();
  for(const task of data.tasks){
-  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);node('p',task.label,card);node('p',task.note,card);
+  const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.heading||task.status,card);
+  const goal=node('p',undefined,card);goal.className='saved-goal';
+  if(task.saved_request){node('b','Saved goal: ',goal);node('span',task.saved_request.intent.goal||'Not answered',goal);}else goal.textContent=task.label;
+  const note=node('p',task.note,card);
   if(task.saved_request){
    const saved=task.saved_request;
    if(!saved.fresh){const warning=node('p','Saved inputs have changed. '+saved.freshness_note,card);warning.setAttribute('role','status');}
    const view=node('details',undefined,card);view.className='saved-request';
-   node('summary',saved.accepted?'View accepted request':'View saved request',view);view.open=false;
+   node('summary',saved.accepted?'View accepted request':'View saved request',view);view.open=saved.accepted;
    node('p','Saved revision '+saved.revision+'. Refresh saved state to inspect the latest record.',view);
    renderIntent(saved,view);
    node('p',saved.accepted?'Intent accepted. Implementation and paid dispatch are not authorized by this decision.':'Saving answers does not accept intent. Review the current form before deciding.',view);
    const identity=node('details',undefined,view);node('summary','Technical details',identity);identity.open=false;
-   node('pre','Task '+saved.task_id+'\nCheckpoint '+saved.checkpoint+'\nAuthoring format: '+saved.authoring.tier,identity);
+   node('pre','Task '+saved.task_id+'\nCheckpoint '+saved.checkpoint+'\nAuthoring format: '+saved.authoring.tier,identity).className='technical-input';
   }
-  if(data.editable&&task.available){const tip=node('p',undefined,card);node('strong','Tip: ',tip);node('span',task.action_tip||'Open the current form to continue.',tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
+  if(data.editable&&task.available){const tip=node('p',undefined,card);node('b','Next: ',tip);node('span','Click ',tip);node('b',task.action_label||'Open current form',tip);node('span','. '+(task.action_tip||'Review the current form before responding.'),tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
    const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
-   status.textContent='Current decision retained. Review before responding.';
-  });}
+   open.hidden=true;tip.hidden=true;
+   note.textContent='The current form is ready. Viewing it does not accept intent or authorize execution.';
+   status.textContent='Current form displayed. Review before responding.';
+  });presentations.set(task.task,{tip,open,note});}
+ }
+ // A single eligible draft can show its form directly. Never choose among
+ // tasks, replace another view's collector, or discard unconfirmed typing.
+ const task=data.tasks.length===1?data.tasks[0]:null;
+ if(advance&&task?.saved_request?.accepted)panel.replaceChildren();
+ if(data.editable&&task?.available&&task.status==='draft'&&task.saved_request&&(advance||!panel.children.length)){
+  const controls=presentations.get(task.task);controls.open.disabled=true;
+  try{
+   const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint,replace:false});
+   renderDecision(shown);controls.open.hidden=true;controls.tip.hidden=true;
+   controls.note.textContent='The current form is ready. Viewing it does not accept intent or authorize execution.';
+  }catch(e){
+   automaticOpenNotice='The current form was not opened. '+e.message;
+  }finally{controls.open.disabled=false;}
  }
  return true;
  }catch(e){workspaceReady=false;syncBrowserButton();status.textContent='Decision inspection failed. '+e.message;return false;}
@@ -106,17 +129,17 @@ async function submit(shown,response){
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
  const title=panel.querySelector('h2');if(title&&typeof result.heading==='string')title.textContent=result.heading;
  expirePanel(result.message+' This previous form is now read-only.');
- await refreshWorkspace(result.message);
+ await refreshWorkspace(result.message,{advance:true});
 }
-async function refreshWorkspace(message=''){
+async function refreshWorkspace(message='',options={}){
  expirePanel();
- const loaded=await loadTasks();
- if(loaded)status.textContent=message||'Forms refreshed. Inspection makes no decisions or model calls.';
+ const loaded=await loadTasks(options);
+ if(loaded)status.textContent=(message||'Forms refreshed. Viewing does not accept intent or authorize execution.')+(automaticOpenNotice?' '+automaticOpenNotice:'');
 }
 function renderSavedAnswers(summary){
  const intent=summary?.intent;if(!intent)return;
  const entries=[];
- if(typeof intent.goal==='string'&&intent.goal.trim())entries.push(['Goal',[intent.goal]]);
+ if(typeof intent.goal==='string'&&intent.goal.trim())entries.push(['Saved goal',[intent.goal]]);
  if(intent.acceptance?.length)entries.push(['Done when',intent.acceptance]);
  for(const question of intent.questions||[]){
   if(typeof question.answer==='string'&&question.answer.trim())entries.push([question.question,[question.answer]]);
@@ -139,7 +162,7 @@ function renderIntent(summary,parent){
  const answers=node('section',undefined,parent);answers.className='approval-answers';answers.setAttribute('aria-label','Questions and answers');
  node('h3','What should this work accomplish?',answers);node('p',intent.goal||'Not answered',answers);
  for(const [key,label] of [['acceptance','What observable result establishes success?'],['scope','Which exact files are in scope?'],['constraints','What constraints should guide this work?'],['context','What context should inform this work?']]){
-  if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key])node('li',item,list);}
+  if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key]){const value=node('li',item,list);if(key==='scope')value.className='technical-input';}}
  }
  for(const question of intent.questions){
   node('h3',question.question,answers);node('small',question.material?'Required for acceptance':'Optional question',answers);
@@ -170,12 +193,12 @@ function renderDecision(shown){
   details.append(checkpoint);
   if(display.kind==='spec'){
    node('small','Authoring format: '+shown.summary.authoring.tier,details);
-   if(shown.summary.effects){node('h3','Configured file effects and checks',details);node('pre',JSON.stringify(shown.summary.effects,null,2),details);}
+   if(shown.summary.effects){node('h3','Configured file effects and checks',details);node('pre',JSON.stringify(shown.summary.effects,null,2),details).className='technical-input';}
   }
  }
  if(display.kind==='questions'){
   renderSavedAnswers(shown.summary);
-  const instructions=node('p','Answer what you know. You can save partial answers; Harness will ask only what remains. After saving, use the next-step button in Saved work to continue.',panel);instructions.id='answer-instructions';
+  const instructions=node('p','Answer what you know. You can save partial answers. Harness will ask only what remains. After saving, continue with the remaining questions or review your answers.',panel);instructions.id='answer-instructions';
   const form=node('form',undefined,panel),inputs=[];
   details.querySelector('summary').textContent='Technical details (optional)';details.open=false;panel.append(details);
   for(const field of display.definition.fields){
@@ -185,6 +208,7 @@ function renderDecision(shown){
     for(const text of field.options){node('option',text,input).value=text;}
    }else if(field.type==='text_input'){input=node('textarea',undefined,form);}
    else{node('p','This field requires the CLI collector.',form);return;}
+   if(display.field_map?.[field.id]==='scope')input.className='technical-input';
    input.id=id;input.name=field.id;input.setAttribute('data-recovery-label',field.text);inputs.push([field.id,input]);
    const hint=node('small',(field.required===true?'Required before intent acceptance. ':'')+'You can leave this blank when saving partial answers.',form);hint.id=id+'-hint';
    input.setAttribute('aria-describedby',instructions.id+' '+hint.id);
@@ -202,9 +226,9 @@ function renderDecision(shown){
    const choose=node('button',labels[action.id]||action.label,row);choose.type='button';
    choose.onclick=()=>act(()=>submit(shown,{action:action.id,confirmed:true}));
   }
-  if(!display.actions.length)node('p','No approval action is available in this view. Resolve the blocking reasons or inspect the full decision in Technical details before continuing.',panel);
+  if(!display.actions.length){const guidance=node('p','No approval action is available in this view. Resolve the blocking reasons or expand ',panel);node('b','Technical details',guidance);node('span',' to inspect the full decision before continuing.',guidance);}
  }
 }
 
-refreshWorkspace();
+act(()=>refreshWorkspace());
 """

@@ -85,7 +85,7 @@ INTAKE_DOCUMENT = ('<!doctype html><html lang=en><head><meta charset=utf-8>'
     '<button id="refresh" type="button">Refresh forms</button>'
     '<button id="browser-open" type="button" disabled>Open in browser</button>'
     '<p id="browser-tip" hidden><strong>Tip: </strong>This panel is narrow. '
-    'Open in browser for more room. Copy any unsaved answers first.</p>'
+    'Click <b>Open in browser</b> for more room. Copy any unsaved answers first.</p>'
     '<p id="status" role="status" aria-live="polite">Connecting…</p></header>'
     + INTAKE_PAGE + '<script src="/app.js"></script></body></html>')
 
@@ -295,6 +295,8 @@ class Handler(BaseHTTPRequestHandler):
                 expected = {'confirmed'}
             elif self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
+            elif self.path == '/decision/open' and isinstance(payload, dict) and 'replace' in payload:
+                expected |= {'replace'}
             elif self.path == '/build/start':
                 expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:

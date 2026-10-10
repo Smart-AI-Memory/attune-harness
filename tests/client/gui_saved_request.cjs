@@ -7,7 +7,7 @@ const saved={task_id:'owner-id',revision:2,checkpoint:'saved-cp',intent,choices:
  const h=await setup();
  h.queue.push({editable:false,tasks:[{task:'A',heading:'Intent accepted',label:intent.goal,note:'Execution remains separate.',available:false,saved_request:saved}]});
  await h.run('loadTasks()');
- const view=h.root.querySelector('.saved-request');assert(view);assert.equal(view.open,false);
+ const view=h.root.querySelector('.saved-request');assert(view);assert.equal(view.open,true);
  assert.equal(view.querySelector('summary').textContent,'View accepted request');
  assert.match(view.textContent,/source.py/);assert.match(view.textContent,/No implementation or model calls/);assert.match(view.textContent,/Saved revision 2/);
  assert(view.textContent.includes(intent.goal));assert(!view.querySelector('script'));
