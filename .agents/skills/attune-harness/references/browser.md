@@ -80,7 +80,7 @@ already live in another view; deliberate reopening remains available. Refresh
 keeps unconfirmed typing read-only for copying and never replays it. Accepted
 answers display read-only without another collector. Multiple tasks require
 selection. Check the actual installed behavior before using this procedure;
-it does not describe the unchanged released 1.3.0 runtime.
+do not assume that an earlier released runtime supports this behavior.
 Unsaved typing is not guaranteed to survive tab closure; copy it before closing.
 
 After the listener stops, its old launcher is invalid. Start a new listener for
