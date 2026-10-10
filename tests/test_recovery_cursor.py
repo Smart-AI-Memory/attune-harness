@@ -1,6 +1,8 @@
 """RecoveryCursor's begin/fail/finish split keeps perform's behavior (#233, D1)."""
 
 import copy
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -274,3 +276,63 @@ def test_failure_on_an_event_without_effect_class_keeps_the_original_error():
     with pytest.raises(RuntimeError, match="boom"):
         cur.perform("k", "participant_turn", raising(RuntimeError("boom")), effect_class=None)
     assert (cur.events["k"]["state"], cur.events["k"]["effects"]) == ("failed", "unknown")
+
+
+def prepared(key, attempts=1):
+    event = completed(key, None)
+    event.update(state="pending", phase="prepared", attempts=attempts)
+    del event["result"]
+    return event
+
+
+def capturing_cursor(events=()):
+    """A cursor whose origin callback uses paths that are absolute on every platform."""
+
+    def capture():
+        return {
+            "version": 1,
+            "attempt": 0,  # begin stamps the event's attempt over this
+            "interpreter": {"path": sys.executable, "version": "3"},
+            "modules": [{"name": "m", "path": str(Path(__file__).resolve()), "sha256": "0" * 64}],
+        }
+
+    record = {
+        "events": [copy.deepcopy(event) for event in events],
+        "capture_policy": copy.deepcopy(CAPTURE_POLICY),
+    }
+    return RecoveryCursor(record, Store(), dispatch_origin=capture)
+
+
+def test_resumed_prepared_operation_saves_once_and_keeps_its_identity():
+    cur = cursor([prepared("k", attempts=2)])
+    replayed, event = cur.begin("k", "participant_turn", effect_class="external")
+    assert not replayed
+    assert [save["events"][0]["phase"] for save in cur.store.saves] == ["dispatching"]
+    assert (event["event_id"], event["attempts"]) == ("id-k", 2)
+
+
+def test_origin_is_stamped_with_the_attempt_in_the_dispatch_save():
+    cur = capturing_cursor([prepared("k", attempts=2)])
+    cur.begin("k", "participant_turn", effect_class="external")
+    (save,) = cur.store.saves
+    assert save["events"][0]["phase"] == "dispatching"
+    assert save["events"][0]["runtime_origin"]["attempt"] == 2
+
+
+def test_new_operation_origin_is_absent_from_the_prepared_save():
+    cur = capturing_cursor()
+    cur.begin("k", "participant_turn", effect_class="external")
+    first, second = cur.store.saves
+    assert "runtime_origin" not in first["events"][0]
+    assert second["events"][0]["runtime_origin"]["attempt"] == 1
+
+
+def test_fail_called_directly_reads_the_saved_event_and_neither_saves_nor_counts():
+    cur = cursor([prepared("k")])
+    _, event = cur.begin("k", "participant_turn", effect_class="external")
+    saves = len(cur.store.saves)
+    refusal = {"kind": "claude_structured_error", "returncode": 1}
+    cur.fail(event, NativeError("refused", refusal=refusal))
+    assert (len(cur.store.saves), cur.completed) == (saves, 0)
+    assert (event["state"], event["phase"], event["effects"]) == ("failed", "dispatching", "unknown")
+    assert event["native_refusal"] == refusal
