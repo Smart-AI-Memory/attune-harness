@@ -1,2 +1,6 @@
 # Fixtures are pinned by digest; a Windows checkout must not rewrite their line endings.
 tests/fixtures/** -text
+# The first-repair acceptance contract pins these reviewed bytes on every OS.
+docs/first-repair-1.3.0.md -text
+examples/starter/participants.json -text
+examples/starter/worker.py -text
