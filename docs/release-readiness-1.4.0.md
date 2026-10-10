@@ -29,8 +29,11 @@ and does not integrate the candidate into main.
   by GPT-6 Astra. It no longer promises execution controls in 1.4.0. This is a
   string-only runtime correction; no execution authority or route was added.
 - Canonical tutorials and PowerPoint/HTML derivatives remain with their tutorial
-  owner. Help source, projection and website readiness remain with the Help
-  owner. Their active files and historical captures were only read here.
+  owner. The accepted one-file candidate tutorial patch is integrated locally
+  with its exact document and independent same-model GPT-6 review receipt.
+  Candidate deck copies and rendering remain held. Help source, projection and
+  website readiness remain with the Help owner; active owner files and old
+  captures were preserved.
 
 The released v1.3.0 tag, artifacts, receipts and retained environments are
 unchanged. The Claude marketplace still points to that released tag. Moving the
@@ -112,10 +115,28 @@ retained document and Help snapshot have SHA-256
 Historical tutorial source `86e83c6` and behavior source `0ecf8e6` stay historical.
 They must not be relabeled as 1.4.0 evidence.
 
-The four PowerPoint and four HTML training files match their owner's delivery
-manifest. The PowerPoint files contain 39 slides in total. The owner's saved
-Library receipt records version 2; no remote Library refresh or native
-PowerPoint review was performed here. The files still describe 1.3.0.
+The tutorial owner's latest four PowerPoint and four HTML training files match
+their retained delivery manifests: Navigation, Specification and Continuity use
+version 3 deliveries; Four Workflows uses version 2. The PowerPoint files contain
+39 slides in total. These are retained local delivery/Library receipts; no remote
+Library refresh, new rendering or native PowerPoint review was performed here.
+All files still describe 1.3.0. Earlier version 2 files and receipts also remain
+unchanged.
+
+The [candidate tutorial](tutorials-next-release-candidate.md) now has numbered procedures reviewed against source for direct opening, saved answers, current approval
+controls, conditional reload and deliberate reopening. Its exact accepted bytes
+retain the historical #243 evidence tail and link the earlier numbered procedure
+at an immutable source. The five existing corrected-wheel CLI results support
+its reviewed unchanged plan/research procedures. They were not rerun. Candidate
+GUI captures, human results and presentation rendering remain pending.
+
+Candidate deck copies are blocked by the unavailable supported presentation
+runtime. The installed Presentations instructions require the supplied runtime
+and forbid substitute installations. The release record retains this capability
+limit and the affected slide/image seams. Historical decks are useful labeled
+1.3.0 downloads; keeping them does not mark changed 1.4.0 derivatives ready. Any
+interim addendum arrangement needs an explicit owner/release disposition under
+the runbook before publication readiness can be claimed.
 
 At Help source `87cb091b85bd16e90b4b480f709784ed6f5ef26c`, the four generated
 walkthroughs pass their canonical hash and projection drift check. The seven
@@ -134,8 +155,8 @@ in this documentation pass.
 | Topic or source | Current disposition | Derivative and owner | Remaining evidence | Older guidance |
 | --- | --- | --- | --- | --- |
 | README, CLI installation, manifests and release records | Prepared for 1.4.0; these two release records reconciled against `df3e242` | Package and release body; release owner | Final source/tree and shipping copy; verify tagged URLs and index installation when publication exists | Released 1.3.0 retained |
-| Browser intake, saved answers, approval and reopening | Candidate CLI guidance names reviewed controls; human observation pending | Navigation, continuity and GUI portions of four-workflows; tutorial owner; Help start-and-continue, save-and-resume and troubleshooting | Reconcile current controls, persistent hints, direct opening and reload; source-bound captures and human result | Keep 1.3.0 controls/captures labeled |
-| Sample plan and research | Unchanged commands reviewed and replayed on corrected candidate wheel | Spec-workflow and research examples; tutorial and Help owners | Owner disposition of surrounding candidate prose and presentation rendering; CLI pass alone does not qualify derivatives | Versioned 1.3.0 canonical text retained |
+| Browser intake, saved answers, approval and reopening | Candidate canonical numbered steps now match reviewed controls and reload; GUI observations pending | Navigation, continuity and GUI portions of four-workflows; tutorial owner; Help start-and-continue, save-and-resume and troubleshooting | Current steps source-reviewed; source-bound captures, human result and revised deck rendering pending | Keep 1.3.0 controls/captures labeled |
+| Sample plan and research | Unchanged commands reviewed and replayed on corrected candidate wheel | Spec-workflow and research examples; tutorial and Help owners | Candidate prose now reconciled and reviewed; presentation framing/images/rendering still need disposition; CLI pass alone does not qualify derivatives | Versioned 1.3.0 canonical text retained |
 | Consultation setup, seat checks, batch citations and Markdown | Candidate command evidence retained in correction handoff; JSON stays default | Consultation guide and shared skills; respective owners | Confirm candidate topic coverage and resolve the existing packaged cross-review preflight omission with its assigned owner | Core 1.3.0 guidance retained; no concurrent-round promise |
 | First checked repair | Static document, journey and example hashes match retained acceptance contract | First-repair tutorial and derived guidance; tutorial owner | Candidate semantic disposition; this pass did not rerun the repair journey | Contract remains pinned to 1.3.0 |
 | Help and official website documentation | Four projections pass drift check; seven topics inventoried; existing review preview separate from production | Help owner | Select 1.4.0 in candidate inventory, add combined-source changes, refresh current publication context, check changed pages/build/links and record unchanged topics reviewed | Preserve old snapshot and capture pins |
@@ -165,8 +186,14 @@ A docs-only change does not require repeating unaffected source tests locally.
 
 The active disposable human preview remains `b882217`, wheel SHA-256
 `a41ef78bfc1ddaeabeca1d02227c11300064d0605f8f106a1257ec4058a83f9a`.
-It was not upgraded. Human form comprehension, keyboard/visibility and native
-reload/ownership observations remain pending. Any controlled replacement must
+It was not upgraded. The intake, approval copy, saved-request view, client reload
+script and fixture bytes are unchanged from that preview to the corrected
+runtime. Any actual b882217 observations remain evidence for their recorded
+source/browser/inputs and can support these unchanged components with the mapping of identical bytes, as the runbook permits. Do not discard them or relabel them as
+observations of the corrected refusal/help text in `gui.py`. The available
+preview receipt still has pending human fields; this record invents no result.
+Keyboard/visibility, comprehension and native reload/ownership limits remain
+bounded by the observations actually supplied. Any controlled replacement must
 identify its new source and artifact and preserve the existing accepted practice.
 
 Patrick's remaining decisions are the observed form assessment, final feature
@@ -174,8 +201,7 @@ scope, and the specific integration and publication actions. Open observations
 need explicit disposition: S3 fresh-session recall/exclusion, S6 a named
 non-programmer's installed walkthrough, and S9 each migration row on the
 installed stable artifact. Broader M2 still needs its real owner-chain and
-recovery evidence. The separately prepared #233 concurrent-round/selective-
-retry feature is not included; its inclusion would require an explicit scope
+recovery evidence. The separately prepared #233 concurrent rounds and selective retry feature is not included; its inclusion would require an explicit scope
 decision and new combined qualification. #234's production behavior is already
 in the base; its separate acceptance-test addition is not silently included.
 

@@ -1,135 +1,120 @@
-# Training walkthroughs for the next Harness candidate
+# Training walkthroughs for the Harness 1.4.0 candidate
 
-Unreleased review draft. These GUI procedures describe the
-[saved-request GUI](https://github.com/Smart-AI-Memory/attune-harness/pull/243)
-reviewed and qualified at `0e1a285307b3f9593e504ba0139a3f9e8e83992a`, now merged
-as signed squash `82cdff9379b62e1858eb44366d0923721ff037e5` with an identical
-complete tree. The next release is being prepared as 1.4.0. Its final shipping date and SHA
-remain pending; the local combined source is recorded in the release handoff. The separate form guidance in #242 is absent from this
-tested tree and its captures. That guidance has since merged to main as
-`9410c4b57df5e0dc6cb1a5fcb38d0fb5a665ce37`; this page does not claim that the
-earlier walkthroughs or captures qualify the combined source.
+**Unpublished, source-reviewed candidate guidance.** These procedures target
+runtime source `df3e242c98a0fecb4c7ac4f6cb143ae30752ab00` and the corrected
+noneditable 1.4.0 wheel SHA-256
+`c09c3ccc3cd4f280994204f95d35a64b997eaab6e8eaab993c0e7e4dbd064f45`.
+The local documentation base is `364ac1011053f5181e297552159c14fed9b6a4a5`.
+The [candidate readiness record](release-readiness-1.4.0.md) identifies the
+selected components and remaining checks. The publication date and final
+shipping SHA remain unset.
+
+The numbered GUI procedures below match the selected source. They have not yet
+been walked or captured on this corrected candidate. Earlier #243 captures
+remain tied to their original build; they do not verify the changed wording,
+#242 guidance, direct opening or reload restoration. Human comprehension and
+new derivative rendering remain pending.
 
 The [released 1.3.0 walkthroughs](tutorials-1.3.0.md) and their PowerPoint/HTML
-files retain their original instructions and evidence. This draft stages the
-changed GUI procedures for a later canonical and derivative review. Control
-names are bold; typed values and commands use code font.
+files retain their original instructions, source labels and evidence. This
+candidate page does not replace them. Control names are bold; literal answers
+and commands use code font. Browser execution remains future work; the selected
+1.4.0 candidate provides forms without browser build or execution resume.
 
-## Approval wording in current unreleased source
+## Approval: what does each choice do?
 
-The current source uses **Approve this work request** and **Keep as draft** in
-**Review your answers**. Click **Approve this work request** only to record
-approval of the reviewed request. Click **Keep as draft** to leave it unapproved
-for reconsideration. Each choice explains its consequence; neither starts work.
-These are presentation labels for the existing single-use intent decisions,
-not new execution controls. Human comprehension with this wording has not yet
-been checked.
+In **Review your answers**, click **Approve this work request** only to record
+approval of the reviewed goal, success criteria, scope, context, constraints
+and choices. Click **Keep as draft** to leave that request unapproved for
+reconsideration. Neither choice starts work or authorizes a model call.
 
-The #243 procedures and retained captures below still use the earlier labels
-**Accept this intent** and **Keep draft for reconsideration**. They remain
-evidence for that pinned build; they do not verify the changed copy. The
-published 1.3.0 tutorial and its derivative files retain their released labels.
+The saved state still uses “Intent accepted”. That state describes the recorded
+request decision, not an execution grant. The controls are presentation labels
+for the existing single-use decisions. Earlier #243 procedures and captures use
+**Accept this intent** and **Keep draft for reconsideration**; those labels stay
+historical. Human understanding of the new wording remains pending.
 
-## Reload: how can I keep the remaining form visible?
+## Navigation: how can I inspect the approved request?
 
-The procedures and captures below remain pinned to #243. A later source change
-adds restoration of the same page's current form after reload, using session
-storage, navigation timing and an exclusive Web Lock to verify view ownership.
-It does not replace the collector, replay answers, approve intent or start work.
-The earlier captures do not verify this addition.
-
-For the combined candidate, prepare a fresh synthetic draft, enter only the
-goal and click **Save answers**. Wait for the remaining success question, then
-reload the page. Expected: the exact saved goal remains visible and the same
-remaining question appears blank without clicking **Continue form**. Stop before
-approving. Saved answers persist; unsaved typing is not restored.
-
-If another view owns the form, its checkpoint changed, submission was
-unconfirmed, or browser ownership support is unavailable, inspect the saved
-answers and click the displayed **Continue form** or **Review your answers** to
-reopen deliberately. A listener restart requires a new private launcher and
-opens a fresh collector; it cannot restore the old collector. Record the actual browser/version, source and wheel identity
-and assistance before declaring this journey verified. Published 1.3.0 does not
-contain this behavior.
-
-## Navigation: how can I inspect what I accepted?
-
-Prerequisite: Use the installed #243 candidate and prepare a fresh synthetic
+Prerequisite: Use the pinned candidate interpreter and prepare a fresh synthetic
 draft as described below. It starts with an unanswered goal and success
-criterion. `TASK` is the returned canonical task directory.
+criterion. `TASK` is the returned canonical task directory. Keep the listener
+running and use its exact private `launch_url`.
 
 | Step | Action |
 | --- | --- |
-| 1 | Click **Continue form**. In “**What should this work accomplish?**”, enter `Group saved work by the decision it needs`. |
+| 1 | Open the private `launch_url`. The single eligible draft opens its current form directly. If the form is not displayed, inspect the saved state, then click **Continue form** to reopen deliberately. In “**What should this work accomplish?**”, enter `Group saved work by the decision it needs`. |
 | 2 | Click **Save answers**, leaving the success question empty. Wait for the “Answers saved” confirmation. |
-| 3 | Reopen the same task after a listener restart, using the command below. Expand **View saved request** and check the goal and allowed files. Click **Continue form**. |
+| 3 | Expand **View saved request**. Check the saved goal, allowed file `source.py`, context `Training example` and constraint `No implementation or model calls`. |
 | 4 | In “**What observable result establishes success? Enter one item per line.**”, enter `Each saved task shows its next decision`. Click **Save answers** and wait for the saved confirmation. |
-| 5 | Click **Review your answers**. Check the goal, success criterion, allowed files, context and constraints. If those answers are correct, click **Accept this intent**. |
-| 6 | Reload the page. Expand **View accepted request** and compare the retained answers with the request you accepted. |
+| 5 | Review the answers in the current preview. If it is not displayed, click **Review your answers**. Check the goal, success criterion, allowed files, context and constraints. |
+| 6 | If the reviewed request is correct, click **Approve this work request**. Otherwise, click **Keep as draft** to leave it unapproved. After approval, reload the page and inspect **View accepted request**. |
 
-Expected: **Saved work** shows “Intent accepted”. **View accepted request**
-retains the goal, success criterion, `source.py`, `Training example` and
-`No implementation or model calls`. The captured fixture has saved revision 3.
-Inspection opens no new approval form and starts no implementation or model call.
+Expected after approval: **Saved work** shows “Intent accepted”.
+**View accepted request** displays the approved answers read-only, including the
+literal goal and success criterion above. Inspecting this record opens no new
+approval form and starts no implementation or model call. This endpoint is
+source-defined; a current-candidate browser observation is still pending.
 
 For an explanation of prompt structure, expand **How this becomes a prompt**.
 Its XML is illustrative; answer the actual questions in ordinary language.
-**Technical details** contains the task identity, checkpoint and authoring
-format and remains optional.
+**Technical details** contains task identity, checkpoint and authoring format
+and remains optional.
 
-This is the captured partial-save variation: it uses two saves and a restart.
-The retained 1.3.0 Navigation procedure enters both answers before its single
-save. Keep the action sequence and its matching captures together.
+## Session continuity: what survives reload and reopening?
 
-## Session continuity: what survives reopening the form?
-
-Prerequisite: Prepare another fresh synthetic draft with the same candidate.
-This procedure ends while the request is still a draft.
+Prerequisite: Prepare another fresh synthetic draft with the pinned candidate.
+Use one browser page and keep its listener running through step 4. This procedure
+ends while the request remains a draft.
 
 | Step | Action |
 | --- | --- |
-| 1 | Click **Continue form**. |
+| 1 | Open the new private `launch_url`. If the current form is not displayed, inspect saved state, then click **Continue form**. |
 | 2 | In “**What should this work accomplish?**”, enter `Group saved work by the decision it needs`. |
-| 3 | Click **Save answers**. Leave the success question empty and wait for the “Answers saved” confirmation. |
-| 4 | Stop the listener with `Ctrl-C`. Run `python -m attune_harness.gui --task "$TASK" --edit --launch-json` and open the new private `launch_url`. |
-| 5 | Expand **View saved request**. Check the retained goal, `source.py`, context and constraint. |
-| 6 | Click **Continue form** to answer what remains. |
+| 3 | Click **Save answers**. Leave the success question empty and wait for the “Answers saved” confirmation and the remaining question. |
+| 4 | Reload this same page. When its listener, task checkpoint, collector and browser view ownership remain current, the saved goal and blank remaining success question reappear without clicking **Continue form**. |
+| 5 | Stop the listener with `Ctrl-C`. Run `python -m attune_harness.gui --task "$TASK" --edit --launch-json` with the same `TASK`. |
+| 6 | Open the new private `launch_url`. Inspect the saved goal and remaining blank success question. If the current form is not displayed, expand **View saved request**, then click **Continue form** to reopen deliberately. |
 
-Expected: **Saved answers** retains the goal above the unanswered success
-question. The task remains a draft. The new form session expires the earlier
-collector; saved answers remain in the owner record.
+Expected: the saved goal retains its exact wording and the task remains a draft.
+Saved answers persist; unsaved typing is not restored. A listener restart opens
+a fresh collector rather than restoring the old one. The shared sample retains
+`source.py`, `Training example` and `No implementation or model calls`.
 
-The candidate example uses the shared Navigation fixture. The retained 1.3.0
-Continuity example uses `Review quartz retention documentation`. Its original
-captures remain with that version. The candidate's reopened saved-request image
-supports step 5. A separate local walkthrough check also captures the retained
-goal beside the fresh unanswered success field at step 6. Both use #243 alone;
-repeat that capture on the combined candidate before derivative publication.
+Same-page restoration requires usable session storage, reload navigation timing
+and an exclusive Web Lock. It inspects the current collector without replacing
+it, replaying a response, approving a request or starting work. If another view
+owns the form, the checkpoint changed, or a submission was unconfirmed, inspect
+saved answers and click the displayed **Continue form** or **Review your answers**
+to reopen deliberately. Inspect saved state before repeating any unconfirmed
+answer; Harness does not replay that submission for you.
 
-Saved answers are the observed result. Unsaved typing is not guaranteed to
-survive closing the tab. Copy needed unsaved text before closing it.
+Record the actual browser/version, source, wheel identity and assistance when
+walking these steps. Copied-tab, history and native lock scheduling observations
+remain separate from client tests. The corrected-candidate walkthrough and human
+result are pending. Released 1.3.0 does not include this reload restoration.
 
 ## What if the saved inputs changed?
 
-The candidate shows “Accepted intent — inputs changed” and a warning before
-the closed **View accepted request** disclosure. Opening it retains the earlier
-answers for inspection. That acceptance is historical; it does not establish
-authority over the changed inputs.
-
-This walkthrough ends at inspection. The GUI owner's real-task trial still
-needs to establish whether the warning and next permitted action are clear to
-a user. No new recovery button or automatic retry is described here.
+The candidate shows “Accepted intent — inputs changed” and a warning with the
+historical **View accepted request** record. Inspect its earlier answers; that
+acceptance does not establish authority over changed inputs. This walkthrough
+ends at inspection. No automatic retry, new recovery control or browser execution
+is described. User understanding of the warning and next permitted action still
+needs a source-attributed observation.
 
 ## Prepare and reopen the synthetic sample
 
-Use one installed candidate interpreter throughout. Set `CANDIDATE` to an
-absolute checkout of #243 at the pinned commit, and choose an unused absolute
-`TRAINING` directory for each procedure. The helper creates the sample project,
-deterministic registry and saved draft; the task remains outside the project.
+Use the existing noneditable candidate interpreter throughout. Set `CANDIDATE`
+to an absolute checkout containing the pinned candidate fixture and choose an
+unused, absolute, resolved `TRAINING` directory for each procedure. Keep task
+storage outside the project. On macOS, use a resolved path such as `/private/tmp`
+rather than the `/tmp` symlink. The helper creates a synthetic project,
+deterministic registry and saved draft without a participant call.
 
 ```sh
-CANDIDATE="/absolute/path/to/candidate-checkout"
-TRAINING="/absolute/unused/training-form"
+CANDIDATE="/absolute/path/to/pinned-candidate-checkout"
+TRAINING="/absolute/resolved/unused/training-form"
 python "$CANDIDATE/examples/browser-intake/prepare.py" "$TRAINING"
 ```
 
@@ -143,31 +128,49 @@ python -m attune_harness.gui --task "$TASK" --edit --launch-json
 Keep the listener running and open its exact returned private `launch_url`.
 For a restart, stop it with `Ctrl-C` and repeat the launch command with the same
 `TASK`. Open the new launcher link. Each independent procedure starts from its
-own newly prepared draft.
+own newly prepared draft. A private launcher link is listener access data,
+not a permanent task link. Do not replace an existing human-review listener.
 
-The installed sample wheel retains metadata version 1.3.0 despite containing
-unreleased source. A version string alone does not identify this candidate;
-use the source and wheel provenance below. The fixture scopes `source.py`,
-retains `Training example` and `No implementation or model calls`, and grants
-no implementation or provider dispatch.
+The corrected sample wheel has metadata version 1.4.0. A version string alone
+does not identify its source; retain the full source and wheel SHA-256 above.
+The fixture grants no implementation, provider or spending authority.
 
-## Review all four training topics before the combined release
+## Review all four training topics before publication
 
-| Topic | Current disposition | Remaining candidate review |
+| Topic | Candidate disposition | Remaining derivative or observation work |
 | --- | --- | --- |
-| Navigation | Changed candidate procedure staged above; exact sample literals match the retained canonical source. | Include #242, repeat the actual sequence on the selected combined source and use matching captures. |
-| Session continuity | Changed candidate disclosure and shared fixture staged above; retained 1.3.0 example remains separate. | Confirm the draft endpoint and capture the fresh unanswered success field on the combined source. |
-| [Specification workflow](tutorials-1.3.0.md#specification-workflow-preview-and-acceptance) | Retained 1.3.0 CLI instructions and receipts; no changed procedure claimed by this draft. | Review/replay the exact fixture on the selected candidate before marking it unchanged-but-reviewed. |
-| [Four workflows research](tutorials-1.3.0.md#four-workflows-research-a-question) | Retained 1.3.0 retrieve/verify instructions and receipts; no changed procedure claimed by this draft. | Review/replay the exact fixture and preserve the link-validity/semantic-check limits. |
+| Navigation | Selected-source instructions now use direct opening, current approval wording and read-only accepted inspection. | Walk on the pinned corrected wheel, retain matching captures and render changed PowerPoint/HTML copies. Human comprehension remains pending. |
+| Session continuity | Selected-source instructions now separate same-page restoration, deliberate reopening and listener restart. | Observe saved goal plus blank remaining field, ownership refusal and fresh launcher behavior; capture and render matching derivatives. |
+| [Specification workflow](tutorials-1.3.0.md#specification-workflow-preview-and-acceptance) | Existing three literal CLI actions were replayed on the corrected 1.4.0 wheel. The plan was accepted; `calc.py` stayed unchanged and no build state was created. Keep the historical tutorial bytes. | The CLI procedure is unchanged but reviewed for this candidate. Candidate presentation framing and any historical GUI images require separate disposition. |
+| [Four workflows research](tutorials-1.3.0.md#four-workflows-research-a-question) | Existing retrieve/verify pair was replayed on the corrected wheel: two retained source hashes, one verified link and `semantic_ran: false`. Keep the historical tutorial bytes and sample-policy limits. | The CLI procedure is unchanged but reviewed for this candidate. Review any approval controls and GUI images in the broader deck separately. |
 
-After the integrated source and version are explicit, refresh canonical
-procedures, PowerPoint/HTML derivatives and the Help projection together.
-Record tested source/version, examples, visible results, checked links and
-retained versus superseded guidance through the existing release checklist.
-The historical released local-workflow guide's dev0/old-extra/future-forms
-wording remains a recorded discrepancy, not current installation guidance.
+These five command results belong to the release owner's retained corrected-wheel
+replay receipt; they are not new runs in this documentation pass. They do not
+establish policy truth, semantic model output, graphical behavior or presentation
+rendering. The historical released local-workflow guide's dev0/old-extra/future-forms
+wording remains historical; use current versioned setup guidance.
 
-## Source and evidence
+For retained consultation evidence, the candidate adds opt-in
+`--format markdown` to `source-review` and `roundtable` `prepare`, `status` and
+`evidence`; JSON remains the default. Follow the existing
+[consultation guide](model-consultation.md#readable-consultation-views) for the
+exact commands, local seat `check`, roundtable initialization and batch citation
+assessments. These inspection/setup features do not grant dispatch or spending
+authority. The separately prepared #233 concurrent-round/selective-retry feature
+is not included in this selected candidate.
+
+Keep canonical instructions, PowerPoint/HTML copies and the Help projection on
+matching reviewed source pins. Record changed versus reviewed unchanged topics,
+examples, observed results, link checks and retained versus superseded guidance
+through the existing release checklist. Version selection does not make these
+local files published or close the remaining software and human observations.
+
+## Historical #243 source and evidence
+
+The following records describe the earlier #243 procedures, not the selected
+1.4.0 steps above. Their original numbered instructions remain in the
+[retained published candidate draft](https://github.com/Smart-AI-Memory/attune-harness/blob/e9f3dd1dccc2d0f6435dc55b7dd2c94b6db7d194/docs/tutorials-next-release-candidate.md).
+All original source, wheel and capture hashes remain unchanged.
 
 The GUI owner retained ten actual synthetic captures at installed source
 `a51460dfcd15701b36955d74a5e1324adc1a4f80`, unchanged in #243's final head
