@@ -12,6 +12,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 ## Start here
 
+- [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
 - [First checked repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
 - [Four training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
 - [Next-candidate training walkthroughs](tutorials-next-release-candidate.md): Unreleased saved-request GUI procedures and remaining combined-source review; released 1.3.0 guidance retained
