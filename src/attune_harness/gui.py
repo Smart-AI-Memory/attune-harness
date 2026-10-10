@@ -1,6 +1,6 @@
 """Local browser intake and intent approval forms for registered saved drafts.
 
-Build grants, dispatch, resume and broader GUI navigation are deferred to 1.4.0.
+Build grants, dispatch, resume and broader GUI navigation remain future work.
 """
 
 import argparse
@@ -57,8 +57,8 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
         '<script src="/app.js"></script></body></html>')
 
 
-BUILD_UNAVAILABLE = ('Browser build controls are unavailable in 1.3.0; '
-                     'delivery is deferred to 1.4.0. Use separately authorized CLI execution.')
+BUILD_UNAVAILABLE = ('Browser build controls are unavailable in this forms-only release. '
+                     'Use separately authorized CLI execution.')
 
 
 def _development_profile():
@@ -267,7 +267,7 @@ class Handler(BaseHTTPRequestHandler):
         self._unread_post = True
         self.close_connection = True
         if self.server.forms_only and self.path not in ('/decision/open', '/decision/restore', '/decision/submit', '/browser/open'):
-            return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
+            return self.send(404, 'No such forms action; browser execution is unavailable in this forms-only release')
         if not self.server.editable and self.path != '/browser/open':
             return self.send(405, 'This workspace is read-only; no action was performed')
         if not self.boundary() or not self.authenticated():
@@ -325,7 +325,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
     parser.add_argument('--edit', action='store_true', help='Enable draft intake answers and explicit intent decisions only; no execution')
-    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in 1.3.0; browser build controls are deferred to 1.4.0')
+    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in this forms-only release; browser build controls remain future work')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
     parser.add_argument('--launch-json', action='store_true',

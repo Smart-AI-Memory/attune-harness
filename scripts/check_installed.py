@@ -108,7 +108,7 @@ def gui_release_checks(python: Path) -> dict:
                                  '--task', str(task), '--edit', '--allow-build-commands'],
                                 cwd=root, text=True, capture_output=True, timeout=10)
         assert result.returncode == 2 and not result.stdout, (result.stdout, result.stderr)
-        assert 'Browser build controls are unavailable in 1.3.0' in result.stderr and not task.exists()
+        assert 'Browser build controls are unavailable in this forms-only release.' in result.stderr and not task.exists()
         code = """
 from unittest.mock import patch
 from attune_harness import gui
@@ -122,14 +122,14 @@ with patch.object(gui.HTTPServer, '__init__', forbidden), patch.object(gui.task_
     try:
         gui.CompanionServer(Untouched(), edit=True, allow_build_commands=True)
     except FeatureUnavailable as exc:
-        assert 'deferred to 1.4.0' in str(exc)
+        assert 'unavailable in this forms-only release' in str(exc)
     else:
         raise AssertionError('Imported server was available')
     assert gui.main(['--task', '/missing', '--allow-build-commands']) == 2
 """
         subprocess.run([str(python), '-I', '-c', code], cwd=root, check=True, capture_output=True)
         assert not list(root.iterdir())
-    return {'status': 'forms-only', 'build_delivery_target': '1.4.0',
+    return {'status': 'forms-only', 'build_delivery_target': 'unspecified',
             'module_exit': 2, 'build_flag_task_listener_browser_effects': 'none'}
 
 def console_script(python):
