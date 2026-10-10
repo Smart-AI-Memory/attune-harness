@@ -7,6 +7,11 @@ not a generated or verified answer.
 
 ## Run the prepared environment
 
+The [1.3.0 research walkthrough](tutorials-1.3.0.md#four-workflows-research-a-question)
+starts with a copied sample, exact commands and the link claim the result supports.
+Harness 1.3.0 includes the pinned retrieval and verification libraries in its base
+installation; the optional-feature wording below records the earlier milestone.
+
 From the Harness directory:
 
 ```sh

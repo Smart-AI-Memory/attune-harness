@@ -7,6 +7,10 @@ ownership.
 
 ## Configure and save
 
+For saved intake answers across browser sessions, see the
+[1.3.0 continuity walkthrough](tutorials-1.3.0.md#session-continuity-saved-answers-in-another-session).
+The form task record and this explicit saved-memory store are separate surfaces.
+
 Use a dedicated absolute store directory in your configuration:
 
 ```json

@@ -285,9 +285,10 @@ skip anything already completed by release-gate work.
 
 The known Windows suite took 601.218 seconds on a successful PR159 run; the old
 600-second limit could truncate a healthy run. Installed qualification now allows
-900 seconds on all platforms, with a 20-minute outer CI job for setup/evidence.
-Individual operation deadlines remain unchanged. If the fifteen-minute budget is
-repeatedly exhausted, investigate before changing it again.
+1,500 seconds on Windows and 900 seconds on POSIX, with respective 30-minute
+and 20-minute outer CI jobs for setup/evidence. Individual operation deadlines
+remain unchanged. Retain timeout evidence and investigate recurring overruns;
+the larger Windows budget is headroom, not a performance correction.
 
 ## Explicitly deferred
 

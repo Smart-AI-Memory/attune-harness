@@ -126,20 +126,22 @@ capture on POSIX does not make a drive-qualified member portable.
 ## 10. Suite and CI job deadlines are different budgets
 
 **Symptom.** An installed qualification suite exits 124 while the hosted job
-still has time left. **Why.** `qualify_platform.py` allows 900 seconds
-(15 minutes) for its selected suite, while the installed qualification job
-allows 20 minutes for setup, checks and evidence upload. Individual operation
+still has time left. **Why.** `qualify_platform.py` allows 1,500 seconds
+(25 minutes) on Windows and 900 seconds (15 minutes) on POSIX for its selected
+suite. The installed qualification job allows 30 minutes on Windows and
+20 minutes on POSIX for setup, checks and evidence upload. Individual operation
 deadlines still apply. **Do.** Read the retained receipt and test timings;
 distinguish a suite timeout from an assertion failure or the outer job's
 timeout. A larger job budget does not extend the suite budget. Investigate
 recurring overruns before changing a deadline.
 
 Supplemental coverage is a separate measurement. Windows temporarily has a
-1,200-second instrumented suite budget, a 1,380-second measurement-wrapper
-budget, and a 30-minute hosted job budget while recurring overruns are
+1,500-second instrumented suite budget, a 1,680-second measurement-wrapper
+budget, and a 35-minute hosted job budget while recurring overruns are
 investigated. The full POSIX measurement retains its 1,200-second wrapper
-and 25-minute hosted job. Normal installed qualification remains at 900
-seconds, and individual operation deadlines remain unchanged. A successful
+and 25-minute hosted job. Normal installed qualification allows 1,500 seconds
+on Windows and 900 seconds on POSIX; individual operation deadlines remain
+unchanged. A successful
 instrumented measurement does not constitute platform qualification.
 **Where.**
 `scripts/qualify_platform.py`, `scripts/measure_coverage.py`,

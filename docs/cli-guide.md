@@ -172,6 +172,9 @@ refusal's `next_action` names `init`.
 
 ## Plan and build
 
+For a short process that stops at checkpoint-bound plan acceptance, see the
+[1.3.0 training walkthroughs](tutorials-1.3.0.md#specification-workflow-preview-and-acceptance).
+
 From 1.3.0, two commands take a Git checkout from a named file to an accepted
 plan with a finished build. `init --for plan` writes the work request, with
 its effects manifest frozen, beside the task directory (`starter-plan.work.json`

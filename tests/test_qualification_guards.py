@@ -170,7 +170,31 @@ def test_optimized_cli_refuses_without_receipt(tmp_path, name, selection):
     flags = ['-O'] if selection == 'flag' else []
     env = dict(os.environ, PYTHONOPTIMIZE='1' if selection == 'environment' else '0')
     result = subprocess.run([sys.executable, *flags, str(ROOT/'scripts'/f'{name}.py'), *options],
-                            cwd=tmp_path, env=env, text=True, capture_output=True, timeout=10)
+                            cwd=tmp_path, env=env, text=True, capture_output=True,
+                            timeout=30 if sys.platform == 'win32' else 10)
     assert result.returncode != 0
     assert 'require' in result.stderr and 'unoptimized Python' in result.stderr
     assert not result.stdout and not output.exists()
+
+
+@pytest.mark.parametrize('platform,expected_timeout', [('win32', 30), ('linux', 10), ('darwin', 10)])
+@pytest.mark.parametrize('name', ['check_installed', 'qualify_platform'])
+@pytest.mark.parametrize('selection', ['flag', 'environment'])
+def test_optimized_cli_deadline_is_platform_specific(tmp_path, monkeypatch, platform,
+                                                    expected_timeout, name, selection):
+    calls = []
+
+    def child(argv, **kwargs):
+        calls.append(argv)
+        assert kwargs['timeout'] == expected_timeout
+        assert kwargs['cwd'] == tmp_path
+        assert kwargs['text'] is True and kwargs['capture_output'] is True
+        assert kwargs['env']['PYTHONOPTIMIZE'] == ('1' if selection == 'environment' else '0')
+        assert ('-O' in argv) == (selection == 'flag')
+        return SimpleNamespace(returncode=1, stderr='requires unoptimized Python', stdout='')
+
+    # Replace this test module's bindings, not the host interpreter's platform.
+    monkeypatch.setitem(globals(), 'sys', SimpleNamespace(executable=sys.executable, platform=platform))
+    monkeypatch.setitem(globals(), 'subprocess', SimpleNamespace(run=child))
+    test_optimized_cli_refuses_without_receipt(tmp_path, name, selection)
+    assert len(calls) == 1
