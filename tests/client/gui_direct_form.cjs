@@ -47,6 +47,18 @@ const workspace=item=>({editable:true,tasks:[item]});
  assert.equal(h.calls.filter(c=>c.path==='/decision/open').length,3,'accepted inspection opens no collector');
  assert(h.calls.every(c=>['/workspace','/decision/open','/decision/submit'].includes(c.path)),'the journey has no execution route');
 
+ // Saved multiline success remains literal while a different question is open.
+ const multiline=await setup(),criteria=['Expected output:\n  Alpha\n  Beta'];
+ const missingGoal=questions('missing-goal-cp',['What should this work accomplish?']);
+ missingGoal.summary.intent.acceptance=criteria;
+ multiline.queue.push(workspace({...task('missing-goal-cp',null,criteria),action_label:'Continue form'}),missingGoal);
+ await multiline.run('loadTasks()');
+ const savedCriteria=multiline.panel.querySelector('.saved-answers');
+ assert.equal(savedCriteria.querySelector('h4').textContent,'Done when');
+ assert.equal(savedCriteria.querySelector('li').textContent,criteria[0],'saved success preserves embedded newlines and indentation');
+ assert.equal(multiline.panel.querySelector('textarea').value,'','saved success is not mapped into the unanswered goal');
+ assert.equal(multiline.calls.filter(c=>c.path==='/decision/submit').length,0);
+
  // Refresh and uncertain saves preserve typing and never reopen or replay it.
  for(const failure of [false,true]){
   const r=await setup();r.queue.push(workspace(task('cp-1')),initial);await r.run('loadTasks()');

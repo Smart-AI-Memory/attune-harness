@@ -38,7 +38,9 @@ illustrative XML; ordinary answers remain sufficient. Prompt/XML/Spec choice
 comes from `work_contract.select_authoring`, not a click. Approval consequences
 and blockers remain visible. Preserve Harness's visual style, existing control
 labels and the accessibility owner's independent #242 instructions/hints and
-`aria-describedby` associations. No questions-render seam is changed here.
+`aria-describedby` associations. The earlier #243 increment did not change the
+questions-render seam; the approved direct-form increment below changes its
+instructions and presentation while retaining those associations.
 
 ## Source-owner walk
 
@@ -67,7 +69,8 @@ Automatic opening uses the existing authenticated action with `replace=false`.
 It creates a single-use form collector, without accepting intent, granting
 execution or making a provider call. Workspace GET remains read-only. If another
 view already holds a collector, automatic opening refuses; deliberate reopening
-remains available. Refresh preserves unconfirmed typing in its original controls
+remains available. The in-page **Refresh forms** action preserves unconfirmed
+typing in its original controls
 as read-only copyable text. Uncertain submissions are never replayed or advanced.
 After a listener restart, a new private launcher opens a new form for the same
 saved draft; the old listener's collector supplies no authority.

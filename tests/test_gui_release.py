@@ -74,7 +74,7 @@ def test_forms_assets_and_navigation_exclude_broader_gui(forms):
     stylesheet = request(forms, '/style.css', token=False)[2]
     assert '.task-card p{margin:8px 0;overflow-wrap:anywhere}' in stylesheet
     assert '#browser-tip:not([hidden]){flex-basis:100%;' in stylesheet
-    assert '.saved-answers p,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}' in stylesheet
+    assert '.saved-answers p,.saved-answers li,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}' in stylesheet
     assert '.technical-input,.owner-record{font-family:ui-monospace,' in stylesheet
     assert 'textarea,select{' in stylesheet and 'font:inherit' in stylesheet
     assert '<pre class="technical-input">' in page

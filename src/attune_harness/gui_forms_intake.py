@@ -27,7 +27,7 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 .saved-answers{overflow-wrap:anywhere}
 .approval-answers,.approval-blockers{overflow-wrap:anywhere}
-.saved-answers p,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}
+.saved-answers p,.saved-answers li,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}
 .technical-input,.owner-record{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
 fieldset{border:0;margin:0;padding:0}label{display:block;margin:16px 0 6px;font-weight:600}
 textarea,select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #869a8a;border-radius:6px;font:inherit;background:white;color:#263c30}
