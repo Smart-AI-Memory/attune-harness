@@ -131,11 +131,16 @@ native behavior requires its actual CI jobs; macOS checks cannot qualify it.
 For roundtable, configure two or three seats with distinct provider/model pairs,
 and `rounds` of 1 or 2, then use `roundtable` in place of `source-review` in the
 commands above. First-round seats receive no other answers or chair lean.
-Second-round seats receive only the completed preceding round. The host retains
+First-round seats dispatch concurrently; second-round seats stay sequential and
+receive only the complete preceding round. The host retains
 every verdict and disagreement; the chair decides what action to take.
 
 Each turn has a configured timeout of 1–300 seconds and 64 KiB process output
-limit. There are at most six calls, no automatic retries and no paid synthesis.
+limit. A parallel first-round batch waits at most the largest admitted seat timeout
+plus two seconds of join grace, excluding local preparation/persistence overhead.
+Round two adds its sequential seat timeouts. A dispatcher that does not return
+within the bound leaves an unresolved dispatch; it is never treated as stopped.
+There are at most six first attempts, no automatic retries and no paid synthesis.
 `run --max-operations 1` pauses after one new saved turn. Continue with the same
 contract; completed turns replay without a call. Status exposes the saved
 `events` journal even if interruption happened before the answer projection.
@@ -143,12 +148,45 @@ contract; completed turns replay without a call. Status exposes the saved
 An uncertain dispatch refuses continuation. Inspect the owner before abandoning
 with `source-review abandon "$RUN" --checkpoint "$CHECKPOINT_DIGEST"` (or the
 roundtable equivalent). Abandonment retains the journal and unknown effects;
-it never establishes that charges or detached activity stopped. Ctrl-C stops
-the supervised process and leaves an unresolved checkpoint. Library callers
+it never establishes that charges or detached activity stopped. Ctrl-C requests
+cancellation and drains admitted workers within the batch bound. Returned results
+are retained; any outstanding worker leaves an unresolved checkpoint. Library callers
 can pass a cancellation `Event` to the shared `run` API. A supervised cancellation
 is retained as cancelled with unknown effects; abandonment preserves the previous
 status. Read `status` explicitly: exit zero also covers prepared, paused and
 cancelled states.
+
+## Partial rounds and explicit refused-turn recovery
+
+All admitted seats are recorded before deciding the round. A stopped round with
+both a completed seat and a failed seat is `partial`; one with no completed seat
+is `failed`. Both exit 2. Round two never starts with an incomplete round one.
+Admission respects `--max-operations` before creating dispatch events; completed
+turns replay without consuming that limit. A pause saves every admitted result.
+
+`run` alone never repeats a failed or uncertain turn. Inspect the original owner
+and its current **checkpoint** digest, then explicitly reopen a refused turn:
+
+```sh
+attune-harness roundtable reconcile "$RUN" --checkpoint "$CHECKPOINT_DIGEST" --round 0 --participant reviewer --retry-refused
+attune-harness roundtable run "$RUN" --accept "$CONTRACT_DIGEST" --allow-external --allow-native
+```
+
+Use the matching `source-review` verb for its one reviewer. Reconciliation never
+dispatches. It requires a partial/failed run, the selected stopped-round failed
+result, and saved process evidence: `not_launched` means launch failed before a
+process existed; `cli_refusal` means Claude's structured error reports no model
+usage. Diagnostic text, a generic nonzero exit, timeouts and unknown effects do
+not authorize retry. Effects remain `unknown`; a CLI refusal does not prove no
+request was made, and usage may repeat. Grant flags on the subsequent run still
+require their separate authority.
+
+Reconciliation preserves the previous attempt and evidence, removes only the
+selected stale answer, advances the checkpoint and sets `paused`. The accepted
+contract digest stays unchanged. Resume replays successful siblings and dispatches
+only reopened or previously uncalled seats. Each turn permits one operator retry,
+so `max_calls` bounds first attempts; each retry is an additional explicit call.
+JSON status records attempts in the journal; readable status shows repeated attempts.
 
 ## Readable consultation views
 
@@ -179,7 +217,7 @@ the original persisted status without changing the record. Unresolved journal
 entries remain visible when no answer was saved. Unicode formatting controls,
 including bidirectional controls, are shown as visible escapes. Markdown is
 a summary; JSON retains the complete journal, raw process diagnostics and usage.
-The same prepared/paused/completed/cancelled statuses exit 0; failed, unresolved
+The same prepared/paused/completed/cancelled statuses exit 0; partial, failed, unresolved
 and refused views exit 2. This presentation adds no retry or continuation path.
 
 ## Identity and evidence limits

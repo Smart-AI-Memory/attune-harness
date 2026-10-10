@@ -3089,6 +3089,67 @@
       "--run-dir"
      ]
     },
+    "reconcile": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "retry_refused",
+       "option_strings": [
+        "--retry-refused"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--participant",
+      "--retry-refused",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--participant",
+      "--retry-refused",
+      "--round"
+     ]
+    },
     "run": {
      "arguments": [
       {
@@ -3420,6 +3481,67 @@
       "--path",
       "--project",
       "--run-dir"
+     ]
+    },
+    "reconcile": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "checkpoint",
+       "option_strings": [
+        "--checkpoint"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "participant",
+       "option_strings": [
+        "--participant"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
+       "name": "retry_refused",
+       "option_strings": [
+        "--retry-refused"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "round_number",
+       "option_strings": [
+        "--round"
+       ]
+      },
+      {
+       "choices": null,
+       "default": null,
+       "name": "run_dir",
+       "option_strings": []
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--checkpoint",
+      "--participant",
+      "--retry-refused",
+      "--round"
+     ],
+     "positionals": [
+      {
+       "name": "run_dir",
+       "nargs": null
+      }
+     ],
+     "required_options": [
+      "--checkpoint",
+      "--participant",
+      "--retry-refused",
+      "--round"
      ]
     },
     "run": {

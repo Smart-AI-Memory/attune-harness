@@ -34,7 +34,9 @@ Inspect `attune-harness roundtable --help`. Prepare with `roundtable prepare
 --project ROOT --path FILE --config CONFIG --run-dir RUN`; repeat `--path` for
 each selected file. Configuration names the author, two or three distinct
 provider/model identities, timeout per call, and one or two rounds. The first
-round is independent; the second sees only the completed preceding round.
+round is independent and concurrent; the second stays sequential and sees only
+the complete preceding round. Failed seats do not hide completed siblings:
+`partial` retains both outcomes and exits 2. No incomplete first round starts round two.
 
 Inspect the retained contract and budget. Only with the user's upload, provider
 and spend authority run `roundtable run RUN --accept DIGEST --allow-external
@@ -50,6 +52,15 @@ unresolved. Stop continuation with `roundtable abandon RUN --checkpoint DIGEST`
 only after checking the owner; retained unknown effects stay unknown. In-flight
 interrupt stops the supervised process and preserves uncertainty; it does not
 prove external activity stopped.
+
+For a saved failed turn with explicit `not_launched` or `cli_refusal` evidence,
+the operator can choose `roundtable reconcile RUN --checkpoint CHECKPOINT
+--round 0 --participant NAME --retry-refused`, then resume with the unchanged
+accepted contract. This never retries automatically: reconciliation makes no
+call, preserves the prior attempt and permits at most one retry per turn.
+Unknown process effects, diagnostic text and generic failures cannot use this
+path; effects stay unknown and CLI-refusal usage may repeat. Each retry is an
+additional operator-authorized call beyond the contract's first-attempt budget.
 
 Report each seat's verdict, evidence, requested and runtime-reported identity,
 and disagreements. Missing model metadata remains unknown. The chair makes the

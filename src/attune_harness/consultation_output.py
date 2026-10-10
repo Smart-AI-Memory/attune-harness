@@ -103,6 +103,10 @@ def markdown(envelope, *, view, retained=None):
             name = turn['participant']
             output += ['', f'### Round {_text(turn["round"])} / {_text(name)}', '',
                        '**Turn status:** ' + _text(turn['status'])]
+            event = next((event for event in record.get('events', [])
+                          if event['operation_key'] == f'{turn["round"]}:{name}'), None)
+            if event and event.get('attempts', 1) > 1:
+                output += ['**Attempts:** ' + _text(event['attempts'])]
             identity = turn.get('identity') or {}
             configured = identity.get('configured') or seats.get(name, {}).get('identity')
             if configured:

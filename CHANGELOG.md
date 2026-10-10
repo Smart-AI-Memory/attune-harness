@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Run independent first-round consultation seats concurrently, retain partial
+  rounds and gate round two on a complete first round (#233). Operation limits
+  admit seats before dispatch. Explicit checkpoint-bound `reconcile
+  --retry-refused` permits one retry with saved launch/refusal evidence;
+  unknown effects remain guarded and prior attempts stay retained.
+
 ## 1.4.0
 
 Prepared candidate; publication and final combined-source qualification are pending.

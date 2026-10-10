@@ -257,7 +257,7 @@ print(json.dumps({'version':1,'request_digest':hashlib.sha256(raw.encode()).hexd
     assert json.loads(capsys.readouterr().out)['status'] == 'completed'
 
 
-def test_failed_turn_stops_without_fallback(tmp_path):
+def test_failed_round_retains_every_seat_without_fallback(tmp_path):
     _, directory, record = prepared(tmp_path, 'roundtable')
     calls = []
     def failed(*args):
@@ -265,7 +265,9 @@ def test_failed_turn_stops_without_fallback(tmp_path):
         return {**completed(), 'status': 'failed', 'error': {'effects': 'unknown'}}
     result = c.run(directory, record['contract_digest'], allow_external=True, dispatcher=failed)
     assert result['status'] == 'failed'
-    assert len(calls) == 1
+    assert len(calls) == 2
+    assert [a['participant'] for a in result['answers']] == ['reviewer', 'critic']
+    assert all(a['round'] == 0 for a in result['answers'])
     with pytest.raises(ValueError, match='Terminal'):
         c.run(directory, record['contract_digest'], allow_external=True, dispatcher=failed)
     abandoned = c.abandon(directory, result['checkpoint_digest'])
