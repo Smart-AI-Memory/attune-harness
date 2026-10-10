@@ -36,6 +36,22 @@ should apply applicable policy before dispatch and supply only task-relevant
 context whose disclosure to that agent/model/provider is explicitly authorized.
 A repository pointer does not give a Harness-run model repository access.
 
+## Writing and entered-text policy
+
+Use the [Google developer documentation style guide](https://developers.google.com/style)
+for new or revised documentation and UI copy. Follow the
+[project writing guide](docs/writing-guide.md), which links the approved
+all-project decision and supplies its applicable public summary. Instructions
+use an action verb and bold named controls; the local next-action convention is
+**Next:** Click **Continue form**, with the verb in normal text. Use only controls
+verified in the relevant build.
+
+Preserve user-entered wording and capitalization. Use Attune's normal reading
+font for prose and monospace for technical input. This policy covers entry and
+saved/read-only presentation; it does not change stored data or task authority.
+Apply applicable constraints through each agent's supported instruction pathway.
+Report conflicts and missing context; do not claim universal tool discovery.
+
 ## Practice the disciplines together
 
 Use these disciplines together when they improve the work. Scale them to the

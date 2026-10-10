@@ -63,8 +63,10 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    (step 9). Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.
    **Documentation readiness is part of preparation for every new version
-   publication.** Update affected official topics and their help, tutorial and
-   deck derivatives against the candidate's code and reproducible tests. Record
+   publication.** Apply the [writing and entered-text guide](writing-guide.md)
+   when creating or revising content. Update affected official topics and their
+   help, tutorial and deck derivatives against the candidate's code and
+   reproducible tests. Record
    the tested version, examples, expected results, limits and checked links;
    distinguish changed content from unchanged content explicitly reviewed for
    this version. Retain or explicitly supersede relevant older-version guidance.
