@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "tutorial_id": "first-repair-1.3.0",
+  "acceptance_reference": {
+    "document": "docs/first-repair-1.3.0.md",
+    "criteria": ["J1", "J2", "J3"],
+    "segment": "separate calculator execution/recovery fixture; automated evidence only"
+  },
+  "user_goal": "Correct a small addition bug, approve the current scope, resume after interruption and inspect unchanged-check evidence.",
+  "document": "docs/first-repair-1.3.0.md",
+  "document_sha256": "026f75cef8e26611ed0fbc86234d8b50b2f8aad7d61cee4d4e8996940be050a1",
+  "upstream_document_head": "b5e582d8620461198c2d8a739700306d62f4a673",
+  "release": {
+    "version": "1.3.0",
+    "source_commit": "0ecf8e6058cee9ed6f9b9510e043e3af3cbe1da0",
+    "pytest_version": "9.1.1",
+    "profile": "POSIX; Python 3.12"
+  },
+  "examples": {
+    "examples/starter/participants.json": "f28ae6ff706703016aceda62dc40fb5669301a7fe9ebbbfca73d1caa9d3818c8",
+    "examples/starter/worker.py": "604c5d4ce87f399905a3797695650979d4f231fc6f2a1de50cd2f2f836a61da2"
+  },
+  "journeys": {
+    "first-repair-prepare": {
+      "language": "python",
+      "body_sha256": "1ae94ead0b360976475960f177f85e7cd2591e3bd511ff943ccb020f38e57ce9",
+      "expected": [
+        {
+          "exit": 0,
+          "status": null
+        }
+      ]
+    },
+    "first-repair-preview": {
+      "language": "sh",
+      "body_sha256": "37616761faa67df8d319d953e1f737b89277c0a03c0072dd902269a0bc28665b",
+      "expected": [
+        {
+          "exit": 0,
+          "status": "created"
+        },
+        {
+          "exit": 1,
+          "status": "draft"
+        }
+      ]
+    },
+    "first-repair-response": {
+      "language": "python",
+      "body_sha256": "fdc9ab397b216a903dbb894483cd0f2a34d18d3fabfb8aecc480a8bdfb9849f2",
+      "expected": [
+        {
+          "exit": 0,
+          "status": null
+        }
+      ]
+    },
+    "first-repair-continue": {
+      "language": "sh",
+      "body_sha256": "8a7c6815878d41c958c3d9723f2012a10a2a5921663c8e37fa60df0b92181d85",
+      "expected": [
+        {
+          "exit": 1,
+          "status": "paused"
+        },
+        {
+          "exit": 0,
+          "status": "paused"
+        }
+      ]
+    },
+    "first-repair-result": {
+      "language": "sh",
+      "body_sha256": "3c1701eccb82d37d364299400b76525774ef80321cde54b819bb181f48da9ee8",
+      "expected": [
+        {
+          "exit": 0,
+          "status": "completed"
+        },
+        {
+          "exit": 0,
+          "status": "completed"
+        },
+        {
+          "exit": 0,
+          "status": "completed"
+        }
+      ]
+    }
+  },
+  "oracle_sha256": "e3a05b666c768e26ec59d56c60dc6ebbf879740f76a1790dc9cdfe02b14b1bfa",
+  "repaired_source_sha256": "ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772",
+  "limits": [
+    "deterministic worker and approving example reviewer; no model quality evidence",
+    "automated bound submission does not prove human understanding of approval",
+    "POSIX only; current candidate execution is distinct from released-wheel execution",
+    "a separate morning form fixture and collaborator trial do not establish one combined end-to-end journey"
+  ]
+}

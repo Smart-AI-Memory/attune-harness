@@ -12,6 +12,9 @@ import time
 
 import pytest
 
+# Keep journal time independent of tests replacing the shared time module.
+_monotonic = time.monotonic
+
 
 def pytest_addoption(parser):
     parser.addini('harness_stack_timeout', 'Seconds before retaining slow-test stacks',
@@ -19,7 +22,7 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    config._harness_timing_epoch = time.monotonic()
+    config._harness_timing_epoch = _monotonic()
     config._harness_stack_log = (
         Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'slow-stacks.txt').open('wb', buffering=0)
     # One main-thread writer, separate from pytest capture and stack timers.
@@ -38,7 +41,7 @@ def pytest_unconfigure(config):
 
 def _timing(config, event, **details):
     record = {'schema_version': 1, 'event': event,
-              'elapsed_seconds': round(time.monotonic() - config._harness_timing_epoch, 6),
+              'elapsed_seconds': round(_monotonic() - config._harness_timing_epoch, 6),
               **details}
     config._harness_timing_log.write((json.dumps(record, ensure_ascii=True,
                                                 allow_nan=False) + '\n').encode('ascii'))
@@ -94,7 +97,7 @@ def _dump(nodeid, stream):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):
-    started = time.monotonic()
+    started = _monotonic()
     _timing(item.config, 'case_start', nodeid=item.nodeid)
     delay = float(item.config.getini('harness_stack_timeout'))
     timer = threading.Timer(delay, _dump, (item.nodeid, item.config._harness_stack_log))
@@ -107,4 +110,4 @@ def pytest_runtest_protocol(item, nextitem):
         # A dump already in progress must finish before the log can be closed.
         timer.join()
         _timing(item.config, 'case_end', nodeid=item.nodeid,
-                duration_seconds=time.monotonic() - started)
+                duration_seconds=_monotonic() - started)
