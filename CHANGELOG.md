@@ -6,6 +6,11 @@
   each with its own explanation. Approval records the reviewed request; neither
   choice starts work. Decision bindings and execution safeguards are unchanged.
 
+- Restore the current intake or review form after a same-page reload when the
+  browser can verify the view's ownership. Restoration preserves the live
+  collector and saved answers without submitting or approving. Different views,
+  stale decisions and unconfirmed submissions retain deliberate reopening.
+
 - Add opt-in `--format markdown` to consultation `prepare`, `status` and
   `evidence` for both verbs (#234). Prepare omits full frozen source text;
   status/evidence show retained identities, answers and numbered citations.

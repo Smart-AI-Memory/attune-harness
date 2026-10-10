@@ -266,7 +266,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._unread_post = True
         self.close_connection = True
-        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit', '/browser/open'):
+        if self.server.forms_only and self.path not in ('/decision/open', '/decision/restore', '/decision/submit', '/browser/open'):
             return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
         if not self.server.editable and self.path != '/browser/open':
             return self.send(405, 'This workspace is read-only; no action was performed')
@@ -274,7 +274,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.headers.get_all('Origin') != [self.server.origin]:
             return self.send(403, 'Same-origin browser action required')
-        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
+        if self.path not in ('/decision/open', '/decision/restore', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
             return self.send(404, 'No such companion action')
         lengths = self.headers.get_all('Content-Length')
         if (self.headers.get_all('Transfer-Encoding') or len(lengths or []) != 1
@@ -295,8 +295,10 @@ class Handler(BaseHTTPRequestHandler):
                 expected = {'confirmed'}
             elif self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
-            elif self.path == '/decision/open' and isinstance(payload, dict) and 'replace' in payload:
-                expected |= {'replace'}
+            elif self.path == '/decision/open' and isinstance(payload, dict):
+                expected |= set(payload) & {'replace', 'view'}
+            elif self.path == '/decision/restore':
+                expected |= {'decision', 'view'}
             elif self.path == '/build/start':
                 expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:
@@ -310,6 +312,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = owner(**payload)
             elif self.path == '/decision/open':
                 result = self.server.decisions.open(**payload)
+            elif self.path == '/decision/restore':
+                result = self.server.decisions.restore(**payload)
             else:
                 result = self.server.decisions.submit(**payload)
         except (ValueError, OSError, FeatureUnavailable, RecursionError) as exc:

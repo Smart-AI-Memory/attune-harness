@@ -132,6 +132,8 @@ def test_read_only_release_lists_registered_draft_without_mutation(work):
             assert not data['editable'] and len(data['tasks']) == 1
             assert data['tasks'][0]['status'] == 'draft'
             assert call(server, '/decision/open', {k: data['tasks'][0][k] for k in ('task', 'checkpoint')})[0] == 405
+            assert call(server, '/decision/restore', {k: data['tasks'][0][k] for k in ('task', 'checkpoint')} | {
+                'view': 'view-' + 'a' * 32, 'decision': 'unknown'})[0] == 405
             assert (path / 'record.json').read_bytes() == before
         finally:
             server.shutdown()

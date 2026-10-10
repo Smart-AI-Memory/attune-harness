@@ -243,6 +243,55 @@ def test_owner_refusal_for_running_drafts_is_adapted(work):
             Decisions._draft({**record, member: {}})
 
 
+@pytest.mark.parametrize('drift', ['view', 'decision', 'checkpoint', 'source', 'config', 'revision', 'retained', 'consumed', 'restart'])
+def test_reload_restoration_refuses_changed_or_consumed_authority(draft, work, drift):
+    item = selected(draft)
+    view = 'view-' + 'a' * 32
+    code, shown = call(draft, '/decision/open', {k: item[k] for k in ('task', 'checkpoint')} | {'view': view})
+    assert code == 200
+    payload = {k: shown[k] for k in ('task', 'checkpoint', 'decision')} | {'view': view}
+    if drift == 'view':
+        payload['view'] = 'view-' + 'b' * 32
+    elif drift in ('decision', 'checkpoint'):
+        payload[drift] = 'changed'
+    elif drift == 'source':
+        (work[0] / 'source.py').write_text('changed')
+    elif drift == 'config':
+        work[1].write_text(work[1].read_text() + '\n')
+    elif drift == 'revision':
+        work_contract.revise_work(draft.tasks[0], checkpoint=shown['checkpoint'], changes={'intent': {'goal': 'Changed goal'}})
+    elif drift == 'retained':
+        saved = json.loads((draft.tasks[0] / 'decision.json').read_text())
+        display = copy.deepcopy(saved['display'])
+        display['title'] = 'Replaced by another collector'
+        work_decisions.retain_decision(read_task(draft.tasks[0]), display)
+    elif drift == 'consumed':
+        # Even a refused response consumes the live collector before recovery.
+        assert call(draft, '/decision/submit', submission(shown, {'answers': {}}))[0] == 409
+    else:
+        other = Decisions(draft.tasks)
+        try:
+            with pytest.raises(ValueError, match='Unknown registered task'):
+                other.restore(**payload)
+        finally:
+            other.close()
+        return
+    before = (draft.tasks[0] / 'record.json').read_bytes()
+    retained = (draft.tasks[0] / 'decision.json').read_bytes()
+    assert call(draft, '/decision/restore', payload)[0] == 409
+    assert (draft.tasks[0] / 'record.json').read_bytes() == before
+    assert (draft.tasks[0] / 'decision.json').read_bytes() == retained
+    assert read_task(draft.tasks[0])['status'] == 'draft'
+
+
+@pytest.mark.parametrize('view', [None, 0, [], {}, 'short', 'x' * 129, 'x' * 32 + '\n'])
+def test_reload_restoration_rejects_malformed_view_identity(draft, view):
+    shown = open_form(draft)
+    payload = {k: shown[k] for k in ('task', 'checkpoint', 'decision')} | {'view': view}
+    assert call(draft, '/decision/restore', payload)[0] == 409
+    assert draft.decisions.live[shown['task']][0] == shown['decision']
+
+
 def test_task_symlink_replacement_refused(draft, tmp_path):
     task = selected(draft)
     path = draft.tasks[0]

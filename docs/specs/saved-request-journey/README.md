@@ -44,6 +44,24 @@ instructions and presentation while retaining those associations.
 
 ## Source-owner walk
 
+The unreleased reload-restoration increment returns the same view's live
+collector through authenticated `/decision/restore`. `Decisions.restore` refuses
+an invalid view identity, unknown or moved task, non-draft or changed inputs,
+different view/decision/checkpoint, and replaced or consumed retained decision.
+It uses `_draft`, the live identity comparison and `require_current_decision`
+before returning the existing presentation. No owner collection, replacement,
+readiness rerun or write occurs during restoration.
+
+The client reuses stored recovery metadata only for a reload navigation while
+holding the view's exclusive Web Lock. Fresh or duplicated views receive a new
+identity. Before submitting or leaving for another browser, it persists a
+blocked marker; an unconfirmed response therefore cannot be restored or
+replayed after reload. Missing ownership primitives, stale metadata and owner
+refusal keep deliberate reopening. Saved prose stays in the authoritative task
+record; recovery metadata stores no answers. Unsaved typing is not restored.
+This source contract needs exact-candidate installed and human observation;
+historical captures do not establish the new journey.
+
 Every step uses one registered owner and its current revision. The complete
 transitive schema/path/text/budget/registry validators remain authoritative.
 

@@ -83,6 +83,19 @@ selection. Check the actual installed behavior before using this procedure;
 do not assume that an earlier released runtime supports this behavior.
 Unsaved typing is not guaranteed to survive tab closure; copy it before closing.
 
+In the unreleased reload-restoration increment, reloading the same page can
+restore its current form while the listener remains alive. This requires
+available session storage, navigation timing and Web Locks. The restored form
+uses its existing decision and checkpoint; saved answers are shown separately
+from blank remaining fields. No response is replayed and no approval is made.
+Different or duplicated views, stale or consumed decisions and an unconfirmed
+submission do not restore that collector. Inspect saved state
+and click the displayed **Continue form** or **Review your answers** to reopen
+deliberately. Browsers without the ownership primitives retain this fallback.
+A restarted listener needs a new private launcher and a fresh collector.
+Unsaved typing is not restored. This behavior is absent from published 1.3.0;
+verify the combined installed candidate before promising it to a user.
+
 After the listener stops, its old launcher is invalid. Start a new listener for
 the same registered task directories and use its new private link. Saved answers
 remain in the task record; old form checkpoints may be stale. Inspect current

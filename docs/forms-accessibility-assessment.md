@@ -14,6 +14,15 @@ questions, not proven violations or a conformance claim. A claim would need an
 explicit version, level, complete page/process scope, supported technologies,
 and evidence for every applicable criterion.
 
+The unreleased reload-restoration increment restores a same-view live form only
+when browser ownership primitives and the current owner binding permit it.
+Saved answers remain separate from blank remaining fields. Failed or uncertain
+submissions, different views and stale decisions retain deliberate recovery.
+This is source behavior beyond the baseline below. Its software regressions do
+not establish heading announcements, keyboard continuity, rendered behavior or
+human recovery recognition. Record those against the exact installed candidate;
+unsaved typing is not restored by this change.
+
 ## Journeys and existing strengths
 
 The released intake companion opens a registered saved draft, presents remaining

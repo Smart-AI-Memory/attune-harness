@@ -30,6 +30,28 @@ The #243 procedures and retained captures below still use the earlier labels
 evidence for that pinned build; they do not verify the changed copy. The
 published 1.3.0 tutorial and its derivative files retain their released labels.
 
+## Reload: how can I keep the remaining form visible?
+
+The procedures and captures below remain pinned to #243. A later source change
+adds restoration of the same page's current form after reload, using session
+storage, navigation timing and an exclusive Web Lock to verify view ownership.
+It does not replace the collector, replay answers, approve intent or start work.
+The earlier captures do not verify this addition.
+
+For the combined candidate, prepare a fresh synthetic draft, enter only the
+goal and click **Save answers**. Wait for the remaining success question, then
+reload the page. Expected: the exact saved goal remains visible and the same
+remaining question appears blank without clicking **Continue form**. Stop before
+approving. Saved answers persist; unsaved typing is not restored.
+
+If another view owns the form, its checkpoint changed, submission was
+unconfirmed, or browser ownership support is unavailable, inspect the saved
+answers and click the displayed **Continue form** or **Review your answers** to
+reopen deliberately. A listener restart requires a new private launcher and
+opens a fresh collector; it cannot restore the old collector. Record the actual browser/version, source and wheel identity
+and assistance before declaring this journey verified. Published 1.3.0 does not
+contain this behavior.
+
 ## Navigation: how can I inspect what I accepted?
 
 Prerequisite: Use the installed #243 candidate and prepare a fresh synthetic

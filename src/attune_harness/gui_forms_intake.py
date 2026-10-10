@@ -42,6 +42,47 @@ button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-vis
 INTAKE_SCRIPT = r"""
 const panel=document.querySelector('#form-panel'),tasks=document.querySelector('#tasks');
 let busy=false,expired=false,automaticOpenNotice='';
+let formView=null,formRecovery=null,reloadRecovery=false,recoveryBlocked=false,releaseView=null;
+const recoveryKey='attune-gui-form';
+function rememberForm(shown,blocked=false){
+ if(!formView)return;
+ formRecovery=shown?{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision}:null;
+ recoveryBlocked=blocked;
+ // Write the no-replay barrier before submitting. If storage becomes unavailable,
+ // refuse that submission rather than leave an old recovery identity behind.
+ sessionStorage.setItem(recoveryKey,JSON.stringify({session:token,view:formView,recovery:formRecovery,blocked}));
+}
+async function claimFormView(){
+ try{
+  if(typeof sessionStorage==='undefined')return;
+  const stored=JSON.parse(sessionStorage.getItem(recoveryKey)||'null');
+  recoveryBlocked=stored?.session===token&&stored?.blocked===true;
+  reloadRecovery=recoveryBlocked;
+  if(typeof navigator==='undefined'||!navigator.locks||typeof crypto==='undefined'||!crypto.randomUUID||typeof performance==='undefined')return;
+  // New tabs may inherit sessionStorage. Only a reload can reuse its identity;
+  // an exclusive live-page lock also refuses a copied identity in another tab.
+  const reload=performance.getEntriesByType('navigation')[0]?.type==='reload';
+  const saved=reload&&stored?.session===token&&typeof stored.view==='string'&&/^[A-Za-z0-9_-]{32,128}$/.test(stored.view)?stored:null;
+  const candidate=saved?.view||crypto.randomUUID();
+  const held=await new Promise(resolve=>{
+   navigator.locks.request('attune-form-view-'+candidate,{ifAvailable:true},lock=>{
+    if(!lock){resolve(false);return;}
+    return new Promise(release=>{releaseView=release;resolve(true);});
+   }).catch(()=>resolve(false));
+  });
+  if(!held)return;
+  formView=candidate;formRecovery=saved?.recovery||null;recoveryBlocked=saved?.blocked===true;
+  reloadRecovery=!!formRecovery||recoveryBlocked;
+  sessionStorage.setItem(recoveryKey,JSON.stringify({session:token,view:formView,recovery:formRecovery,blocked:recoveryBlocked}));
+  window.addEventListener('pagehide',()=>{
+   expirePanel('This view is leaving. Unsaved answers are not restored after reload.');
+   formView=null;formRecovery=null;reloadRecovery=false;releaseView();
+  },{once:true});
+ }catch(e){formView=null;formRecovery=null;reloadRecovery=recoveryBlocked;if(releaseView)releaseView();}
+}
+function openPayload(task,automatic=false){
+ return {task:task.task,checkpoint:task.checkpoint,...(automatic?{replace:false}:{}),...(formView?{view:formView}:{})};
+}
 const browserButton=document.querySelector('#browser-open'),browserTip=document.querySelector('#browser-tip');
 let workspaceReady=false;
 function syncBrowserButton(){if(browserButton)browserButton.disabled=busy||!workspaceReady;}
@@ -52,6 +93,7 @@ if(browserButton){
  browserButton.addEventListener('click',event=>{
   if(!event.isTrusted||busy||!workspaceReady)return;
   act(async()=>{
+   rememberForm(null,true);
    expirePanel('Opening another view. This form is now read-only; unsaved answers remain here for copying. Open the current form in the new view to continue.');
    try{const result=await api('/browser/open',{confirmed:true});status.textContent=result.message;}
    catch(e){status.textContent='Browser opening could not be confirmed. Copy the private launcher link from Terminal into your browser. Unsaved answers stay here for copying.';}
@@ -95,7 +137,7 @@ async function loadTasks({advance=false}={}){
    node('pre','Task '+saved.task_id+'\nCheckpoint '+saved.checkpoint+'\nAuthoring format: '+saved.authoring.tier,identity).className='technical-input';
   }
   if(data.editable&&task.available){const tip=node('p',undefined,card);node('b','Next: ',tip);node('span','Click ',tip);node('b',task.action_label||'Open current form',tip);node('span','. '+(task.action_tip||'Review the current form before responding.'),tip);const open=node('button',task.action_label||'Open current form',card);open.type='button';open.onclick=()=>act(async()=>{
-   const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint});renderDecision(shown);
+   const shown=await api('/decision/open',openPayload(task));renderDecision(shown);
    open.hidden=true;tip.hidden=true;
    note.textContent='The current form is ready. Viewing it does not accept intent or authorize execution.';
    status.textContent='Current form displayed. Review before responding.';
@@ -108,12 +150,17 @@ async function loadTasks({advance=false}={}){
  if(data.editable&&task?.available&&task.status==='draft'&&task.saved_request&&(advance||!panel.children.length)){
   const controls=presentations.get(task.task);controls.open.disabled=true;
   try{
-   const shown=await api('/decision/open',{task:task.task,checkpoint:task.checkpoint,replace:false});
+   let shown;
+   if(reloadRecovery){
+    if(recoveryBlocked)throw Error('A previous form was submitted or left. Inspect saved answers, then deliberately reopen the current form.');
+    if(formRecovery.task!==task.task||formRecovery.checkpoint!==task.checkpoint)throw Error('Saved form recovery changed; deliberately reopen the current form.');
+    shown=await api('/decision/restore',{...formRecovery,view:formView});
+   }else shown=await api('/decision/open',openPayload(task,true));
    renderDecision(shown);controls.open.hidden=true;controls.tip.hidden=true;
    controls.note.textContent='The current form is ready. Viewing it does not accept intent or authorize execution.';
   }catch(e){
    automaticOpenNotice='The current form was not opened. '+e.message;
-  }finally{controls.open.disabled=false;}
+  }finally{reloadRecovery=false;controls.open.disabled=false;}
  }
  return true;
  }catch(e){workspaceReady=false;syncBrowserButton();status.textContent='Decision inspection failed. '+e.message;return false;}
@@ -125,6 +172,7 @@ async function act(operation){
 }
 async function submit(shown,response){
  if(expired)return;
+ rememberForm(null,true);
  expirePanel('Submitting this response. This form is now read-only; answers remain available for copying.');
  const result=await api('/decision/submit',{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision,response});
  const title=panel.querySelector('h2');if(title&&typeof result.heading==='string')title.textContent=result.heading;
@@ -175,6 +223,7 @@ function renderIntent(summary,parent){
  }
 }
 function renderDecision(shown){
+ rememberForm(shown);
  expired=false;
  panel.replaceChildren();const display=shown.display;
  const title=node('h2',display.kind==='spec'?'Review your answers':display.title,panel);title.tabIndex=-1;title.focus();
@@ -231,5 +280,5 @@ function renderDecision(shown){
  }
 }
 
-act(()=>refreshWorkspace());
+act(async()=>{await claimFormView();await refreshWorkspace();});
 """
