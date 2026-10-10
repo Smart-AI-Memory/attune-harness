@@ -148,9 +148,25 @@ combined 1.4.0 controls or reload behavior.
 
 The existing Help review preview is hosted under its owner's earlier approval.
 [Website PR #2552](https://github.com/Smart-AI-Memory/attune-ai/pull/2552) is still
-open and draft at `87cb091`; production publication remains held. No website
-build, browser inspection, current CI qualification or deployment was performed
-in this documentation pass.
+open and draft at `87cb091`; production publication remains held. This release lane did not build, render or deploy the website. A subsequent
+Help-owner handoff records a local nine-file correction staged at tree
+`9661c9d2f6bb3018a05490576b7f31bcd852de47`, with no new commit. Its patch
+SHA-256 is `e025c9d0dfc4b4b3c0568467a113048bc98d5e6997aa44c08f068b427cdb66a2`.
+It selects unpublished 1.4.0, corrects the current publication context, stages
+approval/reload/forms-only guidance, preserves the 1.3.0 snapshot/projection and
+old capture entries, and excludes #233. The owner reports 75 website tests,
+126 compiled static pages, four desktop/mobile light/dark cases and nine local
+Help routes passed, plus governance, ledger, drift, lint and TypeScript checks.
+Different-model GPT-6 Astra advisory review is complete. These results qualify
+that local website input only. It is ready for owner review/integration selection,
+not deployed Help or final Harness qualification. The existing hosted review
+preview still contains source `87cb091`.
+
+The Help owner also records unresolved scanner/helper authentication failures
+on the earlier remote head and HTTP 503 on the new public GitHub blob link,
+despite successful contents-API byte verification. Human/native-platform and
+candidate derivative limits remain. No website code was imported into Harness;
+Help integration/hosting/publication remain with their owner.
 
 | Topic or source | Current disposition | Derivative and owner | Remaining evidence | Older guidance |
 | --- | --- | --- | --- | --- |
@@ -159,15 +175,15 @@ in this documentation pass.
 | Sample plan and research | Unchanged commands reviewed and replayed on corrected candidate wheel | Spec-workflow and research examples; tutorial and Help owners | Candidate prose now reconciled and reviewed; presentation framing/images/rendering still need disposition; CLI pass alone does not qualify derivatives | Versioned 1.3.0 canonical text retained |
 | Consultation setup, seat checks, batch citations and Markdown | Candidate command evidence retained in correction handoff; JSON stays default | Consultation guide and shared skills; respective owners | Confirm candidate topic coverage and resolve the existing packaged cross-review preflight omission with its assigned owner | Core 1.3.0 guidance retained; no concurrent-round promise |
 | First checked repair | Static document, journey and example hashes match retained acceptance contract | First-repair tutorial and derived guidance; tutorial owner | Candidate semantic disposition; this pass did not rerun the repair journey | Contract remains pinned to 1.3.0 |
-| Help and official website documentation | Four projections pass drift check; seven topics inventoried; existing review preview separate from production | Help owner | Select 1.4.0 in candidate inventory, add combined-source changes, refresh current publication context, check changed pages/build/links and record unchanged topics reviewed | Preserve old snapshot and capture pins |
+| Help and official website documentation | Old projections retained; owner local 1.4.0 topics/publication context reconciled and tested; hosted preview still old source | Help owner | Owner integration selection and final tutorial pin reconciliation; HTTP link/auth holds, human/derivative evidence and publication disposition remain | Preserve old snapshot and capture pins |
 | Coverage and platform limits | Diagnostics retained; no new final-candidate measurement | CI and qualification guide; release owner | Exact candidate native-platform and supplemental evidence | Keep prior successes and timeout receipts |
 | Writing and entered text | Approved guide applied to revised release prose | All affected UI/documentation owners | Source-consistent rendered copy and preserved entered answers | Historical captures retain original labels |
 
 Local Markdown target/index checks and static journey parsing are separate from
 semantic checks. They do not test HTTP URLs, every fragment anchor or native
-rendering. The Help owner should update current-publication context now that
-#249 is merged without pretending the historical local source commit was itself
-published or rewriting frozen source bytes.
+rendering. The Help owner's local correction now separates the published equivalent
+canonical bytes from their historical local source. That correction is not yet
+in the hosted preview or production; frozen snapshot bytes remain unchanged.
 
 ## Remaining technical checks and Patrick decisions
 
