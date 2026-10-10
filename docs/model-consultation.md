@@ -214,7 +214,9 @@ lines. Host support assessments stay advisory. Neither view reopens source files
 dispatches a model, changes a checkpoint or authenticates the reported model.
 Both readable views project a retained `running` status as `unresolved`, showing
 the original persisted status without changing the record. Unresolved journal
-entries remain visible when no answer was saved. Unicode formatting controls,
+entries remain visible when no answer was saved. After reconciliation, the views
+show the attempt count and retained prior failure, retry basis and provenance.
+Unicode formatting controls,
 including bidirectional controls, are shown as visible escapes. Markdown is
 a summary; JSON retains the complete journal, raw process diagnostics and usage.
 The same prepared/paused/completed/cancelled statuses exit 0; partial, failed, unresolved
