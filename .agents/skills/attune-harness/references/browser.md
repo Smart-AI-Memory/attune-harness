@@ -96,8 +96,8 @@ A restarted listener needs a new private launcher and a fresh collector.
 Refresh does not clear a recovery refusal; reopen through the displayed task
 control. A page that has left cannot become editable from a delayed response.
 If browser history returns an expired page, reload it before continuing.
-Unsaved typing is not restored. This behavior is absent from published 1.3.0;
-verify the combined installed candidate before promising it to a user.
+Unsaved typing is not restored. Verify that the installed candidate includes
+the reload-restoration increment before promising this behavior to a user.
 
 After the listener stops, its old launcher is invalid. Start a new listener for
 the same registered task directories and use its new private link. Saved answers
