@@ -140,12 +140,20 @@ def measure(output, suite):
     def save():
         manifest.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     save()
-    argv = ([sys.executable, '-m', 'pytest', '-q', '--junitxml=' + str(output / 'tests.xml')]
+    argv = ([sys.executable, '-m', 'pytest', '-q', '-p', 'harness_qualification_stacks',
+             '-o', 'faulthandler_timeout=0', '--junitxml=' + str(output / 'tests.xml')]
             if suite == 'full' else
             [sys.executable, '-I', str(ROOT / 'scripts/qualify_platform.py'),
              '--output', str(output / 'instrumented-platform'), '--coverage-instrumented'])
     environment = {**os.environ, 'TMPDIR': str(temporary), 'TMP': str(temporary),
                    'TEMP': str(temporary), 'PYTHONUTF8': '1'}
+    if suite == 'full':
+        # Retain the active case/phase even when the independent outer deadline
+        # kills pytest before it writes JUnit. Reuse qualification's Python
+        # watchdog; the native timed frame walker is deliberately disabled.
+        environment['HARNESS_QUALIFICATION_OUTPUT'] = str(output)
+        environment['PYTHONPATH'] = os.pathsep.join(filter(None, (
+            str(ROOT / 'scripts'), environment.get('PYTHONPATH', ''))))
     stream = hook.open('x', encoding='utf-8')
     try:
         with stream:

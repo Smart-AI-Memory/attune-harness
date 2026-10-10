@@ -290,6 +290,71 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
 
 
 @pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
+def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, phase):
+    """Exercise the full driver, keeping a killed run unusable as coverage."""
+    import attune_harness
+
+    root = tmp_path / 'checkout'
+    scripts = root / 'scripts'
+    scripts.mkdir(parents=True)
+    (scripts / 'harness_qualification_stacks.py').write_bytes(
+        (SCRIPT.parent / 'harness_qualification_stacks.py').read_bytes())
+    source = root / 'src/attune_harness'
+    installed = tmp_path / 'installed/attune_harness'
+    for package in (source, installed):
+        package.mkdir(parents=True)
+        (package / '__init__.py').write_text('')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', root)
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    frozen = {'revision': 'a' * 40, 'sources': measurement.hashes(source),
+              'input_hashes': {}, 'coverage_version': measurement.VERSION,
+              'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    monkeypatch.setattr(measurement, 'inputs_stable', lambda *args: True)
+    # Coverage's startup hook has separate installed-child tests. This case
+    # exercises the real pytest driver and journal without changing this venv.
+    purelib = tmp_path / 'purelib'
+    purelib.mkdir()
+    monkeypatch.setattr(measurement.sysconfig, 'get_path', lambda name: str(purelib))
+    test = root / 'test_wait.py'
+    wait = 'time.sleep(30)' if phase == 'call' else 'pass'
+    fixture = ('import pytest\n@pytest.fixture\ndef stall():\n'
+               + ('    time.sleep(30)\n' if phase == 'setup' else '')
+               + '    yield\n'
+               + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
+    test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
+    (root / 'pytest.ini').write_text('[pytest]\nharness_stack_timeout = 0.1\n')
+    monkeypatch.setenv('PYTEST_DISABLE_PLUGIN_AUTOLOAD', '1')
+    real_run = subprocess.run
+
+    def bounded_child(argv, **kwargs):
+        assert kwargs['timeout'] == 1200  # The production limit is preserved.
+        kwargs['timeout'] = 3  # Only this deliberately stalled fixture is short.
+        return real_run(argv, **kwargs)
+
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
+        run=bounded_child, STDOUT=subprocess.STDOUT))
+    output = tmp_path / 'result'
+    with pytest.raises(subprocess.TimeoutExpired):
+        measurement.measure(output, 'full')
+    timings = [json.loads(line) for line in
+               (output / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[0]['event'] == 'suite_start'
+    assert timings[-1]['event'] == 'phase_start' and timings[-1]['phase'] == phase
+    assert timings[-1]['nodeid'].endswith('test_wait.py::test_wait')
+    stacks = (output / 'slow-stacks.txt').read_text()
+    assert str(test) in stacks
+    assert ('in test_wait' if phase == 'call' else 'in stall') in stacks
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['test_exit'] is None and receipt['input_drift'] is False
+    with pytest.raises(ValueError, match='unfinished'):
+        measurement.compatible([receipt], frozen)
+    assert not (output / 'summary.json').exists()
+    assert not (purelib / 'harness_measure_coverage.pth').exists()
+
+
+@pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
 def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
     """Retain the Python watchdog's stack before the independent outer kill."""
     test = tmp_path / 'test_wait.py'
