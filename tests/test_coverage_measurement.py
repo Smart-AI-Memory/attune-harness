@@ -219,8 +219,8 @@ def test_startup_hook_measures_scrubbed_and_isolated_children(tmp_path, monkeypa
 
 @pytest.mark.parametrize('instrumented', [False, True])
 @pytest.mark.parametrize('timed_out', [False, True])
-@pytest.mark.parametrize('windows', [False, True])
-def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out, windows):
+@pytest.mark.parametrize('system', ['Windows', 'Linux', 'Darwin'])
+def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch, instrumented, timed_out, system):
     import attune_harness
     spec = importlib.util.spec_from_file_location('qualifier', SCRIPT.with_name('qualify_platform.py'))
     qualifier = importlib.util.module_from_spec(spec)
@@ -233,8 +233,8 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(qualifier, 'installed_source', lambda: installed)
     output = tmp_path / 'result'
     calls = []
-    monkeypatch.setattr(qualifier.platform, 'system', lambda: 'Windows' if windows else 'Linux')
-    expected_timeout = 1500 if windows and instrumented else 900
+    monkeypatch.setattr(qualifier.platform, 'system', lambda: system)
+    expected_timeout = {'Windows': 1500, 'Linux': 900, 'Darwin': 900}[system]
 
     def child(argv, **kwargs):
         calls.append(argv)
@@ -277,6 +277,16 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         failed = {**measurement.identity(), 'test_exit': 124, 'input_drift': False}
         with pytest.raises(ValueError, match='unfinished'):
             measurement.compatible([failed], measurement.identity())
+
+
+def test_installed_library_job_budget_keeps_windows_suite_headroom():
+    import yaml
+
+    workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
+    job = yaml.safe_load(workflow.read_text())['jobs']['installed-library']
+    # The hosted budget includes setup/evidence time outside the child budget.
+    # Windows must have headroom for 25 minutes without changing POSIX's 20.
+    assert job['timeout-minutes'] == "${{ matrix.os == 'windows-latest' && 30 || 20 }}"
 
 
 @pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
