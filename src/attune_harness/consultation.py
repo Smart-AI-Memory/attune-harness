@@ -295,7 +295,10 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
             raise ValueError('Dispatch requires external authority and native authority for native seats')
         if record['status'] not in ('prepared', 'paused', 'running', 'unresolved'):
             raise ValueError('Terminal consultation cannot dispatch again')
-        cursor = RecoveryCursor(record, store, max_operations)
+        from .recovery import dispatch_origin_callback
+        origin = (dispatch_origin_callback('attune_harness.consultation', 'attune_harness.recovery',
+                                           'attune_harness.process') if 'capture_policy' in record else None)
+        cursor = RecoveryCursor(record, store, max_operations, dispatch_origin=origin)
         record['status'] = 'running'
         store.save(record)
         answers = []

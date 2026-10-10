@@ -122,7 +122,7 @@ def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_pa
     calls = []
     def dispatcher(config, turn, *args):
         calls.append(turn['participant'])
-        if len(calls) == 2:
+        if (turn['round'], turn['participant']) == (0, 'critic'):
             if status == 'unresolved':
                 raise KeyboardInterrupt
             if status in ('partial', 'cancelled'):

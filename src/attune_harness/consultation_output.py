@@ -125,6 +125,17 @@ def markdown(envelope, *, view, retained=None):
             if event.get('phase') != 'completed':
                 output += ['', '**Unresolved journal entry:** ' + _text(event['operation_key']) + '; phase '
                            + _text(event['phase']) + '; effects remain unknown.']
+                if event.get('attempts', 1) > 1:
+                    output += ['**Attempts:** ' + _text(event['attempts'])]
+        for item in record.get('recovery', {}).get('reconciliations', []):
+            previous, evidence = item['previous'], item['evidence']
+            output += ['', '### Retained prior attempt / ' + _text(previous['operation_key']), '',
+                       '**Prior turn status:** ' + _text(previous['result']['status']),
+                       '**Retry basis:** ' + _text(evidence['retry_basis']),
+                       '**Provenance:** ' + _text(evidence['provenance'])]
+            error = previous['result'].get('error') or {}
+            output += ['**Prior turn error:** ' + '; '.join(
+                f'{_text(key)}={_text(value)}' for key, value in error.items())]
         for claim in citations:
             output += ['', f'### Citation {_text(claim["citation"])} / round {_text(claim["round"])} / {_text(claim["participant"])}', '',
                        f'**Source:** {_text(claim["path"])}:{_text(claim["line"])}',
