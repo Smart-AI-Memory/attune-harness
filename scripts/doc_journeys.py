@@ -1,7 +1,7 @@
 """Extract the documented journeys: fenced blocks tagged ``<!-- journey: NAME -->``.
 
-A tag sits on the line directly above a fenced block in ``README.md`` or
-``docs/cli-guide.md``. The block is then a journey that
+A tag sits on the line directly above a fenced block in one of ``SOURCES``.
+The block is then a journey that
 ``tests/test_cold_start_journey.py`` runs as written, placeholders substituted,
 so a documented command that stops working fails CI (first-run journey, R6).
 Shell blocks yield one command per logical line: backslash continuations are
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ('README.md', 'docs/cli-guide.md')
+SOURCES = ('README.md', 'docs/cli-guide.md', 'docs/first-repair-1.3.0.md')
 TAG = re.compile(r'^<!-- journey: ([a-z0-9-]+) -->$')
 FENCE = re.compile(r'^(`{3,})(\w*)\s*$')
 SHELLS = ('sh', 'bash', 'shell', 'console', '')

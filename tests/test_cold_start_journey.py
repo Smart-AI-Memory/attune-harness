@@ -17,6 +17,7 @@ never absorbed as an expected failure. See
 """
 # qualify: platform
 
+import hashlib
 import importlib.util
 import json
 import os
@@ -55,12 +56,14 @@ def environment():
     return env
 
 
-def harness(args, cwd):
+def harness(args, cwd, *, stdout_file=None):
     """Run the installed console script; return the exit code, the envelope (or None) and the raw output."""
     # An empty pipe, never the runner's stdin: Windows reports an inherited console, and even
     # NUL, as a terminal, which would start review's interactive intake prompts.
     result = subprocess.run([str(CLI), *args], cwd=cwd, env=environment(), capture_output=True,
                             input='', text=True, encoding='utf-8', timeout=120)
+    if stdout_file is not None:
+        stdout_file.write_text(result.stdout, encoding='utf-8')
     try:
         envelope = json.loads(result.stdout)
     except ValueError:
@@ -338,4 +341,75 @@ def test_documented_fix_starter(home):
     code, envelope, output = harness(split(doc_journeys.substitute(repair, table))[1:], home)
     assert code == 0 and envelope and envelope['status'] == 'completed', output
     assert (repo / 'calc.py').read_text(encoding='utf-8') == 'def add(a, b):\n    return a + b\n'
+
+
+@POSIX_ONLY
+def test_documented_first_repair_preview_pause_resume(home):
+    """Current bound approval, unchanged oracle, stopped repair and completed replay."""
+    project, task = home / 'project', home / 'repair-task'
+    variables = {'FIRST_REPAIR_ROOT': str(home), 'FIRST_REPAIR_PROJECT': str(project),
+                 'FIRST_REPAIR_TASK': str(task), 'FIRST_REPAIR_RELEASE': str(ROOT),
+                 'FIRST_REPAIR_PYTHON': sys.executable}
+    table = {'$' + name: value for name, value in variables.items()}
+    journeys = doc_journeys.journeys()
+
+    def documented_python(name):
+        (code,) = doc_journeys.commands(journeys[name])
+        path = home / {'first-repair-prepare': 'prepare.py',
+                       'first-repair-response': 'accept-response.py'}[name]
+        path.write_text(code, encoding='utf-8')
+        result = subprocess.run([sys.executable, str(path)], cwd=home,
+                                env={**environment(), **variables}, capture_output=True,
+                                text=True, encoding='utf-8', timeout=60)
+        assert result.returncode == 0, result.stdout + result.stderr
+
+    def documented_cli(command, exit_code, status, *, redirected=False):
+        argv = split(doc_journeys.substitute(command, table))
+        if redirected:
+            assert argv[-4:] == ['<', '/dev/null', '>', str(home / 'preview.json')]
+            argv = argv[:-4]
+        assert argv[0] == 'attune-harness'
+        code, envelope, output = harness(argv[1:], home,
+            stdout_file=home / 'preview.json' if redirected else None)
+        assert code == exit_code and envelope and envelope['status'] == status, output
+        return envelope
+
+    documented_python('first-repair-prepare')
+    source = (project / 'calc.py').read_bytes()
+    oracle = project / 'tests/test_calc.py'
+    oracle_hash = hashlib.sha256(oracle.read_bytes()).hexdigest()
+    init, preview = doc_journeys.commands(journeys['first-repair-preview'])
+    documented_cli(init, 0, 'created')
+    draft = documented_cli(preview, 1, 'draft', redirected=True)
+    assert draft['submission']['accepted'] is False
+    frozen_scope = json.dumps(draft['repair_contract']['scope'], sort_keys=True,
+                              separators=(',', ':'), ensure_ascii=True, allow_nan=False)
+    scope_digest = hashlib.sha256(frozen_scope.encode('utf-8')).hexdigest()
+    assert (project / 'calc.py').read_bytes() == source
+    documented_python('first-repair-response')
+    accept, status = doc_journeys.commands(journeys['first-repair-continue'])
+    paused = documented_cli(accept, 1, 'paused')
+    documented_cli(status, 0, 'paused')
+    (before_event,) = paused['execution']['events']
+    assert before_event['operation_key'] == 'probe:before'
+    assert before_event['state'] == 'completed' and before_event['result']['passed'] is False
+    assert before_event['result']['plan_digest'] == scope_digest
+    assert (project / 'calc.py').read_bytes() == source
+    assert hashlib.sha256(oracle.read_bytes()).hexdigest() == oracle_hash
+
+    resume, inspect, replay = doc_journeys.commands(journeys['first-repair-result'])
+    completed = documented_cli(resume, 0, 'completed')
+    inspected = documented_cli(inspect, 0, 'completed')
+    repeated = documented_cli(replay, 0, 'completed')
+    execution = completed['execution']
+    assert execution['before_probe']['passed'] is False
+    assert execution['after_probe']['passed'] is True
+    assert execution['before_probe']['plan_digest'] == execution['after_probe']['plan_digest'] == scope_digest
+    assert (project / 'calc.py').read_text(encoding='utf-8') == 'def add(a, b):\n    return a + b\n'
+    assert hashlib.sha256(oracle.read_bytes()).hexdigest() == oracle_hash
+    assert execution['integration']['acceptance_status'] == 'verified_within_probe_scope'
+    assert execution['integration']['semantic_verification'] is False
+    events = execution['events']
+    assert len(events) == 5 and all(event['attempts'] == 1 for event in events)
+    assert inspected['execution']['events'] == repeated['execution']['events'] == events
 
