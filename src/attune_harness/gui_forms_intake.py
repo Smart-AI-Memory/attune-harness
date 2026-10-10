@@ -45,9 +45,10 @@ let busy=false,expired=false,automaticOpenNotice='';
 let formView=null,formRecovery=null,reloadRecovery=false,recoveryBlocked=false,releaseView=null,viewGone=false;
 const recoveryKey='attune-gui-form';
 function rememberForm(shown,blocked=false){
- if(!formView||viewGone)return;
+ if(viewGone)return;
  formRecovery=shown?{task:shown.task,checkpoint:shown.checkpoint,decision:shown.decision}:null;
  recoveryBlocked=blocked;
+ if(!formView)return;
  // Write the no-replay barrier before submitting. If storage becomes unavailable,
  // refuse that submission rather than leave an old recovery identity behind.
  sessionStorage.setItem(recoveryKey,JSON.stringify({session:token,view:formView,recovery:formRecovery,blocked}));
@@ -66,10 +67,11 @@ async function claimFormView(){
   const candidate=saved?.view||crypto.randomUUID();
   const held=await new Promise(resolve=>{
    navigator.locks.request('attune-form-view-'+candidate,{ifAvailable:true},lock=>{
-    if(!lock){resolve(false);return;}
+    if(!lock||viewGone){resolve(false);return;}
     return new Promise(release=>{releaseView=release;resolve(true);});
    }).catch(()=>resolve(false));
   });
+  if(viewGone){if(releaseView)releaseView();return;}
   if(!held){
    recoveryBlocked=true;reloadRecovery=true;
    // A rejected copied identity must not become usable when its owner leaves.

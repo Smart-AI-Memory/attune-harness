@@ -118,6 +118,11 @@ const recovery=b=>JSON.parse(b.storage.get('attune-gui-form'));
  const lostSupport=browser('reload',new Map(uncertain.storage),{locks:false});
  const stillBlocked=await setup({globals:lostSupport.globals,responses:[workspace('cp-2',goal)]});
  assert.deepEqual(stillBlocked.calls.map(c=>c.path),['/workspace'],'an unconfirmed submission stays blocked if lock support disappears');
+ stillBlocked.queue.push(remaining);stillBlocked.root.querySelector('button').onclick();await flush();
+ stillBlocked.panel.querySelector('textarea').value='A confirmed result';
+ stillBlocked.queue.push({message:'Answers saved'},workspace('cp-3',goal,['A confirmed result']),{...remaining,checkpoint:'cp-3',decision:'new-current'});
+ stillBlocked.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();
+ assert.equal(stillBlocked.calls.at(-1).path,'/decision/open','confirmed save advances even when ownership primitives are unavailable');
  inspected.queue.push({task:'A',checkpoint:'cp-3',decision:'deliberately-opened',summary:{intent:{...intent,goal,acceptance:['Unconfirmed result']},choices:[],authoring:{tier:'prompt'}},display:{kind:'spec',markdown:'Owner review',actions:[{id:'approve_task',label:'Approve',consequence:'Record intent only'}]}});
  inspected.root.querySelector('button').onclick();await flush();
  assert.equal(inspected.calls.at(-1).path,'/decision/open');
@@ -168,6 +173,18 @@ const recovery=b=>JSON.parse(b.storage.get('attune-gui-form'));
   assert(leaving.panel.querySelectorAll('button').every(e=>e.disabled),'departed decisions remain read-only');
   await leaving.run('act(()=>refreshWorkspace())');await flush();
   assert.equal(leaving.calls.length,requests,'cached departed page cannot issue another action');
+ }
+ for(const moment of ['before-grant','after-grant']){
+  const acquiring=browser('navigate');let grant,released=false;
+  acquiring.globals.navigator.locks.request=(name,options,fn)=>new Promise(resolve=>{grant=()=>resolve(fn({name}));}).then(()=>{released=true;});
+  const pending=await setup({globals:acquiring.globals,responses:[workspace('cp-1'),initial]});
+  assert(grant);assert.equal(pending.calls.length,0);
+  if(moment==='after-grant')grant();
+  await acquiring.leave();
+  if(moment==='before-grant')grant();
+  await flush();
+  assert.equal(pending.calls.length,0,'departure during lock acquisition never opens a collector');
+  assert(released,'departed page cannot keep an asynchronously granted lock');
  }
  console.log('client regressions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});
