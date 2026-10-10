@@ -1,8 +1,12 @@
 # Source review and roundtable from either coding host
 
-Source review and roundtable are included in released 1.3.0. The opt-in Markdown
-views below are an unreleased development candidate; install this branch's wheel
-to use those views. The shared development plugin contains both skills;
+The core source-review and roundtable workflows are included in released 1.3.0.
+This **unpublished 1.4.0 candidate** adds `init --for roundtable`, seat `check`,
+batch `assess-citation --decisions` and opt-in Markdown views. Those additions
+require a wheel built from this candidate; installing 1.3.0 does not provide them.
+Final combined-source qualification remains pending; see the
+[readiness record](release-readiness-1.4.0.md).
+The shared development plugin contains both skills;
 `scripts/package_codex_plugin.py` packages the same skill bytes for Codex.
 No host settings or credentials need changing to exercise the CLI.
 

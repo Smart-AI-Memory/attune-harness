@@ -4,8 +4,8 @@ Unreleased review draft. These GUI procedures describe the
 [saved-request GUI](https://github.com/Smart-AI-Memory/attune-harness/pull/243)
 reviewed and qualified at `0e1a285307b3f9593e504ba0139a3f9e8e83992a`, now merged
 as signed squash `82cdff9379b62e1858eb44366d0923721ff037e5` with an identical
-complete tree. The next release's version, date and combined source commit have
-not been selected. The separate form guidance in #242 is absent from this
+complete tree. The next release is being prepared as 1.4.0. Its final shipping date and SHA
+remain pending; the local combined source is recorded in the release handoff. The separate form guidance in #242 is absent from this
 tested tree and its captures. That guidance has since merged to main as
 `9410c4b57df5e0dc6cb1a5fcb38d0fb5a665ce37`; this page does not claim that the
 earlier walkthroughs or captures qualify the combined source.

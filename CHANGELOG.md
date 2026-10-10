@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.4.0
+
+Prepared candidate; publication and final combined-source qualification are pending.
+See the [release notes](docs/release-notes-1.4.0.md) and
+[readiness record](docs/release-readiness-1.4.0.md).
+
 - Clarify intent review with **Approve this work request** and **Keep as draft**,
   each with its own explanation. Approval records the reviewed request; neither
   choice starts work. Decision bindings and execution safeguards are unchanged.
@@ -11,8 +17,19 @@
   collector and saved answers without submitting or approving. Different views,
   stale decisions and unconfirmed submissions retain deliberate reopening.
 
+- Add saved-request inspection and read-only accepted answers, direct opening of
+  the only registered draft form, and saved-answer context above remaining intake
+  questions (#242, #243, #255). Browser actions still cannot build or dispatch.
+- Preserve entered wording and use the reading font for prose; keep technical
+  values in monospace. Instructions name the next control (#254).
+- Add a shared recovery cursor and interruption fixtures without introducing
+  parallel consultation execution or automatic retry of uncertain effects.
+- Retain per-test and phase timing plus slow-test Python stacks for full coverage
+  measurement. Unfinished receipts remain unusable; process budgets and source
+  coverage boundaries are unchanged.
+
 - Add opt-in `--format markdown` to consultation `prepare`, `status` and
-  `evidence` for both verbs (#234). Prepare omits full frozen source text;
+  `evidence` for both verbs (#246). Prepare omits full frozen source text;
   status/evidence show retained identities, answers and numbered citations.
   JSON stays the default with unchanged v1 envelopes, bytes and exit statuses.
   The compatibility fixture adds the six optional format arguments deliberately.
@@ -23,18 +40,18 @@
   job for setup and evidence upload. POSIX and supplemental coverage limits,
   individual operation deadlines and qualification evidence guards are unchanged.
 - Add `init --for roundtable` to write a validated explicit-model seat config,
-  report no-spend preflight and print the next prepare command (#236).
+  report no-spend preflight and print the next prepare command (#240).
 - Run Windows installed-wheel qualification in fresh virtual environments to prevent runner-wide package conflicts.
 - List the `roundtable` skill in the Claude Code marketplace entry. The skill
   shipped in the v1.3.0 tag but the entry named only the Harness skill,
   `cross-review` and `smart-test`, so Claude Code never loaded it.
 - `assess-citation --decisions FILE` records several citation decisions made
   against one evidence view in one call: all of them or none, with one
-  checkpoint advance (#235). Single-decision calls behave as before. Those five
+  checkpoint advance (#238). Single-decision calls behave as before. Those five
   options are no longer argparse-required: a call that omits one still exits 2,
   now with a JSON refusal naming the missing options instead of a usage error.
   The surface fixture is rewritten for the new `--decisions` option.
-- Add no-spend `roundtable check` and `source-review check` with per-seat local binary/login checks, fixes and explicit model-access uncertainty (#232).
+- Add no-spend `roundtable check` and `source-review check` with per-seat local binary/login checks, fixes and explicit model-access uncertainty (#237).
 
 ## 1.3.0
 

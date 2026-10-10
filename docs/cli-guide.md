@@ -4,15 +4,20 @@ Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
 This text was moved here from the README for the 0.1.0 release so that the package
 page can stay brief. Nothing was dropped. Links were adjusted for this location and
-install commands now name the published package.
+install commands name the version documented here.
 
 ## Installation
 
+**1.4.0 candidate, unpublished.** Final source and installed-wheel qualification
+are pending. The commands below become usable after publication. Use
+[released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
+for a published installation. See the [candidate readiness record](release-readiness-1.4.0.md).
+
 ```sh
-pipx install 'attune-harness[all]==1.3.0'
+pipx install 'attune-harness[all]==1.4.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.3.0'`, or `pip install 'attune-harness[all]==1.3.0'`
+or `uv tool install 'attune-harness[all]==1.4.0'`, or `pip install 'attune-harness[all]==1.4.0'`
 into an environment of its own. This is the recommended install: everything the
 review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
 Python 3.10 or later. The example below needs no API key or attune-ai installation;
@@ -278,7 +283,7 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
-For browser draft intake and explicit intent approval in **1.3.0**, register a
+For browser draft intake and explicit intent approval in this **1.4.0 candidate**, register a
 canonical absolute saved feature-work draft directory and enable form actions:
 
 ```bash
@@ -286,11 +291,23 @@ python -m attune_harness.gui --task /absolute/path/to/task --edit
 ```
 
 The private launcher link grants access only to this local forms session. Without
-`--edit`, inspection is read-only. Refresh lists registered drafts; open the
-current form, save partial answers, reopen the current preview, then deliberately
-accept its intent. Saving answers is not approval; approval is not execution or
+`--edit`, inspection is read-only. Refresh lists registered drafts. With one draft, the workspace opens its current
+form directly; accepted work shows read-only answers. Click **Continue form**
+for remaining questions or **Review your answers** for the current preview.
+Save partial answers, review the preview, then click **Approve this work request**
+or **Keep as draft**. The first records approval; the second leaves an unapproved
+draft. Neither starts work. Saving answers is not approval; approval is not execution or
 paid dispatch. Stale checkpoints, replaced forms and foreign-origin submissions
 refuse. A restart requires opening a fresh form; retained text is evidence only.
+
+A same-view reload can restore its current form when the listener, checkpoint,
+collector and browser ownership remain current. This requires usable session
+storage, navigation timing and an exclusive Web Lock. Saved answers are restored;
+unsaved typing is not. Stale or uncertain recovery remains blocked across
+**Refresh forms** until you deliberately reopen. When browser support is missing,
+click **Continue form** or **Review your answers** to reopen the current form.
+Do not resubmit an unconfirmed response. A listener restart needs a new launcher
+and collector. Native-browser and human assessment remain pending.
 
 Reopened intake forms show **Saved answers** above the remaining questions,
 including the saved goal, success criteria, answered questions and selected
@@ -325,7 +342,7 @@ The record contains `type: attune-harness.browser-launch`, `version: 1`,
 The server keeps running after this line. Treat `launch_url` as private access
 data: it includes a fragment token for this listener, not a permanent task link.
 Do not retain it in a shared artifact. A new listener produces a new link.
-`execution_enabled` is false in the 1.3.0 forms-only release; structured launch
+`execution_enabled` is false in this forms-only candidate; structured launch
 does not enable browser builds or dispatch.
 
 An assistant can pass the exact link to an available host browser-opening tool.
@@ -336,8 +353,9 @@ saved answers. Unsaved typing needs separate preservation. This is a browser
 integration, not a native MCP conversation-panel registration.
 See [the opening and resume workflow](../.agents/skills/attune-harness/references/browser.md).
 
-Browser build grants, dispatch, resume and broader GUI navigation are deferred
-to **1.4.0**. `--allow-build-commands` exits 2 before task/listener/browser effects;
+Browser build grants, dispatch, resume and broader GUI navigation remain future
+work outside this **1.4.0 candidate**. `--allow-build-commands` exits 2 before
+task/listener/browser effects;
 imported server construction with that option also refuses. `/build/preview`,
 `/build/start`, resume/grant routes and general `/snapshot` navigation are absent
 from the release server. CLI owners and static status remain separately available
