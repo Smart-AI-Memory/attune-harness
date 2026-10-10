@@ -1,10 +1,11 @@
 # Attune Harness 1.4.0 candidate release notes
 
-**Combined locally, unpublished.** Exact-source software, installed-wheel and
-platform evidence is recorded in the release handoff. Human form assessment and
-publication remain pending. Version selection does
-not authorize publication. These notes describe the combined preparation based on main
-`209a822a2d49ba66fd3e6ab3f918d4e5a118a699`; the
+**Combined locally, unpublished.** Source and installed-check evidence is
+recorded in the release handoff. Final platform qualification, human form
+assessment and publication remain pending. Version selection does not authorize
+publication. These notes describe runtime candidate
+`df3e242c98a0fecb4c7ac4f6cb143ae30752ab00`, based on main
+`e382c37eae1350f7e164e6c29e5c6fd01121b749`. The
 [readiness record](release-readiness-1.4.0.md) identifies the component heads and remaining readiness decisions.
 
 Use [released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
@@ -50,9 +51,11 @@ does not establish a performance fix for the earlier macOS timeout.
 
 ## Combined approval wording and reload restoration
 
-The local candidate includes approval-copy
-[PR #256](https://github.com/Smart-AI-Memory/attune-harness/pull/256), reviewed at
-`e4d09e95941e77b10263d4b7184915ff1c50f475`, and the reload series reviewed at
+Approval-copy
+[PR #256](https://github.com/Smart-AI-Memory/attune-harness/pull/256) is merged
+in the preparation base. Its author head was reviewed at
+`e4d09e95941e77b10263d4b7184915ff1c50f475`. The local candidate also includes
+the reload series reviewed at
 `af59b5b9d9278dcdb802584178ebbf978657282f`. Their original source and review
 receipts remain preserved; neither component receipt qualifies their combination.
 
@@ -69,7 +72,8 @@ The revised wording, reopening behavior, keyboard use and human comprehension
 must be assessed on this combined candidate. Synthetic client tests do not
 qualify native browser lock scheduling, copied-tab or history behavior. Software
 checks alone do not establish that a new user understands approval or can complete
-the form. The live installed practice remains separate from this local candidate.
+the form. The active human preview is the earlier candidate `b882217`, with
+its own retained wheel; it has not been replaced by `df3e242`.
 
 ## Compatibility and limits
 
@@ -79,7 +83,9 @@ adds options. An incomplete single `assess-citation` call still exits 2, but now
 returns a JSON refusal naming missing options instead of argparse usage text.
 
 Browser saving is not approval, and approval does not start work. Browser build
-grants, dispatch, resume and broader GUI controls remain future work. The forms
+grants, dispatch, resume and broader GUI controls remain future work. The
+corrected refusal messages describe this forms-only release without promising
+execution in 1.4.0. The forms
 server retains registration, loopback, session/origin, stale-checkpoint and
 single-use-response boundaries. A private launcher link is listener access data,
 not a permanent task link.
@@ -90,6 +96,11 @@ accurate AI output. Inspect the check, its evidence and its limits before relyin
 on the result. Offline consultation tests do not qualify live model quality or
 model identity. Experimental native-memory and Windows effects boundaries remain
 as documented in the [qualification guide](qualification.md).
+
+The separately prepared #233 concurrent-round and selective-retry feature is
+not included in this candidate. Existing 1.3.0 tutorials, decks and Help captures
+retain their source labels; candidate GUI instructions and derivatives still
+need their owners' source-consistent readiness records.
 
 See the [CLI guide](cli-guide.md), [consultation guide](model-consultation.md)
 and [coverage measurement limits](coverage-measurement.md). The final candidate
