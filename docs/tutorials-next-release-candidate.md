@@ -15,6 +15,21 @@ files retain their original instructions and evidence. This draft stages the
 changed GUI procedures for a later canonical and derivative review. Control
 names are bold; typed values and commands use code font.
 
+## Approval wording in current unreleased source
+
+The current source uses **Approve this work request** and **Keep as draft** in
+**Review your answers**. Click **Approve this work request** only to record
+approval of the reviewed request. Click **Keep as draft** to leave it unapproved
+for reconsideration. Each choice explains its consequence; neither starts work.
+These are presentation labels for the existing single-use intent decisions,
+not new execution controls. Human comprehension with this wording has not yet
+been checked.
+
+The #243 procedures and retained captures below still use the earlier labels
+**Accept this intent** and **Keep draft for reconsideration**. They remain
+evidence for that pinned build; they do not verify the changed copy. The
+published 1.3.0 tutorial and its derivative files retain their released labels.
+
 ## Navigation: how can I inspect what I accepted?
 
 Prerequisite: Use the installed #243 candidate and prepare a fresh synthetic
