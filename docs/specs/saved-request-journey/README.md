@@ -83,11 +83,20 @@ hints, keyboard controls and approval consequences remain in place.
 For this increment's source and installed-candidate verification, follow the
 single-task sequence: enter only the goal, click **Save answers**, inspect the
 saved goal and remaining success field, save success, then inspect the displayed
-review. Only clicking **Accept this intent** records acceptance. Confirm the
+review. Only clicking **Approve this work request** records acceptance. Confirm the
 read-only accepted answers and separate execution boundary. Also exercise a
 second view, uncertain save, refresh with unsaved text, restart, stale inputs,
 read-only mode and multiple registered tasks. Synthetic software checks do not
 establish human usability or installed/released availability.
+
+The current unreleased source labels the intent choices **Approve this work
+request** and **Keep as draft**. Approval records the work request shown in
+**Review your answers**, including its goal, success criteria, scope, context,
+constraints and recorded choices. Each choice has its own explanatory text;
+neither starts work. The owner still consumes `approve_task` or `redo_task`
+against the current single-use decision. These copy changes do not alter
+acceptance, collector replacement or execution authority. Human comprehension
+with the revised wording remains to be checked.
 
 ## Earlier reproducible populated sample
 

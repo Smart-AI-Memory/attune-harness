@@ -26,13 +26,22 @@ const outside=(panel,details)=>panel.children.filter(c=>c!==details).map(c=>c.te
  for(const technical of ['__elicitation_response__','approve_task','Authoring format:','Bound to checkpoint','unit-tests','"writes"'])assert(!visible.includes(technical),technical+' leaked outside disclosure');
  assert(details.textContent.includes('Authoring format: bounded'));assert(details.textContent.includes('Bound to checkpoint exact-cp'));
  assert(h.panel.children.indexOf(details)>h.panel.children.indexOf(answers));
- assert.deepEqual(h.panel.querySelectorAll('button').map(e=>e.textContent),['Accept this intent','Keep draft for reconsideration']);
+ assert.deepEqual(h.panel.querySelectorAll('button').map(e=>e.textContent),['Approve this work request','Keep as draft']);
+ const choices=h.panel.querySelectorAll('.action-row');
+ assert.match(visible,/Neither option starts the work/);
+ assert.match(choices[0].querySelector('p').textContent,/work request shown in this review.*goal, success criteria, scope, context, constraints, and recorded choices.*records your approval only.*does not start the work/);
+ assert.match(choices[1].querySelector('p').textContent,/unapproved draft.*reconsider.*does not start the work/);
+ assert.notEqual(choices[0].querySelector('p').textContent,choices[1].querySelector('p').textContent,'each choice explains its own consequence');
+ assert(!visible.includes('Record this response'),'known intent choices must not use the generic owner fallback');
  assert.equal(h.panel.querySelector('.approval-blockers'),null,'raw Markdown must not invent structured blockers');
  const first=h.panel.querySelector('button');h.queue.push({ok:false,error:'409 changed'});first.onclick();await flush();
  assert(first.disabled);assert.equal(h.panel.querySelector('.approval-answers'),answers,'uncertain response keeps readable answers');
  assert.equal(details.open,false);assert.equal(h.calls.filter(c=>c.path==='/decision/submit').length,1);
  assert.deepEqual(JSON.parse(h.calls.find(c=>c.path==='/decision/submit').opts.body),{task:'A',checkpoint:'exact-cp',decision:'one-use',response:{action:'approve_task',confirmed:true}});
  first.onclick();await flush();assert.equal(h.calls.filter(c=>c.path==='/decision/submit').length,1,'expired approval never replays');
+ const kept=await setup();render(kept);kept.queue.push({message:'Kept as draft'},{editable:true,tasks:[]});
+ kept.panel.querySelectorAll('button')[1].onclick();await flush();
+ assert.deepEqual(JSON.parse(kept.calls.find(c=>c.path==='/decision/submit').opts.body),{task:'A',checkpoint:'exact-cp',decision:'one-use',response:{action:'redo_task',confirmed:true}},'keeping a draft retains the owner action and current decision binding');
  for(const reason of ['A planner assignment is required','Unavailable required control: tests','Acknowledge <script> this receipt']){
   const blocked=await setup();render(blocked,{...shown,summary:{...summary,blocking_reasons:[reason]},display:{...shown.display,actions:[]}});
   const technical=blocked.panel.querySelector('details'),reasons=blocked.panel.querySelector('.approval-blockers');

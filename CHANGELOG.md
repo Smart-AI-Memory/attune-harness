@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Clarify intent review with **Approve this work request** and **Keep as draft**,
+  each with its own explanation. Approval records the reviewed request; neither
+  choice starts work. Decision bindings and execution safeguards are unchanged.
+
 - Add opt-in `--format markdown` to consultation `prepare`, `status` and
   `evidence` for both verbs (#234). Prepare omits full frozen source text;
   status/evidence show retained identities, answers and numbered citations.

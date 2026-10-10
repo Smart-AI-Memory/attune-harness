@@ -3,8 +3,8 @@
 FORM_PAGE = ('<section id="decisions" hidden aria-labelledby="decision-heading">'
              '<div><p class="eyebrow">CONNECTED JOURNEY · INTENT → BUILD → EVIDENCE</p>'
              '<h1 id="decision-heading">Continue saved work</h1>'
-             '<p>Harness chooses the form from saved work. Saving answers does not approve the plan. '
-             'Accepting intent does not run a model or build.</p></div>'
+             '<p>Harness chooses the form from saved work. Saving answers keeps a draft. '
+             'Approving the work request records your decision only; it does not start the work.</p></div>'
              '<div id="tasks"></div><div id="form-panel"></div></section>')
 
 FORM_STYLE = """
@@ -129,11 +129,12 @@ function renderDecision(shown){
  }else{
   // Owner markdown contains the actual intent, readiness and review evidence.
   details.open=display.actions.length===0;
-  node('p','Choose explicitly. These controls record an intent decision only; execution remains a separate step.',panel);
+  node('p','Review this work request, then choose whether to approve it or keep it as a draft. Neither option starts the work.',panel);
   for(const action of display.actions){
    const row=node('div',undefined,panel);row.className='action-row';
-   node('p',action.consequence||'Record this response to the current decision.',row);
-   const labels={approve_task:'Accept this intent',redo_task:'Keep draft for reconsideration'};
+   const consequences={approve_task:'Approve the work request shown in this review, including its goal, success criteria, scope, context, constraints, and recorded choices. This records your approval only. It does not start the work.',redo_task:'Keep this work request as an unapproved draft so you can reconsider it. This does not start the work.'};
+   node('p',consequences[action.id]||action.consequence||'Record this response to the current decision.',row);
+   const labels={approve_task:'Approve this work request',redo_task:'Keep as draft'};
    const choose=node('button',labels[action.id]||action.label,row);choose.type='button';
    choose.onclick=()=>act(()=>submit(shown,{action:action.id,confirmed:true}));
   }

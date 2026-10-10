@@ -64,7 +64,7 @@ function workspace(task='A',data=build()){return {editable:true,tasks:[{task,lab
  const remaining={...current,decision:'remaining-decision',checkpoint:'remaining-cp',display:{...current.display,definition:{fields:[{id:'answer_0',type:'text_input',text:'Only the unanswered question'}]}}};j.queue.push(remaining);button('Open current form').onclick();await flush();assert.equal(j.panel.querySelector('textarea').value,'','partial answer must not remap answer_0 into a newly issued remaining question');assert.equal(j.panel.querySelector('button').disabled,false,'only deliberate current reopen restores submission');
  const acceptance={task:'A',checkpoint:'accept-cp',decision:'accept-decision',display:{kind:'review',title:'Review',markdown:'Local intent',actions:[{id:'approve_task',label:'Accept'}]}};
  j.queue.push(acceptance);button('Open current form').onclick();await flush();
- const ready=workspace('A',{...build(false),available:true});j.queue.push({message:'Accepted'},ready);button('Accept this intent').onclick();await flush();
+ const ready=workspace('A',{...build(false),available:true});j.queue.push({message:'Accepted'},ready);button('Approve this work request').onclick();await flush();
  assert.equal(j.calls.filter(c=>c.path==='/build/start').length,0,'intent acceptance must never start build');
  const grant={task:'A',checkpoint:'grant-cp',grant:'single-use-grant',goal:'Local goal',participants:[],tasks:[],effects:{},budgets:{}};
  j.queue.push(grant);button('Preview command build').onclick();await flush();assert.equal(j.calls.filter(c=>c.path==='/build/start').length,0,'preview is not execution authority');

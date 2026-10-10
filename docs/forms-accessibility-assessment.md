@@ -24,6 +24,13 @@ Acceptance does not execute work. Browser build controls remain unavailable in
 1.3.0; the retained development companion's separate command grant is not a
 released user journey.
 
+Current unreleased source uses **Approve this work request** and **Keep as
+draft**, with a separate consequence for each choice and an explicit statement
+that neither starts work. These copy changes preserve the owner actions and
+decision boundaries. The baseline and rendered evidence in this assessment
+retain their original labels; they do not establish comprehension or
+accessibility of the revised copy.
+
 - Every supported question has a visible `<label>` whose `for` matches the input
   `id`. Labels remain while typing; essential instructions do not use placeholders.
 - Scope and success criteria already say `Enter one item per line.` in their
