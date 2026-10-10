@@ -84,6 +84,17 @@ qualification allows 1,500 seconds on Windows and retains its separate
 900-second suite budget on POSIX,
 and individual operation deadlines are unchanged.
 
+The full POSIX measurement retains `test-timings.jsonl` and `slow-stacks.txt`
+using the same Python watchdog as platform qualification. Each test and phase
+start is written immediately, with outcomes and durations added as they finish.
+After a timeout, inspect the last event to identify the active case and its
+setup, call or teardown phase. Slow tests retain Python stacks after 60 seconds.
+The workflow uploads the journal even when pytest cannot finish its JUnit file.
+The watchdog needs the GIL and cannot sample a C extension that holds it;
+collection time before the first case also has no per-test stack. These
+diagnostics preserve the independent process deadline and coverage admission
+checks. They do not establish why an earlier run timed out or correct its speed.
+
 Combine downloaded result directories at that exact source revision:
 
 ```sh

@@ -15,7 +15,7 @@ async function flush(){for(let i=0;i<60;i++)await Promise.resolve();}
  const hasFragment=['fragment','write-denied','write-property-denied','first-fetch-fails'].includes(mode);
  const location={hash:hasFragment?'#private-fixture-token':'',pathname:'/'};
  let stored=mode==='stored'?'private-fixture-token':null,reads=0,writes=0,historyCalls=0;
- const storage={getItem(key){reads++;assert.equal(key,'attune-gui-token');
+ const storage={getItem(key){if(key==='attune-gui-form')return null;reads++;assert.equal(key,'attune-gui-token');
   if(mode==='read-denied')throw Error('SecurityError: storage denied');return stored;},
  setItem(key,value){writes++;assert.equal(key,'attune-gui-token');
   if(mode==='write-denied')throw Error('SecurityError: storage denied');stored=value;}};

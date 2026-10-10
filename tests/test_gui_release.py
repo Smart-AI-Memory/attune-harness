@@ -1,4 +1,4 @@
-"""Installed 1.3 browser forms boundary, without the development fixture.
+"""Installed browser forms boundary, without the development fixture.
 # qualify: platform
 """
 import json
@@ -53,13 +53,15 @@ def test_release_forms_real_intake_preview_accept_and_replay(forms):
 def test_direct_http_execution_routes_absent_before_and_after_accept(forms, endpoint):
     path = forms.tasks[0]
     before = (path / 'record.json').read_bytes()
-    assert call(forms, endpoint, {'task': 'forged', 'checkpoint': 'forged', 'grant': 'forged', 'confirmed': True})[0] == 404
+    status, message = call(forms, endpoint, {'task': 'forged', 'checkpoint': 'forged', 'grant': 'forged', 'confirmed': True})
+    assert status == 404 and 'browser execution is unavailable in this forms-only release' in message
     assert (path / 'record.json').read_bytes() == before
     answer_all(forms)
     shown = open_form(forms)
     assert call(forms, '/decision/submit', submission(shown, {'action': 'approve_task', 'confirmed': True}))[0] == 200
     before = (path / 'record.json').read_bytes()
-    assert call(forms, endpoint, {'task': shown['task'], 'checkpoint': read_task(path)['checkpoint_digest'], 'grant': 'forged', 'confirmed': True})[0] == 404
+    status, message = call(forms, endpoint, {'task': shown['task'], 'checkpoint': read_task(path)['checkpoint_digest'], 'grant': 'forged', 'confirmed': True})
+    assert status == 404 and 'browser execution is unavailable in this forms-only release' in message
     assert (path / 'record.json').read_bytes() == before
     assert forms.builds is None and 'build' not in read_task(path)
 
@@ -93,14 +95,14 @@ def test_imported_build_flag_refuses_before_effects(monkeypatch, kwargs):
         pytest.fail('Build refusal must precede listener/owner effects')
     monkeypatch.setattr(gui.HTTPServer, '__init__', forbidden)
     monkeypatch.setattr(gui.task_view, 'inspect_saved_tasks', forbidden)
-    with pytest.raises(FeatureUnavailable, match='deferred to 1.4.0'):
+    with pytest.raises(FeatureUnavailable, match='unavailable in this forms-only release'):
         gui.CompanionServer(Untouched(), **kwargs)
 
 
 def test_installed_module_build_flag_refuses_without_task_state(tmp_path):
     task = tmp_path / 'absent-task'
     result = subprocess.run([sys.executable, '-I', '-m', 'attune_harness.gui', '--task', str(task), '--edit', '--allow-build-commands'], cwd=tmp_path, text=True, capture_output=True, timeout=10)
-    assert result.returncode == 2 and 'deferred to 1.4.0' in result.stderr
+    assert result.returncode == 2 and 'unavailable in this forms-only release' in result.stderr
     assert not result.stdout and not task.exists()
 
 
@@ -132,6 +134,8 @@ def test_read_only_release_lists_registered_draft_without_mutation(work):
             assert not data['editable'] and len(data['tasks']) == 1
             assert data['tasks'][0]['status'] == 'draft'
             assert call(server, '/decision/open', {k: data['tasks'][0][k] for k in ('task', 'checkpoint')})[0] == 405
+            assert call(server, '/decision/restore', {k: data['tasks'][0][k] for k in ('task', 'checkpoint')} | {
+                'view': 'view-' + 'a' * 32, 'decision': 'unknown'})[0] == 405
             assert (path / 'record.json').read_bytes() == before
         finally:
             server.shutdown()

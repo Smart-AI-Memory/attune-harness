@@ -150,6 +150,52 @@ def test_automatic_open_requires_boolean_replacement(tmp_path, replace):
             thread.join(timeout=2)
 
 
+def test_partial_save_reload_restores_only_current_same_view_collector(tmp_path):
+    path = prepare(tmp_path)
+    view = 'view-' + 'a' * 32
+    with gui.CompanionServer([path], edit=True) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            item = inspect(server)
+            payload = {k: item[k] for k in ('task', 'checkpoint')} | {'replace': False, 'view': view}
+            code, initial = call(server, '/decision/open', payload)
+            assert code == 200
+            goal = 'My Capitalized goal\nwith a second line'
+            assert call(server, '/decision/submit', submission(initial, {'answers': {'answer_0': goal}}))[0] == 200
+            item = inspect(server)
+            payload.update(checkpoint=item['checkpoint'])
+            code, remaining = call(server, '/decision/open', payload)
+            assert code == 200
+            recovery = {k: remaining[k] for k in ('task', 'checkpoint', 'decision')} | {'view': view}
+            before = (path / 'record.json').read_bytes()
+            decision = (path / 'decision.json').read_bytes()
+            for _ in range(2):
+                code, restored = call(server, '/decision/restore', recovery)
+                assert code == 200 and restored == remaining
+            fields = restored['display']['definition']['fields']
+            assert len(fields) == 1 and 'observable result' in fields[0]['text']
+            assert restored['summary']['intent']['goal'] == goal
+            assert restored['summary']['intent']['acceptance'] == []
+            assert 'response_template' not in restored['display']
+            assert (path / 'record.json').read_bytes() == before
+            assert (path / 'decision.json').read_bytes() == decision
+            assert server.decisions.live[item['task']][0] == remaining['decision']
+            assert call(server, '/decision/restore', recovery | {'view': 'view-' + 'b' * 32})[0] == 409
+            assert call(server, '/decision/restore', recovery, token=False)[0] == 403
+            assert call(server, '/decision/restore', recovery, headers={'Origin': 'https://foreign.example'})[0] == 403
+            assert (path / 'record.json').read_bytes() == before
+            assert (path / 'decision.json').read_bytes() == decision
+            assert read_task(path)['acceptance'] is None and server.builds is None
+            assert not {'planning', 'build'} & read_task(path).keys()
+            # A refused restoration does not consume the genuine view's response.
+            assert call(server, '/decision/submit', submission(restored, {'answers': {'answer_0': 'The result is observable'}}))[0] == 200
+            assert call(server, '/decision/restore', recovery)[0] == 409
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+
+
 def test_draft_effects_drift_keeps_every_saved_request_readable(work, tmp_path):
     from test_work_build import prepare as prepare_effects
     prepare_effects(work, accept=False)

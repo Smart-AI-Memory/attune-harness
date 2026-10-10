@@ -60,6 +60,7 @@ jobs:
           path: |
             ${{ runner.temp }}/coverage-result/.coverage*
             ${{ runner.temp }}/coverage-result/*.json
+            ${{ runner.temp }}/coverage-result/*.jsonl
             ${{ runner.temp }}/coverage-result/*.ini
             ${{ runner.temp }}/coverage-result/*.txt
             ${{ runner.temp }}/coverage-result/*.xml

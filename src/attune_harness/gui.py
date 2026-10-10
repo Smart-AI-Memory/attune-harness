@@ -1,6 +1,6 @@
 """Local browser intake and intent approval forms for registered saved drafts.
 
-Build grants, dispatch, resume and broader GUI navigation are deferred to 1.4.0.
+Build grants, dispatch, resume and broader GUI navigation remain future work.
 """
 
 import argparse
@@ -57,8 +57,8 @@ PAGE = ("<!doctype html><html lang=en><head><meta charset=utf-8>"
         '<script src="/app.js"></script></body></html>')
 
 
-BUILD_UNAVAILABLE = ('Browser build controls are unavailable in 1.3.0; '
-                     'delivery is deferred to 1.4.0. Use separately authorized CLI execution.')
+BUILD_UNAVAILABLE = ('Browser build controls are unavailable in this forms-only release. '
+                     'Use separately authorized CLI execution.')
 
 
 def _development_profile():
@@ -266,15 +266,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self._unread_post = True
         self.close_connection = True
-        if self.server.forms_only and self.path not in ('/decision/open', '/decision/submit', '/browser/open'):
-            return self.send(404, 'No such forms action; browser execution is deferred to 1.4.0')
+        if self.server.forms_only and self.path not in ('/decision/open', '/decision/restore', '/decision/submit', '/browser/open'):
+            return self.send(404, 'No such forms action; browser execution is unavailable in this forms-only release')
         if not self.server.editable and self.path != '/browser/open':
             return self.send(405, 'This workspace is read-only; no action was performed')
         if not self.boundary() or not self.authenticated():
             return
         if self.headers.get_all('Origin') != [self.server.origin]:
             return self.send(403, 'Same-origin browser action required')
-        if self.path not in ('/decision/open', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
+        if self.path not in ('/decision/open', '/decision/restore', '/decision/submit', '/build/preview', '/build/start', '/browser/open'):
             return self.send(404, 'No such companion action')
         lengths = self.headers.get_all('Content-Length')
         if (self.headers.get_all('Transfer-Encoding') or len(lengths or []) != 1
@@ -295,8 +295,10 @@ class Handler(BaseHTTPRequestHandler):
                 expected = {'confirmed'}
             elif self.path == '/decision/submit':
                 expected |= {'decision', 'response'}
-            elif self.path == '/decision/open' and isinstance(payload, dict) and 'replace' in payload:
-                expected |= {'replace'}
+            elif self.path == '/decision/open' and isinstance(payload, dict):
+                expected |= set(payload) & {'replace', 'view'}
+            elif self.path == '/decision/restore':
+                expected |= {'decision', 'view'}
             elif self.path == '/build/start':
                 expected |= {'grant', 'confirmed'}
             if not isinstance(payload, dict) or set(payload) != expected:
@@ -310,6 +312,8 @@ class Handler(BaseHTTPRequestHandler):
                 result = owner(**payload)
             elif self.path == '/decision/open':
                 result = self.server.decisions.open(**payload)
+            elif self.path == '/decision/restore':
+                result = self.server.decisions.restore(**payload)
             else:
                 result = self.server.decisions.submit(**payload)
         except (ValueError, OSError, FeatureUnavailable, RecursionError) as exc:
@@ -321,7 +325,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', type=Path, action='append', required=True)
     parser.add_argument('--edit', action='store_true', help='Enable draft intake answers and explicit intent decisions only; no execution')
-    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in 1.3.0; browser build controls are deferred to 1.4.0')
+    parser.add_argument('--allow-build-commands', action='store_true', help='Unavailable in this forms-only release; browser build controls remain future work')
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--no-open', action='store_true')
     parser.add_argument('--launch-json', action='store_true',

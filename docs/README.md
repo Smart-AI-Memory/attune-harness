@@ -19,7 +19,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
-- [Graphical companion specification](specs/graphical-companion/README.md): 1.3.0 browser forms boundary and broader 1.4.0 development contract
+- [Graphical companion specification](specs/graphical-companion/README.md): Released browser forms boundary and broader future GUI development contract
 - [Graphical companion progress](specs/graphical-companion/progress.md): Historical increments and remaining forms/1.4.0 qualification gaps
 - [Saved-request GUI journey](specs/saved-request-journey/README.md): Candidate intake, save/reopen, read-only accepted request and populated sample; execution remains separate
 
@@ -54,6 +54,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
+- [1.4.0 candidate release notes](release-notes-1.4.0.md): Saved forms, consultation additions, compatibility and pending qualification
+- [1.4.0 readiness record](release-readiness-1.4.0.md): Source dependencies, documentation owners and final evidence required before publication
 - [1.3.0 release notes](release-notes-1.3.0.md): `init --for plan` and `init --for fix` write the starter files; example participants finish both journeys
 - [1.2.0 release notes](release-notes-1.2.0.md): Recovery for a participant turn the Claude CLI refused, and init's flag guidance
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository

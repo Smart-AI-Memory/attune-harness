@@ -110,9 +110,17 @@ class Decisions:
             result.append(item)
         return result
 
-    def open(self, task, checkpoint, *, replace=True):
+    @staticmethod
+    def _view(view):
+        if (not isinstance(view, str) or not 32 <= len(view) <= 128
+                or not view.isascii() or not all(c.isalnum() or c in '-_' for c in view)):
+            raise ValueError("Invalid browser view identity")
+
+    def open(self, task, checkpoint, *, replace=True, view=None):
         if type(replace) is not bool:
             raise ValueError("Form replacement must be an explicit boolean")
+        if view is not None:
+            self._view(view)
         record = self._record(task)
         self._draft(record)
         if checkpoint != record["checkpoint_digest"]:
@@ -136,7 +144,23 @@ class Decisions:
                                 if receipt.state in {"BLOCKED", "REVISE", "CHAIR_REQUIRED"}]
             decision = bridge.decision
         identity = secrets.token_urlsafe(24)
-        self.live[task] = (identity, checkpoint, decision, bridge)
+        self.live[task] = (identity, checkpoint, decision, bridge, view, blocking_reasons)
+        return self._presentation(task, record)
+
+    def restore(self, task, checkpoint, decision, view):
+        """Inspect this view's current collector without replacing or consuming it."""
+        self._view(view)
+        record = self._record(task)
+        self._draft(record)
+        live = self.live.get(task)
+        if (not live or (decision, checkpoint) != live[:2] or view != live[4]
+                or checkpoint != record["checkpoint_digest"]):
+            raise ValueError("Form recovery expired or belongs to another view; deliberately reopen")
+        require_current_decision(record, live[2]["digest"])
+        return self._presentation(task, record)
+
+    def _presentation(self, task, record):
+        identity, checkpoint, decision, bridge, _, blocking_reasons = self.live[task]
         # Browser never supplies an owner binding or a path. The live bridge
         # retains its response template server-side, exactly as displayed.
         display = {k: v for k, v in decision["display"].items() if k != "response_template"}
@@ -157,7 +181,7 @@ class Decisions:
         # Submission attempts are single-use, including uncertain writes.
         # Never replay after a failed collection or a lost HTTP response.
         self.live.pop(task)
-        _, _, saved, bridge = live
+        _, _, saved, bridge, _, _ = live
         require_current_decision(record, saved["digest"])
         if not isinstance(response, dict):
             raise ValueError("Decision response must be an object")

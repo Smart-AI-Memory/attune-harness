@@ -2,17 +2,18 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const {Element}=require('./gui_forms_intake.cjs');
 async function flush(){for(let i=0;i<60;i++)await Promise.resolve();}
-async function setup(){
+async function setup({globals={},responses=[{editable:true,tasks:[]}]}={}){
  const doc={createElement(tag){return new Element(tag,this);}};
  const root=new Element('main',doc);
  for(const id of ['form-panel','tasks','decisions']){const el=new Element('div',doc);el.id=id;root.append(el);}
  doc.querySelector=s=>root.querySelector(s);doc.querySelectorAll=s=>root.querySelectorAll(s);
- const queue=[{editable:true,tasks:[]}],calls=[],status=new Element('p',doc);
+ const queue=[...responses],calls=[],status=new Element('p',doc);
  const context=vm.createContext({document:doc,status,token:'test',console,Map,JSON,Error,Object,fetch:async(path,opts)=>{
   calls.push({path,opts});assert(queue.length,`Unexpected request ${path}`);const next=queue.shift();
   if(next instanceof Error)throw next;
+  if(typeof next==='function')return next();
   return {ok:next.ok!==false,text:async()=>next.error||'409 conflict',json:async()=>next};
- }});
+ },...globals});
  vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);await flush();
  return {root,doc,queue,calls,status,panel:doc.querySelector('#form-panel'),run:s=>vm.runInContext(s,context)};
 }

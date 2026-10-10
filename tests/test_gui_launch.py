@@ -94,7 +94,7 @@ def test_release_structured_build_flag_refuses_before_private_output(monkeypatch
     assert gui.main(['--task', '/not-a-registered-harness-task', '--edit',
                      '--allow-build-commands', '--launch-json']) == 2
     output = capsys.readouterr()
-    assert not output.out and 'deferred to 1.4.0' in output.err
+    assert not output.out and 'unavailable in this forms-only release' in output.err
 
 
 @pytest.mark.parametrize('task', ['relative', '/not-a-registered-harness-task'])
