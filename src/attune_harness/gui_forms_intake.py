@@ -26,8 +26,9 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 .task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
 .saved-answers{overflow-wrap:anywhere;margin:16px 0;padding:12px 16px;border:1px solid #dce4da;border-radius:6px;background:#f5f6f2}
-.saved-answers h3{margin:0 0 12px}.saved-answer{display:grid;grid-template-columns:minmax(0,10rem) minmax(0,1fr);gap:6px 12px}
+.saved-answers h3{margin:0 0 12px}
 .saved-answer+.saved-answer{margin-top:12px}.saved-answer h4,.saved-answer p,.saved-answer ul{margin:0}
+.saved-answer h4,.saved-answer p{display:inline}
 .saved-answer h4{font:inherit;font-weight:600}.remaining-heading{margin:20px 0 8px}
 .approval-answers,.approval-blockers{overflow-wrap:anywhere}
 .saved-answers p,.saved-answers li,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}
@@ -39,7 +40,7 @@ textarea{min-height:86px;resize:vertical}select{white-space:normal}pre{white-spa
 button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #c18529;outline-offset:3px}
 #form-panel button{margin-top:12px}#form-panel small{display:block;margin:8px 0;color:#4b6353}
 #browser-tip:not([hidden]){flex-basis:100%;padding:10px 12px;background:#e7efe5;border-radius:7px}
-@media(max-width:600px){#decisions{padding:16px}#form-panel:not(:empty){padding:16px}header{padding:12px 16px}.saved-answer{grid-template-columns:minmax(0,1fr);gap:4px}}
+@media(max-width:600px){#decisions{padding:16px}#form-panel:not(:empty){padding:16px}header{padding:12px 16px}}
 """
 
 INTAKE_SCRIPT = r"""
@@ -217,9 +218,14 @@ function renderSavedAnswers(summary){
  node('h3','Saved answers',saved);
  for(const [label,answers] of entries){
   const row=node('div',undefined,saved);row.className='saved-answer';
-  node('h4',label==='Saved goal'?'Saved goal:':label,row);
-  if(label==='Done when'){const list=node('ul',undefined,row);for(const answer of answers)node('li',answer,list);}
-  else node('p',answers[0],row);
+  let valueParent=row;
+  if(label==='Done when'){
+   const list=node('ul',undefined,row);valueParent=node('li',undefined,list);
+   for(const answer of answers.slice(1))node('li',answer,list);
+  }
+  node('h4',/[?:]$/.test(label)?label:label+':',valueParent);
+  if(typeof answers[0]!=='string'||!answers[0].startsWith(' '))node('span',' ',valueParent);
+  node('p',answers[0],valueParent);
  }
  return saved;
 }

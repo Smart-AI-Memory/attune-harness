@@ -54,8 +54,9 @@ const workspace=item=>({editable:true,tasks:[item]});
  multiline.queue.push(workspace({...task('missing-goal-cp',null,criteria),action_label:'Continue form'}),missingGoal);
  await multiline.run('loadTasks()');
  const savedCriteria=multiline.panel.querySelector('.saved-answers');
- assert.equal(savedCriteria.querySelector('h4').textContent,'Done when');
- assert.equal(savedCriteria.querySelector('li').textContent,criteria[0],'saved success preserves embedded newlines and indentation');
+ assert.equal(savedCriteria.querySelector('h4').textContent,'Done when:');
+ assert.equal(savedCriteria.querySelector('li').textContent,'Done when: '+criteria[0]);
+ assert.equal(savedCriteria.querySelector('p').textContent,criteria[0],'saved success preserves embedded newlines and indentation');
  assert.equal(multiline.panel.querySelector('textarea').value,'','saved success is not mapped into the unanswered goal');
  assert.equal(multiline.calls.filter(c=>c.path==='/decision/submit').length,0);
 

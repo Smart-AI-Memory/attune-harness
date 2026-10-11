@@ -31,6 +31,7 @@ if(require.main===module)(async()=>{
  assert(savedRow,'each saved value must be grouped with its label');assert(remaining,'remaining questions need a separate heading');
  assert.equal(savedRow.querySelector('h4').textContent,'Saved goal:','saved prose has an explicit adjacent label');
  assert.equal(savedRow.querySelector('p').textContent,intent.goal,'the group preserves wording, capitalization and line breaks');
+ assert.equal(savedRow.textContent,'Saved goal:'+intent.goal,'an entered leading space is not doubled after the colon');
  assert.equal(remaining.tagName,'H3');assert.equal(remaining.textContent,'Still needed');
  assert.equal(form.getAttribute('aria-labelledby'),remaining.id,'remaining form has a programmatic group name');
  assert(h.panel.children.indexOf(saved)<h.panel.children.indexOf(remaining),'saved values are separate from remaining instructions');
@@ -51,11 +52,20 @@ if(require.main===module)(async()=>{
  const count=h.calls.length;form.onsubmit({preventDefault(){}});await flush();assert.equal(h.calls.length,count,'read-only form never replays answers');
  h.queue.push(new Error('refresh unavailable'));await h.run('refreshWorkspace()');assert.equal(h.panel.querySelector('.saved-answers'),saved);assert(input.readOnly);
 
+ const plain=await setup();render(plain,{...decision,summary:{...decision.summary,intent:{...intent,goal:'Check unfinished draft reload.'}}});
+ const plainRow=plain.panel.querySelector('.saved-answer');
+ assert.equal(plainRow.textContent,'Saved goal: Check unfinished draft reload.','exactly one ordinary separator follows the colon');
+ assert.equal(plainRow.querySelector('p').textContent,'Check unfinished draft reload.','the separator does not change the saved value');
+ const deliberateSpaces=await setup();render(deliberateSpaces,{...decision,summary:{...decision.summary,intent:{...intent,goal:'  Preserve entered spaces.'}}});
+ assert.equal(deliberateSpaces.panel.querySelector('.saved-answer').textContent,'Saved goal:  Preserve entered spaces.','intentional answer whitespace remains literal');
+
  const answered=await setup();render(answered,{...decision,summary:{...decision.summary,intent:{...intent,goal:null,
   acceptance:['Receipt exists','Checks pass'],questions:[{question:'Required decision',answer:'Known answer'},{question:'Pending',answer:null}]},
   choices:[{question:'Format',selected:'jsonl',options:[{id:'jsonl',proposal:'Stream JSON lines'}]},{question:'Undecided',selected:null,options:[]}]}});
- assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('h4').map(e=>e.textContent),['Done when','Required decision','Format']);
- assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('li').map(e=>e.textContent),['Receipt exists','Checks pass']);
+ assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('h4').map(e=>e.textContent),['Done when:','Required decision:','Format:']);
+ const criteria=answered.panel.querySelector('.saved-answers').querySelectorAll('li');
+ assert.equal(criteria[0].textContent,'Done when: Receipt exists','the list label is inline with its first related value');
+ assert.equal(criteria[0].querySelector('p').textContent,'Receipt exists');assert.equal(criteria[1].textContent,'Checks pass');
  assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Pending'));assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Undecided'));
  for(const summary of [undefined,{...decision.summary,intent:{...intent,goal:null}}]){
   const fresh=await setup();render(fresh,{...decision,summary});assert.equal(fresh.panel.querySelector('.saved-answers'),null,'fresh intake never invents saved answers');

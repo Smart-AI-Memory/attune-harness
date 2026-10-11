@@ -311,7 +311,9 @@ and collector. Native-browser and human assessment remain pending.
 
 Reopened intake forms show **Saved answers** above the remaining questions,
 including the saved goal, success criteria, answered questions and selected
-choices. Each saved value is grouped with its label; **Still needed** separates
+choices. Bold labels flow inline with their saved values, using one ordinary
+separating space without adding to an entered leading space. Entered whitespace
+is preserved. **Still needed** separates
 the remaining questions from the saved answers. Remaining fields start empty;
 saved answers are never remapped into
 new questions. The full unchanged owner record stays below the form under
