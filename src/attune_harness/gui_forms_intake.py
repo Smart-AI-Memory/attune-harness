@@ -25,7 +25,11 @@ h1{font-size:28px;margin:8px 0}h2{font-size:20px}.eyebrow{font-size:11px;letter-
 .task-card{background:white;border:1px solid #dce4da;border-radius:10px;padding:16px;flex:1;min-width:220px}
 .task-card p{margin:8px 0;overflow-wrap:anywhere}.task-card h2{margin:0;overflow-wrap:anywhere}
 #form-panel:not(:empty){background:white;border:1px solid #b8cdbb;border-radius:12px;padding:24px}
-.saved-answers{overflow-wrap:anywhere}
+.saved-answers{overflow-wrap:anywhere;margin:16px 0;padding:12px 16px;border:1px solid #dce4da;border-radius:6px;background:#f5f6f2}
+.saved-answers h3{margin:0 0 12px}
+.saved-answer+.saved-answer{margin-top:12px}.saved-answer h4,.saved-answer p,.saved-answer ul{margin:0}
+.saved-answer h4,.saved-answer p{display:inline}
+.saved-answer h4{font:inherit;font-weight:600}.remaining-heading{margin:20px 0 8px}
 .approval-answers,.approval-blockers{overflow-wrap:anywhere}
 .saved-answers p,.saved-answers li,.approval-answers p,.approval-answers li,.saved-goal{white-space:pre-wrap}
 .technical-input,.owner-record{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
@@ -213,10 +217,17 @@ function renderSavedAnswers(summary){
  const saved=node('section',undefined,panel);saved.className='saved-answers';saved.setAttribute('aria-label','Saved answers');
  node('h3','Saved answers',saved);
  for(const [label,answers] of entries){
-  node('h4',label,saved);
-  if(label==='Done when'){const list=node('ul',undefined,saved);for(const answer of answers)node('li',answer,list);}
-  else node('p',answers[0],saved);
+  const row=node('div',undefined,saved);row.className='saved-answer';
+  let valueParent=row;
+  if(label==='Done when'){
+   const list=node('ul',undefined,row);valueParent=node('li',undefined,list);
+   for(const answer of answers.slice(1))node('li',answer,list);
+  }
+  node('h4',/[?:]$/.test(label)?label:label+':',valueParent);
+  if(typeof answers[0]!=='string'||!/^\s/.test(answers[0]))node('span',' ',valueParent);
+  node('p',answers[0],valueParent);
  }
+ return saved;
 }
 function renderIntent(summary,parent){
  const intent=summary.intent;
@@ -260,9 +271,11 @@ function renderDecision(shown){
   }
  }
  if(display.kind==='questions'){
-  renderSavedAnswers(shown.summary);
+  const saved=renderSavedAnswers(shown.summary);
+  if(saved){const remaining=node('h3','Still needed',panel);remaining.id='still-needed-heading';remaining.className='remaining-heading';}
   const instructions=node('p','Answer what you know. You can save partial answers. Harness will ask only what remains. After saving, continue with the remaining questions or review your answers.',panel);instructions.id='answer-instructions';
   const form=node('form',undefined,panel),inputs=[];
+  if(saved)form.setAttribute('aria-labelledby','still-needed-heading');
   details.querySelector('summary').textContent='Technical details (optional)';details.open=false;panel.append(details);
   for(const field of display.definition.fields){
    const id='field-'+field.id;const label=node('label',field.text,form);label.htmlFor=id;

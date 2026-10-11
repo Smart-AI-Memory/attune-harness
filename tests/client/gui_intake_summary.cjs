@@ -18,7 +18,7 @@ async function setup({globals={},responses=[{editable:true,tasks:[]}]}={}){
  return {root,doc,queue,calls,status,panel:doc.querySelector('#form-panel'),run:s=>vm.runInContext(s,context)};
 }
 const original='## Owner record\nUse field_id: value.\n```json\n{"__elicitation_response__": {"answer_0": null}}\n```';
-const intent={goal:'The saved goal <script> is literal',acceptance:[],questions:[],scope:['fixed.py'],constraints:[],context:[]};
+const intent={goal:' The saved goal <script> is literal\nKeep this line and Capitalization.',acceptance:[],questions:[],scope:['fixed.py'],constraints:[],context:[]};
 const decision={task:'A',checkpoint:'remaining-cp',decision:'single-use',summary:{intent,choices:[],authoring:{tier:'bounded'}},
  display:{kind:'questions',title:'Clarify the work',markdown:original,definition:{fields:[{id:'answer_0',type:'text_input',text:'What observable result establishes success?'}]}}};
 function render(h,shown=decision){h.run(`renderDecision(${JSON.stringify(shown)})`);}
@@ -27,6 +27,15 @@ if(require.main===module)(async()=>{
  const h=await setup();render(h);
  const saved=h.panel.querySelector('.saved-answers'),form=h.panel.querySelector('form'),details=h.panel.querySelector('details');
  assert(saved,'retained answers must be immediately visible');assert.equal(saved.getAttribute('aria-label'),'Saved answers');
+ const savedRow=saved.querySelector('.saved-answer'),remaining=h.panel.querySelector('.remaining-heading');
+ assert(savedRow,'each saved value must be grouped with its label');assert(remaining,'remaining questions need a separate heading');
+ assert.equal(savedRow.querySelector('h4').textContent,'Saved goal:','saved prose has an explicit adjacent label');
+ assert.equal(savedRow.querySelector('p').textContent,intent.goal,'the group preserves wording, capitalization and line breaks');
+ assert.equal(savedRow.textContent,'Saved goal:'+intent.goal,'an entered leading space is not doubled after the colon');
+ assert.equal(remaining.tagName,'H3');assert.equal(remaining.textContent,'Still needed');
+ assert.equal(form.getAttribute('aria-labelledby'),remaining.id,'remaining form has a programmatic group name');
+ assert(h.panel.children.indexOf(saved)<h.panel.children.indexOf(remaining),'saved values are separate from remaining instructions');
+ assert(h.panel.children.indexOf(remaining)<h.panel.children.indexOf(h.panel.querySelector('#answer-instructions')));
  assert.equal(saved.querySelector('p').textContent,intent.goal);assert(!saved.querySelector('script'),'untrusted saved text must stay literal');
  assert(h.panel.children.indexOf(saved)<h.panel.children.indexOf(form),'saved answers precede the remaining question');
  assert(h.panel.children.indexOf(form)<h.panel.children.indexOf(details),'technical record follows the form');
@@ -43,14 +52,39 @@ if(require.main===module)(async()=>{
  const count=h.calls.length;form.onsubmit({preventDefault(){}});await flush();assert.equal(h.calls.length,count,'read-only form never replays answers');
  h.queue.push(new Error('refresh unavailable'));await h.run('refreshWorkspace()');assert.equal(h.panel.querySelector('.saved-answers'),saved);assert(input.readOnly);
 
+ const plain=await setup();render(plain,{...decision,summary:{...decision.summary,intent:{...intent,goal:'Check unfinished draft reload.'}}});
+ const plainRow=plain.panel.querySelector('.saved-answer');
+ assert.equal(plainRow.textContent,'Saved goal: Check unfinished draft reload.','exactly one ordinary separator follows the colon');
+ assert.equal(plainRow.querySelector('p').textContent,'Check unfinished draft reload.','the separator does not change the saved value');
+ const deliberateSpaces=await setup();render(deliberateSpaces,{...decision,summary:{...decision.summary,intent:{...intent,goal:'  Preserve entered spaces.'}}});
+ assert.equal(deliberateSpaces.panel.querySelector('.saved-answer').textContent,'Saved goal:  Preserve entered spaces.','intentional answer whitespace remains literal');
+
+ for(const leading of ['\t','\n','\u00a0','\r\n','\u2003']){
+  const value=leading+'Preserve entered whitespace and Capitalization.';
+  for(const kind of ['goal','question']){
+   const whitespace=await setup();
+   const savedIntent={...intent,goal:kind==='goal'?value:null,
+    questions:kind==='question'?[{question:'Required decision',answer:value}]:[]};
+   render(whitespace,{...decision,summary:{...decision.summary,intent:savedIntent}});
+   const row=whitespace.panel.querySelector('.saved-answer');
+   const label=kind==='goal'?'Saved goal:':'Required decision:';
+   assert.equal(row.querySelector('p').textContent,value,'the saved value preserves its leading whitespace');
+   assert.equal(row.textContent,label+value,`${kind} starting with ${JSON.stringify(leading)} must not gain an extra separator`);
+  }
+ }
+
  const answered=await setup();render(answered,{...decision,summary:{...decision.summary,intent:{...intent,goal:null,
   acceptance:['Receipt exists','Checks pass'],questions:[{question:'Required decision',answer:'Known answer'},{question:'Pending',answer:null}]},
   choices:[{question:'Format',selected:'jsonl',options:[{id:'jsonl',proposal:'Stream JSON lines'}]},{question:'Undecided',selected:null,options:[]}]}});
- assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('h4').map(e=>e.textContent),['Done when','Required decision','Format']);
- assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('li').map(e=>e.textContent),['Receipt exists','Checks pass']);
+ assert.deepEqual(answered.panel.querySelector('.saved-answers').querySelectorAll('h4').map(e=>e.textContent),['Done when:','Required decision:','Format:']);
+ const criteria=answered.panel.querySelector('.saved-answers').querySelectorAll('li');
+ assert.equal(criteria[0].textContent,'Done when: Receipt exists','the list label is inline with its first related value');
+ assert.equal(criteria[0].querySelector('p').textContent,'Receipt exists');assert.equal(criteria[1].textContent,'Checks pass');
  assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Pending'));assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Undecided'));
  for(const summary of [undefined,{...decision.summary,intent:{...intent,goal:null}}]){
   const fresh=await setup();render(fresh,{...decision,summary});assert.equal(fresh.panel.querySelector('.saved-answers'),null,'fresh intake never invents saved answers');
+  assert.equal(fresh.panel.querySelector('.remaining-heading'),null,'fresh intake has no misleading saved/remaining split');
+  assert.equal(fresh.panel.querySelector('form').getAttribute('aria-labelledby'),null);
   assert.equal(fresh.panel.querySelector('pre').textContent,original);assert.equal(fresh.panel.querySelector('textarea').value,'');
  }
  const unsupported=await setup();render(unsupported,{...decision,display:{...decision.display,definition:{fields:[{id:'other',type:'unknown',text:'Other'}]}}});
