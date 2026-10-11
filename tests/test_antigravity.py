@@ -125,7 +125,6 @@ def test_accepted_large_roundtable_source_reaches_stdin_intact(tmp_path, monkeyp
     root = tmp_path / 'source'
     root.mkdir()
     (root / 'x.py').write_text(source, encoding='utf-8')
-    expected = tmp_path / 'expected.json'
     script = tmp_path / 'fixture.py'
     script.write_text('import json,pathlib,sys\n'
                       'assert "--print" not in sys.argv\n'
@@ -137,7 +136,7 @@ def test_accepted_large_roundtable_source_reaches_stdin_intact(tmp_path, monkeyp
                       'assert set(event)=={"event","message"} and event["event"]=="user"\n'
                       'assert set(event["message"])=={"content"}\n'
                       'request=json.loads(event["message"]["content"].split("\\n",1)[1])\n'
-                      f'assert request==json.loads(pathlib.Path({str(expected)!r}).read_text())\n'
+                      'assert request==json.loads(pathlib.Path(sys.argv[-1]).read_text())\n'
                       f'events=json.loads({json.dumps(stream())!r})\n'
                       'events[0]["init"]["model"]=sys.argv[sys.argv.index("--model")+1]\n'
                       'for output in events: print(json.dumps(output))\n', encoding='utf-8')
@@ -148,8 +147,10 @@ def test_accepted_large_roundtable_source_reaches_stdin_intact(tmp_path, monkeyp
             request = json.loads(json.loads(stdin)['message']['content'].split('\n', 1)[1])
             seen.append(request)
             assert max(len(arg.encode('utf-8')) for arg in argv) < 4096
+            import hashlib
+            expected = tmp_path / (hashlib.sha256(stdin.encode('utf-8')).hexdigest() + '.json')
             expected.write_text(json.dumps(request), encoding='utf-8')
-            return invoke((sys.executable, str(script), *argv[1:]), stdin, **options)
+            return invoke((sys.executable, str(script), *argv[1:], str(expected)), stdin, **options)
         return AntigravityExchange(**kwargs, runner=runner)
     monkeypatch.setattr(c, 'AntigravityExchange', factory)
     seat = {'adapter': 'antigravity', 'identity': {'provider': 'google-antigravity', 'model': MODEL},

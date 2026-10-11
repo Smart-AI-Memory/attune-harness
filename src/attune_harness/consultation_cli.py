@@ -35,6 +35,12 @@ def add_commands(sub):
         evidence.add_argument('run_dir', type=Path)
         evidence.add_argument('--format', choices=('json', 'markdown'), default='json',
                               help='Presentation of retained frozen evidence only')
+        reconcile = verbs.add_parser('reconcile', help='Explicitly reopen a saved refused turn; never dispatch')
+        reconcile.add_argument('run_dir', type=Path)
+        reconcile.add_argument('--checkpoint', required=True)
+        reconcile.add_argument('--round', dest='round_number', type=int, required=True)
+        reconcile.add_argument('--participant', required=True)
+        reconcile.add_argument('--retry-refused', action='store_true', required=True)
         assess = verbs.add_parser('assess-citation', help='Record an advisory host decision; never dispatch')
         assess.add_argument('run_dir', type=Path)
         assess.add_argument('--checkpoint', required=True)
@@ -77,6 +83,9 @@ def execute(args):
                                           allow_native=args.allow_native, max_operations=args.max_operations)
             elif args.consultation_action == 'abandon':
                 result = consultation.abandon(args.run_dir, args.checkpoint)
+            elif args.consultation_action == 'reconcile':
+                result = consultation.reconcile(args.run_dir, args.checkpoint, args.round_number,
+                                               args.participant, retry_refused=args.retry_refused)
             elif args.consultation_action == 'evidence':
                 if args.format == 'markdown':
                     from .consultation_output import evidence_view
