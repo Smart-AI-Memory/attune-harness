@@ -6,6 +6,10 @@ batch `assess-citation --decisions` and opt-in Markdown views. Those additions
 require a wheel built from this candidate; installing 1.3.0 does not provide them.
 Final combined-source qualification remains pending; see the
 [readiness record](release-readiness-1.4.0.md).
+
+The concurrent-round and refused-turn recovery behavior below is unreleased
+work for #233. It is excluded from the forms-only 1.4.0 candidate.
+
 The shared development plugin contains both skills;
 `scripts/package_codex_plugin.py` packages the same skill bytes for Codex.
 No host settings or credentials need changing to exercise the CLI.
