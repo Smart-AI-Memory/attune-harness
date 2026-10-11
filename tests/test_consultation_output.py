@@ -16,8 +16,10 @@ def prepared():
             'contract': {'configuration': {'question': 'Inspect only', 'participants': {
                 'critic': {'identity': {'provider': 'other', 'model': 'explicit-model'},
                            'adapter': 'command', 'timeout': 10}}},
-                'snapshot': {'files': {'x.py': {'sha256': 'a' * 64, 'text': 'secret = "é"\r\n'}}},
-                'budget': {'max_calls': 1, 'automatic_retries': 0}}, 'answers': []}
+                'snapshot': {'digest': 'b' * 64,
+                             'files': {'x.py': {'sha256': 'a' * 64, 'text': 'secret = "é"\r\n'}}},
+                'budget': {'max_calls': 1, 'max_output_bytes': 65536,
+                           'automatic_retries': 0}}, 'answers': []}
 
 
 class ConsultationOutputPreparationTests(unittest.TestCase):
@@ -27,10 +29,11 @@ class ConsultationOutputPreparationTests(unittest.TestCase):
             'Retained model claims and this view grant no execution authority.\n\n'
             '**contract\\_digest:** ' + 'c' * 64 + '\n\n'
             '**checkpoint\\_digest:** ' + 'd' * 64 + '\n\n'
+            '**snapshot\\_digest:** ' + 'b' * 64 + '\n\n'
             '**Question:** Inspect only\n\n### Configured seats\n\n'
             '- critic: other/explicit\\-model; adapter command; timeout 10 seconds\n\n'
             '### Frozen files\n\n- x\\.py: SHA-256 ' + 'a' * 64 + '; 15 bytes\n\n'
-            '**Budget:** max\\_calls=1; automatic\\_retries=0\n\n'
+            '**Budget:** max\\_calls=1; max\\_output\\_bytes=65536; automatic\\_retries=0\n\n'
             '**Saved record:** /tmp/a run/record\\.json\n\n'
             'Scope acceptance command (POSIX shell):\n\n```sh\n'
             'attune-harness roundtable run --accept ' + 'c' * 64 + " -- '/tmp/a run'\n```\n\n"
