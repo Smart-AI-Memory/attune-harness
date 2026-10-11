@@ -59,6 +59,20 @@ if(require.main===module)(async()=>{
  const deliberateSpaces=await setup();render(deliberateSpaces,{...decision,summary:{...decision.summary,intent:{...intent,goal:'  Preserve entered spaces.'}}});
  assert.equal(deliberateSpaces.panel.querySelector('.saved-answer').textContent,'Saved goal:  Preserve entered spaces.','intentional answer whitespace remains literal');
 
+ for(const leading of ['\t','\n','\u00a0','\r\n','\u2003']){
+  const value=leading+'Preserve entered whitespace and Capitalization.';
+  for(const kind of ['goal','question']){
+   const whitespace=await setup();
+   const savedIntent={...intent,goal:kind==='goal'?value:null,
+    questions:kind==='question'?[{question:'Required decision',answer:value}]:[]};
+   render(whitespace,{...decision,summary:{...decision.summary,intent:savedIntent}});
+   const row=whitespace.panel.querySelector('.saved-answer');
+   const label=kind==='goal'?'Saved goal:':'Required decision:';
+   assert.equal(row.querySelector('p').textContent,value,'the saved value preserves its leading whitespace');
+   assert.equal(row.textContent,label+value,`${kind} starting with ${JSON.stringify(leading)} must not gain an extra separator`);
+  }
+ }
+
  const answered=await setup();render(answered,{...decision,summary:{...decision.summary,intent:{...intent,goal:null,
   acceptance:['Receipt exists','Checks pass'],questions:[{question:'Required decision',answer:'Known answer'},{question:'Pending',answer:null}]},
   choices:[{question:'Format',selected:'jsonl',options:[{id:'jsonl',proposal:'Stream JSON lines'}]},{question:'Undecided',selected:null,options:[]}]}});

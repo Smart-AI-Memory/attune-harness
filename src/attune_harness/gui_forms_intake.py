@@ -224,7 +224,7 @@ function renderSavedAnswers(summary){
    for(const answer of answers.slice(1))node('li',answer,list);
   }
   node('h4',/[?:]$/.test(label)?label:label+':',valueParent);
-  if(typeof answers[0]!=='string'||!answers[0].startsWith(' '))node('span',' ',valueParent);
+  if(typeof answers[0]!=='string'||!/^\s/.test(answers[0]))node('span',' ',valueParent);
   node('p',answers[0],valueParent);
  }
  return saved;
