@@ -2,6 +2,7 @@
 # qualify: platform
 
 import copy
+import hashlib
 import json
 import shutil
 from threading import Barrier, Event, Thread, get_ident
@@ -13,6 +14,19 @@ from attune_harness.cli import main
 from attune_harness.native import NativeExchange
 from attune_harness.process import ProcessResult
 from attune_harness.review_store import PersistenceError, RunStore
+
+
+@pytest.fixture(scope='module')
+def consultation_tmp_root(tmp_path_factory):
+    # Keep pytest's shared root within Windows ancestor-enumeration bounds.
+    return tmp_path_factory.mktemp('partial-cases')
+
+
+@pytest.fixture
+def tmp_path(consultation_tmp_root, request):
+    path = consultation_tmp_root / hashlib.sha256(request.node.nodeid.encode('utf-8')).hexdigest()[:32]
+    path.mkdir()
+    return path
 
 
 def configuration(operation='roundtable', *, rounds=1, seats=2, native=False):

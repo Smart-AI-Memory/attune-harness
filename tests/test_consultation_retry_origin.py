@@ -2,6 +2,7 @@
 # qualify: platform
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -15,6 +16,19 @@ from test_consultation_partial import bytes_of, completed, failed, no_dispatch, 
 
 
 OWNER_MODULES = {'attune_harness.consultation', 'attune_harness.recovery', 'attune_harness.process'}
+
+
+@pytest.fixture(scope='module')
+def consultation_tmp_root(tmp_path_factory):
+    # Keep pytest's shared root within Windows ancestor-enumeration bounds.
+    return tmp_path_factory.mktemp('retry-origin-cases')
+
+
+@pytest.fixture
+def tmp_path(consultation_tmp_root, request):
+    path = consultation_tmp_root / hashlib.sha256(request.node.nodeid.encode('utf-8')).hexdigest()[:32]
+    path.mkdir()
+    return path
 
 
 def mark(directory, record):
