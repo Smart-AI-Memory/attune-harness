@@ -2,17 +2,17 @@
 
 ## Unreleased
 
-- Run independent first-round consultation seats concurrently, retain partial
-  rounds and gate round two on a complete first round (#233). Operation limits
-  admit seats before dispatch. Explicit checkpoint-bound `reconcile
-  --retry-refused` permits one retry with saved launch/refusal evidence;
-  unknown effects remain guarded and prior attempts stay retained.
-
 ## 1.4.0
 
 Prepared candidate; publication and final combined-source qualification are pending.
 See the [release notes](docs/release-notes-1.4.0.md) and
 [readiness record](docs/release-readiness-1.4.0.md).
+
+- Run independent first-round consultation seats concurrently, retain partial
+  rounds and gate round two on a complete first round (#233). Operation limits
+  admit seats before dispatch. Explicit checkpoint-bound `reconcile
+  --retry-refused` permits one retry with saved launch/refusal evidence;
+  unknown effects remain guarded and prior attempts stay retained.
 
 - Clarify intent review with **Approve this work request** and **Keep as draft**,
   each with its own explanation. Approval records the reviewed request; neither
@@ -25,11 +25,14 @@ See the [release notes](docs/release-notes-1.4.0.md) and
 
 - Add saved-request inspection and read-only accepted answers, direct opening of
   the only registered draft form, and saved-answer context above remaining intake
-  questions (#242, #243, #255). Browser actions still cannot build or dispatch.
+  questions (#242, #243, #255). The selected refinement pairs bold
+  **Saved goal:** and **Done when:** inline with their literal values and uses
+  **Still needed** for remaining instructions. Browser actions still cannot
+  build or dispatch.
 - Preserve entered wording and use the reading font for prose; keep technical
   values in monospace. Instructions name the next control (#254).
-- Add a shared recovery cursor and interruption fixtures without introducing
-  parallel consultation execution or automatic retry of uncertain effects.
+- Add a shared recovery cursor and interruption fixtures that preserve saved
+  state and ownership. Unknown effects still prohibit automatic retry.
 - Retain per-test and phase timing plus slow-test Python stacks for full coverage
   measurement. Unfinished receipts remain unusable; process budgets and source
   coverage boundaries are unchanged.

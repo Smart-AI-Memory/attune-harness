@@ -1,12 +1,21 @@
 # Attune Harness 1.4.0 candidate release notes
 
-**Combined locally, unpublished.** Source and installed-check evidence is
-recorded in the release handoff. Final platform qualification, human form
-assessment and publication remain pending. Version selection does not authorize
-publication. These notes describe runtime candidate
-`df3e242c98a0fecb4c7ac4f6cb143ae30752ab00`, based on main
-`e382c37eae1350f7e164e6c29e5c6fd01121b749`. The
-[readiness record](release-readiness-1.4.0.md) identifies the component heads and remaining readiness decisions.
+**Prepared, unpublished.** Patrick selected the now-merged #233 consultation
+changes for this release alongside the approved saved-answer presentation and
+companion documentation. The current preparation base is signed #258 merge
+`0c252b935c3cbc01e1386aa41e0f7dcc1c7de5b7`. Its actual-main qualification is
+owned separately. The #234 golden follow-up, PR #260, has Patrick's update,
+verification and merge authorization; its final baseline disposition is pending.
+The selected final baseline and combined shipping SHA,
+archive hashes and publication date remain unset.
+
+The forms presentation was reviewed at
+`3d317e71324b609d5e9f603bf88b447e9007345e` and visually accepted by Patrick.
+The first goal-based tutorial is aligned to the same controls. Exact combined
+source, installed artifact and native-platform qualification remain required;
+component reviews and earlier passes do not qualify this later combination.
+The [readiness record](release-readiness-1.4.0.md) identifies remaining work.
+Version selection and local preparation grant no publication authority.
 
 Use [released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
 for a published installation. After 1.4.0 publication, install it separately:
@@ -23,8 +32,22 @@ Installing the package grants no model, upload or spending authority.
 
 - **Saved forms:** The browser opens the current form directly when one draft
   is registered. Reopened intake shows saved answers above remaining questions;
-  accepted requests show their answers read-only. Saved-request inspection and
+  accepted requests show their answers read-only. The selected local refinement
+  places bold **Saved goal:** and **Done when:** labels inline with their saved
+  values and uses **Still needed** to introduce the remaining instructions.
+  The saved-answer presentation preserves stored wording, case, spacing and
+  line breaks. Scope and success-criterion input still uses one item per
+  nonblank line, with each item trimmed before saving.
+  Saved-request inspection and
   supporting technical details retain the owner record and checkpoint checks.
+- **Concurrent consultation and partial recovery:** First-round seats dispatch
+  concurrently after operation-budget admission; round two remains sequential
+  and requires a complete first round. Partial rounds retain successful siblings.
+  Explicit checkpoint-bound `reconcile --retry-refused` reopens only an eligible
+  failed turn, retains prior attempts and captures fresh origin where required.
+  There is one operator retry per turn, with no automatic retries; usage may
+  repeat. Unknown effects without eligible saved refusal evidence, stale
+  ownership and unsupported refusal evidence block recovery.
 - **Readable consultation evidence:** `source-review` and `roundtable`
   `prepare`, `status` and `evidence` accept `--format markdown`. These views show
   retained identities, verdicts and numbered frozen citations. JSON remains the
@@ -54,7 +77,7 @@ does not establish a performance fix for the earlier macOS timeout.
 Approval-copy
 [PR #256](https://github.com/Smart-AI-Memory/attune-harness/pull/256) is merged
 in the preparation base. Its author head was reviewed at
-`e4d09e95941e77b10263d4b7184915ff1c50f475`. The local candidate also includes
+`e4d09e95941e77b10263d4b7184915ff1c50f475`. Merged #257 also includes
 the reload series reviewed at
 `af59b5b9d9278dcdb802584178ebbf978657282f`. Their original source and review
 receipts remain preserved; neither component receipt qualifies their combination.
@@ -68,12 +91,14 @@ and an exclusive Web Lock. Saved answers remain visible and remaining fields sta
 blank; unsaved typing is not restored. Stale or uncertain recovery requires
 deliberate reopening and never replays a submitted response.
 
-The revised wording, reopening behavior, keyboard use and human comprehension
-must be assessed on this combined candidate. Synthetic client tests do not
-qualify native browser lock scheduling, copied-tab or history behavior. Software
-checks alone do not establish that a new user understands approval or can complete
-the form. The active human preview is the earlier candidate `b882217`, with
-its own retained wheel; it has not been replaced by `df3e242`.
+Patrick's C09-runtime walkthrough observed saving, accepted-request inspection,
+accepted-state reload and unfinished reload with editable remaining input. That
+runtime matches all 104 modules of merged #257. The separate exact-source
+presentation preview was visually accepted; it does not qualify an installed
+revised wheel. Exact Tab order, accessibility-tree and screen-reader behavior,
+independent approval comprehension, copied-tab behavior and native lock scheduling
+remain unobserved. Earlier launcher failures and their uncertain cause are
+retained. Existing practices and unsaved input remain intact.
 
 ## Compatibility and limits
 
@@ -84,8 +109,8 @@ returns a JSON refusal naming missing options instead of argparse usage text.
 
 Browser saving is not approval, and approval does not start work. Browser build
 grants, dispatch, resume and broader GUI controls remain future work. The
-corrected refusal messages describe this forms-only release without promising
-execution in 1.4.0. The forms
+corrected refusal messages describe the forms-only browser companion without
+promising browser execution in 1.4.0. The forms
 server retains registration, loopback, session/origin, stale-checkpoint and
 single-use-response boundaries. A private launcher link is listener access data,
 not a permanent task link.
@@ -97,8 +122,10 @@ on the result. Offline consultation tests do not qualify live model quality or
 model identity. Experimental native-memory and Windows effects boundaries remain
 as documented in the [qualification guide](qualification.md).
 
-The separately prepared #233 concurrent-round and selective-retry feature is
-not included in this candidate. Existing 1.3.0 tutorials, decks and Help captures
+The selected release includes the merged #233 concurrency and selective-retry
+behavior. #259 strengthens consultation acceptance coverage; its separately
+reviewed #260 follow-up remains pending integration. Neither changes browser
+execution authority. Existing 1.3.0 tutorials, decks and Help captures
 retain their source labels; candidate GUI instructions and derivatives still
 need their owners' source-consistent readiness records.
 

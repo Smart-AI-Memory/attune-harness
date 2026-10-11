@@ -2,13 +2,16 @@
 
 The core source-review and roundtable workflows are included in released 1.3.0.
 This **unpublished 1.4.0 candidate** adds `init --for roundtable`, seat `check`,
-batch `assess-citation --decisions` and opt-in Markdown views. Those additions
+batch `assess-citation --decisions`, opt-in Markdown views, concurrent first
+rounds and explicit refused-turn recovery (#233). Those additions
 require a wheel built from this candidate; installing 1.3.0 does not provide them.
 Final combined-source qualification remains pending; see the
 [readiness record](release-readiness-1.4.0.md).
 
-The concurrent-round and refused-turn recovery behavior below is unreleased
-work for #233. It is excluded from the forms-only 1.4.0 candidate.
+Patrick selected the now-merged #233 behavior below for the unpublished 1.4.0
+release. Exact combined qualification and publication remain pending. The
+browser companion still collects and inspects forms; it does not execute these
+consultation commands.
 
 The shared development plugin contains both skills;
 `scripts/package_codex_plugin.py` packages the same skill bytes for Codex.
