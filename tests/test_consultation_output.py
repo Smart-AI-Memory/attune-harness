@@ -21,6 +21,24 @@ def prepared():
 
 
 class ConsultationOutputPreparationTests(unittest.TestCase):
+    def test_prepared_summary_golden_preserves_every_acceptance_field(self):
+        expected = (
+            '## roundtable: prepare\n\n**Status:** prepared\n\n'
+            'Retained model claims and this view grant no execution authority.\n\n'
+            '**contract\\_digest:** ' + 'c' * 64 + '\n\n'
+            '**checkpoint\\_digest:** ' + 'd' * 64 + '\n\n'
+            '**Question:** Inspect only\n\n### Configured seats\n\n'
+            '- critic: other/explicit\\-model; adapter command; timeout 10 seconds\n\n'
+            '### Frozen files\n\n- x\\.py: SHA-256 ' + 'a' * 64 + '; 15 bytes\n\n'
+            '**Budget:** max\\_calls=1; automatic\\_retries=0\n\n'
+            '**Saved record:** /tmp/a run/record\\.json\n\n'
+            'Scope acceptance command (POSIX shell):\n\n```sh\n'
+            'attune-harness roundtable run --accept ' + 'c' * 64 + " -- '/tmp/a run'\n```\n\n"
+            'External and native dispatch grants remain separate; add their flags only when authorized.\n'
+        )
+        with patch.object(renderer, 'Path', PurePosixPath):
+            self.assertEqual(renderer.markdown(prepared(), view='prepare'), expected)
+
     def test_prepare_omits_frozen_source_but_preserves_digests_and_byte_size(self):
         record = prepared()
         out = renderer.markdown(record, view='prepare')
