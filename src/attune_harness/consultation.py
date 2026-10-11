@@ -1,8 +1,10 @@
 """Host-owned source review and discussion; model verdicts never grant authority."""
 
+import copy
 from dataclasses import asdict
 from pathlib import Path
-from threading import Event
+from threading import Event, Thread
+from time import monotonic
 
 from . import Task
 from .adapters import Attempt, JsonParticipant
@@ -94,8 +96,15 @@ def prepare(operation, root, paths, config, directory):
 
 
 def load(directory):
-    record = read_record(Path(directory))
-    if record.get('recovery') != {'profile': PROFILE} or record.get('checkpoint_digest') != checkpoint_digest(record):
+    return validate_record(read_record(Path(directory)), directory)
+
+
+def validate_record(record, directory):
+    """The reader's validation, also used before saving a retry transition."""
+    recovery = record.get('recovery')
+    if (not isinstance(recovery, dict) or recovery.get('profile') != PROFILE
+            or set(recovery) - {'profile', 'reconciliations'}
+            or record.get('checkpoint_digest') != checkpoint_digest(record)):
         raise ValueError('Consultation recovery profile or checkpoint changed')
     if record.get('profile') != PROFILE or record.get('operation') not in ('source-review', 'roundtable'):
         raise ValueError('Unsupported consultation record')
@@ -113,6 +122,8 @@ def load(directory):
     if len(record['events']) > expected['max_calls']:
         raise ValueError('Call budget exceeded')
     validate_events(record, kinds=('consultation_turn',))
+    from .consultation_recovery import validate_history
+    validate_history(record)
     decisions = record.get('citation_assessments', [])
     if not isinstance(decisions, list) or len(decisions) > 128:
         raise ValueError('Invalid citation assessment list')
@@ -194,12 +205,81 @@ def dispatch(config, turn, cwd, cancel):
                  'failure': getattr(exc, 'failure', None), 'refusal': getattr(exc, 'refusal', None),
                  'process_stopped': getattr(exc, 'process_stopped', False), 'effects': 'unknown'}
     process = native.last_process if native else result
+    if status == 'failed':
+        from .consultation_recovery import retry_basis
+        basis = retry_basis(error, asdict(process) if process else None, config['adapter'])
+        if basis:
+            error['retry_basis'] = basis
     return {'status': status, 'answer': payload, 'error': error,
             'identity': {'configured': config['identity'],
                          'reported': asdict(native.identity) if native and native.identity else None,
                          'authenticated_model': False},
             'provider_usage': getattr(native, 'usage', None),
             'process': asdict(process) if process else None}
+
+
+JOIN_GRACE_SECONDS = 2
+
+
+def _saved_answers(record):
+    events = {event['operation_key']: event for event in record['events']}
+    config = record['contract']['configuration']
+    return [{'round': number, 'participant': name, **copy.deepcopy(events[f'{number}:{name}']['result'])}
+            for number in range(config['rounds']) for name in config['participants']
+            if events.get(f'{number}:{name}', {}).get('state') == 'completed']
+
+
+def _round_batch(cursor, admitted, dispatcher, directory, cancel):
+    """Workers own only calls; the caller owns every journal mutation.
+
+    Daemon workers cannot extend the host's bound if a custom dispatcher ignores
+    its timeout/cancel contract. Such a turn stays dispatching and cannot replay.
+    """
+    outcomes = [None] * len(admitted)
+    workers = []
+
+    def call(index, participant, turn):
+        try:
+            outcomes[index] = ('result', dispatcher(participant, turn, directory, cancel))
+        except BaseException as exc:
+            outcomes[index] = ('error', exc)
+
+    deadline = monotonic() + max(seat['timeout'] for _, seat, _, _ in admitted) + JOIN_GRACE_SECONDS
+    interrupted = False
+    try:
+        for index, (_, seat, turn, _) in enumerate(admitted):
+            worker = Thread(target=call, args=(index, copy.deepcopy(seat), copy.deepcopy(turn)), daemon=True)
+            worker.start()
+            workers.append(worker)
+        for worker in workers:
+            worker.join(max(0, deadline - monotonic()))
+    except KeyboardInterrupt:
+        cancel.set()
+        interrupted = True
+        for worker in workers:
+            worker.join(max(0, deadline - monotonic()))
+    except BaseException:
+        cancel.set()
+        for worker in workers:
+            worker.join(max(0, deadline - monotonic()))
+        raise
+    failure = None
+    for index, (_, _, _, event) in enumerate(admitted):
+        outcome = outcomes[index]
+        # A live worker has not delivered a stable result, even if its slot changed.
+        if index >= len(workers) or workers[index].is_alive() or outcome is None:
+            cancel.set()
+            continue
+        kind, value = outcome
+        if kind == 'result':
+            cursor.finish(event, value)
+        else:
+            if isinstance(value, Exception):
+                cursor.fail(event, value)
+            failure = failure or value
+    if failure is not None:
+        raise failure
+    return interrupted, any(event['phase'] != 'completed' for _, _, _, event in admitted)
 
 
 def run(directory, accepted, *, allow_external=False, allow_native=False, max_operations=None,
@@ -215,7 +295,10 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
             raise ValueError('Dispatch requires external authority and native authority for native seats')
         if record['status'] not in ('prepared', 'paused', 'running', 'unresolved'):
             raise ValueError('Terminal consultation cannot dispatch again')
-        cursor = RecoveryCursor(record, store, max_operations)
+        from .recovery import dispatch_origin_callback
+        origin = (dispatch_origin_callback('attune_harness.consultation', 'attune_harness.recovery',
+                                           'attune_harness.process') if 'capture_policy' in record else None)
+        cursor = RecoveryCursor(record, store, max_operations, dispatch_origin=origin)
         record['status'] = 'running'
         store.save(record)
         answers = []
@@ -223,9 +306,11 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
             for round_number in range(config['rounds']):
                 prior = [{key: a[key] for key in ('round', 'participant', 'answer', 'identity')}
                          for a in answers if a['round'] < round_number]
+                pending = []
                 for name, participant in config['participants'].items():
                     if cancel.is_set():
                         record['status'] = 'cancelled'
+                        record['answers'] = _saved_answers(record)
                         store.save(record)
                         return record
                     key = f'{round_number}:{name}'
@@ -233,36 +318,95 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, max_op
                             'contract_digest': record['contract_digest'], 'participant': name,
                             'round': round_number, 'question': config['question'],
                             'snapshot': record['contract']['snapshot'], 'previous_rounds': prior}
-                    paused = False
-                    try:
-                        result = cursor.perform(key, 'consultation_turn',
-                            lambda: dispatcher(participant, turn, store.directory, cancel),
+                    event = cursor.events.get(key)
+                    # Refuse every unresolved/mismatched sibling before launching any seat.
+                    if event is not None:
+                        if any(event.get(k) != v for k, v in {
+                                'kind': 'consultation_turn', 'effect_class': 'unknown',
+                                'request_digest': digest(turn)}.items()):
+                            raise ValueError('Saved operation does not match the reconstructed request')
+                        if event['phase'] not in ('prepared', 'completed'):
+                            from .recovery import UnresolvedOperation
+                            raise UnresolvedOperation('Consultation turn may have executed; reconcile before resume')
+                    if event is not None and event['state'] == 'completed':
+                        _, result = cursor.begin(key, 'consultation_turn', effect_class='unknown',
+                                                 request_digest=digest(turn))
+                        answers.append({'round': round_number, 'participant': name, **result})
+                    else:
+                        pending.append((name, participant, turn))
+                while pending:
+                    if cancel.is_set():
+                        record['status'] = 'cancelled'
+                        record['answers'] = _saved_answers(record)
+                        store.save(record)
+                        return record
+                    count = cursor.remaining()
+                    count = len(pending) if count is None else min(count, len(pending))
+                    # Only round one is independent concurrent dispatch; round two stays sequential.
+                    if round_number:
+                        count = min(count, 1)
+                    if not count:
+                        raise ReviewPaused('Operation budget reached at a saved checkpoint')
+                    admitted = []
+                    for name, participant, turn in pending[:count]:
+                        replayed, event = cursor.begin(f'{round_number}:{name}', 'consultation_turn',
                             effect_class='unknown', request_digest=digest(turn))
-                    except ReviewPaused:
-                        result = cursor.events[key]['result']
-                        paused = True
-                    answers.append({'round': round_number, 'participant': name, **result})
+                        assert not replayed
+                        admitted.append((name, participant, turn, event))
+                    interrupted, unresolved = _round_batch(cursor, admitted, dispatcher, store.directory, cancel)
+                    for name, _, _, event in admitted:
+                        if event['state'] == 'completed':
+                            answers.append({'round': round_number, 'participant': name, **copy.deepcopy(event['result'])})
+                    pending = pending[count:]
                     replayed = {(a['round'], a['participant']) for a in answers}
                     # Keep later saved answers if cancellation interrupts journal replay.
                     record['answers'] = answers + [a for a in record['answers']
                         if (a['round'], a['participant']) not in replayed]
-                    if result['status'] != 'completed':
-                        record['status'] = 'cancelled' if result['status'] == 'cancelled' else 'failed'
+                    # Configuration order is stable even when replies arrive out of order.
+                    order = {name: index for index, name in enumerate(config['participants'])}
+                    record['answers'].sort(key=lambda a: (a['round'], order[a['participant']]))
+                    answers.sort(key=lambda a: (a['round'], order[a['participant']]))
+                    if unresolved:
+                        record['status'] = 'unresolved'
                         store.save(record)
                         return record
-                    if paused:
-                        record['status'] = 'paused'
+                    if interrupted or cancel.is_set() or any(a['status'] == 'cancelled' for a in answers):
+                        record['status'] = 'cancelled'
                         store.save(record)
                         return record
+                    if cursor.limit_reached() and pending:
+                        break
+                if cancel.is_set():
+                    record['status'] = 'cancelled'
+                    record['answers'] = _saved_answers(record)
+                    store.save(record)
+                    return record
+                stopped = [a for a in answers if a['round'] == round_number]
+                if any(a['status'] != 'completed' for a in stopped):
+                    record['status'] = 'partial' if any(a['status'] == 'completed' for a in stopped) else 'failed'
+                    store.save(record)
+                    return record
+                if cursor.limit_reached():
+                    raise ReviewPaused('Operation budget reached at a saved checkpoint')
             record['status'] = 'completed'
         except ReviewPaused:
             record['status'] = 'paused'
         except BaseException:
             record['status'] = 'unresolved'
+            record['answers'] = _saved_answers(record)
             store.save(record)
             raise
         store.save(record)
         return record
+
+
+def reconcile(directory, checkpoint, round_number, participant, *, retry_refused=False):
+    """Explicitly reopen one evidenced refused turn; this never dispatches."""
+    from .consultation_recovery import reconcile_turn
+    store = RunStore(Path(directory), existing=True)
+    with store.lease():
+        record = load(directory)
+        return reconcile_turn(record, store, checkpoint, round_number, participant, retry_refused=retry_refused)
 
 
 def abandon(directory, checkpoint):

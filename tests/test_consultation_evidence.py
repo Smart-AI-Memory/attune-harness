@@ -110,7 +110,7 @@ def test_assessment_bound_and_writer_lease_refuse(tmp_path):
         assessment(value, 0, 'critic', 0, 'rejected', 'No support')
 
 
-@pytest.mark.parametrize('status', ['failed', 'unresolved', 'paused', 'cancelled', 'completed'])
+@pytest.mark.parametrize('status', ['partial', 'unresolved', 'paused', 'cancelled', 'completed'])
 def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_path, capsys, status):
     import json
     from attune_harness import consultation as c
@@ -122,11 +122,11 @@ def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_pa
     calls = []
     def dispatcher(config, turn, *args):
         calls.append(turn['participant'])
-        if len(calls) == 2:
+        if (turn['round'], turn['participant']) == (0, 'critic'):
             if status == 'unresolved':
                 raise KeyboardInterrupt
-            if status in ('failed', 'cancelled'):
-                return {'status': status, 'answer': None, 'identity': {},
+            if status in ('partial', 'cancelled'):
+                return {'status': 'failed' if status == 'partial' else status, 'answer': None, 'identity': {},
                         'error': {'effects': 'unknown'}, 'process': None}
         result = completed()
         result['answer']['evidence'] = [{'path': 'x.py', 'line': 1, 'detail': 'Assignment'}]
@@ -166,7 +166,7 @@ def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_pa
     assert c.inspect_evidence(directory)['claims'][0]['support'] == 'supported'
     # Status/evidence still report the underlying failed/unresolved owner at exit 2.
     for action in ('status', 'evidence'):
-        assert main(['roundtable', action, str(directory)]) == (2 if status in ('failed', 'unresolved') else 0)
+        assert main(['roundtable', action, str(directory)]) == (2 if status in ('partial', 'unresolved') else 0)
         assert json.loads(capsys.readouterr().out)['status'] == status
     persisted = (directory / 'record.json').read_bytes()
     assert main(common) == 2
@@ -195,12 +195,12 @@ def test_assessed_answer_survives_cancellation_during_saved_replay(tmp_path, mon
                                 second['participant'], 0, 'rejected', 'No support')
     saved_answers, saved_events = copy.deepcopy(assessed['answers']), copy.deepcopy(assessed['events'])
     cancel = Event()
-    original = c.RecoveryCursor.perform
+    original = c.RecoveryCursor.begin
     def replay_then_cancel(self, *args, **kwargs):
         result = original(self, *args, **kwargs)
         cancel.set()
         return result
-    monkeypatch.setattr(c.RecoveryCursor, 'perform', replay_then_cancel)
+    monkeypatch.setattr(c.RecoveryCursor, 'begin', replay_then_cancel)
     c.run(directory, initial['contract_digest'], allow_external=True, cancel=cancel, dispatcher=dispatch)
     retained = c.load(directory)
     assert retained['status'] == 'cancelled'
