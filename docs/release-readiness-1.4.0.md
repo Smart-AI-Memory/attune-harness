@@ -9,10 +9,11 @@ it grants no merge, dispatch, upload, tag, catalog or website authority.
 
 Patrick selected one combined release containing the merged #233 consultation
 changes, approved forms presentation and aligned documentation. The preparation
-base is signed main `0c252b935c3cbc01e1386aa41e0f7dcc1c7de5b7` (#258),
-complete tree `9275b7549c051a4f0fbc71e4e2218953eb992ded`, merged October 11,
-2026 at 18:25 UTC. It also contains #257's approval/reload corrections and
-#259's prepared-summary regression. The consultation change adds first-round
+base is signed main `e459faeb9909c9d2cbbb7337dc18e460d5d49e1f` (#260),
+complete tree `f485cbb3aa7ff2330e437399857b65484ab5f4fd`, merged October 11,
+2026 at 19:11 UTC. It also contains #257's approval/reload corrections,
+#258's consultation changes and #259's prepared-summary regression.
+The consultation change adds first-round
 concurrency, retained partial results and explicit eligible refused-turn recovery.
 It adds one runtime module, making 105. The browser remains forms-only.
 
@@ -21,12 +22,14 @@ installed-wheel, meaningful mutation and offline selective-retry receipts.
 Actual-main CI verification remains with that owner. Component qualification
 does not qualify this future combined source or its shipping distribution.
 
-The #234 golden follow-up is draft PR #260 at
-`5134f7bb7f54376f6dba9cbd1427ddf51968f9dd`. Its test-only patch checks the
-snapshot digest and output-byte budget. Patrick authorized its owner to update,
-verify and merge it when ready at 18:45 UTC. Its final main disposition is pending
-in this record. Wait for that baseline before running combined full-source and
-installed-platform qualification; do not duplicate the owner's main/PR checks.
+The merged #234 golden follow-up checks the snapshot digest and output-byte
+budget. Its sole change from main0c is the reviewed six-addition/three-deletion
+test patch; runtime source is unchanged. The verified baseline is fixed for
+combined local full-source and installed-wheel qualification. The owner retains
+the failed 1,200-second macOS supplemental coverage attempt and watches its one
+retry; that coverage result remains a release gate, not a reason to duplicate
+main/PR checks or block independent combined local qualification. A timeout
+without a failed phase does not establish a runtime regression or its cause.
 
 The selected saved-answer refinement remains local at
 `3d317e71324b609d5e9f603bf88b447e9007345e`, based on earlier #257 main. Its four-file
@@ -40,10 +43,11 @@ patch or repeat visual review is required.
 The CLI-guide update belongs to the forms owner. This companion documentation
 delta changes the existing candidate tutorial, release notes, changelog,
 consultation version framing and this readiness record. The isolated
-`release/1.4.0-combined-candidate` branch carries the reviewed forms series once
+`release/1.4.0-combined-qualified` branch carries the reviewed forms series once
 over the merged consultation source. New source changes and version changes are
 not part of this integration. The frozen earlier forms-only candidate
-`214a402d4dd5d5b84e181fb8713571ed646e693f`, its distributions, receipts,
+`214a402d4dd5d5b84e181fb8713571ed646e693f` and earlier combined preparation
+`1e7975941020bf61ad5d79ec284aa480c2189a3a`, their distributions where present, receipts,
 installed environments and live practices remain unchanged. Main integration
 and exact combined qualification remain pending.
 
@@ -116,12 +120,13 @@ documentation branch. Unrelated historical Attune-AI documents stay out of scope
 
 ## Final release gates and decisions
 
-1. Finish PR #260's owned baseline disposition, then integrate only the approved
-   local layout and companion documentation through
+1. Integrate only the approved local layout and companion documentation over
+   the fixed #260 baseline through
    owned PRs. Preserve the four-file forms delta once, resolve the final canonical
    source pins, retain matching changed screenshots, and record source/doc review.
    Named merge authority is still required; current main checks do not qualify
-   the future combined tree.
+   the future combined tree. Preserve the owner's pending supplemental coverage
+   disposition as a separate release gate.
 2. Read the final exact-head full-source/platform evidence and the actual merged
    tree. Build and verify the shipping wheel/sdist, package metadata and installed
    checks against that tree; record both archive hashes. Retained C09 is rehearsal
@@ -148,7 +153,7 @@ documentation branch. Unrelated historical Attune-AI documents stay out of scope
 Publication follows review of the final source, artifact and documentation
 packet; no publication date is selected here. Publication, tags,
 release creation, marketplace changes and website hosting remain separate named
-actions. #233 is selected; #260's final baseline disposition remains pending.
+actions. #233 and the merged #260 golden follow-up are included.
 
 Previous preparation identities, early pending statuses, source failures and
 component receipts remain preserved in the immutable

@@ -2,9 +2,10 @@
 
 **Unpublished candidate guidance.** Patrick selected the merged #233 consultation
 changes alongside the approved saved-answer presentation for 1.4.0. Current
-preparation base: `0c252b935c3cbc01e1386aa41e0f7dcc1c7de5b7` (#258).
-The #234 golden follow-up is separately published as draft PR #260; final
-baseline disposition remains pending. Reviewed forms source:
+preparation base: `e459faeb9909c9d2cbbb7337dc18e460d5d49e1f` (#260),
+including the merged #258 consultation changes and #234 golden follow-up.
+The owner tracks the remaining macOS supplemental coverage result separately.
+Reviewed forms source:
 `3d317e71324b609d5e9f603bf88b447e9007345e`. The new local combination has
 not replaced the live practices or been published. The
 [readiness record](release-readiness-1.4.0.md) separates component observations

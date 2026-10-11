@@ -2,11 +2,10 @@
 
 **Prepared, unpublished.** Patrick selected the now-merged #233 consultation
 changes for this release alongside the approved saved-answer presentation and
-companion documentation. The current preparation base is signed #258 merge
-`0c252b935c3cbc01e1386aa41e0f7dcc1c7de5b7`. Its actual-main qualification is
-owned separately. The #234 golden follow-up, PR #260, has Patrick's update,
-verification and merge authorization; its final baseline disposition is pending.
-The selected final baseline and combined shipping SHA,
+companion documentation. The fixed preparation base is signed #260 merge
+`e459faeb9909c9d2cbbb7337dc18e460d5d49e1f`, which includes #258 and the
+reviewed #234 golden follow-up. Actual-main qualification and the remaining
+macOS supplemental coverage result are owned separately. The combined shipping SHA,
 archive hashes and publication date remain unset.
 
 The forms presentation was reviewed at
@@ -123,8 +122,8 @@ model identity. Experimental native-memory and Windows effects boundaries remain
 as documented in the [qualification guide](qualification.md).
 
 The selected release includes the merged #233 concurrency and selective-retry
-behavior. #259 strengthens consultation acceptance coverage; its separately
-reviewed #260 follow-up remains pending integration. Neither changes browser
+behavior. #259 and its merged, reviewed #260 follow-up strengthen consultation
+acceptance coverage. Neither changes browser
 execution authority. Existing 1.3.0 tutorials, decks and Help captures
 retain their source labels; candidate GUI instructions and derivatives still
 need their owners' source-consistent readiness records.
