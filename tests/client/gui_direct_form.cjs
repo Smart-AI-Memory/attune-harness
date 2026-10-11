@@ -24,7 +24,7 @@ const workspace=item=>({editable:true,tasks:[item]});
  h.panel.querySelector('textarea').value=goal;
  h.queue.push({message:'Answers saved'},workspace(task('cp-2',goal)),questions('cp-2',['What observable result establishes success?'],goal));
  h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();
- assert.equal(h.panel.querySelector('.saved-answers').querySelector('h4').textContent,'Saved goal');
+ assert.equal(h.panel.querySelector('.saved-answers').querySelector('h4').textContent,'Saved goal:');
  assert.equal(h.panel.querySelector('.saved-answers').querySelector('p').textContent,goal);
  assert.equal(h.panel.querySelector('textarea').value,'','saved answer_0 is never remapped into the next question');
  assert.equal(h.panel.querySelector('button').disabled,false,'confirmed save advances to the remaining form');

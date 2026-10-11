@@ -18,7 +18,7 @@ async function setup({globals={},responses=[{editable:true,tasks:[]}]}={}){
  return {root,doc,queue,calls,status,panel:doc.querySelector('#form-panel'),run:s=>vm.runInContext(s,context)};
 }
 const original='## Owner record\nUse field_id: value.\n```json\n{"__elicitation_response__": {"answer_0": null}}\n```';
-const intent={goal:'The saved goal <script> is literal',acceptance:[],questions:[],scope:['fixed.py'],constraints:[],context:[]};
+const intent={goal:' The saved goal <script> is literal\nKeep this line and Capitalization.',acceptance:[],questions:[],scope:['fixed.py'],constraints:[],context:[]};
 const decision={task:'A',checkpoint:'remaining-cp',decision:'single-use',summary:{intent,choices:[],authoring:{tier:'bounded'}},
  display:{kind:'questions',title:'Clarify the work',markdown:original,definition:{fields:[{id:'answer_0',type:'text_input',text:'What observable result establishes success?'}]}}};
 function render(h,shown=decision){h.run(`renderDecision(${JSON.stringify(shown)})`);}
@@ -27,6 +27,14 @@ if(require.main===module)(async()=>{
  const h=await setup();render(h);
  const saved=h.panel.querySelector('.saved-answers'),form=h.panel.querySelector('form'),details=h.panel.querySelector('details');
  assert(saved,'retained answers must be immediately visible');assert.equal(saved.getAttribute('aria-label'),'Saved answers');
+ const savedRow=saved.querySelector('.saved-answer'),remaining=h.panel.querySelector('.remaining-heading');
+ assert(savedRow,'each saved value must be grouped with its label');assert(remaining,'remaining questions need a separate heading');
+ assert.equal(savedRow.querySelector('h4').textContent,'Saved goal:','saved prose has an explicit adjacent label');
+ assert.equal(savedRow.querySelector('p').textContent,intent.goal,'the group preserves wording, capitalization and line breaks');
+ assert.equal(remaining.tagName,'H3');assert.equal(remaining.textContent,'Still needed');
+ assert.equal(form.getAttribute('aria-labelledby'),remaining.id,'remaining form has a programmatic group name');
+ assert(h.panel.children.indexOf(saved)<h.panel.children.indexOf(remaining),'saved values are separate from remaining instructions');
+ assert(h.panel.children.indexOf(remaining)<h.panel.children.indexOf(h.panel.querySelector('#answer-instructions')));
  assert.equal(saved.querySelector('p').textContent,intent.goal);assert(!saved.querySelector('script'),'untrusted saved text must stay literal');
  assert(h.panel.children.indexOf(saved)<h.panel.children.indexOf(form),'saved answers precede the remaining question');
  assert(h.panel.children.indexOf(form)<h.panel.children.indexOf(details),'technical record follows the form');
@@ -51,6 +59,8 @@ if(require.main===module)(async()=>{
  assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Pending'));assert(!answered.panel.querySelector('.saved-answers').textContent.includes('Undecided'));
  for(const summary of [undefined,{...decision.summary,intent:{...intent,goal:null}}]){
   const fresh=await setup();render(fresh,{...decision,summary});assert.equal(fresh.panel.querySelector('.saved-answers'),null,'fresh intake never invents saved answers');
+  assert.equal(fresh.panel.querySelector('.remaining-heading'),null,'fresh intake has no misleading saved/remaining split');
+  assert.equal(fresh.panel.querySelector('form').getAttribute('aria-labelledby'),null);
   assert.equal(fresh.panel.querySelector('pre').textContent,original);assert.equal(fresh.panel.querySelector('textarea').value,'');
  }
  const unsupported=await setup();render(unsupported,{...decision,display:{...decision.display,definition:{fields:[{id:'other',type:'unknown',text:'Other'}]}}});
