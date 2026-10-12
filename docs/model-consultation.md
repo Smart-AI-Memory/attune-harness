@@ -1,17 +1,16 @@
 # Source review and roundtable from either coding host
 
-The core source-review and roundtable workflows are included in released 1.3.0.
-This **unpublished 1.4.0 candidate** adds `init --for roundtable`, seat `check`,
-batch `assess-citation --decisions`, opt-in Markdown views, concurrent first
-rounds and explicit refused-turn recovery (#233). Those additions
-require a wheel built from this candidate; installing 1.3.0 does not provide them.
-Final combined-source qualification remains pending; see the
-[readiness record](release-readiness-1.4.0.md).
+The 1.4.0 source-review and roundtable workflows include `init --for roundtable`,
+seat `check`, batch `assess-citation --decisions`, opt-in Markdown views,
+concurrent first rounds and explicit refused-turn recovery (#233). Use a 1.4.0
+installation for these additions; the earlier 1.3.0 installation does not provide
+them. The [preparation readiness record](release-readiness-1.4.0.md) retains dated
+checks and source identities, with earlier preparation statements labeled as
+history.
 
-Patrick selected the now-merged #233 behavior below for the unpublished 1.4.0
-release. Exact combined qualification and publication remain pending. The
-browser companion still collects and inspects forms; it does not execute these
-consultation commands.
+The browser companion collects and inspects forms; it does not execute these
+consultation commands. Configuration and local checks do not authorize dispatch
+or paid model calls.
 
 The shared development plugin contains both skills;
 `scripts/package_codex_plugin.py` packages the same skill bytes for Codex.
@@ -339,3 +338,23 @@ scope, not model quality, fresh desktop plugin discovery, three live seats,
 Google/Antigravity transport, or published-release availability. Three-seat
 configuration and command exchange are supported in software; a third live
 provider needs its own explicitly configured model, upload authority and evidence.
+
+## Historical preparation introduction (October 12 snapshot)
+
+The following text records the earlier preparation state. It is retained as
+history, rather than current qualification or publication status. The
+[original introduction](https://github.com/Smart-AI-Memory/attune-harness/blob/09f79820831ea7cdc3df83a8b2f772fd57ee25c7/docs/model-consultation.md)
+retains its original source boundaries.
+
+The core source-review and roundtable workflows are included in released 1.3.0.
+This **unpublished 1.4.0 candidate** adds `init --for roundtable`, seat `check`,
+batch `assess-citation --decisions`, opt-in Markdown views, concurrent first
+rounds and explicit refused-turn recovery (#233). Those additions
+require a wheel built from this candidate; installing 1.3.0 does not provide them.
+Final combined-source qualification remains pending; see the
+[readiness record](release-readiness-1.4.0.md).
+
+Patrick selected the now-merged #233 behavior below for the unpublished 1.4.0
+release. Exact combined qualification and publication remain pending. The
+browser companion still collects and inspects forms; it does not execute these
+consultation commands.
