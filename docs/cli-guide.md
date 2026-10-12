@@ -346,7 +346,7 @@ The record contains `type: attune-harness.browser-launch`, `version: 1`,
 The server keeps running after this line. Treat `launch_url` as private access
 data: it includes a fragment token for this listener, not a permanent task link.
 Do not retain it in a shared artifact. A new listener produces a new link.
-`execution_enabled` is false in this forms-only candidate; structured launch
+`execution_enabled` is false in the 1.4.0 forms companion; structured launch
 does not enable browser builds or dispatch.
 
 An assistant can pass the exact link to an available host browser-opening tool.

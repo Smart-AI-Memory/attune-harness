@@ -275,7 +275,7 @@ inspect it separately. Refused assessments exit 2 without appending a decision.
 
 ## Direct Antigravity seat
 
-The development candidate accepts this explicit native consultation seat:
+The 1.4.0 consultation CLI accepts this explicit native seat configuration:
 
 ```json
 {
