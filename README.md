@@ -11,11 +11,13 @@ three defects that serializer-only tests missed.
 [Read the experiment and its limits](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/plan-build-native-results.md).
 For a small working example, see [how checks and receipts work](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/cli-guide.md#checks-and-receipts).
 
-**1.4.0 preparation · saved forms and readable consultation evidence.**
-This candidate is unpublished and its final combined-source qualification is
-pending. The installation commands and `v1.4.0` documentation links below are
-for publication. Use [released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
-until then. [Candidate release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/release-notes-1.4.0.md).
+**1.4.0 · saved forms and readable consultation evidence.**
+This guide describes the 1.4.0 package and its supported limits.
+See the [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/release-notes-1.4.0.md)
+for the release's scope and evidence. For browser forms, use the
+[written 1.4.0 walkthrough](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/tutorials-next-release-candidate.md#save-and-approve-a-clear-work-request).
+The 1.3.0 tutorials and decks remain historical; replacement decks and separate
+Help deployment are deferred.
 The v1 compatibility contract remains in effect; experimental features and
 platform limits are listed below.
 [Qualification status](#what-is-qualified-and-what-is-not).
@@ -210,12 +212,12 @@ Built by Patrick Roebuck, working with Codex and Claude.
 
 ## Graphical companion status
 
-The 1.4.0 candidate adds direct opening of a registered draft, saved-answer
+The bounded 1.4.0 release adds direct opening of a registered draft, saved-answer
 context and read-only accepted-request inspection to the 1.3.0 forms journey.
 Browser build grants, dispatch, resume and broader GUI controls remain future
 work and cannot be enabled by launch flags. Registration, loopback/session/origin
 checks and owner checkpoints bound the forms server. Revised approval wording
-and same-view reload restoration are included in this local candidate; human
-comprehension and native-browser assessment remain pending.
-M2/M3/M4 remain explicit delivery gates. See the
-[candidate readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/release-readiness-1.4.0.md).
+and same-view reload restoration are included. Bounded forms observations are
+retained; independent comprehension and broader native-browser assessment remain
+open. Full M2/M3/M4 acceptance remains outside this release's claim. See the
+[preparation readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.4.0/docs/release-readiness-1.4.0.md).
