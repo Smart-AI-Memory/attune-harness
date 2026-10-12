@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const {setup,flush}=require('./gui_intake_summary.cjs');
 const owner='## Retained decision\nActions: approve_task\n```json\n{"__elicitation_response__":true,"action":"approve_task"}\n```';
-const intent={goal:'Accurate <script> text stays literal',acceptance:['Every control works','Claims have receipts'],scope:['source.py'],constraints:['Keep saved work'],context:['Use evidence'],
+const intent={goal:' \tAccurate <script> text stays literal\nKeep My Capitalization\u00a0',acceptance:['Every control works','Claims have receipts'],scope:['source.py'],constraints:['Keep saved work'],context:['Use evidence'],
  questions:[{question:'Who uses this?',answer:'CLI users',material:true},{question:'Anything else?',answer:null,material:false}]};
 const summary={intent,choices:[{question:'Which format?',selected:'jsonl',options:[{id:'jsonl',proposal:'JSON lines',rationale:'Streams results',counter_case:'Different shape'}]}],
  authoring:{tier:'bounded'},effects:{writes:[{path:'source.py',action:'modify'}],checks:[{control:{id:'unit-tests'}}]},blocking_reasons:[]};
@@ -16,8 +16,11 @@ const outside=(panel,details)=>panel.children.filter(c=>c!==details).map(c=>c.te
  assert(answers,'approval must show authoritative questions and answers');
  assert.equal(answers.getAttribute('aria-label'),'Questions and answers');
  assert.deepEqual(answers.querySelectorAll('h3').map(e=>e.textContent),['What should this work accomplish?','What observable result establishes success?','Which exact files are in scope?','What constraints should guide this work?','What context should inform this work?','Who uses this?','Anything else?','Which format?']);
- assert.equal(answers.querySelector('p').textContent,intent.goal);assert(!answers.querySelector('script'));
- assert.deepEqual(answers.querySelectorAll('li').map(e=>e.textContent),[...intent.acceptance,...intent.scope,...intent.constraints,...intent.context]);
+ const goal=answers.children[answers.children.indexOf(answers.querySelector('h3'))+1];
+ assert.equal(goal.tagName,'UL','the goal is presented as a list beneath its question');
+ assert.equal(goal.querySelectorAll('li').length,1,'a scalar goal is one bullet');
+ assert.equal(goal.querySelector('li').textContent,intent.goal,'the goal preserves literal text, whitespace and capitalization');assert(!answers.querySelector('script'));
+ assert.deepEqual(answers.querySelectorAll('li').map(e=>e.textContent),[intent.goal,...intent.acceptance,...intent.scope,...intent.constraints,...intent.context]);
  assert.match(answers.textContent,/CLI users/);assert.match(answers.textContent,/Not answered/);assert.match(answers.textContent,/JSON lines/);
  assert.equal(details.open,false);assert.equal(details.querySelector('summary').textContent,'Technical details');
  assert.equal(details.querySelector('.owner-record').textContent,owner,'full owner record remains unchanged');
@@ -42,6 +45,8 @@ const outside=(panel,details)=>panel.children.filter(c=>c!==details).map(c=>c.te
  const kept=await setup();render(kept);kept.queue.push({message:'Kept as draft'},{editable:true,tasks:[]});
  kept.panel.querySelectorAll('button')[1].onclick();await flush();
  assert.deepEqual(JSON.parse(kept.calls.find(c=>c.path==='/decision/submit').opts.body),{task:'A',checkpoint:'exact-cp',decision:'one-use',response:{action:'redo_task',confirmed:true}},'keeping a draft retains the owner action and current decision binding');
+ const unanswered=await setup();render(unanswered,{...shown,summary:{...summary,intent:{...intent,goal:null}}});
+ assert.equal(unanswered.panel.querySelector('.approval-answers').querySelector('li').textContent,'Not answered','the existing missing-goal fallback remains visible');
  for(const reason of ['A planner assignment is required','Unavailable required control: tests','Acknowledge <script> this receipt']){
   const blocked=await setup();render(blocked,{...shown,summary:{...summary,blocking_reasons:[reason]},display:{...shown.display,actions:[]}});
   const technical=blocked.panel.querySelector('details'),reasons=blocked.panel.querySelector('.approval-blockers');
