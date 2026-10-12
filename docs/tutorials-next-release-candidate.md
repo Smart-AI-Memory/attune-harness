@@ -1,31 +1,26 @@
-# Training walkthroughs for the Harness 1.4.0 candidate
+# Training walkthroughs for Harness 1.4.0
 
-**Unpublished candidate guidance.** Patrick selected the merged #233 consultation
-changes alongside the approved saved-answer presentation for 1.4.0. Current
-preparation base: `e459faeb9909c9d2cbbb7337dc18e460d5d49e1f` (#260),
-including the merged #258 consultation changes and #234 golden follow-up.
-The owner tracks the remaining macOS supplemental coverage result separately.
-Reviewed forms source:
-`3d317e71324b609d5e9f603bf88b447e9007345e`. The new local combination has
-not replaced the live practices or been published. The
-[readiness record](release-readiness-1.4.0.md) separates component observations
-from required combined qualification. Publication date, final shipping SHA and
-archive hashes remain unset.
+These walkthroughs describe the bounded 1.4.0 forms companion. Practice saving
+answers, returning to them, approving a work request and inspecting its saved
+state. Browser build and execution resume remain future work. The
+[preparation readiness record](release-readiness-1.4.0.md) retains dated checks,
+observations and their source pins. Match an installed version, source commit
+and wheel SHA-256 to its release evidence; a version string alone is insufficient.
 
 Patrick's base-runtime walkthrough recorded accepted-request inspection,
 accepted-state reload, unfinished-form reload with the saved goal retained, and
 typing in the remaining field. His separate exact-source preview inspection
 accepted the inline saved-answer presentation. These bounded observations do not
 establish every numbered step below, independent approval comprehension, exact
-Tab order, copied-tab behavior or accessibility conformance. Match new captures
-to the revised presentation before publication; retain earlier captures with
-their original source labels.
+Tab order, copied-tab behavior or accessibility conformance. Attribute new captures
+to their source and version; retain earlier captures with their original source
+labels.
 
 The [released 1.3.0 walkthroughs](tutorials-1.3.0.md) and their PowerPoint/HTML
-files retain their original instructions, source labels and evidence. This
-candidate page does not replace them. Control names are bold; literal answers
-and commands use code font. Browser execution remains future work; the selected
-1.4.0 candidate provides forms without browser build or execution resume.
+files remain historical with their original instructions, source labels and
+evidence. This written 1.4.0 page is the approved interim guide; replacement decks
+and separate Help deployment are deferred. Control names are bold; literal
+answers and commands use code font.
 
 ## Approval: what does each choice do?
 
@@ -111,7 +106,7 @@ and remains optional.
 
 ## Session continuity: what survives reload and reopening?
 
-Prerequisite: Prepare another fresh synthetic draft with the pinned candidate.
+Prerequisite: Prepare another fresh synthetic draft with the selected 1.4.0 installation.
 Use one browser page and keep its listener running through step 4. This procedure
 ends while the request remains a draft.
 
@@ -146,7 +141,7 @@ remain pending. Released 1.3.0 does not include this reload restoration.
 
 ## What if the saved inputs changed?
 
-The candidate shows “Accepted intent — inputs changed” and a warning with the
+Harness 1.4.0 shows “Accepted intent — inputs changed” and a warning with the
 historical **View accepted request** record. Inspect its earlier answers; that
 acceptance does not establish authority over changed inputs. This walkthrough
 ends at inspection. No automatic retry, new recovery control or browser execution
@@ -155,8 +150,8 @@ needs a source-attributed observation.
 
 ## Prepare and reopen the synthetic sample
 
-Use the existing noneditable candidate interpreter throughout. Set `CANDIDATE`
-to an absolute checkout containing the pinned candidate fixture and choose an
+Use the selected noneditable 1.4.0 interpreter throughout. Set `CANDIDATE`
+to an absolute checkout containing its version-matched fixture and choose an
 unused, absolute, resolved `TRAINING` directory for each procedure. Keep task
 storage outside the project. On macOS, use a resolved path such as `/private/tmp`
 rather than the `/tmp` symlink. The helper creates a synthetic project,
@@ -181,15 +176,19 @@ For a restart, stop it with `Ctrl-C` and repeat the launch command with the same
 own newly prepared draft. A private launcher link is listener access data,
 not a permanent task link. Do not replace an existing human-review listener.
 
-Use a noneditable 1.4.0 wheel built from the selected combined candidate. Before
-walking the sample, obtain its full source commit and wheel SHA-256 from the
-candidate's release handoff. Check the [readiness record](release-readiness-1.4.0.md)
+Use a noneditable 1.4.0 installation. Before walking the sample, obtain its full
+source commit and wheel SHA-256 from the release evidence. Check the [readiness record](release-readiness-1.4.0.md)
 for the selected scope and remaining qualification limits.
 A version string alone does not identify its source. The earlier C09 runtime
 excludes the inline saved-answer refinement and cannot illustrate that layout.
 The fixture grants no implementation, provider or spending authority.
 
-## Review all four training topics before publication
+## Historical preparation topic review
+
+The table below retains the earlier candidate assessment. The approved October
+12 disposition uses this written 1.4.0 guide and defers replacement decks and
+separate Help deployment. Independent observations and broader GUI claims remain
+open; the historical remaining-work column does not override that disposition.
 
 | Topic | Candidate disposition | Remaining derivative or observation work |
 | --- | --- | --- |
@@ -204,7 +203,7 @@ establish policy truth, semantic model output, graphical behavior or presentatio
 rendering. The historical released local-workflow guide's dev0/old-extra/future-forms
 wording remains historical; use current versioned setup guidance.
 
-For retained consultation evidence, the candidate adds opt-in
+For retained consultation evidence, 1.4.0 adds opt-in
 `--format markdown` to `source-review` and `roundtable` `prepare`, `status` and
 `evidence`; JSON remains the default. Follow the existing
 [consultation guide](model-consultation.md#readable-consultation-views) for the
@@ -220,6 +219,27 @@ matching reviewed source pins. Record changed versus reviewed unchanged topics,
 examples, observed results, link checks and retained versus superseded guidance
 through the existing release checklist. Version selection does not make these
 local files published or close the remaining software and human observations.
+
+
+## Historical preparation metadata (October 12 snapshot)
+
+The following text records the earlier preparation state, superseded by the dated
+[readiness record](release-readiness-1.4.0.md). The
+[original candidate introduction](https://github.com/Smart-AI-Memory/attune-harness/blob/09f79820831ea7cdc3df83a8b2f772fd57ee25c7/docs/tutorials-next-release-candidate.md)
+retains its original source and publication boundaries.
+
+**Unpublished candidate guidance.** Patrick selected the merged #233 consultation
+changes alongside the approved saved-answer presentation for 1.4.0. Current
+preparation base: `e459faeb9909c9d2cbbb7337dc18e460d5d49e1f` (#260),
+including the merged #258 consultation changes and #234 golden follow-up.
+The owner tracks the remaining macOS supplemental coverage result separately.
+Reviewed forms source:
+`3d317e71324b609d5e9f603bf88b447e9007345e`. The new local combination has
+not replaced the live practices or been published. The
+[readiness record](release-readiness-1.4.0.md) separates component observations
+from required combined qualification. Publication date, final shipping SHA and
+archive hashes remain unset.
+
 
 ## Historical #243 source and evidence
 

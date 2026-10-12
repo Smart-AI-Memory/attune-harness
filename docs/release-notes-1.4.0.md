@@ -1,23 +1,13 @@
-# Attune Harness 1.4.0 candidate release notes
+# Attune Harness 1.4.0 release notes
 
-**Prepared, unpublished.** Patrick selected the now-merged #233 consultation
-changes for this release alongside the approved saved-answer presentation and
-companion documentation. The fixed preparation base is signed #260 merge
-`e459faeb9909c9d2cbbb7337dc18e460d5d49e1f`, which includes #258 and the
-reviewed #234 golden follow-up. Actual-main qualification and the remaining
-macOS supplemental coverage result are owned separately. The combined shipping SHA,
-archive hashes and publication date remain unset.
+These notes describe the bounded 1.4.0 package, its compatibility and limits.
+Use the [1.4.0 written forms walkthrough](tutorials-next-release-candidate.md#save-and-approve-a-clear-work-request)
+to practice saving and approving a work request. The
+[preparation readiness record](release-readiness-1.4.0.md) retains dated source,
+software-check and human-observation evidence; its historical preparation pins
+do not identify a later installed artifact.
 
-The forms presentation was reviewed at
-`3d317e71324b609d5e9f603bf88b447e9007345e` and visually accepted by Patrick.
-The first goal-based tutorial is aligned to the same controls. Exact combined
-source, installed artifact and native-platform qualification remain required;
-component reviews and earlier passes do not qualify this later combination.
-The [readiness record](release-readiness-1.4.0.md) identifies remaining work.
-Version selection and local preparation grant no publication authority.
-
-Use [released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
-for a published installation. After 1.4.0 publication, install it separately:
+Install 1.4.0 in its own environment:
 
 ```sh
 pipx install 'attune-harness[all]==1.4.0'
@@ -27,11 +17,11 @@ Python 3.10 or later is required. Base dependencies and optional extras retain
 their existing pins; `all` still excludes experimental native memory.
 Installing the package grants no model, upload or spending authority.
 
-## Changes already in the preparation base
+## Changes in 1.4.0
 
 - **Saved forms:** The browser opens the current form directly when one draft
   is registered. Reopened intake shows saved answers above remaining questions;
-  accepted requests show their answers read-only. The selected local refinement
+  accepted requests show their answers read-only. The refined presentation
   places bold **Saved goal:** and **Done when:** labels inline with their saved
   values and uses **Still needed** to introduce the remaining instructions.
   The saved-answer presentation preserves stored wording, case, spacing and
@@ -66,7 +56,7 @@ Installing the package grants no model, upload or spending authority.
   Prose uses the reading font; technical values use monospace. Entered wording
   and capitalization are preserved.
 
-The preparation also adds full-coverage timing and slow-test diagnostics using
+The release also adds full-coverage timing and slow-test diagnostics using
 the existing Python watchdog. The test selection, source denominator, coverage
 admission checks and process budgets remain unchanged. This diagnostic correction
 does not establish a performance fix for the earlier macOS timeout.
@@ -124,11 +114,39 @@ as documented in the [qualification guide](qualification.md).
 The selected release includes the merged #233 concurrency and selective-retry
 behavior. #259 and its merged, reviewed #260 follow-up strengthen consultation
 acceptance coverage. Neither changes browser
-execution authority. Existing 1.3.0 tutorials, decks and Help captures
-retain their source labels; candidate GUI instructions and derivatives still
-need their owners' source-consistent readiness records.
+execution authority. The written 1.4.0 walkthrough is the approved interim
+guide. Existing 1.3.0 tutorials, decks and Help captures remain historical with
+their source labels; replacement decks and separate Help deployment are deferred.
+Independent fresh-session memory, nonprogrammer walkthrough and migration
+observations remain open (S3/S6/S9). Full M2/M3/M4 acceptance is outside this
+release's claim.
 
 See the [CLI guide](cli-guide.md), [consultation guide](model-consultation.md)
-and [coverage measurement limits](coverage-measurement.md). The final candidate
-needs its own full-suite, noneditable installed-wheel, native-platform,
-documentation and derivative evidence before publication is requested.
+and [coverage measurement limits](coverage-measurement.md). Inspect the exact
+source and archive identities in release evidence when matching an installation
+to its checks. Software qualification does not establish the deferred human,
+derivative or model-quality claims.
+
+## Historical preparation record (October 12 snapshot)
+
+The following text retains the earlier preparation state. It is superseded by
+the dated [readiness record](release-readiness-1.4.0.md), rather than describing
+the current installation path. The
+[original candidate notes](https://github.com/Smart-AI-Memory/attune-harness/blob/09f79820831ea7cdc3df83a8b2f772fd57ee25c7/docs/release-notes-1.4.0.md)
+retain the complete earlier page.
+
+**Prepared, unpublished.** Patrick selected the now-merged #233 consultation
+changes for this release alongside the approved saved-answer presentation and
+companion documentation. The fixed preparation base is signed #260 merge
+`e459faeb9909c9d2cbbb7337dc18e460d5d49e1f`, which includes #258 and the
+reviewed #234 golden follow-up. Actual-main qualification and the remaining
+macOS supplemental coverage result are owned separately. The combined shipping SHA,
+archive hashes and publication date remain unset.
+
+The forms presentation was reviewed at
+`3d317e71324b609d5e9f603bf88b447e9007345e` and visually accepted by Patrick.
+The first goal-based tutorial is aligned to the same controls. Exact combined
+source, installed artifact and native-platform qualification remain required;
+component reviews and earlier passes do not qualify this later combination.
+The [readiness record](release-readiness-1.4.0.md) identifies remaining work.
+Version selection and local preparation grant no publication authority.

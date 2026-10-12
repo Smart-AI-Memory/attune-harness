@@ -2,6 +2,11 @@
 
 ## October 12 readiness addendum
 
+This is a dated preparation checkpoint, not live qualification or publication
+status. It preserves the evidence available before the final documentation
+successor. Match a published package to the exact run that uploaded it and its
+archive identities; later results do not rewrite this checkpoint.
+
 The software qualification and build-only rehearsal below are complete for
 predecessor main `e3eec266a2bb9f0e28b0227abcb232fe30534eb2`, tree
 `0be17834c9c25ff01878babe38f4d76b03c9d390`. Its signature is valid and its
