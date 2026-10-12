@@ -1,7 +1,7 @@
 /* Saved disclosures inspect owner data without creating a decision or replaying input. */
 const assert=require('node:assert/strict');
 const {setup,flush}=require('./gui_intake_summary.cjs');
-const intent={goal:'Literal <script> text',acceptance:['Each saved task shows its next decision'],scope:['source.py'],constraints:['No implementation or model calls'],context:['Training example'],questions:[]};
+const intent={goal:' \tLiteral <script> text\nKeep My Capitalization\u00a0',acceptance:['Each saved task shows its next decision','Keep the criterion order\n  Alpha then Beta'],scope:['source.py'],constraints:['No implementation or model calls'],context:['Training example'],questions:[]};
 const saved={task_id:'owner-id',revision:2,checkpoint:'saved-cp',intent,choices:[],authoring:{tier:'prompt'},fresh:true,freshness_note:'',accepted:true};
 (async()=>{
  const h=await setup();
@@ -11,6 +11,11 @@ const saved={task_id:'owner-id',revision:2,checkpoint:'saved-cp',intent,choices:
  assert.equal(view.querySelector('summary').textContent,'View accepted request');
  assert.match(view.textContent,/source.py/);assert.match(view.textContent,/No implementation or model calls/);assert.match(view.textContent,/Saved revision 2/);
  assert(view.textContent.includes(intent.goal));assert(!view.querySelector('script'));
+ const answers=view.querySelector('.approval-answers'),goal=answers.querySelector('ul');
+ assert.equal(goal.querySelectorAll('li').length,1,'the accepted scalar goal is one bullet');
+ assert.equal(goal.querySelector('li').textContent,intent.goal,'accepted inspection preserves every entered character');
+ assert.deepEqual(answers.querySelectorAll('li').map(e=>e.textContent),[intent.goal,...intent.acceptance,...intent.scope,...intent.constraints,...intent.context]);
+ for(const tag of ['input','textarea','select'])assert(!view.querySelector(tag),'accepted answers remain read-only');
  assert(!view.querySelector('button'));assert.equal(h.calls.filter(c=>c.opts.method==='POST').length,0);
  const details=view.querySelector('details');assert.equal(details.open,false);assert.match(details.textContent,/owner-id.*saved-cp/s);
  h.queue.push({editable:true,tasks:[{task:'A',heading:'Accepted intent — inputs changed',label:intent.goal,note:'Historical acceptance.',available:false,saved_request:{...saved,fresh:false,freshness_note:'<script> changed input'}}]});
@@ -19,5 +24,10 @@ const saved={task_id:'owner-id',revision:2,checkpoint:'saved-cp',intent,choices:
  assert(warning);assert(card.children.indexOf(warning)<card.children.indexOf(card.querySelector('.saved-request')),'staleness must remain visible outside the collapsed summary');
  assert.match(card.textContent,/Saved inputs have changed/);assert(!card.querySelector('script'));
  assert(!card.querySelector('button'));assert.equal(h.calls.filter(c=>c.opts.method==='POST').length,0);
+ h.queue.push({editable:false,tasks:[{task:'A',heading:'Draft saved',available:false,saved_request:{...saved,accepted:false}}]});
+ await h.run('loadTasks()');
+ const draft=h.root.querySelector('.saved-request');assert.equal(draft.querySelector('summary').textContent,'View saved request');
+ assert.equal(draft.querySelector('.approval-answers').querySelector('li').textContent,intent.goal,'saved draft inspection uses the same literal goal bullet');
+ assert.equal(h.calls.filter(c=>c.opts.method==='POST').length,0,'inspecting the draft never opens or submits a collector');
  console.log('client regressions passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

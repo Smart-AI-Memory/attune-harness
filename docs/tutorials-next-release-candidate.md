@@ -42,31 +42,67 @@ historical. Human understanding of the new wording remains pending.
 
 ## Save and approve a clear work request
 
-Goal: retain a precise work request and inspect exactly what you approved.
-Success: the accepted record contains your saved goal, success criterion,
-allowed file, context and constraint; approving it starts no implementation.
-This is the first goal-based walkthrough for the candidate. The remaining
-training topics keep their separate source and observation limits.
+Keep your goal and definition of success together so you can check the whole
+request before approving it. You’ll practice saving answers, returning to them,
+and recording exactly what you approve. You’re done when your approved request
+survives a reload and remains readable without editable fields.
 
-Prerequisite: Use the pinned candidate interpreter and prepare a fresh synthetic
-draft as described below. It starts with an unanswered goal and success
-criterion. `TASK` is the returned canonical task directory. Keep the listener
-running and use its exact private `launch_url`.
+### Before you start
 
-| Step | Action |
-| --- | --- |
-| 1 | Open the private `launch_url`. The single eligible draft opens its current form directly. If the form is not displayed, inspect the saved state, then click **Continue form** to reopen deliberately. In “**What should this work accomplish?**”, enter `Group saved work by the decision it needs`. |
-| 2 | Click **Save answers**, leaving the success question empty. Wait for the “Answers saved” confirmation. Under **Saved answers**, check **Saved goal:** followed inline by `Group saved work by the decision it needs`. **Still needed** introduces the remaining question and instructions. |
-| 3 | Expand **View saved request**. Check the saved goal, allowed file `source.py`, context `Training example` and constraint `No implementation or model calls`. |
-| 4 | In “**What observable result establishes success? Enter one item per line.**”, enter `Each saved task shows its next decision`. Click **Save answers** and wait for the saved confirmation. |
-| 5 | Review the answers in the current preview. If it is not displayed, click **Review your answers**. Check the goal, success criterion, allowed files, context and constraints. |
-| 6 | If the reviewed request is correct, click **Approve this work request**. Otherwise, click **Keep as draft** to leave it unapproved. After approval, reload the page and inspect **View accepted request**. |
+Ask the person or agent running Harness for a fresh practice form and its
+complete private link. Use one browser tab and keep the local form launcher
+running. If you already see **Intent accepted**, go to step 8.
 
-Expected after approval: **Saved work** shows “Intent accepted”.
-**View accepted request** displays the approved answers read-only, including the
-literal goal and success criterion above. Inspecting this record opens no new
-approval form and starts no implementation or model call. This endpoint is
-source-defined and was observed in Patrick's base-runtime walkthrough. The selected presentation patch changes only reopened intake; it does not change accepted-request inspection.
+1. Open your practice link.
+   You’ll see **Saved work** and the questions. If they’re hidden, click
+   **Continue form**.
+
+2. Enter your goal.
+   In **What should this work accomplish?**, enter:
+   `Check that my saved request survives a reload.`
+   Leave the success question empty for now.
+
+3. Click **Save answers**.
+   Wait for the saved confirmation. **Saved answers** shows your goal;
+   **Still needed** identifies the unanswered success question. Your request
+   is saved as a draft.
+
+4. Reload the tab.
+   Your saved goal should remain visible. If necessary, click **Continue form**
+   to reach the remaining question.
+
+5. Define success and save again.
+   In **What observable result establishes success? Enter one item per line.**,
+   enter: `After reloading, the saved goal remains unchanged.`
+   Click **Save answers**. **Review your answers** should show both answers.
+   If the review is hidden, click **Review your answers** on the saved-work card.
+
+6. Check the whole request.
+   Confirm your goal and success criterion, the sample file `source.py`, the
+   context `Training example`, and the constraint `No implementation or model calls`.
+   These are all part of what you’ll approve.
+
+7. Record your decision.
+   If everything is correct, click **Approve this work request**. Your answers
+   are already saved; this records acceptance of the whole request.
+   **Intent accepted** appears. Approval does not start implementation or
+   authorize execution.
+   To leave the request unapproved, choose **Keep as draft**.
+
+8. Verify the accepted request.
+   Reload the tab and inspect **View accepted request**, which opens expanded.
+   If you have collapsed it, expand it again. Both answers should remain visible,
+   with no editable answer fields. This completes the practice.
+
+### What comes next?
+
+To prepare your own work, ask the person or agent running Harness for a new
+draft for that task. Starting the work requires a separate explicit decision.
+
+### Launcher reference and optional details
+
+For local launcher setup, see
+[Prepare and reopen the synthetic sample](#prepare-and-reopen-the-synthetic-sample).
 
 For an explanation of prompt structure, expand **How this becomes a prompt**.
 Its XML is illustrative; answer the actual questions in ordinary language.

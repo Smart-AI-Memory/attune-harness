@@ -232,7 +232,8 @@ function renderSavedAnswers(summary){
 function renderIntent(summary,parent){
  const intent=summary.intent;
  const answers=node('section',undefined,parent);answers.className='approval-answers';answers.setAttribute('aria-label','Questions and answers');
- node('h3','What should this work accomplish?',answers);node('p',intent.goal||'Not answered',answers);
+ node('h3','What should this work accomplish?',answers);
+ const goal=node('ul',undefined,answers);node('li',intent.goal||'Not answered',goal);
  for(const [key,label] of [['acceptance','What observable result establishes success?'],['scope','Which exact files are in scope?'],['constraints','What constraints should guide this work?'],['context','What context should inform this work?']]){
   if(intent[key].length){node('h3',label,answers);const list=node('ul',undefined,answers);for(const item of intent[key]){const value=node('li',item,list);if(key==='scope')value.className='technical-input';}}
  }
