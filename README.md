@@ -9,7 +9,7 @@ and any errors.
 In a JSONL exporter experiment, checks through the real command line caught
 three defects that serializer-only tests missed.
 [Read the historical 1.3.0 experiment and its limits](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/plan-build-native-results.md).
-For a small working example, see [how checks and receipts work](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md#checks-and-receipts).
+For a small working example, see [how checks and receipts work](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md#checks-and-receipts).
 
 **1.4.0 · saved forms and readable consultation evidence.**
 This guide describes the 1.4.0 package and its supported limits.
@@ -22,7 +22,7 @@ The v1 compatibility contract remains in effect; experimental features and
 platform limits are listed below.
 [Qualification status](#what-is-qualified-and-what-is-not).
 
-[Install Attune Harness](#installation) · [User guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md)
+[Install Attune Harness](#installation) · [User guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
 
 ## Plan, build, review, fix, and test
 
@@ -62,7 +62,7 @@ participants need `--allow-external`, and native model participants also need
 Many of these commands are there for the agent and its integrations to call.
 Learning their syntax is not the price of entry, and `attune-harness COMMAND --help`
 covers direct use. Full usage, exit codes and recovery controls are in the
-[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md).
+[CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md).
 
 ## Use Harness with Codex, Claude, or other models
 
@@ -74,7 +74,7 @@ execution permissions. The older `/attune` command belongs to Attune AI.
 
 For an **Attune Harness** entry in Codex Plugins, use the
 [plugin packaging and installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/codex-plugin.md). You can also use
-[standalone skill discovery](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md#codex-skill) in this checkout or
+[standalone skill discovery](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md#codex-skill) in this checkout or
 another project. Installing the Python package alone installs neither integration.
 
 In **Claude Code**, add this repository as a plugin marketplace, then install the
@@ -93,14 +93,20 @@ paid calls.
 
 ## Installation
 
+Start with a managed base installation:
+
 ```sh
-pipx install 'attune-harness[all]==1.4.0'
+uv tool install 'attune-harness==1.4.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.4.0'`, or `pip install 'attune-harness[all]==1.4.0'`
-into an environment of its own. This is the recommended install: everything the
-review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
-Python 3.10 or later. The [worked example](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
+uv keeps Harness and its dependencies isolated and provides the `attune-harness`
+command. The base includes forms, verification, local retrieval, review, test,
+MCP and acceptance dependencies. Add Redis or Voyage when needed; `all` includes
+both. See the [installation and getting-started guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/installation.md)
+for executable checks, optional profiles, pipx/pip alternatives and separate
+agent-plugin setup.
+
+Python 3.10 or later. The [worked example](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
 Voyage retrieval needs a Voyage API key and makes paid calls.
 Harness and attune-ai cannot share one environment:
 they pin different lines of the MCP SDK, and installing Harness over attune-ai
@@ -111,10 +117,10 @@ if it finds the two side by side.
 
 | You want | Install |
 | --- | --- |
-| **Recommended:** the base package plus the Redis reader and Voyage retrieval. The experimental extra below stays explicit | `pip install 'attune-harness[all]==1.4.0'` |
-| The contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install 'attune-harness==1.4.0'` |
+| **Recommended base:** the contracts and CLI; the evidence-review, test, acceptance and MCP journeys: forms (`attune-forms` 0.17.0), document claim verification (`attune-verify` 0.6.0), local Markdown retrieval with source hashes (`attune-rag` 1.2.0), MCP stdio serving (`mcp` 2.2.0) and token counting (`tiktoken` 0.12.0). No model calls | `pip install 'attune-harness==1.4.0'` |
 | Read the Redis memory a hydration keeps warm: the recall digest, related nodes, one record, full-text search over the index (`redis` 5.3.1); read-only, the `text` body of a file, lesson or rule pointer is never served; needs a reachable Redis Stack with the hydration's index and function library. Also the Redis backend for working memory (`memory scratch`), shared across processes and machines; the file backend is in the base | `pip install 'attune-harness[redis]==1.4.0'` |
 | Repository-first retrieval on Voyage embeddings. Needs a Voyage API key, makes paid calls | `pip install 'attune-harness[voyage]==1.4.0'` |
+| The base plus both Redis and Voyage; experimental native memory stays separate | `pip install 'attune-harness[all]==1.4.0'` |
 | Experimental: memory proposals from a Claude model over a pinned, data-only Anthropic API transport (`anthropic` 1.6.0, `httpx2` 2.13.0). POSIX only, needs `ANTHROPIC_API_KEY`, makes paid calls | `pip install 'attune-harness[memory-native]==1.4.0'` |
 
 Before 0.4.0 the base had no dependencies and `verify`, `rag`, `review`, `mcp`
@@ -206,7 +212,7 @@ journey, its current boundary and what to keep using while a successor is qualif
 ## Links
 
 - [Qualification guide (1.3.0 baseline)](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/qualification.md)
-- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ca55b3aa39c0b8e003c0523244db9da14f901d23/docs/cli-guide.md)
+- [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
 - [Portable contract (1.3.0 baseline)](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/portable-contract.md)
 - [Repository](https://github.com/Smart-AI-Memory/attune-harness) and
   [issues](https://github.com/Smart-AI-Memory/attune-harness/issues)

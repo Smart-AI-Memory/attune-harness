@@ -13,15 +13,20 @@ environment. The [preparation readiness record](release-readiness-1.4.0.md) reta
 dated checks and source identities; its older preparation statements are
 historical, rather than installation instructions.
 
+Start with a managed base installation:
+
 ```sh
-pipx install 'attune-harness[all]==1.4.0'
+uv tool install 'attune-harness==1.4.0'
 ```
 
-or `uv tool install 'attune-harness[all]==1.4.0'`, or `pip install 'attune-harness[all]==1.4.0'`
-into an environment of its own. This is the recommended install: everything the
-review, test, MCP and acceptance journeys need, plus Redis and Voyage retrieval.
-Python 3.10 or later. The example below needs no API key or attune-ai installation;
-Voyage retrieval needs a Voyage API key and makes paid calls.
+The base carries the forms, verification, local retrieval, review, test, MCP and
+acceptance dependencies. Add Redis or Voyage when you need those integrations;
+`all` includes both and excludes experimental native memory. Python 3.10 or later.
+The [installation guide](installation.md) covers executable checks, alternatives,
+optional profiles, selection of the managed Python interpreter for module and
+fixture commands, and separate host-plugin setup. The example below needs no
+API key or attune-ai installation; Voyage retrieval needs a Voyage API key and
+makes paid calls.
 Harness and attune-ai cannot share one environment:
 they pin different lines of the MCP SDK, and installing Harness over attune-ai
 replaces attune-ai's; an isolated install avoids that, and `mcp-serve` says so
@@ -54,7 +59,9 @@ output and the check's evidence still attached. If the participant or the check
 raises, the status is `failed` and the receipt names the stage and the error. `run`
 executes once. It never retries on its own.
 
-`python -m attune_harness` runs the installed demonstration and prints a JSON receipt.
+`attune-harness` with no arguments runs the installed demonstration and prints a
+JSON receipt. For `python -m` commands or Python API examples, use the
+[selected runtime's interpreter](installation.md#select-python-for-module-and-fixture-examples).
 
 ## How people and AI work together
 
