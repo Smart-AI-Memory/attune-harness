@@ -55,13 +55,20 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
 ## Steps
 
 1. **Prepare.** One pull request sets the final `version` in `pyproject.toml`,
-   adds a `## X.Y.Z` heading to `CHANGELOG.md`, pins README links to the
-   `vX.Y.Z` tag, and sets the same version in both `plugin/attune-harness`
+   adds a `## X.Y.Z` heading to `CHANGELOG.md`, pins README documentation links to
+   the release tag or an existing reviewed documentation revision, and sets the
+   same version in both `plugin/attune-harness`
    manifests; `tests/test_claude_plugin.py` fails until they match. It does not
    touch `.claude-plugin/marketplace.json`: that catalog serves Claude Code
    users from `main`, and it points at a release tag that does not exist yet
    (step 9). Build locally and run `twine check --strict`, then install the
    wheel and run `scripts/check_installed.py --mode core`.
+   **README maintenance is required for every release.** Review and update
+   `README.md` against the selected shipping source and package metadata. Check
+   version/status wording, install instructions, feature and limit claims, and
+   the actual destinations and content of tutorial/documentation links. Current
+   guidance must remain accurate after publication; label older guidance before
+   the click. Record this review in the existing documentation-readiness evidence.
    **Documentation readiness is part of preparation for every new version
    publication.** Apply the [writing and entered-text guide](writing-guide.md)
    when creating or revising content. Update affected official topics and their

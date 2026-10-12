@@ -1,5 +1,104 @@
 # Attune Harness 1.4.0 preparation readiness
 
+## October 12 readiness addendum
+
+This is a dated preparation checkpoint, not live qualification or publication
+status. It preserves the evidence available before the final documentation
+successor. Match a published package to the exact run that uploaded it and its
+archive identities; later results do not rewrite this checkpoint.
+
+The software qualification and build-only rehearsal below are complete for
+predecessor main `e3eec266a2bb9f0e28b0227abcb232fe30534eb2`, tree
+`0be17834c9c25ff01878babe38f4d76b03c9d390`. Its signature is valid and its
+tree equals corrected PR #262 head `4ccf4dce05dfab29407758ccb01606206bdda58a`.
+This documentation-only correction changes the package README and creates a
+successor source/archive identity. These predecessor receipts do not certify
+the successor package. Bind its qualification and final build verification to
+the actual merged source; no self-referential commit pin is added here.
+
+### Completed predecessor checks
+
+- [Exact-main qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38196724703)
+  and all 19 main checks succeeded. Full source: 4,435 passed / 65 skipped.
+  All six installed-platform jobs passed; all 18 GUI client cases passed in
+  each profile. Three isolated Windows effects profiles passed 10 cases each.
+  Supplemental coverage passed separately with its stated instrumentation limits.
+- All 12 retained CI artifact ZIP digests matched their GitHub digests;
+  module receipts matched all 105 source modules and coverage bound 915 inputs
+  without drift. These checks do not establish native user acceptance or model quality.
+- [Build-only rehearsal 38198404008, attempt 1](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38198404008)
+  succeeded on October 12 with version `1.4.0`, target `pypi` and
+  `publish=false`. All publication jobs were skipped. The source/version,
+  successful main qualification and unused version slot passed preflight.
+  Twine strict validation, 21 core and 29 dependency-installed CLI cases passed.
+  The dependency-installed plan/accept/build/review/status journey used command
+  and deterministic adapters with four participant turns and zero model calls.
+  Installed browser policy remained forms-only.
+
+| Predecessor rehearsal archive | SHA-256 |
+| --- | --- |
+| `attune_harness-1.4.0-py3-none-any.whl` | `572e38759cf9df9f03870172697fc0e0d67db0a4e8aa760b459b1868fef6b63d` |
+| `attune_harness-1.4.0.tar.gz` | `5b8a116964f3be145a482cc833db7db08ec346735282d81ab034705673fe6a83` |
+
+Both archives matched the run's checksum list and all 105 runtime modules.
+Wheel RECORD hashes/sizes, package name/version and the sdist README,
+MANIFEST and pyproject matched their source. The canonical tutorial is maintained
+in the repository, outside the standard sdist file set. Rehearsal hashes are
+not proof of any later publishing run's bytes or trusted-publisher operation.
+
+### Canonical topics and the approved interim guidance
+
+Patrick approved the bounded release disposition on October 12: ship the
+current written tutorial; keep 1.3.0 decks historical; defer replacement decks
+and separate Help deployment; retain S3/S6/S9 observations visibly open.
+
+| Topic | Disposition and applicable evidence | Result and limits | Derivatives and older guidance |
+| --- | --- | --- | --- |
+| Navigation / saving and approval | Changed: [current eight-step written procedure](tutorials-next-release-candidate.md#save-and-approve-a-clear-work-request), reviewed source/client checks and Patrick's bounded forms observations. PR #262 corrects step 8 to inspect the already-expanded accepted request and expand only if collapsed. | Saved literal answers, whole-request review and read-only accepted inspection; approval grants no execution. Assistance and independent-comprehension/keyboard limits remain recorded. | Current written procedure is official interim 1.4.0 guidance. Keep 1.3.0 procedures, decks and captures versioned; new deck rendering is deferred. |
+| Session continuity | Changed: [same-view restoration and deliberate reopening](tutorials-next-release-candidate.md#session-continuity-what-survives-reload-and-reopening), current client checks and retained applicable observations. | Saved answers persist; unsaved typing does not. Storage, navigation, exclusive ownership and fresh checkpoints bound restoration; stale/unconfirmed replies are not replayed. Broader native ownership/AT observations remain open. | Same written interim; retain old screenshots with original source attribution. |
+| Specification workflow | Unchanged but reviewed: [historical CLI procedure](tutorials-1.3.0.md#specification-workflow-preview-and-acceptance) and retained corrected-wheel replay cited in the candidate topic record. | Plan accepted, `calc.py` unchanged, no build state. Carry original replay provenance where CLI inputs/behavior remain unchanged. | Preserve historical canonical bytes and decks; avoid relabeling GUI imagery. |
+| Four workflows / research | Unchanged but reviewed: [retrieval/verification procedure](tutorials-1.3.0.md#four-workflows-research-a-question) and retained corrected-wheel replay. | Two retained source hashes, one verified link and `semantic_ran: false`; no policy-truth or model-output-quality claim. | Preserve historical instructions and sample limits. |
+| Consultation | Changed: [current consultation guide](model-consultation.md), selected merged concurrency/partial/refused-turn recovery and current source/installed qualification. | JSON remains default; setup/inspection is separate from dispatch. Eligible explicit retry preserves history; unknown effects block blind retry. Offline checks do not authenticate a live model or qualify live model quality. | Keep earlier instructions/version labels; separate Help projection remains deferred. |
+
+The retained Help snapshot and canonical 1.3.0 tutorial match at SHA-256
+`a31a785ce28a5b035cc202e06959f2832048f235e0724f753fd84f50102a2d97`.
+Keep its original provenance and all eight historical deck files / 39 slides.
+The approved written guide introduces no new embedded 1.4.0 screenshots;
+new visual derivatives are deferred with the deck/Help work. Do not mark older
+visual tasks passed or infer new screenshots, accessibility or comprehension
+acceptance from a native confirmation. A Help website deployment is not itself
+a package-upload prerequisite under this explicit written-interim disposition.
+
+Exact-main Documentation links passed. All 19 README GitHub blob target paths
+exist in their released 1.3.0 tree or selected 1.4.0 source. The added written-guide
+target and local anchors are checked with this documentation correction.
+The versioned `v1.4.0` links remain prospective until the separately authorized
+tag/release step in the [release runbook](release-runbook.md#steps).
+
+### Open observations and publication boundary
+
+S3 still needs real fresh-session recall/provenance/exclusion observations;
+S6 still needs the qualifying named non-programmer installed walkthrough;
+S9 still needs installed stable-artifact migration-row observations.
+The scope decision defers those observations; it does not close them or turn
+software checks or Patrick's assisted forms practice into their acceptance.
+Full M2/M3/M4, browser execution, migration parity and general AI-accuracy claims
+remain outside this release's claim. Existing working environments and hooks
+remain subject to their separate migration/deprecation decisions.
+
+The remaining package gate is qualification and build verification for the
+actual documentation successor, then explicit publication authority and
+Patrick's queued deployment approval. No successor build dispatch, upload,
+tag, GitHub Release, marketplace or website action is authorized by this record.
+Retain the predecessor archives and evidence unchanged.
+
+## Historical October 11 preparation record
+
+The following preparation pins, component observations and pending-status
+statements are retained as the earlier checkpoint. The dated addendum above
+supersedes their current qualification and release-scope status; it does not
+rewrite their source, archive or capture identities.
+
 **Not publication-ready.** The selected version is 1.4.0. Final shipping SHA,
 distribution hashes and publication date remain unset. This record implements
 the existing [documentation-readiness requirement](release-runbook.md#documentation-readiness);
