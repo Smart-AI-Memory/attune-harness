@@ -90,8 +90,9 @@ running. If you already see **Intent accepted**, go to step 8.
    To leave the request unapproved, choose **Keep as draft**.
 
 8. Verify the accepted request.
-   Reload the tab and expand **View accepted request**. Both answers should
-   remain visible, with no editable answer fields. This completes the practice.
+   Reload the tab and inspect **View accepted request**, which opens expanded.
+   If you have collapsed it, expand it again. Both answers should remain visible,
+   with no editable answer fields. This completes the practice.
 
 ### What comes next?
 
