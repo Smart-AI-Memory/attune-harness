@@ -42,6 +42,39 @@ You can also install the base package with
 `pipx install 'attune-harness==1.4.0'`, or use
 `pip install 'attune-harness==1.4.0'` in a dedicated virtual environment.
 
+## Select Python for module and fixture examples
+
+The `attune-harness` command uses the managed runtime. Commands such as
+`python -m attune_harness.gui` and source-checkout fixture scripts also need
+that runtime's interpreter; an unrelated `python` command may not contain
+Harness. Use the environment path shown beside `attune-harness` in
+`uv tool list --show-paths`.
+
+For a normal uv installation, select it on macOS or Linux:
+
+```sh
+harness_python="$(uv tool dir)/attune-harness/bin/python"
+"$harness_python" -c "import importlib.metadata; print(importlib.metadata.version('attune-harness'))"
+"$harness_python" -m attune_harness
+```
+
+On Windows, use PowerShell:
+
+```powershell
+$harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
+& $harnessPython -c "import importlib.metadata; print(importlib.metadata.version('attune-harness'))"
+& $harnessPython -m attune_harness
+```
+
+Expect version `1.4.0`, then a JSON receipt with status `verified` for the
+deterministic arithmetic example. If the listed environment is at a different
+path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
+Substitute that same interpreter for `python` in module and fixture commands
+in the linked guides; for example, use `"$harness_python" -m attune_harness.gui`
+on macOS/Linux. The GUI still requires an existing registered task and the
+documented launch options. Check the selected interpreter's version before
+running those examples; no shell activation is needed.
+
 ## Choose optional integrations when needed
 
 Select a profile when installing or deliberately updating your managed tool:
