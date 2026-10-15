@@ -4,6 +4,11 @@ October 15, 2026. This is T2's disposable experiment, not a production storage
 backend or a saved-store qualification. Production `memory_saved.py` and the
 existing Windows effects primitives stay unchanged.
 
+The current workflow performs source parsing, literal C# compilation and pure
+record/path validation only. Account and GUI execution are disabled. Earlier
+native observations and failed launch attempts remain evidence for their exact
+source versions; a green compile-only job does not pass T2/D3.
+
 The question is whether a standard-user process on fixed local NTFS can combine
 private objects, one persistent lock identity, file flushing, handle-relative
 replacement and a justified namespace-flush protocol equivalent to the existing
@@ -232,10 +237,52 @@ coverage at that head also settled green; those are their own existing claims.
 Patrick then explicitly approved the exact reviewed fixture SHA-256
 `8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73`
 and its automatic owned-resource cleanup for Server 2022/2025 with Python
-3.10/3.12. The ordinary PR-triggered workflow now invokes that unchanged fixture
+3.10/3.12. At `db1ee54`, the ordinary PR-triggered workflow invoked that unchanged fixture
 with a matching execution-time hash check. It still runs the original proof's
 actual-standard entry, preserving the approved account route. The additive
 namespace witness does not change that fixture or its scope. No manual dispatch,
 repository setting change, provider call or production storage is included.
 Read all four fixture reports for actual cleanup and native observations;
 parser/compiler success cannot stand in for them. T2/D3 and T5 remain gated.
+
+
+## Revised GUI source: compile-only qualification
+
+The approved account fixture failed before starting the proof in all four
+[server jobs at db1ee54](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38780029809).
+Each report records account disable/removal and credential disposal, with its
+owned root retained for runner teardown. These are launch and cleanup
+observations, with no server saved-storage evidence. The original fixture stays
+byte-identical at SHA-256
+`8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73`.
+The current workflow no longer invokes it or any native proof route.
+
+The additive [GUI proposal v3b2](../experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1)
+is source-review material. It isolates private GUI setup on a separate thread
+in a separate same-identity helper process, retains the helper source and its
+admitted ancestors, and compares the original controller GUI identity before
+and after. Its intended credential path and owned cleanup remain narrowly
+scoped; its native behavior has not run. The source includes the reviewed 0x81
+ancestor-access correction and case-sensitive exact-key validation. Publishing
+this disabled source grants no new account or credential retry authority.
+
+A hash-bound [safe checker](../experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1)
+parses the fixture and [helper](../experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1)
+as data, then compiles only their three reviewed literal C# blocks in memory.
+Separate fresh PowerShell processes run the actual extracted record validators
+and the pure static lexical path method. They never invoke fixture/helper
+constructors, native P/Invokes, GUI objects, account operations or another
+identity. The record suite expects 26 cases, including three ordinal-dictionary
+case-only mutations accepted by the old default comparison; the lexical suite
+expects 21 cases. These outcomes are unverified until the four native Windows
+CI reports are read. Python matrix labels identify the prepared runtime context;
+these checks do not exercise Python or the installed wheel.
+
+The workflow retains a scope report and per-phase JSON even when a check fails.
+Every report limits its claim to parsing/compilation or pure validation; T2/D3
+remains unpassed and production storage remains unauthorized. The original
+approved fixture, Python proof, namespace witness and historical receipts are
+unchanged. Receipt searches in both owning and coordinator checkouts found no
+text path/hash pin for these newly added sources or the workflow revision; a
+budget-key match was unrelated. Old results remain valid only for the source
+hashes and heads they record and do not qualify this revision.

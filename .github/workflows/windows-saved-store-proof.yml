@@ -1,13 +1,12 @@
 name: Saved-store Windows feasibility
 
-# This new experiment observes the approved T2 gate. No manual dispatch or
-# branch-specific trigger, and no modification to historical effects campaigns.
+# Source qualification only. Native/account/GUI execution stays disabled;
+# green checks here do not pass T2/D3 or authorize a production port.
 on:
   pull_request:
     paths:
-      - 'experiments/platform/windows_saved_store_proof.py'
-      - 'experiments/platform/check_windows_saved_store_proposal.ps1'
-      - 'experiments/platform/windows_saved_store_standard_user_proposal.ps1'
+      - 'experiments/platform/windows_saved_store*.py'
+      - 'experiments/platform/*windows_saved_store*.ps1'
       - 'tests/test_windows_saved_store_proof.py'
       - 'docs/design-windows-saved-store-proof.md'
       - 'src/attune_harness/windows_effects.py'
@@ -16,9 +15,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'experiments/platform/windows_saved_store_proof.py'
-      - 'experiments/platform/check_windows_saved_store_proposal.ps1'
-      - 'experiments/platform/windows_saved_store_standard_user_proposal.ps1'
+      - 'experiments/platform/windows_saved_store*.py'
+      - 'experiments/platform/*windows_saved_store*.ps1'
       - 'tests/test_windows_saved_store_proof.py'
       - 'docs/design-windows-saved-store-proof.md'
       - 'src/attune_harness/windows_effects.py'
@@ -33,17 +31,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  native-proof:
-    name: T2 NTFS / ${{ matrix.os }} / Python ${{ matrix.python }}
+  compile-only:
+    name: T2 source only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2022, windows-2025]
         python: ['3.10', '3.12']
-    env:
-      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -51,58 +47,79 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
-      - name: Create isolated installed-wheel environment
-        shell: pwsh
-        run: |
-          $proofVenv = Join-Path $env:RUNNER_TEMP 'saved-store-proof-venv'
-          python -m venv $proofVenv
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          (Resolve-Path "$proofVenv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Build and install the wheel without provider dependencies
-        shell: pwsh
-        run: |
-          python -m pip install 'build==1.3.0' 'setuptools>=77' 'pytest==9.1.1'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -m build --wheel
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $proofWheel = (Get-ChildItem dist/attune_harness-*.whl | Select-Object -First 1).FullName
-          python -m pip install --no-deps $proofWheel
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          @{ wheel = (Split-Path -Leaf $proofWheel); sha256 = (Get-FileHash $proofWheel -Algorithm SHA256).Hash.ToLower(); commit = $env:GITHUB_SHA; os = '${{ matrix.os }}'; python = '${{ matrix.python }}' } | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'saved-store-proof-build.json') -Encoding utf8
-      - name: Verify the evidence and claim guards
-        run: python -m pytest -q tests/test_windows_saved_store_proof.py
-      - name: Parse and compile the disabled standard-user fixture
+      - name: Record the source-only scope
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $compileReport = Join-Path $env:RUNNER_TEMP 'saved-store-proposal-parse-compile.json'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only'
+          $null = New-Item -ItemType Directory -Path $reports
+          [ordered]@{
+            status = 'compile_only_scope'; commit = $env:GITHUB_SHA
+            os = '${{ matrix.os }}'; python_context = '${{ matrix.python }}'
+            python_exercised = $false; wheel_qualified = $false
+            fixture_execution_authorized = $false; account_fixture_invoked = $false
+            helper_invoked = $false; native_methods_invoked = $false; gui_objects_created = $false
+            accounts_or_credentials_created = $false; production_port_allowed = $false
+            t2_d3_gate = 'unpassed'
+          } | ConvertTo-Json | Set-Content (Join-Path $reports 'scope.json') -Encoding utf8
+      - name: Parse and compile literal reviewed C# only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/parse-compile.json'
           try {
-            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_proposal.ps1).Path
-            $checker = (Resolve-Path experiments/platform/check_windows_saved_store_proposal.ps1).Path
-            $result = & $checker -Proposal $proposal -ExpectedSha256 '8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73'
-            $result | Set-Content $compileReport -Encoding utf8
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+            $checker = (Resolve-Path experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1).Path
+            if ((Get-FileHash $checker -Algorithm SHA256).Hash.ToLowerInvariant() -cne '8a2b20db5869ee6e78c1b47ef90ef98a39706bed7c3efed47bdf9083c3a8d446') { throw 'Checker source changed.' }
+            $result = & $checker -Proposal $proposal -ExpectedProposalSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' -GuiHelper $helper -ExpectedHelperSha256 'cf85ed8835e1bea8eee6d8bb86c2b6ce0eadd05c763f38bd2ff7f6f8be40e5fd' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'parse_and_compile_only_passed' -or $parsed.native_methods_invoked -cne $false -or $parsed.accounts_or_credentials_created -cne $false) { throw 'Unexpected compile-only result.' }
+            $result | Set-Content $report -Encoding utf8
           } catch {
-            @{ status = 'parse_or_compile_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; account_fixture_invoked = $false; fixture_execution_authorized = $false } | ConvertTo-Json | Set-Content $compileReport -Encoding utf8
+            @{ status = 'parse_or_compile_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
             throw
           }
-      - name: Observe native operations as a disposable standard user
+      - name: Check 26 pure record cases in a fresh process
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_proposal.ps1).Path
-          $actualHash = (Get-FileHash $fixture -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($actualHash -ne '8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73') { throw 'Approved fixture source changed.' }
-          $basePython = python -I -c "import sys; print(sys._base_executable)"
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $wheel = (Get-ChildItem dist/attune_harness-*.whl | Select-Object -First 1).FullName
-          & $fixture -ExecuteApprovedFixture -BasePython $basePython -Wheel $wheel -ProofScript (Resolve-Path experiments/platform/windows_saved_store_proof.py).Path -Output "$env:RUNNER_TEMP/saved-store-proof"
-      - name: Retain observations, including a blocked durability gate
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/record-validation.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+            $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1).Path
+            if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne '0db490c0fb4a44deec2b3488e8e3b9c102af50f08b67dc0f664b9b448dfc3254') { throw 'Record-test source changed.' }
+            $result = & $test -Proposal $proposal -ExpectedSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'pure_validation_passed' -or $parsed.count -ne 26 -or $parsed.case_only_negative_cases -ne 3 -or $parsed.legacy_default_comparison_accepts -ne 3 -or $parsed.native_invoked -cne $false) { throw 'Unexpected record-test result.' }
+            $result | Set-Content $report -Encoding utf8
+          } catch {
+            @{ status = 'pure_validation_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
+            throw
+          }
+      - name: Check 21 pure lexical paths in a fresh process
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/path-validation.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+            $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1).Path
+            if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'ec7f4a63d048d803d66811e4a537c76eb3a708de9b1638bfa3ab4baee7208f23') { throw 'Path-test source changed.' }
+            $result = & $test -Proposal $proposal -ExpectedSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'pure_path_syntax_passed' -or $parsed.count -ne 21 -or $parsed.native_methods_invoked -cne $false -or $parsed.handles_or_acl_or_launch_qualified -cne $false) { throw 'Unexpected path-test result.' }
+            $result | Set-Content $report -Encoding utf8
+          } catch {
+            @{ status = 'pure_path_syntax_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
+            throw
+          }
+      - name: Retain source qualification and the unpassed T2 gate
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: saved-store-proof-${{ matrix.os }}-${{ matrix.python }}
-          path: |
-            ${{ runner.temp }}/saved-store-proof/
-            ${{ runner.temp }}/saved-store-proof-build.json
-            ${{ runner.temp }}/saved-store-proposal-parse-compile.json
-          if-no-files-found: warn
+          name: saved-store-compile-only-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-compile-only/
+          if-no-files-found: error

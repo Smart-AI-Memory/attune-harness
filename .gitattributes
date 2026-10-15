@@ -12,3 +12,10 @@ experiments/platform/check_windows_saved_store_proposal.ps1 -text
 # Both T2 Python witnesses carry exact reviewed source digests across hosts.
 experiments/platform/windows_saved_store_proof.py -text
 experiments/platform/windows_saved_store_namespace_witness_v3.py -text
+
+# Additive GUI proposal sources are reviewed and checked by exact byte digest.
+experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1 -text
+experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1 -text
+experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1 -text
+experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1 -text
+experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1 -text
