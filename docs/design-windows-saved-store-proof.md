@@ -130,3 +130,66 @@ account per ephemeral job, launch its actual primary process and clean only
 recorded scratch resources. This is an account/credential route requiring
 Patrick's explicit approval. No proposal script is enabled or executed as part
 of preparing it. No production saved-storage work proceeds.
+
+
+## Existing-standard desktop observations and remaining semantic gate
+
+A retained dataset from the unchanged `c2aa750` proof on Windows 11 build 26200
+uses an actual non-elevated medium primary token. OS ARM64 runs AMD64 Python
+3.12.10 under emulation. The coordinator retained the dataset and the proof
+author independently read it, ran its receipt validator and checked its source
+hash. Fifty aggregate normal flush observations returned both status values
+zero. Eight distinct writers preserved nine history entries including the seed;
+eight identical IDs preserved two including the seed and seven replays. Five
+process-kill boundaries retained whole before/after images and same-ID retry.
+This is desktop primitive evidence; server standard-user observations remain
+absent, and no sudden-power-loss experiment occurred.
+
+The unchanged proof SHA-256 is
+`b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355`;
+the retained receipt is
+`5a96f4c615e97825c4a90f2772b77ef2baa083a3a11147abb95f7ba809c25ecd`;
+and its archive is
+`ba61b42290c4791d50c6026a0f557757f8fed621dee53ef254bc4ff75542e963`.
+These records remain unchanged. Later workflow/proposal revisions do not alter
+which source the historical observations exercised.
+
+Microsoft's [MS-FSA directory-flush algorithm](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsa/0de7dc40-9627-437e-a4df-c4696cdc3d02)
+requires stable persistent attributes, directory metadata/structure and physical
+storage flushing. Its [product behavior, footnote 80](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsa/4e3695bd-7574-4f24-a223-b4679c065b63)
+limits the directory-persistence behavior to NTFS; other file systems can return
+success without performing it. Mapping this SMB object-store algorithm to the
+local user-mode normal native directory flush is an explicit semantic inference
+for independent review, supported by the synchronous native flush and IRP
+metadata contracts. It is not an established production equivalence claim.
+
+A separate coverage gap remains: the proof creates its output/scratch ancestors
+with pathname mkdir and does not flush each new entry's parent. Its immediate
+store-parent flush cannot qualify durable publication of the entire new path.
+A production port must preserve the POSIX per-created-component barrier. Adding
+write-through options would be a new protocol requiring its own review and
+observations; the existing receipts do not exercise those options. T2 remains
+unpassed and every receipt retains production_port_allowed=false.
+
+## Disabled CI proposal and compilation-only evidence
+
+The PR now includes a separate disabled standard-account proposal and a checker
+that parses it as data and compiles only its literal C# into memory. The
+coordinator reviewed revision 2's exact source and its independent primary /
+teardown failure reports, whole-job-empty deadline, exact-SID cleanup gates,
+credential disposal and non-secret cleanup ledger. This is a source review;
+native parser/compiler evidence is still owed at this revision.
+
+The new workflow step invokes only the checker with a pinned proposal digest.
+It does not invoke the fixture's execution switch, a helper method, account or
+credential operations, GUI security objects, or another identity. It retains
+`saved-store-proposal-parse-compile.json` before the retired legacy proof route
+still reports blocked. Two narrow Git attributes preserve the reviewed PS1
+bytes on Windows. A parser/compiler success would establish syntax and C#
+compilation only; it cannot authorize or qualify the account fixture or T2.
+
+Receipt searches before this workflow revision found no retained path/hash pin
+for the new workflow or proposal sources. The two prior server startup failures
+remain valid observations of their original Git heads; they contain no storage
+evidence. No historical experiment or receipt is regenerated or rewritten.
+The account/credential route remains disabled pending Patrick's explicit OK.

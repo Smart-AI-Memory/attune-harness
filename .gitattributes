@@ -4,3 +4,7 @@ tests/fixtures/** -text
 docs/first-repair-1.3.0.md -text
 examples/starter/participants.json -text
 examples/starter/worker.py -text
+
+# The disabled T2 proposal is reviewed and compiled by exact source digest.
+experiments/platform/windows_saved_store_standard_user_proposal.ps1 -text
+experiments/platform/check_windows_saved_store_proposal.ps1 -text

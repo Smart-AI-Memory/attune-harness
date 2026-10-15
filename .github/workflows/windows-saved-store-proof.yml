@@ -6,18 +6,24 @@ on:
   pull_request:
     paths:
       - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/check_windows_saved_store_proposal.ps1'
+      - 'experiments/platform/windows_saved_store_standard_user_proposal.ps1'
       - 'tests/test_windows_saved_store_proof.py'
       - 'docs/design-windows-saved-store-proof.md'
       - 'src/attune_harness/windows_effects.py'
       - '.github/workflows/windows-saved-store-proof.yml'
+      - '.gitattributes'
   push:
     branches: [main]
     paths:
       - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/check_windows_saved_store_proposal.ps1'
+      - 'experiments/platform/windows_saved_store_standard_user_proposal.ps1'
       - 'tests/test_windows_saved_store_proof.py'
       - 'docs/design-windows-saved-store-proof.md'
       - 'src/attune_harness/windows_effects.py'
       - '.github/workflows/windows-saved-store-proof.yml'
+      - '.gitattributes'
 
 permissions:
   contents: read
@@ -65,6 +71,20 @@ jobs:
           @{ wheel = (Split-Path -Leaf $proofWheel); sha256 = (Get-FileHash $proofWheel -Algorithm SHA256).Hash.ToLower(); commit = $env:GITHUB_SHA; os = '${{ matrix.os }}'; python = '${{ matrix.python }}' } | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'saved-store-proof-build.json') -Encoding utf8
       - name: Verify the evidence and claim guards
         run: python -m pytest -q tests/test_windows_saved_store_proof.py
+      - name: Parse and compile the disabled standard-user fixture
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $compileReport = Join-Path $env:RUNNER_TEMP 'saved-store-proposal-parse-compile.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_proposal.ps1).Path
+            $checker = (Resolve-Path experiments/platform/check_windows_saved_store_proposal.ps1).Path
+            $result = & $checker -Proposal $proposal -ExpectedSha256 '8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73'
+            $result | Set-Content $compileReport -Encoding utf8
+          } catch {
+            @{ status = 'parse_or_compile_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; account_fixture_invoked = $false; fixture_execution_authorized = $false } | ConvertTo-Json | Set-Content $compileReport -Encoding utf8
+            throw
+          }
       - name: Observe native operations in a restricted standard-user child
         shell: pwsh
         run: |
@@ -78,4 +98,5 @@ jobs:
           path: |
             ${{ runner.temp }}/saved-store-proof/
             ${{ runner.temp }}/saved-store-proof-build.json
+            ${{ runner.temp }}/saved-store-proposal-parse-compile.json
           if-no-files-found: warn
