@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 from threading import RLock
 
+from .features import FeatureUnavailable
 from .recovery import UnresolvedOperation
 from .windows_effects import (
     FILE_ATTRIBUTE_REPARSE_POINT, Native, _identity, absolute_path, leaf, relative, require_platform,
@@ -141,6 +142,61 @@ def _remember_link(seen, identity, parent_identity, suffix):
     previous.append(suffix)
 
 
+_NAME_INFO_LIMIT = 4 + 65536  # DWORD plus a bounded UTF-16 volume-relative name.
+
+
+def _file_name_info(data):
+    """Decode one complete FILE_NAME_INFO result, using its byte count."""
+    if not 6 <= len(data) <= _NAME_INFO_LIMIT:
+        raise ValueError('Invalid volume-anchor name buffer')
+    count, = struct.unpack_from('<I', data)
+    if count < 2 or count % 2 or count > len(data) - 4:
+        raise ValueError('Invalid volume-anchor name length')
+    try:
+        name = data[4:4 + count].decode('utf-16-le')
+    except UnicodeError as error:
+        raise ValueError('Invalid volume-anchor name encoding') from error
+    if '\x00' in name:
+        raise ValueError('Invalid volume-anchor name')
+    return name
+
+
+def _require_volume_root(api, handle):
+    """Reject drive aliases to subdirectories before granting child authority."""
+    # Check the actual retained handle as well as Native.volume's path admission.
+    # https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getvolumeinformationbyhandlew
+    volume_info = api.k.GetVolumeInformationByHandleW
+    volume_info.argtypes = [api.w.HANDLE, api.w.LPWSTR, api.w.DWORD,
+                           ctypes.POINTER(api.w.DWORD), ctypes.POINTER(api.w.DWORD),
+                           ctypes.POINTER(api.w.DWORD), api.w.LPWSTR, api.w.DWORD]
+    volume_info.restype = api.w.BOOL
+    filesystem = ctypes.create_unicode_buffer(64)
+    api._check(volume_info(handle, None, 0, None, None, None, filesystem, len(filesystem)),
+               'GetVolumeInformationByHandleW')
+    if filesystem.value.upper() != 'NTFS':
+        raise FeatureUnavailable('Windows read roots require a retained local NTFS anchor')
+    # FILE_NAME_INFO has a DWORD byte count, not a NUL-terminated string.
+    # MS-FSA 2.1.5.12.19 returns the name relative to the physical volume root.
+    size = 520
+    while True:
+        data = ctypes.create_string_buffer(size)
+        if api.k.GetFileInformationByHandleEx(handle, 2, data, len(data)):
+            name = _file_name_info(data.raw)
+            break
+        error = ctypes.get_last_error()
+        if error != 234:  # ERROR_MORE_DATA is the documented filename retry.
+            raise OSError(error, 'GetFileInformationByHandleEx(FileNameInfo)')
+        count, = struct.unpack_from('<I', data.raw)
+        if count < 2 or count % 2 or count <= size - 4 or count > _NAME_INFO_LIMIT - 4:
+            raise ValueError('Invalid required volume-anchor name length')
+        following = min(_NAME_INFO_LIMIT, max(size * 2, count + 4))
+        if following <= size:
+            raise ValueError('Volume-anchor name exceeds its metadata bound')
+        size = following
+    if name != '\\':
+        raise FeatureUnavailable('Windows read roots require a physical volume-root anchor')
+
+
 class ReadRoot:
     """One admitted root and its retained ancestor bindings. Use open_read_root."""
 
@@ -150,6 +206,7 @@ class ReadRoot:
         self._bindings = []
         anchor = api.volume(path)
         current = stack.enter_context(api.owned(api.volume_handle(anchor)))
+        _require_volume_root(api, current)
         state = self._stat(current)
         for name in path.parts[1:]:
             child, child_state = self._named(current, name, directory=True)
@@ -532,6 +589,7 @@ class ReadRoot:
         api = self._api
         anchor = api.volume(path)
         parent = handles.enter_context(api.owned(api.volume_handle(anchor)))
+        _require_volume_root(api, parent)
         parts = path.parts[1:]
         current_path = Path(anchor)
         for at, name in enumerate(parts):

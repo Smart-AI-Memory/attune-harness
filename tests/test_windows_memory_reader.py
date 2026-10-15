@@ -4,6 +4,7 @@
 """
 
 from contextlib import contextmanager
+import ctypes
 import hashlib
 import json
 import os
@@ -412,3 +413,152 @@ def test_cycle_detection_distinguishes_consumed_suffix_from_reentry():
     windows_reads._remember_link(terminal, identity, parent, ())
     with pytest.raises(ValueError, match='cycle'):
         windows_reads._remember_link(terminal, identity, parent, ('growing',))
+
+
+@pytest.mark.parametrize('data', [
+    b'', struct.pack('<I', 0) + b'\x00\x00',
+    struct.pack('<I', 1) + b'\\\x00', struct.pack('<I', 4) + b'\\\x00',
+    struct.pack('<I', 2) + b'\x00\xd8', struct.pack('<I', 2) + b'\x00\x00',
+    struct.pack('<I', 2) + b'\\\x00' + bytes(windows_reads._NAME_INFO_LIMIT),
+])
+def test_volume_name_parser_refuses_malformed_byte_counts_encoding_and_metadata_bound(data):
+    with pytest.raises(ValueError, match='volume-anchor name'):
+        windows_reads._file_name_info(data)
+
+
+def test_volume_name_parser_uses_count_without_assuming_a_trailing_nul():
+    assert windows_reads._file_name_info(struct.pack('<I', 2) + b'\\\x00') == '\\'
+    encoded = '\\Owned α'.encode('utf-16-le')
+    assert windows_reads._file_name_info(struct.pack('<I', len(encoded)) + encoded + b'ignored') == '\\Owned α'
+
+
+@windows_only
+def test_actual_volume_root_is_distinct_from_an_owned_subdirectory_anchor(tmp_path):
+    api = native.Native()
+    anchor = api.volume(tmp_path)
+    with api.owned(api.volume_handle(anchor)) as physical_root:
+        windows_reads._require_volume_root(api, physical_root)
+    with api.owned(api.volume_handle(str(tmp_path))) as subdirectory:
+        with pytest.raises(FeatureUnavailable, match='physical volume-root anchor'):
+            windows_reads._require_volume_root(api, subdirectory)
+
+
+@windows_only
+def test_unsafe_anchor_control_reaches_redirected_sentinel_only_without_guard(tmp_path, monkeypatch):
+    # Real handles emulate an unsafe drive-anchor binding; no SUBST mapping is made.
+    supplied = tmp_path / 'source'
+    supplied.mkdir()
+    redirect = tmp_path / 'redirected-anchor'
+    sentinel = write(redirect.joinpath(*supplied.parts[1:]) / 'note.md', b'unsafe anchor sentinel')
+    original = native.Native.volume_handle
+    children, reads = [], []
+    original_child, original_read = native.Native.child, native.Native.read
+    def redirected(self, anchor):
+        return original(self, str(redirect))
+    def child(self, *args, **kwargs):
+        children.append(args[1])
+        return original_child(self, *args, **kwargs)
+    def read(self, *args, **kwargs):
+        reads.append(True)
+        return original_read(self, *args, **kwargs)
+    monkeypatch.setattr(native.Native, 'volume_handle', redirected)
+    monkeypatch.setattr(native.Native, 'child', child)
+    monkeypatch.setattr(native.Native, 'read', read)
+    with pytest.raises(FeatureUnavailable, match='physical volume-root anchor'):
+        with windows_reads.open_read_root(supplied):
+            pytest.fail('Unsafe anchor admitted')
+    assert children == [] and reads == []
+    # The one-guard-disabled control proves reachability, rather than merely
+    # testing an unrelated early failure or an unreachable sentinel spelling.
+    monkeypatch.setattr(windows_reads, '_require_volume_root', lambda *args: None)
+    with windows_reads.open_read_root(supplied) as root:
+        assert root.read('note.md', max_bytes=100).data == sentinel.read_bytes()
+    assert children and reads
+
+
+@windows_only
+def test_dangling_target_probe_also_refuses_an_unsafe_anchor_before_child_access(tmp_path, monkeypatch):
+    raw = tmp_path / 'raw'
+    raw.mkdir()
+    target = tmp_path / 'outside' / 'missing.jsonl'
+    redirect = tmp_path / 'redirected-target-anchor'
+    redirect.mkdir()
+    original = native.Native.volume_handle
+    original_child = native.Native.child
+    attempted_target_children = []
+    with windows_reads.open_read_root(raw) as root:
+        def redirected(self, anchor):
+            return original(self, str(redirect))
+        def forbidden_target_child(self, *args, **kwargs):
+            attempted_target_children.append(args[1])
+            pytest.fail('Unsafe target anchor received child authority')
+        # Call the target walker directly so ordinary source-root freshness
+        # checks do not obscure which retained anchor owns the refusal.
+        monkeypatch.setattr(native.Native, 'volume_handle', redirected)
+        monkeypatch.setattr(native.Native, 'child', forbidden_target_child)
+        from contextlib import ExitStack
+        with ExitStack() as handles:
+            with pytest.raises(FeatureUnavailable, match='physical volume-root anchor'):
+                root._target_absent(target, handles, [], {})
+        assert attempted_target_children == []
+        monkeypatch.setattr(native.Native, 'child', original_child)
+
+
+
+@windows_only
+def test_anchor_name_retry_is_bounded_and_forwards_the_actual_root_handle(tmp_path, monkeypatch):
+    api = native.Native()
+    original = api.k.GetFileInformationByHandleEx
+    sizes = []
+    def retry(handle, kind, data, size):
+        if kind == 2:
+            sizes.append(size)
+            if len(sizes) == 1:
+                struct.pack_into('<I', data, 0, 600)
+                ctypes.set_last_error(234)
+                return 0
+        return original(handle, kind, data, size)
+    monkeypatch.setattr(api.k, 'GetFileInformationByHandleEx', retry)
+    with api.owned(api.volume_handle(api.volume(tmp_path))) as handle:
+        windows_reads._require_volume_root(api, handle)
+    assert sizes == [520, 1040]
+
+
+@windows_only
+@pytest.mark.parametrize('required,error', [(0, 234), (3, 234), (516, 234), (65538, 234), (0, 5)])
+def test_anchor_refuses_inconsistent_retry_lengths_and_native_errors(tmp_path, monkeypatch, required, error):
+    api = native.Native()
+    original = api.k.GetFileInformationByHandleEx
+    calls = []
+    def refused(handle, kind, data, size):
+        if kind == 2:
+            calls.append(size)
+            struct.pack_into('<I', data, 0, required)
+            ctypes.set_last_error(error)
+            return 0
+        return original(handle, kind, data, size)
+    monkeypatch.setattr(api.k, 'GetFileInformationByHandleEx', refused)
+    with api.owned(api.volume_handle(api.volume(tmp_path))) as handle:
+        with pytest.raises(ValueError if error == 234 else OSError):
+            windows_reads._require_volume_root(api, handle)
+    assert calls == [520]
+
+
+@windows_only
+def test_anchor_repeated_name_growth_stops_at_the_metadata_ceiling(tmp_path, monkeypatch):
+    api = native.Native()
+    original = api.k.GetFileInformationByHandleEx
+    sizes = []
+    def growing(handle, kind, data, size):
+        if kind == 2:
+            sizes.append(size)
+            struct.pack_into('<I', data, 0, size)
+            ctypes.set_last_error(234)
+            return 0
+        return original(handle, kind, data, size)
+    monkeypatch.setattr(api.k, 'GetFileInformationByHandleEx', growing)
+    with api.owned(api.volume_handle(api.volume(tmp_path))) as handle:
+        with pytest.raises(ValueError, match='required volume-anchor name length'):
+            windows_reads._require_volume_root(api, handle)
+    assert sizes[0] == 520 and sizes[-1] == windows_reads._NAME_INFO_LIMIT
+    assert len(sizes) <= 9 and all(a < b for a, b in zip(sizes, sizes[1:]))

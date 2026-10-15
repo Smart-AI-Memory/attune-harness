@@ -21,7 +21,17 @@ with open_read_root(source_root) as root:
 The supplied root must be an absolute path below a fixed local NTFS drive
 anchor. The helper checks the supplied spelling without calling `resolve()`.
 It walks exact long names from the volume handle and retains every admitted
-ancestor. Relative names use `/`. Device and UNC paths, dot components, ADS
+ancestor. Before walking children, it verifies the retained anchor's NTFS
+filesystem and requires its volume-relative `FileNameInfo` name to be exactly
+`\`. A drive alias to a physical subdirectory refuses before granting child
+or content authority. The variable filename buffer has a fixed metadata ceiling;
+malformed, incomplete or unavailable information refuses. The raw dangling-target
+metadata walker applies the same anchor check. Tests distinguish actual physical
+root and subdirectory handles and emulate an unsafe anchor binding with real
+handles; they do not create or claim to reproduce a SUBST drive. See
+[GetVolumeInformationByHandleW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getvolumeinformationbyhandlew)
+and [FileNameInformation](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fsa/a64d92b8-038b-470b-ad53-dd2218516507).
+Relative names use `/`. Device and UNC paths, dot components, ADS
 syntax, reserved names, aliases, reparse points and multiply linked files refuse.
 Native metadata also checks stream and security evidence. Source handles request
 no write, create or delete access.
