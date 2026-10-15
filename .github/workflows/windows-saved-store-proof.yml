@@ -85,11 +85,17 @@ jobs:
             @{ status = 'parse_or_compile_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; account_fixture_invoked = $false; fixture_execution_authorized = $false } | ConvertTo-Json | Set-Content $compileReport -Encoding utf8
             throw
           }
-      - name: Observe native operations in a restricted standard-user child
+      - name: Observe native operations as a disposable standard user
         shell: pwsh
         run: |
-          python -I experiments/platform/windows_saved_store_proof.py --output "$env:RUNNER_TEMP/saved-store-proof"
-          exit $LASTEXITCODE
+          $ErrorActionPreference = 'Stop'
+          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_proposal.ps1).Path
+          $actualHash = (Get-FileHash $fixture -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actualHash -ne '8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73') { throw 'Approved fixture source changed.' }
+          $basePython = python -I -c "import sys; print(sys._base_executable)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $wheel = (Get-ChildItem dist/attune_harness-*.whl | Select-Object -First 1).FullName
+          & $fixture -ExecuteApprovedFixture -BasePython $basePython -Wheel $wheel -ProofScript (Resolve-Path experiments/platform/windows_saved_store_proof.py).Path -Output "$env:RUNNER_TEMP/saved-store-proof"
       - name: Retain observations, including a blocked durability gate
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

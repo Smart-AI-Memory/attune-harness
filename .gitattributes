@@ -8,3 +8,7 @@ examples/starter/worker.py -text
 # The disabled T2 proposal is reviewed and compiled by exact source digest.
 experiments/platform/windows_saved_store_standard_user_proposal.ps1 -text
 experiments/platform/check_windows_saved_store_proposal.ps1 -text
+
+# Both T2 Python witnesses carry exact reviewed source digests across hosts.
+experiments/platform/windows_saved_store_proof.py -text
+experiments/platform/windows_saved_store_namespace_witness_v3.py -text

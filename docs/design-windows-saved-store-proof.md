@@ -193,3 +193,49 @@ for the new workflow or proposal sources. The two prior server startup failures
 remain valid observations of their original Git heads; they contain no storage
 evidence. No historical experiment or receipt is regenerated or rewritten.
 The account/credential route remains disabled pending Patrick's explicit OK.
+
+
+## Reviewed namespace witness and explicitly approved fixture
+
+The additive [namespace witness v3](../experiments/platform/windows_saved_store_namespace_witness_v3.py)
+reuses exact c2aa750 helper bytes and adds three ordered native creation barriers:
+existing anchor to private output, output to private scratch, and scratch to
+private store. Each retains exact parent/child identities and normal native/I/O
+statuses. A new-path worker then invokes the original mutate helper twice.
+Its claim is limited to creation-chain and two sequential commits; it does not
+repeat the eight-writer or five-crash qualification. The supervisor and worker
+both bind the adapter/original hashes and installed runtime. Every refused flush
+stops the witness. The existing anchor is a precondition; no existing system/home
+ancestor is modified or newly qualified.
+
+The coordinator reviewed v3 source at SHA-256
+`5bc64a8b4b7c36f790bc15c64b1c9b159bf53f0f894b86a8071b62caf916615f`.
+Fourteen pure validator regressions pass, including consistently rewritten
+non-normal flush rows, missing/mismatched parent barriers, a mismatched aggregate
+and replayed commits. Eight of those cases expose the preserved v2 gap. The new
+source is published byte-identically for a separately retained desktop run;
+its native behavior has not run at this revision. Exact Git attributes preserve
+both Python proof sources across Windows checkout line-ending settings.
+
+Use an existing actual standard-primary token and a fresh absolute output leaf:
+
+```text
+python -I experiments/platform/windows_saved_store_namespace_witness_v3.py --original ABSOLUTE_ORIGINAL_PROOF --original-sha256 b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355 --expected-adapter-sha256 5bc64a8b4b7c36f790bc15c64b1c9b159bf53f0f894b86a8071b62caf916615f --output NEW_ABSOLUTE_LEAF
+```
+
+At head 39947dc, all four server jobs parsed the exact disabled PowerShell
+proposal and compiled its C# under PowerShell 7.6.6. Their JSON reports explicitly
+record no fixture/helper/account/credential/GUI-object/other-identity execution.
+This qualifies parsing/compilation only. Library qualification and supplemental
+coverage at that head also settled green; those are their own existing claims.
+
+Patrick then explicitly approved the exact reviewed fixture SHA-256
+`8afd6294139b8a8971e18a20b9002963988f8a279375003769acf6558b5fed73`
+and its automatic owned-resource cleanup for Server 2022/2025 with Python
+3.10/3.12. The ordinary PR-triggered workflow now invokes that unchanged fixture
+with a matching execution-time hash check. It still runs the original proof's
+actual-standard entry, preserving the approved account route. The additive
+namespace witness does not change that fixture or its scope. No manual dispatch,
+repository setting change, provider call or production storage is included.
+Read all four fixture reports for actual cleanup and native observations;
+parser/compiler success cannot stand in for them. T2/D3 and T5 remain gated.
