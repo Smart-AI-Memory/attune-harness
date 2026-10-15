@@ -26,3 +26,6 @@ experiments/platform/windows_saved_store_namespace_witness_v4.py -text
 
 # The T2 native-module source pin compares canonical Git bytes on every host.
 src/attune_harness/windows_effects.py -text
+
+# The zero-account startup diagnostic is also checked by exact source digest.
+experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1 -text

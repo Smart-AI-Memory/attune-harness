@@ -1,7 +1,7 @@
 name: Saved-store Windows feasibility
 
-# Source qualification only. Native/account/GUI execution stays disabled;
-# green checks here do not pass T2/D3 or authorize a production port.
+# Compile/pure qualification plus a zero-account, no-GUI startup diagnostic.
+# Storage/helper GUI construction stays disabled; no green check passes T2/D3.
 on:
   pull_request:
     paths:
@@ -122,4 +122,40 @@ jobs:
         with:
           name: saved-store-compile-only-${{ matrix.os }}-${{ matrix.python }}
           path: ${{ runner.temp }}/saved-store-compile-only/
+          if-no-files-found: error
+
+  startup-diagnostic:
+    name: T2 zero-account startup / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prove failed-child capture, then observe the exact helper preamble
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-startup-diagnostic'
+          $null = New-Item -ItemType Directory -Path $reports
+          try {
+            $script = (Resolve-Path experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1).Path
+            if ((Get-FileHash -LiteralPath $script -Algorithm SHA256).Hash.ToLowerInvariant() -cne '912160dfffc8fda5cf7933a68240053c7600993a3c86ed380ade3c74e940231c') { throw 'Startup diagnostic source changed.' }
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+            & $script -Helper $helper -Output (Join-Path $reports 'controller-private')
+          } catch {
+            @{ status = 'startup_diagnostic_failed'; error_type = $_.Exception.GetType().FullName; accounts_or_credentials_created = $false; gui_objects_created = $false; storage_witness_invoked = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content (Join-Path $reports 'controller-failure.json') -Encoding utf8
+            throw
+          }
+      - name: Retain typed startup outcomes and the unpassed T2 gate
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-startup-diagnostic-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-startup-diagnostic/
           if-no-files-found: error

@@ -32,6 +32,8 @@ concurrency:
 
 jobs:
   observations:
+    # The single account event is exhausted. No account retry is authorized.
+    if: ${{ false }}
     name: T2 observations only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
