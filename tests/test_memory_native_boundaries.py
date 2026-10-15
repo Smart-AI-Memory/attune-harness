@@ -6,6 +6,8 @@ The process seam is injected; these tests do not qualify the SDK or a live model
 import base64
 from copy import deepcopy
 import hashlib
+import os
+from types import SimpleNamespace
 
 import pytest
 
@@ -129,10 +131,13 @@ def test_completed_reply_is_replayable_and_child_gets_only_explicit_environment(
     assert len(calls) == 1
     argv, packet, options = calls[0]
     assert argv[1:4] == ('-I', '-B', '-c')
-    assert options['environment'] == {
+    expected_environment = {
         'ANTHROPIC_API_KEY': 'offline-test-key', 'LANG': 'C.UTF-8', 'LC_ALL': 'C',
         'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1',
     }
+    if os.name == 'nt':
+        expected_environment['SystemRoot'] = os.environ['SystemRoot']
+    assert options['environment'] == expected_environment
     assert options['timeout'] == 15
     assert options['max_output_bytes'] == 4 * ((2048 + 2) // 3) + 262144
     assert options['capture_interrupt'] is True
@@ -172,7 +177,6 @@ def test_bad_helper_reply_retains_outer_evidence_without_retry(
     assert raised.value.evidence['stdout'] == stdout
 
 
-@pytest.mark.skipif(native.os.name != 'posix', reason='Native preflight is POSIX-only')
 @pytest.mark.parametrize('name', native.DENIED_ENVIRONMENT)
 def test_ambient_provider_override_is_refused_before_dispatch(
     monkeypatch, config, isolated_native, name,
@@ -204,3 +208,24 @@ def test_saved_completion_cannot_change_its_projection(
         evidence['returncode'] = 1
     with pytest.raises(ValueError):
         native.validate_evidence(evidence, body)
+
+
+@pytest.mark.parametrize('roots', [[], [''], ['relative'], ['missing'], ['valid', 'valid'], ['nul']])
+def test_windows_system_root_refuses_invalid_or_ambiguous_host_environment(monkeypatch, tmp_path, roots):
+    values = {'valid': str(tmp_path), 'missing': str(tmp_path / 'absent'),
+              'relative': 'relative', 'nul': 'bad\x00root', '': ''}
+    environment = {('SystemRoot' if index == 0 else 'SYSTEMROOT'): values[value]
+                   for index, value in enumerate(roots)}
+    monkeypatch.setattr(native, 'os', SimpleNamespace(name='nt', environ=environment))
+    with pytest.raises(FeatureUnavailable, match='one absolute host SystemRoot directory'):
+        native._helper_environment('synthetic-key')
+
+
+def test_windows_environment_adds_only_validated_host_root(monkeypatch, tmp_path):
+    environment = {'sYsTeMrOoT': str(tmp_path), 'PATH': 'ambient', 'HTTPS_PROXY': 'ambient',
+                   'ANTHROPIC_AUTH_TOKEN': 'ambient', 'UNRELATED_SECRET': 'ambient'}
+    monkeypatch.setattr(native, 'os', SimpleNamespace(name='nt', environ=environment))
+    assert native._helper_environment('synthetic-key') == {
+        'ANTHROPIC_API_KEY': 'synthetic-key', 'LANG': 'C.UTF-8', 'LC_ALL': 'C',
+        'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1', 'SystemRoot': str(tmp_path),
+    }

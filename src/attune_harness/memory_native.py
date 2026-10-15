@@ -379,19 +379,26 @@ def _helper_argv() -> tuple[str, ...]:
 
 
 def _helper_environment(api_key: str) -> dict[str, str]:
-    return {
+    environment = {
         "ANTHROPIC_API_KEY": api_key,
         "LANG": "C.UTF-8",
         "LC_ALL": "C",
         "PYTHONDONTWRITEBYTECODE": "1",
         "PYTHONNOUSERSITE": "1",
     }
+    if os.name == "nt":
+        roots = [value for name, value in os.environ.items() if name.casefold() == "systemroot"]
+        if (len(roots) != 1 or not roots[0] or "\x00" in roots[0]
+                or not Path(roots[0]).is_absolute() or not Path(roots[0]).is_dir()):
+            raise FeatureUnavailable("Native memory requires one absolute host SystemRoot directory")
+        environment["SystemRoot"] = roots[0]
+    return environment
 
 
-def helper_main() -> int:
+def helper_main(*, inner_transport=None) -> int:
     """Data-only child: stream one bounded provider response and emit its receipt."""
     try:
-        packet = parse_json(sys.stdin.read(), REQUEST_LIMIT)
+        packet = parse_json(sys.stdin.buffer.read(REQUEST_LIMIT + 1).decode("utf-8"), REQUEST_LIMIT)
         fields(packet, ("schema_version", "body", "phase_timeout_seconds", "response_byte_limit",
                         "runtime"))
         versioned(packet)
@@ -405,6 +412,7 @@ def helper_main() -> int:
             api_key=key,
             phase_timeout_seconds=packet["phase_timeout_seconds"],
             response_byte_limit=packet["response_byte_limit"],
+            inner_transport=inner_transport,
         )
     except Exception as error:
         receipt = {
@@ -418,7 +426,8 @@ def helper_main() -> int:
             "http_status": None,
             "request_id": None,
         }
-    print(canonical(receipt))
+    sys.stdout.buffer.write((canonical(receipt) + "\n").encode("utf-8"))
+    sys.stdout.buffer.flush()
     return 0
 
 
@@ -445,14 +454,15 @@ class NativeParticipant:
         }
 
     def preflight(self, envelope: dict, policy: dict) -> None:
-        if os.name != "posix":
-            raise FeatureUnavailable("Native memory explicit-environment profile is POSIX-only")
+        if os.name not in ("posix", "nt"):
+            raise FeatureUnavailable("Native memory requires POSIX or Windows process supervision")
         present = [name for name in DENIED_ENVIRONMENT if os.environ.get(name)]
         if present:
             raise FeatureUnavailable("Native memory refuses ambient provider/header overrides")
         key = os.environ.get("ANTHROPIC_API_KEY")
         if not isinstance(key, str) or not key or len(key) > 4096:
             raise FeatureUnavailable("Native memory requires ANTHROPIC_API_KEY")
+        _helper_environment(key)
         if set(self.config["profiles"]) != set(envelope["access"]["profiles"]):
             raise ValueError("Native profile map differs from accepted exposure profiles")
         if not {policy["routine_profile"], policy["stronger_profile"]} <= set(self.config["profiles"]):

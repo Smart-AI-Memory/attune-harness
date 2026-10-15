@@ -55,7 +55,7 @@ voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==
 memory-native = ["anthropic==1.6.0", "httpx2==2.13.0"]
 redis = ["redis==5.3.1"]
 # Every qualified extra in one word. Self-referential, so the pins live in one
-# place; memory-native stays out because it is experimental and POSIX-only.
+# place; memory-native stays out because it is experimental.
 all = ["attune-harness[redis,voyage]"]
 
 [project.scripts]

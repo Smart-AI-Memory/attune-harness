@@ -1,0 +1,69 @@
+name: Native memory offline SDK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  native-memory-offline:
+    name: Native memory offline / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+        include:
+          - os: ubuntu-latest
+            python: '3.10'
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      HARNESS_REQUIRE_NATIVE_SDK: '1'
+      HARNESS_NATIVE_MEMORY_OUTPUT: ${{ github.workspace }}/native-memory-offline/children
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Create isolated Windows Python environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $nativeMemoryVenv = Join-Path $env:RUNNER_TEMP 'attune-native-memory-venv'
+          python -m venv $nativeMemoryVenv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$nativeMemoryVenv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build and install optional SDK wheel profile
+        shell: bash
+        run: |
+          python -m pip install "build==1.3.0" "setuptools>=77"
+          python -m build --wheel
+          python -c "import pathlib,subprocess,sys; w=next(pathlib.Path('dist').glob('attune_harness-*.whl')); subprocess.run([sys.executable,'-m','pip','install','-c','requirements-workflow.lock','-c','requirements-mcp.lock','-c','requirements-tokens.lock','-c','requirements-voyage.lock','-c','requirements-redis.lock','pytest==9.1.1','attune-harness[memory-native] @ '+w.resolve().as_uri()],check=True)"
+          python -m pip check
+      - name: Verify installed wheel and retain runtime identity
+        shell: bash
+        run: |
+          python -I -c "import hashlib,json,pathlib,platform,runpy; check=runpy.run_path('scripts/qualify_platform.py'); source=check['installed_source'](); from attune_harness.memory_native import runtime_identity; out=pathlib.Path('native-memory-offline'); out.mkdir(); (out/'runtime.json').write_text(json.dumps({'installed_source':str(source),'system':platform.system(),'machine':platform.machine(),'runtime':runtime_identity(),'memory_native_sha256':hashlib.sha256((source/'memory_native.py').read_bytes()).hexdigest()},sort_keys=True,indent=2)+'\n',encoding='utf-8')"
+      - name: Exercise real supervised child and pinned SDK without external networking
+        run: python -I -m pytest -vv -o pythonpath= -p no:cacheprovider --junitxml=native-memory-offline/tests.xml tests/test_memory_native_sdk.py tests/test_memory_native_boundaries.py
+      - name: Require complete offline child witnesses
+        shell: bash
+        run: |
+          python -I -c "import json,pathlib,xml.etree.ElementTree as E; out=pathlib.Path('native-memory-offline'); suites=E.parse(out/'tests.xml').getroot().findall('testsuite'); assert suites and all(int(s.get(k,'0'))==0 for s in suites for k in ('failures','errors','skipped')); witnesses=[json.loads(p.read_bytes()) for p in (out/'children').glob('*.json')]; assert len(witnesses)>=7; assert sum(w['offline_sdk_requests'] for w in witnesses)>0; assert all(w['external_network_attempts']==w['live_provider_model_calls']==0 and len(w['network_guard_checks'])==4 for w in witnesses); (out/'summary.json').write_text(json.dumps({'status':'offline_software_checks_passed','child_witnesses':len(witnesses),'offline_sdk_requests':sum(w['offline_sdk_requests'] for w in witnesses),'live_provider_model_calls':0,'external_network_attempts':0,'live_model_quality':'not_qualified'},sort_keys=True,indent=2)+'\n',encoding='utf-8')"
+      - name: Keep offline SDK evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-memory-offline-${{ matrix.os }}-${{ matrix.python }}
+          path: native-memory-offline/
+          if-no-files-found: error

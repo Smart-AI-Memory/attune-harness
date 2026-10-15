@@ -1,0 +1,112 @@
+"""Trusted test wrapper: real SDK, in-memory HTTP only, no production switch."""
+
+import base64
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import time
+
+
+def main(options):
+    entry_keys = sorted(os.environ)
+    entry_values = {k: os.environ.get(k) for k in options['expected_environment']}
+    # Install before importing the SDK. Both Python socket entry points and the
+    # socket audit events fail closed; the synthetic responder needs neither.
+    attempts = []
+
+    def blocked(*args, **kwargs):
+        attempts.append('socket')
+        raise PermissionError('Offline native fixture forbids external networking')
+
+    def audit(event, args):
+        if event in ('socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname'):
+            blocked()
+
+    sys.addaudithook(audit)
+    socket.socket.connect = blocked
+    socket.socket.connect_ex = blocked
+    socket.create_connection = blocked
+    socket.getaddrinfo = blocked
+    socket.gethostbyname = blocked
+    socket.gethostbyname_ex = blocked
+    checks = []
+    for name, probe in (
+        ('connect', lambda: socket.socket().connect(('192.0.2.1', 443))),
+        ('connect_ex', lambda: socket.socket().connect_ex(('192.0.2.1', 443))),
+        ('create_connection', lambda: socket.create_connection(('192.0.2.1', 443))),
+        ('dns', lambda: socket.getaddrinfo('offline.invalid', 443)),
+    ):
+        try:
+            probe()
+        except PermissionError:
+            checks.append(name)
+        else:
+            raise AssertionError('External network guard did not refuse ' + name)
+    attempts.clear()
+
+    import httpx2
+    from attune_harness import memory_native as native
+
+    observed = {
+        'schema_version': 1, 'runtime': native.runtime_identity(),
+        'environment_keys': entry_keys,
+        # Never serialize unknown ambient values if an inheritance regression
+        # occurs. The parent checks the full key set and every expected value.
+        'environment_values': entry_values,
+        'sdk_import_environment_keys': sorted(os.environ),
+        'network_guard_checks': checks, 'external_network_attempts': 0,
+        'offline_sdk_requests': 0, 'live_provider_model_calls': 0,
+    }
+    path = Path(options['receipt'])
+
+    def retain():
+        observed['external_network_attempts'] = len(attempts)
+        path.write_bytes((json.dumps(observed, ensure_ascii=True, sort_keys=True) + '\n').encode('utf-8'))
+
+    retain()
+
+    class Responder(httpx2.BaseTransport):
+        def handle_request(self, request):
+            observed['offline_sdk_requests'] += 1
+            observed['dispatch_environment_keys'] = sorted(os.environ)
+            observed['dispatch_environment_values'] = {
+                k: os.environ.get(k) for k in options['expected_environment']}
+            observed['request'] = {
+                'method': request.method, 'url': str(request.url),
+                'body': json.loads(request.content.decode('utf-8')),
+                'headers': {k: v for k, v in request.headers.items() if k.lower() != 'x-api-key'},
+            }
+            retain()
+            if options.get('mode') == 'timeout':
+                # A real descendant must die with the supervised helper, even
+                # when it would otherwise outlive the provider timeout.
+                marker = options['descendant_marker']
+                gate = options['descendant_gate']
+                code = ('import time,pathlib\n'
+                        f'while not pathlib.Path({gate!r}).exists(): time.sleep(0.01)\n'
+                        'time.sleep(0.2)\n'
+                        f'pathlib.Path({marker!r}).write_bytes(b"escaped")')
+                subprocess.Popen([sys.executable, '-I', '-B', '-c', code])
+                observed['descendant_spawned'] = True
+                retain()
+                time.sleep(30)
+            class Stream(httpx2.SyncByteStream):
+                def __iter__(self):
+                    yield base64.b64decode(options['raw_base64'])
+
+            return httpx2.Response(
+                options.get('status', 200), request=request,
+                headers={'content-type': 'application/json', 'request-id': 'req_offline'},
+                stream=Stream(),
+            )
+
+    # A locale/text wrapper must not control protocol decoding or newline bytes.
+    sys.stdin.reconfigure(encoding='ascii', errors='strict')
+    sys.stdout.reconfigure(encoding='ascii', errors='strict', newline='\r\n')
+    try:
+        return native.helper_main(inner_transport=Responder())
+    finally:
+        retain()
