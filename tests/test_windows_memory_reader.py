@@ -355,7 +355,7 @@ def test_markdown_named_directory_refuses_as_in_the_frozen_reader(tmp_path):
 
 
 @windows_only
-@pytest.mark.parametrize('shape', ['chain', 'cycle', 'drive-root', 'junction'])
+@pytest.mark.parametrize('shape', ['chain', 'cycle', 'growing-cycle', 'repeated-directory', 'drive-root', 'junction'])
 def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, monkeypatch, shape):
     root = tmp_path / 'raw'
     root.mkdir()
@@ -367,8 +367,14 @@ def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, 
         target = root / 'next.jsonl'
         if shape == 'drive-root':
             target = Path(root.anchor)
-        (root / 'findings.jsonl').symlink_to(target)
-        if shape == 'chain':
+        if shape == 'repeated-directory':
+            (root / 'again').symlink_to('.', target_is_directory=True)
+            (root / 'findings.jsonl').symlink_to('again/again/missing.jsonl')
+        else:
+            (root / 'findings.jsonl').symlink_to(target)
+        if shape == 'growing-cycle':
+            target.symlink_to('next.jsonl/more', target_is_directory=True)
+        elif shape == 'chain':
             target.symlink_to('../absent.jsonl')
         elif shape == 'cycle':
             target.symlink_to('findings.jsonl')
@@ -376,7 +382,7 @@ def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, 
         pytest.fail('An absence probe requested source or target content')
     monkeypatch.setattr(native.Native, 'read', forbidden)
     packet = NativeReader(config_for(('r', root, 'raw', 'project-a'))).query('Aurora')
-    assert packet['status'] == ('empty' if shape == 'chain' else 'unavailable'), packet
+    assert packet['status'] == ('empty' if shape in ('chain', 'repeated-directory') else 'unavailable'), packet
 
 
 @pytest.mark.skipif(os.name != 'posix', reason='Exact legacy POSIX digest oracle')
@@ -390,3 +396,19 @@ def test_posix_capture_digest_retains_the_legacy_fields(tmp_path):
                        'inode':before.st_ino, 'mtime_ns':before.st_mtime_ns,
                        'ctime_ns':before.st_ctime_ns, 'size':before.st_size})
     assert version == expected and mtime_ns == before.st_mtime_ns
+
+
+
+def test_cycle_detection_distinguishes_consumed_suffix_from_reentry():
+    identity, parent = {'volume':1, 'file_id':'link'}, {'volume':1, 'file_id':'parent'}
+    seen = {}
+    windows_reads._remember_link(seen, identity, parent, ('again', 'missing'))
+    windows_reads._remember_link(seen, identity, parent, ('missing',))
+    with pytest.raises(ValueError, match='cycle'):
+        windows_reads._remember_link(seen, identity, parent, ('more', 'missing'))
+    other_parent = {'volume':1, 'file_id':'other-parent'}
+    windows_reads._remember_link(seen, identity, other_parent, ('missing',))
+    terminal = {}
+    windows_reads._remember_link(terminal, identity, parent, ())
+    with pytest.raises(ValueError, match='cycle'):
+        windows_reads._remember_link(terminal, identity, parent, ('growing',))

@@ -126,6 +126,21 @@ def _symlink_target(source, data):
     return Path(target)
 
 
+def _remember_link(seen, identity, parent_identity, suffix):
+    # The same link may be visited finitely while a path suffix is consumed
+    # (dir-link/dir-link/missing, where dir-link points to '.'). A repeated
+    # identity alone is not a cycle. Re-entering its same parent context before
+    # consuming the prior suffix is a cycle, including a growing target prefix.
+    key = (identity['volume'], identity['file_id'],
+           parent_identity['volume'], parent_identity['file_id'])
+    suffix = tuple(suffix)
+    previous = seen.setdefault(key, [])
+    for tail in previous:
+        if len(suffix) >= len(tail) and (not tail or suffix[-len(tail):] == tail):
+            raise ValueError('Symbolic-link target cycle cannot prove absence')
+    previous.append(suffix)
+
+
 class ReadRoot:
     """One admitted root and its retained ancestor bindings. Use open_read_root."""
 
@@ -561,10 +576,7 @@ class ReadRoot:
             checks.append(binding)
             current_path = current_path / name
             if data is not None:
-                identity = (state[0]['volume'], state[0]['file_id'])
-                if identity in seen:
-                    raise ValueError('Symbolic-link target cycle cannot prove absence')
-                seen.add(identity)
+                _remember_link(seen, state[0], parent_state.entry['identity'], parts[at + 1:])
                 target = _symlink_target(current_path, data)
                 if at < len(parts) - 1:
                     target = target.joinpath(*parts[at + 1:])
@@ -615,13 +627,11 @@ class ReadRoot:
             state = self._probe_state(child)
             if not state[2] & FILE_ATTRIBUTE_REPARSE_POINT:
                 return self.read(name, max_bytes=max_bytes)
-            if state[4] != 1:
-                raise ValueError('Multiply linked symbolic link cannot prove absence')
             data = self._reparse_data(child)
             target = _symlink_target(self._path / name, data)
-            checks = []
-            identity = (state[0]['volume'], state[0]['file_id'])
-            absent = self._target_absent(target, handles, checks, {identity})
+            checks, seen = [], {}
+            _remember_link(seen, state[0], parent_state.entry['identity'], ())
+            absent = self._target_absent(target, handles, checks, seen)
             for check in reversed(checks):
                 check()
             if (self._probe_state(child) != state or self._reparse_data(child) != data
