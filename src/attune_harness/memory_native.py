@@ -8,6 +8,7 @@ from copy import deepcopy
 import hashlib
 import importlib.metadata
 import math
+import ntpath
 import os
 from pathlib import Path
 import sys
@@ -387,6 +388,44 @@ def _helper_argv() -> tuple[str, ...]:
     return (str(Path(sys.executable).absolute()), "-I", "-B", "-c", code)
 
 
+def _canonical_windows_root(value: str) -> str:
+    failure = "Native memory requires a local SystemRoot matching the OS Windows directory"
+    if not isinstance(value, str) or not 1 <= len(value) <= 32767:
+        raise FeatureUnavailable(failure)
+    spelling = value.replace("/", "\\").rstrip("\\")
+    drive, tail = ntpath.splitdrive(spelling)
+    if (len(drive) != 2 or drive[0] not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            or drive[1] != ":" or not tail.startswith("\\")):
+        raise FeatureUnavailable(failure)
+    parts = tail[1:].split("\\")
+    if any(not part or part in (".", "..") or part.endswith((".", " "))
+           or any(ord(character) < 32 or character in '<>:"|?*' for character in part)
+           for part in parts):
+        raise FeatureUnavailable(failure)
+    return ntpath.normcase(spelling)
+
+
+def _system_windows_directory() -> str:
+    import ctypes
+    from ctypes import wintypes
+
+    try:
+        api = ctypes.WinDLL("kernel32", use_last_error=True)
+        operation = api.GetSystemWindowsDirectoryW
+        operation.argtypes = [wintypes.LPWSTR, wintypes.UINT]
+        operation.restype = wintypes.UINT
+        buffer = ctypes.create_unicode_buffer(32768)
+        length = operation(buffer, len(buffer))
+    except (AttributeError, OSError) as error:
+        raise FeatureUnavailable("Native memory could not query the OS Windows directory") from error
+    if type(length) is not int or not 0 < length < len(buffer):
+        raise FeatureUnavailable("Native memory received an invalid OS Windows directory length")
+    value = buffer.value
+    if len(value.encode("utf-16-le", errors="surrogatepass")) // 2 != length:
+        raise FeatureUnavailable("Native memory received an incomplete OS Windows directory")
+    return value
+
+
 def _helper_environment(api_key: str) -> dict[str, str]:
     environment = {
         "ANTHROPIC_API_KEY": api_key,
@@ -397,9 +436,13 @@ def _helper_environment(api_key: str) -> dict[str, str]:
     }
     if os.name == "nt":
         roots = [value for name, value in os.environ.items() if name.casefold() == "systemroot"]
-        if (len(roots) != 1 or not roots[0] or "\x00" in roots[0]
-                or not Path(roots[0]).is_absolute() or not Path(roots[0]).is_dir()):
-            raise FeatureUnavailable("Native memory requires one absolute host SystemRoot directory")
+        if len(roots) != 1:
+            raise FeatureUnavailable("Native memory requires exactly one host SystemRoot")
+        # Validate the host spelling before querying the OS. Never open/stat an
+        # arbitrary environment path, which could be a remote share.
+        host_root = _canonical_windows_root(roots[0])
+        if host_root != _canonical_windows_root(_system_windows_directory()):
+            raise FeatureUnavailable("Native memory SystemRoot differs from the OS Windows directory")
         environment["SystemRoot"] = roots[0]
     return environment
 
