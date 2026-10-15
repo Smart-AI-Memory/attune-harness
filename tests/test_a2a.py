@@ -1,6 +1,5 @@
 import copy
 import json
-import select
 import subprocess
 import sys
 from pathlib import Path
@@ -17,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.fixture
-def peer_factory(tmp_path):
+def peer_factory(tmp_path, read_process_line):
     processes = []
     def create(fault='none', hold=False, operations=None):
         folder = tmp_path / str(len(processes))
@@ -28,8 +27,7 @@ def peer_factory(tmp_path):
                                     '--log', str(log), '--fault', fault, *(['--hold'] if hold else [])],
                                    stdout=subprocess.PIPE, stderr=error, text=True)
         processes.append((process, error))
-        assert select.select([process.stdout], [], [], 5)[0], 'Peer did not start'
-        line = process.stdout.readline()
+        line = read_process_line(process)
         assert line, (folder / 'stderr.txt').read_text(encoding='utf-8')
         ready = json.loads(line)
         peer = LocalPeer(ready['endpoint'], ready['card_digest'], ready['card']['name'],

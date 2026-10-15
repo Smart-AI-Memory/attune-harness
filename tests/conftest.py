@@ -1,8 +1,24 @@
 """Fixtures shared across the test modules."""
 
 import itertools
+import queue
+import threading
 
 import pytest
+
+
+@pytest.fixture
+def read_process_line():
+    """Bound pipe readiness on Windows too, where select accepts sockets only."""
+    def read(process, timeout=5):
+        lines = queue.Queue()
+        thread = threading.Thread(target=lambda: lines.put(process.stdout.readline()), daemon=True)
+        thread.start()
+        try:
+            return lines.get(timeout=timeout)
+        except queue.Empty:
+            pytest.fail('Peer did not start within the readiness deadline')
+    return read
 
 
 @pytest.fixture

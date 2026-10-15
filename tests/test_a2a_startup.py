@@ -1,7 +1,6 @@
 """The independent numeric-loopback peer must not need a hostname resolver."""
 import json
 from pathlib import Path
-import select
 import subprocess
 import sys
 from urllib.request import urlopen
@@ -10,7 +9,7 @@ from urllib.request import urlopen
 PEER = Path(__file__).resolve().parents[1] / 'examples/a2a/peer.py'
 
 
-def test_peer_is_ready_and_serves_its_card_without_hostname_resolution(tmp_path):
+def test_peer_is_ready_and_serves_its_card_without_hostname_resolution(tmp_path, read_process_line):
     boot = (
         'import runpy, socket, sys\n'
         'def unavailable(*args, **kwargs):\n'
@@ -23,8 +22,7 @@ def test_peer_is_ready_and_serves_its_card_without_hostname_resolution(tmp_path)
                                 str(tmp_path / 'peer.json')],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
-        assert select.select([process.stdout], [], [], 5)[0], 'Peer did not start'
-        line = process.stdout.readline()
+        line = read_process_line(process)
         assert line, process.stderr.read()
         ready = json.loads(line)
         assert ready['endpoint'].startswith('http://127.0.0.1:')
