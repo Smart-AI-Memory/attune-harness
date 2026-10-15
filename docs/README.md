@@ -84,6 +84,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [The standing brief for a different-model review](review-brief.md): What the reviewing agent is told before every `src/` change merges
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
+- [Windows read primitives](windows-read-primitives.md): Retained-handle reads, selected-file discovery, error contracts and consumer boundaries
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
 - [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path; D30, the host surface
