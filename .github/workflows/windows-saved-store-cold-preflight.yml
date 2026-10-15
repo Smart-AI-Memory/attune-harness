@@ -1,0 +1,93 @@
+name: Saved-store cold preflight only
+
+# Safe qualification only. No account fixture, GUI constructor or storage proof.
+on:
+  pull_request:
+    paths:
+      - 'experiments/platform/*windows_saved_store*'
+      - 'tests/test_windows_saved_store_merge_inputs.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-cold-preflight.yml'
+      - '.gitattributes'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/platform/*windows_saved_store*'
+      - 'tests/test_windows_saved_store_merge_inputs.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-cold-preflight.yml'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-cold-only-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cold-only:
+    name: T2 cold only / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Keep default PR merge checkout; do not select the stale head source.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verify merged public sources as data before any cold child
+        shell: pwsh
+        env:
+          T2_EVENT_NAME: ${{ github.event_name }}
+          T2_EVENT_SHA: ${{ github.sha }}
+          T2_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-cold-only'
+          $null = New-Item -ItemType Directory -Path $reports
+          try {
+            git -c core.autocrlf=false checkout-index --force -- src/attune_harness/windows_effects.py
+            if ($LASTEXITCODE -ne 0) { throw 'Native index materialization failed.' }
+            $checker = (Resolve-Path experiments/platform/check_windows_saved_store_merge_inputs_v1.py).Path
+            if ((Get-FileHash -LiteralPath $checker -Algorithm SHA256).Hash.ToLowerInvariant() -cne '91d373245ace997eca32725ceea73f2131ef3ac1f39f5194f423f4cf15351559') { throw 'Merge checker source changed.' }
+            python -I $checker --repo (Get-Location).Path --output (Join-Path $reports 'source-provenance.json')
+            if ($LASTEXITCODE -ne 0) { throw 'Merged source verification refused; inspect report.' }
+          } catch {
+            @{ status = 'source_preflight_refused'; failure_type = $_.Exception.GetType().FullName; account_fixture_invoked = $false; accounts_or_credentials_created = $false; gui_objects_created = $false; proof_invoked = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content (Join-Path $reports 'source-controller-failure.json') -Encoding utf8
+            throw
+          }
+      - name: Qualify seven cold controls without account or GUI execution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-cold-only'
+          try {
+            $cold = (Resolve-Path experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1).Path
+            if ((Get-FileHash -LiteralPath $cold -Algorithm SHA256).Hash.ToLowerInvariant() -cne '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885') { throw 'Cold control source changed.' }
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+            & $cold -Helper $helper -Output (Join-Path $reports 'controller-private')
+            $result = Get-Content -LiteralPath (Join-Path $reports 'controller-private/diagnostic.json') -Raw | ConvertFrom-Json
+            if ($result.status -cne 'cold_compile_completed' -or $result.cases.Count -ne 7 -or
+                $result.account_fixture_invoked -cne $false -or $result.accounts_or_credentials_created -cne $false -or
+                $result.gui_objects_created -cne $false -or $result.native_helper_constructed -cne $false -or
+                $result.storage_witness_invoked -cne $false -or $result.production_port_allowed -cne $false) { throw 'Cold controls did not establish the safe result.' }
+          } catch {
+            @{ status = 'cold_preflight_refused'; failure_type = $_.Exception.GetType().FullName; account_fixture_invoked = $false; accounts_or_credentials_created = $false; gui_objects_created = $false; proof_invoked = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content (Join-Path $reports 'cold-controller-failure.json') -Encoding utf8
+            throw
+          }
+      - name: Retain source provenance and raw cold controls
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-cold-only-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-cold-only/
+          if-no-files-found: error
