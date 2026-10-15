@@ -84,7 +84,10 @@ become absence. An internal confirmed-missing marker crosses to public
 metadata or enumeration becomes a safety `ValueError`. Nonfinal native operations
 become `ValueError`; ordinary native
 failures remain `OSError`, and unsupported platforms or volumes retain
-`FeatureUnavailable`.
+`FeatureUnavailable`. For a multi-name batch, `FileNotFoundError` refuses the
+whole batch at the first missing name; it does not identify a per-item absence
+or prove that later requests are eligible. Never treat that refusal as an
+optional sidecar being absent. Use `read()` or a single-name batch for that rule.
 
 The qualification-selected `tests/test_windows_reads.py` exercises actual NTFS
 handles on Windows. Its portable directory-parser fixtures test ABI-shaped
