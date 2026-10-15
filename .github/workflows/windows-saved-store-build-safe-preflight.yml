@@ -55,6 +55,8 @@ concurrency:
 
 jobs:
   safe-preflight:
+    # Retained failed LF-only wheel experiment; replacement has finite platform pairs.
+    if: ${{ false }}
     name: Safe build only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20

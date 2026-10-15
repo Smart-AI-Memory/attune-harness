@@ -1,0 +1,5 @@
+.gitattributes -text
+check_windows_saved_store_account_inputs_v3.py -text
+project_windows_saved_store_build_v2.py -text
+windows_saved_store_build_preflight_v2.ps1 -text
+windows_saved_store_source_manifest_v3.json -text
