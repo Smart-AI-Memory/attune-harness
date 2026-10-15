@@ -2,6 +2,7 @@
 
 import ctypes
 import errno
+import json
 import os
 from pathlib import Path
 import select
@@ -57,27 +58,31 @@ def _posix_identity(pid):
     raise AssertionError('No OS process identity witness for this platform')
 
 
-def process_reference(process, observer_pid):
-    """Capture while alive; Windows transfers the exact Popen process object."""
-    assert process.poll() is None
+def self_reference(observer_pid):
+    """The marker-producing interpreter identifies its own live OS process."""
+    pid = os.getpid()
     if os.name != 'nt':
-        birth, dead = _posix_identity(process.pid)
+        birth, dead = _posix_identity(pid)
         assert not dead
-        return dict(kind=sys.platform, pid=process.pid, birth=birth)
+        return dict(kind=sys.platform, pid=pid, birth=birth, live_at_capture=True)
     from ctypes import wintypes as w
     api = _windows()
+    current = api.GetCurrentProcess()
+    assert api.GetProcessId(current) == pid
+    assert api.WaitForSingleObject(current, 0) == 258
     target = api.OpenProcess(0x0040, False, observer_pid)  # PROCESS_DUP_HANDLE only.
     if not target:
         raise ctypes.WinError(ctypes.get_last_error())
     handle = w.HANDLE()
     try:
         # A non-inheritable, read/synchronize-only handle; never TERMINATE.
-        if not api.DuplicateHandle(api.GetCurrentProcess(), int(process._handle), target,
+        if not api.DuplicateHandle(current, current, target,
                                    ctypes.byref(handle), 0x101000, False, 0):
             raise ctypes.WinError(ctypes.get_last_error())
     finally:
         assert api.CloseHandle(target)
-    return dict(kind='windows-handle', pid=process.pid, handle=handle.value)
+    return dict(kind='windows-handle', pid=pid, handle=handle.value,
+                handle_owner_pid=observer_pid, live_at_capture=True)
 
 
 def wait_for_exit(reference, timeout):
@@ -85,6 +90,7 @@ def wait_for_exit(reference, timeout):
     if reference['kind'] == 'windows-handle':
         from ctypes import wintypes as w
         api = _windows()
+        assert reference['handle_owner_pid'] == os.getpid()
         handle = reference['handle']
         assert api.GetProcessId(handle) == reference['pid']
         state = api.WaitForSingleObject(handle, int(timeout * 1000))
@@ -92,7 +98,7 @@ def wait_for_exit(reference, timeout):
         code = w.DWORD()
         assert api.GetExitCodeProcess(handle, ctypes.byref(code))
         return dict(method='retained-process-handle', terminated=state == 0,
-                    exit_code=code.value, pid=reference['pid'])
+                    wait_result=state, exit_code=code.value, pid=reference['pid'])
     pid = reference['pid']
     deadline = time.monotonic() + timeout
     while True:
@@ -133,12 +139,33 @@ def wait_for_exit(reference, timeout):
 
 def close_reference(reference):
     if reference['kind'] == 'windows-handle':
+        assert reference['handle_owner_pid'] == os.getpid()
         assert _windows().CloseHandle(reference['handle'])
 
 
-def descendant_code(marker, gate, started):
-    return ('import time,pathlib\n'
-            f'pathlib.Path({str(started)!r}).write_bytes(b"started")\n'
+def read_started(path, observer_pid, timeout=2):
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            value = json.loads(Path(path).read_bytes())
+        except (FileNotFoundError, json.JSONDecodeError):
+            assert time.monotonic() < deadline, 'Interpreter published no complete started record'
+            time.sleep(0.01)
+            continue
+        reference = value['reference']
+        assert type(reference['pid']) is int and reference['pid'] > 0
+        assert value['marker_producer_pid'] == reference['pid']
+        assert reference['live_at_capture'] is True
+        if reference['kind'] == 'windows-handle':
+            assert reference['handle_owner_pid'] == observer_pid
+        return value
+
+
+def descendant_code(marker, gate, started, observer_pid):
+    return ('import time,pathlib,runpy,json,os\n'
+            f'tools=runpy.run_path({str(Path(__file__).resolve())!r})\n'
+            f'reference=tools["self_reference"]({observer_pid!r})\n'
+            f'pathlib.Path({str(started)!r}).write_bytes(json.dumps(dict(reference=reference,marker_producer_pid=os.getpid())).encode("utf-8"))\n'
             f'while not pathlib.Path({str(gate)!r}).exists(): time.sleep(0.01)\n'
             'time.sleep(0.2)\n'
-            f'pathlib.Path({str(marker)!r}).write_bytes(b"escaped")')
+            f'pathlib.Path({str(marker)!r}).write_bytes(b"escaped:"+str(os.getpid()).encode("ascii"))')

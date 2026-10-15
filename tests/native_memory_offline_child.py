@@ -147,17 +147,18 @@ def main(options):
                 started = options['descendant_started']
                 import runpy
                 tools = runpy.run_path(str(Path(__file__).with_name('native_memory_process_witness.py')))
-                code = tools['descendant_code'](marker, gate, started)
+                code = tools['descendant_code'](marker, gate, started, options['observer_pid'])
                 descendant = subprocess.Popen([sys.executable, '-I', '-B', '-c', code])
                 observed['descendant_spawned'] = True
-                deadline = time.monotonic() + 2
-                while not Path(started).is_file() and descendant.poll() is None and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                observed['descendant_pid'] = descendant.pid
-                observed['descendant_started'] = Path(started).read_bytes() == b'started'
-                observed['descendant_alive_before_timeout'] = descendant.poll() is None
+                captured = tools['read_started'](started, options['observer_pid'])
+                reference = captured['reference']
+                observed['descendant_launcher_pid'] = descendant.pid
+                observed['descendant_pid'] = reference['pid']
+                observed['descendant_marker_pid'] = captured['marker_producer_pid']
+                observed['descendant_started'] = True
+                observed['descendant_alive_before_timeout'] = reference['live_at_capture'] and descendant.poll() is None
                 assert observed['descendant_started'] and observed['descendant_alive_before_timeout']
-                observed['descendant_reference'] = tools['process_reference'](descendant, options['observer_pid'])
+                observed['descendant_reference'] = reference
                 retain()
                 time.sleep(30)
             class Stream(httpx2.SyncByteStream):

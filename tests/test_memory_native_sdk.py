@@ -25,7 +25,7 @@ from attune_harness.memory_worker import WorkerStore, run, validated_proposal
 from attune_harness.memory_context import MemoryHost
 from attune_harness.process import invoke
 from attune_harness.review_contract import canonical, digest, parse_json
-from native_memory_process_witness import close_reference, descendant_code, process_reference, wait_for_exit
+from native_memory_process_witness import close_reference, descendant_code, read_started, wait_for_exit
 from test_memory_native_boundaries import config, message  # noqa: F401
 from test_memory_worker import packet, proposal  # noqa: F401
 from test_memory_host_coverage import host  # noqa: F401
@@ -366,6 +366,7 @@ def test_supervised_sdk_timeout_kills_descendant(config, message, offline, tmp_p
     assert witness['offline_sdk_requests'] == 1 and witness['descendant_spawned'] is True
     assert witness['descendant_started'] is witness['descendant_alive_before_timeout'] is True
     assert witness['descendant_pid'] > 0
+    assert witness['descendant_reference']['pid'] == witness['descendant_marker_pid'] == witness['descendant_pid']
     (tmp_path / 'supervisor-returned').write_bytes(b'returned')
     assert offline.observe_exit()['terminated'] is True
     assert not (tmp_path / 'escaped').exists()
@@ -373,13 +374,16 @@ def test_supervised_sdk_timeout_kills_descendant(config, message, offline, tmp_p
 
 def test_process_exit_witness_refuses_a_live_delayed_descendant(tmp_path):
     marker, gate, started = [tmp_path / name for name in ('escaped', 'gate', 'started')]
-    code = descendant_code(marker, gate, started)
+    code = descendant_code(marker, gate, started, os.getpid())
     process = subprocess.Popen([sys.executable, '-I', '-B', '-c', code],
                                env=native._helper_environment('offline-native-test-key'))
     reference = None
     observations = {}
     try:
-        reference = process_reference(process, os.getpid())
+        captured = read_started(started, os.getpid())
+        reference = captured['reference']
+        observations['launcher_pid'] = process.pid
+        observations['marker_pid'] = captured['marker_producer_pid']
         observations['before_gate'] = wait_for_exit(reference, 0)
         assert observations['before_gate']['terminated'] is False
         assert not marker.exists()  # Absence alone would falsely qualify it.
@@ -387,7 +391,7 @@ def test_process_exit_witness_refuses_a_live_delayed_descendant(tmp_path):
         observations['after_gate'] = wait_for_exit(reference, 5)
         assert observations['after_gate']['terminated'] is True
         process.wait(timeout=5)
-        assert marker.read_bytes() == b'escaped'
+        assert marker.read_bytes() == b'escaped:' + str(reference['pid']).encode('ascii')
     finally:
         gate.write_bytes(b'returned')
         process.wait(timeout=5)
