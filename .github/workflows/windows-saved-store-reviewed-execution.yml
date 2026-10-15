@@ -1,14 +1,15 @@
 name: Saved-store reviewed standard-user observations
 
-# PRIVATE PROPOSAL ONLY. Publishing/enabling needs exact human approval.
+# PRIVATE ADDITIVE COLD-PREFLIGHT PROPOSAL. No publication/execution authority yet.
 # This workflow collects observations; it never passes T2/D3 or authorizes T5.
 on:
   pull_request:
     paths:
       - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
       - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
-      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1'
-      - 'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
       - 'experiments/platform/windows_saved_store_proof.py'
       - 'src/attune_harness/windows_effects.py'
       - '.github/workflows/windows-saved-store-reviewed-execution.yml'
@@ -17,8 +18,9 @@ on:
     paths:
       - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
       - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
-      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1'
-      - 'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
       - 'experiments/platform/windows_saved_store_proof.py'
       - 'src/attune_harness/windows_effects.py'
       - '.github/workflows/windows-saved-store-reviewed-execution.yml'
@@ -32,8 +34,8 @@ concurrency:
 
 jobs:
   observations:
-    # The single account event is exhausted. No account retry is authorized.
-    if: ${{ false }}
+    # PROPOSAL ONLY: exact separate approval must cover ONE event/four jobs.
+    # A failed cold preflight stops before the sole account execution step.
     name: T2 observations only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
@@ -58,8 +60,9 @@ jobs:
           git -c core.autocrlf=false checkout-index --force -- src/attune_harness/windows_effects.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $expected = [ordered]@{
-            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1' = '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5'
-            'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1' = 'cf85ed8835e1bea8eee6d8bb86c2b6ce0eadd05c763f38bd2ff7f6f8be40e5fd'
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1' = '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf'
+            'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1' = '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885'
             'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
             'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
             'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
@@ -69,6 +72,20 @@ jobs:
             if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expected[$path]) { throw ('Reviewed input changed: ' + $path) }
           }
           [ordered]@{ status = 'reviewed_inputs_matched'; commit = $env:GITHUB_SHA; sources = $expected; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json -Depth 4 | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-inputs.json" -Encoding utf8
+      - name: Prove cold helper compilation before any account creation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $preflight = (Resolve-Path experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+          & $preflight -Helper $helper -Output "$env:RUNNER_TEMP/saved-store-cold-preflight"
+          $report = Get-Content -LiteralPath "$env:RUNNER_TEMP/saved-store-cold-preflight/diagnostic.json" -Raw | ConvertFrom-Json
+          if ($report.status -cne 'cold_compile_completed' -or $report.cases.Count -ne 7 -or
+              $report.account_fixture_invoked -cne $false -or $report.accounts_or_credentials_created -cne $false -or
+              $report.gui_objects_created -cne $false -or $report.native_helper_constructed -cne $false -or
+              $report.storage_witness_invoked -cne $false -or $report.production_port_allowed -cne $false) {
+              throw 'Cold preflight did not establish all controls; refuse account fixture.'
+          }
       - name: Create a dedicated controller build environment
         shell: pwsh
         run: |
@@ -95,8 +112,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           # All code is unchanged/pinned above. This is the ONLY execution site.
-          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
-          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
           $driver = (Resolve-Path experiments/platform/windows_saved_store_combined_driver_v1.py).Path
           $basePython = python -I -c "import sys; print(sys._base_executable)"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -108,6 +125,7 @@ jobs:
         with:
           name: saved-store-reviewed-observations-${{ matrix.os }}-${{ matrix.python }}
           path: |
+            ${{ runner.temp }}/saved-store-cold-preflight/
             ${{ runner.temp }}/saved-store-reviewed-observations/
             ${{ runner.temp }}/saved-store-reviewed-inputs.json
             ${{ runner.temp }}/saved-store-reviewed-build.json

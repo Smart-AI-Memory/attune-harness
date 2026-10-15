@@ -34,3 +34,6 @@ experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1 -text
 experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1 -text
 experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1 -text
 experiments/platform/windows_saved_store_helper_preamble_diagnostic_v2.ps1 -text
+
+# Cold helper preflight is a separate exact-byte reviewed source.
+experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1 -text
