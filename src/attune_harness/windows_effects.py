@@ -472,8 +472,12 @@ class Native:
             opened = []
             try:
                 for index, part in enumerate(components):
-                    child = self.canonical_child(current, part, directory=True,
-                                                 writable=index == len(components) - 1)
+                    # Unrelated ancestor siblings are outside the checkout bound.
+                    # iter_names validates the complete listing before membership.
+                    if part not in self.iter_names(current):
+                        raise ValueError("Path is not an enumerated canonical long name")
+                    child = self.child(current, part, directory=True,
+                                       writable=index == len(components) - 1)
                     opened.append(child)
                     current = child
                     entry, _, _ = self.metadata(current)
