@@ -429,7 +429,7 @@ def test_cycle_detection_distinguishes_consumed_suffix_from_reentry():
     struct.pack('<I', 1) + b'\\\x00', struct.pack('<I', 4) + b'\\\x00',
     struct.pack('<I', 2) + b'\x00\xd8', struct.pack('<I', 2) + b'\x00\x00',
     struct.pack('<I', 2) + b'\\\x00' + bytes(windows_reads._NAME_INFO_LIMIT),
-])
+], ids=['empty', 'zero-count', 'odd-count', 'truncated', 'unpaired-surrogate', 'nul', 'oversized'])
 def test_volume_name_parser_refuses_malformed_byte_counts_encoding_and_metadata_bound(data):
     with pytest.raises(ValueError, match='volume-anchor name'):
         windows_reads._file_name_info(data)
@@ -626,10 +626,10 @@ result={'production':probe(production),'old_recursive':probe(namespace['_target_
         'chain_links':80,'child_recursion_budget':80}
 print(json.dumps(result))
 '''
-    allowed = {'SystemRoot', 'WINDIR', 'TMP', 'TEMP', 'PATH'}
+    allowed = {'systemroot', 'windir', 'tmp', 'temp', 'path'}
     child = subprocess.run([sys.executable, '-I', '-c', worker,
                             str(Path(windows_reads.__file__).parent.parent), str(config), str(legacy)],
-                           env={key:value for key,value in os.environ.items() if key in allowed},
+                           env={key:value for key,value in os.environ.items() if key.casefold() in allowed},
                            capture_output=True, text=True, timeout=120)
     assert child.returncode == 0, (child.stdout, child.stderr)
     result = json.loads(child.stdout)
@@ -724,7 +724,8 @@ def test_protected_windows_tail_refuses_equally_under_different_drive_letters(ta
 @pytest.mark.parametrize('component', ['ordinary', 'absent', 'linked'])
 @pytest.mark.parametrize('form', ['relative', 'absolute', 'chained-relative'])
 @pytest.mark.parametrize('terminal', ['live', 'missing'])
-def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, monkeypatch, record_property, component, form, terminal):
+@pytest.mark.parametrize('separator', ['\\', '/'], ids=['backslash', 'forward-slash'])
+def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, monkeypatch, record_property, component, form, terminal, separator):
     """Observe target semantics without treating lexical collapse as an oracle."""
     root = tmp_path / 'raw'
     root.mkdir()
@@ -740,7 +741,9 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
     else:
         write(live, b'synthetic lexical-parent sentinel')
     source = root / 'findings.jsonl'
-    target = str(root / 'sub' / '..' / terminal) if form == 'absolute' else 'sub/../' + terminal
+    target = separator.join(('sub', '..', terminal))
+    if form == 'absolute':
+        target = str(root / 'sub' / '..' / terminal).replace('\\', separator)
     links = [source]
     if component == 'linked':
         links.append(sub)
@@ -783,11 +786,13 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
     active = before['next.jsonl' if form == 'chained-relative' else 'findings.jsonl']
     components = active['substitute'].replace('\\', '/').split('/')
     if form != 'absolute':
-        assert active['flags'] == 1 and '..' in components, before
+        assert active['flags'] == 1 and active['substitute'] == target, before
+        assert active['readlink'] == target and '..' in components, before
     else:
         assert active['flags'] == 0, before
     oracle = stat_evidence(source, follow=True)
-    receipt = {'component': component, 'form': form, 'terminal': terminal, 'input_target': target,
+    receipt = {'component': component, 'form': form, 'terminal': terminal, 'separator': separator,
+               'input_target': target,
                'stored_links': before, 'stored_target_has_dotdot': '..' in components,
                'absolute_target_normalized_at_creation': form == 'absolute' and '..' not in components,
                'sub_lstat': stat_evidence(sub, follow=False), 'following_stat': oracle,
