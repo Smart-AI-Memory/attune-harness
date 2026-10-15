@@ -60,8 +60,8 @@ def create_test_task(
     if project is None or not scope:
         raise ValueError("Provide project and change scope, or a completed repair task")
 
-    if os.name != "posix":
-        raise ValueError("Testing currently qualifies the POSIX execution profile")
+    if os.name not in ("posix", "nt"):
+        raise ValueError("Testing requires a supported native execution profile")
     project = project.resolve(strict=True)
     directory = safe_storage(directory)
     if directory.resolve().is_relative_to(project) or directory.is_symlink():

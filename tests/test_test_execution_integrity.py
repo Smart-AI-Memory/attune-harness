@@ -1,7 +1,6 @@
 """Real pytest outcomes cannot override captured evidence or producer identity."""
 
 import json
-import os
 from pathlib import Path
 from threading import Event
 
@@ -13,9 +12,6 @@ from attune_harness.task_contract import read_task
 from attune_harness.task_policies import execute_task, inspect_task
 from test_connected_journey import complete, journey, linked  # noqa: F401
 from test_test_change import accept, outcome, project, put  # noqa: F401
-
-pytestmark = pytest.mark.skipif(os.name != 'posix', reason='Testing owns a POSIX execution profile')
-
 
 def count_dispatches(monkeypatch, after=None):
     original = test_execution.process.invoke
