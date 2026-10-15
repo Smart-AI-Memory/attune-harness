@@ -35,6 +35,10 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Starter files — approved spec](specs/starter-files/README.md): O-70; `init --for plan|fix` writes the request and probe that `plan` and `fix` need; Q1–Q6 ruled, targets 1.3.0
 - [Starter files requirements](specs/starter-files/design.md): R1–R5 and what each must not change
 - [Starter files tasks](specs/starter-files/tasks.md): Six ordered PRs, the CI journeys first
+- [Native Windows parity — draft spec](specs/windows-parity/README.md): Complete feature journeys, native safety and durability gates, and ordered implementation PRs; implementation paused for review
+- [Windows parity acceptance](specs/windows-parity/design.md): R1–R8, compatibility boundaries and native failure tests
+- [Windows parity fixture producers](specs/windows-parity/fixtures.md): Exact inputs and response bindings for the command walk
+- [Windows parity tasks](specs/windows-parity/tasks.md): Ordered PRs, durability decision gate and planning completion review
 - [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
 - [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
@@ -80,6 +84,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [The standing brief for a different-model review](review-brief.md): What the reviewing agent is told before every `src/` change merges
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
+- [Windows read primitives](windows-read-primitives.md): Retained-handle reads, selected-file discovery, error contracts and consumer boundaries
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
 - [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path; D30, the host surface

@@ -409,7 +409,19 @@ class Native:
             entry["parent_identity"] = parent_identity
         return entry, int(standard.EndOfFile), inherited_only
 
+    def iter_names(self, directory):
+        """Finish a validated scan before exposing names to another operation.
+
+        Enumeration state belongs to the handle. An eager scan prevents a caller
+        from resetting a suspended iterator's cursor through another read. This
+        read-only surface has no effects entry bound; callers bound selected files.
+        """
+        return iter(self._directory_names(directory))
+
     def names(self, directory):
+        return self._directory_names(directory, max_entries=MAX_ENTRIES)
+
+    def _directory_names(self, directory, *, max_entries=None):
         result, first = [], True
         while True:
             buffer = ctypes.create_string_buffer(65536)
@@ -432,7 +444,7 @@ class Native:
                 if name not in (".", ".."):
                     leaf(name)
                     result.append(name)
-                    if len(result) > MAX_ENTRIES:
+                    if max_entries is not None and len(result) > max_entries:
                         raise ValueError("Directory exceeds bounded Windows profile")
                 if row.NextEntryOffset == 0:
                     break
