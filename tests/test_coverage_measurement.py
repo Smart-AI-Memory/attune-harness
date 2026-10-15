@@ -155,7 +155,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
 
     def successful_child(argv, **kwargs):
         assert ('--coverage-instrumented' in argv) == (suite == 'platform')
-        assert kwargs['timeout'] == ((1680 if windows else 1080) if suite == 'platform' else 1200)
+        assert kwargs['timeout'] == ((2580 if windows else 1080) if suite == 'platform' else 1200)
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
@@ -234,7 +234,9 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     output = tmp_path / 'result'
     calls = []
     monkeypatch.setattr(qualifier.platform, 'system', lambda: system)
-    expected_timeout = {'Windows': 1500, 'Linux': 900, 'Darwin': 900}[system]
+    expected_timeout = 900
+    if system == 'Windows':
+        expected_timeout = 2400 if instrumented else 1500
 
     def child(argv, **kwargs):
         calls.append(argv)
