@@ -98,6 +98,13 @@ class ReadRoot:
         if self._closed:
             raise ValueError('Windows read root is closed')
 
+    def _close(self, handles):
+        # Wait for active observations before invalidating their retained handles.
+        # ExitStack must unwind under the same lock, not after it is released.
+        with self._lock:
+            self._closed = True
+            handles.close()
+
     def _stat(self, handle, parent_identity=None):
         api = self._api
         before = api.info(handle, api.Basic, 0)
@@ -260,4 +267,4 @@ def open_read_root(supplied_root):
         try:
             yield root
         finally:
-            root._closed = True
+            root._close(handles)

@@ -3,11 +3,14 @@
 # qualify: platform
 """
 
+from contextlib import ExitStack
 import ctypes
 import hashlib
 import os
 from pathlib import Path
 import subprocess
+import time
+from threading import Event, RLock, Thread, current_thread
 
 import pytest
 
@@ -201,8 +204,30 @@ def test_namespace_swaps_cannot_read_outside_sentinels(source, monkeypatch, comp
         return raw
 
     monkeypatch.setattr(native.Native, 'read', observed)
+    if component == 'ancestor':
+        # Windows refuses renaming an ancestor with an already-open descendant.
+        # Attack after that ancestor is retained, before its child root opens.
+        original_child = native.Native.child
+        attack_completed = False
+
+        def swap_ancestor(self, parent, name, **kwargs):
+            nonlocal attack_completed
+            if name == source.name and not attack_completed:
+                selected = source.parent
+                selected.rename(selected.with_name(selected.name + '-retained'))
+                junction(selected, outside)
+                attack_completed = True
+            return original_child(self, parent, name, **kwargs)
+
+        monkeypatch.setattr(native.Native, 'child', swap_ancestor)
+        with pytest.raises((ValueError, OSError)):
+            with reads.open_read_root(source) as root:
+                root.read('nested/note.md', max_bytes=100)
+        assert attack_completed, 'The ancestor attack must actually execute'
+        assert b'OUTSIDE_SENTINEL' not in calls
+        return
     with reads.open_read_root(source) as root:
-        selected = {'ancestor': source.parent, 'root': source,
+        selected = {'root': source,
                     'parent': source / 'nested', 'leaf': source / 'nested/note.md'}[component]
         selected.rename(selected.with_name(selected.name + '-retained'))
         if component == 'leaf':
@@ -253,7 +278,7 @@ def test_completed_enumeration_cannot_be_reset_by_interleaved_reads(source):
 
 @windows_only
 @pytest.mark.parametrize('layout', ['flat', 'nested'])
-def test_full_markdown_capacity_counts_selected_files_only(tmp_path, layout):
+def test_full_markdown_capacity_counts_selected_files_only(tmp_path, layout, record_property):
     root = tmp_path / 'capacity'
     root.mkdir()
     expected = []
@@ -268,7 +293,19 @@ def test_full_markdown_capacity_counts_selected_files_only(tmp_path, layout):
     for name in ('summaries_by_path.json', 'verification.json'):
         (root / name).write_bytes(b'{}')
     with reads.open_read_root(root) as owner:
+        started = time.perf_counter()
         assert owner.files(select=lambda name: name.endswith('.md'), max_files=4096) == sorted(expected)
+        record_property('reader_discovery_seconds', time.perf_counter() - started)
+        if layout == 'flat':
+            started = time.perf_counter()
+            identities = set()
+            for name in expected:
+                observed = owner.read(name, max_bytes=8 * 1024 * 1024)
+                assert observed.data == b'' and observed.size == 0
+                identities.add(observed.entry['identity']['file_id'])
+            record_property('reader_read_all_seconds', time.perf_counter() - started)
+            record_property('reader_read_all_files', len(identities))
+            assert len(identities) == 4096
         # The historical effects surface retains its bound and refusal text.
         with pytest.raises(ValueError, match='Directory exceeds bounded Windows profile'):
             owner._api.names(owner._root)
@@ -404,3 +441,131 @@ def test_parent_replacement_still_refuses_when_directory_times_are_restored(sour
         with pytest.raises((ValueError, OSError)):
             root.read('nested/note.md', max_bytes=100)
         assert fired
+
+
+class CloseGate:
+    """Signal a closer's lock attempt, so the ownership check needs no sleep."""
+    def __init__(self, progress):
+        self.lock, self.progress = RLock(), progress
+
+    def __enter__(self):
+        if current_thread().name == 'closing-root':
+            self.progress.set()
+        self.lock.acquire()
+        return self
+
+    def __exit__(self, *error):
+        self.lock.release()
+
+
+def test_shutdown_waits_for_active_operations_with_causal_unsafe_control():
+    """Portable lifecycle witness; no fabricated handle counts as native I/O."""
+    def exercise(close):
+        active, release, progress = Event(), Event(), Event()
+        root = object.__new__(reads.ReadRoot)
+        root._closed, root._lock = False, CloseGate(progress)
+        handles, closed_while_active, errors = ExitStack(), [], []
+
+        def record_close():
+            closed_while_active.append(active.is_set())
+            progress.set()
+
+        handles.callback(record_close)
+
+        def operation():
+            with root._lock:
+                active.set()
+                if not release.wait(5):
+                    errors.append('Operation release gate timed out')
+                active.clear()
+
+        def shutdown():
+            try:
+                close(root, handles)
+            except BaseException as error:
+                errors.append(error)
+
+        worker = Thread(target=operation)
+        closer = Thread(target=shutdown, name='closing-root')
+        worker.start()
+        try:
+            assert active.wait(5)
+            closer.start()
+            assert progress.wait(5), 'Shutdown must reach the lock or close callback'
+            observed = list(closed_while_active)
+        finally:
+            release.set()
+            worker.join(5)
+            if closer.ident is not None:
+                closer.join(5)
+        assert not worker.is_alive() and not closer.is_alive() and not errors
+        assert root._closed and closed_while_active
+        return observed, closed_while_active
+
+    def unsafe_close(root, handles):
+        root._closed = True
+        handles.close()
+
+    assert exercise(unsafe_close) == ([True], [True])
+    assert exercise(reads.ReadRoot._close) == ([], [False])
+
+
+@windows_only
+def test_native_context_exit_waits_for_active_read_before_closing_handles(source, monkeypatch):
+    manager = reads.open_read_root(source)
+    root = manager.__enter__()
+    active, release, progress = Event(), Event(), Event()
+    root._lock = CloseGate(progress)
+    observed, errors, closed_while_active = [], [], []
+    original_read, original_close = native.Native.read, root._api.k.CloseHandle
+
+    def blocked_read(self, *args, **kwargs):
+        raw = original_read(self, *args, **kwargs)
+        active.set()
+        try:
+            assert release.wait(5), 'Read release gate timed out'
+        finally:
+            active.clear()
+        return raw
+
+    def close_handle(handle):
+        if current_thread().name == 'closing-root':
+            closed_while_active.append(active.is_set())
+            progress.set()
+        return original_close(handle)
+
+    monkeypatch.setattr(native.Native, 'read', blocked_read)
+    monkeypatch.setattr(root._api.k, 'CloseHandle', close_handle)
+
+    def operation():
+        try:
+            observed.append(root.read('nested/note.md', max_bytes=100).data)
+        except BaseException as error:
+            errors.append(error)
+
+    def shutdown():
+        try:
+            manager.__exit__(None, None, None)
+        except BaseException as error:
+            errors.append(error)
+
+    worker = Thread(target=operation)
+    closer = Thread(target=shutdown, name='closing-root')
+    worker.start()
+    try:
+        assert active.wait(5), 'Native read must be active before context exit'
+        closer.start()
+        assert progress.wait(5), 'Context exit must reach the lock or handle close'
+        assert not closed_while_active, 'A source handle closed during the active read'
+    finally:
+        release.set()
+        worker.join(5)
+        if closer.ident is not None:
+            closer.join(5)
+        else:
+            manager.__exit__(None, None, None)
+    assert not worker.is_alive() and not closer.is_alive()
+    assert not errors and observed == [b'current source']
+    assert closed_while_active and not any(closed_while_active)
+    with pytest.raises(ValueError, match='closed'):
+        root.read('empty', max_bytes=0)

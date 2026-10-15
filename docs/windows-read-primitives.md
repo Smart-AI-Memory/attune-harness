@@ -38,6 +38,8 @@ before and after capturing bounded bytes, then recheck the leaf and retained
 ancestor/parent bindings. Discovery checks directory contents and bindings before
 returning. There is no timestamp-based listing cache. Root operations are
 serialized with a reentrant lock; a discovery selector can perform a read.
+Context exit waits for active operations and closes the retained handles under
+that same lock.
 As with the effects primitives, this detects observed changes without claiming
 isolation from an arbitrary hostile concurrent writer.
 
@@ -66,3 +68,12 @@ handles on Windows. Its portable directory-parser fixtures test ABI-shaped
 records and effects-bound preservation; they do not count as native filesystem
 observations. Passing these tests does not qualify the later consumer ports or
 change the README platform claims.
+
+Consumer eligibility remains an explicit T4 gate. Current generic discovery
+validates incidental entries as well as selected files. POSIX file-memory rejects
+any corpus symlink, but ignores non-Markdown hardlinks that are not sidecars;
+strict native discovery currently refuses those hardlinks. Windows stream/name
+eligibility also needs its consumer decision before R3 closes. This primitive
+does not establish parity for those input profiles. The raw-tier dangling
+`findings.jsonl` exception remains a raw-owner responsibility; a generic
+`ValueError` must never become absence.
