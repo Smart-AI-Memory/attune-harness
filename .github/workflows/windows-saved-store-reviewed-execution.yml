@@ -34,8 +34,9 @@ concurrency:
 
 jobs:
   observations:
-    # PROPOSAL ONLY: exact separate approval must cover ONE event/four jobs.
-    # A failed cold preflight stops before the sole account execution step.
+    # The one approved cold-preflight/account event is exhausted.
+    # No later account event is authorized. Retain the source for inspection.
+    if: ${{ false }}
     name: T2 observations only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
