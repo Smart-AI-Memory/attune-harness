@@ -35,6 +35,10 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Starter files — approved spec](specs/starter-files/README.md): O-70; `init --for plan|fix` writes the request and probe that `plan` and `fix` need; Q1–Q6 ruled, targets 1.3.0
 - [Starter files requirements](specs/starter-files/design.md): R1–R5 and what each must not change
 - [Starter files tasks](specs/starter-files/tasks.md): Six ordered PRs, the CI journeys first
+- [Native Windows parity — draft spec](specs/windows-parity/README.md): Complete feature journeys, native safety and durability gates, and ordered implementation PRs; implementation paused for review
+- [Windows parity acceptance](specs/windows-parity/design.md): R1–R8, compatibility boundaries and native failure tests
+- [Windows parity fixture producers](specs/windows-parity/fixtures.md): Exact inputs and response bindings for the command walk
+- [Windows parity tasks](specs/windows-parity/tasks.md): Ordered PRs, durability decision gate and planning completion review
 - [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
 - [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
