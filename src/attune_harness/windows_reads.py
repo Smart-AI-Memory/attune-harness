@@ -595,6 +595,8 @@ class ReadRoot:
     def _target_absent(self, path, handles, checks, seen):
         """Walk target metadata only, never letting the OS follow a reparse."""
         api = self._api
+        # No hop cap is imposed. Native resource failures remain refusals,
+        # never evidence that the target is absent.
         while True:
             anchor = api.volume(path)
             parent = handles.enter_context(api.owned(api.volume_handle(anchor)))

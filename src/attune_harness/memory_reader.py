@@ -130,7 +130,7 @@ class NativeReader:
             try:
                 opened = handles.enter_context(open_read_root(root['path']))
             except FileNotFoundError as error:
-                raise FileNotFoundError('Explicit memory root is unavailable') from error
+                raise ValueError('Explicit memory root is unavailable') from error
             yield opened
 
     @staticmethod

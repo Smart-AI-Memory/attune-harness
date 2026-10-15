@@ -36,6 +36,15 @@ def no_provider_or_network(monkeypatch):
     monkeypatch.setattr(socket.socket, 'connect_ex', forbidden)
 
 
+def symlink(path, target, *, directory=False):
+    try:
+        path.symlink_to(target, target_is_directory=directory)
+    except OSError as error:
+        if os.name == 'nt' and getattr(error, 'winerror', None) == 1314:
+            pytest.skip('Symbolic-link fixture unavailable (WinError 1314); no native link behavior observed')
+        raise
+
+
 def write(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
@@ -176,7 +185,7 @@ def test_raw_dangling_link_is_positive_absence_but_live_target_never_reads_conte
     target = (tmp_path / 'outside-target.jsonl') if target_outside else (root / 'target.jsonl')
     if target_exists:
         target.write_bytes(b'OUTSIDE_SENTINEL')
-    (root / 'findings.jsonl').symlink_to(target)
+    symlink(root / 'findings.jsonl', target)
     calls, opens = [], []
     read, child = native.Native.read, native.Native.child
     def observed(self, *args, **kwargs):
@@ -211,7 +220,7 @@ def test_raw_dangling_link_is_positive_absence_but_live_target_never_reads_conte
 def test_raw_relative_parent_target_and_target_appearance_refuse_false_absence(tmp_path, monkeypatch):
     root = tmp_path / 'raw'
     root.mkdir()
-    (root / 'findings.jsonl').symlink_to('../missing.jsonl')
+    symlink(root / 'findings.jsonl', '../missing.jsonl')
     reader = NativeReader(config_for(('r', root, 'raw', 'project-a')))
     assert reader.query('Aurora policy')['status'] == 'empty'
     original = windows_reads.ReadRoot._target_absent
@@ -369,16 +378,16 @@ def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, 
         if shape == 'drive-root':
             target = Path(root.anchor)
         if shape == 'repeated-directory':
-            (root / 'again').symlink_to('.', target_is_directory=True)
-            (root / 'findings.jsonl').symlink_to('again/again/missing.jsonl')
+            symlink(root / 'again', '.', directory=True)
+            symlink(root / 'findings.jsonl', 'again/again/missing.jsonl')
         else:
-            (root / 'findings.jsonl').symlink_to(target)
+            symlink(root / 'findings.jsonl', target)
         if shape == 'growing-cycle':
-            target.symlink_to('next.jsonl/more', target_is_directory=True)
+            symlink(target, 'next.jsonl/more', directory=True)
         elif shape == 'chain':
-            target.symlink_to('../absent.jsonl')
+            symlink(target, '../absent.jsonl')
         elif shape == 'cycle':
-            target.symlink_to('findings.jsonl')
+            symlink(target, 'findings.jsonl')
     def forbidden(*args, **kwargs):
         pytest.fail('An absence probe requested source or target content')
     monkeypatch.setattr(native.Native, 'read', forbidden)
@@ -573,7 +582,7 @@ def test_distinct_raw_chain_has_no_python_stack_cap_and_old_recursive_control_fa
     root.mkdir()
     names = ['findings.jsonl'] + [f'link-{at:03}.jsonl' for at in range(1, 80)]
     for at, name in enumerate(names):
-        (root / name).symlink_to(names[at + 1] if at + 1 < len(names) else 'target.jsonl')
+        symlink(root / name, names[at + 1] if at + 1 < len(names) else 'target.jsonl')
     if live_target:
         write(root / 'target.jsonl', b'LIVE CHAIN SENTINEL')
     config = write(tmp_path / 'config.json', json.dumps(config_for(('r', root, 'raw', 'project-a'))).encode())
@@ -651,3 +660,61 @@ def test_symbolic_target_cannot_hide_excess_parents_through_normalization(target
 ])
 def test_symbolic_target_keeps_documented_valid_dot_component_replacement(target, expected):
     assert str(windows_reads._symlink_target(PureWindowsPath(r'C:\owned\raw\findings.jsonl'), link_buffer(target))) == expected
+
+
+
+@windows_only
+def test_root_disappearing_between_pointer_check_and_verdict_capture_is_suppressed(tmp_path, monkeypatch):
+    root = tmp_path / 'verdict-root'
+    root.mkdir()
+    config, fake, sidecar = file_case(root)
+    write(root / 'state.md', b'Aurora policy')
+    sidecar.write_text(json.dumps(dict(stem='state', verdict='wrong', digest='fixture', who='fixture', at='2026-09-24')) + '\n', encoding='utf-8')
+    check_path, capture = windows_reads.ReadRoot.check_path, NativeReader._capture
+    attack, refused_roots = [], []
+    def vanished(self, name):
+        check_path(self, name)
+        root.rename(tmp_path / 'retained-moved-verdict-root')
+        attack.append('after completed pointer check, before verdict capture')
+    def observed_capture(self, *args, **kwargs):
+        try:
+            return capture(self, *args, **kwargs)
+        except ValueError as error:
+            if isinstance(error.__cause__, FileNotFoundError):
+                refused_roots.append(str(error))
+            raise
+    monkeypatch.setattr(windows_reads.ReadRoot, 'check_path', vanished)
+    monkeypatch.setattr(NativeReader, '_capture', observed_capture)
+    text, reason = render(fake, config)
+    assert attack == ['after completed pointer check, before verdict capture']
+    assert refused_roots == ['Explicit memory root is unavailable']
+    assert reason is None and '- n1' in text and '- file:' not in text
+
+
+@windows_only
+def test_query_exact_and_one_over_64mib_includes_optional_sidecar_bytes(tmp_path, monkeypatch):
+    root = tmp_path / 'sidecar-bound'
+    for at in range(8):
+        write(root / f'doc-{at}.md', b'A' * (FILE_LIMIT - 2 if at == 0 else FILE_LIMIT))
+    sidecar = write(root / 'summaries_by_path.json', b'{}')
+    totals = []
+    def rank_snapshot(snapshot, query, k):
+        totals.append(sum(p.stat().st_size for p in snapshot.rglob('*') if p.is_file()))
+        return []
+    monkeypatch.setattr(memory_reader, '_rank_documents', rank_snapshot)
+    reader = NativeReader(config_for(('p', root, 'personal', 'global')))
+    packet = reader.query('Aurora policy')
+    assert packet['status'] == 'empty' and packet['problems'] == []
+    assert totals == [SNAPSHOT_BYTES]
+    sidecar.write_bytes(b'{} ')
+    packet = reader.query('Aurora policy')
+    assert packet['status'] == 'unavailable' and '64 MiB' in packet['problems'][0]['detail']
+    assert totals == [SNAPSHOT_BYTES]
+
+
+@pytest.mark.parametrize('tail', ['Windows/System32/owned', 'Program Files/owned', 'Program Files (x86)/owned'])
+def test_protected_windows_tail_refuses_equally_under_different_drive_letters(tail):
+    from attune_harness.paths import _protected
+    original = _protected('C:/' + tail, windows=True)
+    alternate = _protected('X:/' + tail, windows=True)
+    assert original is not None and original == alternate
