@@ -8,7 +8,6 @@ because an SDK upgrade produces a different schema. No paid providers are used.
 import asyncio
 import copy
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -75,7 +74,6 @@ def test_a2a_operations_and_task_states_match_local_profile():
     assert sorted(a2a.TERMINAL) == pinned['terminal_states']
 
 
-@pytest.mark.skipif(os.name != 'posix', reason='Existing independent peer fixture uses POSIX pipe readiness')
 def test_a2a_actual_agent_card_matches_local_profile(peer_factory):
     peer, _, _, _ = peer_factory()
     card = copy.deepcopy(peer.check_card())
