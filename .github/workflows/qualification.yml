@@ -170,7 +170,7 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 30 || 15 }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 40 || 30 }}
     strategy:
       fail-fast: false
       matrix:
@@ -202,21 +202,17 @@ jobs:
       - name: Install the source tree and its test dependencies
         run: python -m pip install -c requirements-workflow.lock -c requirements-voyage.lock -c requirements-mcp.lock -c requirements-tokens.lock -c requirements-redis.lock "pytest==9.1.1" -e ".[voyage,redis]"
       - name: Run every test
-        # Leave time for always() to retain output even when a native test stalls.
-        timeout-minutes: 25
-        shell: bash
-        run: |
-          set -o pipefail
-          python -u -m pytest -v --durations=30 --junitxml=full-suite.xml -o faulthandler_timeout=120 2>&1 | tee full-suite.txt
+        # The supervised child stops before these outer limits so always() can
+        # retain its exit, output and last test phase even when a test stalls.
+        timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+        run: python -I scripts/run_source_suite.py --output full-suite --timeout ${{ matrix.os == 'windows-latest' && 1800 || 1200 }}
       - name: Keep full suite results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: full-suite-${{ matrix.os }}-${{ matrix.python }}
-          path: |
-            full-suite.xml
-            full-suite.txt
-          if-no-files-found: warn
+          path: full-suite/
+          if-no-files-found: error
 
   # Every Markdown link to a Markdown file must resolve. This runs for every
   # change, including documentation-only ones, because those are exactly the
