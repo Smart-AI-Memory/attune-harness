@@ -6,7 +6,7 @@ No network, provider, repository configuration or existing store is accessed.
 """
 
 import argparse
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 import ctypes
 import hashlib
 import json
@@ -239,8 +239,8 @@ class ProofNative:
         finally:
             self.k.LocalFree(text)
 
-    def token_facts(self):
-        with self.token() as token:
+    def token_facts(self, token_handle=None):
+        with self.token() if token_handle is None else nullcontext(token_handle) as token:
             user_buffer = self.token_data(token, 1)
             user = self.sid_text(self.SidAndAttributes.from_buffer_copy(user_buffer).Sid)
             raw = self.token_data(token, 2)
@@ -289,9 +289,15 @@ class ProofNative:
                 label = self.SidAndAttributes(medium, 0x20)
                 self.check(self.a.SetTokenInformation(restricted, 25, ctypes.byref(label),
                            ctypes.sizeof(label) + self.a.GetLengthSid(medium)), 'SetTokenInformation(Medium)')
+                restricted_facts = self.token_facts(restricted)
+                validate_token(restricted_facts)
+                save_json(output / 'restricted-token.json', restricted_facts)
                 with WindowsJob() as job:
                     start, process = self.Startup(), self.Process()
-                    start.cb, start.lpDesktop = ctypes.sizeof(start), ''
+                    # NULL inherits the existing desktop. An empty string asks
+                    # Windows to choose another window station, which produced
+                    # STATUS_DLL_INIT_FAILED before Python on hosted runners.
+                    start.cb, start.lpDesktop = ctypes.sizeof(start), None
                     args = [sys.executable, '-I', str(SCRIPT), '--child', 'run', '--output', str(output)]
                     command = ctypes.create_unicode_buffer(subprocess.list2cmdline(args))
                     # Assign the suspended child before any Python can spawn a
@@ -315,6 +321,9 @@ class ProofNative:
                                 raise TimeoutError('Restricted proof tree exceeded its bound')
                             code = self.w.DWORD()
                             self.check(self.k.GetExitCodeProcess(process.hProcess, ctypes.byref(code)), 'GetExitCodeProcess')
+                            save_json(output / 'supervisor-exit.json', {
+                                'exit_code': code.value, 'exit_code_hex': f'{code.value:08x}',
+                                'child_python_started': (output / 'child-token.json').is_file()})
                             return code.value
                         except BaseException:
                             # Also covers assignment failure before the child
@@ -660,6 +669,7 @@ def concurrent_cases(api, output, root, identical):
 def run_proof(output):
     api = ProofNative(output / 'native-flush-observations.jsonl')
     token = api.require_standard()
+    save_json(output / 'child-token.json', token)
     from attune_harness import windows_effects
     from importlib.metadata import distribution
     package = Path(windows_effects.__file__).resolve()

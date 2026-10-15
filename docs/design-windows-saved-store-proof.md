@@ -89,3 +89,20 @@ Local checks before the first native run: 26 evidence/claim tests pass serially;
 the pure wheel builds and its Windows primitive imports under isolated Python
 3.10 with no dependencies. These are structural/import checks, not Windows
 observations. The native receipt and reviewed semantic argument remain owed.
+
+## First native observation
+
+[Run 38769182112](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38769182112)
+at head `9433b05d3bc393bbdfdb05a6959060b647da0f5a` failed before Python
+initialization in all four server/Python combinations. CreateProcessAsUser and
+suspended Job Object assignment succeeded; the child exited with `0xC0000142`
+(DLL initialization failed). Retained artifacts contain launcher and job
+assignment facts only. There is no saved-storage or durability observation.
+
+The next bounded experiment changes an empty desktop string to NULL, which
+inherits the launcher's existing desktop under the documented API contract.
+It does not change a desktop DACL or grant the child new privileges. Target-token
+and process-exit receipts distinguish a launcher failure from child Python
+failure. This is a hypothesis, not an established diagnosis; another failure of
+this launch approach triggers strategy review before a third attempt. The first
+run's evidence remains unchanged.
