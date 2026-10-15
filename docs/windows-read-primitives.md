@@ -103,3 +103,50 @@ eligibility also needs its consumer decision before R3 closes. This primitive
 does not establish parity for those input profiles. The raw-tier dangling
 `findings.jsonl` exception remains a raw-owner responsibility; a generic
 `ValueError` must never become absence.
+
+
+## Bind a reader query to its capture
+
+Use `ReadRoot.observe(names=(), select=None, optional=(), max_files=...,
+max_bytes=..., max_total_bytes=...)` as a context manager when the consumer
+must keep a capture current through ranking or annotation. A recursive selector
+evaluates canonical relative names. Selected directories refuse; unselected
+directories are traversed. The operation retains discovered directories and
+selected file handles, completes fresh namespace checks before yielding, and
+rechecks file, binding, directory and ancestor evidence after the consumer exits.
+An observed mutation refuses the operation. This does not isolate an arbitrary
+hostile writer.
+
+Optional sources are distinct root leaves. Their individual confirmed absence
+is represented by `None` inside the returned mapping and checked again before
+the context exits. Optional files count toward per-file and aggregate byte
+bounds, while `max_files` counts selected and required files. There is no
+incidental entry limit or timestamp cache. Incidental regular files are inspected
+without following reparse points; their content, hardlinks and streams are not
+used or authorized. Every incidental reparse point still refuses. Selected
+files and sidecars retain the full single-link, stream and security checks.
+`read_many()` uses this same operation owner for its named batch.
+
+`SourceLimitExceeded.bound` identifies `files`, `file` or `total` so a consumer
+can preserve its existing problem messages. `check_path()` validates a pointer's
+exact components without reading its content; a confirmed missing component is
+permitted, while a reparse point or alias refuses.
+
+## Preserve raw dangling-link absence
+
+`read_optional(name, max_bytes=..., dangling_symlink_absent=True)` implements
+the raw reader's existing absent `findings.jsonl` rule. The opt-in reads only
+the retained link's bounded `FSCTL_GET_REPARSE_POINT` buffer, validates the
+[documented symbolic-link target layout](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/b41f1cbf-10df-4a47-98d4-1c52a833d913),
+and walks local target metadata with exact retained handles. Relative parents
+are collapsed lexically and the resulting components are walked afresh. The
+operating system never follows a reparse point on the helper's behalf.
+
+A confirmed missing local target can be outside the declared memory root,
+matching the raw owner's previous existence check. This grants no target content
+authority: target leaf handles request metadata access only, and no target bytes
+are read. Existing targets always refuse. Unknown tags, cycles, device or UNC
+paths, aliases, unsupported volumes, access failures and observed races refuse;
+they cannot become absence. Source link bytes/identity and all target bindings
+and missing namespaces are checked again. Optional document sidecars never use
+this exception.

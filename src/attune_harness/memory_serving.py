@@ -6,8 +6,9 @@ No mutation, hydration, or lifecycle inference happens here.
 
 from pathlib import Path
 
+from .features import FeatureUnavailable
 from .memory_controls import VERDICT_VALUES
-from .memory_reader import FILE_LIMIT, NativeReader, roots_config
+from .memory_reader import FILE_LIMIT, NativeReader, _windows, roots_config
 from .memory_redis import LIMIT_MAX, PREFIX, MemoryRedisUnavailable
 from .review_contract import parse_json
 
@@ -26,7 +27,7 @@ class FileVerdicts:
         if self.reader is None or not isinstance(item.get('path'), str):
             return False
         path = Path(item['path'])
-        if (not path.is_absolute() or '..' in path.parts or path != path.resolve()
+        if (not path.is_absolute() or '..' in path.parts or (not _windows() and path != path.resolve())
                 or path.stem != bare.rsplit(':', 1)[-1]):
             return False
         roots = [r for r in self.reader.config['roots'] if r['tier'] in ('personal', 'curated')
@@ -34,6 +35,12 @@ class FileVerdicts:
         if len(roots) != 1:
             return False
         root = roots[0]
+        if _windows():
+            try:
+                with self.reader._native_root(root) as opened:
+                    opened.check_path(path.relative_to(Path(root['path'])).as_posix())
+            except (ValueError, OSError, FeatureUnavailable):
+                return False
         if root['id'] not in self.logs:
             self.logs[root['id']] = self._read(root)
         latest = self.logs[root['id']]
@@ -46,7 +53,7 @@ class FileVerdicts:
             content, _, _ = self.reader._capture(root, '.verdicts.jsonl', limit=FILE_LIMIT - self.bytes_read)
         except FileNotFoundError:
             return {}  # no verdict has been recorded; never read a Redis-supplied directory
-        except (ValueError, OSError):
+        except (ValueError, OSError, FeatureUnavailable):
             # A rejected capture can have read its full allowance before failing.
             self.bytes_read = FILE_LIMIT
             return None
@@ -96,7 +103,7 @@ def filter_packet(memory, packet, config, limit):
     try:
         if any(family == 'file' for _, family, _ in candidates):
             verdicts = FileVerdicts(config)
-    except ValueError:
+    except (ValueError, OSError, FeatureUnavailable):
         pass  # bad roots cannot authorize pointers; curated eligibility is independent
     kept = []
     for item, family, bare in candidates:

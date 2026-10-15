@@ -118,11 +118,11 @@ def qualify(output, *, coverage_instrumented=False):
                            '--mode','redis','--report',str(output/'memory-redis.json')],
                           cwd=output,capture_output=True,text=True)
     (output/'memory-redis.txt').write_text(memory.stdout+memory.stderr,encoding='utf-8')
-    # The native memory reader read what this platform allows (Phase 2, D19): the receipt must say which.
+    # Demand actual installed reader success; a safety refusal is not feature completion.
     if memory.returncode==0:
         report=json.loads((output/'memory-redis.json').read_text(encoding='utf-8'))
         native=report['memory']
-        wanted=('available',['raw','personal','curated']) if os.name=='posix' else ('posix-only refusal',[])
+        wanted=('available',['raw','personal','curated'])
         if (native.get('native_reader'),native.get('tiers_read'))!=wanted or native.get('reader_named')!='native':
             memory=subprocess.CompletedProcess(memory.args,1)
             receipt['checks'].append(f'native memory reader receipt unexpected: {native}')
