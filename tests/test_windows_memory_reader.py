@@ -94,14 +94,15 @@ def test_cli_recall_resolve_refresh_preserve_complete_sources_and_replace_handle
     assert failure['error'] == 'ValueError' and 'refresh context' in failure['detail']
 
 
-def link_buffer(target, flags=1):
+def link_buffer(target, flags=1, *, print_name=''):
     encoded = target.encode('utf-16-le')
-    return struct.pack('<IHHHHHHI', 0xA000000C, 12 + len(encoded), 0,
-                       0, len(encoded), len(encoded), 0, flags) + encoded
+    printed = print_name.encode('utf-16-le')
+    return struct.pack('<IHHHHHHI', 0xA000000C, 12 + len(encoded) + len(printed), 0,
+                       0, len(encoded), len(encoded), len(printed), flags) + encoded + printed
 
 
 @pytest.mark.parametrize('target,flags,expected', [
-    ('../missing.jsonl', 1, r'C:\owned\missing.jsonl'),
+    (r'..\missing.jsonl', 1, r'C:\owned\missing.jsonl'),
     (r'\??\C:\outside\missing.jsonl', 0, r'C:\outside\missing.jsonl'),
 ])
 def test_reparse_target_parser_uses_only_documented_local_lexical_semantics(target, flags, expected):
@@ -117,6 +118,32 @@ def test_reparse_target_parser_uses_only_documented_local_lexical_semantics(targ
 def test_reparse_target_parser_refuses_remote_alias_device_and_invalid_target_grammar(target, flags):
     with pytest.raises(ValueError):
         windows_reads._symlink_target(PureWindowsPath(r'C:\owned\findings.jsonl'), link_buffer(target, flags))
+
+
+@pytest.mark.parametrize('target,flags', [
+    ('../missing.jsonl', 1), ('../../missing', 1), ('.././missing', 1),
+    ('sub/../../missing', 1), ('../../../missing', 1), ('sub/../../../../missing', 1),
+    (r'sub\../missing', 1), ('missing/name', 1),
+    ('again/again/missing.jsonl', 1), ('next.jsonl/more', 1), ('../absent.jsonl', 1),
+    (r'\??\C:\outside/missing', 0), ('C:/outside/missing', 0),
+])
+def test_raw_substitute_forward_separator_refuses_before_normalization(monkeypatch, target, flags):
+    source = PureWindowsPath(r'C:\owned\raw\findings.jsonl')
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Malformed raw substitute name reached normalization')
+    monkeypatch.setattr(windows_reads.ntpath, 'normpath', forbidden)
+    with pytest.raises(ValueError, match='requires backslash separators'):
+        windows_reads._symlink_target(source, link_buffer(target, flags))
+
+
+@pytest.mark.parametrize('target,flags,expected', [
+    (r'..\missing.jsonl', 1, r'C:\owned\missing.jsonl'),
+    (r'\??\C:\outside\missing.jsonl', 0, r'C:\outside\missing.jsonl'),
+])
+def test_print_name_forward_separator_does_not_change_substitute_authority(target, flags, expected):
+    source = PureWindowsPath(r'C:\owned\raw\findings.jsonl')
+    data = link_buffer(target, flags, print_name='display/only')
+    assert str(windows_reads._symlink_target(source, data)) == expected
 
 
 def test_unsupported_volume_stays_inside_serving_suppression(tmp_path, monkeypatch):
@@ -220,7 +247,7 @@ def test_raw_dangling_link_is_positive_absence_but_live_target_never_reads_conte
 def test_raw_relative_parent_target_and_target_appearance_refuse_false_absence(tmp_path, monkeypatch):
     root = tmp_path / 'raw'
     root.mkdir()
-    symlink(root / 'findings.jsonl', '../missing.jsonl')
+    symlink(root / 'findings.jsonl', r'..\missing.jsonl')
     reader = NativeReader(config_for(('r', root, 'raw', 'project-a')))
     assert reader.query('Aurora policy')['status'] == 'empty'
     original = windows_reads.ReadRoot._target_absent
@@ -379,13 +406,13 @@ def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, 
             target = Path(root.anchor)
         if shape == 'repeated-directory':
             symlink(root / 'again', '.', directory=True)
-            symlink(root / 'findings.jsonl', 'again/again/missing.jsonl')
+            symlink(root / 'findings.jsonl', r'again\again\missing.jsonl')
         else:
             symlink(root / 'findings.jsonl', target)
         if shape == 'growing-cycle':
-            symlink(target, 'next.jsonl/more', directory=True)
+            symlink(target, r'next.jsonl\more', directory=True)
         elif shape == 'chain':
-            symlink(target, '../absent.jsonl')
+            symlink(target, r'..\absent.jsonl')
         elif shape == 'cycle':
             symlink(target, 'findings.jsonl')
     def forbidden(*args, **kwargs):
@@ -393,6 +420,9 @@ def test_raw_absence_probes_chained_links_and_refuses_unproven_shapes(tmp_path, 
     monkeypatch.setattr(native.Native, 'read', forbidden)
     packet = NativeReader(config_for(('r', root, 'raw', 'project-a'))).query('Aurora')
     assert packet['status'] == ('empty' if shape in ('chain', 'repeated-directory') else 'unavailable'), packet
+    if shape == 'growing-cycle':
+        assert packet['problems'] == [{'root_id': 'r', 'reason': 'ValueError',
+                                      'detail': 'Symbolic-link target cycle cannot prove absence'}], packet
 
 
 @pytest.mark.skipif(os.name != 'posix', reason='Exact legacy POSIX digest oracle')
@@ -573,9 +603,42 @@ def test_anchor_repeated_name_growth_stops_at_the_metadata_ceiling(tmp_path, mon
     assert len(sizes) <= 9 and all(a < b for a, b in zip(sizes, sizes[1:]))
 
 
+def _legacy_recursion_failure(error):
+    """Classify only the two observed errors from the old recursive control."""
+    if (type(error) is RecursionError or
+            (type(error) is ctypes.ArgumentError and str(error) ==
+             'argument 2: RecursionError: maximum recursion depth exceeded while calling a Python object')):
+        return {'error': 'RecursionError', 'outer_type': type(error).__name__, 'detail': str(error)}
+    raise error
+
+
+@pytest.mark.parametrize('error', [
+    RecursionError('maximum recursion depth exceeded'),
+    ctypes.ArgumentError('argument 2: RecursionError: maximum recursion depth exceeded while calling a Python object'),
+], ids=['bare-recursion', 'observed-ctypes-wrapper'])
+def test_old_recursive_control_classifies_only_observed_recursion_errors(error):
+    result = _legacy_recursion_failure(error)
+    assert result == {'error': 'RecursionError', 'outer_type': type(error).__name__, 'detail': str(error)}
+
+
+@pytest.mark.parametrize('error', [
+    ctypes.ArgumentError('argument 2: ValueError: invalid value'),
+    ctypes.ArgumentError('argument 1: RecursionError: maximum recursion depth exceeded while calling a Python object'),
+    ctypes.ArgumentError('argument 2: RecursionError: unrelated detail'),
+    ctypes.ArgumentError('argument 2: RecursionError: maximum recursion depth exceeded while calling a Python object extra'),
+    ValueError('argument 2: RecursionError: maximum recursion depth exceeded while calling a Python object'),
+    RuntimeError('maximum recursion depth exceeded'),
+], ids=['unrelated-argument', 'other-argument', 'other-recursion-detail', 'extra-suffix', 'wrong-wrapper-type', 'wrong-error-type'])
+def test_old_recursive_control_propagates_every_other_error(error):
+    with pytest.raises(type(error)) as caught:
+        _legacy_recursion_failure(error)
+    assert caught.value is error
+
+
 @windows_only
 @pytest.mark.parametrize('live_target', [False, True])
 def test_distinct_raw_chain_has_no_python_stack_cap_and_old_recursive_control_fails(tmp_path, live_target, record_property):
+    import inspect
     import subprocess
     import sys
     root = tmp_path / 'raw-chain'
@@ -588,7 +651,7 @@ def test_distinct_raw_chain_has_no_python_stack_cap_and_old_recursive_control_fa
     config = write(tmp_path / 'config.json', json.dumps(config_for(('r', root, 'raw', 'project-a'))).encode())
     legacy = Path(__file__).parent / 'fixtures' / 'windows_b36_recursive_target_walker.txt'
     assert hashlib.sha256(legacy.read_bytes()).hexdigest() == '1bc02abd699bd0625d8c2bef11aae6481baf68042fbdf15bb707bdbcb3aac162'
-    worker = r'''
+    worker = 'import ctypes\n' + inspect.getsource(_legacy_recursion_failure) + r'''
 import hashlib,json,socket,sys,time
 from pathlib import Path
 package, config_path, legacy_path = sys.argv[1:]
@@ -614,25 +677,38 @@ def probe(method):
         sys.setrecursionlimit(80)
         packet=NativeReader(config).query('Aurora')
         outcome={'status':packet['status'],'problems':packet['problems']}
-    except RecursionError:
-        outcome={'error':'RecursionError'}
+    except (RecursionError,ctypes.ArgumentError) as error:
+        if method is not namespace['_target_absent']:
+            raise
+        outcome=_legacy_recursion_failure(error)
     finally:
         sys.setrecursionlimit(saved)
         windows_reads.ReadRoot._target_absent=production
     outcome['seconds']=time.perf_counter()-start
     return outcome
-result={'production':probe(production),'old_recursive':probe(namespace['_target_absent']),
+production_receipt={'phase':'production','production':probe(production),
         'forbidden_calls':len(reads),'source_sha256':hashlib.sha256(Path(windows_reads.__file__).read_bytes()).hexdigest(),
         'chain_links':80,'child_recursion_budget':80}
-print(json.dumps(result))
+print(json.dumps(production_receipt),flush=True)
+old_recursive=probe(namespace['_target_absent'])
+result={**production_receipt,'phase':'complete','old_recursive':old_recursive,'forbidden_calls':len(reads)}
+print(json.dumps(result),flush=True)
 '''
     allowed = {'systemroot', 'windir', 'tmp', 'temp', 'path'}
     child = subprocess.run([sys.executable, '-I', '-c', worker,
                             str(Path(windows_reads.__file__).parent.parent), str(config), str(legacy)],
                            env={key:value for key,value in os.environ.items() if key.casefold() in allowed},
                            capture_output=True, text=True, timeout=120)
+    lines = child.stdout.splitlines()
+    if lines:
+        record_property('raw_chain_production', lines[0])
     assert child.returncode == 0, (child.stdout, child.stderr)
-    result = json.loads(child.stdout)
+    assert len(lines) == 2, child.stdout
+    production_receipt, result = map(json.loads, lines)
+    assert production_receipt['phase'] == 'production' and result['phase'] == 'complete'
+    assert production_receipt['production'] == result['production']
+    assert production_receipt['forbidden_calls'] == 0
+    assert production_receipt['source_sha256'] == result['source_sha256']
     assert result['source_sha256'] == hashlib.sha256(Path(windows_reads.__file__).read_bytes()).hexdigest()
     assert result['old_recursive'].get('error') == 'RecursionError', result
     assert result['forbidden_calls'] == 0, result
@@ -646,7 +722,7 @@ print(json.dumps(result))
 
 
 @pytest.mark.parametrize('target,flags', [
-    ('../../../missing', 1), ('sub/../../../../missing', 1),
+    (r'..\..\..\missing', 1), (r'sub\..\..\..\..\missing', 1),
     (r'\??\C:\..\missing', 0),
 ])
 def test_symbolic_target_cannot_hide_excess_parents_through_normalization(target, flags):
@@ -655,8 +731,8 @@ def test_symbolic_target_cannot_hide_excess_parents_through_normalization(target
 
 
 @pytest.mark.parametrize('target,expected', [
-    ('../../missing', r'C:\missing'), ('.././missing', r'C:\owned\missing'),
-    ('sub/../../missing', r'C:\owned\missing'),
+    (r'..\..\missing', r'C:\missing'), (r'..\.\missing', r'C:\owned\missing'),
+    (r'sub\..\..\missing', r'C:\owned\missing'),
 ])
 def test_symbolic_target_keeps_documented_valid_dot_component_replacement(target, expected):
     assert str(windows_reads._symlink_target(PureWindowsPath(r'C:\owned\raw\findings.jsonl'), link_buffer(target))) == expected
@@ -813,6 +889,14 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
     record_property('raw_dotdot_result', json.dumps(receipt, sort_keys=True))
     assert reads == [] and receipt['after_stored_links'] == before, receipt
     assert receipt['after_following_stat'] == oracle, receipt
+    if separator == '/' and form != 'absolute':
+        assert active['flags'] == 1 and active['substitute'] == target and active['readlink'] == target, receipt
+        assert oracle['status'] == 'error' and oracle['error'] == 'OSError', receipt
+        assert oracle['winerror'] == 123 and oracle['errno'] == 22, receipt
+        assert packet['status'] == 'unavailable' and packet['problems'] == [{
+            'root_id': 'r', 'reason': 'ValueError',
+            'detail': 'Symbolic-link substitute name requires backslash separators'}], receipt
+        return
     assert oracle['status'] in ('live', 'missing'), receipt
     if component == 'linked' and terminal == 'live':
         assert receipt['lexical_terminal_stat']['status'] == 'missing', receipt

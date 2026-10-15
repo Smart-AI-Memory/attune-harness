@@ -108,6 +108,8 @@ def _symlink_target(source, data):
         raise ValueError('Malformed symbolic-link target encoding') from error
     if not target or '\x00' in target:
         raise ValueError('Malformed symbolic-link target name')
+    if '/' in target:
+        raise ValueError('Symbolic-link substitute name requires backslash separators')
     if flags == 0 and target.startswith('\\??\\'):
         target = target[4:]
     raw_parts = target[3:] if absolute_path(target) else target
