@@ -53,7 +53,8 @@ def test_tokenizer_refuses_other_model_or_server_before_reading_file(tmp_path, c
         LlamaTokenizer(tmp_path/'absent.json', ModelPin(**{**PIN, **change}))
 
 
-@pytest.mark.parametrize('body', [b'{}', b'not-json', b'x'*(llama_tokens.MAX_PROFILE_BYTES+1)])
+@pytest.mark.parametrize('body', [b'{}', b'not-json', b'x'*(llama_tokens.MAX_PROFILE_BYTES+1)],
+                         ids=['unqualified-json', 'invalid-json', 'profile-too-large'])
 def test_unqualified_or_oversized_profile_never_loads_tokenizer(tmp_path, monkeypatch, body):
     path = tmp_path/'profile.json'; path.write_bytes(body)
     monkeypatch.setattr(llama_tokens.importlib.metadata, 'version', lambda *a: pytest.fail('dependency accessed'))

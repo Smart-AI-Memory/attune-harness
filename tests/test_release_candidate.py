@@ -68,6 +68,22 @@ def test_other_version_forms_remain_refused(version):
         candidate.validate_target(**data)
 
 
+def workflow_bash(bash_path):
+    if os.name != "nt":
+        return bash_path
+    # Search configured absolute Git paths, never Windows' WSL bash launcher or cwd.
+    for entry in os.environ.get("PATH", "").split(os.pathsep):
+        directory = Path(entry.strip('"'))
+        if not directory.is_absolute() or not (directory / "git.exe").is_file():
+            continue
+        git = (directory / "git.exe").resolve()
+        for root in (git.parent, git.parent.parent, git.parent.parent.parent):
+            bash = root / "bin/bash.exe"
+            if (root / "cmd/git.exe").is_file() and bash.is_file():
+                return str(bash)
+    pytest.fail("Install Git for Windows and add its absolute cmd directory to PATH")
+
+
 @pytest.mark.parametrize("bash_path", ["bash", "/bin/bash"] if sys.platform == "darwin" else ["bash"])
 @pytest.mark.parametrize("target,version,valid", [
     ("pypi", "1.0.0", True), ("pypi", "1.0.0rc1", True),
@@ -77,7 +93,8 @@ def test_other_version_forms_remain_refused(version):
     ("unknown", "1.0.0rc1", False),
 ])
 def test_actual_workflow_target_guard(target, version, valid, bash_path):
-    workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/publish-pypi.yml").read_text()
+    bash_path = workflow_bash(bash_path)
+    workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/publish-pypi.yml").read_text(encoding="utf-8")
     step = workflow.split("- name: Validate immutable target\n", 1)[1].split("      - uses:", 1)[0]
     script = "\n".join(line[10:] for line in step.split("        run: |\n", 1)[1].splitlines())
     env = dict(os.environ, RELEASE_SHA="a" * 40, GITHUB_SHA="a" * 40,

@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import pytest
 
@@ -52,7 +53,16 @@ def test_no_spend_without_exact_estimated_admission(frozen):
 
 @pytest.mark.parametrize('slice_name,arm',[('assessment','legacy'),('assessment','solo'),('assessment','independent-review'),('repair','direct'),('repair','solo'),('repair','required-review')])
 @pytest.mark.parametrize('interrupted',[False,True])
-def test_each_arm_uses_real_tools_and_effects_without_native_calls(frozen,slice_name,arm,interrupted):
+def test_each_arm_uses_real_tools_and_effects_without_native_calls(frozen,slice_name,arm,interrupted,monkeypatch):
+    if slice_name == 'repair' and os.name == 'nt':
+        from attune_harness import repair
+        freeze = repair.freeze
+        def freeze_windows_fixture(checkout, allowed, probe, storage):
+            # Adapt disposable rehearsal input; preserve the retained campaign.
+            probe = copy.deepcopy(probe)
+            probe['environment']['SystemRoot'] = os.environ['SystemRoot']
+            return freeze(checkout, allowed, probe, storage)
+        monkeypatch.setattr(repair, 'freeze', freeze_windows_fixture)
     p=campaign.verify(frozen)
     case='clean' if slice_name=='assessment' else 'arithmetic'
     next(c for c in p['cases'] if c['id']==case)['interrupt']=interrupted

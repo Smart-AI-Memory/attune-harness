@@ -18,13 +18,14 @@ non-programmer walkthrough and the migration rows) are listed at the end.
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
 | Install | `pipx install 'attune-harness[all]==1.2.0'` ([README](../README.md#installation)) | Python 3.10 and 3.12 on macOS, Ubuntu and Windows are in the CI matrix; other versions are not | Six installed-wheel platform jobs on every push to `main`; the release gate compares PyPI's hashes with the publish run's `SHA256SUMS` | Harness and attune-ai pin different MCP SDK lines and cannot share an environment. Install each in its own environment |
-| First run | `init`, then a `test` preview and the `review` intake ([README](../README.md#your-first-five-minutes)) | All three platforms | The README's journey-tagged block runs as written in every platform job | `init` writes offline demo participants. Native participants need `init --profile claude` or `codex`, and a review then needs `--allow-external` |
+| First run | `init`, then a `test` preview and the `review` intake ([README](../README.md#your-first-five-minutes)) | Initialization on all three; complete test continuation is POSIX-only | Selected initialization tests run in every platform job; the complete README journey is Windows-skipped | `init` writes offline demo participants. Native participants need `init --profile claude` or `codex`, and a review then needs `--allow-external` |
 
 ## Work
 
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
 | Evidence review | `review --goal ... --accept` ([CLI guide](cli-guide.md#task-oriented-evidence-review)) | All three platforms | Review and task tests; the review step of the R2 journey in every platform job | Narratives are unverified model output. Participant disagreement is left for a person to settle, never adjudicated |
+| Bounded source review and roundtable | `source-review` or `roundtable`: check, prepare, run, status, evidence, reconcile, assess-citation, abandon | Native Windows and POSIX within the declared snapshot and process profiles | Selected consultation suites, including native retained-handle snapshot tests | Freeze explicit source paths, accept the exact checkpoint and grant each external/native transport. Consultation output remains advisory |
 | Plan, accept, build | `plan --request`, `plan --accept`, `build` ([CLI guide](cli-guide.md#plan-and-build)) | Build runs through the POSIX effects profile, or the Windows one, which may refuse with a `FeatureUnavailable` that names Windows | The offline [R2 journey](journeys/r2-clean-environment.md) (plan, accept, build, review, status) runs from the installed wheel in every platform job, with Attune AI absent | No copy-and-paste example: `work.json` needs a frozen effects manifest that no command writes. Native model planning and building are experimental (1 of 24 replies accepted before the contract correction, 12 of 12 after it; not a reliability rate) |
 | Import another project's plan | `plan --import-plan PATH --allow-outside-project` ([R4](journeys/r4-legacy-spec-state.md)) | All three platforms | Eight retained fixtures and a conversion receipt per import | Import grants no authority. Acceptance is still a separate step |
 | Scoped repair | `fix --goal --checkout --scope --probe` ([CLI guide](cli-guide.md#scoped-repair)) | Local POSIX Git checkouts. On Windows, experimental and unqualified beyond its CI tests | Repair tests; the fail-before, pass-after probe is bound to the task. On Windows, the effects backend's installed owner journey on Windows 2022 and 2025 | Existing regular files only: no creation, deletion, renames or linked worktrees. Use a dedicated checkout |
@@ -54,7 +55,7 @@ automatic recall.**
 | Read existing memories | `memory recall`, `resolve`, `refresh` over configured roots ([CLI guide](cli-guide.md#memory)) | POSIX only; on Windows the reader refuses | Every POSIX platform job reads a raw root from the installed wheel; the Windows jobs record the refusal | On Windows, use the POSIX profile through WSL2 |
 | Automatic recall at session start or per prompt | `memory serve` from a SessionStart hook; `serve --for PROMPT` through `scripts/memory_prompt_hook.py` | All three; Windows and Redis-only configs serve curated nodes but no file pointers | Synthetic tests of provenance, and of inactive-node and `wrong`-verdict filtering. The path against a hydrated server passed once on a maintainer's machine | Consumes Redis that attune-ai's hydrate writer fills; Harness does not replace that writer. **Not yet observed in real fresh sessions (S3)** |
 | Read Redis memory directly | `memory redis status\|digest\|related\|node\|search` (`[redis]` extra) | All three | Every platform job checks the unreachable-server report | Needs a hydrated Redis Stack. A pointer's `text` body is never served |
-| Save a memory or task explicitly | `memory saved save\|search\|show\|revise\|forget\|complete` ([saving guide](memory-saving.md)) | All three | Saved-store tests, including replay, conflicts and atomic replacement | Files are authoritative; Redis is an optional index. Saving a task records intent, not execution |
+| Save a memory or task explicitly | `memory saved save\|search\|show\|revise\|forget\|complete` ([saving guide](memory-saving.md)) | POSIX only; Windows refuses before opening the store | Saved-store tests, including replay, conflicts and atomic replacement; native Windows durability and locking remain unqualified | Files are authoritative; Redis is an optional index. Saving a task records intent, not execution |
 | Working memory | `memory scratch stash\|retrieve\|forget\|keys` | All three | File and Redis backends in every platform job | An unreachable Redis is reported, never replaced by the file store |
 
 ## Retrieval, hosts and extensions
@@ -86,3 +87,100 @@ release:
 - **S6:** an installed walkthrough by a named non-programmer.
 - **S9:** each migration row tried against the installed stable artifact.
 - Ordinary use of the Claude Code plugin, recorded.
+
+## Native Windows inventory — October 15, 2026
+
+This audit supplements the release map above at source baseline
+`017d1ba833acd0549d628e4b4f040b77b5e45594`. Parser inspection found 82 leaf
+command paths across 32 top-level commands. Optional extras are `redis`,
+`voyage`, `memory-native` and `all`; `all` includes Redis/Voyage but excludes
+`memory-native`. The normal installed-wheel jobs install Redis/Voyage and
+assert Anthropic is absent. They do not exercise the native SDK helper.
+
+A completed journey, an expected refusal, a skipped test and an unobserved path
+support different claims. The [baseline Windows 3.10](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38267127140/job/114872025229)
+and [Windows 3.12](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38267127140/job/114872025322)
+installed jobs completed the offline R2 build and review. Their file-memory
+receipts explicitly report `posix-only refusal` with no successful tiers.
+The qualifier can accept a build refusal on other runs; inspect the receipt.
+
+| Command group | Refusal or boundary owner | Current native witness and remaining gap |
+| --- | --- | --- |
+| `init` profiles and repair/plan/roundtable starters | [init_cli.py](../src/attune_harness/init_cli.py), required starter inputs and shell rendering | Selected starter tests run; complete documented first-run, test and repair continuations are POSIX-skipped in [test_cold_start_journey.py](../tests/test_cold_start_journey.py) |
+| `review-form`, `review`, `inspect-review`, `resume-review`, `reconcile-review`, `transfer-review`, `cancel-review` | [review_cli.py](../src/attune_harness/review_cli.py), registry/acceptance; [review_store.py](../src/attune_harness/review_store.py), native lease | Installed R2 review completes with deterministic assessment; this is software coverage, not live model quality |
+| `plan`, imported plans, acceptance and `build` | [work_cli.py](../src/attune_harness/work_cli.py); [work_build.py](../src/attune_harness/work_build.py), roles/budgets/grants | Baseline installed R2 build completed; dependent build-to-test handoff is blocked by the testing owner |
+| `fix` and assessment-to-repair | [repair.py](../src/attune_harness/repair.py), dedicated checkout, scope, probe and native admission | Effects owner tests pass; complete documented repair continuation remains Windows-skipped |
+| `test`, including completed-task handoff | [test_change.py](../src/attune_harness/test_change.py), POSIX admission and override refusal; [task_handoff.py](../src/attune_harness/task_handoff.py), completed evidence | Windows feature is blocked; preview refusal is not test execution |
+| `status`, `resume`, `reconcile-task`, `transfer-task`, `cancel-task` | [task_cli.py](../src/attune_harness/task_cli.py), profile dispatch and recovery | Selected native recovery tests run; testing recovery awaits native execution. Actual commands are `status` and `resume` |
+| `source-review`, `roundtable` (eight actions each) | [consultation_cli.py](../src/attune_harness/consultation_cli.py); [consultation.py](../src/attune_harness/consultation.py), frozen source, checkpoint and explicit grants | Implemented bounded Harness consultation; selected consultation and native snapshot tests run. This does not qualify every Attune AI workflow |
+| `memory capabilities`, `recall`, `resolve`, `refresh` | [memory_reader.py](../src/attune_harness/memory_reader.py), capture, root authority, expiry/scope/version | Windows refuses; raw, personal and curated tiers need successful installed witnesses |
+| `memory serve` and prompt hook | [memory_serving.py](../src/attune_harness/memory_serving.py), authorized pointer/verdict reads | Installed witness covers skipped output; curated synthetic tests are separate. File pointers remain blocked |
+| `memory redis` (five actions) | [memory_redis.py](../src/attune_harness/memory_redis.py), optional dependency/config/query bounds | Installed Windows checks cover disabled/unreachable outcomes; hydrated-server success needs separate evidence |
+| `memory scratch` (five actions) | [memory_scratch.py](../src/attune_harness/memory_scratch.py), root/config/native locks | Installed file-store round trip completes; unreachable Redis never substitutes file storage |
+| `memory saved` (eight actions), linked tasks and pending review | [memory_saved.py](../src/attune_harness/memory_saved.py), platform, linked identity, completion; [memory_saved_cli.py](../src/attune_harness/memory_saved_cli.py), pending filter | All Windows storage operations refuse. Equivalent durability/private ACL/locking proof precedes production implementation |
+| `memory create`, `replay`, `inspect`, `execute` | [memory_context.py](../src/attune_harness/memory_context.py), host/job authority; [memory_native.py](../src/attune_harness/memory_native.py), native preflight | Offline worker tests are distinct from the actual SDK helper; native transport is blocked and absent from normal installed qualification |
+| `code-config`, `index` (four actions), `retrieval-task`, provider `retrieve` | [voyage_cli.py](../src/attune_harness/voyage_cli.py); [voyage_provider.py](../src/attune_harness/voyage_provider.py), paid grant/key/SDK | Offline selected tests run; no live Windows provider qualification |
+| Keyword `retrieve`, `verify` | [retrieval.py](../src/attune_harness/retrieval.py), [verification.py](../src/attune_harness/verification.py), dependency and bounded input guards | Installed successful and negative CLI witnesses exist |
+| `mcp-serve`, `mcp-inspect` | [cli.py](../src/attune_harness/cli.py), profile conflicts; [mcp_server.py](../src/attune_harness/mcp_server.py), accepted grant/freshness | Installed MCP/workspace tests run; protocol checks alone do not establish a complete user journey |
+| `extension` (seven actions) | [extension_cli.py](../src/attune_harness/extension_cli.py); [plugin_runtime.py](../src/attune_harness/plugin_runtime.py), signed imports/grants/SystemRoot | Native plugin probe completes; installing a bundle grants no execution authority |
+| `spec intake`, `spec present` (four views) | [spec_cli.py](../src/attune_harness/spec_cli.py), accepted-result evidence | Selected intake/presentation tests run; native test-result production awaits the testing port |
+| `triage-check`, `repair-economics`, `github-checks`, no-argument demo | [cli.py](../src/attune_harness/cli.py), bounded trusted exports | Selected operation/GitHub tests and installed demo run; none authorizes workflow dispatch |
+
+### Retained native baseline
+
+[Run 38773419154](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38773419154)
+tested PR #266 head `82ed87e2e6a5385255aa00fc831e8e2b7cc8bca2` through GitHub's
+merge revision `2eabfaa511952942945bddf778533d13d84bfc7a`. Their Git trees match.
+All six selected installed-wheel jobs passed. Both Windows installed receipts
+record completed offline R2 build/review and file-reader `posix-only refusal`;
+each skips 189 cases. These are selected software checks.
+
+The complete Windows 3.10 source run finished with 3,763 passed, 249 failed,
+479 skipped, 18 errors and seven passing subtests. Its JUnit has 265 distinct
+failure/error case rows: two rows each have both setup and teardown errors.
+Every observed failure and skip is classified below. The Windows 3.12 controller
+stopped at its 1,800-second deadline without JUnit or a suite-end event. Its
+journal records 253 failed phase events across 251 identities and 478 skipped
+identities; their cause labels are inferred from exact matching 3.10 IDs.
+Seventy-one cases had not started and one call had not ended. This incomplete
+run does not establish results for that tail.
+
+| Windows 3.10 failure/error cause | Case rows | Owner and next check |
+| --- | ---: | --- |
+| Temporary ancestor exceeds the effects profile's 2,048-entry bound | 185 | Test setup: remove successful disposable pytest directories, retain failed fixtures and all independent diagnostics; preserve the production bound |
+| Testing platform admission refuses Windows | 49 | T3: native captured-change execution and handoff |
+| Probe fixtures omit required `SystemRoot` | 17 | Test inputs for assessment repair, execution evidence and campaign rehearsal |
+| Diagnostic assertions expect unescaped Windows paths | 6 | Test assertions must match the existing `repr(filename)` stack format |
+| Release fixture selects the WSL `bash` stub | 4 | Test setup must select the actual Git Bash executable |
+| Oversized parameter IDs exceed the Windows environment limit | 2 | Compact pytest IDs; preserve the large input values and assertions |
+| Runtime spy supplies a POSIX absolute path | 1 | Use an absolute interpreter path for the current platform |
+| GPG import-status refusal | 1 | Unresolved: the same case passed on 3.12; retain diagnostics before diagnosing a cause |
+
+| Windows 3.10 skip category | Case rows | Coverage owner |
+| --- | ---: | --- |
+| Effects fixture | 151 | T6; the native effects backend has separate witnesses |
+| File-memory reader | 58 | T4 |
+| Retained historical evidence | 56 | Pinned historical inputs; preserve them |
+| Saved memory/tasks | 49 | T5, after T2 durability proof |
+| Testing producer | 35 | T3 |
+| Documented journey or envelope | 34 | T6 and its producing feature |
+| POSIX primitive | 33 | Platform-specific mechanics; separate from native equivalents |
+| POSIX repository script | 19 | Repository tooling |
+| Unredistributed evidence | 16 | Retained inputs unavailable to this job |
+| Optional browser or DOM | 8 | Optional dependencies |
+| Native-memory preflight | 6 | T7 |
+| Native snapshot mechanics | 5 | Platform-specific mechanics |
+| POSIX links or FIFO | 3 | Platform-specific fixtures |
+| Live Redis absent | 2 | Optional service |
+| POSIX symlink fixture | 1 | Standard-user fixture coverage |
+| Pipe readiness guard | 1 | Obsolete guard removed after this measurement |
+| Coverage extra absent | 1 | Optional instrumentation |
+| Release tag absent | 1 | Repository release fixture |
+
+Earlier full-source attempts reached outer job deadlines without artifacts;
+the retained run above supersedes those attempts for observed baseline coverage.
+The suite controller keeps bounded output, phase events and the process verdict.
+Expected feature refusals remain failures or explicitly recorded skips until
+their owners supply successful native journeys. Windows 11 desktop qualification,
+the incomplete 3.12 tail and final feature parity remain open under the
+[approved Windows spec](specs/windows-parity/README.md).

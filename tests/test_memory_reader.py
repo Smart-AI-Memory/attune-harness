@@ -194,11 +194,11 @@ def test_raw_refusals_become_root_problems(tmp_path):
 # --- the document tiers -----------------------------------------------------------------
 
 
-@posix_only
-def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path):
-    root = tmp_path / "personal"
+@pytest.mark.parametrize("tier", ["personal", "curated"])
+def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path, tier):
+    root = tmp_path / tier
     written = seed_documents(root, "global")
-    reader = NativeReader(config_for(("p", root, "personal", "global")))
+    reader = NativeReader(config_for(("p", root, tier, "global")))
     for relative, (query, source) in written.items():
         packet = reader.query(query, k=5)
         assert packet["status"] == "available", (relative, packet["problems"])
@@ -325,7 +325,6 @@ def test_partial_status_and_nothing_from_attune_ai(tmp_path):
 # --- through the host and the CLI ---------------------------------------------------------
 
 
-@posix_only
 def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys, monkeypatch):
     root = tmp_path / "raw"
     seed_raw(root)
@@ -339,18 +338,19 @@ def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys,
     assert sorted(capabilities) == ["context_refresh", "mutation_status", "native_worker", "read", "reader",
                                     "retained_paths", "worker_execution", "worker_mutations"]
     assert capabilities["reader"] == "native"
-    assert memory_main([*base, "recall", "Aurora", "--k", "3"]) == 0
+    returncode = memory_main([*base, "recall", "Aurora", "--k", "3"])
     packet = json.loads(capsys.readouterr().out)
+    assert returncode == 0, packet
     assert sorted(packet) == ["authority", "guidance", "items", "k", "max_chars", "operation", "problems", "query",
                               "schema_version", "status"]
     assert packet["status"] == "available" and len(packet["items"]) == 3
     handle = tmp_path / "handle.json"
-    handle.write_text(json.dumps(packet["items"][0]["handle"]))
+    handle.write_text(json.dumps(packet["items"][0]["handle"]), encoding="utf-8")
     assert memory_main([*base, "resolve", str(handle)]) == 0
     assert sorted(json.loads(capsys.readouterr().out)) == ["authority", "classification", "id", "kind", "locator",
                                                           "metadata", "owner", "scope", "text", "version"]
     context = tmp_path / "context.json"
-    context.write_text(json.dumps(packet))
+    context.write_text(json.dumps(packet), encoding="utf-8")
     assert memory_main([*base, "refresh", str(context)]) == 0
     refreshed = json.loads(capsys.readouterr().out)
     assert sorted(refreshed) == ["context", "invalidated_ids", "replaces", "status"] and refreshed["invalidated_ids"] == []

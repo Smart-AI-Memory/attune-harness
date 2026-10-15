@@ -23,18 +23,62 @@ def explicit_environment():
             'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}
 
 
-def test_windows_explicit_environment_reaches_target_exactly(tmp_path, monkeypatch):
-    monkeypatch.setenv('ATTUNE_AMBIENT_CANARY', 'must-not-leak')
-    environment = explicit_environment()
-    keys = sorted(k.upper() for k in environment)
-    code = ('import json,os;print(json.dumps({"keys":sorted(os.environ),'
-            f'"values":{{k:os.environ.get(k) for k in {keys!r}}}}}))')
-    result = invoke(command(code), '',
-                    cwd=tmp_path, environment=environment)
-    assert result.failure is None, result
-    assert json.loads(result.stdout) == {'keys': keys,
-                                       'values': {k.upper(): v for k, v in environment.items()}}
-    assert environment == explicit_environment()
+@pytest.fixture(scope='module')
+def windows_process_architecture():
+    """Read interpreter ISA independently of mutable architecture environment."""
+    import ctypes
+    from ctypes import wintypes
+
+    # https://learn.microsoft.com/windows/win32/debug/pe-format#machine-types
+    with Path(sys.executable).open('rb') as stream:
+        dos = stream.read(64)
+        assert len(dos) == 64 and dos[:2] == b'MZ', 'Interpreter lacks a DOS header'
+        stream.seek(int.from_bytes(dos[60:64], 'little'))
+        coff = stream.read(6)
+    assert len(coff) == 6 and coff[:4] == b'PE\0\0', 'Interpreter lacks a PE header'
+    interpreter_machine = int.from_bytes(coff[4:6], 'little')
+    api = ctypes.WinDLL('kernel32', use_last_error=True)
+    api.GetCurrentProcess.argtypes = []
+    api.GetCurrentProcess.restype = wintypes.HANDLE
+    api.IsWow64Process2.argtypes = [wintypes.HANDLE,
+                                  ctypes.POINTER(ctypes.c_ushort),
+                                  ctypes.POINTER(ctypes.c_ushort)]
+    api.IsWow64Process2.restype = wintypes.BOOL
+    process_machine, native_machine = ctypes.c_ushort(), ctypes.c_ushort()
+    if not api.IsWow64Process2(api.GetCurrentProcess(), ctypes.byref(process_machine),
+                              ctypes.byref(native_machine)):
+        raise ctypes.WinError(ctypes.get_last_error())
+    # Zero means not WOW64; it does not identify the interpreter's ISA.
+    return interpreter_machine, process_machine.value, native_machine.value
+
+
+def test_windows_explicit_environment_reaches_target_exactly(
+    tmp_path, monkeypatch, windows_process_architecture,
+):
+    for name in ('ATTUNE_AMBIENT_CANARY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN',
+                 'HTTPS_PROXY', 'PATH', 'PYTHONPATH'):
+        monkeypatch.setenv(name, 'must-not-inherit-' + name)
+    monkeypatch.setenv('PROCESSOR_ARCHITECTURE', 'ambient-architecture-canary')
+    # Native probes witnessed this exact raw architecture tuple on Windows Arm.
+    # Other profiles retain the strict supplied-map expectation.
+    amd64_on_arm64 = windows_process_architecture == (0x8664, 0, 0xaa64)
+    cases = [explicit_environment()]
+    if amd64_on_arm64:
+        cases.append({**explicit_environment(),
+                      'PROCESSOR_ARCHITECTURE': 'explicit-architecture-canary'})
+    for environment in cases:
+        before = dict(environment)
+        expected = {key.upper(): value for key, value in environment.items()}
+        if amd64_on_arm64:
+            expected['PROCESSOR_ARCHITECTURE'] = 'AMD64'
+        keys = sorted(expected)
+        # Keep all keys, but never print values of unexpected inherited secrets.
+        code = ('import json,os;print(json.dumps({"keys":sorted(os.environ),'
+                f'"values":{{k:os.environ.get(k) for k in {keys!r}}}}}))')
+        result = invoke(command(code), '', cwd=tmp_path, environment=environment)
+        assert result.failure is None, result
+        assert json.loads(result.stdout) == {'keys': keys, 'values': expected}, windows_process_architecture
+        assert environment == before
 
 
 def test_windows_default_environment_still_inherits(tmp_path, monkeypatch):
