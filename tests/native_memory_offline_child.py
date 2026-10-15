@@ -66,6 +66,8 @@ def main(options):
     observed = {
         'schema_version': 1, 'runtime': native.runtime_identity(),
         'interpreter_argv': sys.orig_argv,
+        'base_executable': sys._base_executable,
+        'prefix': sys.prefix, 'base_prefix': sys.base_prefix,
         'environment_keys': entry_keys,
         # Never serialize unknown ambient values if an inheritance regression
         # occurs. The parent checks the full key set and every expected value.

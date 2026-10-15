@@ -71,6 +71,32 @@ def effective_environment(environment):
     return expected
 
 
+def validate_child_argv(value, requested, runtime):
+    assert len(requested) == 5 and value['runtime'] == runtime
+    assert runtime['python'] == requested[0]
+    assert value['base_executable'] == sys._base_executable
+    assert value['prefix'] == sys.prefix and value['base_prefix'] == sys.base_prefix
+    expected = list(requested)
+    if (os.name == 'nt' and sys.implementation.name == 'cpython'
+            and sys.version_info[:2] in ((3, 10), (3, 12)) and sys.prefix != sys.base_prefix):
+        # CPython's standard Windows venv redirector launches the configured
+        # base executable as argv[0]. Derive it from the parent and pyvenv.cfg,
+        # never from the target's reported argv. Every other argument is exact.
+        launcher = Path(requested[0])
+        base = Path(sys._base_executable)
+        assert launcher == Path(sys.prefix) / 'Scripts' / 'python.exe'
+        assert launcher.is_file() and not launcher.is_symlink()
+        assert base == Path(sys.base_prefix) / 'python.exe' and base.is_file()
+        config = {}
+        for line in (Path(sys.prefix) / 'pyvenv.cfg').read_text(encoding='utf-8').splitlines():
+            if '=' in line:
+                key, value = line.split('=', 1)
+                config[key.strip()] = value.strip()
+        assert Path(config['home']) == base.parent
+        expected[0] = str(base)
+    assert value['interpreter_argv'] == expected
+
+
 @pytest.fixture
 def offline(monkeypatch, tmp_path, sdk, request):
     for name in native.DENIED_ENVIRONMENT:
@@ -106,8 +132,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
 
     def read(index=-1):
         value = json.loads(receipts[index].read_bytes())
-        assert value['runtime'] == sdk
-        assert value['interpreter_argv'] == arguments[receipts[index]]
+        validate_child_argv(value, arguments[receipts[index]], sdk)
         assert value['environment_keys'] == sorted(expected)
         assert value['environment_values'] == expected
         assert value['sdk_import_environment_keys'] == sorted(expected)
@@ -137,7 +162,10 @@ def offline(monkeypatch, tmp_path, sdk, request):
         destination.mkdir(parents=True, exist_ok=True)
         for index, path in enumerate(receipts):
             assert path.is_file(), 'Supervised child wrote no offline witness'
-            (destination / f'{request.node.name}-{index}.json').write_bytes(path.read_bytes())
+            value = json.loads(path.read_bytes())
+            value['supervisor_requested_argv'] = arguments[path]
+            (destination / f'{request.node.name}-{index}.json').write_bytes(
+                (json.dumps(value, sort_keys=True) + '\n').encode('utf-8'))
 
 
 def test_real_sdk_helper_unicode_receipt_replays(config, message, offline, sdk):
@@ -189,6 +217,17 @@ def test_windows_explicit_key_client_does_not_discover_home(config, message, off
     witness = offline.read()
     assert witness['home_lookup_guard'] is True and witness['home_lookups'] == 0
     assert witness['offline_sdk_requests'] == 1
+
+
+def test_child_argv_witness_rejects_every_substituted_entry(config, message, offline, sdk):
+    requested = offline.install(message)
+    native.NativeParticipant(config)('worker', 'routine', {}, {})
+    value = offline.read()
+    for index in range(5):
+        changed = deepcopy(value)
+        changed['interpreter_argv'][index] = 'substituted-argv-entry'
+        with pytest.raises(AssertionError):
+            validate_child_argv(changed, requested, sdk)
 
 
 @pytest.mark.parametrize('mode', ['bad-message', 'oversize', 'http-error'])
