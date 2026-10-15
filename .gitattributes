@@ -40,3 +40,11 @@ experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1 -text
 
 # Merge provenance checker is reviewed by exact bytes on Windows.
 experiments/platform/check_windows_saved_store_merge_inputs_v1.py -text
+
+# Additive current-source T2 driver and complete wheel-source closure are byte-bound.
+experiments/platform/windows_saved_store_combined_driver_v2.py -text
+experiments/platform/windows_saved_store_source_manifest_v2.json -text
+experiments/platform/check_windows_saved_store_account_inputs_v2.py -text
+
+# Owned finite build projection code is also byte-bound.
+experiments/platform/project_windows_saved_store_build_v1.py -text
