@@ -1,14 +1,15 @@
 # Native Windows feature parity
 
-**Status: draft for Patrick's review. Implementation is paused.** October 15,
-2026. Source baseline: `017d1ba833acd0549d628e4b4f040b77b5e45594`.
+**Status: approved for staged implementation.** October 15, 2026. Source baseline: `017d1ba833acd0549d628e4b4f040b77b5e45594`.
 Patrick selected feature parity, including the currently POSIX-only features,
 and allowed more than one PR. This replaces the initial one-PR effort cap.
 
 Read [the design and acceptance criteria](design.md),
 [the fixture producers](fixtures.md), then [the ordered tasks](tasks.md).
-Approval of this plan does not authorize merges,
-releases, paid provider calls, repository settings changes or workflow dispatches.
+Patrick separately authorized necessary paid validation for this Windows
+compatibility process on October 15, 2026, with a $50 total spending ceiling.
+Approval does not authorize merges, releases, repository settings changes or
+workflow dispatches.
 
 ## Outcome and completion
 
@@ -18,7 +19,8 @@ file-based memory, saved memory/tasks and native memory proposals. Windows must
 not require WSL or refuse a feature solely because the host is Windows.
 
 Done means all requirements R1–R8 pass from the installed wheel, the full source
-suite passes on Windows Python 3.10 and 3.12, the documented journeys pass, and
+suite passes in Windows Server CI with Python 3.10 and 3.12, the documented
+installed-wheel journeys also pass on Windows 11 desktop, and
 each code PR has its required independent review. Existing macOS and Linux
 behavior and historical records remain compatible. Completion review: pending
 for implementation; the planning review is recorded in [tasks](tasks.md#planning-review).
@@ -48,15 +50,20 @@ completed parity. Its measurements must be inspected before implementation is
 declared ready. Unfinished implementation changes are retained in a task-owned
 stash and are not part of this specification.
 
-## Proposed decisions
+## Decisions
+
+Patrick approved D1–D5 on October 15, 2026, including the staged delivery plan.
+The $50 cap covers the entire process. Continue fixes, reviews and qualification
+until a required approval or missing information blocks the affected work.
+Merges and publishing remain Patrick's decisions.
 
 | Decision | Recommendation and boundary |
 |---|---|
-| D1: Native qualification profile | Keep Python 3.10/3.12. Exercise fixed local NTFS on Windows Server 2022 and 2025, with non-administrator processes. Test both Windows PowerShell and PowerShell 7 where commands are printed for those shells. Record architecture and OS build; add a Windows 11 desktop smoke receipt before making a desktop-specific qualification claim |
-| D2: Data and bounds | Preserve public schemas, accepted POSIX records and their version tokens. Preserve the memory reader's 4,096-Markdown-file and byte bounds. Do not inherit the effects helper's 2,048-entry bound accidentally. Keep profile-specific refusals explicit |
-| D3: Saved-store durability | Run the bounded proof in T2 before choosing a backend. Require a justified native equivalent for the current file-flush, atomic-replace and parent-flush contract. If that cannot be established without administrator access, return to Patrick with evidence; do not silently substitute process-crash-only persistence |
-| D4: Provider qualification | Use the pinned SDK with a test-only transport that cannot access the network. Keep provider, model, effort, exposure and paid-dispatch rules unchanged. Any live model trial is a separately approved task |
-| D5: Delivery | Land independently reviewable PRs through main, in the order below. New platform claims follow receipts, after the implementation and its final review |
+| D1: Native qualification profile — approved | Require Windows 11 desktop validation and Windows Server 2022/2025 CI before declaring parity, with Python 3.10/3.12, fixed local NTFS and standard user permissions. Record architecture and OS build. Desktop validation is part of completion; server CI cannot substitute for it |
+| D2: Data and bounds — approved | Preserve public schemas, accepted POSIX records and their version tokens. Windows must match the existing memory limits: 4,096 Markdown files per root, 8 MiB per file and 64 MiB per query snapshot. Adapt native enumeration rather than inheriting the effects helper's smaller 2,048-entry bound. Lower initial Windows limits are not approved |
+| D3: Saved-store durability — approved | Require a justified native equivalent for the current file-flush, atomic-replace and parent-flush contract under standard user permissions. Run the bounded proof in T2 before implementing production saved storage. If equivalence cannot be established, stop saved-storage work and return to Patrick with evidence and alternatives; other independent approved work may continue. An app-crash-only profile is not approved |
+| D4: Provider qualification — approved | Keep comprehensive offline SDK/Windows-helper tests in CI, then perform controlled live Windows validation through the production transport. Necessary paid validation is authorized with one $50 total cap across this entire Windows compatibility process, including contributors, runs and retries; it does not reset per agent or PR. Use synthetic data and existing allowed models, bound input/output, retain actual usage/results and reserve worst-case cost before dispatch. No automatic retries. No new per-run spending approval is needed within the authorized scope and remaining cap |
+| D5: Delivery — approved | Land independently reviewable PRs through main, in the order below. New platform claims follow receipts, after the implementation and its final review |
 
 ## Walk the command journeys
 
@@ -143,7 +150,7 @@ and the new child-only in-memory HTTP responder; external network is denied.
 
 ## Approval boundary
 
-Approve the staged plan as a whole, with T2 as a technical decision gate. A
+The staged plan is approved, with T2 as a technical decision gate. A
 failed durability proof stops saved-store implementation and returns the
 decision to Patrick. No narrower persistence promise or smaller advertised
 memory bound is approved implicitly. The smallest useful increment is T1's

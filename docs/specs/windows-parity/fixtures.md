@@ -1,6 +1,6 @@
 # Windows journey fixture producers
 
-**Status: proposed fixture contract.** [The command walk](README.md#walk-the-command-journeys)
+**Status: approved fixture contract.** [The command walk](README.md#walk-the-command-journeys)
 consumes these artifacts. Fixtures run in disposable directories with no user
 data or provider access. Write each JSON object as BOM-free UTF-8:
 
@@ -134,3 +134,9 @@ installed `helper_main`. Production bootstrap/refusal is a separate witness.
 The fixture records actual runtime/argv, positive offline SDK request count and
 zero live provider/model requests. It preserves production evidence fields and
 never enables a fake provider in the shipped configuration.
+
+The separately recorded live witness uses the production helper/transport,
+synthetic source facts and runtime-supplied credentials. It does not use the
+offline HTTP responder or dummy key. D4's shared $50 process cap and conservative
+pre-dispatch reservations apply to every paid attempt; record actual usage and
+keep credentials out of fixtures and receipts.

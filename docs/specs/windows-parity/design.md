@@ -1,6 +1,6 @@
 # Windows parity design and acceptance
 
-**Status: draft.** See [scope and journey walk](README.md) and [tasks](tasks.md).
+**Status: approved for staged implementation.** See [scope and journey walk](README.md) and [tasks](tasks.md).
 Requirements describe intended behavior; none is evidence of implementation.
 
 ## R1: A complete platform inventory
@@ -69,6 +69,8 @@ same-byte replacement. Native attacks cover root/parent/leaf swaps, junctions,
 hard links, ADS, device/UNC paths, aliases and case collisions, without reading
 outside sentinels. Test the full 4,096-Markdown-file boundary in one directory
 and nested directories; keep the 8 MiB per-file and 64 MiB snapshot limits.
+Approved D2 requires Windows to match these limits and preserve existing data
+formats; a lower initial Windows capacity profile is not authorized.
 Any new directory-enumeration bound needs an explicit compatibility decision;
 do not change the effects profile's historical bounds globally.
 
@@ -119,9 +121,11 @@ does not support its write-through flag, and a volume-wide
 requires administrator privileges. Neither is an accepted shortcut.
 
 CI crash injection proves process-crash behavior, not sudden-power-loss behavior.
-If a supported equivalent cannot be justified, stop this requirement and ask
-Patrick about alternatives with the retained evidence. A process-crash-only
-profile is a product decision, not an implementation fallback.
+Approved D3 requires equivalent durability under standard user permissions before
+production saved-storage implementation. If a supported equivalent cannot be
+justified, stop saved-storage work and bring Patrick the retained evidence and
+alternatives. Independent approved work may continue. An app-crash-only profile
+is not approved as a fallback.
 
 Acceptance after T2: eight concurrent independent saves retain every commit;
 eight identical requests sharing one ID all return the same record/revision
@@ -163,11 +167,43 @@ do not change the production envelope's provider-transmission uncertainty.
 Core/no-extra tests remain meaningful;
 dedicated SDK tests install the existing `memory-native` pins without live access.
 
+### Authorized live acceptance check
+
+D4 authorizes controlled paid Windows validation after
+the offline checks pass. Exercise the installed production helper and real
+provider endpoint with synthetic input, an existing allowed model/profile,
+bounded input/output and a defined call count. Do not introduce a new provider,
+change model pins or upload project/private context to obtain a passing check.
+
+Patrick authorized necessary spending for this Windows compatibility process
+with a $50 total ceiling on October 15, 2026. This is one shared process budget,
+not $50 per agent, PR, model, run or retry. It is a ceiling, not a requirement to
+spend it. The authorization replaces the proposed separate per-run spending
+approval gate within this scope; do not ask again for already-authorized calls.
+
+Before dispatch, identify the exact Windows/Python/runtime, synthetic request,
+allowed model, token limits, call count and current pricing. Reserve a
+conservative maximum cost in one coordinated process ledger. Actual spending
+plus outstanding reservations plus the next reservation must remain at or below
+$50. Count failed billable attempts and retain full reservations for unknown or
+in-flight costs until reconciled. Refuse a dispatch whose upper cost bound is
+unknown or exceeds the remaining cap. Keep existing account/provider limits in
+force; this approval does not imply an account top-up or additional budget.
+
+Retain usage, request/result binding and the observed end-to-end outcome. Stop
+on uncertainty or failure; no automatic retry or provider fallback. A corrected
+planned attempt within the same scope and remaining budget does not need new
+spending approval; unresolved prior effects still stop redispatch. Keep paid
+calls outside routine CI. A successful smoke test qualifies
+the observed production integration on that Windows configuration; it is not
+evidence of model quality or all Windows configurations.
+
 ## R6: Shell and documented journeys
 
 Printed commands must preserve literal paths containing spaces, apostrophes,
 dollar signs, backticks and non-ASCII text. Test them in the actual declared
-shell, including legacy and modern PowerShell native argument transport. CRT
+shell: Windows PowerShell and PowerShell 7, including legacy and modern native
+argument transport. CRT
 argument escaping is not shell escaping. Keep POSIX commands unchanged.
 
 Execute documented init, review, fix, plan/build, test, memory and saved-store
@@ -181,6 +217,10 @@ Retain wheel and installed-source hashes, dependency versions, OS build, machine
 filesystem, commands, phase timings, outcomes and skips. Full-suite success,
 installed-wheel qualification, SDK compatibility and live model quality remain
 separate claims. Read native Windows CI; macOS mocks do not qualify Windows.
+Under approved D1, also retain successful Windows 11 desktop installed-wheel
+journey results with Python 3.10/3.12 and standard user permissions. Desktop
+validation is required before declaring parity and is reported separately from
+Windows Server 2022/2025 CI.
 
 Keep the compatibility fixtures, old receipts, accepted state and historical
 POSIX token bytes unchanged. Search retained receipts before changing workflow
