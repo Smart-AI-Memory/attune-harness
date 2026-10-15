@@ -29,3 +29,8 @@ src/attune_harness/windows_effects.py -text
 
 # The zero-account startup diagnostic is also checked by exact source digest.
 experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1 -text
+
+# The additive T2 process-local normalization sources retain exact reviewed bytes.
+experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1 -text
+experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1 -text
+experiments/platform/windows_saved_store_helper_preamble_diagnostic_v2.ps1 -text

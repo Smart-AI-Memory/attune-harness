@@ -68,11 +68,11 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/parse-compile.json'
           try {
-            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
-            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
             $checker = (Resolve-Path experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1).Path
             if ((Get-FileHash $checker -Algorithm SHA256).Hash.ToLowerInvariant() -cne '8a2b20db5869ee6e78c1b47ef90ef98a39706bed7c3efed47bdf9083c3a8d446') { throw 'Checker source changed.' }
-            $result = & $checker -Proposal $proposal -ExpectedProposalSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' -GuiHelper $helper -ExpectedHelperSha256 'cf85ed8835e1bea8eee6d8bb86c2b6ce0eadd05c763f38bd2ff7f6f8be40e5fd' | Tee-Object -FilePath $report
+            $result = & $checker -Proposal $proposal -ExpectedProposalSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' -GuiHelper $helper -ExpectedHelperSha256 '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf' | Tee-Object -FilePath $report
             $parsed = ($result -join "`n") | ConvertFrom-Json
             if ($parsed.status -cne 'parse_and_compile_only_passed' -or $parsed.native_methods_invoked -cne $false -or $parsed.accounts_or_credentials_created -cne $false) { throw 'Unexpected compile-only result.' }
             $result | Set-Content $report -Encoding utf8
@@ -87,10 +87,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/record-validation.json'
           try {
-            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
             $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1).Path
             if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne '0db490c0fb4a44deec2b3488e8e3b9c102af50f08b67dc0f664b9b448dfc3254') { throw 'Record-test source changed.' }
-            $result = & $test -Proposal $proposal -ExpectedSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' | Tee-Object -FilePath $report
+            $result = & $test -Proposal $proposal -ExpectedSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' | Tee-Object -FilePath $report
             $parsed = ($result -join "`n") | ConvertFrom-Json
             if ($parsed.status -cne 'pure_validation_passed' -or $parsed.count -ne 26 -or $parsed.case_only_negative_cases -ne 3 -or $parsed.legacy_default_comparison_accepts -ne 3 -or $parsed.native_invoked -cne $false) { throw 'Unexpected record-test result.' }
             $result | Set-Content $report -Encoding utf8
@@ -105,10 +105,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/path-validation.json'
           try {
-            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
             $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1).Path
             if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'ec7f4a63d048d803d66811e4a537c76eb3a708de9b1638bfa3ab4baee7208f23') { throw 'Path-test source changed.' }
-            $result = & $test -Proposal $proposal -ExpectedSha256 '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5' | Tee-Object -FilePath $report
+            $result = & $test -Proposal $proposal -ExpectedSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' | Tee-Object -FilePath $report
             $parsed = ($result -join "`n") | ConvertFrom-Json
             if ($parsed.status -cne 'pure_path_syntax_passed' -or $parsed.count -ne 21 -or $parsed.native_methods_invoked -cne $false -or $parsed.handles_or_acl_or_launch_qualified -cne $false) { throw 'Unexpected path-test result.' }
             $result | Set-Content $report -Encoding utf8
@@ -137,16 +137,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Prove failed-child capture, then observe the exact helper preamble
+      - name: Prove capture and refusal, then check normalization and literal C# only
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-startup-diagnostic'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-startup-normalization'
           $null = New-Item -ItemType Directory -Path $reports
           try {
-            $script = (Resolve-Path experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1).Path
-            if ((Get-FileHash -LiteralPath $script -Algorithm SHA256).Hash.ToLowerInvariant() -cne '912160dfffc8fda5cf7933a68240053c7600993a3c86ed380ade3c74e940231c') { throw 'Startup diagnostic source changed.' }
-            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+            $script = (Resolve-Path experiments/platform/windows_saved_store_helper_preamble_diagnostic_v2.ps1).Path
+            if ((Get-FileHash -LiteralPath $script -Algorithm SHA256).Hash.ToLowerInvariant() -cne '7deadc0e5c56ae602b7cbc521924e23f0b29c45256a7e0bd38a46c0fa5388eb3') { throw 'Startup diagnostic source changed.' }
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
             & $script -Helper $helper -Output (Join-Path $reports 'controller-private')
           } catch {
             @{ status = 'startup_diagnostic_failed'; error_type = $_.Exception.GetType().FullName; accounts_or_credentials_created = $false; gui_objects_created = $false; storage_witness_invoked = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content (Join-Path $reports 'controller-failure.json') -Encoding utf8
@@ -156,6 +156,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: saved-store-startup-diagnostic-${{ matrix.os }}-${{ matrix.python }}
-          path: ${{ runner.temp }}/saved-store-startup-diagnostic/
+          name: saved-store-startup-normalization-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-startup-normalization/
           if-no-files-found: error
