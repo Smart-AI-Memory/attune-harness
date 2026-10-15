@@ -120,9 +120,17 @@ def _symlink_target(source, data):
         target = ntpath.join(str(source.parent), target)
     # Dot/dotdot in a symlink target are OS path semantics, not authority. Only
     # their lexical collapse is used; all resulting components get fresh walks.
-    target = ntpath.normpath(target)
     if not absolute_path(target):
         raise ValueError('Symbolic-link absence requires a fixed local drive target')
+    depth = 0
+    for part in target[3:].replace('\\', '/').split('/'):
+        if part == '..':
+            if depth == 0:
+                raise ValueError('Symbolic-link target climbs above its drive root')
+            depth -= 1
+        elif part and part != '.':
+            depth += 1
+    target = ntpath.normpath(target)
     relative(target[3:].replace('\\', '/'))
     return Path(target)
 
@@ -587,67 +595,70 @@ class ReadRoot:
     def _target_absent(self, path, handles, checks, seen):
         """Walk target metadata only, never letting the OS follow a reparse."""
         api = self._api
-        anchor = api.volume(path)
-        parent = handles.enter_context(api.owned(api.volume_handle(anchor)))
-        _require_volume_root(api, parent)
-        parts = path.parts[1:]
-        current_path = Path(anchor)
-        for at, name in enumerate(parts):
-            parent_state, names, members = self._listing(parent)
-            try:
-                child = api.child(parent, name, writable=False, metadata_only=True)
-            except OSError as error:
-                if error.errno not in _MISSING or name in members:
-                    raise
-                def missing(parent=parent, state=parent_state, names=names, name=name):
-                    after, after_names, _ = self._listing(parent)
-                    if after != state or after_names != names:
-                        raise ValueError('Absent target namespace changed')
-                    try:
-                        opened = api.child(parent, name, writable=False, metadata_only=True)
-                    except OSError as probe:
-                        if probe.errno in _MISSING:
-                            return
+        while True:
+            anchor = api.volume(path)
+            parent = handles.enter_context(api.owned(api.volume_handle(anchor)))
+            _require_volume_root(api, parent)
+            parts = path.parts[1:]
+            current_path = Path(anchor)
+            for at, name in enumerate(parts):
+                parent_state, names, members = self._listing(parent)
+                try:
+                    child = api.child(parent, name, writable=False, metadata_only=True)
+                except OSError as error:
+                    if error.errno not in _MISSING or name in members:
                         raise
-                    with api.owned(opened):
-                        raise ValueError('Absent symbolic-link target appeared')
-                checks.append(missing)
-                missing()
-                return True
-            handles.enter_context(api.owned(child))
-            if name not in members:
-                raise ValueError('Symbolic-link target uses an alias or appeared')
-            state = self._probe_state(child)
-            data = self._reparse_data(child) if state[2] & FILE_ATTRIBUTE_REPARSE_POINT else None
-            def binding(parent=parent, name=name, before=parent_state, names=names,
-                        child=child, state=state, data=data):
-                after, after_names, members = self._listing(parent)
-                if after != before or after_names != names or name not in members:
-                    raise ValueError('Symbolic-link target namespace changed')
-                if self._probe_state(child) != state:
-                    raise ValueError('Symbolic-link target metadata changed')
-                with api.owned(api.child(parent, name, writable=False, metadata_only=True)) as reopened:
-                    if self._probe_state(reopened) != state:
-                        raise ValueError('Symbolic-link target binding changed')
-                    if data is not None and self._reparse_data(reopened) != data:
-                        raise ValueError('Symbolic-link target was retargeted')
-            checks.append(binding)
-            current_path = current_path / name
-            if data is not None:
-                _remember_link(seen, state[0], parent_state.entry['identity'], parts[at + 1:])
-                target = _symlink_target(current_path, data)
+                    def missing(parent=parent, state=parent_state, names=names, name=name):
+                        after, after_names, _ = self._listing(parent)
+                        if after != state or after_names != names:
+                            raise ValueError('Absent target namespace changed')
+                        try:
+                            opened = api.child(parent, name, writable=False, metadata_only=True)
+                        except OSError as probe:
+                            if probe.errno in _MISSING:
+                                return
+                            raise
+                        with api.owned(opened):
+                            raise ValueError('Absent symbolic-link target appeared')
+                    checks.append(missing)
+                    missing()
+                    return True
+                handles.enter_context(api.owned(child))
+                if name not in members:
+                    raise ValueError('Symbolic-link target uses an alias or appeared')
+                state = self._probe_state(child)
+                data = self._reparse_data(child) if state[2] & FILE_ATTRIBUTE_REPARSE_POINT else None
+                def binding(parent=parent, name=name, before=parent_state, names=names,
+                            child=child, state=state, data=data):
+                    after, after_names, members = self._listing(parent)
+                    if after != before or after_names != names or name not in members:
+                        raise ValueError('Symbolic-link target namespace changed')
+                    if self._probe_state(child) != state:
+                        raise ValueError('Symbolic-link target metadata changed')
+                    with api.owned(api.child(parent, name, writable=False, metadata_only=True)) as reopened:
+                        if self._probe_state(reopened) != state:
+                            raise ValueError('Symbolic-link target binding changed')
+                        if data is not None and self._reparse_data(reopened) != data:
+                            raise ValueError('Symbolic-link target was retargeted')
+                checks.append(binding)
+                current_path = current_path / name
+                if data is not None:
+                    _remember_link(seen, state[0], parent_state.entry['identity'], parts[at + 1:])
+                    target = _symlink_target(current_path, data)
+                    if at < len(parts) - 1:
+                        target = target.joinpath(*parts[at + 1:])
+                    path = target
+                    break
+                if at < len(parts) - 1 and not state[3]:
+                    return True  # a confirmed non-directory cannot contain the suffix
                 if at < len(parts) - 1:
-                    target = target.joinpath(*parts[at + 1:])
-                return self._target_absent(target, handles, checks, seen)
-            if at < len(parts) - 1 and not state[3]:
-                return True  # a confirmed non-directory cannot contain the suffix
-            if at < len(parts) - 1:
-                directory = handles.enter_context(api.owned(
-                    api.child(parent, name, directory=True, writable=False)))
-                if self._probe_state(directory) != state:
-                    raise ValueError('Symbolic-link target directory changed before traversal')
-                parent = directory
-        return False
+                    directory = handles.enter_context(api.owned(
+                        api.child(parent, name, directory=True, writable=False)))
+                    if self._probe_state(directory) != state:
+                        raise ValueError('Symbolic-link target directory changed before traversal')
+                    parent = directory
+            else:
+                return False
 
     def read_optional(self, name, *, max_bytes, dangling_symlink_absent=False):
         """Read one optional file, with an explicit legacy dangling-link rule.

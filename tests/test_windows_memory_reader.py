@@ -562,3 +562,92 @@ def test_anchor_repeated_name_growth_stops_at_the_metadata_ceiling(tmp_path, mon
             windows_reads._require_volume_root(api, handle)
     assert sizes[0] == 520 and sizes[-1] == windows_reads._NAME_INFO_LIMIT
     assert len(sizes) <= 9 and all(a < b for a, b in zip(sizes, sizes[1:]))
+
+
+@windows_only
+@pytest.mark.parametrize('live_target', [False, True])
+def test_distinct_raw_chain_has_no_python_stack_cap_and_old_recursive_control_fails(tmp_path, live_target, record_property):
+    import subprocess
+    import sys
+    root = tmp_path / 'raw-chain'
+    root.mkdir()
+    names = ['findings.jsonl'] + [f'link-{at:03}.jsonl' for at in range(1, 80)]
+    for at, name in enumerate(names):
+        (root / name).symlink_to(names[at + 1] if at + 1 < len(names) else 'target.jsonl')
+    if live_target:
+        write(root / 'target.jsonl', b'LIVE CHAIN SENTINEL')
+    config = write(tmp_path / 'config.json', json.dumps(config_for(('r', root, 'raw', 'project-a'))).encode())
+    legacy = Path(__file__).parent / 'fixtures' / 'windows_b36_recursive_target_walker.txt'
+    assert hashlib.sha256(legacy.read_bytes()).hexdigest() == '1bc02abd699bd0625d8c2bef11aae6481baf68042fbdf15bb707bdbcb3aac162'
+    worker = r'''
+import hashlib,json,socket,sys,time
+from pathlib import Path
+package, config_path, legacy_path = sys.argv[1:]
+sys.path.insert(0, package)
+from attune_harness import windows_reads,windows_effects
+from attune_harness.memory_reader import NativeReader
+config=json.loads(Path(config_path).read_text(encoding='utf-8'))
+reads=[]
+def forbidden(*args,**kwargs):
+    reads.append(True)
+    raise AssertionError('Chain proof attempted content or network authority')
+socket.socket.connect=forbidden
+socket.socket.connect_ex=forbidden
+windows_effects.Native.read=forbidden
+production=windows_reads.ReadRoot._target_absent
+namespace=dict(vars(windows_reads))
+exec(compile(Path(legacy_path).read_text(encoding='utf-8'),legacy_path,'exec'),namespace)
+def probe(method):
+    windows_reads.ReadRoot._target_absent=method
+    saved=sys.getrecursionlimit()
+    start=time.perf_counter()
+    try:
+        sys.setrecursionlimit(80)
+        packet=NativeReader(config).query('Aurora')
+        outcome={'status':packet['status'],'problems':packet['problems']}
+    except RecursionError:
+        outcome={'error':'RecursionError'}
+    finally:
+        sys.setrecursionlimit(saved)
+        windows_reads.ReadRoot._target_absent=production
+    outcome['seconds']=time.perf_counter()-start
+    return outcome
+result={'production':probe(production),'old_recursive':probe(namespace['_target_absent']),
+        'forbidden_calls':len(reads),'source_sha256':hashlib.sha256(Path(windows_reads.__file__).read_bytes()).hexdigest(),
+        'chain_links':80,'child_recursion_budget':80}
+print(json.dumps(result))
+'''
+    allowed = {'SystemRoot', 'WINDIR', 'TMP', 'TEMP', 'PATH'}
+    child = subprocess.run([sys.executable, '-I', '-c', worker,
+                            str(Path(windows_reads.__file__).parent.parent), str(config), str(legacy)],
+                           env={key:value for key,value in os.environ.items() if key in allowed},
+                           capture_output=True, text=True, timeout=120)
+    assert child.returncode == 0, (child.stdout, child.stderr)
+    result = json.loads(child.stdout)
+    assert result['source_sha256'] == hashlib.sha256(Path(windows_reads.__file__).read_bytes()).hexdigest()
+    assert result['old_recursive'].get('error') == 'RecursionError', result
+    assert result['forbidden_calls'] == 0, result
+    assert result['production']['status'] == ('unavailable' if live_target else 'empty'), result
+    if live_target:
+        assert 'Live symbolic-link' in result['production']['problems'][0]['detail']
+    else:
+        assert result['production']['problems'] == []
+    record_property('raw_chain_control', json.dumps(result, sort_keys=True))
+
+
+
+@pytest.mark.parametrize('target,flags', [
+    ('../../../missing', 1), ('sub/../../../../missing', 1),
+    (r'\??\C:\..\missing', 0),
+])
+def test_symbolic_target_cannot_hide_excess_parents_through_normalization(target, flags):
+    with pytest.raises(ValueError, match='above its drive root'):
+        windows_reads._symlink_target(PureWindowsPath(r'C:\owned\raw\findings.jsonl'), link_buffer(target, flags))
+
+
+@pytest.mark.parametrize('target,expected', [
+    ('../../missing', r'C:\missing'), ('.././missing', r'C:\owned\missing'),
+    ('sub/../../missing', r'C:\owned\missing'),
+])
+def test_symbolic_target_keeps_documented_valid_dot_component_replacement(target, expected):
+    assert str(windows_reads._symlink_target(PureWindowsPath(r'C:\owned\raw\findings.jsonl'), link_buffer(target))) == expected

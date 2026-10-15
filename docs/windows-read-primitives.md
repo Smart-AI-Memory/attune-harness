@@ -160,3 +160,12 @@ paths, aliases, unsupported volumes, access failures and observed races refuse;
 they cannot become absence. Source link bytes/identity and all target bindings
 and missing namespaces are checked again. Optional document sidecars never use
 this exception.
+
+The raw target walker iterates distinct symbolic-link targets without a Python
+recursion limit or a new hop cap. It retains every admitted handle and the same
+cycle and consumed-suffix checks through final verification. Relative target dot
+components use the documented Windows component-replacement rules. Parent
+components that would climb above the physical drive root refuse before lexical
+normalization can erase them; every original non-dot leaf is validated first.
+Portable parser tests establish these rules in code, while actual native
+chain, cycle and target-binding tests remain the filesystem evidence.
