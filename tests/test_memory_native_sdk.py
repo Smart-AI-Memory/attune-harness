@@ -85,14 +85,15 @@ def offline(monkeypatch, tmp_path, sdk, request):
     receipts = []
     original_argv = native._helper_argv()
 
-    def install(message, *, mode='reply', status=200):
+    def install(message, *, mode='reply', status=200, force_windows_client=False):
         path = tmp_path / f'child-{len(receipts)}.json'
         receipts.append(path)
         raw = json.dumps(message, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
         options = dict(receipt=str(path), expected_environment=list(expected),
                        raw_base64=base64.b64encode(raw).decode('ascii'), mode=mode, status=status,
                        descendant_marker=str(tmp_path / 'escaped'),
-                       descendant_gate=str(tmp_path / 'supervisor-returned'))
+                       descendant_gate=str(tmp_path / 'supervisor-returned'),
+                       force_windows_client=force_windows_client)
         code = ('import sys,runpy;sys.path.insert(0,' + repr(str(Path(native.__file__).resolve().parents[1])) + ');'
                 'from attune_harness.memory_native import helper_main;'
                 'raise SystemExit(runpy.run_path(' + repr(str(Path(__file__).with_name('native_memory_offline_child.py'))) + ')["main"]('
@@ -112,6 +113,12 @@ def offline(monkeypatch, tmp_path, sdk, request):
             assert value['dispatch_environment_values'] == expected
         assert value['network_guard_checks'] == ['connect', 'connect_ex', 'create_connection', 'dns']
         assert value['external_network_attempts'] == value['live_provider_model_calls'] == 0
+        assert value['home_lookups'] == 0
+        if os.name == 'nt':
+            assert value['home_lookup_guard'] is True
+        if value['offline_sdk_requests']:
+            assert value['explicit_key_header'] is True
+            assert value['authorization_header_present'] is False
         assert environment == before
         return value
 
@@ -161,6 +168,15 @@ def test_real_sdk_helper_unicode_receipt_replays(config, message, offline, sdk):
     assert '\r' not in result.stdout and result.stdout.endswith('\n')
     assert native.decode_provider(parse_json(result.stdout), utf8_body)[0] == reply['value']
     assert offline.read()['offline_sdk_requests'] == 1
+
+
+def test_windows_explicit_key_client_does_not_discover_home(config, message, offline):
+    offline.install(message, force_windows_client=True)
+    result = native.NativeParticipant(config)('worker', 'routine', {}, {})
+    assert result['value'] == {'outcome': 'proposal'}
+    witness = offline.read()
+    assert witness['home_lookup_guard'] is True and witness['home_lookups'] == 0
+    assert witness['offline_sdk_requests'] == 1
 
 
 @pytest.mark.parametrize('mode', ['bad-message', 'oversize', 'http-error'])

@@ -278,7 +278,16 @@ def sdk_exchange(
         headers={"Accept-Encoding": "identity"},
     )
     try:
-        sdk = anthropic.Anthropic(
+        client_type = anthropic.Anthropic
+        if os.name == "nt":
+            # The pinned SDK's base-client credential-shadow warning probes
+            # Path.home even with an explicit key. Its subclass path keeps the
+            # same key authentication without that per-user discovery probe.
+            class ExplicitKeyClient(anthropic.Anthropic):
+                pass
+
+            client_type = ExplicitKeyClient
+        sdk = client_type(
             api_key=api_key,
             base_url=endpoint,
             timeout=phase_timeout_seconds,

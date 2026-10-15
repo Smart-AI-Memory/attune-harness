@@ -8,6 +8,7 @@ import socket
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 
 
 def main(options):
@@ -50,6 +51,18 @@ def main(options):
     import httpx2
     from attune_harness import memory_native as native
 
+    home_lookups = []
+    guard_home = os.name == 'nt' or options.get('force_windows_client', False)
+    if guard_home:
+        def refuse_home(cls):
+            home_lookups.append('home')
+            raise RuntimeError('Offline fixture forbids home-directory discovery')
+        Path.home = classmethod(refuse_home)
+    if options.get('force_windows_client') and os.name != 'nt':
+        # Structural control on POSIX; native Windows jobs exercise the branch
+        # without this test-only platform selection.
+        native.os = SimpleNamespace(name='nt', environ=os.environ)
+
     observed = {
         'schema_version': 1, 'runtime': native.runtime_identity(),
         'environment_keys': entry_keys,
@@ -59,11 +72,13 @@ def main(options):
         'sdk_import_environment_keys': sorted(os.environ),
         'network_guard_checks': checks, 'external_network_attempts': 0,
         'offline_sdk_requests': 0, 'live_provider_model_calls': 0,
+        'home_lookup_guard': guard_home, 'home_lookups': 0,
     }
     path = Path(options['receipt'])
 
     def retain():
         observed['external_network_attempts'] = len(attempts)
+        observed['home_lookups'] = len(home_lookups)
         path.write_bytes((json.dumps(observed, ensure_ascii=True, sort_keys=True) + '\n').encode('utf-8'))
 
     retain()
@@ -74,6 +89,8 @@ def main(options):
             observed['dispatch_environment_keys'] = sorted(os.environ)
             observed['dispatch_environment_values'] = {
                 k: os.environ.get(k) for k in options['expected_environment']}
+            observed['explicit_key_header'] = request.headers['x-api-key'] == 'offline-native-test-key'
+            observed['authorization_header_present'] = 'authorization' in request.headers
             observed['request'] = {
                 'method': request.method, 'url': str(request.url),
                 'body': json.loads(request.content.decode('utf-8')),
