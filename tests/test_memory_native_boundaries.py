@@ -4,8 +4,11 @@ The process seam is injected; these tests do not qualify the SDK or a live model
 """
 
 import base64
+import ctypes
 from copy import deepcopy
 import hashlib
+import os
+from types import SimpleNamespace
 
 import pytest
 
@@ -129,10 +132,13 @@ def test_completed_reply_is_replayable_and_child_gets_only_explicit_environment(
     assert len(calls) == 1
     argv, packet, options = calls[0]
     assert argv[1:4] == ('-I', '-B', '-c')
-    assert options['environment'] == {
+    expected_environment = {
         'ANTHROPIC_API_KEY': 'offline-test-key', 'LANG': 'C.UTF-8', 'LC_ALL': 'C',
         'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1',
     }
+    if os.name == 'nt':
+        expected_environment['SystemRoot'] = os.environ['SystemRoot']
+    assert options['environment'] == expected_environment
     assert options['timeout'] == 15
     assert options['max_output_bytes'] == 4 * ((2048 + 2) // 3) + 262144
     assert options['capture_interrupt'] is True
@@ -172,7 +178,6 @@ def test_bad_helper_reply_retains_outer_evidence_without_retry(
     assert raised.value.evidence['stdout'] == stdout
 
 
-@pytest.mark.skipif(native.os.name != 'posix', reason='Native preflight is POSIX-only')
 @pytest.mark.parametrize('name', native.DENIED_ENVIRONMENT)
 def test_ambient_provider_override_is_refused_before_dispatch(
     monkeypatch, config, isolated_native, name,
@@ -204,3 +209,73 @@ def test_saved_completion_cannot_change_its_projection(
         evidence['returncode'] = 1
     with pytest.raises(ValueError):
         native.validate_evidence(evidence, body)
+
+
+@pytest.mark.parametrize('roots', [[], [''], ['relative'], ['missing'], ['valid', 'valid'], ['nul']])
+def test_windows_system_root_refuses_invalid_or_ambiguous_host_environment(monkeypatch, tmp_path, roots):
+    values = {'valid': r'C:\Windows', 'missing': r'C:\Absent',
+              'relative': 'relative', 'nul': 'bad\x00root', '': ''}
+    environment = {('SystemRoot' if index == 0 else 'SYSTEMROOT'): values[value]
+                   for index, value in enumerate(roots)}
+    monkeypatch.setattr(native, 'os', SimpleNamespace(name='nt', environ=environment))
+    monkeypatch.setattr(native, '_system_windows_directory', lambda: r'C:\Windows')
+    monkeypatch.setattr(native, 'Path', lambda *_: pytest.fail('SystemRoot path was probed'))
+    with pytest.raises(FeatureUnavailable, match='SystemRoot'):
+        native._helper_environment('synthetic-key')
+
+
+def test_windows_environment_adds_only_validated_host_root(monkeypatch, tmp_path):
+    environment = {'sYsTeMrOoT': 'c:/WINDOWS', 'PATH': 'ambient', 'HTTPS_PROXY': 'ambient',
+                   'ANTHROPIC_AUTH_TOKEN': 'ambient', 'UNRELATED_SECRET': 'ambient'}
+    before = deepcopy(environment)
+    monkeypatch.setattr(native, 'os', SimpleNamespace(name='nt', environ=environment))
+    monkeypatch.setattr(native, '_system_windows_directory', lambda: r'C:\Windows')
+    monkeypatch.setattr(native, 'Path', lambda *_: pytest.fail('SystemRoot path was probed'))
+    assert native._helper_environment('synthetic-key') == {
+        'ANTHROPIC_API_KEY': 'synthetic-key', 'LANG': 'C.UTF-8', 'LC_ALL': 'C',
+        'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1', 'SystemRoot': 'c:/WINDOWS',
+    }
+    assert environment == before
+
+
+@pytest.mark.parametrize('value', [
+    r'\\server\share\Windows', r'\\?\C:\Windows', r'\\.\C:\Windows', r'\??\C:\Windows',
+    r'\Windows', r'C:Windows', 'C:\\', 'C:/', r'C:\Windows\..\Windows',
+    r'C:\Windows:stream', r'C:\Windows*', 'C:\\Wind\nows', 'C:\\' + 'x' * 32768,
+    'C:\\Windows\x00', 'C:\\Windows. ',
+], ids=['unc', 'device-long', 'device-dot', 'nt-device', 'root-relative', 'drive-relative',
+        'drive-root', 'drive-root-slash', 'parent', 'stream', 'wildcard', 'control',
+        'overlong', 'nul', 'trailing-dot-space'])
+def test_system_root_rejects_unsafe_spelling_before_any_probe(monkeypatch, value):
+    monkeypatch.setattr(native, 'os', SimpleNamespace(name='nt', environ={'SystemRoot': value}))
+    monkeypatch.setattr(native, '_system_windows_directory', lambda: pytest.fail('OS queried before validation'))
+    monkeypatch.setattr(native, 'Path', lambda *_: pytest.fail('Untrusted path was probed'))
+    with pytest.raises(FeatureUnavailable, match='SystemRoot'):
+        native._helper_environment('synthetic-key')
+
+
+@pytest.mark.parametrize('length', [0, 32768, 32769, 9, True],
+                         ids=['failure', 'capacity', 'over-capacity', 'incomplete', 'boolean'])
+def test_os_windows_directory_requires_exact_bounded_api_result(monkeypatch, length):
+    def query(buffer, capacity):
+        assert capacity == 32768
+        buffer.value = r'C:\Windows'
+        return length
+    monkeypatch.setattr(ctypes, 'WinDLL', lambda *a, **k: SimpleNamespace(GetSystemWindowsDirectoryW=query),
+                        raising=False)
+    with pytest.raises(FeatureUnavailable, match='OS Windows directory'):
+        native._system_windows_directory()
+
+
+def test_os_windows_directory_uses_unicode_api_without_path_probe(monkeypatch):
+    def query(buffer, capacity):
+        buffer.value = 'C:\\Windows café'
+        return len(buffer.value)
+    calls = []
+    def library(name, **options):
+        calls.append((name, options))
+        return SimpleNamespace(GetSystemWindowsDirectoryW=query)
+    monkeypatch.setattr(ctypes, 'WinDLL', library, raising=False)
+    monkeypatch.setattr(native, 'Path', lambda *_: pytest.fail('OS directory path was probed'))
+    assert native._system_windows_directory() == 'C:\\Windows café'
+    assert calls == [('kernel32', {'use_last_error': True})]
