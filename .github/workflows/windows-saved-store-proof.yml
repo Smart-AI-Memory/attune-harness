@@ -1,0 +1,81 @@
+name: Saved-store Windows feasibility
+
+# This new experiment observes the approved T2 gate. No manual dispatch or
+# branch-specific trigger, and no modification to historical effects campaigns.
+on:
+  pull_request:
+    paths:
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'tests/test_windows_saved_store_proof.py'
+      - 'docs/design-windows-saved-store-proof.md'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-proof.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'tests/test_windows_saved_store_proof.py'
+      - 'docs/design-windows-saved-store-proof.md'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-proof.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-proof:
+    name: T2 NTFS / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Create isolated installed-wheel environment
+        shell: pwsh
+        run: |
+          $proofVenv = Join-Path $env:RUNNER_TEMP 'saved-store-proof-venv'
+          python -m venv $proofVenv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$proofVenv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build and install the wheel without provider dependencies
+        shell: pwsh
+        run: |
+          python -m pip install 'build==1.3.0' 'setuptools>=77' 'pytest==9.1.1'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m build --wheel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $proofWheel = (Get-ChildItem dist/attune_harness-*.whl | Select-Object -First 1).FullName
+          python -m pip install --no-deps $proofWheel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          @{ wheel = (Split-Path -Leaf $proofWheel); sha256 = (Get-FileHash $proofWheel -Algorithm SHA256).Hash.ToLower(); commit = $env:GITHUB_SHA; os = '${{ matrix.os }}'; python = '${{ matrix.python }}' } | ConvertTo-Json | Set-Content (Join-Path $env:RUNNER_TEMP 'saved-store-proof-build.json') -Encoding utf8
+      - name: Verify the evidence and claim guards
+        run: python -m pytest -q tests/test_windows_saved_store_proof.py
+      - name: Observe native operations in a restricted standard-user child
+        shell: pwsh
+        run: |
+          python -I experiments/platform/windows_saved_store_proof.py --output "$env:RUNNER_TEMP/saved-store-proof"
+          exit $LASTEXITCODE
+      - name: Retain observations, including a blocked durability gate
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-proof-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/saved-store-proof/
+            ${{ runner.temp }}/saved-store-proof-build.json
+          if-no-files-found: warn

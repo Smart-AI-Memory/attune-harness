@@ -157,6 +157,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [design-windows-effect-backend.md](design-windows-effect-backend.md) | Windows file-effects backend from the observed native primitive | September 18, 2026 |
 | [design-windows-feature-effects.md](design-windows-feature-effects.md) | Windows feature and repair effects — design only | September 18, 2026 |
 | [design-windows-runtime.md](design-windows-runtime.md) | Native Windows execution and recovery | 2026-09-15 |
+| [design-windows-saved-store-proof.md](design-windows-saved-store-proof.md) | Saved-store Windows feasibility proof | October 15, 2026 |
 
 ### Results and receipts
 
