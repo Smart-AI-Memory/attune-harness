@@ -1,4 +1,5 @@
 """Pure data/guard controls; never execute PowerShell, a CLI or a backend."""
+import builtins
 import hashlib
 import importlib.util
 import json
@@ -78,15 +79,33 @@ def test_installed_query_checks_118_shipped_files_and_names_record_limit(tmp_pat
         path.write_text('installer rewrites RECORD; archive RECORD was checked before install')
     manifest = tmp_path / 'manifest.json'
     manifest.write_text(json.dumps({'wheel_members': members}))
+    stdlib_get_paths = sysconfig.get_paths
+    stdlib_import = builtins.__import__
+    scheme = sysconfig.get_default_scheme()
+    imported = []
+
+    def query_import(name, *args, **kwargs):
+        if name == 'sysconfig':
+            # Coverage still needs the real process-wide API while this query runs.
+            assert sysconfig.get_paths is stdlib_get_paths
+            assert sysconfig.get_paths(scheme)['purelib']
+            imported.append(name)
+            return SimpleNamespace(get_paths=lambda: {'purelib': str(site)})
+        return stdlib_import(name, *args, **kwargs)
+
+    query_globals = {'__builtins__': dict(vars(builtins), __import__=query_import)}
     with monkeypatch.context() as patch:
         patch.setattr(sys, 'argv', ['-c', str(manifest)])
-        patch.setattr(sysconfig, 'get_paths', lambda: {'purelib': str(site)})
         if change == 'missing':
             with pytest.raises(FileNotFoundError):
-                exec(compile(literal('installedQuery'), 'reviewed-installed-query', 'exec'), {})
+                exec(compile(literal('installedQuery'), 'reviewed-installed-query', 'exec'), query_globals)
+            assert imported == ['sysconfig']
+            assert sysconfig.get_paths is stdlib_get_paths and builtins.__import__ is stdlib_import
             return
         with pytest.raises(SystemExit) as result:
-            exec(compile(literal('installedQuery'), 'reviewed-installed-query', 'exec'), {})
+            exec(compile(literal('installedQuery'), 'reviewed-installed-query', 'exec'), query_globals)
+    assert imported == ['sysconfig']
+    assert sysconfig.get_paths is stdlib_get_paths and builtins.__import__ is stdlib_import
     observed = json.loads(capsys.readouterr().out)
     assert result.value.code == (42 if change in ['content', 'count'] else 0)
     assert observed['installer_rewritten_record_compared'] is False
@@ -113,7 +132,10 @@ def test_safe_workflow_canonicalizes_all_pinned_bytes_and_has_only_four_safe_cel
     assert 'workflow_dispatch' not in text and 'branches: [main]' in text
     assert 'os: [windows-2022, windows-2025]' in text and "python: ['3.10', '3.12']" in text
     assert 'cancel-in-progress: false' in text and 'if: always()' in text
-    assert 'git -c core.autocrlf=false checkout-index --force -- @($expected.Keys)' in text
+    assert 'python -I -B -c $materialize fixed ($expected | ConvertTo-Json -Compress) (Get-Location).Path' in text
+    assert "python -I -B -c $materialize manifest '{}' (Get-Location).Path" in text
+    assert 'checkout-index' not in text and 'core.autocrlf' not in text
+    assert "-Output (Join-Path $env:RUNNER_TEMP 'saved-store-build-safe')" in text
     assert hashlib.sha256(SCRIPT.read_bytes()).hexdigest() in text
     assert '-ExecuteApprovedFixture' not in text and '-ExecuteReviewedGuiLease' not in text
     assert 'if: ${{ false }}' in (ROOT / '.github/workflows/windows-saved-store-reviewed-execution.yml').read_text()
@@ -139,3 +161,136 @@ def test_safe_script_has_finite_capture_refusal_and_no_account_or_native_entry()
     assert text.index('post_source_observations = @(Observe-Pins)') < text.index("'startup-child'")
     assert 'wheel_rows.Count -ne 119' in text and 'source_rows.Count -ne 116' in text
     assert 'installer_rewritten_record_compared' in text and 'canary_markers' in text
+
+
+def materializer():
+    code = re.findall(r"\$materialize = @'\n(.*?)\n          '@", WORKFLOW.read_text(), re.S)
+    assert len(code) == 1
+    # Remove only YAML's run-block indent; preserve the literal Python indentation.
+    source = '\n'.join(line[10:] if line.startswith(' ' * 10) else line for line in code[0].splitlines())
+    namespace = {'__name__': 't2_pure_git_materializer'}
+    exec(compile(source, 'reviewed-inline-materializer', 'exec'), namespace)
+    return namespace
+
+
+@pytest.fixture
+def raw_git_input(tmp_path, monkeypatch):
+    import subprocess
+    repo = tmp_path / 'repository'
+    repo.mkdir()
+    monkeypatch.setenv('GIT_CONFIG_GLOBAL', os.devnull)
+    monkeypatch.setenv('GIT_CONFIG_NOSYSTEM', '1')
+    def git(*args):
+        return subprocess.run(['git', '-c', 'core.hooksPath=' + str(tmp_path / 'no-hooks'),
+            '-c', 'user.name=T2 offline control', '-c', 'user.email=t2@example.invalid',
+            '-c', 'commit.gpgsign=false', *args], cwd=repo, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+    git('init', '--quiet')
+    expected = {}
+    for name in ['.gitattributes', *[f'input_{i}.txt' for i in range(17)]]:
+        raw = b'* text\n' if name == '.gitattributes' else (name + '\n').encode()
+        (repo / name).write_bytes(raw)
+        expected[name] = hashlib.sha256(raw).hexdigest()
+    git('-c', 'core.autocrlf=false', 'add', '.')
+    git('commit', '--quiet', '--no-gpg-sign', '-m', 'Finite offline data input')
+    return repo, expected, git
+
+
+def test_raw_git_materialization_overrides_observed_checkout_conversion(raw_git_input):
+    repo, expected, git = raw_git_input
+    # checkout-index may leave a clean stat-cache entry untouched even with --force.
+    # Make conversion observable before testing exact raw-byte materialization.
+    (repo / 'input_0.txt').write_bytes(b'controlled dirty working file\n')
+    git('-c', 'core.autocrlf=false', '-c', 'core.eol=crlf', 'checkout-index', '--force', '--', *expected)
+    assert b'\r\n' in (repo / 'input_0.txt').read_bytes()
+    assert hashlib.sha256((repo / 'input_0.txt').read_bytes()).hexdigest() != expected['input_0.txt']
+    rows = []
+    materializer()['materialize'](repo, expected, rows.append)
+    assert all(hashlib.sha256((repo / name).read_bytes()).hexdigest() == digest for name, digest in expected.items())
+    assert len(rows) == 36 and all(row['status'] == 'materialized' and row['git_mode'] == '100644' for row in rows)
+
+
+@pytest.mark.parametrize('name', ['../outside', '/absolute', './input_0.txt', 'C:/escape', r'folder\escape'])
+def test_raw_materializer_refuses_noncanonical_outside_paths(raw_git_input, name):
+    repo, expected, _ = raw_git_input
+    original = (repo / 'input_0.txt').read_bytes()
+    rows = []
+    with pytest.raises(ValueError, match='path_refused'):
+        materializer()['materialize'](repo, {name: expected['input_0.txt']}, rows.append)
+    assert rows and rows[-1]['status'] == 'refused'
+    assert (repo / 'input_0.txt').read_bytes() == original
+
+
+@pytest.mark.parametrize('change', ['digest', 'git_mode', 'hardlink', 'directory'])
+def test_raw_materializer_refuses_wrong_blob_or_target_without_writing(raw_git_input, tmp_path, change):
+    repo, expected, git = raw_git_input
+    target = repo / 'input_0.txt'
+    if change == 'digest':
+        expected['input_0.txt'] = '0' * 64
+    elif change == 'git_mode':
+        git('update-index', '--chmod=+x', 'input_0.txt')
+        git('commit', '--quiet', '--no-gpg-sign', '-m', 'Executable mode negative control')
+    elif change == 'hardlink':
+        (tmp_path / 'retained-hardlink').hardlink_to(target)
+    else:
+        target.rename(tmp_path / 'retained-file')
+        target.mkdir()
+    before = target.read_bytes() if target.is_file() else None
+    rows = []
+    with pytest.raises(ValueError):
+        materializer()['materialize'](repo, {'input_0.txt': expected['input_0.txt']}, rows.append)
+    assert rows[-1]['status'] == 'refused'
+    assert (target.read_bytes() if target.is_file() else None) == before
+
+
+@pytest.mark.parametrize('kind', ['target', 'ancestor'])
+def test_raw_materializer_refuses_links_without_writing_outside_checkout(raw_git_input, tmp_path, kind):
+    repo, expected, git = raw_git_input
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (outside / 'input.txt').write_bytes(b'outside must stay unchanged\n')
+    if kind == 'target':
+        name = 'input_0.txt'
+        target = repo / name
+        target.rename(tmp_path / 'retained-target')
+        destination = outside / 'input.txt'
+    else:
+        name = 'folder/input.txt'
+        folder = repo / 'folder'
+        folder.mkdir()
+        (folder / 'input.txt').write_bytes(b'reviewed nested source\n')
+        expected[name] = hashlib.sha256((folder / 'input.txt').read_bytes()).hexdigest()
+        git('add', '--', name)
+        git('commit', '--quiet', '--no-gpg-sign', '-m', 'Nested data input')
+        folder.rename(tmp_path / 'retained-parent')
+        target, destination = folder, outside
+    try:
+        target.symlink_to(destination, target_is_directory=kind == 'ancestor')
+    except OSError as exc:
+        if os.name == 'nt' and getattr(exc, 'winerror', None) == 1314:
+            pytest.skip('Windows symlink privilege unavailable; link refusal remains unqualified')
+        raise
+    with pytest.raises(ValueError, match='target_kind_refused'):
+        materializer()['materialize'](repo, {name: expected[name]}, lambda row: None)
+    assert (outside / 'input.txt').read_bytes() == b'outside must stay unchanged\n'
+
+
+@pytest.mark.parametrize('change', ['count', 'case_alias'])
+def test_fixed_selection_requires_exact_finite_windows_distinct_map(raw_git_input, change):
+    repo, expected, _ = raw_git_input
+    if change == 'count':
+        expected.pop('input_0.txt')
+    else:
+        expected['INPUT_0.TXT'] = expected.pop('input_1.txt')
+    with pytest.raises(ValueError, match='fixed_set_refused'):
+        materializer()['selection']('fixed', json.dumps(expected), repo)
+
+
+def test_manifest_selection_is_hash_bound_to_all_116_inputs(tmp_path):
+    module = materializer()
+    selected = module['selection']('manifest', '{}', ROOT)
+    assert len(selected) == 116
+    target = tmp_path / 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+    target.parent.mkdir(parents=True)
+    target.write_bytes((ROOT / 'experiments/platform/windows_saved_store_source_manifest_v2.json').read_bytes() + b' ')
+    with pytest.raises(ValueError, match='manifest_hash_refused'):
+        module['selection']('manifest', '{}', tmp_path)

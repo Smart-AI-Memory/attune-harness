@@ -97,11 +97,127 @@ jobs:
             '.gitattributes' = '1cf8827a8b0ab0724e7b0031a241930aa7b0edcf9adb7d813f17b3a624e79fe5'
             'tests/test_windows_saved_store_build_projection.py' = '1bc16cf178c99a5ba6940849cb493ccac82c576578f6dc5c386193cb1db5e181'
             'tests/test_windows_saved_store_account_inputs_v2.py' = '6fbe500f7bee3945a3e2817241b805464a9c8b127124b5b54fb6589843827382'
-            'tests/test_windows_saved_store_build_preflight.py' = 'e1844d0b7c5286115c397ece23b00fe587788359b39274bef6cf05d3ccbb2b0d'
+            'tests/test_windows_saved_store_build_preflight.py' = '34f0ad99d42d1de7bf1c1b20a4464bc7cd01b8e273beeae4d3b596927f55ef4f'
           }
-          # Command-local canonical bytes, including the new script and YAML;
-          # final v3b .gitattributes remains byte-identical.
-          git -c core.autocrlf=false checkout-index --force -- @($expected.Keys)
+          # Materialize raw Git blobs for the fixed paths before source execution.
+          # Keep every accepted source/attribute byte; no checkout conversion flags.
+          $materialize = @'
+          import hashlib,json,os,re,stat,subprocess,sys
+          from pathlib import Path,PurePosixPath
+          
+          LIMIT=1024*1024
+          MANIFEST_SHA='d6e80ebd18c19d5b17b35bfdd4c0dc521a24e1dbb0a18eeba14247fcd7e875d8'
+          
+          def git(repo,*arguments,limit=65536):
+              result=subprocess.run(['git',*arguments],cwd=repo,stdin=subprocess.DEVNULL,
+                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+              if result.returncode or len(result.stdout)>limit or len(result.stderr)>65536:
+                  raise ValueError('git_data_refused')
+              return result.stdout
+          
+          def canonical(name):
+              if not isinstance(name,str) or not name.isascii():
+                  raise ValueError('path_refused')
+              path=PurePosixPath(name)
+              if (path.is_absolute() or path.as_posix()!=name or not path.parts
+                      or any(part in ('.','..') or not re.fullmatch(r'[A-Za-z0-9_.-]+',part)
+                             or part.endswith('.') for part in path.parts)):
+                  raise ValueError('path_refused')
+              return path
+          
+          def regular(path,directory=False):
+              value=path.lstat()
+              if (stat.S_ISLNK(value.st_mode) or getattr(value,'st_file_attributes',0)&0x400
+                      or not (stat.S_ISDIR(value.st_mode) if directory else stat.S_ISREG(value.st_mode))
+                      or not directory and value.st_nlink!=1):
+                  raise ValueError('target_kind_refused')
+              return value
+          
+          def materialize(repo,expected,checkpoint):
+              if not repo.is_absolute():raise ValueError('absolute_repo_required')
+              regular(repo,directory=True)
+              for name,wanted in expected.items():
+                  row={'path':name,'expected_sha256':wanted,'status':'attempted','failure_type':None}
+                  checkpoint(row)
+                  try:
+                      relative=canonical(name)
+                      if not isinstance(wanted,str) or re.fullmatch(r'[0-9a-f]{64}',wanted) is None:
+                          raise ValueError('digest_refused')
+                      entry=git(repo,'ls-tree','-z','HEAD','--',name).split(b'\0')
+                      if len(entry)!=2 or entry[1]!=b'':raise ValueError('git_entry_refused')
+                      metadata,actual=entry[0].split(b'\t',1)
+                      mode,kind,blob=metadata.decode('ascii').split()
+                      if mode!='100644' or kind!='blob' or actual.decode('ascii')!=name or not re.fullmatch(r'[0-9a-f]{40}',blob):
+                          raise ValueError('git_mode_refused')
+                      size=git(repo,'cat-file','-s',blob,limit=32).strip()
+                      if re.fullmatch(rb'[0-9]+',size) is None or not 0<int(size)<=LIMIT:
+                          raise ValueError('blob_size_refused')
+                      raw=git(repo,'cat-file','blob',blob,limit=LIMIT)
+                      digest=hashlib.sha256(raw).hexdigest()
+                      if len(raw)!=int(size) or digest!=wanted:raise ValueError('blob_hash_refused')
+                      target=repo/relative
+                      for parent in target.parents:
+                          regular(parent,directory=True)
+                          if parent==repo:break
+                      before=regular(target)
+                      flags=os.O_WRONLY|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0)
+                      descriptor=os.open(target,flags)
+                      with os.fdopen(descriptor,'wb') as stream:
+                          opened=os.fstat(stream.fileno())
+                          if (not stat.S_ISREG(opened.st_mode) or opened.st_nlink!=1
+                                  or getattr(opened,'st_file_attributes',0)&0x400
+                                  or (opened.st_dev,opened.st_ino)!=(before.st_dev,before.st_ino)):
+                              raise ValueError('target_changed_before_write')
+                          stream.seek(0);stream.truncate();stream.write(raw);stream.flush()
+                      regular(target)
+                      with target.open('rb') as verify_stream:verified=verify_stream.read(LIMIT+1)
+                      if hashlib.sha256(verified).hexdigest()!=wanted:
+                          raise ValueError('materialized_hash_refused')
+                      row.update(status='materialized',git_blob=blob,git_mode=mode,bytes=len(raw),actual_sha256=digest)
+                  except Exception as error:
+                      row.update(status='refused',failure_type=type(error).__name__)
+                      raise
+                  finally:checkpoint(row)
+          
+          def selection(mode,argument,repo):
+              if mode=='fixed':
+                  value=json.loads(argument)
+                  if (not isinstance(value,dict) or len(value)!=18
+                          or len({name.casefold() for name in value})!=18):raise ValueError('fixed_set_refused')
+                  return value
+              if mode!='manifest':raise ValueError('mode_refused')
+              with (repo/'experiments/platform/windows_saved_store_source_manifest_v2.json').open('rb') as stream:
+                  raw=stream.read(LIMIT+1)
+              if len(raw)>LIMIT or hashlib.sha256(raw).hexdigest()!=MANIFEST_SHA:
+                  raise ValueError('manifest_hash_refused')
+              value=json.loads(raw);inputs={**value['modules'],**value['build_inputs']}
+              if len(value['modules'])!=113 or len(value['build_inputs'])!=3 or len(inputs)!=116:
+                  raise ValueError('manifest_set_refused')
+              return {name:row['sha256'] for name,row in inputs.items()}
+          
+          def main():
+              mode,argument,root=sys.argv[1:];repo=Path(root)
+              if mode not in ('fixed','manifest'):raise ValueError('mode_refused')
+              output=Path(os.environ['RUNNER_TEMP'])/('saved-store-build-safe-'+mode+'-materialization.json')
+              if not output.is_absolute() or output.exists() or output.is_symlink():
+                  raise ValueError('fresh_report_required')
+              report={'status':'started','mode':mode,'rows':[],'failure_type':None,'account_fixture_invoked':False,
+                      'accounts_or_credentials_created':False,'t2_d3_gate':'unpassed','production_port_allowed':False}
+              def save(row=None):
+                  if row is not None and not any(item is row for item in report['rows']):report['rows'].append(row)
+                  output.write_text(json.dumps(report,ensure_ascii=True,indent=2)+'\n',encoding='ascii')
+              save()
+              try:
+                  expected=selection(mode,argument,repo)
+                  materialize(repo,expected,save)
+                  report['status']='raw_git_bytes_materialized'
+              except Exception as error:report.update(status='materialization_refused',failure_type=type(error).__name__)
+              finally:save()
+              return 0 if report['status']=='raw_git_bytes_materialized' else 1
+          
+          if __name__=='__main__':raise SystemExit(main())
+          '@
+          python -I -B -c $materialize fixed ($expected | ConvertTo-Json -Compress) (Get-Location).Path
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $rows = [Collections.Generic.List[object]]::new()
           foreach ($path in $expected.Keys) {
@@ -113,7 +229,7 @@ jobs:
           if (@($rows | Where-Object { -not $_.matched }).Count) { throw 'Safe source identity refused.' }
           python -I experiments/platform/check_windows_saved_store_merge_inputs_v1.py --repo (Get-Location).Path --output "$env:RUNNER_TEMP/saved-store-build-safe-merge.json"
           if ($LASTEXITCODE -ne 0) { throw 'Normal merged provenance refused.' }
-          python -I -c "import json,subprocess; m=json.load(open('experiments/platform/windows_saved_store_source_manifest_v2.json',encoding='ascii')); subprocess.run(['git','-c','core.autocrlf=false','checkout-index','--force','--',*m['modules'],*m['build_inputs']],check=True)"
+          python -I -B -c $materialize manifest '{}' (Get-Location).Path
           if ($LASTEXITCODE -ne 0) { throw 'Canonical 116-input materialization refused.' }
           python -I experiments/platform/check_windows_saved_store_account_inputs_v2.py --repo (Get-Location).Path --manifest experiments/platform/windows_saved_store_source_manifest_v2.json --driver experiments/platform/windows_saved_store_combined_driver_v2.py --output "$env:RUNNER_TEMP/saved-store-build-safe-source116.json"
           if ($LASTEXITCODE -ne 0) { throw 'Complete source closure refused.' }
@@ -163,7 +279,7 @@ jobs:
           $launchPath = "$env:RUNNER_TEMP/saved-store-build-safe-launch.json"
           $launch | ConvertTo-Json | Set-Content -LiteralPath $launchPath -Encoding utf8
           try {
-            & $script -Repo $repo -ControllerPython $env:T2_SAFE_CONTROLLER -Output "$env:RUNNER_TEMP/saved-store-build-safe"
+            & $script -Repo $repo -ControllerPython $env:T2_SAFE_CONTROLLER -Output (Join-Path $env:RUNNER_TEMP 'saved-store-build-safe')
             $launch.exit_code = $LASTEXITCODE
             $launch.status = 'launch_returned'
           } catch { $launch.failure_type = $_.Exception.GetType().FullName; $launch.failure_line = $_.InvocationInfo.ScriptLineNumber }
@@ -176,6 +292,8 @@ jobs:
           name: saved-store-build-safe-${{ matrix.os }}-${{ matrix.python }}
           path: |
             ${{ runner.temp }}/saved-store-build-safe-inputs.json
+            ${{ runner.temp }}/saved-store-build-safe-fixed-materialization.json
+            ${{ runner.temp }}/saved-store-build-safe-manifest-materialization.json
             ${{ runner.temp }}/saved-store-build-safe-merge.json
             ${{ runner.temp }}/saved-store-build-safe-source116.json
             ${{ runner.temp }}/saved-store-build-safe-pure-tests.txt
