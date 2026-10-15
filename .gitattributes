@@ -19,3 +19,10 @@ experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1 -text
 experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1 -text
 experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1 -text
 experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1 -text
+
+# A separately approved execution proposal must retain its exact Python bytes.
+experiments/platform/windows_saved_store_combined_driver_v1.py -text
+experiments/platform/windows_saved_store_namespace_witness_v4.py -text
+
+# The T2 native-module source pin compares canonical Git bytes on every host.
+src/attune_harness/windows_effects.py -text

@@ -1,0 +1,112 @@
+name: Saved-store reviewed standard-user observations
+
+# PRIVATE PROPOSAL ONLY. Publishing/enabling needs exact human approval.
+# This workflow collects observations; it never passes T2/D3 or authorizes T5.
+on:
+  pull_request:
+    paths:
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-reviewed-execution-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  observations:
+    name: T2 observations only / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verify exact reviewed inputs before any fixture operation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Restore only this pinned source from the checked-out index. This
+          # is local to the command; it changes no global/repository setting.
+          git -c core.autocrlf=false checkout-index --force -- src/attune_harness/windows_effects.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $expected = [ordered]@{
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1' = '63e3cde39f900a48409923dfcc91f60c55d6f6e2c68da2ec499f02e3359789b5'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1' = 'cf85ed8835e1bea8eee6d8bb86c2b6ce0eadd05c763f38bd2ff7f6f8be40e5fd'
+            'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
+            'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
+            'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
+            'src/attune_harness/windows_effects.py' = '0773b47241140cd01a8c27277a735212dc219c507919c8b39a477270560791d6'
+          }
+          foreach ($path in $expected.Keys) {
+            if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expected[$path]) { throw ('Reviewed input changed: ' + $path) }
+          }
+          [ordered]@{ status = 'reviewed_inputs_matched'; commit = $env:GITHUB_SHA; sources = $expected; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json -Depth 4 | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-inputs.json" -Encoding utf8
+      - name: Create a dedicated controller build environment
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $venv = Join-Path $env:RUNNER_TEMP 'saved-store-reviewed-controller'
+          python -m venv $venv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$venv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build the local wheel without provider dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install 'build==1.3.0' 'setuptools>=77'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m build --wheel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $wheels = @(Get-ChildItem dist/attune_harness-*.whl)
+          if ($wheels.Count -ne 1) { throw 'Require one new local wheel.' }
+          python -I -c "import hashlib,sys,zipfile; raw=zipfile.ZipFile(sys.argv[1]).read('attune_harness/windows_effects.py'); assert hashlib.sha256(raw).hexdigest() == '0773b47241140cd01a8c27277a735212dc219c507919c8b39a477270560791d6'" $wheels[0].FullName
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [ordered]@{ wheel = $wheels[0].Name; sha256 = (Get-FileHash $wheels[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant(); os = '${{ matrix.os }}'; python = '${{ matrix.python }}'; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-build.json" -Encoding utf8
+      - name: Observe with the exact reviewed owned GUI fixture
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # All code is unchanged/pinned above. This is the ONLY execution site.
+          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1).Path
+          $driver = (Resolve-Path experiments/platform/windows_saved_store_combined_driver_v1.py).Path
+          $basePython = python -I -c "import sys; print(sys._base_executable)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $wheel = (Get-ChildItem dist/attune_harness-*.whl).FullName
+          & $fixture -ExecuteApprovedFixture -ExecuteReviewedGuiLease -GuiHelper $helper -BasePython $basePython -Wheel $wheel -ProofScript $driver -Output "$env:RUNNER_TEMP/saved-store-reviewed-observations"
+      - name: Retain observations and independent cleanup outcomes
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-reviewed-observations-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/saved-store-reviewed-observations/
+            ${{ runner.temp }}/saved-store-reviewed-inputs.json
+            ${{ runner.temp }}/saved-store-reviewed-build.json
+          if-no-files-found: warn
