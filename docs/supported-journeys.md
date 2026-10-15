@@ -18,13 +18,14 @@ non-programmer walkthrough and the migration rows) are listed at the end.
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
 | Install | `pipx install 'attune-harness[all]==1.2.0'` ([README](../README.md#installation)) | Python 3.10 and 3.12 on macOS, Ubuntu and Windows are in the CI matrix; other versions are not | Six installed-wheel platform jobs on every push to `main`; the release gate compares PyPI's hashes with the publish run's `SHA256SUMS` | Harness and attune-ai pin different MCP SDK lines and cannot share an environment. Install each in its own environment |
-| First run | `init`, then a `test` preview and the `review` intake ([README](../README.md#your-first-five-minutes)) | All three platforms | The README's journey-tagged block runs as written in every platform job | `init` writes offline demo participants. Native participants need `init --profile claude` or `codex`, and a review then needs `--allow-external` |
+| First run | `init`, then a `test` preview and the `review` intake ([README](../README.md#your-first-five-minutes)) | Initialization on all three; complete test continuation is POSIX-only | Selected initialization tests run in every platform job; the complete README journey is Windows-skipped | `init` writes offline demo participants. Native participants need `init --profile claude` or `codex`, and a review then needs `--allow-external` |
 
 ## Work
 
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
 | Evidence review | `review --goal ... --accept` ([CLI guide](cli-guide.md#task-oriented-evidence-review)) | All three platforms | Review and task tests; the review step of the R2 journey in every platform job | Narratives are unverified model output. Participant disagreement is left for a person to settle, never adjudicated |
+| Bounded source review and roundtable | `source-review` or `roundtable`: check, prepare, run, status, evidence, reconcile, assess-citation, abandon | Native Windows and POSIX within the declared snapshot and process profiles | Selected consultation suites, including native retained-handle snapshot tests | Freeze explicit source paths, accept the exact checkpoint and grant each external/native transport. Consultation output remains advisory |
 | Plan, accept, build | `plan --request`, `plan --accept`, `build` ([CLI guide](cli-guide.md#plan-and-build)) | Build runs through the POSIX effects profile, or the Windows one, which may refuse with a `FeatureUnavailable` that names Windows | The offline [R2 journey](journeys/r2-clean-environment.md) (plan, accept, build, review, status) runs from the installed wheel in every platform job, with Attune AI absent | No copy-and-paste example: `work.json` needs a frozen effects manifest that no command writes. Native model planning and building are experimental (1 of 24 replies accepted before the contract correction, 12 of 12 after it; not a reliability rate) |
 | Import another project's plan | `plan --import-plan PATH --allow-outside-project` ([R4](journeys/r4-legacy-spec-state.md)) | All three platforms | Eight retained fixtures and a conversion receipt per import | Import grants no authority. Acceptance is still a separate step |
 | Scoped repair | `fix --goal --checkout --scope --probe` ([CLI guide](cli-guide.md#scoped-repair)) | Local POSIX Git checkouts. On Windows, experimental and unqualified beyond its CI tests | Repair tests; the fail-before, pass-after probe is bound to the task. On Windows, the effects backend's installed owner journey on Windows 2022 and 2025 | Existing regular files only: no creation, deletion, renames or linked worktrees. Use a dedicated checkout |
@@ -86,3 +87,48 @@ release:
 - **S6:** an installed walkthrough by a named non-programmer.
 - **S9:** each migration row tried against the installed stable artifact.
 - Ordinary use of the Claude Code plugin, recorded.
+
+## Native Windows inventory — October 15, 2026
+
+This audit supplements the release map above at source baseline
+`017d1ba833acd0549d628e4b4f040b77b5e45594`. Parser inspection found 82 leaf
+command paths across 32 top-level commands. Optional extras are `redis`,
+`voyage`, `memory-native` and `all`; `all` includes Redis/Voyage but excludes
+`memory-native`. The normal installed-wheel jobs install Redis/Voyage and
+assert Anthropic is absent. They do not exercise the native SDK helper.
+
+A completed journey, an expected refusal, a skipped test and an unobserved path
+support different claims. The [baseline Windows 3.10](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38267127140/job/114872025229)
+and [Windows 3.12](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38267127140/job/114872025322)
+installed jobs completed the offline R2 build and review. Their file-memory
+receipts explicitly report `posix-only refusal` with no successful tiers.
+The qualifier can accept a build refusal on other runs; inspect the receipt.
+
+| Command group | Refusal or boundary owner | Current native witness and remaining gap |
+| --- | --- | --- |
+| `init` profiles and repair/plan/roundtable starters | [init_cli.py](../src/attune_harness/init_cli.py), required starter inputs and shell rendering | Selected starter tests run; complete documented first-run, test and repair continuations are POSIX-skipped in [test_cold_start_journey.py](../tests/test_cold_start_journey.py) |
+| `review-form`, `review`, `inspect-review`, `resume-review`, `reconcile-review`, `transfer-review`, `cancel-review` | [review_cli.py](../src/attune_harness/review_cli.py), registry/acceptance; [review_store.py](../src/attune_harness/review_store.py), native lease | Installed R2 review completes with deterministic assessment; this is software coverage, not live model quality |
+| `plan`, imported plans, acceptance and `build` | [work_cli.py](../src/attune_harness/work_cli.py); [work_build.py](../src/attune_harness/work_build.py), roles/budgets/grants | Baseline installed R2 build completed; dependent build-to-test handoff is blocked by the testing owner |
+| `fix` and assessment-to-repair | [repair.py](../src/attune_harness/repair.py), dedicated checkout, scope, probe and native admission | Effects owner tests pass; complete documented repair continuation remains Windows-skipped |
+| `test`, including completed-task handoff | [test_change.py](../src/attune_harness/test_change.py), POSIX admission and override refusal; [task_handoff.py](../src/attune_harness/task_handoff.py), completed evidence | Windows feature is blocked; preview refusal is not test execution |
+| `status`, `resume`, `reconcile-task`, `transfer-task`, `cancel-task` | [task_cli.py](../src/attune_harness/task_cli.py), profile dispatch and recovery | Selected native recovery tests run; testing recovery awaits native execution. Actual commands are `status` and `resume` |
+| `source-review`, `roundtable` (eight actions each) | [consultation_cli.py](../src/attune_harness/consultation_cli.py); [consultation.py](../src/attune_harness/consultation.py), frozen source, checkpoint and explicit grants | Implemented bounded Harness consultation; selected consultation and native snapshot tests run. This does not qualify every Attune AI workflow |
+| `memory capabilities`, `recall`, `resolve`, `refresh` | [memory_reader.py](../src/attune_harness/memory_reader.py), capture, root authority, expiry/scope/version | Windows refuses; raw, personal and curated tiers need successful installed witnesses |
+| `memory serve` and prompt hook | [memory_serving.py](../src/attune_harness/memory_serving.py), authorized pointer/verdict reads | Installed witness covers skipped output; curated synthetic tests are separate. File pointers remain blocked |
+| `memory redis` (five actions) | [memory_redis.py](../src/attune_harness/memory_redis.py), optional dependency/config/query bounds | Installed Windows checks cover disabled/unreachable outcomes; hydrated-server success needs separate evidence |
+| `memory scratch` (five actions) | [memory_scratch.py](../src/attune_harness/memory_scratch.py), root/config/native locks | Installed file-store round trip completes; unreachable Redis never substitutes file storage |
+| `memory saved` (eight actions), linked tasks and pending review | [memory_saved.py](../src/attune_harness/memory_saved.py), platform, linked identity, completion; [memory_saved_cli.py](../src/attune_harness/memory_saved_cli.py), pending filter | All Windows storage operations refuse. Equivalent durability/private ACL/locking proof precedes production implementation |
+| `memory create`, `replay`, `inspect`, `execute` | [memory_context.py](../src/attune_harness/memory_context.py), host/job authority; [memory_native.py](../src/attune_harness/memory_native.py), native preflight | Offline worker tests are distinct from the actual SDK helper; native transport is blocked and absent from normal installed qualification |
+| `code-config`, `index` (four actions), `retrieval-task`, provider `retrieve` | [voyage_cli.py](../src/attune_harness/voyage_cli.py); [voyage_provider.py](../src/attune_harness/voyage_provider.py), paid grant/key/SDK | Offline selected tests run; no live Windows provider qualification |
+| Keyword `retrieve`, `verify` | [retrieval.py](../src/attune_harness/retrieval.py), [verification.py](../src/attune_harness/verification.py), dependency and bounded input guards | Installed successful and negative CLI witnesses exist |
+| `mcp-serve`, `mcp-inspect` | [cli.py](../src/attune_harness/cli.py), profile conflicts; [mcp_server.py](../src/attune_harness/mcp_server.py), accepted grant/freshness | Installed MCP/workspace tests run; protocol checks alone do not establish a complete user journey |
+| `extension` (seven actions) | [extension_cli.py](../src/attune_harness/extension_cli.py); [plugin_runtime.py](../src/attune_harness/plugin_runtime.py), signed imports/grants/SystemRoot | Native plugin probe completes; installing a bundle grants no execution authority |
+| `spec intake`, `spec present` (four views) | [spec_cli.py](../src/attune_harness/spec_cli.py), accepted-result evidence | Selected intake/presentation tests run; native test-result production awaits the testing port |
+| `triage-check`, `repair-economics`, `github-checks`, no-argument demo | [cli.py](../src/attune_harness/cli.py), bounded trusted exports | Selected operation/GitHub tests and installed demo run; none authorizes workflow dispatch |
+
+The first full native source measurement in [PR #266](https://github.com/Smart-AI-Memory/attune-harness/pull/266)
+reached pytest on Python 3.10 and 3.12, then both jobs were cancelled at the job
+deadline without retained test output. That is an unresolved baseline, not a
+passing Windows suite. The current revision fixes pipe readiness, preserves source
+bytes and retains verbose output before the job deadline. Feature parity remains
+open until successful native journeys and all required checks are recorded.
