@@ -1,6 +1,7 @@
 """Disposable T2 experiment; never a production saved-storage backend.
 
-Run from an installed wheel: python -I windows_saved_store_proof.py --output DIR.
+Run from an installed wheel and an actual standard primary token:
+python -I windows_saved_store_proof.py --current-standard --output DIR.
 The observation runner may succeed while durability equivalence remains blocked.
 No network, provider, repository configuration or existing store is accessed.
 """
@@ -72,18 +73,20 @@ def receipt_gate(observations):
             'power_loss_tested': False, 'production_port_allowed': False}
 
 
-def validate_token(facts):
+def validate_token(facts, *, require_unelevated=False):
     if (facts['administrators_enabled'] or facts['integrity_sid'] != 'S-1-16-8192'
-            or set(facts['enabled_privileges']) - {'SeChangeNotifyPrivilege'}):
+            or set(facts['enabled_privileges']) - {'SeChangeNotifyPrivilege'}
+            or require_unelevated and facts.get('token_is_elevated') is not False):
         raise ValueError('The proof did not run with its restricted primary-token profile')
 
 
 def validate_receipt(result):
     if result['status'] != 'observations_complete' or result['proof_schema'] != 1:
         raise ValueError('Native proof observations are incomplete')
-    validate_token(result['token'])
-    if result['token_profile'] != 'restricted-primary-medium-v1':
+    profile = result['token_profile']
+    if profile not in ('restricted-primary-medium-v1', 'existing-standard-primary-v1'):
         raise ValueError('Unknown native proof token profile')
+    validate_token(result['token'], require_unelevated=profile == 'existing-standard-primary-v1')
     if result['platform']['filesystem'] != 'NTFS':
         raise ValueError('Native proof did not admit NTFS')
     if result['paid_model_calls'] != 0 or result['provider_network_calls'] != 0:
@@ -109,7 +112,7 @@ def validate_receipt(result):
                 or case['replayed_count'] != (7 if case['identical_requests'] else 0)):
             raise ValueError('Native concurrent requests duplicated or lost commits')
         for token in case['tokens']:
-            validate_token(token)
+            validate_token(token, require_unelevated=profile == 'existing-standard-primary-v1')
         if len(case['tokens']) != 8:
             raise ValueError('Missing native child token observations')
     crashes = result['process_crashes']
@@ -272,10 +275,37 @@ class ProofNative:
                 'integrity_sid': integrity, 'enabled_privileges': sorted(enabled),
                 'token_is_elevated': bool(elevated)}
 
-    def require_standard(self):
+    def require_standard(self, *, unelevated=False):
         facts = self.token_facts()
-        validate_token(facts)
+        validate_token(facts, require_unelevated=unelevated)
         return facts
+
+    def standard_run(self, output):
+        """Inherit an actual standard primary token; never manufacture one."""
+        from attune_harness.windows import WindowsJob
+        self.require_standard(unelevated=True)
+        temporary = output / 'child-temp'
+        temporary.mkdir()
+        environment = {'SystemRoot': os.environ['SystemRoot'], 'TEMP': str(temporary),
+                       'TMP': str(temporary), 'PYTHONUTF8': '1'}
+        args = child_command('run', output) + ['--token-profile', 'existing-standard-primary-v1']
+        with (output / 'child-stdout.log').open('wb') as stdout, (output / 'child-stderr.log').open('wb') as stderr:
+            with WindowsJob() as job:
+                process = job.launch(args, stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
+                                     cwd=str(output), environment=environment)
+                save_json(output / 'supervisor-job.json', {
+                    'assigned_pid': process.pid, 'assigned_before_proof_dispatch': True,
+                    'kill_on_job_close': True, 'breakaway_allowed': False,
+                    'launcher': 'existing-standard-primary-bootstrap'})
+                try:
+                    code = process.wait(timeout=PROCESS_SECONDS)
+                except subprocess.TimeoutExpired:
+                    job.stop(process)
+                    raise TimeoutError('Standard-primary proof tree exceeded its bound') from None
+                save_json(output / 'supervisor-exit.json', {
+                    'exit_code': code, 'exit_code_hex': f'{code & 0xffffffff:08x}',
+                    'child_python_started': (output / 'child-token.json').is_file()})
+                return code
 
     def restricted_run(self, output):
         """Admin setup may only reduce the child token; it performs no file proof."""
@@ -666,9 +696,9 @@ def concurrent_cases(api, output, root, identical):
             'flushes': first['flushes'] + [row for result in results for row in result['flushes']]}
 
 
-def run_proof(output):
+def run_proof(output, token_profile='restricted-primary-medium-v1'):
     api = ProofNative(output / 'native-flush-observations.jsonl')
-    token = api.require_standard()
+    token = api.require_standard(unelevated=token_profile == 'existing-standard-primary-v1')
     save_json(output / 'child-token.json', token)
     from attune_harness import windows_effects
     from importlib.metadata import distribution
@@ -680,7 +710,7 @@ def run_proof(output):
         raise RuntimeError('Proof requires a non-editable installed wheel')
     result = {'proof_schema': 1, 'experiment': 'disposable-native-saved-store-feasibility',
               'status': 'observations_in_progress', 'token': token,
-              'token_profile': 'restricted-primary-medium-v1',
+              'token_profile': token_profile,
               'platform': {'os': platform.platform(), 'build': platform.version(),
                            'machine': platform.machine(), 'python': sys.version,
                            'executable': Path(sys.executable).as_posix(), 'filesystem': 'NTFS'},
@@ -731,7 +761,7 @@ def run_proof(output):
 
 def child_main(args):
     if args.child == 'run':
-        run_proof(args.output)
+        run_proof(args.output, args.token_profile)
         return 0
     api = ProofNative(args.output.with_name(args.output.name + '.native-flush-observations.jsonl'))
     token = api.require_standard()
@@ -770,6 +800,10 @@ def main(argv=None):
     parser.add_argument('--root', type=Path)
     parser.add_argument('--key')
     parser.add_argument('--stage', choices=STAGES)
+    parser.add_argument('--current-standard', action='store_true',
+                        help='Use an already non-elevated medium primary token; never provision credentials')
+    parser.add_argument('--token-profile', choices=('restricted-primary-medium-v1', 'existing-standard-primary-v1'),
+                        default='restricted-primary-medium-v1', help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.child:
         try:
@@ -783,12 +817,20 @@ def main(argv=None):
     # New output only: never overwrite or tune a retained experiment receipt.
     args.output = args.output.absolute()
     args.output.mkdir(parents=False, exist_ok=False)
+    if not args.current_standard:
+        blocked = {'status': 'blocked', 'error': 'restricted_launcher_retired',
+                   'detail': 'Two pre-Python startup failures require an actual standard-primary fixture; no third restricted launch is attempted',
+                   'native_runs': [38769182112, 38769648634],
+                   'production_port_allowed': False, 'storage_observations': 0}
+        save_json(args.output / 'blocked-launcher.json', blocked)
+        print(json.dumps(blocked))
+        return 2
     api = ProofNative()
     parent = api.token_facts()
     save_json(args.output / 'launcher.json', {'token': parent, 'production_port_allowed': False,
               'containment_policy': {'kill_on_job_close': True, 'assigned_while_suspended': True,
                               'breakaway_allowed': False}})
-    code = api.restricted_run(args.output)
+    code = api.standard_run(args.output)
     if code:
         print(json.dumps({'status': 'proof_failed', 'exit_code': code,
                           'output': args.output.as_posix()}))

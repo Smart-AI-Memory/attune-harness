@@ -18,7 +18,7 @@ spec.loader.exec_module(proof)
 
 def token():
     return {'administrators_enabled': False, 'integrity_sid': 'S-1-16-8192',
-            'enabled_privileges': ['SeChangeNotifyPrivilege']}
+            'enabled_privileges': ['SeChangeNotifyPrivilege'], 'token_is_elevated': False}
 
 
 def receipt():
@@ -50,6 +50,23 @@ def test_complete_observations_still_require_semantic_review():
         'documented_equivalence': 'not_established_by_experiment',
         'power_loss_tested': False, 'production_port_allowed': False,
     }
+
+
+def test_actual_standard_primary_has_distinct_profile_and_refuses_elevated_flag():
+    result = receipt()
+    result['token_profile'] = 'existing-standard-primary-v1'
+    proof.validate_receipt(result)
+    result['token']['token_is_elevated'] = True
+    with pytest.raises(ValueError):
+        proof.validate_receipt(result)
+
+
+def test_actual_standard_primary_requires_unelevated_descendants_too():
+    result = receipt()
+    result['token_profile'] = 'existing-standard-primary-v1'
+    result['concurrency'][0]['tokens'][0]['token_is_elevated'] = True
+    with pytest.raises(ValueError):
+        proof.validate_receipt(result)
 
 
 @pytest.mark.parametrize('field', ['returned_ntstatus', 'io_status'])
@@ -137,3 +154,17 @@ def test_disposable_experiment_import_does_not_bind_windows_on_other_hosts():
         "assert 'attune_harness.windows_effects' not in sys.modules", str(SCRIPT)],
         capture_output=True, timeout=10)
     assert result.returncode == 0, result.stderr.decode('utf-8', errors='replace')
+
+
+def test_retired_launcher_stops_before_any_native_token_or_launch_call(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(proof, 'os', SimpleNamespace(name='nt'))
+    def forbidden():
+        raise AssertionError('Retired launcher must not bind a native API')
+    monkeypatch.setattr(proof, 'ProofNative', forbidden)
+    output = tmp_path / 'blocked'
+    assert proof.main(['--output', str(output)]) == 2
+    result = proof.read_json(output / 'blocked-launcher.json')
+    assert result['error'] == 'restricted_launcher_retired'
+    assert result['production_port_allowed'] is False
+    assert result['storage_observations'] == 0
+    assert 'restricted_launcher_retired' in capsys.readouterr().out

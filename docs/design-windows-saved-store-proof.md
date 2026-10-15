@@ -106,3 +106,27 @@ and process-exit receipts distinguish a launcher failure from child Python
 failure. This is a hypothesis, not an established diagnosis; another failure of
 this launch approach triggers strategy review before a third attempt. The first
 run's evidence remains unchanged.
+
+## Revised strategy after the second startup failure
+
+[Run 38769648634](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38769648634)
+at `31e578a5cc085e5df60cf6e2b9ca9cd52c022432` also returned `0xC0000142`
+before Python in every combination. The target token had medium integrity,
+Administrators deny-only and only SeChangeNotify enabled, but retained
+TokenIsElevated=true from the built-in Administrator account. No storage API
+result was observed. The two-attempt trip-wire stops this launcher strategy.
+
+The next source-independent path uses an already non-elevated medium primary
+token, as on the existing Windows 11 guest. A new explicit current-standard mode
+refuses an elevated, high-integrity or privileged process. It uses the existing
+Job Object bootstrap and inherits that actual primary token into the proof;
+it neither creates a restricted token nor impersonates an administrator.
+Receipts name existing-standard-primary-v1 and retain the actual token facts.
+Root reviews this mode before execution; it cannot qualify the missing server
+standard-user fixture by itself.
+
+A separately reviewable CI proposal may provision one disposable local standard
+account per ephemeral job, launch its actual primary process and clean only
+recorded scratch resources. This is an account/credential route requiring
+Patrick's explicit approval. No proposal script is enabled or executed as part
+of preparing it. No production saved-storage work proceeds.
