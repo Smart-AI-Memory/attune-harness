@@ -18,6 +18,10 @@ def main(options):
     # Install before importing the SDK. Both Python socket entry points and the
     # socket audit events fail closed; the synthetic responder needs neither.
     attempts = []
+    cwd_reads = []
+    cwd_guard_checks = []
+    audit_cwd = options.get('audit_cwd')
+    cwd_root = os.path.normcase(os.path.abspath(audit_cwd)) if audit_cwd else None
 
     def blocked(*args, **kwargs):
         attempts.append('socket')
@@ -26,8 +30,27 @@ def main(options):
     def audit(event, args):
         if event in ('socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname'):
             blocked()
+        if event == 'open' and cwd_root and not isinstance(args[0], int):
+            target = os.path.normcase(os.path.abspath(os.fsdecode(args[0])))
+            try:
+                within = os.path.commonpath((cwd_root, target)) == cwd_root
+            except ValueError:  # Different Windows drives.
+                within = False
+            if within:
+                cwd_reads.append('open')
+                raise PermissionError('Offline fixture forbids opening cwd decoys')
 
     sys.addaudithook(audit)
+    if audit_cwd:
+        # Prove the content-open guard refuses a real decoy before clearing the
+        # control observation. The SDK path must subsequently make no attempt.
+        try:
+            (Path(audit_cwd) / 'anthropic.py').read_bytes()
+        except PermissionError:
+            cwd_guard_checks.append('open')
+        else:
+            raise AssertionError('Cwd decoy guard did not refuse the control')
+        cwd_reads.clear()
     socket.socket.connect = blocked
     socket.socket.connect_ex = blocked
     socket.create_connection = blocked
@@ -88,6 +111,8 @@ def main(options):
         'offline_sdk_requests': 0, 'live_provider_model_calls': 0,
         'home_lookup_guard': guard_home, 'home_lookups': 0,
         'sdk_source_sha256': sdk_sources, 'http_transport_constructed_and_closed': True,
+        'child_cwd': os.getcwd(), 'cwd_read_guard_checks': cwd_guard_checks,
+        'cwd_file_open_attempts': 0,
         'helper_stdout_base64': '',
     }
     path = Path(options['receipt'])
@@ -95,6 +120,7 @@ def main(options):
     def retain():
         observed['external_network_attempts'] = len(attempts)
         observed['home_lookups'] = len(home_lookups)
+        observed['cwd_file_open_attempts'] = len(cwd_reads)
         path.write_bytes((json.dumps(observed, ensure_ascii=True, sort_keys=True) + '\n').encode('utf-8'))
 
     retain()

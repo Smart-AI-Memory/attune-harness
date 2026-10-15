@@ -142,7 +142,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
     arguments = {}
     original_argv = native._helper_argv()
 
-    def install(message, *, mode='reply', status=200, force_windows_client=False):
+    def install(message, *, mode='reply', status=200, force_windows_client=False, audit_cwd=None):
         path = tmp_path / f'child-{len(receipts)}.json'
         receipts.append(path)
         raw = json.dumps(message, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
@@ -151,6 +151,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
                        descendant_marker=str(tmp_path / 'escaped'),
                        descendant_gate=str(tmp_path / 'supervisor-returned'),
                        descendant_started=str(tmp_path / 'descendant-started'),
+                       audit_cwd=str(audit_cwd) if audit_cwd else None,
                        force_windows_client=force_windows_client)
         code = ('import sys,runpy;sys.path.insert(0,' + repr(str(Path(native.__file__).resolve().parents[1])) + ');'
                 'from attune_harness.memory_native import helper_main;'
@@ -173,6 +174,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
         assert value['network_guard_checks'] == ['connect', 'connect_ex', 'create_connection', 'dns']
         assert value['external_network_attempts'] == value['live_provider_model_calls'] == 0
         assert value['home_lookups'] == 0
+        assert value['cwd_file_open_attempts'] == 0
         assert value['http_transport_constructed_and_closed'] is True
         assert value['sdk_source_sha256'] == {
             '_client.py': '69819477054ffebb9daa9a935b137cb37cd05c5c5e2f80a3928d14c6903ff02c',
@@ -253,6 +255,30 @@ def test_windows_explicit_key_client_does_not_discover_home(config, message, off
     witness = offline.read()
     assert witness['home_lookup_guard'] is True and witness['home_lookups'] == 0
     assert witness['offline_sdk_requests'] == 1
+
+
+def test_real_sdk_ignores_and_never_opens_cwd_decoys(config, message, offline, sdk, tmp_path):
+    directory = tmp_path / "decoy cwd café's 東京"
+    directory.mkdir()
+    imported = tmp_path / 'decoy-imported'
+    decoy = ('from pathlib import Path\n'
+             f'Path({str(imported)!r}).write_bytes(b"imported")\n'
+             'raise RuntimeError("Imported cwd decoy")\n')
+    for name in ('anthropic.py', 'httpx2.py', 'sitecustomize.py', 'usercustomize.py'):
+        (directory / name).write_text(decoy, encoding='utf-8')
+    argv = offline.install(message, audit_cwd=directory)
+    body = native.request_body('worker', 'routine', {}, {}, config)
+    packet = dict(schema_version=1, body=body, phase_timeout_seconds=10,
+                  response_byte_limit=2048, runtime=sdk)
+    result = invoke(argv, canonical(packet), cwd=directory, environment=offline.environment)
+    assert result.failure is None and result.returncode == 0 and result.stderr == ''
+    assert native.decode_provider(parse_json(result.stdout), body)[0] == {'outcome': 'proposal'}
+    witness = offline.read()
+    assert witness['offline_sdk_requests'] == 1
+    assert Path(witness['child_cwd']) == directory
+    assert witness['cwd_read_guard_checks'] == ['open']
+    assert witness['cwd_file_open_attempts'] == 0
+    assert not imported.exists()
 
 
 def test_child_argv_witness_rejects_every_substituted_entry(config, message, offline, sdk):
