@@ -83,6 +83,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
     expected = effective_environment(environment)
     before = deepcopy(environment)
     receipts = []
+    arguments = {}
     original_argv = native._helper_argv()
 
     def install(message, *, mode='reply', status=200, force_windows_client=False):
@@ -99,12 +100,14 @@ def offline(monkeypatch, tmp_path, sdk, request):
                 'raise SystemExit(runpy.run_path(' + repr(str(Path(__file__).with_name('native_memory_offline_child.py'))) + ')["main"]('
                 + repr(options) + '))')
         argv = (*original_argv[:4], code)
+        arguments[path] = list(argv)
         monkeypatch.setattr(native, '_helper_argv', lambda: argv)
         return argv
 
     def read(index=-1):
         value = json.loads(receipts[index].read_bytes())
         assert value['runtime'] == sdk
+        assert value['interpreter_argv'] == arguments[receipts[index]]
         assert value['environment_keys'] == sorted(expected)
         assert value['environment_values'] == expected
         assert value['sdk_import_environment_keys'] == sorted(expected)
@@ -119,6 +122,10 @@ def offline(monkeypatch, tmp_path, sdk, request):
         if value['offline_sdk_requests']:
             assert value['explicit_key_header'] is True
             assert value['authorization_header_present'] is False
+        if not value.get('descendant_spawned'):
+            wire = base64.b64decode(value['helper_stdout_base64'], validate=True)
+            assert wire.endswith(b'\n') and b'\r' not in wire
+            assert parse_json(wire.decode('utf-8'))['state'] in ('completed', 'unresolved')
         assert environment == before
         return value
 
@@ -156,9 +163,14 @@ def test_real_sdk_helper_unicode_receipt_replays(config, message, offline, sdk):
     raw = base64.b64decode(reply['evidence']['provider']['raw_base64'])
     assert b'\xc3\xa9' in raw
     assert hashlib.sha256(raw).hexdigest() == reply['evidence']['provider']['raw_sha256']
+
+
+def test_helper_binary_utf8_ignores_text_locale(config, message, offline, sdk):
+    message['content'][0]['text'] = json.dumps({'outcome': 'café 東京 🚀'}, ensure_ascii=False)
+    argv = offline.install(message)
     # Explicit binary I/O also accepts literal UTF-8 input under ASCII wrappers.
-    utf8_body = deepcopy(body)
-    utf8_body['messages'][0]['content'] = json.dumps(parse_json(body['messages'][0]['content']), ensure_ascii=False)
+    utf8_body = native.request_body('worker', 'routine', {'source': 'café 東京 🚀'}, {}, config)
+    utf8_body['messages'][0]['content'] = json.dumps(parse_json(utf8_body['messages'][0]['content']), ensure_ascii=False)
     packet = dict(schema_version=1, body=utf8_body, phase_timeout_seconds=10,
                   response_byte_limit=2048, runtime=sdk)
     assert '東京' in json.dumps(packet, ensure_ascii=False)
@@ -166,7 +178,7 @@ def test_real_sdk_helper_unicode_receipt_replays(config, message, offline, sdk):
                     environment=offline.environment)
     assert result.failure is None and result.returncode == 0 and result.stderr == ''
     assert '\r' not in result.stdout and result.stdout.endswith('\n')
-    assert native.decode_provider(parse_json(result.stdout), utf8_body)[0] == reply['value']
+    assert native.decode_provider(parse_json(result.stdout), utf8_body)[0] == {'outcome': 'café 東京 🚀'}
     assert offline.read()['offline_sdk_requests'] == 1
 
 

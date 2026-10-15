@@ -65,6 +65,7 @@ def main(options):
 
     observed = {
         'schema_version': 1, 'runtime': native.runtime_identity(),
+        'interpreter_argv': sys.orig_argv,
         'environment_keys': entry_keys,
         # Never serialize unknown ambient values if an inheritance regression
         # occurs. The parent checks the full key set and every expected value.
@@ -73,6 +74,7 @@ def main(options):
         'network_guard_checks': checks, 'external_network_attempts': 0,
         'offline_sdk_requests': 0, 'live_provider_model_calls': 0,
         'home_lookup_guard': guard_home, 'home_lookups': 0,
+        'helper_stdout_base64': '',
     }
     path = Path(options['receipt'])
 
@@ -123,7 +125,27 @@ def main(options):
     # A locale/text wrapper must not control protocol decoding or newline bytes.
     sys.stdin.reconfigure(encoding='ascii', errors='strict')
     sys.stdout.reconfigure(encoding='ascii', errors='strict', newline='\r\n')
+    stdout = sys.stdout
+    wire = bytearray()
+
+    class BinaryOutput:
+        def write(self, value):
+            wire.extend(value)
+            return stdout.buffer.write(value)
+
+        def flush(self):
+            stdout.buffer.flush()
+
+    class Output:
+        buffer = BinaryOutput()
+
+        def __getattr__(self, name):
+            return getattr(stdout, name)
+
+    sys.stdout = Output()
     try:
         return native.helper_main(inner_transport=Responder())
     finally:
+        sys.stdout = stdout
+        observed['helper_stdout_base64'] = base64.b64encode(wire).decode('ascii')
         retain()
