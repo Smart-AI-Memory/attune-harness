@@ -90,11 +90,41 @@ def validate_child_argv(value, requested, runtime):
         config = {}
         for line in (Path(sys.prefix) / 'pyvenv.cfg').read_text(encoding='utf-8').splitlines():
             if '=' in line:
-                key, value = line.split('=', 1)
-                config[key.strip()] = value.strip()
+                key, setting = line.split('=', 1)
+                config[key.strip()] = setting.strip()
         assert Path(config['home']) == base.parent
         expected[0] = str(base)
     assert value['interpreter_argv'] == expected
+
+
+@pytest.mark.parametrize('version', [(3, 10), (3, 12)], ids=['cpython310', 'cpython312'])
+def test_windows_venv_argv_validation_uses_independent_parent_files(monkeypatch, tmp_path, version):
+    base = tmp_path / 'base' / 'python.exe'
+    launcher = tmp_path / 'venv' / 'Scripts' / 'python.exe'
+    base.parent.mkdir()
+    launcher.parent.mkdir(parents=True)
+    base.write_bytes(b'base interpreter fixture')
+    launcher.write_bytes(b'venv launcher fixture')
+    prefix = launcher.parent.parent
+    (prefix / 'pyvenv.cfg').write_text('home = ' + str(base.parent) + '\n', encoding='utf-8')
+    module = sys.modules[__name__]
+    monkeypatch.setattr(module, 'os', SimpleNamespace(name='nt'))
+    monkeypatch.setattr(module, 'sys', SimpleNamespace(
+        implementation=SimpleNamespace(name='cpython'), version_info=version,
+        prefix=str(prefix), base_prefix=str(base.parent), _base_executable=str(base)))
+    requested = [str(launcher), '-I', '-B', '-c', 'trusted helper']
+    runtime = {'python': str(launcher)}
+    value = dict(runtime=runtime, base_executable=str(base), prefix=str(prefix),
+                 base_prefix=str(base.parent), interpreter_argv=[str(base), *requested[1:]])
+    validate_child_argv(value, requested, runtime)
+    for index in range(5):
+        changed = deepcopy(value)
+        changed['interpreter_argv'][index] = 'substituted-argv-entry'
+        with pytest.raises(AssertionError):
+            validate_child_argv(changed, requested, runtime)
+    (prefix / 'pyvenv.cfg').write_text('home = ' + str(tmp_path / 'other') + '\n', encoding='utf-8')
+    with pytest.raises(AssertionError):
+        validate_child_argv(value, requested, runtime)
 
 
 @pytest.fixture
@@ -120,6 +150,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
                        raw_base64=base64.b64encode(raw).decode('ascii'), mode=mode, status=status,
                        descendant_marker=str(tmp_path / 'escaped'),
                        descendant_gate=str(tmp_path / 'supervisor-returned'),
+                       descendant_started=str(tmp_path / 'descendant-started'),
                        force_windows_client=force_windows_client)
         code = ('import sys,runpy;sys.path.insert(0,' + repr(str(Path(native.__file__).resolve().parents[1])) + ');'
                 'from attune_harness.memory_native import helper_main;'
@@ -142,6 +173,11 @@ def offline(monkeypatch, tmp_path, sdk, request):
         assert value['network_guard_checks'] == ['connect', 'connect_ex', 'create_connection', 'dns']
         assert value['external_network_attempts'] == value['live_provider_model_calls'] == 0
         assert value['home_lookups'] == 0
+        assert value['http_transport_constructed_and_closed'] is True
+        assert value['sdk_source_sha256'] == {
+            '_client.py': '69819477054ffebb9daa9a935b137cb37cd05c5c5e2f80a3928d14c6903ff02c',
+            'lib/credentials/_constants.py': 'f24748cbfce141773158e7919b4dcffef4f0fe54394094dc940359def7da247a',
+        }
         if os.name == 'nt':
             assert value['home_lookup_guard'] is True
         if value['offline_sdk_requests']:
@@ -268,6 +304,8 @@ def test_supervised_sdk_timeout_kills_descendant(config, message, offline, tmp_p
     assert raised.value.evidence['failure'] == 'timeout_effects_unknown'
     witness = offline.read()
     assert witness['offline_sdk_requests'] == 1 and witness['descendant_spawned'] is True
+    assert witness['descendant_started'] is witness['descendant_alive_before_timeout'] is True
+    assert witness['descendant_pid'] > 0
     (tmp_path / 'supervisor-returned').write_bytes(b'returned')
     time.sleep(0.8)
     assert not (tmp_path / 'escaped').exists()

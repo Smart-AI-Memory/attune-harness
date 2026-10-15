@@ -1,6 +1,7 @@
 """Trusted test wrapper: real SDK, in-memory HTTP only, no production switch."""
 
 import base64
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -63,6 +64,16 @@ def main(options):
         # without this test-only platform selection.
         native.os = SimpleNamespace(name='nt', environ=os.environ)
 
+    import anthropic
+    sdk_root = Path(anthropic.__file__).parent
+    sdk_sources = {name: hashlib.sha256((sdk_root / name).read_bytes()).hexdigest()
+                   for name in ('_client.py', 'lib/credentials/_constants.py')}
+    # Exercise the real connection-pool/TLS-context constructor under the same
+    # finite map and socket/home guards. The request responder below remains
+    # in-memory; no socket, TLS handshake, or provider authentication is tested.
+    transport = httpx2.HTTPTransport(retries=0, trust_env=False)
+    transport.close()
+
     observed = {
         'schema_version': 1, 'runtime': native.runtime_identity(),
         'interpreter_argv': sys.orig_argv,
@@ -76,6 +87,7 @@ def main(options):
         'network_guard_checks': checks, 'external_network_attempts': 0,
         'offline_sdk_requests': 0, 'live_provider_model_calls': 0,
         'home_lookup_guard': guard_home, 'home_lookups': 0,
+        'sdk_source_sha256': sdk_sources, 'http_transport_constructed_and_closed': True,
         'helper_stdout_base64': '',
     }
     path = Path(options['receipt'])
@@ -106,12 +118,21 @@ def main(options):
                 # when it would otherwise outlive the provider timeout.
                 marker = options['descendant_marker']
                 gate = options['descendant_gate']
+                started = options['descendant_started']
                 code = ('import time,pathlib\n'
+                        f'pathlib.Path({started!r}).write_bytes(b"started")\n'
                         f'while not pathlib.Path({gate!r}).exists(): time.sleep(0.01)\n'
                         'time.sleep(0.2)\n'
                         f'pathlib.Path({marker!r}).write_bytes(b"escaped")')
-                subprocess.Popen([sys.executable, '-I', '-B', '-c', code])
+                descendant = subprocess.Popen([sys.executable, '-I', '-B', '-c', code])
                 observed['descendant_spawned'] = True
+                deadline = time.monotonic() + 2
+                while not Path(started).is_file() and descendant.poll() is None and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                observed['descendant_pid'] = descendant.pid
+                observed['descendant_started'] = Path(started).read_bytes() == b'started'
+                observed['descendant_alive_before_timeout'] = descendant.poll() is None
+                assert observed['descendant_started'] and observed['descendant_alive_before_timeout']
                 retain()
                 time.sleep(30)
             class Stream(httpx2.SyncByteStream):
