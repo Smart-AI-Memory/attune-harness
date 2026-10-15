@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 import subprocess
 import sys
 
@@ -116,7 +117,7 @@ def prepare_body_build(work, *, two_steps=False):
     (root / "oracle.py").write_text("from source import value\nassert value()==42\n")
     (root / "baseline.py").write_text("from source import value\nassert value()==1\n")
     if two_steps:
-        (root / "second.py").write_text("def second():\n    return 1\n")
+        (root / "second.py").write_bytes(b"def second():\n    return 1\n")
         (root / "first_oracle.py").write_text(
             "from source import value\nassert value()==42\n"
         )
@@ -193,7 +194,11 @@ def prepare_body_build(work, *, two_steps=False):
             "cwd": ".",
             "timeout": 10,
             "max_output_bytes": 2048,
-            "environment": {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
+            "environment": {
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTHONNOUSERSITE": "1",
+                **({"SystemRoot": os.environ["SystemRoot"]} if os.name == "nt" else {}),
+            },
             "oracle_paths": [oracle],
         }
 

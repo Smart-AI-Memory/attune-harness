@@ -423,7 +423,7 @@ def bad_teardown():
     yield
     raise RuntimeError('teardown remains failed')
 def test_pass(capfd):
-    time.sleep(0.02)
+    time.sleep(0.1)
     captured = capfd.readouterr()
     assert 'elapsed_seconds' not in captured.out + captured.err
 def test_fail(): assert False, 'call remains failed'
