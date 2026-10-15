@@ -145,11 +145,9 @@ def main(options):
                 marker = options['descendant_marker']
                 gate = options['descendant_gate']
                 started = options['descendant_started']
-                code = ('import time,pathlib\n'
-                        f'pathlib.Path({started!r}).write_bytes(b"started")\n'
-                        f'while not pathlib.Path({gate!r}).exists(): time.sleep(0.01)\n'
-                        'time.sleep(0.2)\n'
-                        f'pathlib.Path({marker!r}).write_bytes(b"escaped")')
+                import runpy
+                tools = runpy.run_path(str(Path(__file__).with_name('native_memory_process_witness.py')))
+                code = tools['descendant_code'](marker, gate, started)
                 descendant = subprocess.Popen([sys.executable, '-I', '-B', '-c', code])
                 observed['descendant_spawned'] = True
                 deadline = time.monotonic() + 2
@@ -159,6 +157,7 @@ def main(options):
                 observed['descendant_started'] = Path(started).read_bytes() == b'started'
                 observed['descendant_alive_before_timeout'] = descendant.poll() is None
                 assert observed['descendant_started'] and observed['descendant_alive_before_timeout']
+                observed['descendant_reference'] = tools['process_reference'](descendant, options['observer_pid'])
                 retain()
                 time.sleep(30)
             class Stream(httpx2.SyncByteStream):

@@ -14,7 +14,7 @@ import json
 import os
 from pathlib import Path
 import sys
-import time
+import subprocess
 from types import SimpleNamespace
 
 import pytest
@@ -25,6 +25,7 @@ from attune_harness.memory_worker import WorkerStore, run, validated_proposal
 from attune_harness.memory_context import MemoryHost
 from attune_harness.process import invoke
 from attune_harness.review_contract import canonical, digest, parse_json
+from native_memory_process_witness import close_reference, descendant_code, process_reference, wait_for_exit
 from test_memory_native_boundaries import config, message  # noqa: F401
 from test_memory_worker import packet, proposal  # noqa: F401
 from test_memory_host_coverage import host  # noqa: F401
@@ -117,6 +118,10 @@ def test_windows_venv_argv_validation_uses_independent_parent_files(monkeypatch,
     value = dict(runtime=runtime, base_executable=str(base), prefix=str(prefix),
                  base_prefix=str(base.parent), interpreter_argv=[str(base), *requested[1:]])
     validate_child_argv(value, requested, runtime)
+    changed = deepcopy(value)
+    changed['interpreter_argv'][0] = requested[0]
+    with pytest.raises(AssertionError):
+        validate_child_argv(changed, requested, runtime)
     for index in range(5):
         changed = deepcopy(value)
         changed['interpreter_argv'][index] = 'substituted-argv-entry'
@@ -140,6 +145,8 @@ def offline(monkeypatch, tmp_path, sdk, request):
     before = deepcopy(environment)
     receipts = []
     arguments = {}
+    exit_observations = {}
+    closed_handles = set()
     original_argv = native._helper_argv()
 
     def install(message, *, mode='reply', status=200, force_windows_client=False, audit_cwd=None):
@@ -152,6 +159,7 @@ def offline(monkeypatch, tmp_path, sdk, request):
                        descendant_gate=str(tmp_path / 'supervisor-returned'),
                        descendant_started=str(tmp_path / 'descendant-started'),
                        audit_cwd=str(audit_cwd) if audit_cwd else None,
+                       observer_pid=os.getpid(),
                        force_windows_client=force_windows_client)
         code = ('import sys,runpy;sys.path.insert(0,' + repr(str(Path(native.__file__).resolve().parents[1])) + ');'
                 'from attune_harness.memory_native import helper_main;'
@@ -192,8 +200,26 @@ def offline(monkeypatch, tmp_path, sdk, request):
         assert environment == before
         return value
 
+    def observe_exit(index=-1):
+        value = read(index)
+        reference = value['descendant_reference']
+        observation = wait_for_exit(reference, 5)
+        exit_observations[receipts[index]] = observation
+        return observation
+
     yield SimpleNamespace(install=install, read=read, paths=receipts, environment=environment,
-                          original_argv=original_argv)
+                          original_argv=original_argv, observe_exit=observe_exit)
+    # Even a failing observation releases only this fixture's exact retained
+    # handle. No PID is signalled or killed, including a reused PID.
+    for path in receipts:
+        if path.is_file():
+            value = json.loads(path.read_bytes())
+            reference = value.get('descendant_reference')
+            if value.get('descendant_spawned'):
+                (tmp_path / 'supervisor-returned').write_bytes(b'returned')
+            if reference and reference['kind'] == 'windows-handle' and reference['handle'] not in closed_handles:
+                close_reference(reference)
+                closed_handles.add(reference['handle'])
     output = os.environ.get('HARNESS_NATIVE_MEMORY_OUTPUT')
     if output:
         destination = Path(output)
@@ -202,6 +228,8 @@ def offline(monkeypatch, tmp_path, sdk, request):
             assert path.is_file(), 'Supervised child wrote no offline witness'
             value = json.loads(path.read_bytes())
             value['supervisor_requested_argv'] = arguments[path]
+            if path in exit_observations:
+                value['descendant_exit_observation'] = exit_observations[path]
             (destination / f'{request.node.name}-{index}.json').write_bytes(
                 (json.dumps(value, sort_keys=True) + '\n').encode('utf-8'))
 
@@ -290,6 +318,12 @@ def test_child_argv_witness_rejects_every_substituted_entry(config, message, off
         changed['interpreter_argv'][index] = 'substituted-argv-entry'
         with pytest.raises(AssertionError):
             validate_child_argv(changed, requested, sdk)
+    if (os.name == 'nt' and sys.implementation.name == 'cpython'
+            and sys.version_info[:2] in ((3, 10), (3, 12)) and sys.prefix != sys.base_prefix):
+        changed = deepcopy(value)
+        changed['interpreter_argv'][0] = requested[0]
+        with pytest.raises(AssertionError):
+            validate_child_argv(changed, requested, sdk)
 
 
 @pytest.mark.parametrize('mode', ['bad-message', 'oversize', 'http-error'])
@@ -333,8 +367,40 @@ def test_supervised_sdk_timeout_kills_descendant(config, message, offline, tmp_p
     assert witness['descendant_started'] is witness['descendant_alive_before_timeout'] is True
     assert witness['descendant_pid'] > 0
     (tmp_path / 'supervisor-returned').write_bytes(b'returned')
-    time.sleep(0.8)
+    assert offline.observe_exit()['terminated'] is True
     assert not (tmp_path / 'escaped').exists()
+
+
+def test_process_exit_witness_refuses_a_live_delayed_descendant(tmp_path):
+    marker, gate, started = [tmp_path / name for name in ('escaped', 'gate', 'started')]
+    code = descendant_code(marker, gate, started)
+    process = subprocess.Popen([sys.executable, '-I', '-B', '-c', code],
+                               env=native._helper_environment('offline-native-test-key'))
+    reference = None
+    observations = {}
+    try:
+        reference = process_reference(process, os.getpid())
+        observations['before_gate'] = wait_for_exit(reference, 0)
+        assert observations['before_gate']['terminated'] is False
+        assert not marker.exists()  # Absence alone would falsely qualify it.
+        gate.write_bytes(b'returned')
+        observations['after_gate'] = wait_for_exit(reference, 5)
+        assert observations['after_gate']['terminated'] is True
+        process.wait(timeout=5)
+        assert marker.read_bytes() == b'escaped'
+    finally:
+        gate.write_bytes(b'returned')
+        process.wait(timeout=5)
+        if reference:
+            close_reference(reference)
+    output = os.environ.get('HARNESS_NATIVE_MEMORY_OUTPUT')
+    if output:
+        destination = Path(output) / 'controls'
+        destination.mkdir(parents=True, exist_ok=True)
+        observations.update(kind='owned-process-exit-control', marker='escaped',
+                            reference_closed=True, live_provider_model_calls=0)
+        (destination / 'process-exit.json').write_text(json.dumps(observations, sort_keys=True) + '\n',
+                                                       encoding='utf-8')
 
 
 def test_production_bootstrap_refuses_missing_key_without_dispatch(config, sdk, monkeypatch):
