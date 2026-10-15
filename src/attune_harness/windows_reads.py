@@ -60,12 +60,20 @@ def _times(basic):
                 change=int(basic.ChangeTime))
 
 
+class _ConfirmedMissing(FileNotFoundError):
+    """Only an exact absent-name probe may cross the public absence boundary."""
+
+
 @contextmanager
 def _final_reads():
     try:
         yield
     except UnresolvedOperation as error:
         raise ValueError('Windows source observation did not complete: ' + str(error)) from error
+    except _ConfirmedMissing as error:
+        raise FileNotFoundError(str(error)) from error
+    except FileNotFoundError as error:
+        raise ValueError('Source failure is not confirmed name absence') from error
 
 
 class ReadRoot:
@@ -136,7 +144,7 @@ class ReadRoot:
                 raise
             if present or self._stat(parent) != state:
                 raise ValueError('Source changed while opening an enumerated name') from error
-            raise FileNotFoundError('Source name is absent from its admitted parent: ' + name) from error
+            raise _ConfirmedMissing('Source name is absent from its admitted parent: ' + name) from error
         try:
             if not present:
                 raise ValueError('Source path is an alias or appeared after enumeration')
@@ -200,6 +208,121 @@ class ReadRoot:
             entry = deepcopy(before.entry)
             entry.update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
             return FileObservation(data, entry, deepcopy(before.times))
+
+    @contextmanager
+    def _batch_child(self, parent, state, names, name, *, directory):
+        # Membership is from this operation's complete scan. The retained child
+        # and all parent/name bindings are checked again before any result exits.
+        present = name in names
+        try:
+            child = self._api.child(parent, name, directory=directory, writable=False)
+        except OSError as error:
+            if error.errno not in _MISSING:
+                raise
+            if present:
+                raise ValueError('Source changed while opening an enumerated name') from error
+            raise _ConfirmedMissing('Source name is absent from its admitted parent: ' + name) from error
+        with self._api.owned(child):
+            if not present:
+                raise ValueError('Source path is an alias or appeared after enumeration')
+            observed = self._stat(child, state.entry['identity'])
+            if observed.entry['kind'] != ('directory' if directory else 'file'):
+                raise ValueError('Source child has an unexpected file type')
+            yield child, observed
+
+    def read_many(self, names, *, max_files, max_bytes, max_total_bytes):
+        """Capture named files in one retained operation with independent bounds.
+
+        Complete scans and binding checks are shared only within this operation.
+        No directory timestamp or negative result authorizes a later operation.
+        Discovery/eligibility and public versions remain the consumer's owners.
+        """
+        if (type(max_files) is not int or max_files < 0
+                or type(max_bytes) is not int or not 0 <= max_bytes < 0xFFFFFFFF
+                or type(max_total_bytes) is not int or max_total_bytes < 0
+                or isinstance(names, (str, bytes))):
+            raise ValueError('Batch read requires independent file and byte bounds')
+        requests = set()
+        for name in names:
+            relative(name)
+            if name in requests:
+                raise ValueError('Batch read contains duplicate source names')
+            if len(requests) >= max_files:
+                raise ValueError('Batch exceeds selected source file limit')
+            requests.add(name)
+        prefixes = set()
+        for name in requests:
+            parts = name.split('/')
+            for at in range(1, len(parts)):
+                prefixes.add('/'.join(parts[:at]))
+        if requests & prefixes:
+            raise ValueError('Batch source is both a file and a directory')
+        with self._lock, _final_reads(), ExitStack() as handles:
+            self._check_root()
+            directories, bindings, selected = {}, [], []
+            if requests:
+                directories[''] = (self._root, *self._listing(self._root))
+
+            def verify():
+                for _, _, child, before in bindings:
+                    if self._stat(child, before.entry['parent_identity']) != before:
+                        raise ValueError('Source metadata changed during batch observation')
+                for parent, state, names, _ in directories.values():
+                    after, after_names, _ = self._listing(parent)
+                    if after != state or after_names != names:
+                        raise ValueError('Source directory changed during batch observation')
+                for prefix, name, _, before in bindings:
+                    parent, state, _, members = directories[prefix]
+                    with self._batch_child(parent, state, members, name,
+                                           directory=before.entry['kind'] == 'directory') as (_, after):
+                        if after != before:
+                            raise ValueError('Source binding changed during batch observation')
+                # Recheck complete namespaces after all named binding probes.
+                for parent, state, names, _ in directories.values():
+                    after, after_names, _ = self._listing(parent)
+                    if after != state or after_names != names:
+                        raise ValueError('Source directory changed during batch binding checks')
+                self._check_root()
+
+            try:
+                for name in sorted(requests):
+                    parts, prefix = name.split('/'), ''
+                    for part in parts[:-1]:
+                        path = prefix + ('/' if prefix else '') + part
+                        if path not in directories:
+                            parent, state, _, members = directories[prefix]
+                            child, before = handles.enter_context(
+                                self._batch_child(parent, state, members, part, directory=True))
+                            bindings.append((prefix, part, child, before))
+                            directories[path] = (child, *self._listing(child))
+                            if self._stat(child, before.entry['parent_identity']) != before:
+                                raise ValueError('Source directory changed during batch admission')
+                        prefix = path
+                    parent, state, _, members = directories[prefix]
+                    child, before = handles.enter_context(
+                        self._batch_child(parent, state, members, parts[-1], directory=False))
+                    bindings.append((prefix, parts[-1], child, before))
+                    selected.append((name, child, before))
+            except _ConfirmedMissing:
+                verify()
+                raise
+
+            if any(not 0 <= state.size <= max_bytes for _, _, state in selected):
+                raise ValueError('File exceeds source per-file byte budget')
+            if sum(state.size for _, _, state in selected) > max_total_bytes:
+                raise ValueError('Batch exceeds source aggregate byte budget')
+            result, captured = {}, 0
+            for name, child, before in selected:
+                data = self._api.read(child, before.size,
+                                      limit=min(max_bytes, max_total_bytes - captured))
+                captured += len(data)
+                if self._stat(child, before.entry['parent_identity']) != before:
+                    raise ValueError('Source metadata changed while reading batch')
+                entry = deepcopy(before.entry)
+                entry.update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
+                result[name] = FileObservation(data, entry, deepcopy(before.times))
+            verify()
+            return result
 
     def files(self, *, select, max_files):
         """Return selected relative files from retained directory discovery.

@@ -9,9 +9,13 @@ tokens, allowed paths, selected-file limit and aggregate byte budget.
 from attune_harness.windows_reads import open_read_root
 
 with open_read_root(source_root) as root:
-    for name in root.files(select=lambda path: path.endswith('.md'), max_files=4096):
-        observed = root.read(name, max_bytes=8 * 1024 * 1024)
-        # Bind the consumer's own version to observed.entry and observed.times.
+    observed = root.read_many(
+        ['notes/topic.md', 'notes/second.md'],
+        max_files=2,
+        max_bytes=8 * 1024 * 1024,
+        max_total_bytes=16 * 1024 * 1024,
+    )
+    # Bind the consumer's own versions to each observation's entry and times.
 ```
 
 The supplied root must be an absolute path below a fixed local NTFS drive
@@ -40,6 +44,22 @@ returning. There is no timestamp-based listing cache. Root operations are
 serialized with a reentrant lock; a discovery selector can perform a read.
 Context exit waits for active operations and closes the retained handles under
 that same lock.
+
+`read_many()` captures canonical named requests in one locked operation. Its file
+count, per-file byte allowance and aggregate byte allowance are independent caller
+bounds. It retains selected file and parent handles, completes each directory scan
+before admission, and shares those observations only inside the operation. Before
+returning, it compares retained file state, completes fresh directory scans,
+reopens exact names and compares their identities and metadata, then scans again
+and rechecks ancestor bindings. Directory timestamps alone never authorize reuse.
+No scan or negative absence result survives the call. This avoids rescanning the
+whole directory for every selected file while preserving final binding checks.
+
+Discovery and capture remain separate APIs. Calling `files()` followed by
+`read_many()` does not itself prove an atomic discovery snapshot; the consumer
+must supply its discovery and selection contract. This additive API does not
+resolve the T4 eligibility and raw-sidecar gates below. Individual `read()` calls
+retain their existing fresh named-open checks.
 As with the effects primitives, this detects observed changes without claiming
 isolation from an arbitrary hostile concurrent writer.
 
@@ -59,7 +79,10 @@ unchanged. These are the only accepted absence statuses from the
 A successful probe of an unlisted spelling is an alias or race and refuses.
 An enumerated name that disappears is a freshness failure. Access failures,
 `STATUS_OBJECT_PATH_NOT_FOUND`, stream failures and other native errors do not
-become absence. Nonfinal native operations become `ValueError`; ordinary native
+become absence. An internal confirmed-missing marker crosses to public
+`FileNotFoundError` only for that positive evidence; a `FileNotFoundError` from
+metadata or enumeration becomes a safety `ValueError`. Nonfinal native operations
+become `ValueError`; ordinary native
 failures remain `OSError`, and unsupported platforms or volumes retain
 `FeatureUnavailable`.
 
