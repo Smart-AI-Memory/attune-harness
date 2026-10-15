@@ -1,4 +1,4 @@
-"""Real command peers, repair/test provenance, and existing Spec controls.
+"""# qualify: platform — command peers, repair/test provenance and Spec controls.
 
 No provider calls. Synthetic human submissions qualify the collector contract,
 not a user's acceptance; the executor still owns the Spec result publication.

@@ -1,4 +1,4 @@
-"""Real pytest outcomes cannot override captured evidence or producer identity."""
+"""# qualify: platform — pytest evidence cannot override runtime or producer identity."""
 
 import json
 from pathlib import Path
@@ -12,6 +12,7 @@ from attune_harness.task_contract import read_task
 from attune_harness.task_policies import execute_task, inspect_task
 from test_connected_journey import complete, journey, linked  # noqa: F401
 from test_test_change import accept, outcome, project, put  # noqa: F401
+
 
 def count_dispatches(monkeypatch, after=None):
     original = test_execution.process.invoke
@@ -75,6 +76,17 @@ def test_cancel_before_start_cannot_claim_execution_or_retry(project, tmp_path, 
     ('symlink', 'Invalid pytest evidence artifact'),
 ])
 def test_successful_process_requires_valid_execution_local_observation(project, tmp_path, monkeypatch, damage, detail):
+    if damage == 'symlink':
+        import os
+
+        target, link = tmp_path / 'link-target', tmp_path / 'link-capability'
+        target.write_bytes(b'owned fixture')
+        try:
+            link.symlink_to(target)
+        except OSError as error:
+            if os.name == 'nt' and getattr(error, 'winerror', None) == 1314:
+                pytest.skip('This host cannot create the symlink evidence fixture (WinError 1314)')
+            raise
     directory = accept(project, tmp_path)
 
     def corrupt():
@@ -167,27 +179,37 @@ def test_edited_handoff_binding_cannot_authorize_test_dispatch(journey, capsys, 
 
 
 def test_interpreter_drift_is_detected_without_modifying_installed_python(project, tmp_path, monkeypatch):
+    import os
     import shutil
     import sys
 
     # A disposable interpreter uses the existing environment's libraries read-only.
     environment = tmp_path / 'python-environment'
-    (environment / 'bin').mkdir(parents=True)
-    executable = environment / 'bin/python'
-    shutil.copy2(Path(sys.executable).resolve(), executable)
-    (environment / 'pyvenv.cfg').write_text(
-        f'home = {Path(sys._base_executable).resolve().parent}\n'
-        'include-system-site-packages = true\n', encoding='utf-8'
-    )
-    # Keep the environment's packages, and give a copied binary that links a shared
-    # libpython through @executable_path/../lib (python-build-standalone on macOS) its
-    # library; without it dyld aborts the child with SIGABRT before pytest starts.
-    (environment / 'lib').mkdir()
-    for entry in (Path(sys.prefix) / 'lib').iterdir():
-        (environment / 'lib' / entry.name).symlink_to(entry)
-    for library in (Path(sys.base_prefix) / 'lib').glob('libpython*'):
-        if not (environment / 'lib' / library.name).exists():
-            (environment / 'lib' / library.name).symlink_to(library)
+    if os.name == 'nt':
+        import venv
+
+        venv.EnvBuilder(with_pip=False, symlinks=False).create(environment)
+        executable = environment / 'Scripts/python.exe'
+        packages = environment / 'Lib/site-packages'
+        (packages / 'test-libraries.pth').write_text(
+            'import sys; sys.path.append(' + ascii(str(Path(pytest.__file__).parent.parent)) + ')\n',
+            encoding='ascii',
+        )
+    else:
+        (environment / 'bin').mkdir(parents=True)
+        executable = environment / 'bin/python'
+        shutil.copy2(Path(sys.executable).resolve(), executable)
+        (environment / 'pyvenv.cfg').write_text(
+            f'home = {Path(sys._base_executable).resolve().parent}\n'
+            'include-system-site-packages = true\n', encoding='utf-8'
+        )
+        # Keep the existing libraries, including standalone macOS libpython.
+        (environment / 'lib').mkdir()
+        for entry in (Path(sys.prefix) / 'lib').iterdir():
+            (environment / 'lib' / entry.name).symlink_to(entry)
+        for library in (Path(sys.base_prefix) / 'lib').glob('libpython*'):
+            if not (environment / 'lib' / library.name).exists():
+                (environment / 'lib' / library.name).symlink_to(library)
     directory = tmp_path / 'task'
     draft = test_change.create_test_task(project, directory, scope=['src/demo/logic.py'],
                                         interpreter=str(executable))
