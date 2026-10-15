@@ -718,3 +718,102 @@ def test_protected_windows_tail_refuses_equally_under_different_drive_letters(ta
     original = _protected('C:/' + tail, windows=True)
     alternate = _protected('X:/' + tail, windows=True)
     assert original is not None and original == alternate
+
+
+@windows_only
+@pytest.mark.parametrize('component', ['ordinary', 'absent', 'linked'])
+@pytest.mark.parametrize('form', ['relative', 'absolute', 'chained-relative'])
+@pytest.mark.parametrize('terminal', ['live', 'missing'])
+def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, monkeypatch, record_property, component, form, terminal):
+    """Observe target semantics without treating lexical collapse as an oracle."""
+    root = tmp_path / 'raw'
+    root.mkdir()
+    sub = root / 'sub'
+    live = root / 'live'
+    if component == 'ordinary':
+        sub.mkdir()
+    if component == 'linked':
+        outside = tmp_path / 'owned-target'
+        (outside / 'child').mkdir(parents=True)
+        live = write(outside / 'live', b'synthetic physical-parent sentinel')
+        symlink(sub, outside / 'child', directory=True)
+    else:
+        write(live, b'synthetic lexical-parent sentinel')
+    source = root / 'findings.jsonl'
+    target = str(root / 'sub' / '..' / terminal) if form == 'absolute' else 'sub/../' + terminal
+    links = [source]
+    if component == 'linked':
+        links.append(sub)
+    if form == 'chained-relative':
+        hop = root / 'next.jsonl'
+        symlink(hop, target)
+        links.append(hop)
+        symlink(source, hop.name)
+    else:
+        symlink(source, target)
+
+    def stat_evidence(path, *, follow):
+        try:
+            value = os.stat(path) if follow else os.lstat(path)
+        except OSError as error:
+            missing = isinstance(error, FileNotFoundError) and error.winerror in (2, 3)
+            return {'status': 'missing' if missing else 'error', 'error': type(error).__name__,
+                    'errno': error.errno, 'winerror': error.winerror, 'detail': str(error)}
+        return {'status': 'live', 'mode': value.st_mode, 'size': value.st_size,
+                'identity': [value.st_dev, value.st_ino], 'links': value.st_nlink,
+                'attributes': value.st_file_attributes, 'reparse_tag': value.st_reparse_tag}
+
+    def stored_link(path):
+        with windows_reads.open_read_root(path.parent) as admitted:
+            api = admitted._api
+            with api.owned(api.child(admitted._root, path.name, writable=False, metadata_only=True)) as handle:
+                data = admitted._reparse_data(handle)
+        tag, length, _ = struct.unpack_from('<IHH', data)
+        offset, size, printed, print_size, flags = struct.unpack_from('<HHHHI', data, 8)
+        assert tag == 0xA000000C and length + 8 == len(data) and flags in (0, 1)
+        assert all(start % 2 == count % 2 == 0 and 20 + start + count <= len(data)
+                   for start, count in ((offset, size), (printed, print_size)))
+        substitute = data[20 + offset:20 + offset + size].decode('utf-16-le')
+        return {'readlink': os.readlink(path), 'lstat': stat_evidence(path, follow=False),
+                'flags': flags, 'substitute': substitute,
+                'print_name': data[20 + printed:20 + printed + print_size].decode('utf-16-le'),
+                'reparse_hex': data.hex()}
+
+    before = {path.name: stored_link(path) for path in links}
+    active = before['next.jsonl' if form == 'chained-relative' else 'findings.jsonl']
+    components = active['substitute'].replace('\\', '/').split('/')
+    if form != 'absolute':
+        assert active['flags'] == 1 and '..' in components, before
+    else:
+        assert active['flags'] == 0, before
+    oracle = stat_evidence(source, follow=True)
+    receipt = {'component': component, 'form': form, 'terminal': terminal, 'input_target': target,
+               'stored_links': before, 'stored_target_has_dotdot': '..' in components,
+               'absolute_target_normalized_at_creation': form == 'absolute' and '..' not in components,
+               'sub_lstat': stat_evidence(sub, follow=False), 'following_stat': oracle,
+               'lexical_terminal_stat': stat_evidence(root / terminal, follow=True),
+               'owned_live_stat': stat_evidence(live, follow=True)}
+    record_property('raw_dotdot_inputs', json.dumps(receipt, sort_keys=True))
+
+    reads = []
+    def forbidden_read(*args, **kwargs):
+        reads.append(True)
+        raise AssertionError('Raw link semantics witness attempted a content read')
+    monkeypatch.setattr(native.Native, 'read', forbidden_read)
+    packet = NativeReader(config_for(('r', root, 'raw', 'project-a'))).query('Aurora policy')
+    receipt['reader'] = {'status': packet['status'], 'problems': packet['problems']}
+    receipt['after_following_stat'] = stat_evidence(source, follow=True)
+    receipt['after_stored_links'] = {path.name: stored_link(path) for path in links}
+    receipt['content_reads'] = len(reads)
+    record_property('raw_dotdot_result', json.dumps(receipt, sort_keys=True))
+    assert reads == [] and receipt['after_stored_links'] == before, receipt
+    assert receipt['after_following_stat'] == oracle, receipt
+    assert oracle['status'] in ('live', 'missing'), receipt
+    if component == 'linked' and terminal == 'live':
+        assert receipt['lexical_terminal_stat']['status'] == 'missing', receipt
+        assert receipt['owned_live_stat']['status'] == 'live', receipt
+    if oracle['status'] == 'live':
+        assert oracle['identity'] == receipt['owned_live_stat']['identity'], receipt
+        assert packet['status'] == 'unavailable' and 'Live symbolic-link' in packet['problems'][0]['detail'], receipt
+    else:
+        assert packet['status'] == 'empty' and packet['problems'] == [], receipt
