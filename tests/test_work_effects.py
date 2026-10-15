@@ -50,7 +50,8 @@ def prepare(
         cwd=".",
         timeout=2,
         max_output_bytes=2048,
-        environment={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
+        environment={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1",
+                     **({"SystemRoot": os.environ["SystemRoot"]} if os.name == "nt" else {})},
         oracle_paths=["oracle.py"],
     )
     data["effects"] = work_effects.freeze(

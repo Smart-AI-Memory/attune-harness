@@ -365,7 +365,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     assert timings[-1]['event'] == 'phase_start' and timings[-1]['phase'] == phase
     assert timings[-1]['nodeid'].endswith('test_wait.py::test_wait')
     stacks = (output / 'slow-stacks.txt').read_text()
-    assert str(test) in stacks
+    assert f'File {str(test)!r}, ' in stacks
     assert ('in test_wait' if phase == 'call' else 'in stall') in stacks
     receipt = json.loads((output / 'manifest.json').read_text())
     assert receipt['test_exit'] is None and receipt['input_drift'] is False
@@ -398,7 +398,7 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
                                             'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
     transcript = (tmp_path / 'slow-stacks.txt').read_text()
     assert 'Slow test Python stacks:' in transcript
-    assert str(test) in transcript
+    assert f'File {str(test)!r}, ' in transcript
     assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
     assert 'End slow-test Python stacks' in transcript
     timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]

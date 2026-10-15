@@ -45,9 +45,9 @@ def resolve(value, pointer):
     return value
 
 
-def runtime_switch(monkeypatch):
+def runtime_switch(monkeypatch, tmp_path):
     actual = recovery.capture_runtime_origin
-    selected = {"path": "/runtime-a/python"}
+    selected = {"path": str(tmp_path / "runtime-a" / "python")}
 
     def capture(names):
         value = actual(names)
@@ -59,23 +59,23 @@ def runtime_switch(monkeypatch):
 
 
 def test_planning_resume_records_each_actual_runtime_and_history_stays_visible(
-    work, monkeypatch
+    work, monkeypatch, tmp_path
 ):
     planning.add_critic(work)
     contracts.make(work)
-    runtime = runtime_switch(monkeypatch)
+    runtime = runtime_switch(monkeypatch, tmp_path)
     paused = plan_work(
         work[2]["directory"], exchange_factory=planning.Scripted, max_operations=1
     )
     first = copy.deepcopy(paused["planning"]["events"][0]["runtime_origin"])
     assert first["attempt"] == 1
-    assert first["interpreter"]["path"] == "/runtime-a/python"
+    assert first["interpreter"]["path"] == str(tmp_path / "runtime-a" / "python")
 
-    runtime["path"] = "/runtime-b/python"
+    runtime["path"] = str(tmp_path / "runtime-b" / "python")
     completed = plan_work(work[2]["directory"], exchange_factory=planning.Scripted)
     origins = [event["runtime_origin"] for event in completed["planning"]["events"]]
     assert origins[0] == first
-    assert origins[1]["interpreter"]["path"] == "/runtime-b/python"
+    assert origins[1]["interpreter"]["path"] == str(tmp_path / "runtime-b" / "python")
     for module in origins[1]["modules"]:
         assert hashlib.sha256(Path(module["path"]).read_bytes()).hexdigest() == module[
             "sha256"
@@ -205,10 +205,10 @@ def test_build_status_separates_inputs_checks_results_and_adapter_identity(
 
 
 def test_standalone_retry_retains_prior_origin_and_captures_new_attempt(
-    work, monkeypatch
+    work, monkeypatch, tmp_path
 ):
     case = effects.prepare(work)
-    runtime = runtime_switch(monkeypatch)
+    runtime = runtime_switch(monkeypatch, tmp_path)
 
     def stop(plan, item):
         raise OSError("before the effect")
@@ -225,7 +225,7 @@ def test_standalone_retry_retains_prior_origin_and_captures_new_attempt(
     assert prepared["phase"] == "prepared" and "runtime_origin" not in prepared
     assert prepared["reconciliations"][0]["previous"]["runtime_origin"] == prior
 
-    runtime["path"] = "/runtime-b/python"
+    runtime["path"] = str(tmp_path / "runtime-b" / "python")
     completed = effects.execute(case)
     retried = next(
         item
@@ -233,7 +233,7 @@ def test_standalone_retry_retains_prior_origin_and_captures_new_attempt(
         if item["event_id"] == event["event_id"]
     )
     assert retried["runtime_origin"]["attempt"] == 2
-    assert retried["runtime_origin"]["interpreter"]["path"] == "/runtime-b/python"
+    assert retried["runtime_origin"]["interpreter"]["path"] == str(tmp_path / "runtime-b" / "python")
     projected = work_execution_evidence(completed)["runs"][0]
     operation = next(
         item

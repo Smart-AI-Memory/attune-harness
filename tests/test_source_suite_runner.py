@@ -27,7 +27,11 @@ def project(tmp_path):
 
 @pytest.mark.parametrize('assertion,code', [('True', 0), ('False', 1)])
 def test_actual_pytest_verdict_and_phase_journal_survive(tmp_path, project, assertion, code):
-    (project / 'test_case.py').write_text('def test_case():\n    assert ' + assertion + '\n')
+    (project / 'test_case.py').write_text(
+        'from pathlib import Path\ndef test_case(tmp_path):\n'
+        '    Path("fixture-path").write_text(str(tmp_path))\n'
+        '    (tmp_path / "retained.txt").write_text("fixture evidence")\n'
+        '    assert ' + assertion + '\n')
     output = tmp_path / 'evidence'
     assert RUNNER.run_suite(output, 20, root=project) == code
     receipt = json.loads((output / 'source-suite.json').read_text())
@@ -38,6 +42,10 @@ def test_actual_pytest_verdict_and_phase_journal_survive(tmp_path, project, asse
     assert (output / 'tests.xml').is_file()
     assert 'faulthandler_timeout=0' in receipt['command']
     assert 'test_case' in (output / 'stdout.txt').read_text()
+    fixture = Path((project / 'fixture-path').read_text())
+    assert fixture.exists() == (code != 0)
+    if code != 0:
+        assert (fixture / 'retained.txt').read_text() == 'fixture evidence'
 
 
 def test_real_deadline_is_failed_with_retained_output(tmp_path, project):

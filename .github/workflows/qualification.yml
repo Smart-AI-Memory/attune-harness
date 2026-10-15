@@ -170,7 +170,7 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 40 || 30 }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 55 || 30 }}
     strategy:
       fail-fast: false
       matrix:
@@ -204,8 +204,8 @@ jobs:
       - name: Run every test
         # The supervised child stops before these outer limits so always() can
         # retain its exit, output and last test phase even when a test stalls.
-        timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
-        run: python -I scripts/run_source_suite.py --output full-suite --timeout ${{ matrix.os == 'windows-latest' && 1800 || 1200 }}
+        timeout-minutes: ${{ matrix.os == 'windows-latest' && 50 || 25 }}
+        run: python -I scripts/run_source_suite.py --output full-suite --timeout ${{ matrix.os == 'windows-latest' && 2700 || 1200 }}
       - name: Keep full suite results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

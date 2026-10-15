@@ -14,7 +14,9 @@ SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'memory_prompt_hook.p
     (b'{"prompt":"$(touch /tmp/not-a-command)"}', True),
     (b'{"prompt":""}', False), (b'{}', False), (b'bad json', False),
     (b'{"prompt":"' + b'x' * 513 + b'"}', False), (b'x' * 65537, False),
-    (b'{"prompt":"release","extra":' + b'[' * 5000 + b'0' + b']' * 5000 + b'}', False)])
+    (b'{"prompt":"release","extra":' + b'[' * 5000 + b'0' + b']' * 5000 + b'}', False)],
+    ids=['prompt', 'option-like', 'shell-metacharacters', 'empty', 'missing',
+         'invalid-json', 'prompt-too-long', 'payload-too-large', 'deep-json'])
 def test_bridge_bounds_input_and_preserves_prompt_as_one_argument(monkeypatch, raw, dispatch):
     calls = []
     monkeypatch.setattr(sys, 'argv', [str(SCRIPT), '--config', '/fixture/memory.json'])

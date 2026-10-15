@@ -26,7 +26,8 @@ def run_suite(output, timeout, *, root=ROOT):
     output.mkdir(parents=True, exist_ok=False)
     argv = (sys.executable, '-u', '-m', 'pytest', '-v', '--durations=30',
             '--junitxml=' + str(output / 'tests.xml'),
-            '-p', 'harness_qualification_stacks', '-o', 'faulthandler_timeout=0')
+            '-p', 'harness_qualification_stacks', '-o', 'faulthandler_timeout=0',
+            '-o', 'tmp_path_retention_policy=failed')
     receipt = {
         'schema_version': 1, 'suite': 'full_source', 'status': 'running',
         'root': str(root), 'command': list(argv), 'timeout_seconds': timeout,

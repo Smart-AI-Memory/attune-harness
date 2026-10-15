@@ -126,9 +126,61 @@ The qualifier can accept a build refusal on other runs; inspect the receipt.
 | `spec intake`, `spec present` (four views) | [spec_cli.py](../src/attune_harness/spec_cli.py), accepted-result evidence | Selected intake/presentation tests run; native test-result production awaits the testing port |
 | `triage-check`, `repair-economics`, `github-checks`, no-argument demo | [cli.py](../src/attune_harness/cli.py), bounded trusted exports | Selected operation/GitHub tests and installed demo run; none authorizes workflow dispatch |
 
-The first full native source measurement in [PR #266](https://github.com/Smart-AI-Memory/attune-harness/pull/266)
-reached pytest on Python 3.10 and 3.12, then both jobs were cancelled at the job
-deadline without retained test output. That is an unresolved baseline, not a
-passing Windows suite. The current revision fixes pipe readiness, preserves source
-bytes and retains verbose output before the job deadline. Feature parity remains
-open until successful native journeys and all required checks are recorded.
+### Retained native baseline
+
+[Run 38773419154](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38773419154)
+tested PR #266 head `82ed87e2e6a5385255aa00fc831e8e2b7cc8bca2` through GitHub's
+merge revision `2eabfaa511952942945bddf778533d13d84bfc7a`. Their Git trees match.
+All six selected installed-wheel jobs passed. Both Windows installed receipts
+record completed offline R2 build/review and file-reader `posix-only refusal`;
+each skips 189 cases. These are selected software checks.
+
+The complete Windows 3.10 source run finished with 3,763 passed, 249 failed,
+479 skipped, 18 errors and seven passing subtests. Its JUnit has 265 distinct
+failure/error case rows: two rows each have both setup and teardown errors.
+Every observed failure and skip is classified below. The Windows 3.12 controller
+stopped at its 1,800-second deadline without JUnit or a suite-end event. Its
+journal records 253 failed phase events across 251 identities and 478 skipped
+identities; their cause labels are inferred from exact matching 3.10 IDs.
+Seventy-one cases had not started and one call had not ended. This incomplete
+run does not establish results for that tail.
+
+| Windows 3.10 failure/error cause | Case rows | Owner and next check |
+| --- | ---: | --- |
+| Temporary ancestor exceeds the effects profile's 2,048-entry bound | 185 | Test setup: remove successful disposable pytest directories, retain failed fixtures and all independent diagnostics; preserve the production bound |
+| Testing platform admission refuses Windows | 49 | T3: native captured-change execution and handoff |
+| Probe fixtures omit required `SystemRoot` | 17 | Test inputs for assessment repair, execution evidence and campaign rehearsal |
+| Diagnostic assertions expect unescaped Windows paths | 6 | Test assertions must match the existing `repr(filename)` stack format |
+| Release fixture selects the WSL `bash` stub | 4 | Test setup must select the actual Git Bash executable |
+| Oversized parameter IDs exceed the Windows environment limit | 2 | Compact pytest IDs; preserve the large input values and assertions |
+| Runtime spy supplies a POSIX absolute path | 1 | Use an absolute interpreter path for the current platform |
+| GPG import-status refusal | 1 | Unresolved: the same case passed on 3.12; retain diagnostics before diagnosing a cause |
+
+| Windows 3.10 skip category | Case rows | Coverage owner |
+| --- | ---: | --- |
+| Effects fixture | 151 | T6; the native effects backend has separate witnesses |
+| File-memory reader | 58 | T4 |
+| Retained historical evidence | 56 | Pinned historical inputs; preserve them |
+| Saved memory/tasks | 49 | T5, after T2 durability proof |
+| Testing producer | 35 | T3 |
+| Documented journey or envelope | 34 | T6 and its producing feature |
+| POSIX primitive | 33 | Platform-specific mechanics; separate from native equivalents |
+| POSIX repository script | 19 | Repository tooling |
+| Unredistributed evidence | 16 | Retained inputs unavailable to this job |
+| Optional browser or DOM | 8 | Optional dependencies |
+| Native-memory preflight | 6 | T7 |
+| Native snapshot mechanics | 5 | Platform-specific mechanics |
+| POSIX links or FIFO | 3 | Platform-specific fixtures |
+| Live Redis absent | 2 | Optional service |
+| POSIX symlink fixture | 1 | Standard-user fixture coverage |
+| Pipe readiness guard | 1 | Obsolete guard removed after this measurement |
+| Coverage extra absent | 1 | Optional instrumentation |
+| Release tag absent | 1 | Repository release fixture |
+
+Earlier full-source attempts reached outer job deadlines without artifacts;
+the retained run above supersedes those attempts for observed baseline coverage.
+The suite controller keeps bounded output, phase events and the process verdict.
+Expected feature refusals remain failures or explicitly recorded skips until
+their owners supply successful native journeys. Windows 11 desktop qualification,
+the incomplete 3.12 tail and final feature parity remain open under the
+[approved Windows spec](specs/windows-parity/README.md).

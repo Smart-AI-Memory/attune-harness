@@ -150,6 +150,41 @@ def test_job_storage_must_be_canonical_separate_and_explicit(host, packet, tmp_p
     assert unavailable['dispatch_attempts'] == 0 and unavailable['provider_transmission'] == 'none'
 
 
+def test_native_preflight_refuses_before_claim_or_dispatch(host, packet, monkeypatch):
+    """Exercise the real platform/auth refusal without an SDK or provider call."""
+    from attune_harness import memory_native as native
+
+    for name in (*native.DENIED_ENVIRONMENT, 'ANTHROPIC_API_KEY'):
+        monkeypatch.delenv(name, raising=False)
+
+    def refuse_dispatch(*args, **kwargs):
+        pytest.fail('Native preflight unexpectedly launched a provider helper')
+
+    monkeypatch.setattr(native, 'invoke', refuse_dispatch)
+    config = {
+        'schema_version': 1, 'transport': native.TRANSPORT,
+        'sdk_version': native.SDK_VERSION, 'httpx2_version': native.HTTPX2_VERSION,
+        'endpoint': native.ENDPOINT,
+        'auth': {'kind': 'environment', 'name': 'ANTHROPIC_API_KEY'},
+        'phase_timeout_seconds': 10, 'wall_timeout_seconds': 15,
+        'response_byte_limit': 2048,
+        'profiles': {name: {'model': 'claude-sonnet-4-6', 'effort': 'high', 'max_tokens': 512}
+                     for name in ('luna', 'astra')},
+    }
+    native_host = MemoryHost(host.config, jobs=host.jobs, native=config)
+    assert native_host.invoke('create', dict(run_id='native-run', envelope=packet[0], policy=packet[1])) == dict(
+        status='created', mode='proposal_worker', generation=0)
+    store = WorkerStore(host.jobs / 'native-run')
+    before = store.read()
+    result = native_host.invoke('execute', dict(run_id='native-run', job_id='job'))
+    expected = ('Native memory explicit-environment profile is POSIX-only' if os.name != 'posix'
+                else 'Native memory requires ANTHROPIC_API_KEY')
+    assert result == dict(status='unavailable', mode='native_proposal', dispatch_attempts=0,
+                          provider_transmission='none', effects='none', detail=expected)
+    assert store.read() == before
+    assert store.read()['jobs'] == {}
+
+
 @pytest.mark.skipif(os.name != 'posix', reason='native source reads are POSIX-only')
 def test_refresh_replaces_bounded_context_and_invalidates_changed_handles(host):
     packet = host.invoke('recall', dict(query='Aurora', k=2, max_chars=8))
