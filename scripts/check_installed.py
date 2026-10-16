@@ -223,7 +223,7 @@ def memory_checks(run, python, root, mode):
     capabilities = run([*reads,'capabilities'],0,None)
     assert capabilities['read'] == ['raw','personal','curated'] and capabilities['reader'] == 'native', capabilities
     tiers = []
-    if os.name == 'posix':
+    if os.name in ('posix', 'nt'):
         packet = run([*reads,'recall','Aurora','--k','2'],0,'available')
         assert [i['handle']['id'] for i in packet['items']] == ['r:a','r:b'], packet['items']
         handle = root/'memory-handle.json'
@@ -241,12 +241,21 @@ def memory_checks(run, python, root, mode):
             ids = {i['handle']['id'] for i in packet['items']}
             assert {'r:a','r:b','p:aurora/decision.md','c:aurora_policy.md'} <= ids, sorted(ids)
             assert packet['problems'] == [], packet['problems']
+            tier_reads = ['memory','--config',str(paths['tiers'])]
+            for rid, source in (('p', personal_root/'aurora'/'decision.md'),
+                                ('c', curated_root/'aurora_policy.md')):
+                item = next(i for i in packet['items'] if i['handle']['locator']['root_id'] == rid)
+                handle.write_text(json.dumps(item['handle']), encoding='utf-8')
+                resolved = run([*tier_reads,'resolve',str(handle)],0,None)
+                assert resolved['text'].encode('utf-8') == source.read_bytes(), resolved
+            refresh.write_text(json.dumps(packet), encoding='utf-8')
+            assert run([*tier_reads,'refresh',str(refresh)],0,'available')['invalidated_ids'] == []
             tiers = ['raw','personal','curated']
         native = 'available'
     else:
         packet = run([*reads,'recall','Aurora','--k','2'],2,'unavailable')
-        assert 'qualified only on POSIX' in packet['problems'][0]['detail'], packet['problems']
-        native = 'posix-only refusal'
+        assert packet['problems'], packet
+        native = 'unsupported reader platform'
     return {'redis_installed': redis_installed, 'refusal': expected, 'serve': 'skipped',
             'native_reader': native, 'tiers_read': tiers, 'reader_named': capabilities['reader']}
 

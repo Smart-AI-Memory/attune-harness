@@ -229,7 +229,7 @@ def execute(args):
         result = dict(status='unavailable', detail=str(error), error=type(error).__name__)
     except Exception as error:
         result = dict(status='failed', error=type(error).__name__, detail=str(error))
-    print(json.dumps(result, ensure_ascii=False, allow_nan=False))
+    print(json.dumps(result, ensure_ascii=True, allow_nan=False))
     return 2 if result.get('status') in (
         'disabled', 'unavailable', 'failed', 'partial', 'uncertain', 'quarantined',
         'unresolved_reasoning', 'await_evidence', 'await_decision', 'stale',

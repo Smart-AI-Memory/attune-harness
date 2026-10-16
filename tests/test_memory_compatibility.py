@@ -14,7 +14,6 @@ import pytest
 from attune_harness.memory_reader import NativeReader
 
 FIXTURE = Path(__file__).parent / 'fixtures' / 'memory_compatibility.json'
-pytestmark = pytest.mark.skipif(os.name != 'posix', reason='Native descriptor reads require POSIX')
 
 
 @pytest.fixture(autouse=True)
@@ -37,7 +36,7 @@ def seed_documents(tmp_path, legacy):
         path = tmp_path / entry['root'] / entry['path']
         path.parent.mkdir(parents=True, exist_ok=True)
         body = (entry['body'] + '\n\n') * entry.get('repeat', 1) + entry.get('tail', '')
-        path.write_text('# Aurora\n\n' + body, encoding='utf-8')
+        path.write_text('# Aurora\n\n' + body, encoding='utf-8', newline='\n')
         sources[(entry['root'], entry['path'])] = path.read_bytes()
     return sources
 
@@ -80,7 +79,7 @@ def test_curated_legacy_links_and_unknown_fields_survive(tmp_path, legacy):
     entry = legacy['curated']
     source = tmp_path / 'curated' / entry['path']
     source.parent.mkdir()
-    source.write_text(entry['content'], encoding='utf-8')
+    source.write_text(entry['content'], encoding='utf-8', newline='\n')
     before = source.read_bytes()
     memory = reader(source.parent)
     packet = memory.query('Aurora preservation policy', k=10)

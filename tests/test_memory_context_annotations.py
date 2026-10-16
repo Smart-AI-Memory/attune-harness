@@ -16,7 +16,6 @@ from attune_harness.memory_controls import AUTHOR_CURATED, AUTHOR_MACHINE, canon
 from attune_harness.memory_reader import NativeReader
 from test_memory_reader import config_for
 
-pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native reader is POSIX-only')
 WARNING_KEYS = ('unverified_days', 'staleness', 'status')
 CONTEXT_KEYS = {'schema_version', 'operation', 'status', 'authority', 'query', 'k',
                 'max_chars', 'items', 'problems', 'guidance'}
@@ -28,7 +27,7 @@ def document(root, *, verified=True, memory_type='project', suffix=''):
     text = (f'---\nname: policy\ndescription: Aurora policy\nmetadata:\n  type: {memory_type}\n'
             f'{verified_line}future_field: retain-me\n---\n\nAurora policy advice.\n{suffix}')
     path = root / 'policy.md'
-    path.write_text(text, encoding='utf-8')
+    path.write_text(text, encoding='utf-8', newline='\n')
     old = datetime.combine(date.today() - timedelta(days=61), daytime(12)).timestamp()
     os.utime(path, (old, old))
     return path
@@ -39,7 +38,7 @@ def verdict(root, value, *, substance=None):
         labels, body = curated_fields((root / 'policy.md').read_text(encoding='utf-8'))
         substance = canonical_digest(labels.get('description'), body)
     row = dict(stem='policy', verdict=value, digest=substance, who='patrick', at='review')
-    (root / '.verdicts.jsonl').write_text('unreadable historical row\n' + json.dumps(row) + '\n', encoding='utf-8')
+    (root / '.verdicts.jsonl').write_text('unreadable historical row\n' + json.dumps(row) + '\n', encoding='utf-8', newline='\n')
 
 
 def warning(metadata):
@@ -54,7 +53,7 @@ def test_cli_recall_and_resolve_keep_wrong_warning_and_full_tombstone(tmp_path, 
     sidecar = root / '.verdicts.jsonl'
     before = [(p.read_bytes(), p.stat().st_mtime_ns) for p in (source, sidecar)]
     config = tmp_path / 'memory.json'
-    config.write_text(json.dumps(config_for(('p', root, tier, 'global'))), encoding='utf-8')
+    config.write_text(json.dumps(config_for(('p', root, tier, 'global'))), encoding='utf-8', newline='\n')
     base = ['--config', str(config)]
 
     assert memory_main([*base, 'recall', 'Aurora policy', '--max-chars', '4']) == 0
@@ -68,7 +67,7 @@ def test_cli_recall_and_resolve_keep_wrong_warning_and_full_tombstone(tmp_path, 
         'tier': 'curated', 'author_class': AUTHOR_CURATED, 'instruction_flags': []}
     assert 'context_block' not in item['metadata']['provenance']
     handle = tmp_path / 'handle.json'
-    handle.write_text(json.dumps(item['handle']), encoding='utf-8')
+    handle.write_text(json.dumps(item['handle']), encoding='utf-8', newline='\n')
     assert memory_main([*base, 'resolve', str(handle)]) == 0
     resolved = json.loads(capsys.readouterr().out)
     assert resolved['text'] == source.read_text(encoding='utf-8')
@@ -86,7 +85,7 @@ def test_recall_refresh_resolve_follow_document_and_verdict_owners(tmp_path):
     old = original['items'][0]
     assert 'verified 3d ago' in old['metadata']['status'] and 'unbound' not in old['metadata']['status']
 
-    source.write_text(source.read_text(encoding='utf-8') + 'Aurora policy corrected advice.\n', encoding='utf-8')
+    source.write_text(source.read_text(encoding='utf-8') + 'Aurora policy corrected advice.\n', encoding='utf-8', newline='\n')
     with pytest.raises(ValueError, match='corrected, deleted or replaced'):
         host.invoke('resolve', {'handle': old['handle']})
     refreshed = host.invoke('refresh', {'context': original})
@@ -173,7 +172,7 @@ def test_resolve_refuses_a_change_during_annotation(tmp_path, monkeypatch, chang
     def changed_after_capture(*args):
         result = real(*args)
         if changed_owner == 'source':
-            source.write_text('Aurora policy replaced.\n', encoding='utf-8')
+            source.write_text('Aurora policy replaced.\n', encoding='utf-8', newline='\n')
         else:
             verdict(root, 'wrong')
         return result
@@ -191,7 +190,7 @@ def test_context_metadata_is_generated_bounded_and_outside_excerpt_budget(tmp_pa
                  provenance={'author_class': AUTHOR_CURATED}, future_field='x' * 10000)
             for i in range(2)]
     source = root / 'findings.jsonl'
-    source.write_text(''.join(json.dumps(row) + '\n' for row in rows), encoding='utf-8')
+    source.write_text(''.join(json.dumps(row) + '\n' for row in rows), encoding='utf-8', newline='\n')
     before = source.read_bytes()
     host = MemoryHost(config_for(('r', root, 'raw', 'project-a')))
     packet = host.invoke('recall', dict(query='Aurora', k=2, max_chars=5))
@@ -223,14 +222,14 @@ def test_nonfinite_or_overflowed_timestamp_expires_on_recall_and_resolve(tmp_pat
     root.mkdir()
     source = root / 'findings.jsonl'
     current = dict(id='bad', text='Aurora policy', cwd='project-a', topics=[], ts=time.time())
-    source.write_text(json.dumps(current) + '\n', encoding='utf-8')
+    source.write_text(json.dumps(current) + '\n', encoding='utf-8', newline='\n')
     host = MemoryHost(config_for(('r', root, 'raw', 'project-a')))
     handle = host.invoke('recall', dict(query='Aurora', k=2, max_chars=4))['items'][0]['handle']
     current['ts'] = invalid
     # Scientific numeric strings avoid the independent PII guard for digit runs.
     control = dict(current, id='finite', ts=format(time.time(), '.6e'))
     expired = dict(current, id='old', ts='1e0')
-    source.write_text(''.join(json.dumps(row) + '\n' for row in (current, control, expired)), encoding='utf-8')
+    source.write_text(''.join(json.dumps(row) + '\n' for row in (current, control, expired)), encoding='utf-8', newline='\n')
     for query in ('Aurora', ''):
         packet = host.invoke('recall', dict(query=query, k=3, max_chars=4))
         assert [item['handle']['id'] for item in packet['items']] == ['r:finite']

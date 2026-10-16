@@ -124,8 +124,8 @@ def test_receipt_exit_matches_final_verdict(tmp_path, monkeypatch, pytest_exit, 
                 (output/'plugin-probe.json').write_text(json.dumps({'steps': steps}))
             return subprocess.CompletedProcess(argv, pytest_exit)
         if memory_exit == 0:
-            memory = {'native_reader': 'available' if os.name == 'posix' else 'posix-only refusal',
-                      'tiers_read': ['raw', 'personal', 'curated'] if os.name == 'posix' else [],
+            memory = {'native_reader': 'available',
+                      'tiers_read': ['raw', 'personal', 'curated'],
                       'reader_named': 'native'}
             journey = {'accept': 'accepted', 'build': 'completed', 'review': 'completed'}
             (output/'memory-redis.json').write_text(json.dumps({'memory': memory, 'journey': journey}))

@@ -14,6 +14,7 @@ Licensed under the Apache License, Version 2.0
 
 from __future__ import annotations
 
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 from datetime import date, datetime
 import hashlib
@@ -33,7 +34,7 @@ from .memory_controls import (
     format_age_annotation, format_status_annotation, guard, latest_verdicts,
     provenance_fields, scan_instructions, staleness,
 )
-from .paths import validate_file_path
+from .paths import _protected, validate_file_path
 from .review_contract import bounded_text, digest, fields, parse_json, versioned
 
 TIERS = ("raw", "personal", "curated")
@@ -93,9 +94,19 @@ class NativeReader:
                 raise ValueError("Memory root is outside host authority")
             bounded_text(root["path"], "root path")
             path = Path(root["path"])
-            if not path.is_absolute() or path != path.resolve() or path.is_symlink():
-                raise ValueError("Memory root must be a canonical absolute path without symlinks")
-            validate_file_path(str(path / ".scope-validation"))
+            if _windows():
+                from .windows_reads import validate_root_path
+                try:
+                    path = validate_root_path(root['path'])
+                except ValueError as error:
+                    raise ValueError("Memory root must be a canonical absolute path without symlinks") from error
+                protected = _protected(str(path), windows=True)
+                if protected is not None:
+                    raise ValueError(f"Cannot write to system directory: {protected}")
+            else:
+                if not path.is_absolute() or path != path.resolve() or path.is_symlink():
+                    raise ValueError("Memory root must be a canonical absolute path without symlinks")
+                validate_file_path(str(path / ".scope-validation"))
         self.config = deepcopy(config)
         self.binding = digest(config)
 
@@ -112,11 +123,44 @@ class NativeReader:
                 return root
         raise ValueError("Unknown root identity")
 
+    @contextmanager
+    def _native_root(self, root):
+        from .windows_reads import open_read_root
+        with ExitStack() as handles:
+            try:
+                opened = handles.enter_context(open_read_root(root['path']))
+            except FileNotFoundError as error:
+                raise ValueError('Explicit memory root is unavailable') from error
+            yield opened
+
+    @staticmethod
+    def _native_capture(observation):
+        # This Windows digest is opaque to hosts. The POSIX digest below remains
+        # unchanged; native ticks come from the same guarded byte observation.
+        version = digest({'sha256': observation.sha256, 'identity': observation.entry['identity'],
+                          'size': observation.size, 'times': observation.times})
+        return observation.data, version, observation.mtime_ns
+
+    @contextmanager
+    def _native_limits(self):
+        from .windows_reads import SourceLimitExceeded
+        try:
+            yield
+        except SourceLimitExceeded as error:
+            message = {'files': 'Corpus exceeds snapshot file limit; narrow the root',
+                       'file': 'Source exceeds read limit; select a narrower source',
+                       'total': 'Corpus exceeds 64 MiB query snapshot limit; narrow the root'}[error.bound]
+            raise ValueError(message) from error
+
     def _capture(self, root, relative, *, limit=None):
         """Read one file under a root through a descriptor walk: (bytes, version, mtime_ns)."""
         limit = FILE_LIMIT if limit is None else limit
         if type(limit) is not int or not 1 <= limit <= FILE_LIMIT:
             raise ValueError("Source read limit is outside the file bound")
+        if _windows():
+            name = relative.as_posix() if isinstance(relative, Path) else relative
+            with self._native_limits(), self._native_root(root) as opened:
+                return self._native_capture(opened.read(name, max_bytes=limit))
         relative = Path(relative)
         if relative.is_absolute() or not relative.parts or ".." in relative.parts:
             raise ValueError("Source escapes its authorized root")
@@ -205,9 +249,17 @@ class NativeReader:
     # -- the raw tier -----------------------------------------------------------------
 
     def _raw(self, root):
-        if not (Path(root["path"]) / "findings.jsonl").exists():  # a dangling symlink is absent, as in the adapter
-            return b"", {}, "absent"
-        content, version, _ = self._capture(root, "findings.jsonl")
+        if _windows():
+            with self._native_limits(), self._native_root(root) as opened:
+                observed = opened.read_optional('findings.jsonl', max_bytes=FILE_LIMIT,
+                                                dangling_symlink_absent=True)
+            if observed is None:
+                return b'', {}, 'absent'
+            content, version, _ = self._native_capture(observed)
+        else:
+            if not (Path(root["path"]) / "findings.jsonl").exists():  # a dangling symlink is absent, as in the adapter
+                return b"", {}, "absent"
+            content, version, _ = self._capture(root, "findings.jsonl")
         rows = {}
         for line in content.decode("utf-8").splitlines():
             if not line.strip():
@@ -238,6 +290,8 @@ class NativeReader:
     # -- the document tiers ---------------------------------------------------------
 
     def _documents(self, root, query, k):
+        if _windows():
+            return self._native_documents(root, query, k)
         path = Path(root["path"])
         sidecars = self._sidecars(root)
         with tempfile.TemporaryDirectory(prefix="attune-memory-query-") as temporary:
@@ -278,6 +332,57 @@ class NativeReader:
                                     self._document_version(version, sidecars), Path(relative).stem, hit))
         return items
 
+    def _native_documents(self, root, query, k):
+        # Selection and optional absence remain bound to the retained operation
+        # until ranking and item guards finish. No path-based source discovery.
+        with self._native_limits(), self._native_root(root) as opened:
+            with opened.observe(select=lambda name: name.endswith('.md'), optional=SIDECARS,
+                                max_files=SNAPSHOT_FILES, max_bytes=FILE_LIMIT,
+                                max_total_bytes=SNAPSHOT_BYTES) as observations:
+                sidecars = {name: (self._native_capture(observations[name])
+                                   if observations[name] is not None else (b'', 'absent', 0))
+                            for name in SIDECARS}
+                captured = {name: self._native_capture(observed) for name, observed in observations.items()
+                            if name not in SIDECARS}
+                with tempfile.TemporaryDirectory(prefix='attune-memory-query-') as temporary:
+                    snapshot = Path(temporary)
+                    for name, (content, _, mtime_ns) in {**captured, **sidecars}.items():
+                        if name in SIDECARS and sidecars[name][1] == 'absent':
+                            continue
+                        target = snapshot / name
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        target.write_bytes(content)
+                        os.utime(target, ns=(mtime_ns, mtime_ns))
+                    hits = _rank_documents(snapshot, query, k)
+                items = []
+                for hit in hits:
+                    relative = hit['path']
+                    content, version, _ = captured[relative]
+                    items.append(self._item(root, {'path': relative}, content.decode('utf-8'),
+                                            self._document_version(version, sidecars),
+                                            Path(relative).stem, hit))
+            return items
+
+    def _native_resolve(self, root, relative):
+        with self._native_limits(), self._native_root(root) as opened:
+            item = None
+            try:
+                with opened.observe([relative], optional=SIDECARS, max_files=1,
+                                    max_bytes=FILE_LIMIT, max_total_bytes=SNAPSHOT_BYTES) as observations:
+                    content, version, mtime_ns = self._native_capture(observations[relative])
+                    sidecars = {name: (self._native_capture(observations[name])
+                                       if observations[name] is not None else (b'', 'absent', 0))
+                                for name in SIDECARS}
+                    text = content.decode('utf-8')
+                    item = self._item(root, {'path': relative}, text,
+                                      self._document_version(version, sidecars), Path(relative).stem,
+                                      _document_annotations(text, relative, mtime_ns, sidecars))
+            except (OSError, ValueError) as error:
+                if item is not None:
+                    raise ValueError('Source was corrected, deleted or replaced; refresh context') from error
+                raise
+            return item
+
     # -- the reads ------------------------------------------------------------------
 
     def query(self, query, *, k=10):
@@ -287,12 +392,12 @@ class NativeReader:
         for declared in self.config["roots"]:
             root = self._root(declared["id"])  # re-checks the binding on every root, as the adapter does
             try:
-                if not Path(root["path"]).is_dir():
+                if not _windows() and not Path(root["path"]).is_dir():
                     raise FileNotFoundError("Explicit memory root is unavailable")
                 if root["tier"] == "raw":
                     found = self._raw_items(root, query)
                 else:
-                    if any(p.is_symlink() for p in Path(root["path"]).rglob("*")):
+                    if not _windows() and any(p.is_symlink() for p in Path(root["path"]).rglob("*")):
                         raise ValueError("Document corpus contains symlinks")
                     found = self._documents(root, query, k)
                 items.extend(found)
@@ -326,6 +431,11 @@ class NativeReader:
             item = self._item(root, {"record_id": row["id"]}, row["text"], version, _kind(row), row)
         else:
             fields(locator, ("root_id", "path"))
+            if _windows():
+                item = self._native_resolve(root, locator['path'])
+                if item['version'] != handle.get('version') or item['id'] != handle.get('id'):
+                    raise ValueError("Source was corrected, deleted or replaced; refresh context")
+                return item
             content, version, mtime_ns = self._capture(root, locator["path"])
             sidecars = self._sidecars(root)
             text = content.decode("utf-8")
@@ -349,8 +459,13 @@ class NativeReader:
 
 
 def _posix():
-    """Descriptor reads need dir_fd and O_NOFOLLOW; D19 keeps them POSIX-only at 0.5.0."""
+    """Select the unchanged descriptor backend on POSIX hosts."""
     return os.name == "posix"
+
+
+def _windows():
+    """Select the retained local-NTFS backend only on native Windows."""
+    return os.name == 'nt'
 
 
 def _tokenize(text):
