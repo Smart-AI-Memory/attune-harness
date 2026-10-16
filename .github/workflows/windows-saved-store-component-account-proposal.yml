@@ -117,18 +117,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   observations:
-    if: >-
-      ${{ github.event_name == 'pull_request' &&
-          github.event.action == 'synchronize' &&
-          github.event.number == 268 &&
-          github.repository == 'Smart-AI-Memory/attune-harness' &&
-          github.base_ref == 'main' &&
-          github.event.before == 'd38c7b8e904722c0526633940591d332a96c91e0' &&
-          github.event.after != '' &&
-          github.event.after != github.event.before &&
-          github.event.after == github.event.pull_request.head.sha &&
-          github.event.pull_request.head.repo.full_name == github.repository &&
-          github.run_attempt == '1' }}
+    if: ${{ false }}
     name: Future fixed component account / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
