@@ -123,7 +123,7 @@ jobs:
           github.event.number == 268 &&
           github.repository == 'Smart-AI-Memory/attune-harness' &&
           github.base_ref == 'main' &&
-          github.event.before == '3cfbbc5d83e8f183d12e32dfc878531ba5aadc5b' &&
+          github.event.before == 'cfad1a6de4fd8cbb6ae74567f1bdf2b40c9243e7' &&
           github.event.after != '' &&
           github.event.after != github.event.before &&
           github.event.after == github.event.pull_request.head.sha &&
