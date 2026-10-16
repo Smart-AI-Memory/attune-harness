@@ -189,10 +189,10 @@ def top_level_names(distributions):
 
 
 def stdlib_entries():
-    """The standard library entries of the host's path: under the base prefix, never site-packages."""
-    return [entry for entry in sys.path
-            if entry and 'site-packages' not in entry and 'dist-packages' not in entry
-            and entry.startswith((sys.base_prefix, sys.base_exec_prefix))]
+    """Use the production bootstrap's explicit stdlib roots, including extension modules."""
+    return list(dict.fromkeys([sysconfig.get_path('stdlib'), sysconfig.get_path('platstdlib'),
+        str(Path(sysconfig.get_path('stdlib')) / 'lib-dynload'),
+        str(Path(sys.base_prefix) / 'DLLs')]))
 
 
 def child_environment():
