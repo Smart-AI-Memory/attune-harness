@@ -162,7 +162,8 @@ def measure(output, suite):
             run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
                                  stderr=subprocess.STDOUT,
                                  timeout=(2580 if platform.system() == 'Windows' else 1080)
-                                 if suite == 'platform' else 1200)
+                                 if suite == 'platform' else
+                                 (1500 if platform.system() == 'Darwin' else 1200))
         receipt['test_exit'] = run.returncode
     finally:
         hook.unlink(missing_ok=True)

@@ -1,6 +1,7 @@
 """Explicit saved intent, atomically committed with history and replay evidence.
 
-The initial storage profile is local POSIX. Redis is only a rebuildable index.
+Local POSIX and fixed-local NTFS share one schema and mutation owner.
+Redis is only a rebuildable index.
 """
 import copy
 import hashlib
@@ -203,13 +204,24 @@ class SavedStore:
         for parent in root.parents:
             if parent.is_symlink() and str(parent) not in ('/var', '/tmp', '/etc'):
                 raise SavedError('Saved root cannot traverse a directory link')
-        self.root = root.resolve()
+        if os.name == 'nt':
+            # Keep the lexical Windows path for handle-relative admission.
+            # Resolving first would hide a junction before native validation.
+            from .memory_saved_windows import root_path
+            self.root = root_path(root)
+        else:
+            self.root = root.resolve()
         if any(p in ('.git', '.hg', '.svn') for p in self.root.parts):
             raise SavedError('Saved root cannot be repository metadata')
         self.index = index
 
     @contextmanager
     def _locked(self):
+        if os.name == 'nt':
+            from .memory_saved_windows import locked
+            with locked(self.root) as directory:
+                yield directory
+            return
         if os.name != 'posix':
             raise SavedError('Saved storage currently requires the local POSIX profile', code='unsupported')
         parent = os.open('/', os.O_RDONLY | os.O_DIRECTORY)
@@ -251,14 +263,27 @@ class SavedStore:
             os.close(parent)
 
     def _read(self, directory):
+        raw = self._read_posix(directory) if isinstance(directory, int) else directory.read_payload()
+        if raw is None:
+            return {'schema_version': 1, 'records': {}, 'operations': {}, 'index': {}}
+        return self._decode(raw)
+
+    def _read_posix(self, directory):
         try:
             fd = os.open('state.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
         except FileNotFoundError:
-            return {'schema_version': 1, 'records': {}, 'operations': {}, 'index': {}}
+            return None
         try:
             _regular(fd)
             with os.fdopen(fd, 'rb', closefd=False) as stream:
-                raw = stream.read(MAX_STATE + 1)
+                return stream.read(MAX_STATE + 1)
+        except (ValueError, TypeError, KeyError, UnicodeError, RecursionError) as exc:
+            raise SavedError('Saved state is malformed or unsupported', code='corrupt') from exc
+        finally:
+            os.close(fd)
+
+    def _decode(self, raw):
+        try:
             if len(raw) > MAX_STATE:
                 raise SavedError('Saved state exceeds 8 MiB')
             state = json.loads(raw, object_pairs_hook=_pairs)
@@ -291,13 +316,14 @@ class SavedStore:
             return state
         except (ValueError, TypeError, KeyError, UnicodeError, RecursionError) as exc:
             raise SavedError('Saved state is malformed or unsupported', code='corrupt') from exc
-        finally:
-            os.close(fd)
 
     def _write(self, directory, state):
         payload = _json(state)
         if len(payload) > MAX_STATE:
             raise SavedError('Saved state exceeds 8 MiB')
+        if not isinstance(directory, int):
+            directory.commit_payload(payload)
+            return
         temporary = '.saved-' + str(uuid4())
         replaced = False
         try:

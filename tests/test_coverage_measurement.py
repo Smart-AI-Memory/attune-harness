@@ -121,8 +121,8 @@ def test_symlinked_fixture_is_refused(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('suite', ['full', 'platform'])
 @pytest.mark.parametrize('changed', ['checkout_test', 'installed_package'])
-@pytest.mark.parametrize('windows', [False, True])
-def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite, windows):
+@pytest.mark.parametrize('system', ['Windows', 'Linux', 'Darwin'])
+def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(tmp_path, monkeypatch, changed, suite, system):
     import attune_harness
 
     root = tmp_path / 'checkout'
@@ -151,11 +151,15 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
                         base_prefix='base', executable=sys.executable))
     monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
-    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Windows' if windows else 'Linux')
+    monkeypatch.setattr(measurement.platform, 'system', lambda: system)
+    expected_timeout = {
+        'full': {'Windows': 1200, 'Linux': 1200, 'Darwin': 1500},
+        'platform': {'Windows': 2580, 'Linux': 1080, 'Darwin': 1080},
+    }[suite][system]
 
     def successful_child(argv, **kwargs):
         assert ('--coverage-instrumented' in argv) == (suite == 'platform')
-        assert kwargs['timeout'] == ((2580 if windows else 1080) if suite == 'platform' else 1200)
+        assert kwargs['timeout'] == expected_timeout
         if changed == 'checkout_test':
             test.write_text('def test_example(): assert False\n', encoding='utf-8')
         else:
@@ -291,6 +295,74 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
     assert job['timeout-minutes'] == "${{ matrix.os == 'windows-latest' && 35 || 20 }}"
 
 
+def test_coverage_job_budget_keeps_measurement_headroom():
+    import yaml
+
+    workflow = SCRIPT.parents[1] / '.github/workflows/coverage.yml'
+    job = yaml.safe_load(workflow.read_text())['jobs']['measure']
+    assert job['timeout-minutes'] == (
+        "${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || 25 }}")
+
+
+def test_darwin_full_timeout_finalizes_unfinished_receipt(tmp_path, monkeypatch):
+    """Exercise the actual driver finalizer without waiting for its full budget."""
+    import attune_harness
+
+    root = tmp_path / 'checkout'
+    source = root / 'src/attune_harness'
+    installed = tmp_path / 'installed/attune_harness'
+    for package in (source, installed):
+        package.mkdir(parents=True)
+        (package / '__init__.py').write_text('', encoding='utf-8')
+    site = tmp_path / 'site'
+    site.mkdir()
+    hook = site / 'harness_measure_coverage.pth'
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', root)
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(
+        prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Darwin')
+    frozen = {'revision': 'a' * 40, 'sources': measurement.hashes(source),
+              'input_hashes': {}, 'coverage_version': measurement.VERSION,
+              'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    checked, reported, calls = [], [], []
+
+    def stable(frozen_input, installed_input):
+        assert not hook.exists()  # Hook cleanup precedes the final input check.
+        checked.append((frozen_input, installed_input))
+        return True
+
+    monkeypatch.setattr(measurement, 'inputs_stable', stable)
+    monkeypatch.setattr(measurement, 'report', lambda *args: reported.append(args))
+    failure = subprocess.TimeoutExpired('controlled full suite', 1500)
+
+    def timed_out_child(argv, **kwargs):
+        calls.append(argv)
+        assert argv[1:4] == ['-m', 'pytest', '-q']
+        assert kwargs['timeout'] == 1500
+        assert hook.is_file()
+        raise failure
+
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
+        run=timed_out_child, STDOUT=subprocess.STDOUT))
+    output = tmp_path / 'result'
+    with pytest.raises(subprocess.TimeoutExpired) as raised:
+        measurement.measure(output, 'full')
+    assert raised.value is failure
+    assert len(calls) == 1
+    assert checked == [(frozen, installed.resolve())] and reported == []
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['system'] == 'Darwin' and receipt['suite'] == 'full'
+    assert receipt['test_exit'] is None and receipt['input_drift'] is False
+    assert 'instrumented run is not platform qualification' in receipt['limits']
+    assert not hook.exists() and not (output / 'summary.json').exists()
+    with pytest.raises(ValueError, match='unfinished'):
+        measurement.compatible([receipt], frozen)
+
+
 @pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
 def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, phase):
     """Exercise the full driver, keeping a killed run unusable as coverage."""
@@ -352,7 +424,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     real_run = subprocess.run
 
     def bounded_child(argv, **kwargs):
-        assert kwargs['timeout'] == 1200  # The production limit is preserved.
+        assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1200)
         kwargs['timeout'] = 3  # Only this deliberately stalled fixture is short.
         return real_run(argv, **kwargs)
 
