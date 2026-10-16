@@ -113,11 +113,22 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: saved-store-component-account-${{ github.ref }}
+  group: saved-store-observed-account-event-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   observations:
-    if: ${{ false }}
+    if: >-
+      ${{ github.event_name == 'pull_request' &&
+          github.event.action == 'synchronize' &&
+          github.event.number == 268 &&
+          github.repository == 'Smart-AI-Memory/attune-harness' &&
+          github.base_ref == 'main' &&
+          github.event.before == '1ff498e3f67acd68867d7ff3ea5cf2d3f6728953' &&
+          github.event.after != '' &&
+          github.event.after != github.event.before &&
+          github.event.after == github.event.pull_request.head.sha &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.run_attempt == '1' }}
     name: One reviewed observed-caller account / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
