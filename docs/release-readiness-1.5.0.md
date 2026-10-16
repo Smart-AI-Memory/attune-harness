@@ -57,6 +57,18 @@ cause, same-ID write/replay, nor a functioning fix. Other current-head results f
 and [supplemental coverage run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38946613085)
 remain pending evidence review in this record.
 
+A later current-head Windows Python 3.10
+[qualification job](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38946613117/job/117127300816)
+retains 33 passing early cases, followed by 2,784 passed, 155 skipped, and two
+failed broad-suite cases. One child in the first group of eight independent
+fresh-root writers returned `SavedError` with code `busy` before the
+identical-request phase; the original rename-boundary CRT read also failed with
+Errno 13. No lock holder or native
+timing cause is established, and the early pass does not erase the later
+failures. A separately reviewed local test-method correction supplies no new
+Windows acceptance or concurrency repair; the two-second lock budget and
+eight-writer acceptance criteria remain unchanged.
+
 The candidate's public evidence records successful local macOS full-source and
 fresh installed-wheel checks with zero model calls. Those checks do not replace
 native Windows evidence. Historical head
