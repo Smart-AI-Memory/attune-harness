@@ -1,0 +1,855 @@
+{
+  "SYNTHETIC_TEST_VECTOR_NOT_NATIVE_EVIDENCE": true,
+  "derivation": "historical schema rows with SID/path/source/platform/identity/PID sanitization; setup and cleanup records are explicitly synthetic",
+  "historical_primitive_receipt_sha256": "5a96f4c615e97825c4a90f2772b77ef2baa083a3a11147abb95f7ba809c25ecd",
+  "historical_namespace_receipt_sha256": "bc40a8eea882397d8b17dbeee1433cafdad4fd6ba4541233850ec7c600ffcca1",
+  "files": {
+    "primitive/before_response-marker.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/file_flushed-marker.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n",
+    "primitive/namespace_flushed-marker.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/renamed-marker.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n",
+    "primitive/writer-Distinct writers-0.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-1.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-2.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-3.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-4.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-5.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-6.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-7.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Same request-2.json.native-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 42, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n",
+    "primitive/writer-Distinct writers-0.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 622, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-0\", \"revision\": 3, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"aefa5cbb8420369a09cf65768f26a475fb32243c429beea19ffaa84c841da4ed\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-1.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 427, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-1\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"c8a7c7ccab1a5d6c24856d95a6fcbe65084011b7db195d6a9297ae5e12c9d22e\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-2.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 1207, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-2\", \"revision\": 6, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"0d2710bf990f55ef25d8bc9de238e2cda99830f2af24626ebced2ec088371ebe\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-3.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 1402, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-3\", \"revision\": 7, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"527768c212904a37f78e47f16886cae9c1f85043b2acf259b98d674363cb390e\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-4.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 817, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-4\", \"revision\": 4, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"28d7abc9a8b79b1744da92cb70cff8bff4f13412249743ab93744b14181474d5\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-5.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 1597, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-5\", \"revision\": 8, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"e3bf10333b004cba912f6983c03dff1a236de6e53d387caca4f78854d38068d9\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-6.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 1012, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-6\", \"revision\": 5, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"bd5cedf6633935e033beb6bdd707bd532b030d040877a0a40d8fc0121bcf3bae\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Distinct writers-7.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 1792, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000001\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"writer-7\", \"revision\": 9, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"635377e948a76b37718249b040f3ca9715881de1a3f0778f11bf077db04a810a\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-0.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-1.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-2.json": "{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 432, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"e5f513b5097488cc388d585c5d05eac7f7799cee1862f5c7698dd5d9122d6a01\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-3.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-4.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-5.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-6.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/writer-Same request-7.json": "{\"flushes\": [], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000002\", \"volume\": 1}, \"replayed\": true, \"result\": {\"request_id\": \"shared-id\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}}\n",
+    "primitive/prepared-marker.json": "{\"stage\": \"prepared\", \"pid\": 42}\n",
+    "primitive/file_flushed-marker.json": "{\"stage\": \"file_flushed\", \"pid\": 42}\n",
+    "primitive/renamed-marker.json": "{\"stage\": \"renamed\", \"pid\": 42}\n",
+    "primitive/namespace_flushed-marker.json": "{\"stage\": \"namespace_flushed\", \"pid\": 42}\n",
+    "primitive/before_response-marker.json": "{\"stage\": \"before_response\", \"pid\": 42}\n",
+    "primitive/receipt.json": "{\"concurrency\": [{\"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"history_count_including_seed\": 9, \"identical_requests\": false, \"replayed_count\": 0, \"tokens\": [{\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}], \"writers\": 8}, {\"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"history_count_including_seed\": 2, \"identical_requests\": true, \"replayed_count\": 7, \"tokens\": [{\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}], \"writers\": 8}], \"durability_gate\": {\"documented_equivalence\": \"not_established_by_experiment\", \"native_flush_refusals\": [], \"power_loss_tested\": false, \"production_port_allowed\": false, \"status\": \"requires_semantic_review\"}, \"experiment\": \"disposable-native-saved-store-feasibility\", \"flush_observations\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}], \"identity\": {\"distribution_version\": \"1.4.0\", \"experiment_sha256\": \"b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355\", \"installed_native_sha256\": \"ec06940730803d3c6e00471e1a9eeb6962bf71474d1b043e49d62ffd2a6978a4\", \"module\": \"C:/T2/synthetic-runtime/Lib/site-packages/attune_harness/windows_effects.py\"}, \"initial_commit\": {\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 237, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000003\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"first\", \"revision\": 1, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"7389bcb457a55e6ee467ad094ae578ea543fbe4eb728aba4af79b860b817c71a\"}, \"locking\": {\"bounded_contender_seconds\": 2.0150000000001, \"death_release_seconds\": 0.0, \"delete_access_ntstatus\": 3221225539, \"held_contender_acquired\": false, \"persistent_identity\": {\"file_id\": \"00000000000000000000000000000003\", \"volume\": 1}, \"released_contender_acquired\": true}, \"paid_model_calls\": 0, \"platform\": {\"os\": \"SYNTHETIC CONTROL\", \"build\": \"synthetic\", \"machine\": \"synthetic\", \"python\": \"synthetic\", \"executable\": \"C:/T2/synthetic-runtime/python.exe\", \"filesystem\": \"NTFS\"}, \"private_acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"process_crashes\": [{\"exit_code\": 1, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"history_count_after_retry\": 2, \"observed_after\": false, \"power_loss_tested\": false, \"retry_replayed\": false, \"stage\": \"prepared\"}, {\"exit_code\": 1, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"history_count_after_retry\": 2, \"observed_after\": false, \"power_loss_tested\": false, \"retry_replayed\": false, \"stage\": \"file_flushed\"}, {\"exit_code\": 1, \"flushes\": [], \"history_count_after_retry\": 2, \"observed_after\": true, \"power_loss_tested\": false, \"retry_replayed\": true, \"stage\": \"renamed\"}, {\"exit_code\": 1, \"flushes\": [], \"history_count_after_retry\": 2, \"observed_after\": true, \"power_loss_tested\": false, \"retry_replayed\": true, \"stage\": \"namespace_flushed\"}, {\"exit_code\": 1, \"flushes\": [], \"history_count_after_retry\": 2, \"observed_after\": true, \"power_loss_tested\": false, \"retry_replayed\": true, \"stage\": \"before_response\"}], \"production_source_changed\": false, \"proof_schema\": 1, \"provider_network_calls\": 0, \"status\": \"observations_complete\", \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, \"token_profile\": \"existing-standard-primary-v1\"}\n",
+    "receipt.json": "{\"anchor_identity\": {\"file_id\": \"00000000000000000000000000000004\", \"volume\": 1}, \"commits\": [{\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 237, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000005\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"first\", \"revision\": 1, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"7389bcb457a55e6ee467ad094ae578ea543fbe4eb728aba4af79b860b817c71a\"}, {\"acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"bytes\": 422, \"flushes\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"lock_identity\": {\"file_id\": \"00000000000000000000000000000005\", \"volume\": 1}, \"rename\": {\"io_status_block_status\": 0, \"returned_ntstatus\": 0}, \"replayed\": false, \"result\": {\"request_id\": \"second\", \"revision\": 2, \"text\": \"Remember acceptance \u2014 \u96ea \ud83e\udded\"}, \"sha256\": \"48a0f580c29b468d2cb7719358abc2f91d9d1796c77c2a71dd1961c3a58866bc\"}], \"coverage\": \"creation_chain_and_two_commits_only\", \"creation_barriers\": [{\"child_identity\": {\"file_id\": \"00000000000000000000000000000006\", \"volume\": 1}, \"flush\": {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"output_creation_parent\"}, \"leaf\": \"namespace-proof-312-v4-f3268034-1\", \"parent_identity\": {\"file_id\": \"00000000000000000000000000000004\", \"volume\": 1}, \"private_acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"stage\": \"output_creation_parent\"}, {\"child_identity\": {\"file_id\": \"00000000000000000000000000000007\", \"volume\": 1}, \"flush\": {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"scratch_creation_parent\"}, \"leaf\": \"Scratch \u96ea\", \"parent_identity\": {\"file_id\": \"00000000000000000000000000000006\", \"volume\": 1}, \"private_acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"stage\": \"scratch_creation_parent\"}, {\"child_identity\": {\"file_id\": \"00000000000000000000000000000008\", \"volume\": 1}, \"flush\": {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, \"leaf\": \"Private store \ud83e\udded\", \"parent_identity\": {\"file_id\": \"00000000000000000000000000000007\", \"volume\": 1}, \"private_acl\": {\"aces\": [{\"flags\": 3, \"mask\": 2032127, \"principal\": \"current_user\", \"type\": 0}, {\"flags\": 3, \"mask\": 2032127, \"principal\": \"SYSTEM\", \"type\": 0}], \"owner_is_current_user\": true, \"protected\": true}, \"stage\": \"store_creation_parent\"}], \"durability_gate\": {\"documented_equivalence\": \"not_established_by_experiment\", \"native_flush_refusals\": [], \"power_loss_tested\": false, \"production_port_allowed\": false, \"status\": \"requires_semantic_review\"}, \"experiment\": \"native_saved_namespace_creation_v2\", \"filesystem\": \"NTFS\", \"final_counts\": {\"history\": 2, \"operations\": 2, \"records\": 2}, \"flush_observations\": [{\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"output_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"scratch_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}, {\"flags\": 0, \"io_status\": 0, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}], \"identity\": {\"adapter_sha256\": \"f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e\", \"distribution_version\": \"1.4.0\", \"installed_native_sha256\": \"ec06940730803d3c6e00471e1a9eeb6962bf71474d1b043e49d62ffd2a6978a4\", \"original_sha256\": \"b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355\", \"python_executable\": \"C:/T2/synthetic-runtime/Lib/site-packages/attune_harness/windows_effects.py\"}, \"paid_model_calls\": 0, \"phase\": \"two_original_commits\", \"platform\": {\"os\": \"SYNTHETIC CONTROL\"}, \"power_loss_tested\": false, \"production_port_allowed\": false, \"provider_network_calls\": 0, \"role\": \"worker\", \"status\": \"observations_complete\", \"supervisor_token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, \"token\": {\"administrators_attributes\": [16], \"administrators_enabled\": false, \"enabled_privileges\": [\"SeChangeNotifyPrivilege\"], \"integrity_sid\": \"S-1-16-8192\", \"token_is_elevated\": false, \"user_sid\": \"S-1-5-21-1-2-3-1001\"}, \"token_profile\": \"existing-standard-primary-v1\", \"witness_schema\": 1}\n",
+    "worker-flush-observations.jsonl": "{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"scratch_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"store_creation_parent\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"prepared_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"replaced_file\"}\n{\"flags\": 0, \"io_status\": 0, \"pid\": 43, \"returned_ntstatus\": 0, \"where\": \"parent_namespace\"}\n"
+  },
+  "fixture": {
+    "proposal_revision": 4,
+    "success": true,
+    "setup_failure": null,
+    "issues": [],
+    "controller_sid": "S-1-5-21-1-2-3-1000",
+    "account_sid": "S-1-5-21-1-2-3-1001",
+    "fixture_leaf": "AttuneT2Proof-00000000000000000000000000000000",
+    "account_disable": "succeeded",
+    "account_remove": "succeeded",
+    "fixture_root_remove": "succeeded",
+    "proof_run": {
+      "ExitCode": 0,
+      "PrimaryFailure": null,
+      "TeardownFailures": [],
+      "ProcessCreated": true,
+      "JobAssigned": true,
+      "JobTerminationSucceeded": true,
+      "WholeTreeEmptyConfirmed": true,
+      "RootExitConfirmed": true,
+      "TreeDisappearanceEstablished": true,
+      "ControllerGuiUnchanged": true,
+      "Success": true
+    },
+    "private_cleanup_run": {
+      "ExitCode": 0,
+      "PrimaryFailure": null,
+      "TeardownFailures": [],
+      "ProcessCreated": true,
+      "JobAssigned": true,
+      "JobTerminationSucceeded": true,
+      "WholeTreeEmptyConfirmed": true,
+      "RootExitConfirmed": true,
+      "TreeDisappearanceEstablished": true,
+      "ControllerGuiUnchanged": true,
+      "Success": true
+    },
+    "anchor_setup_run": {
+      "Started": true,
+      "RootExitConfirmed": true,
+      "StreamsCompleted": true,
+      "TimedOut": false,
+      "KillTreeRequested": false,
+      "FailureType": null,
+      "ExitCode": 0,
+      "Stdout": {
+        "FailureType": null,
+        "DiscardedCharacters": 0
+      },
+      "Stderr": {
+        "FailureType": null,
+        "DiscardedCharacters": 0
+      }
+    },
+    "runtime_admission_run": {
+      "Started": true,
+      "RootExitConfirmed": true,
+      "StreamsCompleted": true,
+      "TimedOut": false,
+      "KillTreeRequested": false,
+      "FailureType": null,
+      "ExitCode": 0,
+      "Stdout": {
+        "FailureType": null,
+        "DiscardedCharacters": 0
+      },
+      "Stderr": {
+        "FailureType": null,
+        "DiscardedCharacters": 0
+      }
+    },
+    "gui_lease_process": {
+      "PrimaryFailure": null,
+      "TeardownFailures": [],
+      "RetainedSourceSha256": "5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf",
+      "Pid": 44,
+      "OpenGuiUnchanged": true,
+      "CloseGuiUnchanged": true,
+      "HelperSourceRetained": true,
+      "SourceReleaseSucceeded": true,
+      "AncestorReleaseSucceeded": true,
+      "TreeDisappearanceEstablished": true
+    },
+    "gui_lease_final": {
+      "state": "stopped",
+      "failure": null,
+      "process_sid": "S-1-5-21-1-2-3-1000",
+      "nonce": "00000000000000000000000000000000",
+      "station": "AttuneT2-00000000000000000000000000000000",
+      "desktop": "proof",
+      "pid": 44,
+      "gui": {
+        "Ready": false,
+        "PrimaryFailure": null,
+        "TeardownFailures": [],
+        "SetupThreadExited": true,
+        "HelperStationRestored": true,
+        "HelperThreadDesktopUnchanged": true,
+        "DesktopClosed": true,
+        "StationClosed": true,
+        "DescriptorFreed": true
+      }
+    },
+    "anchor_setup": {
+      "status": "anchor_published_requires_semantic_review",
+      "role": "controller_anchor_setup",
+      "standard_user_proof": false,
+      "handles_closed": true,
+      "failure_type": null,
+      "controller_sid": "S-1-5-21-1-2-3-1000",
+      "token": {
+        "user_sid": "S-1-5-21-1-2-3-1000",
+        "token_is_elevated": true
+      },
+      "fixture_leaf": "AttuneT2Proof-00000000000000000000000000000000",
+      "parent_identity": {
+        "file_id": "ffffffffffffffffffffffffffffffff",
+        "volume": 1
+      },
+      "parent_after": {
+        "file_id": "ffffffffffffffffffffffffffffffff",
+        "volume": 1
+      },
+      "child_identity": {
+        "file_id": "00000000000000000000000000000004",
+        "volume": 1
+      },
+      "child_after": {
+        "file_id": "00000000000000000000000000000004",
+        "volume": 1
+      },
+      "flush": {
+        "where": "fixture_anchor_parent",
+        "flags": 0,
+        "returned_ntstatus": 0,
+        "io_status": 0
+      },
+      "K": {
+        "commit": "bde059cf08924937948f4fb7c8347f88010a5bc4",
+        "tree": "5a510789aff476731f65788f74fb953e05968ef7"
+      }
+    },
+    "private_cleanup_succeeded": true,
+    "proof_tree_disappearance_established": true,
+    "cleanup_tree_disappearance_established": true,
+    "gui_tree_disappearance_established": true,
+    "gui_cleanup_succeeded": true,
+    "credential_disposed": true,
+    "anchor_setup_tree_disappearance_established": true,
+    "runtime_admission_tree_disappearance_established": true,
+    "runtime_admission": {
+      "archive_record_checked_before_install": true,
+      "installer_rewritten_record_compared": false,
+      "package_or_native_imported": false,
+      "wheel_platform": "nt",
+      "wheel_profile": "nt_crlf",
+      "rows": [
+        {
+          "path": "attune_harness-1.4.0.dist-info/METADATA",
+          "sha256": "501a27d088437c5581a047bf7be2e55051efaaa604e53a63846d7435a2fa2b59",
+          "matched": true
+        },
+        {
+          "path": "attune_harness-1.4.0.dist-info/WHEEL",
+          "sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+          "matched": true
+        },
+        {
+          "path": "attune_harness-1.4.0.dist-info/entry_points.txt",
+          "sha256": "7e06c7e8a9115b1dbd2062cc400c9acc9e27f8677277a68b6dfe93b3f5470178",
+          "matched": true
+        },
+        {
+          "path": "attune_harness-1.4.0.dist-info/licenses/LICENSE",
+          "sha256": "92a7b711e19ab4d07bf655131f18cb9f10deed526bd2261eb5384eaf8fc5c7b0",
+          "matched": true
+        },
+        {
+          "path": "attune_harness-1.4.0.dist-info/top_level.txt",
+          "sha256": "eb6126b5db646a233c8c989a3e4fa2928813e58ee2d72e9b77ad12de9311707a",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/__init__.py",
+          "sha256": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/__main__.py",
+          "sha256": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/_pytest_worker.py",
+          "sha256": "4af455e8fabb6b0d5dc7ac1923221e1ecd50af7ece3a6e135f1a75ecefe2a87d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/_windows_worker.py",
+          "sha256": "f50c5538e9af03b65105f16f68f06ce28e9350a820556b7a6aa0124255d95cff",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/a2a.py",
+          "sha256": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/adapters.py",
+          "sha256": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/antigravity.py",
+          "sha256": "cb4e3d276b217a231c4d25ac008274c550b5d5f417658664a0549faaef820846",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/assessment_effects.py",
+          "sha256": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/cli.py",
+          "sha256": "3ca4f66c0fb795226743cc44d2bcae01d300b99ceea29c75178e7a1a39ff4789",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/cli_help.py",
+          "sha256": "a95cdb6738c96e03f173bec8ef444d0e5f1ae0f500bd4175cc2db3094857db78",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/cli_surface.py",
+          "sha256": "e42cc955451298e84d41c5a71aae1fc38bfbbc7b67f6048ab887c9c0cf53d56e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/command_workspace.py",
+          "sha256": "8c0df800b0bf71b14523f586aa8e72eca572af2c045b88f1c5eb9fb5a2836b38",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation.py",
+          "sha256": "2ac00eea5d4144cbf6e6a9395db6b83da9e6b0bcf80ad6a717908989447aa356",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_cli.py",
+          "sha256": "8362196abc2a3c599c9914fb0754897681d5c58bd65bf29e8264cd893a4aef0f",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_evidence.py",
+          "sha256": "72761cca2ce443c065f779bf41312825a1b481a1022541f61b93b801cf1740f6",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_output.py",
+          "sha256": "dcff0001b22311a71710a6850b34753bda22fe719f50621c8b62ccca1b65a904",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_preflight.py",
+          "sha256": "fcdbb5e91612e3ce9078bc89c982fa2145590887687e3ae55348694d5e9ac48d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_recovery.py",
+          "sha256": "1a98d417da5ab48932be94a2e2bf482757ff31b6445c99a5b0b6f3415c884b4e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/consultation_snapshot.py",
+          "sha256": "b9e1c295643bd4f315d19b8618eae91edee79645afb0ddcac2eda72a2530d005",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/documentation.py",
+          "sha256": "e343c3baa1cce7f4fe7a2843171c1278a2bed391942a99666fa182bf8c471c1b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/effect_limits.py",
+          "sha256": "3852fa20cca80fcc9ad57a5f5c56887ed0488ae50af1e785d2a204caa3e41f5e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/execution_evidence.py",
+          "sha256": "4512c57cefd3b3f79bed0f4f06417de9236ad79520aa81aa45ddb2e48db39220",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/extension_cli.py",
+          "sha256": "8102d578bd53ebf35ec4fb78cdd057a3a1b7c4f3001182542985ec642c8b47da",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/extensions.py",
+          "sha256": "3390dd098a220960507614aeb5904eff45012591493583b146d8a5a097ae7c6f",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/features.py",
+          "sha256": "b02d85aeb83bc39f5287eefdd20e13ddfdacff2305a3786925ef5ff6732e00ed",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/github_checks.py",
+          "sha256": "f8be1dace591530cc78b4d4095477abdaca76391fb55eb1d9b57514699da1213",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/grounded_review.py",
+          "sha256": "55e428e68152658b430a0f345d8d183400827c6e3c5f8e9d35059dbf2947fd2a",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/gui.py",
+          "sha256": "be2fe9ed36ab7e5f5a9722d9b19e68582a10fb302b441764f129cc571b5a9527",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/gui_build.py",
+          "sha256": "c9420797c9a96e22a0d65ec17d4cb5de79ffe42a4ca2683629f5ce52c2333990",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/gui_decisions.py",
+          "sha256": "d862a0e797cb51c9711c15cad72bc7a1cee28cb27080f7d554e69d6a158b7f8c",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/gui_forms.py",
+          "sha256": "22fcbae951402a512a835d1ec0173418b3bd399e37b84526a2521a48c7984d64",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/gui_forms_intake.py",
+          "sha256": "f4560bf6f0413cc6c5cd596d772ff8898b85294debde7af867a3ac23cbaccb10",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/human_output.py",
+          "sha256": "d9090cf85209d61315929b14413d52bd2d967edb143e95e3cb6b03af3ee06272",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/init_cli.py",
+          "sha256": "639ecd1903f7509779ca5c61ff1c0cb297c2e56217d448bbe13fef16c7f2c96f",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/llama_tokens.py",
+          "sha256": "3a7d0a1b37bc2b6321a3dec199ed32e4608d44f4f5ec8f1ac2c992d268be249b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/mcp_server.py",
+          "sha256": "edc5b45e723a1cdc9ddbf621c17feb10c927e2597916ddaac8fed0a787497325",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_cli.py",
+          "sha256": "5de885df6d87785ad9e85095493af31f554b2bd3e6798d418fa7be237fd852cd",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_context.py",
+          "sha256": "696307373cad5702950e48d6e1e6065db6ded59c4d107354baba24fddf202a1d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_contract.py",
+          "sha256": "8b50fd654405a8140fa51de6bf4d4a7543caa5d9ea89050f6326c88b1d34cdbb",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_controls.py",
+          "sha256": "301f1d640d1c44a00462f8f9776a6b497a261041ec1cf90c9e9ca29b3e7d0403",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_native.py",
+          "sha256": "447517042491f5c0b607631ea37cce1c6fea82c98dcbbd52b2a76596ecccad0c",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_reader.py",
+          "sha256": "7d7e3e7ca2317f1eb817b8a40093c7bae9e192c681bc1b5184c89554d46ba035",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_redis.py",
+          "sha256": "d7f3bdc6e7f39fbcd28c07313ec5bf4f9ab4a576e3a64eb040ffa646aacfd13a",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_saved.py",
+          "sha256": "628b0565a3af6527003019d1daa90a99812db6a9d914e763ca98ff541d7ad78d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_saved_cli.py",
+          "sha256": "ead24ca1f3204f6b16de50a019d0104d847298e7c43fa843e620292e75914605",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_saved_index.py",
+          "sha256": "6a8ce05cc96c17632daa309b7909dd8bdffa0ba04eb8b0436dce3e7d374417f4",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_scratch.py",
+          "sha256": "38a5ad3fb4952ed7cf21791106e29d04ee8f3fead7ceeb291226b03a04fa78a0",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_serving.py",
+          "sha256": "852f01b2b4f2871b3acb17ee66bb8ee8baf1dfaa327addc2a08e49f42d9069c5",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/memory_worker.py",
+          "sha256": "5c3f678a696df6a2d99ad8b333cc43aa1d870f52aacf0601238a86530b978988",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/native.py",
+          "sha256": "a07ae7aed90e6f75ef60da1b166473e893533b66d1d8029d3afaee250f2d6426",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/ollama.py",
+          "sha256": "5b59b88d4cb398334857af4771e5f176013d2d7d0e304c99ad0c31898565081d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/ollama_review.py",
+          "sha256": "b194396ea4e1418b451ed894ec3d6b8426919b5bbb2e0bad9d7e3ed250b3ea3b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/operations.py",
+          "sha256": "0cd4e3eb9777b9f12deff53525e5b24e199cbeecc005e4fbe2eaa97b2f832b28",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/passage_review.py",
+          "sha256": "bd88e77342a87e8fdd548bec84fc98afd8dd17f20f7456acb964f34f1dd3ea0e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/paths.py",
+          "sha256": "e16179702ae3f68e92273524d2fc3f9602c847920b56908d0efb47df2dccd0ad",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/plugin_runtime.py",
+          "sha256": "e52271603373ebe2f7acccbf37b037c64b081936207c2f059c7be33d54fae92c",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/plugin_signing.py",
+          "sha256": "4657d5b980598a78642696472e4ffae3ea9734e3ee4bce4eacb5b311f11b6164",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/process.py",
+          "sha256": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/recovery.py",
+          "sha256": "0be3d679dcfeef6be707de20fadfa087535c4cc09363e9670cce91b05028eeb4",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/repair.py",
+          "sha256": "d87f122f227267f37950d5faa052cc0f11aef5bafd0c419bfcd14ba1ab27e55d",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/retrieval.py",
+          "sha256": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/retrieval_task.py",
+          "sha256": "2fb48359f1bc67f2b13f2235f2f125ee2ae3bfa3a7f7a5287f4c827dd1ccdeb5",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/review.py",
+          "sha256": "ebe52205427f1fcac50c6986aaa6b416254e027cbd11437ffe5b04ecc058e815",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/review_cli.py",
+          "sha256": "843f808b7526083fa572b11b78590ce72af00475544872207875c848072bc3a2",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/review_contract.py",
+          "sha256": "83a6694cbeefd933bc6deef2098333877dcbd86b142743b552ce8f81f0ba4427",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/review_participants.py",
+          "sha256": "48e76e9e3511e1746164c57e712e8ceb29604fc1dfc3df43bae9539bcf5c29f3",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/review_store.py",
+          "sha256": "8c501e2a70c6ccf5d524b6171aa077aad15809aa249ed3c840ab94a0eb975c28",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_cli.py",
+          "sha256": "ac28938117c05b7834cbeb86aa11a4418b7ac6b169fb538e1eb8ed90d98bae11",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_handoff.py",
+          "sha256": "f909fd18cde4830fdc8d0cb781b38e36d506494a82410ca84c337d015ff32da5",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_intake.py",
+          "sha256": "76aa6eb9985df66a4a54497643bce00b95dcbd21a184d766656f145b40b48e3b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_legacy.py",
+          "sha256": "dab952a049d736d06a41320138a3d162ebd150125e1d33e2a053175690690641",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_presenter.py",
+          "sha256": "76975e153dbf5d5d5157caff4cef147c8c19f053852bba14742a1443778e4760",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_state.py",
+          "sha256": "2a64e1028efc3cc93eb0da67ec359f73827a980729da0ad99c28dc380686b2d2",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_tasks.py",
+          "sha256": "d52d1ba0ef702458ea5b359879e4d2be460f4f42e4d70075fc804bc7f2053103",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/spec_workspace.py",
+          "sha256": "d2c2811bd3d34a841797937a465bdd6ef238d81547570d6d649de8c483b5dea1",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_cli.py",
+          "sha256": "098dec991e6729dfde09ac6a14a4bb8c58e8173783875d88be0e6e0ca56b94c9",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_continuation.py",
+          "sha256": "bc5d25f00745c0e7b1a91c200e6522cfc56d8041cf6cb26cb0a854d694ec28db",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_contract.py",
+          "sha256": "5b78512ebabff7f8d8cc6a37c7161ba847fce6c2721cc54ceb1ae9ec9e7a9215",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_handoff.py",
+          "sha256": "db6ebf0bd52ba67b165a1cb566b84868ed7d80b2f16d4d9031712c7b8f817712",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_policies.py",
+          "sha256": "530b7f669b46842615c1ba17fd68a9692faa262a92ae1e1695ac91a05b0a87f5",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_runtime.py",
+          "sha256": "bc113a18b20f2b2b0f01fb2389afc92322fef42410ce720dcdf36abaaf3706ae",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/task_view.py",
+          "sha256": "f784d58c6367b1e2bf2d8afd9a5c802dbc985af88ca6dfa88e192e5f52140144",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/test_change.py",
+          "sha256": "0ec42e12ca4bace60c3ab5f768a1fd366c48f5117a40462a6a629b6a71aa17d1",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/test_cli.py",
+          "sha256": "17a281834d0ca80084d199396d2252754755c95fad1f0807deb76a4a7318778b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/test_execution.py",
+          "sha256": "0e34cc3d86d83364ab4509321dd9b8de4f5ab501355a88ee7156dbd07c385703",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/test_scope.py",
+          "sha256": "63f89320bc8e2bb275da9d2c21f89131bbc09200278b5744bc852caacb572296",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/verification.py",
+          "sha256": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_cli.py",
+          "sha256": "866910d491207fb72fff4b9c5d8c0324bf587c2a6d9bad5f9a5e5f54082126da",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_index.py",
+          "sha256": "2fd9b940a01bad6fdbbb1f9db1691768a5a3a640e344ab26b9f446732cc70372",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_plugin.py",
+          "sha256": "31b32bd76adfcfc7c0655f1610e6f716a8c5a1d64d134c090e5d27c76a3836a5",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_provider.py",
+          "sha256": "9f78ac03dd56af278e72736c892fa0755f60244473b12490d35939d2453bec0e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_retrieval.py",
+          "sha256": "84f090ff6aef344ec7d7c156f407c775d21b0014758b41259458119a81247289",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/voyage_sources.py",
+          "sha256": "00753236ba292758722c0a31c6c49cb33484e22a94d1ca873eff3391bb858733",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/windows.py",
+          "sha256": "c5abac57c88ab4fa23c851e8fce042296ddc8403d0b024d297af9beddcd90a26",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/windows_effects.py",
+          "sha256": "ec06940730803d3c6e00471e1a9eeb6962bf71474d1b043e49d62ffd2a6978a4",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/windows_reads.py",
+          "sha256": "c3b3b7391ca73b7321b820eb2fe2a84a9d1b754707b59d9f6533a0cedd99130a",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_accept.py",
+          "sha256": "8353bb5371363fc967e63a59b05fafbebb37e892432b3a62da24b29a92b4d933",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_bodies.py",
+          "sha256": "0c3206842e6369e561b61f4fc49f7c2260ecb136c603aa6f5ae0ee9f96338624",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_build.py",
+          "sha256": "b01d4871d6e402729ddd439dc780cd5dc5e88065ad2857e00cb3477799062ecb",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_cli.py",
+          "sha256": "e0946e017641ed8b6ae90f66c7d94842c0619af13dfe24a3991cfa26eda9554c",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_contract.py",
+          "sha256": "bccb303662a40f924a4134cb0d77f8569c941e0451943a097dda175abc125770",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_decisions.py",
+          "sha256": "000d5bcca054c41edab98310ae639f72c9780f3f02ae65bbb9a8d31d6ada532b",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_effects.py",
+          "sha256": "0c430083e57a54ea105514165e7323cfc07ad17d1c5e3b1858b1b2fb71da8d51",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_review_handoff.py",
+          "sha256": "27953e3da1cfc8946f0715d956c5d7c92ad423c3a5fa378bbfaede8a722b409e",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/work_runtime.py",
+          "sha256": "cf00eaf4dae1feb0aa67b464088bfbc942b45710e1fc07889915a50ba86ca8e6",
+          "matched": true
+        },
+        {
+          "path": "attune_harness/workspace_mcp.py",
+          "sha256": "2ef6162ebe9527e5b76ebe601b0d2b23b2dea940e97d2818e4135057042797ed",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/__init__.py",
+          "sha256": "d2c1940de64c678362efd83ea268cfa00085ead9ffe961f98c826f2b65d195c9",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/bundle.py",
+          "sha256": "365b76eafbb2c3f1e2ccaaaec96fc6e556c5c7f846cea720dd06f431c5d4191a",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/common.py",
+          "sha256": "0541b43d2d44d607d195da5a90d4c08b9badbd30faaba70a97f06788a957ad70",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/embed.py",
+          "sha256": "e6da484ea68632240f844a29bbb4234d15e84a56a0fba4b1b76827099a868b70",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/index.py",
+          "sha256": "db6ef21cffff663d0c3fe767073b2ff3b0fd2ca6a43a104071e2e1507b28c8d9",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/provider.py",
+          "sha256": "9dc356fb4a48aa48c2d161aff1beedf0b9b01c6549c40b0b509d642a170d6624",
+          "matched": true
+        },
+        {
+          "path": "attune_voyage_plugin/rerank.py",
+          "sha256": "c82806d7d18cfed4ba349062253410be565e739512a578635b077ad5b5bd480a",
+          "matched": true
+        }
+      ]
+    }
+  },
+  "setup": {
+    "status": "anchor_published_requires_semantic_review",
+    "role": "controller_anchor_setup",
+    "standard_user_proof": false,
+    "handles_closed": true,
+    "failure_type": null,
+    "controller_sid": "S-1-5-21-1-2-3-1000",
+    "token": {
+      "user_sid": "S-1-5-21-1-2-3-1000",
+      "token_is_elevated": true
+    },
+    "fixture_leaf": "AttuneT2Proof-00000000000000000000000000000000",
+    "parent_identity": {
+      "file_id": "ffffffffffffffffffffffffffffffff",
+      "volume": 1
+    },
+    "parent_after": {
+      "file_id": "ffffffffffffffffffffffffffffffff",
+      "volume": 1
+    },
+    "child_identity": {
+      "file_id": "00000000000000000000000000000004",
+      "volume": 1
+    },
+    "child_after": {
+      "file_id": "00000000000000000000000000000004",
+      "volume": 1
+    },
+    "flush": {
+      "where": "fixture_anchor_parent",
+      "flags": 0,
+      "returned_ntstatus": 0,
+      "io_status": 0
+    },
+    "K": {
+      "commit": "bde059cf08924937948f4fb7c8347f88010a5bc4",
+      "tree": "5a510789aff476731f65788f74fb953e05968ef7"
+    }
+  },
+  "driver": {
+    "status": "observation_processes_returned_zero",
+    "original_sha256": "b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355",
+    "namespace_sha256": "f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e",
+    "expected_native_sha256": "ec06940730803d3c6e00471e1a9eeb6962bf71474d1b043e49d62ffd2a6978a4",
+    "phases": [
+      {
+        "phase": "namespace",
+        "status": "returned",
+        "exit_code": 0
+      },
+      {
+        "phase": "primitive",
+        "status": "returned",
+        "exit_code": 0
+      }
+    ],
+    "production_port_allowed": false,
+    "power_loss_tested": false
+  }
+}
