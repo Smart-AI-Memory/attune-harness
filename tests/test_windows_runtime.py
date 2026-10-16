@@ -421,3 +421,239 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
                 except Exception:
                     # A diagnostic reporting failure must not replace the original failure.
                     pass
+
+
+_RUNNER_TERMINAL_STATE = {}
+
+
+@pytest.mark.parametrize('ending', ['parent_exit', 'timeout', 'cancel'])
+@pytest.mark.parametrize('schedule', ['late_held', 'short_lived'])
+def test_windows_known_child_terminal_within_original_stop_budget(
+        tmp_path, monkeypatch, record_property, request, ending, schedule):
+    """Diagnostic only: a later wait never repairs the original first failure."""
+    import ctypes
+    from ctypes import wintypes as w
+    from threading import Thread
+    from attune_harness.windows import WindowsJob
+    from test_windows_supervision_outcomes import (
+        _runner_terminal_diagnostic, _runner_terminal_call_stop,
+        _runner_terminal_dispose, _runner_terminal_poison,
+        _runner_terminal_guard, _runner_terminal_raise)
+
+    _runner_terminal_guard(_RUNNER_TERMINAL_STATE)  # Before any native child dispatch.
+
+    work = tmp_path / 'terminal child café'
+    work.mkdir()
+    announce, spawn = tmp_path / 'parent-announced', tmp_path / 'spawn-child'
+    ready, parent_ready = tmp_path / 'child-ready.json', tmp_path / 'parent-ready'
+    release, child_exit = tmp_path / 'release-parent', tmp_path / 'child-exit'
+    child = ('import json,os,pathlib,time;'
+             f'assert pathlib.Path.cwd().samefile({str(work)!r});'
+             f'pathlib.Path({str(ready)!r}).write_text(json.dumps({{"pid":os.getpid()}}));')
+    if schedule == 'short_lived':
+        child += (f'exit_gate=pathlib.Path({str(child_exit)!r});'
+                  '\nwhile not exit_gate.exists(): time.sleep(0.01)\n')
+    else:
+        child += 'time.sleep(20)'
+    parent = ('import pathlib,subprocess,sys,time;'
+              f'pathlib.Path({str(announce)!r}).write_text("ready");'
+              f'spawn=pathlib.Path({str(spawn)!r});'
+              '\nwhile not spawn.exists(): time.sleep(0.01)\n'
+              f'subprocess.Popen([sys.executable,"-c",{child!r}]);'
+              f'ready=pathlib.Path({str(ready)!r});'
+              '\nwhile not ready.exists(): time.sleep(0.01)\n'
+              'print("spawned",flush=True);'
+              f'pathlib.Path({str(parent_ready)!r}).write_text("ready");'
+              f'release=pathlib.Path({str(release)!r});'
+              '\nwhile not release.exists(): time.sleep(0.01)\n')
+    if ending != 'parent_exit':
+        parent += 'time.sleep(20)\n'
+    api = ctypes.WinDLL('kernel32', use_last_error=True)
+    signatures = {
+        'OpenProcess': ([w.DWORD, w.BOOL, w.DWORD], w.HANDLE),
+        'GetProcessId': ([w.HANDLE], w.DWORD),
+        'WaitForSingleObject': ([w.HANDLE, w.DWORD], w.DWORD),
+        'IsProcessInJob': ([w.HANDLE, w.HANDLE, ctypes.POINTER(w.BOOL)], w.BOOL),
+        'TerminateProcess': ([w.HANDLE, w.UINT], w.BOOL),
+        'CloseHandle': ([w.HANDLE], w.BOOL),
+    }
+    for name, (arguments, result_type) in signatures.items():
+        function = getattr(api, name)
+        function.argtypes, function.restype = arguments, result_type
+    jobs, handles, live, controller_errors, cleanup = [], [], [], [], []
+    cancel = Event()
+    state, stop_clock = {'stage': 'startup'}, {}
+    original_launch, original_stop = WindowsJob.launch, WindowsJob.stop
+
+    def launch(self, *args, **kwargs):
+        process = original_launch(self, *args, **kwargs)
+        jobs.append((self, process))  # Process reference only; never duplicate the job.
+        return process
+
+    def stop(self, process):
+        # Conservative: actual unmodified stop sets its deadline slightly later.
+        return _runner_terminal_call_stop(
+            original_stop, self, process, time.monotonic, stop_clock)
+
+    monkeypatch.setattr(WindowsJob, 'launch', launch)
+    monkeypatch.setattr(WindowsJob, 'stop', stop)
+
+    def control():
+        try:
+            deadline = time.monotonic() + 4.5
+            while not (announce.exists() and jobs) and time.monotonic() < deadline:
+                time.sleep(0.01)
+            assert announce.exists() and jobs
+            state['stage'] = 'release_late_spawn'
+            spawn.write_text('spawn')
+            while not (ready.exists() and parent_ready.exists()) and time.monotonic() < deadline:
+                time.sleep(0.01)
+            assert ready.exists() and parent_ready.exists()
+            state['stage'] = 'acquire_known_child'
+            pid = json.loads(ready.read_text())['pid']
+            assert type(pid) is int and pid > 0
+            handle = api.OpenProcess(0x00101001, False, pid)
+            if not handle:
+                raise ctypes.WinError(ctypes.get_last_error())
+            handles.append(handle)
+            actual_pid = int(api.GetProcessId(handle))
+            if not actual_pid:
+                raise ctypes.WinError(ctypes.get_last_error())
+            assert actual_pid == pid
+            member = w.BOOL()
+            # NULL observes some-job membership without extending/using job lifetime.
+            # Specific ownership is an inference from this ordinary child's lineage
+            # and the unchanged no-breakaway launch, not a census claim.
+            if not api.IsProcessInJob(handle, None, ctypes.byref(member)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            assert member.value
+            live_wait = int(api.WaitForSingleObject(handle, 0))
+            if live_wait == 0xFFFFFFFF:
+                raise ctypes.WinError(ctypes.get_last_error())
+            assert live_wait == 258
+            assert not list(work.iterdir())
+            try:
+                work.rmdir()
+            except OSError as error:
+                assert error.winerror in (5, 32)
+                live.append({'pid': pid, 'handle_pid': actual_pid,
+                             'some_job_member': True, 'live_wait': live_wait,
+                             'live_cwd_winerror': error.winerror})
+            else:
+                raise AssertionError('live known child did not retain its cwd')
+            if schedule == 'short_lived':
+                child_exit.write_text('exit')  # No pre-stop wait or grace.
+            if ending == 'cancel':
+                cancel.set()
+            elif ending == 'parent_exit':
+                release.write_text('release')
+            state['stage'] = 'ready'
+        except BaseException as error:
+            state.update(error_type=type(error).__name__, error_stage=state['stage'])
+            controller_errors.append(error)
+            cancel.set()
+            spawn.write_text('spawn')
+            release.write_text('release')
+
+    controller = Thread(target=control, daemon=True)
+    controller.start()
+    primary, primary_traceback, original, diagnostic = None, None, {}, {}
+    try:
+        try:
+            result = invoke(command(parent), '', cwd=work, timeout=5, cancel=cancel)
+            assert handles, 'known child acquisition incomplete'
+            # These are the original immediate predicates, in the original order.
+            child_wait = int(api.WaitForSingleObject(handles[0], 0))
+            wait_error = ctypes.get_last_error() if child_wait == 0xFFFFFFFF else None
+            cwd_error = None
+            try:
+                work.rmdir()
+            except OSError as error:
+                cwd_error = error
+            original = {'ending': ending, 'schedule': schedule,
+                        'returncode': result.returncode, 'failure': result.failure,
+                        'child_wait': child_wait, 'child_wait_winerror': wait_error,
+                        'cwd_error_type': type(cwd_error).__name__ if cwd_error else None,
+                        'cwd_winerror': getattr(cwd_error, 'winerror', None),
+                        'live_control': list(live), 'controller': dict(state),
+                        'stop_clock': dict(stop_clock), 'extra_job_handles': 0,
+                        'bootstrap_references': len(jobs), 'child_references': len(handles)}
+            assert child_wait == 0
+            if cwd_error is not None:
+                raise cwd_error
+            controller.join(timeout=5)
+            assert not controller.is_alive() and not controller_errors
+            assert live and 'spawned' in result.stdout
+            expected = {'parent_exit': None, 'timeout': 'timeout_effects_unknown',
+                        'cancel': 'cancelled_effects_unknown'}[ending]
+            assert result.failure == expected and result.returncode is not None
+        except BaseException as error:
+            primary, primary_traceback = error, error.__traceback__
+        # Never changes original or authorizes success. Wait only after setup
+        # handed off ownership, so a setup failure is not terminal evidence.
+        try:
+            if original and handles and 'deadline' in stop_clock and not controller.is_alive():
+                diagnostic = _runner_terminal_diagnostic(
+                    original['child_wait'], stop_clock['deadline'],
+                    lambda milliseconds: api.WaitForSingleObject(handles[0], milliseconds),
+                    time.monotonic, ctypes.get_last_error)
+                diagnostic['pid_after'] = int(api.GetProcessId(handles[0]))
+                if not diagnostic['pid_after']:
+                    diagnostic['pid_winerror'] = ctypes.get_last_error()
+                diagnostic['identity_matches'] = bool(
+                    live and diagnostic['pid_after'] == live[0]['pid'])
+                if not diagnostic['identity_matches']:
+                    diagnostic['unconfirmed_classification'] = diagnostic['classification']
+                    diagnostic['classification'] = 'identity_unconfirmed'
+                diagnostic['primary_error_type'] = type(primary).__name__ if primary else None
+                diagnostic['extra_job_handles'] = 0
+            else:
+                diagnostic = {'classification': 'setup_or_controller_handoff_incomplete',
+                              'qualification': False, 'wait_calls': 0}
+        except BaseException as error:
+            diagnostic = {'classification': 'observation_error', 'qualification': False,
+                          'error_type': type(error).__name__}
+            if primary is None:
+                primary, primary_traceback = error, error.__traceback__
+        try:
+            record_property('runner_terminal_original', json.dumps(original))
+            record_property('runner_terminal_diagnostic', json.dumps(diagnostic))
+        except BaseException as error:
+            if primary is None:
+                primary, primary_traceback = error, error.__traceback__
+    finally:
+        # Failure-only disposal is separate from the five-second diagnostic budget.
+        cancel.set()
+        for gate in (spawn, release, child_exit):
+            try:
+                gate.write_text('cleanup')
+            except BaseException as error:
+                cleanup.append(error)
+        try:
+            controller.join(timeout=5)
+            controller_stopped = not controller.is_alive()
+        except BaseException as error:
+            cleanup.append(error)
+            controller_stopped = False
+        # Do not race a still-running controller's native calls. A live daemon
+        # controller leaves cleanup unconfirmed and requires external disposal;
+        # it cannot be followed by another diagnostic attempt in this process.
+        disposal, disposal_errors = _runner_terminal_dispose(
+            handles, controller_stopped, api.WaitForSingleObject,
+            api.TerminateProcess, api.CloseHandle,
+            lambda: ctypes.WinError(ctypes.get_last_error()))
+        cleanup.extend(disposal_errors)
+        try:
+            # Default pytest loop stops after reporting this original failure.
+            # The immediate entry guard also blocks later experimental cells.
+            _runner_terminal_poison(_RUNNER_TERMINAL_STATE, request.session, disposal)
+        except BaseException as error:
+            cleanup.append(error)
+        try:
+            record_property('runner_terminal_cleanup', json.dumps({
+                **disposal, 'all_cleanup_errors': [type(error).__name__ for error in cleanup],
+                'session_stop_requested': bool(_RUNNER_TERMINAL_STATE.get('poison')),
+                'not_qualification': True}))
+        except BaseException as error:
+            cleanup.append(error)
+    _runner_terminal_raise(primary, primary_traceback, cleanup)
