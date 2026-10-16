@@ -113,6 +113,21 @@ def qualify(output, *, coverage_instrumented=False):
             receipt['failure']='suite_timeout'
     receipt['suite_timeout_seconds']=suite_timeout
     receipt['pytest_exit']=run.returncode;receipt['command']=argv
+    if run.returncode != 0:
+        # A stopped/failed suite may leave native ownership unconfirmed. Preserve
+        # its original evidence and exit before any post-suite child is launched.
+        receipt.update(exit=run.returncode, memory_redis='unrun',
+                       native_memory_reader='unrun', r2_journey='unrun')
+        receipt['checks'].append('Post-suite installed/native checks unrun: pytest did not succeed')
+        receipt['status']='failed'
+        if os.name in ('posix','nt'):
+            receipt['native_process_and_recovery']='failed'
+        if coverage_instrumented:
+            receipt['status']='instrumented_failed'
+            receipt['native_process_and_recovery']='not_qualified_instrumented'
+        (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
+        print(json.dumps({k:v for k,v in receipt.items() if k not in ('sources','command')},indent=2))
+        return run.returncode
     # The memory verbs from this installed wheel, with the redis extra present
     # and no server: the extra absent is the release gate's core check.
     memory=subprocess.run([sys.executable,'-I',str(ROOT/'scripts/check_installed.py'),'--python',sys.executable,

@@ -198,3 +198,64 @@ def test_optimized_cli_deadline_is_platform_specific(tmp_path, monkeypatch, plat
     monkeypatch.setitem(globals(), 'subprocess', SimpleNamespace(run=child))
     test_optimized_cli_refuses_without_receipt(tmp_path, name, selection)
     assert len(calls) == 1
+
+
+@pytest.mark.parametrize('pytest_outcome', [1, 2, 'timeout'])
+@pytest.mark.parametrize('instrumented', [False, True])
+def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
+        wheel_install, tmp_path, monkeypatch, pytest_outcome, instrumented):
+    """Actual qualifier orchestration, with every child dispatch intercepted."""
+    qualifier = load('qualify_platform')
+    monkeypatch.setattr(qualifier, 'platform', SimpleNamespace(
+        system=lambda: 'Windows', machine=lambda: 'AMD64',
+        python_version=lambda: '3.12-control'))
+    output = tmp_path/'qualification-failed-suite'
+    original_xml = (
+        b'<testsuites><testsuite tests="1" failures="1" errors="0" skipped="0">'
+        b'<testcase name="original_immediate_child_wait"><properties>'
+        b'<property name="runner_terminal_cleanup" '
+        b'value="{&quot;resources_unconfirmed&quot;: true}"/></properties>'
+        b'<failure>original immediate wait was258; retain this first failure</failure>'
+        b'</testcase></testsuite></testsuites>')
+    original_log = b'original immediate wait failure; disposal unconfirmed\n'
+    calls = []
+    expected_timeout = 2400 if instrumented else 1800
+
+    def child(argv, **kwargs):
+        if calls:
+            raise AssertionError('post-suite child dispatched after unsuccessful pytest')
+        calls.append(tuple(argv))
+        assert argv[1:3] == ['-m', 'pytest']
+        assert kwargs['timeout'] == expected_timeout
+        assert kwargs['env']['HARNESS_QUALIFICATION_OUTPUT'] == str(output)
+        assert kwargs['cwd'] == output
+        (output/'tests.xml').write_bytes(original_xml)
+        kwargs['stdout'].write(original_log)
+        kwargs['stdout'].flush()
+        if pytest_outcome == 'timeout':
+            raise subprocess.TimeoutExpired(argv, expected_timeout)
+        return subprocess.CompletedProcess(argv, pytest_outcome)
+
+    # Replace the driver's binding, not the host subprocess module or OS identity.
+    monkeypatch.setattr(qualifier, 'subprocess', SimpleNamespace(
+        run=child, CompletedProcess=subprocess.CompletedProcess,
+        TimeoutExpired=subprocess.TimeoutExpired, STDOUT=subprocess.STDOUT))
+    expected_exit = 124 if pytest_outcome == 'timeout' else pytest_outcome
+    observed = qualifier.qualify(output, coverage_instrumented=instrumented)
+    receipt = json.loads((output/'platform.json').read_text())
+    assert observed == receipt['exit'] == receipt['pytest_exit'] == expected_exit
+    assert len(calls) == 1 and receipt['command'] == list(calls[0])
+    assert receipt['suite_timeout_seconds'] == expected_timeout
+    assert (output/'tests.xml').read_bytes() == original_xml
+    assert (output/'tests.txt').read_bytes() == original_log
+    assert all(receipt[name] == 'unrun'
+               for name in ('memory_redis', 'native_memory_reader', 'r2_journey'))
+    assert receipt['status'] == ('instrumented_failed' if instrumented else 'failed')
+    assert receipt['native_process_and_recovery'] == (
+        'not_qualified_instrumented' if instrumented else 'failed')
+    assert not (output/'memory-redis.json').exists()
+    assert not (output/'memory-redis.txt').exists()
+    if pytest_outcome == 'timeout':
+        assert receipt['failure'] == 'suite_timeout'
+    else:
+        assert 'failure' not in receipt
