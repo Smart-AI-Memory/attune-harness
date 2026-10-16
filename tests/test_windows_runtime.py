@@ -193,6 +193,7 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
     jobs, handles, observations, errors = [], [], [], []
     original_launch = WindowsJob.launch
     cancel = Event()
+    controller_state = {'stage': 'startup'}
 
     def launch(self, *args, **kwargs):
         process = original_launch(self, *args, **kwargs)
@@ -208,29 +209,41 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
             while not (parent_ready.exists() and jobs) and time.monotonic() < deadline:
                 time.sleep(0.01)
             assert parent_ready.exists() and jobs, 'owned child startup was not witnessed'
+            controller_state['stage'] = 'open_child'
             pid = json.loads(ready.read_text())['pid']
             assert type(pid) is int and pid > 0
             handle = api.OpenProcess(0x00101001, False, pid)  # SYNCHRONIZE | QUERY_LIMITED_INFORMATION | TERMINATE.
             if not handle:
                 raise ctypes.WinError(ctypes.get_last_error())
             handles.append(handle)
+            controller_state['stage'] = 'membership'
             member = w.BOOL()
             if not api.IsProcessInJob(handle, jobs[0][0].handle, ctypes.byref(member)):
                 raise ctypes.WinError(ctypes.get_last_error())
-            assert member.value and api.WaitForSingleObject(handle, 0) == 258
+            assert member.value
+            live_child_wait = api.WaitForSingleObject(handle, 0)
+            assert live_child_wait == 258
+            controller_state['stage'] = 'live_cwd_lock'
             assert not list(work.iterdir())
             try:
                 work.rmdir()
             except OSError as error:
                 assert error.winerror in (5, 32), error
-                observations.append({'owned_pid': pid, 'live_cwd_winerror': error.winerror})
+                observations.append({'owned_pid': pid, 'live_cwd_winerror': error.winerror,
+                                     'job_member': bool(member.value), 'live_child_wait': live_child_wait})
             else:
                 raise AssertionError('live owned cwd did not prevent removal')
+            controller_state['stage'] = 'release'
             if ending == 'cancel':
                 cancel.set()
             elif ending == 'parent_exit':
                 release.write_text('release')
+            controller_state['stage'] = 'ready'
         except BaseException as error:
+            controller_state['error_stage'] = controller_state['stage']
+            controller_state['error_type'] = type(error).__name__
+            code = getattr(error, 'winerror', None)
+            controller_state['winerror'] = code if type(code) is int else None
             errors.append(error)
             cancel.set()
             release.write_text('release')
@@ -239,9 +252,25 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
     controller.start()
     try:
         result = invoke(command(parent), '', cwd=work, timeout=5, cancel=cancel)
-        # No sleep, process wait or retry is allowed before these assertions.
-        assert api.WaitForSingleObject(handles[0], 0) == 0
-        work.rmdir()
+        # Sample both immediate conditions before recording or joining anything.
+        child_wait = api.WaitForSingleObject(handles[0], 0)
+        cwd_error = None
+        try:
+            work.rmdir()
+        except OSError as error:
+            cwd_error = error
+        record_property('owned_cwd_return_observation', json.dumps({
+            'ending': ending, 'returncode': result.returncode, 'failure': result.failure,
+            'stdout_bytes': len(result.stdout.encode('utf-8')),
+            'stderr_bytes': len(result.stderr.encode('utf-8')),
+            'child_wait': child_wait,
+            'cwd_error_type': type(cwd_error).__name__ if cwd_error is not None else None,
+            'cwd_winerror': getattr(cwd_error, 'winerror', None),
+            'live_control': list(observations), 'controller': dict(controller_state),
+            'bootstrap_references': len(jobs), 'child_references': len(handles)}))
+        assert child_wait == 0
+        if cwd_error is not None:
+            raise cwd_error
         controller.join(timeout=5)
         assert not controller.is_alive() and not errors, errors
         assert observations and 'spawned' in result.stdout
