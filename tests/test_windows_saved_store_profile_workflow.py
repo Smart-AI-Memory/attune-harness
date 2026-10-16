@@ -1,12 +1,14 @@
 """Data controls and an offline Git checkout control; no native or account entry."""
 import ast
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
+import zipfile
 
 import pytest
 
@@ -16,13 +18,36 @@ OLD = ROOT / '.github/workflows/windows-saved-store-build-safe-preflight.yml'
 RETIRE = '    # Retained failed LF-only wheel experiment; replacement has finite platform pairs.\n    if: ${{ false }}\n'
 
 
+
+
+def frozen_bytes(name):
+    # Historical data has its own identity; it never imports or qualifies SRC.
+    path = ROOT / 'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip'
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '2aa85e0b712cd82a1776bd1a021c5dca9098007c8775bbbd68fded22afaefde3'
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        assert len(archive.infolist()) == 144
+        return archive.read(name)
+
+
+PROFILE_RETIRE = '    # Retained FFC campaign; fixed-component successor owns new observations.\n    if: ${{ false }}\n'
+
+
+def historical_profile():
+    current = NEW.read_text()
+    assert current.count(PROFILE_RETIRE) == 1
+    frozen = frozen_bytes(NEW.relative_to(ROOT).as_posix()).decode('utf-8')
+    assert current.replace(PROFILE_RETIRE, '') == frozen
+    return frozen
+
+
 def inline(path):
-    block, = re.findall(r"          \$materialize = @'\n(.*?)\n          '@", path.read_text(), re.S)
+    block, = re.findall(r"          \$materialize = @'\n(.*?)\n          '@", (historical_profile() if path == NEW else path.read_text()), re.S)
     return '\n'.join(line.removeprefix('          ') for line in block.splitlines())
 
 
 def fixed(path):
-    block, = re.findall(r'\$expected = \[ordered\]@\{(.*?)\n          \}', path.read_text(), re.S)
+    block, = re.findall(r'\$expected = \[ordered\]@\{(.*?)\n          \}', (historical_profile() if path == NEW else path.read_text()), re.S)
     return dict(re.findall(r"'([^']+)' = '([0-9a-f]{64})'", block))
 
 
@@ -34,7 +59,7 @@ def test_old_job_retired_explicitly_without_unused_replacement_code():
 
 
 def test_one_new_four_cell_safe_route_and_unchanged_bounds():
-    text = NEW.read_text()
+    text = historical_profile()
     assert 'branches: [main]' in text and 'pull_request:' in text and 'workflow_dispatch' not in text
     assert text.count('os: [windows-2022, windows-2025]') == 1
     assert text.count("python: ['3.10', '3.12']") == 1 and text.count('timeout-minutes: 20') == 1
@@ -59,7 +84,7 @@ def test_finite27_map_preserves_old18_and_binds_nine_new_files():
     added = set(new) - set(old)
     assert len(added) == 9
     for name in added:
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == new[name]
+        assert hashlib.sha256(frozen_bytes(name)).hexdigest() == new[name]
 
 
 def test_raw_materializer_changes_only_three_selection_constants():
@@ -118,8 +143,8 @@ def test_manifest_selection_binds_exact116_before_any_git(tmp_path, changed):
 
 
 def test_nested_attributes_are_exact_and_touch_only_new_paths():
-    experiment = (ROOT / 'experiments/platform/.gitattributes').read_text().splitlines()
-    tests = (ROOT / 'tests/.gitattributes').read_text().splitlines()
+    experiment = frozen_bytes('experiments/platform/.gitattributes').decode().splitlines()
+    tests = frozen_bytes('tests/.gitattributes').decode().splitlines()
     assert experiment == ['.gitattributes -text', 'check_windows_saved_store_account_inputs_v3.py -text',
                           'project_windows_saved_store_build_v2.py -text', 'windows_saved_store_build_preflight_v2.ps1 -text',
                           'windows_saved_store_source_manifest_v3.json -text']

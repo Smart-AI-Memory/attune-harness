@@ -27,6 +27,8 @@ concurrency:
 
 jobs:
   cold-only:
+    # Retained FFC campaign; fixed-component successor owns new observations.
+    if: ${{ false }}
     name: T2 cold only / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5

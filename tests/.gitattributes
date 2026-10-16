@@ -2,3 +2,5 @@
 test_windows_saved_store_wheel_profiles.py -text
 test_windows_saved_store_profile_workflow.py -text
 fixtures/windows_saved_store_wheel_metadata_v1.json -text
+test_windows_saved_store_component_adapter.py -text
+test_windows_saved_store_component_route.py -text

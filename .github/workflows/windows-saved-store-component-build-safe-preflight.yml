@@ -1,0 +1,345 @@
+name: Saved-store fixed-component build preflight
+
+# Fixed K/current C, zero accounts/GUI/storage. Green checks do not pass D3.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-saved-store-component-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-cold-preflight.yml'
+      - '.github/workflows/windows-saved-store-platform-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+      - 'experiments/platform/.gitattributes'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v3.py'
+      - 'experiments/platform/check_windows_saved_store_merge_inputs_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v2.py'
+      - 'experiments/platform/windows_saved_store_build_preflight_v1.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v2.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v3.ps1'
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v3.py'
+      - 'experiments/platform/windows_saved_store_component_adapter_v1.py'
+      - 'experiments/platform/windows_saved_store_component_route_v1.py'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v4.json'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'requirements-mcp.lock'
+      - 'requirements-redis.lock'
+      - 'requirements-tokens.lock'
+      - 'requirements-voyage.lock'
+      - 'requirements-workflow.lock'
+      - 'tests/.gitattributes'
+      - 'tests/fixtures/windows_saved_store_component_v1/inputs-bde.zip'
+      - 'tests/fixtures/windows_saved_store_component_v1/protocol.zip'
+      - 'tests/fixtures/windows_saved_store_component_v1/records.json'
+      - 'tests/fixtures/windows_saved_store_component_v1/tree.txt'
+      - 'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip'
+      - 'tests/fixtures/windows_saved_store_wheel_metadata_v1.json'
+      - 'tests/test_windows_saved_store_account_inputs_v2.py'
+      - 'tests/test_windows_saved_store_build_preflight.py'
+      - 'tests/test_windows_saved_store_build_projection.py'
+      - 'tests/test_windows_saved_store_component_adapter.py'
+      - 'tests/test_windows_saved_store_component_route.py'
+      - 'tests/test_windows_saved_store_profile_workflow.py'
+      - 'tests/test_windows_saved_store_wheel_profiles.py'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-saved-store-component-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-cold-preflight.yml'
+      - '.github/workflows/windows-saved-store-platform-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+      - 'experiments/platform/.gitattributes'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v3.py'
+      - 'experiments/platform/check_windows_saved_store_merge_inputs_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v2.py'
+      - 'experiments/platform/windows_saved_store_build_preflight_v1.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v2.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v3.ps1'
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v3.py'
+      - 'experiments/platform/windows_saved_store_component_adapter_v1.py'
+      - 'experiments/platform/windows_saved_store_component_route_v1.py'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v4.json'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'requirements-mcp.lock'
+      - 'requirements-redis.lock'
+      - 'requirements-tokens.lock'
+      - 'requirements-voyage.lock'
+      - 'requirements-workflow.lock'
+      - 'tests/.gitattributes'
+      - 'tests/fixtures/windows_saved_store_component_v1/inputs-bde.zip'
+      - 'tests/fixtures/windows_saved_store_component_v1/protocol.zip'
+      - 'tests/fixtures/windows_saved_store_component_v1/records.json'
+      - 'tests/fixtures/windows_saved_store_component_v1/tree.txt'
+      - 'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip'
+      - 'tests/fixtures/windows_saved_store_wheel_metadata_v1.json'
+      - 'tests/test_windows_saved_store_account_inputs_v2.py'
+      - 'tests/test_windows_saved_store_build_preflight.py'
+      - 'tests/test_windows_saved_store_build_projection.py'
+      - 'tests/test_windows_saved_store_component_adapter.py'
+      - 'tests/test_windows_saved_store_component_route.py'
+      - 'tests/test_windows_saved_store_profile_workflow.py'
+      - 'tests/test_windows_saved_store_wheel_profiles.py'
+
+permissions:
+  contents: read
+concurrency:
+  group: saved-store-component-build-safe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  safe-preflight:
+    name: Fixed component build / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # Fixed K objects, while keeping the normal merge checkout.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Materialize finite current caller bytes without changing product SRC
+        shell: pwsh
+        env:
+          T2_EVENT_NAME: ${{ github.event_name }}
+          T2_EVENT_SHA: ${{ github.sha }}
+          T2_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = [ordered]@{
+            '.github/workflows/windows-saved-store-build-safe-preflight.yml' = '4c89a816da8eadcb4358ec401134e5b8f4f5729071a1a6389ed323e8febe85d9'
+            '.github/workflows/windows-saved-store-cold-preflight.yml' = '04421de56c01d2bacf2402f91c629f375fd61c5f776e65372ff982ac8d1de662'
+            '.github/workflows/windows-saved-store-platform-build-safe-preflight.yml' = '99446d1716415b9ff3a971873c401f7b922da386b0fc305f4d5bc09ba2261b64'
+            '.github/workflows/windows-saved-store-reviewed-execution.yml' = '30e11a181edf79eecb0667686d2da540fe9c7047829dc31ddaa50e23d88dfc6e'
+            'experiments/platform/.gitattributes' = 'e0f1a9aaa1a71b35b8ca8d5c59aff19031710a1239b16cd6a2afcc6096383698'
+            'experiments/platform/check_windows_saved_store_account_inputs_v2.py' = '7fc6169c570d65d4493d70443ca27cb643d9127d8a3c416ac7cd7636388eb6be'
+            'experiments/platform/check_windows_saved_store_account_inputs_v3.py' = '7874a4819f18bf77dc0287b3895b0b05cceedec06d9cf3252d99e00f5b63555c'
+            'experiments/platform/check_windows_saved_store_merge_inputs_v1.py' = '91d373245ace997eca32725ceea73f2131ef3ac1f39f5194f423f4cf15351559'
+            'experiments/platform/project_windows_saved_store_build_v1.py' = '3a3aa7a53cdb53b8421d6116bdd0160757967b3472e6a39052987971828f20d8'
+            'experiments/platform/project_windows_saved_store_build_v2.py' = 'c8ca4eafe05f14028d6d930e81f0cf42fa4d90d5cb2582914c1468b75bf3e0d8'
+            'experiments/platform/windows_saved_store_build_preflight_v1.ps1' = '02a1475590060160c1209db3a8c98e63340e7e5be8680b7b6f945c0fda38f5a3'
+            'experiments/platform/windows_saved_store_build_preflight_v2.ps1' = '099cbf93ab82335b2debe89afec6813228c64fde0357f8b55451823ed3cb9fcf'
+            'experiments/platform/windows_saved_store_build_preflight_v3.ps1' = '9ecd7e5832cefe3e1feb54881e696b913aad43294720e59bbf7e13b7bbf40a9a'
+            'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
+            'experiments/platform/windows_saved_store_combined_driver_v2.py' = 'b61a452cb8f59862cee4a366510b74c73544d62e83dc4a81288e28b82e717ca0'
+            'experiments/platform/windows_saved_store_combined_driver_v3.py' = '7ceb7519b2df1cca15729e3b96b0c0eba91f86b26cab97cbafe82752ef347a09'
+            'experiments/platform/windows_saved_store_component_adapter_v1.py' = 'a1cb9a2818b3a42f45ebb744fc890017f0f1a5f7129b47a4416b2ab7a0bfd9c3'
+            'experiments/platform/windows_saved_store_component_route_v1.py' = '2020c0aa0ce28f53ccafdb684d04982e8cb4ccef9de98475a61b7215a7aa3141'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1' = '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf'
+            'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1' = '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885'
+            'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
+            'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
+            'experiments/platform/windows_saved_store_source_manifest_v2.json' = 'd6e80ebd18c19d5b17b35bfdd4c0dc521a24e1dbb0a18eeba14247fcd7e875d8'
+            'experiments/platform/windows_saved_store_source_manifest_v3.json' = 'fcf8365fc00aeade30d8bdfa4c4f3e0f5ea869aabb1fbc1ce80466c3b999ae5a'
+            'experiments/platform/windows_saved_store_source_manifest_v4.json' = '6b33976fcc9e7c1bcf276f82c9d4e0ad1d795008a74fb3c4343d86a7573c430a'
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
+            'requirements-mcp.lock' = '50f956aff914ee8ca2e85e00e3cc35aa56fff07213b659d962d7c9d91be94735'
+            'requirements-redis.lock' = '84f43680576915e1e8716902d85acc6b2ae63a4451eb55f5eaddabbf9806c09c'
+            'requirements-tokens.lock' = '32fbeb94891432d45936d39b98513550e87405a278c3aaaabb714aa38c20de53'
+            'requirements-voyage.lock' = '6a2f18db82d16ec3e8c8da55b282a3f7627b9ae025fb7cb11d14b6f7b512e441'
+            'requirements-workflow.lock' = '60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad'
+            'tests/.gitattributes' = '69778c577642ecd3fe7b8c329dff6948d7ccb7fd8afde301711b12e63ccdbf8d'
+            'tests/fixtures/windows_saved_store_component_v1/inputs-bde.zip' = 'c0c4ec0f8c274ec0782bc19844bf7a5cbdb600c4cb678ea70e3ad8773d703fe4'
+            'tests/fixtures/windows_saved_store_component_v1/protocol.zip' = 'c4d27a6c8f3ad50dbe08f8d181d958ed8c5bad4542f1bce1f8146e3cabe667bb'
+            'tests/fixtures/windows_saved_store_component_v1/records.json' = 'c062a603a937a00a25d53bc266927c8c6f9c45ec705d27c4158a4960de5f4e1a'
+            'tests/fixtures/windows_saved_store_component_v1/tree.txt' = '4c7854c36eaefc8022295fe7fc71947fa4c31237287adc69c8b3c749070c8282'
+            'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip' = '2aa85e0b712cd82a1776bd1a021c5dca9098007c8775bbbd68fded22afaefde3'
+            'tests/fixtures/windows_saved_store_wheel_metadata_v1.json' = '3c18bc5babed6aae2e4da8ce8549cdabe830c9b6233abc0ee571e30d9a73aa66'
+            'tests/test_windows_saved_store_account_inputs_v2.py' = '6fbe500f7bee3945a3e2817241b805464a9c8b127124b5b54fb6589843827382'
+            'tests/test_windows_saved_store_build_preflight.py' = '675b61fbd3ec45ccfb263320e581bf3ada47c30ce2b98745cf4f4c2f40d749c8'
+            'tests/test_windows_saved_store_build_projection.py' = '1bc16cf178c99a5ba6940849cb493ccac82c576578f6dc5c386193cb1db5e181'
+            'tests/test_windows_saved_store_component_adapter.py' = '3c517e7913e396b3bc383ea87660e76c8f80b815144b1aed72029b2c3cfad4dc'
+            'tests/test_windows_saved_store_component_route.py' = 'd1b29998038ab737290d6cff6dbe91904ca85c26afa6eecb68068d54f02b0481'
+            'tests/test_windows_saved_store_profile_workflow.py' = '2cb8ed514264f95901b3f913cdb2f985e795db1bc19d22aa9826ba5e55f3c278'
+            'tests/test_windows_saved_store_wheel_profiles.py' = '4dcbe314d4180b0c0e9832d433e828a90d39fbeec65818fb588d838c75876b1f'
+          }
+          $materialize = @'
+          import hashlib,json,os,re,stat,subprocess,sys
+          
+          from pathlib import Path,PurePosixPath
+          
+          LIMIT=1024*1024
+          
+          def git(repo,*arguments,limit=65536):
+              result=subprocess.run(['git','--no-replace-objects',*arguments],cwd=repo,stdin=subprocess.DEVNULL,
+                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+              if result.returncode or len(result.stdout)>limit or len(result.stderr)>65536:
+                  raise ValueError('git_data_refused')
+              return result.stdout
+          
+          def canonical(name):
+              if not isinstance(name,str) or not name.isascii():
+                  raise ValueError('path_refused')
+              path=PurePosixPath(name)
+              if (path.is_absolute() or path.as_posix()!=name or not path.parts
+                      or any(part in ('.','..') or not re.fullmatch(r'[A-Za-z0-9_.-]+',part)
+                             or part.endswith('.') for part in path.parts)):
+                  raise ValueError('path_refused')
+              return path
+          
+          def regular(path,directory=False):
+              value=path.lstat()
+              if (stat.S_ISLNK(value.st_mode) or getattr(value,'st_file_attributes',0)&0x400
+                      or not (stat.S_ISDIR(value.st_mode) if directory else stat.S_ISREG(value.st_mode))
+                      or not directory and value.st_nlink!=1):
+                  raise ValueError('target_kind_refused')
+              return value
+          
+          def materialize(repo,expected,checkpoint,commit):
+              if not repo.is_absolute():raise ValueError('absolute_repo_required')
+              regular(repo,directory=True)
+              for name,wanted in expected.items():
+                  row={'path':name,'expected_sha256':wanted,'status':'attempted','failure_type':None}
+                  checkpoint(row)
+                  try:
+                      relative=canonical(name)
+                      if not isinstance(wanted,str) or re.fullmatch(r'[0-9a-f]{64}',wanted) is None:
+                          raise ValueError('digest_refused')
+                      entry=git(repo,'ls-tree','-z',commit,'--',name).split(b'\0')
+                      if len(entry)!=2 or entry[1]!=b'':raise ValueError('git_entry_refused')
+                      metadata,actual=entry[0].split(b'\t',1)
+                      mode,kind,blob=metadata.decode('ascii').split()
+                      if mode!='100644' or kind!='blob' or actual.decode('ascii')!=name or not re.fullmatch(r'[0-9a-f]{40}',blob):
+                          raise ValueError('git_mode_refused')
+                      size=git(repo,'cat-file','-s',blob,limit=32).strip()
+                      if re.fullmatch(rb'[0-9]+',size) is None or not 0<int(size)<=LIMIT:
+                          raise ValueError('blob_size_refused')
+                      raw=git(repo,'cat-file','blob',blob,limit=LIMIT)
+                      digest=hashlib.sha256(raw).hexdigest()
+                      if len(raw)!=int(size) or digest!=wanted:raise ValueError('blob_hash_refused')
+                      target=repo/relative
+                      for parent in target.parents:
+                          regular(parent,directory=True)
+                          if parent==repo:break
+                      before=regular(target)
+                      flags=os.O_WRONLY|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0)
+                      descriptor=os.open(target,flags)
+                      with os.fdopen(descriptor,'wb') as stream:
+                          opened=os.fstat(stream.fileno())
+                          if (not stat.S_ISREG(opened.st_mode) or opened.st_nlink!=1
+                                  or getattr(opened,'st_file_attributes',0)&0x400
+                                  or (opened.st_dev,opened.st_ino)!=(before.st_dev,before.st_ino)):
+                              raise ValueError('target_changed_before_write')
+                          stream.seek(0);stream.truncate();stream.write(raw);stream.flush()
+                      regular(target)
+                      with target.open('rb') as verify_stream:verified=verify_stream.read(LIMIT+1)
+                      if hashlib.sha256(verified).hexdigest()!=wanted:
+                          raise ValueError('materialized_hash_refused')
+                      row.update(status='materialized',git_blob=blob,git_mode=mode,bytes=len(raw),actual_sha256=digest)
+                  except Exception as error:
+                      row.update(status='refused',failure_type=type(error).__name__)
+                      raise
+                  finally:checkpoint(row)
+          
+          repo=Path(sys.argv[1]);expected=json.loads(sys.argv[2])
+          if (not isinstance(expected,dict) or len(expected)!=45
+                  or len({name.casefold() for name in expected})!=45):raise ValueError('finite_C_map_refused')
+          output=Path(os.environ['RUNNER_TEMP'])/'saved-store-component-bootstrap.json'
+          if output.exists() or output.is_symlink() or not output.is_absolute():raise ValueError('fresh_bootstrap_report_required')
+          report={'status':'started','rows':[],'actual_checkout':None,'failure_type':None,'account_fixture_invoked':False,'accounts_or_credentials_created':False,'t2_d3_gate':'unpassed','production_port_allowed':False}
+          def save(row=None):
+              if row is not None and not any(item is row for item in report['rows']):report['rows'].append(row)
+              output.write_text(json.dumps(report,ensure_ascii=True,indent=2)+'\n',encoding='ascii')
+          save()
+          try:
+              actual=git(repo,'rev-parse','HEAD').decode('ascii').strip()
+              if re.fullmatch(r'[0-9a-f]{40}',actual) is None or actual!=os.environ['T2_EVENT_SHA']:raise ValueError('not_current_event_checkout')
+              report['actual_checkout']=actual;save()
+              materialize(repo,expected,save,actual)
+              if git(repo,'rev-parse','HEAD').decode('ascii').strip()!=actual:raise ValueError('C_changed_during_bootstrap')
+              report['status']='current_C_raw_inputs_materialized'
+          except Exception as error:report.update(status='bootstrap_refused',failure_type=type(error).__name__)
+          finally:save()
+          sys.exit(0 if report['status']=='current_C_raw_inputs_materialized' else 1)
+          '@
+          python -I -B -c $materialize (Get-Location).Path ($expected | ConvertTo-Json -Compress)
+          if ($LASTEXITCODE -ne 0) { throw 'Current caller source materialization refused.' }
+      - name: Prepare isolated pinned controller tooling
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $controller = Join-Path $env:RUNNER_TEMP 'saved-store-build-safe-controller'
+          if (Test-Path -LiteralPath $controller) { throw 'Require new controller environment.' }
+          python -I -m venv $controller
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $python = Join-Path $controller 'Scripts/python.exe'
+          & $python -I -m pip install 'build==1.3.0' 'setuptools==84.0.0' 'pytest==9.1.1'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $python -I -m pip check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "T2_SAFE_CONTROLLER=$python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $config = Join-Path $env:RUNNER_TEMP 'saved-store-build-safe-pytest.ini'
+          if (Test-Path -LiteralPath $config) { throw 'Refuse retained test config.' }
+          [IO.File]::WriteAllText($config, "[pytest]`n", [Text.UTF8Encoding]::new($false))
+      - name: Run frozen historical and current component pure controls
+        shell: pwsh
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          & $env:T2_SAFE_CONTROLLER -I -B -m pytest -q -p no:cacheprovider --noconftest -c "$env:RUNNER_TEMP/saved-store-build-safe-pytest.ini" --junitxml="$env:RUNNER_TEMP/saved-store-component-pure.xml" tests/test_windows_saved_store_account_inputs_v2.py tests/test_windows_saved_store_build_projection.py tests/test_windows_saved_store_build_preflight.py tests/test_windows_saved_store_wheel_profiles.py tests/test_windows_saved_store_profile_workflow.py tests/test_windows_saved_store_component_adapter.py tests/test_windows_saved_store_component_route.py 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/saved-store-component-pure.txt"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Observe fixed component cold build and equivalent module startup only
+        shell: pwsh
+        env:
+          T2_EVENT_NAME: ${{ github.event_name }}
+          T2_EVENT_SHA: ${{ github.sha }}
+          T2_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = (Resolve-Path experiments/platform/windows_saved_store_build_preflight_v3.ps1).Path
+          $repo = (Get-Location).Path
+          $launch = [ordered]@{ status = 'launch_started'; exit_code = $null; failure_type = $null; failure_line = $null; accounts_or_credentials_created = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false }
+          $launchPath = "$env:RUNNER_TEMP/saved-store-component-launch.json"
+          $launch | ConvertTo-Json | Set-Content -LiteralPath $launchPath -Encoding utf8
+          try {
+            & $script -Repo $repo -ControllerPython $env:T2_SAFE_CONTROLLER -Output (Join-Path $env:RUNNER_TEMP 'saved-store-build-safe')
+            $launch.exit_code = $LASTEXITCODE
+            $launch.status = 'launch_returned'
+          } catch { $launch.failure_type = $_.Exception.GetType().FullName; $launch.failure_line = $_.InvocationInfo.ScriptLineNumber }
+          finally { $launch | ConvertTo-Json | Set-Content -LiteralPath $launchPath -Encoding utf8 }
+          if ($launch.exit_code -ne 0 -or $launch.failure_type) { throw 'Account-free component preflight refused; inspect raw artifacts.' }
+      - name: Retain partial refusals source controls and wheel
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-component-build-safe-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/saved-store-component-bootstrap.json
+            ${{ runner.temp }}/saved-store-component-pure.xml
+            ${{ runner.temp }}/saved-store-component-pure.txt
+            ${{ runner.temp }}/saved-store-component-launch.json
+            ${{ runner.temp }}/saved-store-build-safe/*.json
+            ${{ runner.temp }}/saved-store-build-safe/*.txt
+            ${{ runner.temp }}/saved-store-build-safe/cold/
+            ${{ runner.temp }}/saved-store-build-safe/component/
+            ${{ runner.temp }}/saved-store-build-safe/protocol/
+            ${{ runner.temp }}/saved-store-build-safe/source/
+            ${{ runner.temp }}/saved-store-build-safe/wheel/*.whl
+          if-no-files-found: warn

@@ -1,4 +1,4 @@
-"""Finite wheel-profile data controls; no backend, PowerShell or account execution."""
+"""Historical FFC data controls; current qualification uses the component route."""
 import ast
 import base64
 import builtins
@@ -28,6 +28,18 @@ RECORD = 'attune_harness-1.4.0.dist-info/RECORD'
 PAIR = {METADATA, RECORD}
 
 
+
+
+def frozen_bytes(name):
+    # Historical data has its own identity; it never imports or qualifies SRC.
+    path = ROOT / 'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip'
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '2aa85e0b712cd82a1776bd1a021c5dca9098007c8775bbbd68fded22afaefde3'
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        assert len(archive.infolist()) == 144
+        return archive.read(name)
+
+
 def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
@@ -49,8 +61,8 @@ def frozen_members(platform):
     metadata = json.loads(FIXTURE.read_text())['members_base64']
     assert len(metadata) == 5
     members = {name: base64.b64decode(raw) for name, raw in metadata.items()}
-    members.update({name.removeprefix('src/'): (ROOT / name).read_bytes() for name in INVENTORY['modules']})
-    members['attune_harness-1.4.0.dist-info/licenses/LICENSE'] = (ROOT / 'LICENSE').read_bytes()
+    members.update({name.removeprefix('src/'): frozen_bytes(name) for name in INVENTORY['modules']})
+    members['attune_harness-1.4.0.dist-info/licenses/LICENSE'] = frozen_bytes('LICENSE')
     assert len(members) == 119 and set(members) == set(INVENTORY['wheel_members'])
     for name, raw in members.items():
         expected = INVENTORY['wheel_members'][name]
@@ -180,7 +192,7 @@ def test_one_source_drift_still_refused(tmp_path):
     for name in inputs:
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes((ROOT / name).read_bytes())
+        path.write_bytes(frozen_bytes(name))
     (tmp_path / 'src/attune_harness/__init__.py').write_bytes(b'changed\n')
     rows = CHECKER.source_rows(tmp_path, inputs, tree)
     assert len(rows) == 116
@@ -231,7 +243,7 @@ def test_projector_delta_is_only_manifest_binding_and_csharp_unchanged():
     assert len(blocks[0]) == len(blocks[1]) == 1 and blocks[0] == blocks[1]
     pins = dict(re.findall(r"'([^']+)' = '([0-9a-f]{64})'", scripts[1]))
     for name, expected_sha in pins.items():
-        assert digest((ROOT / name).read_bytes()) == expected_sha
+        assert digest(frozen_bytes(name)) == expected_sha
     assert 'if: ${{ false }}' in (ROOT / '.github/workflows/windows-saved-store-reviewed-execution.yml').read_text()
 
 

@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import sys
 import sysconfig
+import zipfile
 from types import SimpleNamespace
 
 import pytest
@@ -124,7 +125,13 @@ def test_all_accepted_v3b_files_remain_byte_identical():
         'tests/test_windows_saved_store_build_projection.py': '1bc16cf178c99a5ba6940849cb493ccac82c576578f6dc5c386193cb1db5e181',
     }
     for path, digest in pins.items():
-        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest
+        if path == '.gitattributes':
+            # Historical global rules are data, not a pin on moving product policy.
+            with zipfile.ZipFile(ROOT / 'tests/fixtures/windows_saved_store_ffc_campaign_v1.zip') as archive:
+                raw = archive.read(path)
+        else:
+            raw = (ROOT / path).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == digest
 
 
 def test_safe_workflow_canonicalizes_all_pinned_bytes_and_has_only_four_safe_cells():

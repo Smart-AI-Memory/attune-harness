@@ -85,6 +85,8 @@ concurrency:
 
 jobs:
   safe-preflight:
+    # Retained FFC campaign; fixed-component successor owns new observations.
+    if: ${{ false }}
     name: Safe platform build / ${{ matrix.os }} / Python ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
