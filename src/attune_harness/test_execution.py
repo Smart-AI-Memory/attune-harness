@@ -140,6 +140,42 @@ def observe(path: Path, request: dict, copied: Path) -> dict | None:
     return value
 
 
+def execution_environment() -> dict[str, str]:
+    """Supply the test profile's finite environment for the current OS."""
+    import os
+
+    environment = {
+        "PATH": "/usr/bin:/bin",
+        "LANG": "C.UTF-8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "ATTUNE_USAGE_PING": "0",
+        "ATTUNE_VERSION_CHECK": "0",
+    }
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        from .windows_effects import absolute_path, relative
+
+        query = ctypes.WinDLL("kernel32", use_last_error=True).GetSystemWindowsDirectoryW
+        query.argtypes = [wintypes.LPWSTR, wintypes.UINT]
+        query.restype = wintypes.UINT
+        buffer = ctypes.create_unicode_buffer(32768)
+        size = query(buffer, len(buffer))
+        path = buffer.value
+        if (
+            not 0 < size < len(buffer)
+            or size != len(path.encode("utf-16-le")) // 2
+            or not absolute_path(path)
+        ):
+            raise ValueError("Cannot establish the system Windows directory")
+        relative(path[3:].replace("\\", "/"))
+        del environment["PATH"]
+        environment.update(SystemRoot=path, PYTHONUTF8="1")
+    return environment
+
+
 def run_tests(request: dict, directory: Path, *, cancel=None) -> dict:
     """Execute one accepted snapshot and retain its real process/pytest evidence."""
     started = time.monotonic()
@@ -174,14 +210,7 @@ def run_tests(request: dict, directory: Path, *, cancel=None) -> dict:
         *runner["pytest_args"],
         *paths,
     )
-    environment = {
-        "PATH": "/usr/bin:/bin",
-        "LANG": "C.UTF-8",
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
-        "ATTUNE_USAGE_PING": "0",
-        "ATTUNE_VERSION_CHECK": "0",
-    }
+    environment = execution_environment()
     result = process.invoke(
         argv,
         "",
