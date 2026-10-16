@@ -15,7 +15,7 @@ from attune_harness.memory_reader import CAPABILITIES, NativeReader, roots_confi
 from attune_harness.review_contract import digest
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "memory_compatibility.json").read_text(encoding="utf-8"))
-posix_only = pytest.mark.skipif(os.name != "posix", reason="the reader is POSIX-only at 0.5.0 (D19)")
+posix_only = pytest.mark.skipif(os.name != "posix", reason="This fixture exercises POSIX descriptor calls or symlink semantics")
 
 
 def config_for(*roots):
@@ -32,7 +32,7 @@ def seed_raw(root, rows=None, *, ts=None):
                     topics=[f"type:{r['type']}", f"cwd:{r['cwd']}"], cwd=r["cwd"],
                     ts=stamp, future_field={"keep": True})
                for r in (rows or FIXTURE["raw"])]
-    (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
+    (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline='\n')
     return records
 
 
@@ -45,7 +45,7 @@ def seed_documents(root, which="global"):
         path = root / entry["path"]
         path.parent.mkdir(parents=True, exist_ok=True)
         body = (entry["body"] + "\n\n") * entry.get("repeat", 1) + entry.get("tail", "")
-        path.write_text("# Aurora\n\n" + body, encoding="utf-8")
+        path.write_text("# Aurora\n\n" + body, encoding="utf-8", newline='\n')
         written[entry["path"]] = (entry["query"], path.read_bytes())
     return written
 
@@ -92,7 +92,6 @@ def test_roots_config_sets_the_other_sections_aside():
 # --- the raw tier --------------------------------------------------------------------
 
 
-@posix_only
 def test_raw_recall_returns_the_scope_rows_with_kinds_and_whole_records(tmp_path):
     root = tmp_path / "raw"
     records = seed_raw(root)
@@ -116,7 +115,6 @@ def test_raw_recall_returns_the_scope_rows_with_kinds_and_whole_records(tmp_path
     assert len(reader.query("Aurora", k=2)["items"]) == 2
 
 
-@posix_only
 def test_raw_ranking_prefers_overlap_then_recency_and_drops_expired_rows(tmp_path):
     root = tmp_path / "raw"
     now = time.time()
@@ -127,7 +125,7 @@ def test_raw_ranking_prefers_overlap_then_recency_and_drops_expired_rows(tmp_pat
     records = []
     for row, ts in zip(rows, (now - 5 * 86400, now, now - 40 * 86400)):
         records.append(dict(id=row["id"], text=row["text"], topics=[f"type:{row['type']}"], cwd="p", ts=ts))
-    (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8")
+    (root / "findings.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records), encoding="utf-8", newline='\n')
     config = config_for(("r", root, "raw", "p"))
     config["scopes"].append("p")
     reader = NativeReader(config)
@@ -136,7 +134,6 @@ def test_raw_ranking_prefers_overlap_then_recency_and_drops_expired_rows(tmp_pat
     assert [i["locator"]["record_id"] for i in reader.query("Aurora", k=10)["items"]] == ["new", "old"]
 
 
-@posix_only
 def test_raw_resolve_round_trips_and_refuses_change_expiry_and_scope(tmp_path):
     root = tmp_path / "raw"
     seed_raw(root)
@@ -157,7 +154,7 @@ def test_raw_resolve_round_trips_and_refuses_change_expiry_and_scope(tmp_path):
         reader.resolve(handle)
     assert reader.query("Aurora", k=5)["status"] == "empty"  # all expired
     # An unreadable timestamp is expired too, in the adapter's words, never a TypeError.
-    (root / "findings.jsonl").write_text(json.dumps(dict(id="N1", text="Aurora", cwd="project-a", topics=[], ts=None)) + "\n")
+    (root / "findings.jsonl").write_text(json.dumps(dict(id="N1", text="Aurora", cwd="project-a", topics=[], ts=None)) + "\n", encoding='utf-8', newline='\n')
     with pytest.raises(ValueError, match="Raw source expired"):
         reader.resolve(handle)
 
@@ -166,18 +163,18 @@ def test_raw_resolve_round_trips_and_refuses_change_expiry_and_scope(tmp_path):
 def test_raw_refusals_become_root_problems(tmp_path):
     root = tmp_path / "raw"
     root.mkdir()
-    (root / "findings.jsonl").write_text('{"id": "N1", "text": "Aurora", "topics": []}\n{"id": "N1", "text": "x", "topics": []}\n')
+    (root / "findings.jsonl").write_text('{"id": "N1", "text": "Aurora", "topics": []}\n{"id": "N1", "text": "x", "topics": []}\n', encoding='utf-8', newline='\n')
     reader = NativeReader(config_for(("r", root, "raw", "project-a")))
     packet = reader.query("Aurora", k=5)
     assert packet["status"] == "unavailable" and packet["items"] == []
     assert packet["problems"] == [{"root_id": "r", "reason": "ValueError",
                                    "detail": "Malformed or duplicate raw identity; exact retrieval unavailable"}]
-    (root / "findings.jsonl").write_text('{"id": "N1", "topics": []}\n')
+    (root / "findings.jsonl").write_text('{"id": "N1", "topics": []}\n', encoding='utf-8', newline='\n')
     assert reader.query("Aurora", k=5)["problems"][0]["detail"] == "Malformed raw record"
     # A row with no topics key is legal in the adapter; a row with two type topics has kind unknown.
     (root / "findings.jsonl").write_text(json.dumps(dict(id="N1", text="Aurora", cwd="project-a", ts=time.time())) + "\n"
                                          + json.dumps(dict(id="N2", text="Aurora", cwd="project-a", ts=time.time(),
-                                                           topics=["type:a", "type:b"])) + "\n")
+                                                           topics=["type:a", "type:b"])) + "\n", encoding='utf-8', newline='\n')
     packet = reader.query("Aurora", k=5)
     assert packet["status"] == "available" and [i["kind"] for i in packet["items"]] == ["unknown", "unknown"]
     # A dangling findings.jsonl symlink is an absent file, not a refusal.
@@ -194,11 +191,11 @@ def test_raw_refusals_become_root_problems(tmp_path):
 # --- the document tiers -----------------------------------------------------------------
 
 
-@posix_only
-def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path):
+@pytest.mark.parametrize("tier", ["personal", "curated"])
+def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path, tier):
     root = tmp_path / "personal"
     written = seed_documents(root, "global")
-    reader = NativeReader(config_for(("p", root, "personal", "global")))
+    reader = NativeReader(config_for(("p", root, tier, "global")))
     for relative, (query, source) in written.items():
         packet = reader.query(query, k=5)
         assert packet["status"] == "available", (relative, packet["problems"])
@@ -217,7 +214,6 @@ def test_documents_are_found_by_their_queries_with_the_whole_source(tmp_path):
     assert blank["status"] == "unavailable" and blank["problems"][0]["detail"] == "query must be a non-empty string"
 
 
-@posix_only
 def test_document_handles_follow_the_source_and_its_sidecars(tmp_path):
     root = tmp_path / "personal"
     seed_documents(root, "global")
@@ -225,30 +221,29 @@ def test_document_handles_follow_the_source_and_its_sidecars(tmp_path):
     item = next(i for i in reader.query("Aurora procedure", k=5)["items"] if i["locator"]["path"] == "safety/pattern.md")
     handle = {k: item[k] for k in ("id", "locator", "version", "authority")}
     assert reader.resolve(handle)["text"] == item["text"]
-    (root / "summaries_by_path.json").write_text(json.dumps({"safety/pattern.md": "Aurora procedure summary"}))
+    (root / "summaries_by_path.json").write_text(json.dumps({"safety/pattern.md": "Aurora procedure summary"}), encoding='utf-8', newline='\n')
     with pytest.raises(ValueError, match="corrected, deleted or replaced"):
         reader.resolve(handle)  # a sidecar is part of the version
     again = next(i for i in reader.query("Aurora procedure", k=5)["items"] if i["locator"]["path"] == "safety/pattern.md")
     assert again["version"] != item["version"]
-    (root / "safety" / "pattern.md").write_text("# Aurora\n\nchanged", encoding="utf-8")
+    (root / "safety" / "pattern.md").write_text("# Aurora\n\nchanged", encoding="utf-8", newline='\n')
     with pytest.raises(ValueError, match="corrected, deleted or replaced"):
         reader.resolve({k: again[k] for k in ("id", "locator", "version", "authority")})
 
 
-@posix_only
 def test_curated_frontmatter_is_read_and_a_conflicting_label_refuses(tmp_path):
     root = tmp_path / "curated"
     root.mkdir()
-    (root / FIXTURE["curated"]["path"]).write_text(FIXTURE["curated"]["content"], encoding="utf-8")
+    (root / FIXTURE["curated"]["path"]).write_text(FIXTURE["curated"]["content"], encoding="utf-8", newline='\n')
     reader = NativeReader(config_for(("c", root, "curated", "global")))
     packet = reader.query("Aurora policy", k=5)
     assert packet["status"] == "available" and packet["items"][0]["locator"]["path"] == FIXTURE["curated"]["path"]
     assert "future_field: retain-me" in packet["items"][0]["text"]
-    (root / "other.md").write_text("---\nowner: someone-else\n---\n\nAurora policy again\n", encoding="utf-8")
+    (root / "other.md").write_text("---\nowner: someone-else\n---\n\nAurora policy again\n", encoding="utf-8", newline='\n')
     packet = reader.query("Aurora policy", k=5)
     assert packet["status"] == "unavailable"
     assert packet["problems"][0]["detail"] == "Source security metadata conflicts with root authority"
-    (root / "other.md").write_text("---\nowner: [unterminated\n\nAurora policy again\n", encoding="utf-8")
+    (root / "other.md").write_text("---\nowner: [unterminated\n\nAurora policy again\n", encoding="utf-8", newline='\n')
     assert reader.query("Aurora policy", k=5)["problems"][0]["detail"] in (
         "Unterminated source security metadata", "Unreadable source security metadata")
 
@@ -290,32 +285,32 @@ def test_bounds_symlinks_and_unsafe_strings_refuse_the_root(tmp_path, monkeypatc
     (root / "link.md").symlink_to(root / "manual" / "reference.md")
     assert reader.query("Aurora", k=5)["problems"][0]["detail"] == "Document corpus contains symlinks"
     (root / "link.md").unlink()
-    (root / "leak.md").write_text("# Aurora\n\nAurora manual api_key = " + "A1b2" * 8 + "\n", encoding="utf-8")
+    (root / "leak.md").write_text("# Aurora\n\nAurora manual api_key = " + "A1b2" * 8 + "\n", encoding="utf-8", newline='\n')
     packet = reader.query("Aurora manual", k=5)
     assert packet["status"] == "unavailable"
     assert packet["problems"][0]["detail"] == "Source is unsafe or requires redaction; governed exposure refused"
     (root / "leak.md").unlink()
-    (root / "pii.md").write_text("# Aurora\n\nAurora manual contact someone@example.com\n", encoding="utf-8")
+    (root / "pii.md").write_text("# Aurora\n\nAurora manual contact someone@example.com\n", encoding="utf-8", newline='\n')
     assert reader.query("Aurora manual", k=5)["status"] == "unavailable"
 
 
-def test_non_posix_reads_are_reported_not_attempted(tmp_path, monkeypatch):
+def test_unsupported_reader_backend_is_reported_not_attempted(tmp_path, monkeypatch):
     root = tmp_path / "raw"
     seed_raw(root)
     reader = NativeReader(config_for(("r", root, "raw", "project-a")))
     monkeypatch.setattr(memory_reader, "_posix", lambda: False)
+    monkeypatch.setattr(memory_reader, "_windows", lambda: False)
     packet = reader.query("Aurora", k=5)
     assert packet["status"] == "unavailable"
     assert packet["problems"][0]["detail"] == "Scoped descriptor reads are currently qualified only on POSIX"
 
 
-@posix_only
 def test_partial_status_and_nothing_from_attune_ai(tmp_path):
     raw, docs = tmp_path / "raw", tmp_path / "docs"
     seed_raw(raw)
     docs.mkdir()
     (docs / "aurora").mkdir()
-    (docs / "aurora" / "decision.md").write_text("---\nowner: other\n---\nAurora reminder is 09:15.\n", encoding="utf-8")
+    (docs / "aurora" / "decision.md").write_text("---\nowner: other\n---\nAurora reminder is 09:15.\n", encoding="utf-8", newline='\n')
     reader = NativeReader(config_for(("r", raw, "raw", "project-a"), ("p", docs, "personal", "global")))
     packet = reader.query("Aurora reminder", k=10)
     assert packet["status"] == "partial" and len(packet["items"]) == 4 and packet["problems"][0]["root_id"] == "p"
@@ -325,14 +320,13 @@ def test_partial_status_and_nothing_from_attune_ai(tmp_path):
 # --- through the host and the CLI ---------------------------------------------------------
 
 
-@posix_only
 def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys, monkeypatch):
     root = tmp_path / "raw"
     seed_raw(root)
     config = tmp_path / "memory.json"
     config.write_text(json.dumps(dict(config_for(("r", root, "raw", "project-a")), reader="native",
                                       redis={"url": "redis://127.0.0.1:1/0"},
-                                      saved={"root": str(tmp_path / "saved")})), encoding="utf-8")
+                                      saved={"root": str(tmp_path / "saved")})), encoding="utf-8", newline='\n')
     base = ["--config", str(config)]
     assert memory_main([*base, "capabilities"]) == 0
     capabilities = json.loads(capsys.readouterr().out)
@@ -345,16 +339,16 @@ def test_cli_native_reader_prints_the_pinned_success_envelopes(tmp_path, capsys,
                               "schema_version", "status"]
     assert packet["status"] == "available" and len(packet["items"]) == 3
     handle = tmp_path / "handle.json"
-    handle.write_text(json.dumps(packet["items"][0]["handle"]))
+    handle.write_text(json.dumps(packet["items"][0]["handle"]), encoding='utf-8', newline='\n')
     assert memory_main([*base, "resolve", str(handle)]) == 0
     assert sorted(json.loads(capsys.readouterr().out)) == ["authority", "classification", "id", "kind", "locator",
                                                           "metadata", "owner", "scope", "text", "version"]
     context = tmp_path / "context.json"
-    context.write_text(json.dumps(packet))
+    context.write_text(json.dumps(packet), encoding='utf-8', newline='\n')
     assert memory_main([*base, "refresh", str(context)]) == 0
     refreshed = json.loads(capsys.readouterr().out)
     assert sorted(refreshed) == ["context", "invalidated_ids", "replaces", "status"] and refreshed["invalidated_ids"] == []
-    config.write_text(json.dumps(dict(config_for(("r", root, "raw", "project-a")), reader="bogus")), encoding="utf-8")
+    config.write_text(json.dumps(dict(config_for(("r", root, "raw", "project-a")), reader="bogus")), encoding="utf-8", newline='\n')
     assert memory_main([*base, "capabilities"]) == 2
     assert json.loads(capsys.readouterr().out)["detail"] == "Memory reader must be 'native'"
 
@@ -417,7 +411,7 @@ def test_documents_detect_changes_during_the_query_and_keep_mtimes(tmp_path, mon
     assert seen["mtime_equal"] and seen["k"] == 3
 
     def sidecar_appears(snapshot, query, k):
-        (root / "summaries_by_path.json").write_text("{}")
+        (root / "summaries_by_path.json").write_text("{}", encoding='utf-8', newline='\n')
         return real_rank(snapshot, query, k)
 
     monkeypatch.setattr(memory_reader, "_rank_documents", sidecar_appears)
@@ -426,7 +420,7 @@ def test_documents_detect_changes_during_the_query_and_keep_mtimes(tmp_path, mon
 
     def source_changes(snapshot, query, k):
         hits = real_rank(snapshot, query, k)
-        source.write_text("# Aurora\n\nAurora procedure rewritten mid-query\n", encoding="utf-8")
+        source.write_text("# Aurora\n\nAurora procedure rewritten mid-query\n", encoding="utf-8", newline='\n')
         return hits
 
     monkeypatch.setattr(memory_reader, "_rank_documents", source_changes)
@@ -436,7 +430,6 @@ def test_documents_detect_changes_during_the_query_and_keep_mtimes(tmp_path, mon
     assert reader.query("Aurora", k=3)["problems"][0]["detail"] == "Corpus exceeds 64 MiB query snapshot limit; narrow the root"
 
 
-@posix_only
 def test_the_retriever_is_asked_for_twice_k(tmp_path, monkeypatch):
     root = tmp_path / "personal"
     seed_documents(root, "global")
@@ -465,7 +458,6 @@ def test_the_retriever_is_asked_for_twice_k(tmp_path, monkeypatch):
     assert len(reader.query("Aurora", k=1)["items"]) == 1  # five documents match; the tier keeps k
 
 
-@posix_only
 def test_raw_reread_after_ranking_catches_a_rewrite(tmp_path, monkeypatch):
     root = tmp_path / "raw"
     seed_raw(root)
@@ -481,11 +473,10 @@ def test_raw_reread_after_ranking_catches_a_rewrite(tmp_path, monkeypatch):
     assert reader.query("Aurora", k=5)["problems"][0]["detail"] == "Raw source changed during retrieval"
 
 
-@posix_only
 def test_a_conflicting_label_and_a_secret_refuse_in_the_gates_words_first(tmp_path):
     root = tmp_path / "curated"
     root.mkdir()
-    (root / "doc.md").write_text("---\nowner: other\n---\nAurora policy api_key = " + "A1b2" * 6 + "\n", encoding="utf-8")
+    (root / "doc.md").write_text("---\nowner: other\n---\nAurora policy api_key = " + "A1b2" * 6 + "\n", encoding="utf-8", newline='\n')
     reader = NativeReader(config_for(("c", root, "curated", "global")))
     assert reader.query("Aurora policy", k=5)["problems"][0]["detail"] == "Source is unsafe or requires redaction; governed exposure refused"
 

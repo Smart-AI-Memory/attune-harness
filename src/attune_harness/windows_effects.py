@@ -284,8 +284,10 @@ class Native:
             READ_CONTROL | SYNCHRONIZE, FILE_SHARE_ALL, None, 3,
             0x02000000 | FILE_OPEN_REPARSE_POINT, None)
 
-    def child(self, parent, name, *, create=False, directory=None, writable=False):
+    def child(self, parent, name, *, create=False, directory=None, writable=False, metadata_only=False):
         leaf(name)
+        if metadata_only and (create or writable):
+            raise ValueError('Metadata-only child cannot create or request writes')
         namebuf = ctypes.create_unicode_buffer(name)
         encoded = name.encode("utf-16-le")
         text = self.UnicodeString(len(encoded), ctypes.sizeof(namebuf),
@@ -293,14 +295,16 @@ class Native:
         attrs = self.ObjectAttributes(ctypes.sizeof(self.ObjectAttributes), parent,
             ctypes.pointer(text), OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE, None, None)
         result, ios = self.w.HANDLE(), self.IoStatus()
-        access = FILE_READ_ATTRIBUTES | READ_CONTROL | SYNCHRONIZE
-        if directory is not False:
+        access = FILE_READ_ATTRIBUTES | SYNCHRONIZE
+        if not metadata_only:
+            access |= READ_CONTROL
+        if not metadata_only and directory is not False:
             access |= FILE_LIST_DIRECTORY
             if directory is True:
                 access |= FILE_TRAVERSE
             if writable and directory is True:
                 access |= FILE_ADD_FILE | FILE_ADD_SUBDIRECTORY
-        else:
+        elif not metadata_only:
             access |= FILE_READ_DATA
             if writable:
                 access |= FILE_WRITE_DATA | DELETE

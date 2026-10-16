@@ -236,7 +236,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(qualifier.platform, 'system', lambda: system)
     expected_timeout = 900
     if system == 'Windows':
-        expected_timeout = 2400 if instrumented else 1500
+        expected_timeout = 2400 if instrumented else 1800
 
     def child(argv, **kwargs):
         calls.append(argv)
@@ -251,8 +251,8 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
                 raise subprocess.TimeoutExpired(argv, kwargs['timeout'])
             return subprocess.CompletedProcess(argv, 0)
         (output / 'memory-redis.json').write_text(json.dumps({
-            'memory': {'native_reader': 'available' if os.name == 'posix' else 'posix-only refusal',
-                       'tiers_read': ['raw', 'personal', 'curated'] if os.name == 'posix' else [],
+            'memory': {'native_reader': 'available' if os.name in ('posix', 'nt') else 'posix-only refusal',
+                       'tiers_read': ['raw', 'personal', 'curated'] if os.name in ('posix', 'nt') else [],
                        'reader_named': 'native'},
             'journey': {'accept': 'accepted', 'build': 'completed', 'review': 'completed'}}))
         return subprocess.CompletedProcess(argv, 0, stdout='', stderr='')
@@ -287,8 +287,8 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
     workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['installed-library']
     # The hosted budget includes setup/evidence time outside the child budget.
-    # Windows must have headroom for 25 minutes without changing POSIX's 20.
-    assert job['timeout-minutes'] == "${{ matrix.os == 'windows-latest' && 30 || 20 }}"
+    # Windows must have headroom for 30 minutes without changing POSIX's 20.
+    assert job['timeout-minutes'] == "${{ matrix.os == 'windows-latest' && 35 || 20 }}"
 
 
 @pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])

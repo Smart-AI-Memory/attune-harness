@@ -47,11 +47,11 @@ def installed_source():
 def qualify(output, *, coverage_instrumented=False):
     if sys.flags.optimize or not __debug__:
         raise ValueError('Platform qualification requires unoptimized Python; run without -O or PYTHONOPTIMIZE')
-    # Instrumented Windows runs have a separate measured suite budget.
-    # Ordinary qualification and individual operation deadlines stay unchanged.
+    # Windows suite budgets include the measured native reader workload.
+    # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2400 if coverage_instrumented else 1500
+        suite_timeout = 2400 if coverage_instrumented else 1800
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
@@ -119,11 +119,11 @@ def qualify(output, *, coverage_instrumented=False):
                            '--mode','redis','--report',str(output/'memory-redis.json')],
                           cwd=output,capture_output=True,text=True)
     (output/'memory-redis.txt').write_text(memory.stdout+memory.stderr,encoding='utf-8')
-    # The native memory reader read what this platform allows (Phase 2, D19): the receipt must say which.
+    # Demand actual installed reader success; a safety refusal is not feature completion.
     if memory.returncode==0:
         report=json.loads((output/'memory-redis.json').read_text(encoding='utf-8'))
         native=report['memory']
-        wanted=('available',['raw','personal','curated']) if os.name=='posix' else ('posix-only refusal',[])
+        wanted=('available',['raw','personal','curated'])
         if (native.get('native_reader'),native.get('tiers_read'))!=wanted or native.get('reader_named')!='native':
             memory=subprocess.CompletedProcess(memory.args,1)
             receipt['checks'].append(f'native memory reader receipt unexpected: {native}')

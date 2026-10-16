@@ -72,7 +72,6 @@ def row(verdict, stem='state'):
     return json.dumps(dict(stem=stem, verdict=verdict, digest='any-digest', who='fixture', at='2026-09-24')) + '\n'
 
 
-@pytest.mark.skipif(os.name != 'posix', reason='authorized descriptor reads are POSIX-only')
 @pytest.mark.parametrize('log,allowed', [('', True), (row('wrong'), False),
     (row('wrong') + row('keep'), True), (row('keep') + row('wrong'), False),
     (row('sharper'), True), (row('wrong', 'different'), True), ('{broken\n', False),
@@ -123,7 +122,6 @@ def test_ambiguous_root_and_symlinked_source_are_omitted(tmp_path):
     assert '- file:' not in render(fake, config)[0]
 
 
-@pytest.mark.skipif(os.name != 'posix', reason='authorized descriptor reads are POSIX-only')
 def test_total_verdict_budget_suppresses_later_roots(tmp_path, monkeypatch):
     config, fake, sidecar = file_case(tmp_path)
     sidecar.write_text(row('keep'), encoding='utf-8')
@@ -131,10 +129,12 @@ def test_total_verdict_budget_suppresses_later_roots(tmp_path, monkeypatch):
     assert '- file:' not in render(fake, config)[0]
 
 
-def test_windows_keeps_curated_memory_but_refuses_file_verdict_reads(tmp_path, monkeypatch):
+def test_unsupported_reader_keeps_curated_memory_but_refuses_file_verdict_reads(tmp_path, monkeypatch):
     from attune_harness import memory_reader
     config, fake, _ = file_case(tmp_path)
     monkeypatch.setattr(memory_reader, '_posix', lambda: False)
+    monkeypatch.setattr(memory_reader, '_windows', lambda: False)
+    monkeypatch.setattr(memory_serving, '_windows', lambda: False)
     text, reason = render(fake, config)
     assert reason is None and '- n1' in text and '- file:' not in text
 
