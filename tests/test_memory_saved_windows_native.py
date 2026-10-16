@@ -665,6 +665,71 @@ def _kill_read_failure_diagnostic(root, store, first, value, before, after):
     return report
 
 
+def _prepare_kill_state_oracle(root):
+    """Prepare one read-only observer before the writer reaches its checkpoint."""
+    from attune_harness.windows_effects import Native
+    api = Native()  # Bind the fixed ABI before starting the writer, never on failure.
+    state_path = ctypes.create_unicode_buffer(str(root / 'state.json'))
+    buffer, count = ctypes.create_string_buffer(MAX_STATE + 1), api.w.DWORD()
+    invalid = ctypes.c_void_p(-1).value
+    report = {'claim': 'first post-wait independent native whole-byte observation; '
+                       'no production admission, retry, barrier or power-loss claim',
+              'desired_access': 0x00120081, 'share': 7, 'creation_disposition': 3,
+              'flags': 0x00200000, 'open_attempts': 0, 'close_success': None}
+
+    def read(stage, checkpoint):
+        handle, primary = None, None
+        try:
+            report['open_attempts'] += 1
+            assert report['open_attempts'] == 1
+            ctypes.set_last_error(0)
+            handle = api.k.CreateFileW(state_path, report['desired_access'], report['share'],
+                                      None, 3, report['flags'], None)
+            if handle in (None, invalid):
+                code, handle = ctypes.get_last_error(), None
+                raise ctypes.WinError(code)
+            # metadata() rejects reparse/delete-pending/ADS and multiply linked files;
+            # it queries kind, identity, attributes and complete owner/DACL security.
+            entry, size, _ = api.metadata(handle)
+            report['before_metadata'], report['before_size'] = entry, size
+            assert entry['kind'] == 'file' and entry['links'] == 1
+            assert not entry['attributes'] & 0x400
+            assert 0 <= size <= MAX_STATE
+            if stage == 'rename':
+                assert entry['identity'] == checkpoint['identity']
+            # The newly acquired synchronous handle starts at byte zero. One bounded
+            # read includes an extra byte to detect growth; there is no short-read retry.
+            count.value = 0
+            ctypes.set_last_error(0)
+            if not api.k.ReadFile(handle, buffer, size + 1, ctypes.byref(count), None):
+                raise ctypes.WinError(ctypes.get_last_error())
+            report['read_requested_bytes'], report['read_bytes'] = size + 1, count.value
+            assert count.value == size
+            raw = buffer.raw[:size]
+            later, later_size, _ = api.metadata(handle)
+            report['after_metadata'], report['after_size'] = later, later_size
+            assert later == entry and later_size == size
+            return raw
+        except BaseException as error:
+            primary = error
+            report['error'] = _kill_error_facts(error)
+            raise
+        finally:
+            if handle is not None:
+                try:
+                    ctypes.set_last_error(0)
+                    report['close_success'] = bool(api.k.CloseHandle(handle))
+                    if not report['close_success']:
+                        raise ctypes.WinError(ctypes.get_last_error())
+                except BaseException as error:
+                    report['close_success'] = False
+                    report['close_error'] = _kill_error_facts(error)
+                    if primary is not None:
+                        raise primary from error
+                    raise  # No second close, acquisition or recovery after uncertainty.
+    return read, report
+
+
 @pytest.mark.parametrize('stage', ['preparation', 'file_flush', 'rename', 'pre_response'])
 def test_native_kill_boundary_whole_state_and_same_id_recovery(canonical_tmp, stage, record_property):
     root = canonical_tmp / ('Kill ' + stage)
@@ -675,6 +740,7 @@ def test_native_kill_boundary_whole_state_and_same_id_recovery(canonical_tmp, st
              'changes': {'content': 'Recovered revision 雪'}, 'request_id': 'kill-' + stage,
              'expected_revision': 1}
     after = expected_revision_bytes(before, value)
+    first_read, oracle_report = _prepare_kill_state_oracle(root)
     child = subprocess.Popen([sys.executable, '-I', '-c', _KILL_REVISION, str(root), stage,
         json.dumps(value, ensure_ascii=True)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, text=True)
@@ -687,20 +753,16 @@ def test_native_kill_boundary_whole_state_and_same_id_recovery(canonical_tmp, st
         exit_code = child.returncode
         assert exit_code != 0
         try:
-            observed = (root / 'state.json').read_bytes()
-        except OSError as primary:
-            diagnostic = {'original_error': _kill_error_facts(primary)}
+            observed = first_read(stage, checkpoint)
+        except BaseException:
             try:
-                diagnostic['observations'] = _kill_read_failure_diagnostic(
-                    root, store, first, value, before, after)
-            except BaseException as secondary:
-                diagnostic['diagnostic_error'] = _kill_error_facts(secondary)
-            try:
-                record_property('saved_native_kill_read_failure', json.dumps(
-                    diagnostic, ensure_ascii=True, allow_nan=False))
+                record_property('saved_native_kill_first_oracle', json.dumps(
+                    oracle_report, ensure_ascii=True, allow_nan=False))
             except BaseException:
-                pass  # The original immediate read remains the first failure.
+                pass  # Reporting must not replace the first oracle failure.
             raise
+        record_property('saved_native_kill_first_oracle', json.dumps(
+            oracle_report, ensure_ascii=True, allow_nan=False))
         expected = before if stage in ('preparation', 'file_flush') else after
         assert observed == expected
         # The real common decoder must accept the whole persisted state.
