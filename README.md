@@ -34,15 +34,18 @@ The unreleased `main` branch includes these merged Windows components:
 - [Captured test execution](https://github.com/Smart-AI-Memory/attune-harness/pull/271).
 - [Native readers for local memory files](https://github.com/Smart-AI-Memory/attune-harness/pull/272).
 - [Experimental native memory transport with offline SDK evidence](https://github.com/Smart-AI-Memory/attune-harness/pull/269).
+- [Saved memory and task storage implementation checkpoint](https://github.com/Smart-AI-Memory/attune-harness/pull/275).
 
-Component tests and installed-wheel checks have passed on Windows CI. Full
-Windows parity remains in progress: saved memory and tasks depend on the storage
-durability proof; a process-cleanup failure is under investigation; live provider
-acceptance, Windows 11 desktop validation and combined installed-wheel and CLI
-qualification remain open. Follow the [Windows parity spec](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
-and [storage proof work](https://github.com/Smart-AI-Memory/attune-harness/pull/268)
-for scope, evidence and remaining limits. Release readiness depends on closing
-those requirements.
+Current finite native saved-store witnesses pass, with the separate fixed-component
+durability feasibility premise retained. Full saved-store acceptance remains open:
+the historical eight-writer busy failure has no established cause, and later
+passes do not explain it. A process-cleanup failure is also unresolved. Live
+provider acceptance, Windows 11 standard-user desktop validation, actual shell
+journeys, and final combined installed-wheel qualification remain open.
+Follow the [Windows parity spec](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
+and [draft 1.5.0 readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.5.0.md)
+for the source-bound evidence and remaining release requirements. These component
+results do not establish full Windows parity.
 
 ## Plan, build, review, fix, and test
 

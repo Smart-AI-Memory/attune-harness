@@ -5,12 +5,19 @@
 No final release SHA, 1.5.0 distribution, publication date, or release approval
 is established by this record.
 
-Documentation base: `0ecb45d855250d65f41226b644ca2f2742ff7bfa`. This base includes
-merged Windows components and the finite saved-store feasibility proof.
-[Production storage PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275)
-and [process-completion PR #274](https://github.com/Smart-AI-Memory/attune-harness/pull/274)
-remain separate work. Their eventual integration creates a new source and
-artifact identity that needs final qualification.
+Documentation target base: `0735cca55480b031050dc8d7e3c2ea72a3cd6dc1`, tree
+`040e2acd576af04542d49dc17c71fc4cf5c3cf84`. Patrick merged the saved-store
+implementation checkpoint as [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275)
+on October 16, 2026. Its whole tree equals reviewed and tested head
+`05b649f2d255f3a9a2d4bc9f4c92c70cf530f03a`. The
+[process-completion work](https://github.com/Smart-AI-Memory/attune-harness/pull/274)
+and final parity gates remain open.
+
+The earlier documentation head `46ad1ffe` passed its own docs-only checks,
+separate supplemental coverage, and offline SDK checks on base `0ecb45d`.
+Those results do not qualify this later merged production source or the final
+combined README and artifacts. The final integrated source needs its own
+qualification.
 
 ## Component evidence
 
@@ -20,6 +27,7 @@ artifact identity that needs final qualification.
 | Retained-handle read primitives | [PR #270](https://github.com/Smart-AI-Memory/attune-harness/pull/270) | Shared read-only primitives; their success alone does not qualify a reader consumer or saved storage |
 | File-memory readers and serving | [PR #272](https://github.com/Smart-AI-Memory/attune-harness/pull/272) | Native reader, capacity, freshness, and path witnesses; final combined product qualification remains open |
 | Experimental native-memory transport | [PR #269](https://github.com/Smart-AI-Memory/attune-harness/pull/269) | Offline supervised-helper and pinned-SDK evidence; no live provider or model-quality acceptance |
+| Saved-store implementation checkpoint | [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275) | Current finite native lifecycle, concurrency, crash, replay, and task witnesses pass; full T5 and the historical busy-failure cause remain open |
 | Saved-store feasibility | [PR #268](https://github.com/Smart-AI-Memory/attune-harness/pull/268), [native run 38916934064, attempt 1](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38916934064) | Accepted finite fixed-component T2/D3 feasibility; not current production storage, Windows 11, or final parity |
 
 The D3 event ran four standard-primary-token cells on Windows Server 2022/2025
@@ -41,10 +49,49 @@ This later disposition satisfies the D3 feasibility precondition for T5. The
 dated pending states and failed attempts unchanged. None of those records, or
 the fixed-component proof, certifies a later production wheel.
 
-## Current production candidate
+## Merged saved-store checkpoint
+
+The [ordinary qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38954330802)
+at `05b649f2` passed all 19 native saved-store cases in each early and broad
+Windows run on Python 3.10.11 and 3.12.10, without skips or failures in those
+cases. Both broad runs also passed the four saved CLI/parser and seven index
+cases. The complete current concurrency witnesses accepted eight independent
+and eight identical original writer results. All four crash-boundary whole-byte,
+identity, confirmed-close, revision/history, and replay assertions completed.
+
+[Supplemental Windows coverage](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38954330956)
+also passed the 19 native cases for that source. This is instrumented evidence;
+its receipt explicitly leaves native process/recovery qualification open.
+The ordinary runs retain actual wheel build, constrained local-wheel install,
+`pip check`, installed qualifier success, and source bindings. A complete
+current CI wheel/RECORD audit is not established; final R7 artifact binding
+remains open. No additional host execution is implied by this preparation.
+
+These complete current finite witnesses support a bounded implementation
+checkpoint, not full T5 acceptance. The historical Ec eight-writer busy failure
+still lacks an observed holder/API timeline or supported causal explanation.
+Production and the two-second lock budget are unchanged; the added observer
+changes scheduling, so passing traces do not explain the earlier failure. The
+accepted first-oracle correction preserves the required whole-byte/replay,
+identity, close, and timing criteria; it does not establish the underlying
+historical CRT cause or a production fix. The CRT correction does not explain
+the distinct busy failure.
+
+Final Windows 11 standard-user desktop, complete Windows Server 2022/2025
+qualification with both Python runtimes, declared PowerShell journeys, live
+native-memory acceptance, compatibility, and combined artifacts remain T8
+work. Full T5 acceptance and the historical busy finding remain open after the
+human merge. The earlier observations below are retained as historical evidence.
+
+## Historical pre-merge storage observations
+
+This subsection preserves the Ec/297 preparation snapshots. References to
+“current” below describe those earlier heads, not merged `0735cca5`; their
+failures and then-pending observations are not erased by the later checkpoint.
 
 The preparation snapshot for PR #275 is signed head
-`ecbacc0813a94cabf00bb8df3b7996e1d9b63f0c`, based on the documentation base above.
+`ecbacc0813a94cabf00bb8df3b7996e1d9b63f0c`, based on then-main
+`0ecb45d855250d65f41226b644ca2f2742ff7bfa`.
 The current-head Python 3.12
 [early installed-owner check](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/38946613117/job/117127300867)
 ran 33 cases in 45.611 seconds: 32 passed, one failed, and none skipped; the
@@ -93,7 +140,7 @@ records their remaining evidence needs; it does not create a new process.
 
 | Gate | Required evidence before a release claim | Status in this draft |
 | --- | --- | --- |
-| Production storage (T5/R4) | Reviewed delivered source; locking, privacy, namespace publication, complete writes and barriers; concurrency, crash/restart, replay, task, index, and CLI evidence | Pending; the rename-kill failure is unresolved |
+| Production storage (T5/R4) | Reviewed delivered source; locking, privacy, namespace publication, complete writes and barriers; concurrency, crash/restart, replay, task, index, and CLI evidence | Current finite witnesses pass; full acceptance and the historical eight-writer busy-failure cause remain open |
 | Owned-process completion and recovery | Current-source evidence for the declared child-completion and recovery contract, retaining the failing cases | Pending; PR #274 remains open |
 | Native-memory acceptance (T7/R5) | Controlled production-transport acceptance, actual outcome and usage, with the existing authority and uncertainty boundaries | Pending; offline SDK evidence is separate, and an unknown prior outcome blocks redispatch |
 | Native server qualification (T8) | Final combined full suite and installed journeys on Windows Server 2022/2025 with Python 3.10/3.12; required cases run rather than hidden by an OS-wide skip | Pending |
@@ -116,7 +163,7 @@ they are not a substitute for its walkthroughs.
 
 | Canonical topic/source | Candidate evidence and disposition | Derivatives and owners | Walkthrough result and limits | Older guidance |
 | --- | --- | --- | --- | --- |
-| [README](../README.md), [installation](installation.md), and release notes | Draft 1.5.0 notes added; install/version instructions still describe published 1.4.0. Update final candidate pins after qualification | Release documentation owner; agent-plugin instructions require the selected runtime to match | No new install, existing-tool upgrade, or migration walkthrough run during this draft | Preserve versioned 1.4.0 notes and installation evidence |
+| [README](../README.md), [installation](installation.md), and release notes | Draft 1.5.0 release-notes content approved; install/version instructions still describe published 1.4.0. Final candidate pins and readiness acceptance remain pending | Release documentation owner; agent-plugin instructions require the selected runtime to match | No new install, existing-tool upgrade, or migration walkthrough run during this draft | Preserve versioned 1.4.0 notes and installation evidence |
 | [CLI guide](cli-guide.md), [supported journeys](supported-journeys.md), and [qualification](qualification.md) | Existing entry points checked against parser and source; platform reconciliation awaits final T8 | Release documentation owner; help projections remain separately owned | Source inspection is not a completed native command journey | Keep the historical evidence and its version labels |
 | [Written forms walkthrough](tutorials-next-release-candidate.md) | Existing 1.4.0 behavior retained; 1.5.0 reconciliation remains pending | Tutorial/deck and Help owners must coordinate actual derivatives | No new browser, accessibility, comprehension, or model-quality observation | Retain 1.3.0 decks and the written 1.4.0 procedure with their source labels |
 

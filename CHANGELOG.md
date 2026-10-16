@@ -5,11 +5,13 @@
 ### Planned 1.5.0: Windows compatibility (draft)
 
 Unreleased preparation for the full Windows parity target; the runtime remains
-`1.4.0`. Merged captured-test, file-memory reader, and offline native-memory
-components do not establish complete Windows qualification. Production saved
-storage, process completion, live provider acceptance, and final server/desktop
-installed journeys remain open. See the [draft release notes](docs/release-notes-1.5.0.md)
-and [preparation readiness](docs/release-readiness-1.5.0.md).
+`1.4.0`. Merged captured-test, file-memory reader, offline native-memory, and
+saved-store implementation checkpoints do not establish complete Windows
+qualification. Current finite saved-store witnesses pass, while the historical
+eight-writer busy failure and full T5 acceptance remain open. Process completion,
+live provider acceptance, and final server/desktop installed journeys also remain
+open. See the [draft release notes](docs/release-notes-1.5.0.md) and
+[preparation readiness](docs/release-readiness-1.5.0.md).
 
 ## 1.4.0
 

@@ -158,6 +158,17 @@ qualification is claimed.
 
 ## Storage limits and supported profile
 
+The profile paragraph below describes released **1.4.0**. Unreleased `main`
+now includes a fixed-local NTFS saved-store implementation checkpoint, merged
+as [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275). Current
+finite native witnesses pass, while full saved-store acceptance, the historical
+eight-writer busy-failure cause, and final Windows parity remain open. See the
+[draft 1.5.0 readiness record](release-readiness-1.5.0.md). This does not change
+the released 1.4.0 platform boundary or qualify WSL, every Windows configuration,
+or physical-power-loss behavior.
+
+### Released 1.4.0 profile
+
 The initial storage profile is local POSIX filesystems with advisory locks and
 atomic replacement. Windows refuses before creating the store; this is not a
 Windows storage qualification. Native Windows support remains an open release
