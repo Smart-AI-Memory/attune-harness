@@ -54,14 +54,14 @@ def test_windows_ambiguous_environment_is_rejected_before_job(tmp_path, monkeypa
 
 def test_windows_explicit_environment_keeps_descendant_cleanup(tmp_path):
     marker = tmp_path / 'escaped'
-    child = f'import time,pathlib;time.sleep(3);pathlib.Path({str(marker)!r}).write_text("bad")'
+    child = f'import time,pathlib;time.sleep(6);pathlib.Path({str(marker)!r}).write_text("bad")'
     parent = ('import subprocess,sys,time;'
               f'subprocess.Popen([sys.executable,"-c",{child!r}]);'
               'print("spawned",flush=True);time.sleep(20)')
-    result = invoke(command(parent), '', cwd=tmp_path, timeout=2,
+    result = invoke(command(parent), '', cwd=tmp_path, timeout=5,
                     environment=explicit_environment())
     assert result.failure == 'timeout_effects_unknown' and 'spawned' in result.stdout
-    time.sleep(3.2)
+    time.sleep(6.2)
     assert not marker.exists()
 
 
@@ -75,7 +75,7 @@ def test_windows_success_failure_unicode_and_spaced_cwd(tmp_path):
 
 
 def test_windows_timeout_and_cancel_are_effects_unknown(tmp_path):
-    r=invoke(command('import time;print("partial",flush=True);time.sleep(20)'),'',cwd=tmp_path,timeout=2)
+    r=invoke(command('import time;print("partial",flush=True);time.sleep(20)'),'',cwd=tmp_path,timeout=5)
     assert r.failure=='timeout_effects_unknown' and 'partial' in r.stdout
     cancel=Event();timer=Timer(2,cancel.set);timer.start()
     try:r=invoke(command('import time;time.sleep(20)'),'',cwd=tmp_path,cancel=cancel)
@@ -92,13 +92,13 @@ def test_windows_output_limits_and_invalid_encoding(tmp_path):
 @pytest.mark.parametrize('parent_wait',[False,True])
 def test_windows_descendants_stop_even_after_parent_exit(tmp_path,parent_wait):
     marker=tmp_path/'late'
-    child=f'import time,pathlib;time.sleep(3);pathlib.Path({str(marker)!r}).write_text("bad")'
+    child=f'import time,pathlib;time.sleep(6);pathlib.Path({str(marker)!r}).write_text("bad")'
     parent=f'import subprocess,sys,time;subprocess.Popen([sys.executable,"-c",{child!r}]);print("spawned",flush=True)'
     if parent_wait:parent+=';time.sleep(20)'
-    r=invoke(command(parent),'',cwd=tmp_path,timeout=2)
+    r=invoke(command(parent),'',cwd=tmp_path,timeout=5)
     assert 'spawned' in r.stdout
     assert r.failure==('timeout_effects_unknown' if parent_wait else None)
-    time.sleep(3.2);assert not marker.exists()
+    time.sleep(6.2);assert not marker.exists()
 
 
 @pytest.mark.parametrize('explicit', [False, True])

@@ -1,4 +1,4 @@
-"""Behavioral tests for the captured-change task; subprocesses use disposable repos."""
+"""# qualify: platform — captured-change tasks use real disposable repositories."""
 
 import json
 import subprocess
