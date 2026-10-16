@@ -142,6 +142,25 @@ def test_windows_snapshot_bound_counts_root(children, admitted):
 
 
 @pytest.mark.skipif(os.name != 'nt', reason='native Windows directory enumeration')
+def test_windows_checkout_bound_excludes_unrelated_ancestor_siblings(tmp_path, record_property):
+    parent = tmp_path / 'wide-parent'
+    parent.mkdir()
+    for n in range(MAX_ENTRIES + 1):
+        (parent / f'incidental-{n}').write_bytes(b'')
+    root = checkout(parent)
+    plan = freeze(root, tmp_path)
+    assert set(plan['before']) == {'', '.git/', '.git/config', 'source.py', 'oracle.txt'}
+    work_effects.validate_manifest(plan)
+    record_property('unrelated_ancestor_siblings', MAX_ENTRIES + 1)
+    record_property('checkout_snapshot_entries', len(plan['before']))
+    # The same directory bound still applies to entries inside the checkout.
+    for n in range(MAX_ENTRIES + 1):
+        (root / f'inside-{n}').write_bytes(b'')
+    with pytest.raises(ValueError, match='Directory exceeds bounded Windows profile'):
+        freeze(root, tmp_path)
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='native Windows directory enumeration')
 def test_windows_directory_enumeration_boundary(tmp_path):
     root = checkout(tmp_path)
     # Native.names counts children, whereas the complete snapshot also counts root.
