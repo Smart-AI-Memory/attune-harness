@@ -61,40 +61,287 @@ def test_native_memory_task_lifecycle_utf8_and_spaces(canonical_tmp):
 
 
 _SAVE = """
-import json, sys
+import ctypes, json, sys, time
 from pathlib import Path
+from attune_harness import memory_saved_windows as backend
 from attune_harness.memory_saved import SavedStore
-result = SavedStore(Path(sys.argv[1])).save(json.loads(sys.argv[2]))
+clock = time.get_clock_info('monotonic')
+trace = {'schema_version': 1, 'clock': {'implementation': clock.implementation,
+    'resolution': clock.resolution, 'monotonic': clock.monotonic, 'adjustable': clock.adjustable},
+    'events': [], 'events_dropped': 0, 'observer_failed': False,
+    'lock': {'attempts': 0, 'identity_observations': []}, 'flushes': [],
+    'held': False, 'lock_closed': False}
+lock_key = None
+
+def stamp():
+    try: return time.monotonic_ns()
+    except BaseException:
+        trace['observer_failed'] = True
+        return None
+
+def facts(error):
+    return {'type': type(error).__name__, 'errno': getattr(error, 'errno', None),
+            'winerror': getattr(error, 'winerror', None), 'code': getattr(error, 'code', None),
+            'outcome': getattr(error, 'outcome', None)}
+
+def note(event, **value):
+    try:
+        if len(trace['events']) == 64:
+            del trace['events'][0]
+            trace['events_dropped'] += 1
+        trace['events'].append({'event': event, **value})
+    except BaseException:
+        trace['observer_failed'] = True
+
+original_child, original_inspect = backend._Native.child, backend._Session._inspect
+original_lock, original_unlock = backend._Native.lock_once, backend._Native.unlock
+original_close, original_flush = backend._Native.close, backend._Native.flush
+original_commit = backend._Session.commit_payload
+
+def child(native, parent, name, **kwargs):
+    global lock_key
+    result = original_child(native, parent, name, **kwargs)
+    if kwargs.get('lock'):
+        lock_key = id(result)
+        trace['lock']['opened_ns'] = stamp()
+    return result
+
+def inspect(session, handle, kind):
+    result = original_inspect(session, handle, kind)
+    if id(handle) == lock_key:
+        entry, size = result
+        try:
+            trace['lock']['identity_observations'].append({
+                'at_ns': stamp(), 'identity': entry['identity'], 'held': trace['held']})
+        except BaseException:
+            trace['observer_failed'] = True
+    return result
+
+def lock_once(native, handle):
+    begin = stamp()
+    trace['lock'].setdefault('first_attempt_ns', begin)
+    trace['lock']['attempts'] += 1
+    try:
+        result = original_lock(native, handle)
+        error = ctypes.get_last_error() if not result else None
+    except BaseException as primary:
+        error = facts(primary)  # Original native error precedes clock/event observations.
+        trace['lock']['native_exception'] = error
+        note('lock_exception', begin_ns=begin, end_ns=stamp(), error=error)
+        raise
+    end = stamp()
+    trace['lock'].update(last_attempt_begin_ns=begin, last_attempt_end_ns=end,
+                         last_native_error=error)
+    if result:
+        trace['held'] = True
+        trace['lock']['acquired_ns'] = end
+    note('lock_attempt', begin_ns=begin, end_ns=end, acquired=bool(result), native_error=error)
+    return result
+
+def unlock(native, handle):
+    begin = stamp()
+    try:
+        result = original_unlock(native, handle)
+    except BaseException as primary:
+        error = facts(primary)
+        trace['unlock'] = {'begin_ns': begin, 'end_ns': stamp(), 'error': error}
+        raise
+    trace['held'] = False
+    trace['unlock'] = {'begin_ns': begin, 'end_ns': stamp(), 'success': True}
+    return result
+
+def close(native, handle):
+    selected, begin = id(handle) == lock_key, stamp()
+    try:
+        result = original_close(native, handle)
+    except BaseException as primary:
+        error = facts(primary)
+        if selected: trace['lock_close'] = {'begin_ns': begin, 'end_ns': stamp(), 'error': error}
+        else: note('other_close_error', error=error, at_ns=stamp())
+        raise
+    if selected:
+        trace['lock_closed'], trace['held'] = True, False
+        trace['lock_close'] = {'begin_ns': begin, 'end_ns': stamp(), 'success': True}
+    return result
+
+def flush(native, handle):
+    row = {'begin_ns': stamp(), 'held': trace['held'], 'is_lock': id(handle) == lock_key}
+    try:
+        result = original_flush(native, handle)
+    except BaseException as primary:
+        error = facts(primary)
+        row.update(end_ns=stamp(), error=error)
+        raise
+    else:
+        row.update(end_ns=stamp(), statuses=result)
+        return result
+    finally:
+        try:
+            if len(trace['flushes']) == 16:
+                trace['flushes_dropped'] = trace.get('flushes_dropped', 0) + 1
+                del trace['flushes'][0]
+            trace['flushes'].append(row)
+        except BaseException:
+            trace['observer_failed'] = True
+
+def commit(session, payload):
+    trace['commit'] = {'begin_ns': stamp(), 'held': trace['held'], 'payload_bytes': len(payload)}
+    try:
+        return original_commit(session, payload)
+    finally:
+        try:
+            trace['commit'].update(end_ns=stamp(), dispatched=session.dispatched)
+        except BaseException:
+            trace['observer_failed'] = True
+
+backend._Native.child, backend._Session._inspect = child, inspect
+backend._Native.lock_once, backend._Native.unlock = lock_once, unlock
+backend._Native.close, backend._Native.flush = close, flush
+backend._Session.commit_payload = commit
+trace['configured_lock_seconds'] = backend.LOCK_SECONDS
+trace['save_begin_ns'], primary = stamp(), None
+try:
+    result = SavedStore(Path(sys.argv[1])).save(json.loads(sys.argv[2]))
+except BaseException as error:
+    primary = error
+    trace['outcome'] = facts(error)
+    raise
+else:
+    trace['outcome'] = {'type': 'returned', 'record_id': result['record']['id'],
+                        'revision': result['record']['revision']}
+finally:
+    trace['save_end_ns'] = stamp()
+    # Pipe I/O is outside confirmed ownership. If release is unresolved, do not
+    # add a potentially blocking report while this process might own the lock.
+    if not trace['held']:
+        try:
+            encoded = json.dumps(trace, ensure_ascii=True, allow_nan=False)
+            if len(encoded) > 32768: raise ValueError('bounded diagnostic report exceeded')
+            print('SAVED_CONCURRENCY_DIAGNOSTIC ' + encoded, file=sys.stderr, flush=True)
+        except BaseException:
+            if primary is None: raise
 print(json.dumps(result, ensure_ascii=True, allow_nan=False), flush=True)
 """
 
 
-def writers(root, requests):
-    children = []
+def _concurrency_outputs(row):
+    """Parse retained child output only after original ownership cleanup."""
+    if not row.get('output_received'):
+        row['diagnostic_unobserved'] = True
+        return
+    stdout, stderr = row.pop('stdout'), row.pop('stderr')
+    row['stdout'], row['stderr'] = stdout[:32768], stderr[:65536]
+    row['output_truncated'] = len(stdout) > 32768 or len(stderr) > 65536
+    reports = [line[len('SAVED_CONCURRENCY_DIAGNOSTIC '):] for line in stderr.splitlines()
+               if line.startswith('SAVED_CONCURRENCY_DIAGNOSTIC ')]
+    try:
+        if len(reports) == 1 and len(reports[0]) <= 32768:
+            decoded = json.loads(reports[0])
+            if not isinstance(decoded, dict):
+                raise ValueError('diagnostic report is not an object')
+            row['diagnostic'] = decoded
+        else:
+            row['diagnostic_unobserved'] = True
+    except BaseException as error:
+        row['diagnostic_parse_error'] = _kill_error_facts(error)
+        row['diagnostic_unobserved'] = True
+
+
+def writers(root, requests, record_property, phase):
+    import time
+    children, rows, primary, cleanup_error = [], [], None, None
+    clock = time.get_clock_info('monotonic')
+    def stamp():
+        try: return time.monotonic_ns()
+        except BaseException: return None
+    def elapsed():
+        try: return time.monotonic()
+        except BaseException: return None
     try:
         for value in requests:
-            children.append(subprocess.Popen([sys.executable, '-I', '-c', _SAVE, str(root),
+            row = {'request_id': value['request_id'], 'launch_begin_ns': stamp(),
+                   'output_received': False, 'killed_by_parent': False}
+            child = subprocess.Popen([sys.executable, '-I', '-c', _SAVE, str(root),
                 json.dumps(value, ensure_ascii=True)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                text=True))
+                text=True)
+            children.append(child)
+            rows.append(row)
+            row['launch_end_ns'] = stamp()
         results = []
-        for child in children:
+        for child, row in zip(children, rows):
             stdout, stderr = child.communicate(timeout=30)
+            row.update(stdout=stdout, stderr=stderr, output_received=True,
+                       observed_exit=child.returncode, observed_ns=stamp())
             assert child.returncode == 0, stderr
             results.append(json.loads(stdout))
+            row['result_accepted'] = True
         return results
+    except BaseException as error:
+        primary = error
+        raise
     finally:
-        for child in children:
-            if child.poll() is None:
-                child.kill()
-            child.wait(timeout=10)
+        for child, row in zip(children, rows):
+            cleanup_begin = elapsed()
+            row['cleanup_deadline'] = None if cleanup_begin is None else cleanup_begin + 10
+            try:
+                row['cleanup_poll'] = child.poll()
+                if row['cleanup_poll'] is None:
+                    row['killed_by_parent'] = True
+                    row['kill_ns'] = stamp()
+                    child.kill()
+                child.wait(timeout=10)
+                row['cleanup_exit'], row['cleanup_end_ns'] = child.returncode, stamp()
+            except BaseException as error:
+                row['cleanup_error'] = _kill_error_facts(error)
+                if cleanup_error is None: cleanup_error = error
+            else:
+                row['cleanup_wait_completed'] = True
+        # Complete every original kill/wait decision before collecting any new
+        # output. A drain cannot delay the next original cleanup action.
+        for child, row in zip(children, rows):
+            if row.get('cleanup_wait_completed') and not row['output_received']:
+                now, deadline = elapsed(), row['cleanup_deadline']
+                if now is None or deadline is None:
+                    row['post_cleanup_drain_unobserved'] = 'cleanup clock unavailable'
+                    continue
+                remaining = max(0.0, deadline - now)
+                if remaining == 0:
+                    row['post_cleanup_drain_unobserved'] = 'cleanup budget exhausted'
+                    continue
+                try:
+                    stdout, stderr = child.communicate(timeout=remaining)
+                    row.update(stdout=stdout, stderr=stderr, output_received=True)
+                except BaseException as error:
+                    row['post_cleanup_drain_error'] = _kill_error_facts(error)
+        try:
+            for row in rows:
+                row['original_invocation_status'] = ('succeeded' if row.get('result_accepted')
+                    else 'failed' if 'observed_exit' in row else 'unobserved')
+                try:
+                    _concurrency_outputs(row)
+                except BaseException as error:
+                    row['diagnostic_parse_error'] = _kill_error_facts(error)
+                    row['diagnostic_unobserved'] = True
+            record_property('saved_native_concurrency_' + phase, json.dumps({
+                'clock': {'implementation': clock.implementation, 'resolution': clock.resolution,
+                          'monotonic': clock.monotonic, 'adjustable': clock.adjustable},
+                'claim': 'diagnostic observations affect timing; no original-run causal claim',
+                'children': rows}, ensure_ascii=True, allow_nan=False))
+        except BaseException as error:
+            if primary is None and cleanup_error is None: cleanup_error = error
+        if primary is not None and cleanup_error is not None:
+            raise primary from cleanup_error
+        if primary is None and cleanup_error is not None:
+            raise cleanup_error
 
 
-def test_native_cross_process_independent_and_identical_requests(canonical_tmp):
+def test_native_cross_process_independent_and_identical_requests(canonical_tmp, record_property):
     root = canonical_tmp / 'Concurrent fresh 雪' / 'Private store'
     assert not root.parent.exists()
-    independent = writers(root, [request('independent-' + str(i)) for i in range(8)])
+    independent = writers(root, [request('independent-' + str(i)) for i in range(8)],
+                          record_property, 'independent')
     assert len({row['record']['id'] for row in independent}) == 8
-    identical = writers(root, [request('identical')] * 8)
+    identical = writers(root, [request('identical')] * 8, record_property, 'identical')
     assert all(row == identical[0] for row in identical)
     store = SavedStore(root)
     assert len(store.list({'kind': 'global'})) == 9
