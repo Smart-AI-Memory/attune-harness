@@ -1,0 +1,1229 @@
+{
+  "build_backend": "setuptools==84.0.0",
+  "build_frontend": "build==1.3.0",
+  "build_input_count": 3,
+  "build_inputs": {
+    "LICENSE": {
+      "bytes": 11348,
+      "git_blob": "7471531d99b053f91ab5ec492c67950393e23c82",
+      "sha256": "92a7b711e19ab4d07bf655131f18cb9f10deed526bd2261eb5384eaf8fc5c7b0"
+    },
+    "README.md": {
+      "bytes": 19313,
+      "git_blob": "609104065a3c6e854f1d56e1fe979d69ce292165",
+      "sha256": "41e721ebbf4087de10136a529d0a4ccea25899098c4b360a793912a796f6b8a8"
+    },
+    "pyproject.toml": {
+      "bytes": 2704,
+      "git_blob": "abb7cf6004e767fd99031d9e93dc513d08b66fa4",
+      "sha256": "6e7fa148030b8f5e98697725fdd436265e80748467eb34cedb677cc74fcabe1b"
+    }
+  },
+  "build_isolation": false,
+  "console_entrypoint": {
+    "attune-harness": "attune_harness.cli:main"
+  },
+  "installer_generated_routes": {
+    "bytecode": "installer/interpreter generated only from the 113 pinned Python sources; no archived bytecode admitted",
+    "existing_console_entrypoint": {
+      "callable": "attune_harness.cli:main",
+      "name": "attune-harness",
+      "route": "installer-generated wrapper under Scripts; not invoked by proof",
+      "source_member": "attune_harness-1.4.0.dist-info/entry_points.txt"
+    }
+  },
+  "module_count": 113,
+  "modules": {
+    "src/attune_harness/__init__.py": {
+      "bytes": 3446,
+      "git_blob": "257c8720fbbf4d8fc93a6bd40addb1742d2fa3fd",
+      "sha256": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289"
+    },
+    "src/attune_harness/__main__.py": {
+      "bytes": 941,
+      "git_blob": "96cab8f2b4e054fc0469f7ad10471df7770f4834",
+      "sha256": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186"
+    },
+    "src/attune_harness/_pytest_worker.py": {
+      "bytes": 3293,
+      "git_blob": "21088a6c12c75b69a4aad05eaa75db9232f30329",
+      "sha256": "4af455e8fabb6b0d5dc7ac1923221e1ecd50af7ece3a6e135f1a75ecefe2a87d"
+    },
+    "src/attune_harness/_windows_worker.py": {
+      "bytes": 861,
+      "git_blob": "33f2f4fa7b165ea885ab429cdd106df8fe5b6075",
+      "sha256": "f50c5538e9af03b65105f16f68f06ce28e9350a820556b7a6aa0124255d95cff"
+    },
+    "src/attune_harness/a2a.py": {
+      "bytes": 14797,
+      "git_blob": "7118ec44bba1668823befbf31da3821fab154edd",
+      "sha256": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e"
+    },
+    "src/attune_harness/adapters.py": {
+      "bytes": 4269,
+      "git_blob": "cc09c65dd4ff05ad9581355c4d68cd488704eb95",
+      "sha256": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe"
+    },
+    "src/attune_harness/antigravity.py": {
+      "bytes": 7874,
+      "git_blob": "dc7c6328fdcad559bb9f2d08151aea2db1f6392d",
+      "sha256": "cb4e3d276b217a231c4d25ac008274c550b5d5f417658664a0549faaef820846"
+    },
+    "src/attune_harness/assessment_effects.py": {
+      "bytes": 7888,
+      "git_blob": "b574c79dc0b750ff9641d73265632f5245a4c715",
+      "sha256": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e"
+    },
+    "src/attune_harness/cli.py": {
+      "bytes": 12848,
+      "git_blob": "5e07c98e9202519aafb091926de4cae345f5c40e",
+      "sha256": "3ca4f66c0fb795226743cc44d2bcae01d300b99ceea29c75178e7a1a39ff4789"
+    },
+    "src/attune_harness/cli_help.py": {
+      "bytes": 2339,
+      "git_blob": "dc5576b05223c08c647a58cfb057e17b4608179b",
+      "sha256": "a95cdb6738c96e03f173bec8ef444d0e5f1ae0f500bd4175cc2db3094857db78"
+    },
+    "src/attune_harness/cli_surface.py": {
+      "bytes": 5912,
+      "git_blob": "8b0ba42cf950c97566c5deb8bc8f0585a599a89a",
+      "sha256": "e42cc955451298e84d41c5a71aae1fc38bfbbc7b67f6048ab887c9c0cf53d56e"
+    },
+    "src/attune_harness/command_workspace.py": {
+      "bytes": 30107,
+      "git_blob": "d19d06c6221fdb29852670af79cea80f4a405cad",
+      "sha256": "8c0df800b0bf71b14523f586aa8e72eca572af2c045b88f1c5eb9fb5a2836b38"
+    },
+    "src/attune_harness/consultation.py": {
+      "bytes": 25499,
+      "git_blob": "ba974b42893881cc13cc916bbbb9b9adeea25e04",
+      "sha256": "2ac00eea5d4144cbf6e6a9395db6b83da9e6b0bcf80ad6a717908989447aa356"
+    },
+    "src/attune_harness/consultation_cli.py": {
+      "bytes": 7569,
+      "git_blob": "8ab6f6d0a2f962761028654925be1897fba0d442",
+      "sha256": "8362196abc2a3c599c9914fb0754897681d5c58bd65bf29e8264cd893a4aef0f"
+    },
+    "src/attune_harness/consultation_evidence.py": {
+      "bytes": 2558,
+      "git_blob": "1173a2cba31ec208f6173c2f29ad21290768fa05",
+      "sha256": "72761cca2ce443c065f779bf41312825a1b481a1022541f61b93b801cf1740f6"
+    },
+    "src/attune_harness/consultation_output.py": {
+      "bytes": 8348,
+      "git_blob": "d410f1123bfadce4aad6482d1119e8f215eda951",
+      "sha256": "dcff0001b22311a71710a6850b34753bda22fe719f50621c8b62ccca1b65a904"
+    },
+    "src/attune_harness/consultation_preflight.py": {
+      "bytes": 4530,
+      "git_blob": "ff86f3a7e36c32dab552f2819bd4e9f9e5d572a4",
+      "sha256": "fcdbb5e91612e3ce9078bc89c982fa2145590887687e3ae55348694d5e9ac48d"
+    },
+    "src/attune_harness/consultation_recovery.py": {
+      "bytes": 6729,
+      "git_blob": "067b93c54d2aeb66a1e1477fe2aea5fd4990b8c9",
+      "sha256": "1a98d417da5ab48932be94a2e2bf482757ff31b6445c99a5b0b6f3415c884b4e"
+    },
+    "src/attune_harness/consultation_snapshot.py": {
+      "bytes": 7658,
+      "git_blob": "00a4949725f10ed229dc7fb4204273579bcc45bd",
+      "sha256": "b9e1c295643bd4f315d19b8618eae91edee79645afb0ddcac2eda72a2530d005"
+    },
+    "src/attune_harness/documentation.py": {
+      "bytes": 9438,
+      "git_blob": "004674f6513f29238765d71f39b3b127cefd7526",
+      "sha256": "e343c3baa1cce7f4fe7a2843171c1278a2bed391942a99666fa182bf8c471c1b"
+    },
+    "src/attune_harness/effect_limits.py": {
+      "bytes": 98,
+      "git_blob": "438fc756c8a3f3b1b493218e898a1556ea6a306c",
+      "sha256": "3852fa20cca80fcc9ad57a5f5c56887ed0488ae50af1e785d2a204caa3e41f5e"
+    },
+    "src/attune_harness/execution_evidence.py": {
+      "bytes": 12842,
+      "git_blob": "34437107779e0f3246e7dddae8e141d8ff8dab1e",
+      "sha256": "4512c57cefd3b3f79bed0f4f06417de9236ad79520aa81aa45ddb2e48db39220"
+    },
+    "src/attune_harness/extension_cli.py": {
+      "bytes": 2369,
+      "git_blob": "8bfcea1c7b085a1eb70285618acb623331d1a86c",
+      "sha256": "8102d578bd53ebf35ec4fb78cdd057a3a1b7c4f3001182542985ec642c8b47da"
+    },
+    "src/attune_harness/extensions.py": {
+      "bytes": 27196,
+      "git_blob": "3d73ebdb042b24304a3b8c420a3c0740e93f63d0",
+      "sha256": "3390dd098a220960507614aeb5904eff45012591493583b146d8a5a097ae7c6f"
+    },
+    "src/attune_harness/features.py": {
+      "bytes": 9315,
+      "git_blob": "c8283c715ced262732e147094c7743884995901b",
+      "sha256": "b02d85aeb83bc39f5287eefdd20e13ddfdacff2305a3786925ef5ff6732e00ed"
+    },
+    "src/attune_harness/github_checks.py": {
+      "bytes": 2899,
+      "git_blob": "4e430a8de48ea8e3d95f6ec5e40f4af8d8925b13",
+      "sha256": "f8be1dace591530cc78b4d4095477abdaca76391fb55eb1d9b57514699da1213"
+    },
+    "src/attune_harness/grounded_review.py": {
+      "bytes": 7496,
+      "git_blob": "aa4222989017719e73d6686f2fd874ecd8427529",
+      "sha256": "55e428e68152658b430a0f345d8d183400827c6e3c5f8e9d35059dbf2947fd2a"
+    },
+    "src/attune_harness/gui.py": {
+      "bytes": 18718,
+      "git_blob": "2e236cef1ae6820a3c24ff67a31dd9dadf036360",
+      "sha256": "be2fe9ed36ab7e5f5a9722d9b19e68582a10fb302b441764f129cc571b5a9527"
+    },
+    "src/attune_harness/gui_build.py": {
+      "bytes": 7003,
+      "git_blob": "f73bc8263e3ff76169f553456200fc0520899ae9",
+      "sha256": "c9420797c9a96e22a0d65ec17d4cb5de79ffe42a4ca2683629f5ce52c2333990"
+    },
+    "src/attune_harness/gui_decisions.py": {
+      "bytes": 11285,
+      "git_blob": "e94de000c2c1ff13b96d8d514165d79e48bdc0f7",
+      "sha256": "d862a0e797cb51c9711c15cad72bc7a1cee28cb27080f7d554e69d6a158b7f8c"
+    },
+    "src/attune_harness/gui_forms.py": {
+      "bytes": 14910,
+      "git_blob": "e2c4df0f6ab8b260c1411cc44bdb917335bbe93a",
+      "sha256": "22fcbae951402a512a835d1ec0173418b3bd399e37b84526a2521a48c7984d64"
+    },
+    "src/attune_harness/gui_forms_intake.py": {
+      "bytes": 22687,
+      "git_blob": "52f02c47d445eabeb5720ed6137290a868c77340",
+      "sha256": "f4560bf6f0413cc6c5cd596d772ff8898b85294debde7af867a3ac23cbaccb10"
+    },
+    "src/attune_harness/human_output.py": {
+      "bytes": 3444,
+      "git_blob": "d375dca3fa59c22df4441017067b9bdc25c0e734",
+      "sha256": "d9090cf85209d61315929b14413d52bd2d967edb143e95e3cb6b03af3ee06272"
+    },
+    "src/attune_harness/init_cli.py": {
+      "bytes": 28570,
+      "git_blob": "79a48d16cc5f13f489f6939a5106ba1f7b2064ea",
+      "sha256": "639ecd1903f7509779ca5c61ff1c0cb297c2e56217d448bbe13fef16c7f2c96f"
+    },
+    "src/attune_harness/llama_tokens.py": {
+      "bytes": 5005,
+      "git_blob": "93a7c8ef288000f9e8d28ec07bb4147513ce668b",
+      "sha256": "3a7d0a1b37bc2b6321a3dec199ed32e4608d44f4f5ec8f1ac2c992d268be249b"
+    },
+    "src/attune_harness/mcp_server.py": {
+      "bytes": 14335,
+      "git_blob": "08316b8d15c22b071c73ed88aa6ee969dda86c8d",
+      "sha256": "edc5b45e723a1cdc9ddbf621c17feb10c927e2597916ddaac8fed0a787497325"
+    },
+    "src/attune_harness/memory_cli.py": {
+      "bytes": 12386,
+      "git_blob": "f6e62e7f18d78619303054326b75bfe0481f4ae7",
+      "sha256": "5de885df6d87785ad9e85095493af31f554b2bd3e6798d418fa7be237fd852cd"
+    },
+    "src/attune_harness/memory_context.py": {
+      "bytes": 12900,
+      "git_blob": "f4b90784bf311d80b57d1c70dbc3516ce0aff0d7",
+      "sha256": "696307373cad5702950e48d6e1e6065db6ded59c4d107354baba24fddf202a1d"
+    },
+    "src/attune_harness/memory_contract.py": {
+      "bytes": 12198,
+      "git_blob": "f240cf6cdcb65197026a9371837e7c343331d0ed",
+      "sha256": "8b50fd654405a8140fa51de6bf4d4a7543caa5d9ea89050f6326c88b1d34cdbb"
+    },
+    "src/attune_harness/memory_controls.py": {
+      "bytes": 18179,
+      "git_blob": "2b641891082ddf44f98f70c8bc1cc01d92412a53",
+      "sha256": "301f1d640d1c44a00462f8f9776a6b497a261041ec1cf90c9e9ca29b3e7d0403"
+    },
+    "src/attune_harness/memory_native.py": {
+      "bytes": 25292,
+      "git_blob": "16117cd90fa27c00f6b4c63b4abd1407f331de98",
+      "sha256": "447517042491f5c0b607631ea37cce1c6fea82c98dcbbd52b2a76596ecccad0c"
+    },
+    "src/attune_harness/memory_reader.py": {
+      "bytes": 26557,
+      "git_blob": "3412c936a4f53a9214220375e522a63aa50265b1",
+      "sha256": "7d7e3e7ca2317f1eb817b8a40093c7bae9e192c681bc1b5184c89554d46ba035"
+    },
+    "src/attune_harness/memory_redis.py": {
+      "bytes": 23869,
+      "git_blob": "502c7a428f233393c054af8517355fdf18dc8d40",
+      "sha256": "d7f3bdc6e7f39fbcd28c07313ec5bf4f9ab4a576e3a64eb040ffa646aacfd13a"
+    },
+    "src/attune_harness/memory_saved.py": {
+      "bytes": 24040,
+      "git_blob": "28db2d34205af0e2d9e42c83df7adc435dcd9b27",
+      "sha256": "628b0565a3af6527003019d1daa90a99812db6a9d914e763ca98ff541d7ad78d"
+    },
+    "src/attune_harness/memory_saved_cli.py": {
+      "bytes": 4164,
+      "git_blob": "5631ab76b912bd27c1e4bdf974856453212c660e",
+      "sha256": "ead24ca1f3204f6b16de50a019d0104d847298e7c43fa843e620292e75914605"
+    },
+    "src/attune_harness/memory_saved_index.py": {
+      "bytes": 2843,
+      "git_blob": "acc87ef90c3dc9a525783cf4e6c65737611369d6",
+      "sha256": "6a8ce05cc96c17632daa309b7909dd8bdffa0ba04eb8b0436dce3e7d374417f4"
+    },
+    "src/attune_harness/memory_scratch.py": {
+      "bytes": 39521,
+      "git_blob": "78c6bfee985bfc3bb01b20afd201223ab1537bca",
+      "sha256": "38a5ad3fb4952ed7cf21791106e29d04ee8f3fead7ceeb291226b03a04fa78a0"
+    },
+    "src/attune_harness/memory_serving.py": {
+      "bytes": 4701,
+      "git_blob": "64b7705bbf202e1cd4ad46d3189203e04cac0831",
+      "sha256": "852f01b2b4f2871b3acb17ee66bb8ee8baf1dfaa327addc2a08e49f42d9069c5"
+    },
+    "src/attune_harness/memory_worker.py": {
+      "bytes": 17310,
+      "git_blob": "b719e1453af2bb61ad385892616445f8809c87dd",
+      "sha256": "5c3f678a696df6a2d99ad8b333cc43aa1d870f52aacf0601238a86530b978988"
+    },
+    "src/attune_harness/native.py": {
+      "bytes": 12132,
+      "git_blob": "d7049dfa63f4583b137bf4e8a1ee64c7c5e5d170",
+      "sha256": "a07ae7aed90e6f75ef60da1b166473e893533b66d1d8029d3afaee250f2d6426"
+    },
+    "src/attune_harness/ollama.py": {
+      "bytes": 10365,
+      "git_blob": "5fc55417b41bf2498041dae60cc75268d8278747",
+      "sha256": "5b59b88d4cb398334857af4771e5f176013d2d7d0e304c99ad0c31898565081d"
+    },
+    "src/attune_harness/ollama_review.py": {
+      "bytes": 9010,
+      "git_blob": "0b2c210fedb2cb6ac13cb06c119a33f777721b5c",
+      "sha256": "b194396ea4e1418b451ed894ec3d6b8426919b5bbb2e0bad9d7e3ed250b3ea3b"
+    },
+    "src/attune_harness/operations.py": {
+      "bytes": 9316,
+      "git_blob": "d06072388ef8577ce7ae10693c5a778a63371bac",
+      "sha256": "0cd4e3eb9777b9f12deff53525e5b24e199cbeecc005e4fbe2eaa97b2f832b28"
+    },
+    "src/attune_harness/passage_review.py": {
+      "bytes": 6870,
+      "git_blob": "fc3d3f077b6b297bb45349f02e98ea79924c7f31",
+      "sha256": "bd88e77342a87e8fdd548bec84fc98afd8dd17f20f7456acb964f34f1dd3ea0e"
+    },
+    "src/attune_harness/paths.py": {
+      "bytes": 5311,
+      "git_blob": "0864daf23d59d14fb786ec61dc4939a419df2c0f",
+      "sha256": "e16179702ae3f68e92273524d2fc3f9602c847920b56908d0efb47df2dccd0ad"
+    },
+    "src/attune_harness/plugin_runtime.py": {
+      "bytes": 21604,
+      "git_blob": "b3a915af3329a3c59050f5e8ef52fe8f46ed5b1e",
+      "sha256": "e52271603373ebe2f7acccbf37b037c64b081936207c2f059c7be33d54fae92c"
+    },
+    "src/attune_harness/plugin_signing.py": {
+      "bytes": 19894,
+      "git_blob": "37b20055333e57a00919764bc74efc820ea13a4d",
+      "sha256": "4657d5b980598a78642696472e4ffae3ea9734e3ee4bce4eacb5b311f11b6164"
+    },
+    "src/attune_harness/process.py": {
+      "bytes": 5740,
+      "git_blob": "433c0af9b947a0e700f7833fc1a20b6c95597e4f",
+      "sha256": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291"
+    },
+    "src/attune_harness/recovery.py": {
+      "bytes": 22863,
+      "git_blob": "35f803b05572be7bda821a93af6faea944e98e58",
+      "sha256": "0be3d679dcfeef6be707de20fadfa087535c4cc09363e9670cce91b05028eeb4"
+    },
+    "src/attune_harness/repair.py": {
+      "bytes": 20581,
+      "git_blob": "21f466dd3b56e44809b834cd97c4748429323a09",
+      "sha256": "d87f122f227267f37950d5faa052cc0f11aef5bafd0c419bfcd14ba1ab27e55d"
+    },
+    "src/attune_harness/retrieval.py": {
+      "bytes": 3545,
+      "git_blob": "448a88bc3eae88c139e1b6d4dbbc609cbd24901f",
+      "sha256": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1"
+    },
+    "src/attune_harness/retrieval_task.py": {
+      "bytes": 2925,
+      "git_blob": "9dcf1f9bfd3059f0103959f63b1e8e1bfb35b09e",
+      "sha256": "2fb48359f1bc67f2b13f2235f2f125ee2ae3bfa3a7f7a5287f4c827dd1ccdeb5"
+    },
+    "src/attune_harness/review.py": {
+      "bytes": 5586,
+      "git_blob": "854c8dc5d78ed09b2a98c59beacdd446d32b549b",
+      "sha256": "ebe52205427f1fcac50c6986aaa6b416254e027cbd11437ffe5b04ecc058e815"
+    },
+    "src/attune_harness/review_cli.py": {
+      "bytes": 6058,
+      "git_blob": "ae54c98555e3bbb1d2b213c23580b4d8f98cb87f",
+      "sha256": "843f808b7526083fa572b11b78590ce72af00475544872207875c848072bc3a2"
+    },
+    "src/attune_harness/review_contract.py": {
+      "bytes": 8350,
+      "git_blob": "a2771247eb2f0bd5525691c616e1973cb6e57565",
+      "sha256": "83a6694cbeefd933bc6deef2098333877dcbd86b142743b552ce8f81f0ba4427"
+    },
+    "src/attune_harness/review_participants.py": {
+      "bytes": 11188,
+      "git_blob": "39b2e46b1c96b7f279c7711f1911615c16e0e741",
+      "sha256": "48e76e9e3511e1746164c57e712e8ceb29604fc1dfc3df43bae9539bcf5c29f3"
+    },
+    "src/attune_harness/review_store.py": {
+      "bytes": 7615,
+      "git_blob": "f333452168a6b924eb5a3ed7addbecf9fcdce495",
+      "sha256": "8c501e2a70c6ccf5d524b6171aa077aad15809aa249ed3c840ab94a0eb975c28"
+    },
+    "src/attune_harness/spec_cli.py": {
+      "bytes": 5419,
+      "git_blob": "365ffb1b4176f29d753ea621ee4347d8fbb22c2c",
+      "sha256": "ac28938117c05b7834cbeb86aa11a4418b7ac6b169fb538e1eb8ed90d98bae11"
+    },
+    "src/attune_harness/spec_handoff.py": {
+      "bytes": 3742,
+      "git_blob": "80dcc81690edfc2d35ddcabec791bf229a5419e2",
+      "sha256": "f909fd18cde4830fdc8d0cb781b38e36d506494a82410ca84c337d015ff32da5"
+    },
+    "src/attune_harness/spec_intake.py": {
+      "bytes": 5788,
+      "git_blob": "1e52a6c9023b96d7ec3f730e01e72a685fff5278",
+      "sha256": "76aa6eb9985df66a4a54497643bce00b95dcbd21a184d766656f145b40b48e3b"
+    },
+    "src/attune_harness/spec_legacy.py": {
+      "bytes": 5472,
+      "git_blob": "26e31b3019f828d9c694c1266329904502f1017c",
+      "sha256": "dab952a049d736d06a41320138a3d162ebd150125e1d33e2a053175690690641"
+    },
+    "src/attune_harness/spec_presenter.py": {
+      "bytes": 4528,
+      "git_blob": "44095b2d72897b1c3c2bc2bd38aeeecf51f4bc3e",
+      "sha256": "76975e153dbf5d5d5157caff4cef147c8c19f053852bba14742a1443778e4760"
+    },
+    "src/attune_harness/spec_state.py": {
+      "bytes": 19498,
+      "git_blob": "ad95d8fc5b71788dc685496f465e533fad580cef",
+      "sha256": "2a64e1028efc3cc93eb0da67ec359f73827a980729da0ad99c28dc380686b2d2"
+    },
+    "src/attune_harness/spec_tasks.py": {
+      "bytes": 19155,
+      "git_blob": "ce888f5148330b49ca234d0eafbdac7d843a5974",
+      "sha256": "d52d1ba0ef702458ea5b359879e4d2be460f4f42e4d70075fc804bc7f2053103"
+    },
+    "src/attune_harness/spec_workspace.py": {
+      "bytes": 45836,
+      "git_blob": "d78a875da810c192be62419d620940c34001143f",
+      "sha256": "d2c2811bd3d34a841797937a465bdd6ef238d81547570d6d649de8c483b5dea1"
+    },
+    "src/attune_harness/task_cli.py": {
+      "bytes": 21447,
+      "git_blob": "c50d65038a3aeaa00942c8e4344f7c66e050a504",
+      "sha256": "098dec991e6729dfde09ac6a14a4bb8c58e8173783875d88be0e6e0ca56b94c9"
+    },
+    "src/attune_harness/task_continuation.py": {
+      "bytes": 5605,
+      "git_blob": "2959bcb80581024b0adada23dfeb5658cf438690",
+      "sha256": "bc5d25f00745c0e7b1a91c200e6522cfc56d8041cf6cb26cb0a854d694ec28db"
+    },
+    "src/attune_harness/task_contract.py": {
+      "bytes": 30452,
+      "git_blob": "ae7acdb556192d60a8d4ebfb5049f9ebaabff818",
+      "sha256": "5b78512ebabff7f8d8cc6a37c7161ba847fce6c2721cc54ceb1ae9ec9e7a9215"
+    },
+    "src/attune_harness/task_handoff.py": {
+      "bytes": 22133,
+      "git_blob": "e021ef17d574d9bc21e4548a6d490c49c758c5fc",
+      "sha256": "db6ebf0bd52ba67b165a1cb566b84868ed7d80b2f16d4d9031712c7b8f817712"
+    },
+    "src/attune_harness/task_policies.py": {
+      "bytes": 21149,
+      "git_blob": "1388de757dcc2299aaced5bf3b828b569fbdda36",
+      "sha256": "530b7f669b46842615c1ba17fd68a9692faa262a92ae1e1695ac91a05b0a87f5"
+    },
+    "src/attune_harness/task_runtime.py": {
+      "bytes": 13535,
+      "git_blob": "fee3cd66a9a4e8c03d86c1d6a7c61a012d96918d",
+      "sha256": "bc113a18b20f2b2b0f01fb2389afc92322fef42410ce720dcdf36abaaf3706ae"
+    },
+    "src/attune_harness/task_view.py": {
+      "bytes": 38239,
+      "git_blob": "e3fb7973eb7ab0a016a71eeda99913e59c67a59b",
+      "sha256": "f784d58c6367b1e2bf2d8afd9a5c802dbc985af88ca6dfa88e192e5f52140144"
+    },
+    "src/attune_harness/test_change.py": {
+      "bytes": 20814,
+      "git_blob": "6e9c1fe18c9cda36218833182e390cdaa723cedc",
+      "sha256": "ae311410e25d2182789b273e75f2038526c75c8047bf3cb6fdc6b9333ff6a421"
+    },
+    "src/attune_harness/test_cli.py": {
+      "bytes": 4945,
+      "git_blob": "11d8d10655718971598274a730af1b25ab8adfba",
+      "sha256": "17a281834d0ca80084d199396d2252754755c95fad1f0807deb76a4a7318778b"
+    },
+    "src/attune_harness/test_execution.py": {
+      "bytes": 9329,
+      "git_blob": "2c53a065ae7e970e2746ea26dc054a6804763e69",
+      "sha256": "5b0f4390380d85e9917b25de4f0a6f300e9f13e38bc5ee95509af0aef8f335ba"
+    },
+    "src/attune_harness/test_scope.py": {
+      "bytes": 10752,
+      "git_blob": "0d48640378a4bad4c859d50660c07933cfb07cfd",
+      "sha256": "63f89320bc8e2bb275da9d2c21f89131bbc09200278b5744bc852caacb572296"
+    },
+    "src/attune_harness/verification.py": {
+      "bytes": 2684,
+      "git_blob": "75eb8a4daaaf704585d0de335edf2fde58933d6f",
+      "sha256": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c"
+    },
+    "src/attune_harness/voyage_cli.py": {
+      "bytes": 3394,
+      "git_blob": "3ade0a44028451a7f85c76dc5dd3f16c43eb35bf",
+      "sha256": "866910d491207fb72fff4b9c5d8c0324bf587c2a6d9bad5f9a5e5f54082126da"
+    },
+    "src/attune_harness/voyage_index.py": {
+      "bytes": 25718,
+      "git_blob": "9a05dc55143bde30dd5526f71698b20c27e973dd",
+      "sha256": "2fd9b940a01bad6fdbbb1f9db1691768a5a3a640e344ab26b9f446732cc70372"
+    },
+    "src/attune_harness/voyage_plugin.py": {
+      "bytes": 11790,
+      "git_blob": "0ef29b1259d6960d18e9bc94ffe026ef53dd7e41",
+      "sha256": "31b32bd76adfcfc7c0655f1610e6f716a8c5a1d64d134c090e5d27c76a3836a5"
+    },
+    "src/attune_harness/voyage_provider.py": {
+      "bytes": 15186,
+      "git_blob": "80852c6b72c4551b5bdd6177691c63a75415bb11",
+      "sha256": "9f78ac03dd56af278e72736c892fa0755f60244473b12490d35939d2453bec0e"
+    },
+    "src/attune_harness/voyage_retrieval.py": {
+      "bytes": 11080,
+      "git_blob": "bb26e9ed3d088f70ba1ca100ed58b1dfcd2a5f85",
+      "sha256": "84f090ff6aef344ec7d7c156f407c775d21b0014758b41259458119a81247289"
+    },
+    "src/attune_harness/voyage_sources.py": {
+      "bytes": 14750,
+      "git_blob": "b2d81c7d50b02fc422fcfd4c5322bd4b74a6b630",
+      "sha256": "00753236ba292758722c0a31c6c49cb33484e22a94d1ca873eff3391bb858733"
+    },
+    "src/attune_harness/windows.py": {
+      "bytes": 4827,
+      "git_blob": "f541560b9bff95dee3d1261330b0a1598e685cc3",
+      "sha256": "c5abac57c88ab4fa23c851e8fce042296ddc8403d0b024d297af9beddcd90a26"
+    },
+    "src/attune_harness/windows_effects.py": {
+      "bytes": 41844,
+      "git_blob": "98c6ab79be65020b399318e60c6e701db89b8ceb",
+      "sha256": "ffc46d2f054a7bcf6c95230551a87fb5c73d9992ecebdde9497d2226d0763139"
+    },
+    "src/attune_harness/windows_reads.py": {
+      "bytes": 19026,
+      "git_blob": "39caa5d464730e39d5ca1e17d8d8ff3c600aa8cb",
+      "sha256": "c3b3b7391ca73b7321b820eb2fe2a84a9d1b754707b59d9f6533a0cedd99130a"
+    },
+    "src/attune_harness/work_accept.py": {
+      "bytes": 26918,
+      "git_blob": "475cfae679962de92ce8f93e1cbd1322849ccc75",
+      "sha256": "8353bb5371363fc967e63a59b05fafbebb37e892432b3a62da24b29a92b4d933"
+    },
+    "src/attune_harness/work_bodies.py": {
+      "bytes": 6927,
+      "git_blob": "82e49d7288d617f4baf82685e9063644640706a9",
+      "sha256": "0c3206842e6369e561b61f4fc49f7c2260ecb136c603aa6f5ae0ee9f96338624"
+    },
+    "src/attune_harness/work_build.py": {
+      "bytes": 40514,
+      "git_blob": "f55cfd018f2bc9daf49866074a41f721d1982807",
+      "sha256": "b01d4871d6e402729ddd439dc780cd5dc5e88065ad2857e00cb3477799062ecb"
+    },
+    "src/attune_harness/work_cli.py": {
+      "bytes": 31960,
+      "git_blob": "e613f6b0a4f69386ea844d3ff4bbcaf810684a9b",
+      "sha256": "e0946e017641ed8b6ae90f66c7d94842c0619af13dfe24a3991cfa26eda9554c"
+    },
+    "src/attune_harness/work_contract.py": {
+      "bytes": 32206,
+      "git_blob": "21067f18d857fc441038a049dde60926e090ebf6",
+      "sha256": "bccb303662a40f924a4134cb0d77f8569c941e0451943a097dda175abc125770"
+    },
+    "src/attune_harness/work_decisions.py": {
+      "bytes": 5204,
+      "git_blob": "f1ccdbee8198ced511468711636c117e2362c592",
+      "sha256": "000d5bcca054c41edab98310ae639f72c9780f3f02ae65bbb9a8d31d6ada532b"
+    },
+    "src/attune_harness/work_effects.py": {
+      "bytes": 32912,
+      "git_blob": "ecb846f314bc2d108d7cfe6d98aec24b22928b4c",
+      "sha256": "0c430083e57a54ea105514165e7323cfc07ad17d1c5e3b1858b1b2fb71da8d51"
+    },
+    "src/attune_harness/work_review_handoff.py": {
+      "bytes": 14425,
+      "git_blob": "42c98a46b4fa004ef0f4cf3562eebca521884ec0",
+      "sha256": "27953e3da1cfc8946f0715d956c5d7c92ad423c3a5fa378bbfaede8a722b409e"
+    },
+    "src/attune_harness/work_runtime.py": {
+      "bytes": 43476,
+      "git_blob": "5d7dde9a8fd78c2cdbcea73992e26f5f2655266a",
+      "sha256": "cf00eaf4dae1feb0aa67b464088bfbc942b45710e1fc07889915a50ba86ca8e6"
+    },
+    "src/attune_harness/workspace_mcp.py": {
+      "bytes": 13568,
+      "git_blob": "ffab46c58a4442cf5504daaeca4dbc6ce3c06bc9",
+      "sha256": "2ef6162ebe9527e5b76ebe601b0d2b23b2dea940e97d2818e4135057042797ed"
+    },
+    "src/attune_voyage_plugin/__init__.py": {
+      "bytes": 84,
+      "git_blob": "df4a46fa5e37330ecd10f004dd9fe6966b7472e6",
+      "sha256": "d2c1940de64c678362efd83ea268cfa00085ead9ffe961f98c826f2b65d195c9"
+    },
+    "src/attune_voyage_plugin/bundle.py": {
+      "bytes": 2445,
+      "git_blob": "b0456bc1907ae4332e2a72d30cd0a1b67bea4536",
+      "sha256": "365b76eafbb2c3f1e2ccaaaec96fc6e556c5c7f846cea720dd06f431c5d4191a"
+    },
+    "src/attune_voyage_plugin/common.py": {
+      "bytes": 921,
+      "git_blob": "1ae5c83623ea5f7e745e564e8d085e590ff48053",
+      "sha256": "0541b43d2d44d607d195da5a90d4c08b9badbd30faaba70a97f06788a957ad70"
+    },
+    "src/attune_voyage_plugin/embed.py": {
+      "bytes": 269,
+      "git_blob": "c60e737f812f0976246f07d4aa9a2e9783bc59c7",
+      "sha256": "e6da484ea68632240f844a29bbb4234d15e84a56a0fba4b1b76827099a868b70"
+    },
+    "src/attune_voyage_plugin/index.py": {
+      "bytes": 1805,
+      "git_blob": "b0aae78f6de4509f5e62dde3bbe98764826dd2ef",
+      "sha256": "db6ef21cffff663d0c3fe767073b2ff3b0fd2ca6a43a104071e2e1507b28c8d9"
+    },
+    "src/attune_voyage_plugin/provider.py": {
+      "bytes": 3681,
+      "git_blob": "938ca828640c94e98322c99ed6e43657296b1850",
+      "sha256": "9dc356fb4a48aa48c2d161aff1beedf0b9b01c6549c40b0b509d642a170d6624"
+    },
+    "src/attune_voyage_plugin/rerank.py": {
+      "bytes": 273,
+      "git_blob": "086a81f58e9c2793056377b1d08bf62eebb1ef23",
+      "sha256": "c82806d7d18cfed4ba349062253410be565e739512a578635b077ad5b5bd480a"
+    }
+  },
+  "schema_version": 3,
+  "source_head": "dbe7a25e7aff6005049739e7ac14c0ccc4c12313",
+  "wheel_member_count": 119,
+  "wheel_members": {
+    "attune_harness-1.4.0.dist-info/METADATA": {
+      "bytes": 21118,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/METADATA",
+      "sha256": "164a238da1af1ff349fe6bdb5fbc2fa30a08187223c006a90efbba4aca57d2e4"
+    },
+    "attune_harness-1.4.0.dist-info/RECORD": {
+      "bytes": 10426,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/RECORD",
+      "sha256": "2495a37db2bfbfba41a08f2545d4a64cdc79c791eacfaefe1ccccf5725538119"
+    },
+    "attune_harness-1.4.0.dist-info/WHEEL": {
+      "bytes": 91,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/WHEEL",
+      "sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1"
+    },
+    "attune_harness-1.4.0.dist-info/entry_points.txt": {
+      "bytes": 59,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/entry_points.txt",
+      "sha256": "7e06c7e8a9115b1dbd2062cc400c9acc9e27f8677277a68b6dfe93b3f5470178"
+    },
+    "attune_harness-1.4.0.dist-info/licenses/LICENSE": {
+      "bytes": 11348,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/licenses/LICENSE",
+      "sha256": "92a7b711e19ab4d07bf655131f18cb9f10deed526bd2261eb5384eaf8fc5c7b0"
+    },
+    "attune_harness-1.4.0.dist-info/top_level.txt": {
+      "bytes": 36,
+      "install_destination": "site-packages/attune_harness-1.4.0.dist-info/top_level.txt",
+      "sha256": "eb6126b5db646a233c8c989a3e4fa2928813e58ee2d72e9b77ad12de9311707a"
+    },
+    "attune_harness/__init__.py": {
+      "bytes": 3446,
+      "install_destination": "site-packages/attune_harness/__init__.py",
+      "sha256": "515d75273aa92d20993393c1e1d5732d4df02a861feb990e5db094a46dc8f289"
+    },
+    "attune_harness/__main__.py": {
+      "bytes": 941,
+      "install_destination": "site-packages/attune_harness/__main__.py",
+      "sha256": "420febf7ecd29ece021a2741fd5d04f7dee7115f53defe0c13dd340b098d7186"
+    },
+    "attune_harness/_pytest_worker.py": {
+      "bytes": 3293,
+      "install_destination": "site-packages/attune_harness/_pytest_worker.py",
+      "sha256": "4af455e8fabb6b0d5dc7ac1923221e1ecd50af7ece3a6e135f1a75ecefe2a87d"
+    },
+    "attune_harness/_windows_worker.py": {
+      "bytes": 861,
+      "install_destination": "site-packages/attune_harness/_windows_worker.py",
+      "sha256": "f50c5538e9af03b65105f16f68f06ce28e9350a820556b7a6aa0124255d95cff"
+    },
+    "attune_harness/a2a.py": {
+      "bytes": 14797,
+      "install_destination": "site-packages/attune_harness/a2a.py",
+      "sha256": "8fbe6904cf6c6174471532ca53d19ff01708135e66936936f1aaa15fb06a385e"
+    },
+    "attune_harness/adapters.py": {
+      "bytes": 4269,
+      "install_destination": "site-packages/attune_harness/adapters.py",
+      "sha256": "ad05958b6a56bed97ff8277a03d9c03c749a2d135e5eb865fe9c1cafdc7d93fe"
+    },
+    "attune_harness/antigravity.py": {
+      "bytes": 7874,
+      "install_destination": "site-packages/attune_harness/antigravity.py",
+      "sha256": "cb4e3d276b217a231c4d25ac008274c550b5d5f417658664a0549faaef820846"
+    },
+    "attune_harness/assessment_effects.py": {
+      "bytes": 7888,
+      "install_destination": "site-packages/attune_harness/assessment_effects.py",
+      "sha256": "791113fb0d423eeda6ffd5bcda7101d6a6aec355b3368f04b1ba6ecec56f013e"
+    },
+    "attune_harness/cli.py": {
+      "bytes": 12848,
+      "install_destination": "site-packages/attune_harness/cli.py",
+      "sha256": "3ca4f66c0fb795226743cc44d2bcae01d300b99ceea29c75178e7a1a39ff4789"
+    },
+    "attune_harness/cli_help.py": {
+      "bytes": 2339,
+      "install_destination": "site-packages/attune_harness/cli_help.py",
+      "sha256": "a95cdb6738c96e03f173bec8ef444d0e5f1ae0f500bd4175cc2db3094857db78"
+    },
+    "attune_harness/cli_surface.py": {
+      "bytes": 5912,
+      "install_destination": "site-packages/attune_harness/cli_surface.py",
+      "sha256": "e42cc955451298e84d41c5a71aae1fc38bfbbc7b67f6048ab887c9c0cf53d56e"
+    },
+    "attune_harness/command_workspace.py": {
+      "bytes": 30107,
+      "install_destination": "site-packages/attune_harness/command_workspace.py",
+      "sha256": "8c0df800b0bf71b14523f586aa8e72eca572af2c045b88f1c5eb9fb5a2836b38"
+    },
+    "attune_harness/consultation.py": {
+      "bytes": 25499,
+      "install_destination": "site-packages/attune_harness/consultation.py",
+      "sha256": "2ac00eea5d4144cbf6e6a9395db6b83da9e6b0bcf80ad6a717908989447aa356"
+    },
+    "attune_harness/consultation_cli.py": {
+      "bytes": 7569,
+      "install_destination": "site-packages/attune_harness/consultation_cli.py",
+      "sha256": "8362196abc2a3c599c9914fb0754897681d5c58bd65bf29e8264cd893a4aef0f"
+    },
+    "attune_harness/consultation_evidence.py": {
+      "bytes": 2558,
+      "install_destination": "site-packages/attune_harness/consultation_evidence.py",
+      "sha256": "72761cca2ce443c065f779bf41312825a1b481a1022541f61b93b801cf1740f6"
+    },
+    "attune_harness/consultation_output.py": {
+      "bytes": 8348,
+      "install_destination": "site-packages/attune_harness/consultation_output.py",
+      "sha256": "dcff0001b22311a71710a6850b34753bda22fe719f50621c8b62ccca1b65a904"
+    },
+    "attune_harness/consultation_preflight.py": {
+      "bytes": 4530,
+      "install_destination": "site-packages/attune_harness/consultation_preflight.py",
+      "sha256": "fcdbb5e91612e3ce9078bc89c982fa2145590887687e3ae55348694d5e9ac48d"
+    },
+    "attune_harness/consultation_recovery.py": {
+      "bytes": 6729,
+      "install_destination": "site-packages/attune_harness/consultation_recovery.py",
+      "sha256": "1a98d417da5ab48932be94a2e2bf482757ff31b6445c99a5b0b6f3415c884b4e"
+    },
+    "attune_harness/consultation_snapshot.py": {
+      "bytes": 7658,
+      "install_destination": "site-packages/attune_harness/consultation_snapshot.py",
+      "sha256": "b9e1c295643bd4f315d19b8618eae91edee79645afb0ddcac2eda72a2530d005"
+    },
+    "attune_harness/documentation.py": {
+      "bytes": 9438,
+      "install_destination": "site-packages/attune_harness/documentation.py",
+      "sha256": "e343c3baa1cce7f4fe7a2843171c1278a2bed391942a99666fa182bf8c471c1b"
+    },
+    "attune_harness/effect_limits.py": {
+      "bytes": 98,
+      "install_destination": "site-packages/attune_harness/effect_limits.py",
+      "sha256": "3852fa20cca80fcc9ad57a5f5c56887ed0488ae50af1e785d2a204caa3e41f5e"
+    },
+    "attune_harness/execution_evidence.py": {
+      "bytes": 12842,
+      "install_destination": "site-packages/attune_harness/execution_evidence.py",
+      "sha256": "4512c57cefd3b3f79bed0f4f06417de9236ad79520aa81aa45ddb2e48db39220"
+    },
+    "attune_harness/extension_cli.py": {
+      "bytes": 2369,
+      "install_destination": "site-packages/attune_harness/extension_cli.py",
+      "sha256": "8102d578bd53ebf35ec4fb78cdd057a3a1b7c4f3001182542985ec642c8b47da"
+    },
+    "attune_harness/extensions.py": {
+      "bytes": 27196,
+      "install_destination": "site-packages/attune_harness/extensions.py",
+      "sha256": "3390dd098a220960507614aeb5904eff45012591493583b146d8a5a097ae7c6f"
+    },
+    "attune_harness/features.py": {
+      "bytes": 9315,
+      "install_destination": "site-packages/attune_harness/features.py",
+      "sha256": "b02d85aeb83bc39f5287eefdd20e13ddfdacff2305a3786925ef5ff6732e00ed"
+    },
+    "attune_harness/github_checks.py": {
+      "bytes": 2899,
+      "install_destination": "site-packages/attune_harness/github_checks.py",
+      "sha256": "f8be1dace591530cc78b4d4095477abdaca76391fb55eb1d9b57514699da1213"
+    },
+    "attune_harness/grounded_review.py": {
+      "bytes": 7496,
+      "install_destination": "site-packages/attune_harness/grounded_review.py",
+      "sha256": "55e428e68152658b430a0f345d8d183400827c6e3c5f8e9d35059dbf2947fd2a"
+    },
+    "attune_harness/gui.py": {
+      "bytes": 18718,
+      "install_destination": "site-packages/attune_harness/gui.py",
+      "sha256": "be2fe9ed36ab7e5f5a9722d9b19e68582a10fb302b441764f129cc571b5a9527"
+    },
+    "attune_harness/gui_build.py": {
+      "bytes": 7003,
+      "install_destination": "site-packages/attune_harness/gui_build.py",
+      "sha256": "c9420797c9a96e22a0d65ec17d4cb5de79ffe42a4ca2683629f5ce52c2333990"
+    },
+    "attune_harness/gui_decisions.py": {
+      "bytes": 11285,
+      "install_destination": "site-packages/attune_harness/gui_decisions.py",
+      "sha256": "d862a0e797cb51c9711c15cad72bc7a1cee28cb27080f7d554e69d6a158b7f8c"
+    },
+    "attune_harness/gui_forms.py": {
+      "bytes": 14910,
+      "install_destination": "site-packages/attune_harness/gui_forms.py",
+      "sha256": "22fcbae951402a512a835d1ec0173418b3bd399e37b84526a2521a48c7984d64"
+    },
+    "attune_harness/gui_forms_intake.py": {
+      "bytes": 22687,
+      "install_destination": "site-packages/attune_harness/gui_forms_intake.py",
+      "sha256": "f4560bf6f0413cc6c5cd596d772ff8898b85294debde7af867a3ac23cbaccb10"
+    },
+    "attune_harness/human_output.py": {
+      "bytes": 3444,
+      "install_destination": "site-packages/attune_harness/human_output.py",
+      "sha256": "d9090cf85209d61315929b14413d52bd2d967edb143e95e3cb6b03af3ee06272"
+    },
+    "attune_harness/init_cli.py": {
+      "bytes": 28570,
+      "install_destination": "site-packages/attune_harness/init_cli.py",
+      "sha256": "639ecd1903f7509779ca5c61ff1c0cb297c2e56217d448bbe13fef16c7f2c96f"
+    },
+    "attune_harness/llama_tokens.py": {
+      "bytes": 5005,
+      "install_destination": "site-packages/attune_harness/llama_tokens.py",
+      "sha256": "3a7d0a1b37bc2b6321a3dec199ed32e4608d44f4f5ec8f1ac2c992d268be249b"
+    },
+    "attune_harness/mcp_server.py": {
+      "bytes": 14335,
+      "install_destination": "site-packages/attune_harness/mcp_server.py",
+      "sha256": "edc5b45e723a1cdc9ddbf621c17feb10c927e2597916ddaac8fed0a787497325"
+    },
+    "attune_harness/memory_cli.py": {
+      "bytes": 12386,
+      "install_destination": "site-packages/attune_harness/memory_cli.py",
+      "sha256": "5de885df6d87785ad9e85095493af31f554b2bd3e6798d418fa7be237fd852cd"
+    },
+    "attune_harness/memory_context.py": {
+      "bytes": 12900,
+      "install_destination": "site-packages/attune_harness/memory_context.py",
+      "sha256": "696307373cad5702950e48d6e1e6065db6ded59c4d107354baba24fddf202a1d"
+    },
+    "attune_harness/memory_contract.py": {
+      "bytes": 12198,
+      "install_destination": "site-packages/attune_harness/memory_contract.py",
+      "sha256": "8b50fd654405a8140fa51de6bf4d4a7543caa5d9ea89050f6326c88b1d34cdbb"
+    },
+    "attune_harness/memory_controls.py": {
+      "bytes": 18179,
+      "install_destination": "site-packages/attune_harness/memory_controls.py",
+      "sha256": "301f1d640d1c44a00462f8f9776a6b497a261041ec1cf90c9e9ca29b3e7d0403"
+    },
+    "attune_harness/memory_native.py": {
+      "bytes": 25292,
+      "install_destination": "site-packages/attune_harness/memory_native.py",
+      "sha256": "447517042491f5c0b607631ea37cce1c6fea82c98dcbbd52b2a76596ecccad0c"
+    },
+    "attune_harness/memory_reader.py": {
+      "bytes": 26557,
+      "install_destination": "site-packages/attune_harness/memory_reader.py",
+      "sha256": "7d7e3e7ca2317f1eb817b8a40093c7bae9e192c681bc1b5184c89554d46ba035"
+    },
+    "attune_harness/memory_redis.py": {
+      "bytes": 23869,
+      "install_destination": "site-packages/attune_harness/memory_redis.py",
+      "sha256": "d7f3bdc6e7f39fbcd28c07313ec5bf4f9ab4a576e3a64eb040ffa646aacfd13a"
+    },
+    "attune_harness/memory_saved.py": {
+      "bytes": 24040,
+      "install_destination": "site-packages/attune_harness/memory_saved.py",
+      "sha256": "628b0565a3af6527003019d1daa90a99812db6a9d914e763ca98ff541d7ad78d"
+    },
+    "attune_harness/memory_saved_cli.py": {
+      "bytes": 4164,
+      "install_destination": "site-packages/attune_harness/memory_saved_cli.py",
+      "sha256": "ead24ca1f3204f6b16de50a019d0104d847298e7c43fa843e620292e75914605"
+    },
+    "attune_harness/memory_saved_index.py": {
+      "bytes": 2843,
+      "install_destination": "site-packages/attune_harness/memory_saved_index.py",
+      "sha256": "6a8ce05cc96c17632daa309b7909dd8bdffa0ba04eb8b0436dce3e7d374417f4"
+    },
+    "attune_harness/memory_scratch.py": {
+      "bytes": 39521,
+      "install_destination": "site-packages/attune_harness/memory_scratch.py",
+      "sha256": "38a5ad3fb4952ed7cf21791106e29d04ee8f3fead7ceeb291226b03a04fa78a0"
+    },
+    "attune_harness/memory_serving.py": {
+      "bytes": 4701,
+      "install_destination": "site-packages/attune_harness/memory_serving.py",
+      "sha256": "852f01b2b4f2871b3acb17ee66bb8ee8baf1dfaa327addc2a08e49f42d9069c5"
+    },
+    "attune_harness/memory_worker.py": {
+      "bytes": 17310,
+      "install_destination": "site-packages/attune_harness/memory_worker.py",
+      "sha256": "5c3f678a696df6a2d99ad8b333cc43aa1d870f52aacf0601238a86530b978988"
+    },
+    "attune_harness/native.py": {
+      "bytes": 12132,
+      "install_destination": "site-packages/attune_harness/native.py",
+      "sha256": "a07ae7aed90e6f75ef60da1b166473e893533b66d1d8029d3afaee250f2d6426"
+    },
+    "attune_harness/ollama.py": {
+      "bytes": 10365,
+      "install_destination": "site-packages/attune_harness/ollama.py",
+      "sha256": "5b59b88d4cb398334857af4771e5f176013d2d7d0e304c99ad0c31898565081d"
+    },
+    "attune_harness/ollama_review.py": {
+      "bytes": 9010,
+      "install_destination": "site-packages/attune_harness/ollama_review.py",
+      "sha256": "b194396ea4e1418b451ed894ec3d6b8426919b5bbb2e0bad9d7e3ed250b3ea3b"
+    },
+    "attune_harness/operations.py": {
+      "bytes": 9316,
+      "install_destination": "site-packages/attune_harness/operations.py",
+      "sha256": "0cd4e3eb9777b9f12deff53525e5b24e199cbeecc005e4fbe2eaa97b2f832b28"
+    },
+    "attune_harness/passage_review.py": {
+      "bytes": 6870,
+      "install_destination": "site-packages/attune_harness/passage_review.py",
+      "sha256": "bd88e77342a87e8fdd548bec84fc98afd8dd17f20f7456acb964f34f1dd3ea0e"
+    },
+    "attune_harness/paths.py": {
+      "bytes": 5311,
+      "install_destination": "site-packages/attune_harness/paths.py",
+      "sha256": "e16179702ae3f68e92273524d2fc3f9602c847920b56908d0efb47df2dccd0ad"
+    },
+    "attune_harness/plugin_runtime.py": {
+      "bytes": 21604,
+      "install_destination": "site-packages/attune_harness/plugin_runtime.py",
+      "sha256": "e52271603373ebe2f7acccbf37b037c64b081936207c2f059c7be33d54fae92c"
+    },
+    "attune_harness/plugin_signing.py": {
+      "bytes": 19894,
+      "install_destination": "site-packages/attune_harness/plugin_signing.py",
+      "sha256": "4657d5b980598a78642696472e4ffae3ea9734e3ee4bce4eacb5b311f11b6164"
+    },
+    "attune_harness/process.py": {
+      "bytes": 5740,
+      "install_destination": "site-packages/attune_harness/process.py",
+      "sha256": "0fe4b4df48f7a362205d1f3f2cac35cc053f73179ef52843eb1530ddc176a291"
+    },
+    "attune_harness/recovery.py": {
+      "bytes": 22863,
+      "install_destination": "site-packages/attune_harness/recovery.py",
+      "sha256": "0be3d679dcfeef6be707de20fadfa087535c4cc09363e9670cce91b05028eeb4"
+    },
+    "attune_harness/repair.py": {
+      "bytes": 20581,
+      "install_destination": "site-packages/attune_harness/repair.py",
+      "sha256": "d87f122f227267f37950d5faa052cc0f11aef5bafd0c419bfcd14ba1ab27e55d"
+    },
+    "attune_harness/retrieval.py": {
+      "bytes": 3545,
+      "install_destination": "site-packages/attune_harness/retrieval.py",
+      "sha256": "1a95cd68d8bd879ddf67892deb868491150ff7ed88739d40084f225031aa96f1"
+    },
+    "attune_harness/retrieval_task.py": {
+      "bytes": 2925,
+      "install_destination": "site-packages/attune_harness/retrieval_task.py",
+      "sha256": "2fb48359f1bc67f2b13f2235f2f125ee2ae3bfa3a7f7a5287f4c827dd1ccdeb5"
+    },
+    "attune_harness/review.py": {
+      "bytes": 5586,
+      "install_destination": "site-packages/attune_harness/review.py",
+      "sha256": "ebe52205427f1fcac50c6986aaa6b416254e027cbd11437ffe5b04ecc058e815"
+    },
+    "attune_harness/review_cli.py": {
+      "bytes": 6058,
+      "install_destination": "site-packages/attune_harness/review_cli.py",
+      "sha256": "843f808b7526083fa572b11b78590ce72af00475544872207875c848072bc3a2"
+    },
+    "attune_harness/review_contract.py": {
+      "bytes": 8350,
+      "install_destination": "site-packages/attune_harness/review_contract.py",
+      "sha256": "83a6694cbeefd933bc6deef2098333877dcbd86b142743b552ce8f81f0ba4427"
+    },
+    "attune_harness/review_participants.py": {
+      "bytes": 11188,
+      "install_destination": "site-packages/attune_harness/review_participants.py",
+      "sha256": "48e76e9e3511e1746164c57e712e8ceb29604fc1dfc3df43bae9539bcf5c29f3"
+    },
+    "attune_harness/review_store.py": {
+      "bytes": 7615,
+      "install_destination": "site-packages/attune_harness/review_store.py",
+      "sha256": "8c501e2a70c6ccf5d524b6171aa077aad15809aa249ed3c840ab94a0eb975c28"
+    },
+    "attune_harness/spec_cli.py": {
+      "bytes": 5419,
+      "install_destination": "site-packages/attune_harness/spec_cli.py",
+      "sha256": "ac28938117c05b7834cbeb86aa11a4418b7ac6b169fb538e1eb8ed90d98bae11"
+    },
+    "attune_harness/spec_handoff.py": {
+      "bytes": 3742,
+      "install_destination": "site-packages/attune_harness/spec_handoff.py",
+      "sha256": "f909fd18cde4830fdc8d0cb781b38e36d506494a82410ca84c337d015ff32da5"
+    },
+    "attune_harness/spec_intake.py": {
+      "bytes": 5788,
+      "install_destination": "site-packages/attune_harness/spec_intake.py",
+      "sha256": "76aa6eb9985df66a4a54497643bce00b95dcbd21a184d766656f145b40b48e3b"
+    },
+    "attune_harness/spec_legacy.py": {
+      "bytes": 5472,
+      "install_destination": "site-packages/attune_harness/spec_legacy.py",
+      "sha256": "dab952a049d736d06a41320138a3d162ebd150125e1d33e2a053175690690641"
+    },
+    "attune_harness/spec_presenter.py": {
+      "bytes": 4528,
+      "install_destination": "site-packages/attune_harness/spec_presenter.py",
+      "sha256": "76975e153dbf5d5d5157caff4cef147c8c19f053852bba14742a1443778e4760"
+    },
+    "attune_harness/spec_state.py": {
+      "bytes": 19498,
+      "install_destination": "site-packages/attune_harness/spec_state.py",
+      "sha256": "2a64e1028efc3cc93eb0da67ec359f73827a980729da0ad99c28dc380686b2d2"
+    },
+    "attune_harness/spec_tasks.py": {
+      "bytes": 19155,
+      "install_destination": "site-packages/attune_harness/spec_tasks.py",
+      "sha256": "d52d1ba0ef702458ea5b359879e4d2be460f4f42e4d70075fc804bc7f2053103"
+    },
+    "attune_harness/spec_workspace.py": {
+      "bytes": 45836,
+      "install_destination": "site-packages/attune_harness/spec_workspace.py",
+      "sha256": "d2c2811bd3d34a841797937a465bdd6ef238d81547570d6d649de8c483b5dea1"
+    },
+    "attune_harness/task_cli.py": {
+      "bytes": 21447,
+      "install_destination": "site-packages/attune_harness/task_cli.py",
+      "sha256": "098dec991e6729dfde09ac6a14a4bb8c58e8173783875d88be0e6e0ca56b94c9"
+    },
+    "attune_harness/task_continuation.py": {
+      "bytes": 5605,
+      "install_destination": "site-packages/attune_harness/task_continuation.py",
+      "sha256": "bc5d25f00745c0e7b1a91c200e6522cfc56d8041cf6cb26cb0a854d694ec28db"
+    },
+    "attune_harness/task_contract.py": {
+      "bytes": 30452,
+      "install_destination": "site-packages/attune_harness/task_contract.py",
+      "sha256": "5b78512ebabff7f8d8cc6a37c7161ba847fce6c2721cc54ceb1ae9ec9e7a9215"
+    },
+    "attune_harness/task_handoff.py": {
+      "bytes": 22133,
+      "install_destination": "site-packages/attune_harness/task_handoff.py",
+      "sha256": "db6ebf0bd52ba67b165a1cb566b84868ed7d80b2f16d4d9031712c7b8f817712"
+    },
+    "attune_harness/task_policies.py": {
+      "bytes": 21149,
+      "install_destination": "site-packages/attune_harness/task_policies.py",
+      "sha256": "530b7f669b46842615c1ba17fd68a9692faa262a92ae1e1695ac91a05b0a87f5"
+    },
+    "attune_harness/task_runtime.py": {
+      "bytes": 13535,
+      "install_destination": "site-packages/attune_harness/task_runtime.py",
+      "sha256": "bc113a18b20f2b2b0f01fb2389afc92322fef42410ce720dcdf36abaaf3706ae"
+    },
+    "attune_harness/task_view.py": {
+      "bytes": 38239,
+      "install_destination": "site-packages/attune_harness/task_view.py",
+      "sha256": "f784d58c6367b1e2bf2d8afd9a5c802dbc985af88ca6dfa88e192e5f52140144"
+    },
+    "attune_harness/test_change.py": {
+      "bytes": 20814,
+      "install_destination": "site-packages/attune_harness/test_change.py",
+      "sha256": "ae311410e25d2182789b273e75f2038526c75c8047bf3cb6fdc6b9333ff6a421"
+    },
+    "attune_harness/test_cli.py": {
+      "bytes": 4945,
+      "install_destination": "site-packages/attune_harness/test_cli.py",
+      "sha256": "17a281834d0ca80084d199396d2252754755c95fad1f0807deb76a4a7318778b"
+    },
+    "attune_harness/test_execution.py": {
+      "bytes": 9329,
+      "install_destination": "site-packages/attune_harness/test_execution.py",
+      "sha256": "5b0f4390380d85e9917b25de4f0a6f300e9f13e38bc5ee95509af0aef8f335ba"
+    },
+    "attune_harness/test_scope.py": {
+      "bytes": 10752,
+      "install_destination": "site-packages/attune_harness/test_scope.py",
+      "sha256": "63f89320bc8e2bb275da9d2c21f89131bbc09200278b5744bc852caacb572296"
+    },
+    "attune_harness/verification.py": {
+      "bytes": 2684,
+      "install_destination": "site-packages/attune_harness/verification.py",
+      "sha256": "cefad7150673bbbbe96af3503c09d55242288e10b863816237697a7e8e94542c"
+    },
+    "attune_harness/voyage_cli.py": {
+      "bytes": 3394,
+      "install_destination": "site-packages/attune_harness/voyage_cli.py",
+      "sha256": "866910d491207fb72fff4b9c5d8c0324bf587c2a6d9bad5f9a5e5f54082126da"
+    },
+    "attune_harness/voyage_index.py": {
+      "bytes": 25718,
+      "install_destination": "site-packages/attune_harness/voyage_index.py",
+      "sha256": "2fd9b940a01bad6fdbbb1f9db1691768a5a3a640e344ab26b9f446732cc70372"
+    },
+    "attune_harness/voyage_plugin.py": {
+      "bytes": 11790,
+      "install_destination": "site-packages/attune_harness/voyage_plugin.py",
+      "sha256": "31b32bd76adfcfc7c0655f1610e6f716a8c5a1d64d134c090e5d27c76a3836a5"
+    },
+    "attune_harness/voyage_provider.py": {
+      "bytes": 15186,
+      "install_destination": "site-packages/attune_harness/voyage_provider.py",
+      "sha256": "9f78ac03dd56af278e72736c892fa0755f60244473b12490d35939d2453bec0e"
+    },
+    "attune_harness/voyage_retrieval.py": {
+      "bytes": 11080,
+      "install_destination": "site-packages/attune_harness/voyage_retrieval.py",
+      "sha256": "84f090ff6aef344ec7d7c156f407c775d21b0014758b41259458119a81247289"
+    },
+    "attune_harness/voyage_sources.py": {
+      "bytes": 14750,
+      "install_destination": "site-packages/attune_harness/voyage_sources.py",
+      "sha256": "00753236ba292758722c0a31c6c49cb33484e22a94d1ca873eff3391bb858733"
+    },
+    "attune_harness/windows.py": {
+      "bytes": 4827,
+      "install_destination": "site-packages/attune_harness/windows.py",
+      "sha256": "c5abac57c88ab4fa23c851e8fce042296ddc8403d0b024d297af9beddcd90a26"
+    },
+    "attune_harness/windows_effects.py": {
+      "bytes": 41844,
+      "install_destination": "site-packages/attune_harness/windows_effects.py",
+      "sha256": "ffc46d2f054a7bcf6c95230551a87fb5c73d9992ecebdde9497d2226d0763139"
+    },
+    "attune_harness/windows_reads.py": {
+      "bytes": 19026,
+      "install_destination": "site-packages/attune_harness/windows_reads.py",
+      "sha256": "c3b3b7391ca73b7321b820eb2fe2a84a9d1b754707b59d9f6533a0cedd99130a"
+    },
+    "attune_harness/work_accept.py": {
+      "bytes": 26918,
+      "install_destination": "site-packages/attune_harness/work_accept.py",
+      "sha256": "8353bb5371363fc967e63a59b05fafbebb37e892432b3a62da24b29a92b4d933"
+    },
+    "attune_harness/work_bodies.py": {
+      "bytes": 6927,
+      "install_destination": "site-packages/attune_harness/work_bodies.py",
+      "sha256": "0c3206842e6369e561b61f4fc49f7c2260ecb136c603aa6f5ae0ee9f96338624"
+    },
+    "attune_harness/work_build.py": {
+      "bytes": 40514,
+      "install_destination": "site-packages/attune_harness/work_build.py",
+      "sha256": "b01d4871d6e402729ddd439dc780cd5dc5e88065ad2857e00cb3477799062ecb"
+    },
+    "attune_harness/work_cli.py": {
+      "bytes": 31960,
+      "install_destination": "site-packages/attune_harness/work_cli.py",
+      "sha256": "e0946e017641ed8b6ae90f66c7d94842c0619af13dfe24a3991cfa26eda9554c"
+    },
+    "attune_harness/work_contract.py": {
+      "bytes": 32206,
+      "install_destination": "site-packages/attune_harness/work_contract.py",
+      "sha256": "bccb303662a40f924a4134cb0d77f8569c941e0451943a097dda175abc125770"
+    },
+    "attune_harness/work_decisions.py": {
+      "bytes": 5204,
+      "install_destination": "site-packages/attune_harness/work_decisions.py",
+      "sha256": "000d5bcca054c41edab98310ae639f72c9780f3f02ae65bbb9a8d31d6ada532b"
+    },
+    "attune_harness/work_effects.py": {
+      "bytes": 32912,
+      "install_destination": "site-packages/attune_harness/work_effects.py",
+      "sha256": "0c430083e57a54ea105514165e7323cfc07ad17d1c5e3b1858b1b2fb71da8d51"
+    },
+    "attune_harness/work_review_handoff.py": {
+      "bytes": 14425,
+      "install_destination": "site-packages/attune_harness/work_review_handoff.py",
+      "sha256": "27953e3da1cfc8946f0715d956c5d7c92ad423c3a5fa378bbfaede8a722b409e"
+    },
+    "attune_harness/work_runtime.py": {
+      "bytes": 43476,
+      "install_destination": "site-packages/attune_harness/work_runtime.py",
+      "sha256": "cf00eaf4dae1feb0aa67b464088bfbc942b45710e1fc07889915a50ba86ca8e6"
+    },
+    "attune_harness/workspace_mcp.py": {
+      "bytes": 13568,
+      "install_destination": "site-packages/attune_harness/workspace_mcp.py",
+      "sha256": "2ef6162ebe9527e5b76ebe601b0d2b23b2dea940e97d2818e4135057042797ed"
+    },
+    "attune_voyage_plugin/__init__.py": {
+      "bytes": 84,
+      "install_destination": "site-packages/attune_voyage_plugin/__init__.py",
+      "sha256": "d2c1940de64c678362efd83ea268cfa00085ead9ffe961f98c826f2b65d195c9"
+    },
+    "attune_voyage_plugin/bundle.py": {
+      "bytes": 2445,
+      "install_destination": "site-packages/attune_voyage_plugin/bundle.py",
+      "sha256": "365b76eafbb2c3f1e2ccaaaec96fc6e556c5c7f846cea720dd06f431c5d4191a"
+    },
+    "attune_voyage_plugin/common.py": {
+      "bytes": 921,
+      "install_destination": "site-packages/attune_voyage_plugin/common.py",
+      "sha256": "0541b43d2d44d607d195da5a90d4c08b9badbd30faaba70a97f06788a957ad70"
+    },
+    "attune_voyage_plugin/embed.py": {
+      "bytes": 269,
+      "install_destination": "site-packages/attune_voyage_plugin/embed.py",
+      "sha256": "e6da484ea68632240f844a29bbb4234d15e84a56a0fba4b1b76827099a868b70"
+    },
+    "attune_voyage_plugin/index.py": {
+      "bytes": 1805,
+      "install_destination": "site-packages/attune_voyage_plugin/index.py",
+      "sha256": "db6ef21cffff663d0c3fe767073b2ff3b0fd2ca6a43a104071e2e1507b28c8d9"
+    },
+    "attune_voyage_plugin/provider.py": {
+      "bytes": 3681,
+      "install_destination": "site-packages/attune_voyage_plugin/provider.py",
+      "sha256": "9dc356fb4a48aa48c2d161aff1beedf0b9b01c6549c40b0b509d642a170d6624"
+    },
+    "attune_voyage_plugin/rerank.py": {
+      "bytes": 273,
+      "install_destination": "site-packages/attune_voyage_plugin/rerank.py",
+      "sha256": "c82806d7d18cfed4ba349062253410be565e739512a578635b077ad5b5bd480a"
+    }
+  },
+  "wheel_platform_pairs": {
+    "nt_crlf": {
+      "attune_harness-1.4.0.dist-info/METADATA": {
+        "bytes": 21394,
+        "install_destination": "site-packages/attune_harness-1.4.0.dist-info/METADATA",
+        "sha256": "501a27d088437c5581a047bf7be2e55051efaaa604e53a63846d7435a2fa2b59"
+      },
+      "attune_harness-1.4.0.dist-info/RECORD": {
+        "bytes": 10426,
+        "install_destination": "site-packages/attune_harness-1.4.0.dist-info/RECORD",
+        "sha256": "5ccefba6912cc73bb88547ab8ccc54d5b6a252524fd6fbae6d25026700497a86"
+      }
+    },
+    "posix_lf": {
+      "attune_harness-1.4.0.dist-info/METADATA": {
+        "bytes": 21118,
+        "install_destination": "site-packages/attune_harness-1.4.0.dist-info/METADATA",
+        "sha256": "164a238da1af1ff349fe6bdb5fbc2fa30a08187223c006a90efbba4aca57d2e4"
+      },
+      "attune_harness-1.4.0.dist-info/RECORD": {
+        "bytes": 10426,
+        "install_destination": "site-packages/attune_harness-1.4.0.dist-info/RECORD",
+        "sha256": "2495a37db2bfbfba41a08f2545d4a64cdc79c791eacfaefe1ccccf5725538119"
+      }
+    }
+  }
+}

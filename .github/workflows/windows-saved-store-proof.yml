@@ -1,0 +1,161 @@
+name: Saved-store Windows feasibility
+
+# Compile/pure qualification plus a zero-account, no-GUI startup diagnostic.
+# Storage/helper GUI construction stays disabled; no green check passes T2/D3.
+on:
+  pull_request:
+    paths:
+      - 'experiments/platform/windows_saved_store*.py'
+      - 'experiments/platform/*windows_saved_store*.ps1'
+      - 'tests/test_windows_saved_store_proof.py'
+      - 'docs/design-windows-saved-store-proof.md'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-proof.yml'
+      - '.gitattributes'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/platform/windows_saved_store*.py'
+      - 'experiments/platform/*windows_saved_store*.ps1'
+      - 'tests/test_windows_saved_store_proof.py'
+      - 'docs/design-windows-saved-store-proof.md'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-proof.yml'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile-only:
+    name: T2 source only / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Record the source-only scope
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only'
+          $null = New-Item -ItemType Directory -Path $reports
+          [ordered]@{
+            status = 'compile_only_scope'; commit = $env:GITHUB_SHA
+            os = '${{ matrix.os }}'; python_context = '${{ matrix.python }}'
+            python_exercised = $false; wheel_qualified = $false
+            fixture_execution_authorized = $false; account_fixture_invoked = $false
+            helper_invoked = $false; native_methods_invoked = $false; gui_objects_created = $false
+            accounts_or_credentials_created = $false; production_port_allowed = $false
+            t2_d3_gate = 'unpassed'
+          } | ConvertTo-Json | Set-Content (Join-Path $reports 'scope.json') -Encoding utf8
+      - name: Parse and compile literal reviewed C# only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/parse-compile.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+            $checker = (Resolve-Path experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1).Path
+            if ((Get-FileHash $checker -Algorithm SHA256).Hash.ToLowerInvariant() -cne '8a2b20db5869ee6e78c1b47ef90ef98a39706bed7c3efed47bdf9083c3a8d446') { throw 'Checker source changed.' }
+            $result = & $checker -Proposal $proposal -ExpectedProposalSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' -GuiHelper $helper -ExpectedHelperSha256 '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'parse_and_compile_only_passed' -or $parsed.native_methods_invoked -cne $false -or $parsed.accounts_or_credentials_created -cne $false) { throw 'Unexpected compile-only result.' }
+            $result | Set-Content $report -Encoding utf8
+          } catch {
+            @{ status = 'parse_or_compile_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
+            throw
+          }
+      - name: Check 26 pure record cases in a fresh process
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/record-validation.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+            $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1).Path
+            if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne '0db490c0fb4a44deec2b3488e8e3b9c102af50f08b67dc0f664b9b448dfc3254') { throw 'Record-test source changed.' }
+            $result = & $test -Proposal $proposal -ExpectedSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'pure_validation_passed' -or $parsed.count -ne 26 -or $parsed.case_only_negative_cases -ne 3 -or $parsed.legacy_default_comparison_accepts -ne 3 -or $parsed.native_invoked -cne $false) { throw 'Unexpected record-test result.' }
+            $result | Set-Content $report -Encoding utf8
+          } catch {
+            @{ status = 'pure_validation_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
+            throw
+          }
+      - name: Check 21 pure lexical paths in a fresh process
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $report = Join-Path $env:RUNNER_TEMP 'saved-store-compile-only/path-validation.json'
+          try {
+            $proposal = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+            $test = (Resolve-Path experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1).Path
+            if ((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'ec7f4a63d048d803d66811e4a537c76eb3a708de9b1638bfa3ab4baee7208f23') { throw 'Path-test source changed.' }
+            $result = & $test -Proposal $proposal -ExpectedSha256 '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804' | Tee-Object -FilePath $report
+            $parsed = ($result -join "`n") | ConvertFrom-Json
+            if ($parsed.status -cne 'pure_path_syntax_passed' -or $parsed.count -ne 21 -or $parsed.native_methods_invoked -cne $false -or $parsed.handles_or_acl_or_launch_qualified -cne $false) { throw 'Unexpected path-test result.' }
+            $result | Set-Content $report -Encoding utf8
+          } catch {
+            @{ status = 'pure_path_syntax_failed'; error_type = $_.Exception.GetType().Name; error_id = $_.FullyQualifiedErrorId; error_message = $_.Exception.Message; account_fixture_invoked = $false; native_methods_invoked = $false; fixture_execution_authorized = $false; production_port_allowed = $false; t2_d3_gate = 'unpassed' } | ConvertTo-Json | Set-Content ($report + '.failure.json') -Encoding utf8
+            throw
+          }
+      - name: Retain source qualification and the unpassed T2 gate
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-compile-only-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-compile-only/
+          if-no-files-found: error
+
+  startup-diagnostic:
+    name: T2 zero-account startup / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prove capture and refusal, then check normalization and literal C# only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reports = Join-Path $env:RUNNER_TEMP 'saved-store-startup-normalization'
+          $null = New-Item -ItemType Directory -Path $reports
+          try {
+            $script = (Resolve-Path experiments/platform/windows_saved_store_helper_preamble_diagnostic_v2.ps1).Path
+            if ((Get-FileHash -LiteralPath $script -Algorithm SHA256).Hash.ToLowerInvariant() -cne '7deadc0e5c56ae602b7cbc521924e23f0b29c45256a7e0bd38a46c0fa5388eb3') { throw 'Startup diagnostic source changed.' }
+            $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+            & $script -Helper $helper -Output (Join-Path $reports 'controller-private')
+          } catch {
+            @{ status = 'startup_diagnostic_failed'; error_type = $_.Exception.GetType().FullName; accounts_or_credentials_created = $false; gui_objects_created = $false; storage_witness_invoked = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content (Join-Path $reports 'controller-failure.json') -Encoding utf8
+            throw
+          }
+      - name: Retain typed startup outcomes and the unpassed T2 gate
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-startup-normalization-${{ matrix.os }}-${{ matrix.python }}
+          path: ${{ runner.temp }}/saved-store-startup-normalization/
+          if-no-files-found: error

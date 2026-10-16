@@ -1,0 +1,347 @@
+name: Saved-store platform-profile build preflight
+
+# One replacement four-cell safe route; no account, GUI or storage proof.
+on:
+  pull_request:
+    paths:
+      - '.gitattributes'
+      - '.github/workflows/windows-saved-store-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-platform-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+      - 'LICENSE'
+      - 'README.md'
+      - 'experiments/platform/.gitattributes'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v3.py'
+      - 'experiments/platform/check_windows_saved_store_merge_inputs_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v2.py'
+      - 'experiments/platform/windows_saved_store_build_preflight_v1.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v2.ps1'
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'pyproject.toml'
+      - 'src/attune_harness/**'
+      - 'src/attune_harness/windows_effects.py'
+      - 'src/attune_voyage_plugin/**'
+      - 'tests/.gitattributes'
+      - 'tests/fixtures/windows_saved_store_wheel_metadata_v1.json'
+      - 'tests/test_windows_saved_store_account_inputs_v2.py'
+      - 'tests/test_windows_saved_store_build_preflight.py'
+      - 'tests/test_windows_saved_store_build_projection.py'
+      - 'tests/test_windows_saved_store_profile_workflow.py'
+      - 'tests/test_windows_saved_store_wheel_profiles.py'
+  push:
+    branches: [main]
+    paths:
+      - '.gitattributes'
+      - '.github/workflows/windows-saved-store-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-platform-build-safe-preflight.yml'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+      - 'LICENSE'
+      - 'README.md'
+      - 'experiments/platform/.gitattributes'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v3.py'
+      - 'experiments/platform/check_windows_saved_store_merge_inputs_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/project_windows_saved_store_build_v2.py'
+      - 'experiments/platform/windows_saved_store_build_preflight_v1.ps1'
+      - 'experiments/platform/windows_saved_store_build_preflight_v2.ps1'
+      - 'experiments/platform/windows_saved_store_combined_driver_v1.py'
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'pyproject.toml'
+      - 'src/attune_harness/**'
+      - 'src/attune_harness/windows_effects.py'
+      - 'src/attune_voyage_plugin/**'
+      - 'tests/.gitattributes'
+      - 'tests/fixtures/windows_saved_store_wheel_metadata_v1.json'
+      - 'tests/test_windows_saved_store_account_inputs_v2.py'
+      - 'tests/test_windows_saved_store_build_preflight.py'
+      - 'tests/test_windows_saved_store_build_projection.py'
+      - 'tests/test_windows_saved_store_profile_workflow.py'
+      - 'tests/test_windows_saved_store_wheel_profiles.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-platform-build-safe-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  safe-preflight:
+    # Retained FFC campaign; fixed-component successor owns new observations.
+    if: ${{ false }}
+    name: Safe platform build / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Materialize and verify finite source inputs at the normal merge
+        shell: pwsh
+        env:
+          T2_EVENT_NAME: ${{ github.event_name }}
+          T2_EVENT_SHA: ${{ github.sha }}
+          T2_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = [ordered]@{
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1' = '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf'
+            'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1' = '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885'
+            'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
+            'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
+            'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
+            'src/attune_harness/windows_effects.py' = 'ffc46d2f054a7bcf6c95230551a87fb5c73d9992ecebdde9497d2226d0763139'
+            'experiments/platform/windows_saved_store_combined_driver_v2.py' = 'b61a452cb8f59862cee4a366510b74c73544d62e83dc4a81288e28b82e717ca0'
+            'experiments/platform/windows_saved_store_source_manifest_v2.json' = 'd6e80ebd18c19d5b17b35bfdd4c0dc521a24e1dbb0a18eeba14247fcd7e875d8'
+            'experiments/platform/check_windows_saved_store_account_inputs_v2.py' = '7fc6169c570d65d4493d70443ca27cb643d9127d8a3c416ac7cd7636388eb6be'
+            'experiments/platform/check_windows_saved_store_merge_inputs_v1.py' = '91d373245ace997eca32725ceea73f2131ef3ac1f39f5194f423f4cf15351559'
+            'experiments/platform/project_windows_saved_store_build_v1.py' = '3a3aa7a53cdb53b8421d6116bdd0160757967b3472e6a39052987971828f20d8'
+            '.github/workflows/windows-saved-store-reviewed-execution.yml' = '30e11a181edf79eecb0667686d2da540fe9c7047829dc31ddaa50e23d88dfc6e'
+            'experiments/platform/windows_saved_store_build_preflight_v1.ps1' = '02a1475590060160c1209db3a8c98e63340e7e5be8680b7b6f945c0fda38f5a3'
+            '.gitattributes' = '1cf8827a8b0ab0724e7b0031a241930aa7b0edcf9adb7d813f17b3a624e79fe5'
+            'tests/test_windows_saved_store_build_projection.py' = '1bc16cf178c99a5ba6940849cb493ccac82c576578f6dc5c386193cb1db5e181'
+            'tests/test_windows_saved_store_account_inputs_v2.py' = '6fbe500f7bee3945a3e2817241b805464a9c8b127124b5b54fb6589843827382'
+            'tests/test_windows_saved_store_build_preflight.py' = '34f0ad99d42d1de7bf1c1b20a4464bc7cd01b8e273beeae4d3b596927f55ef4f'
+            'experiments/platform/check_windows_saved_store_account_inputs_v3.py' = '7874a4819f18bf77dc0287b3895b0b05cceedec06d9cf3252d99e00f5b63555c'
+            'experiments/platform/windows_saved_store_build_preflight_v2.ps1' = '099cbf93ab82335b2debe89afec6813228c64fde0357f8b55451823ed3cb9fcf'
+            'experiments/platform/windows_saved_store_source_manifest_v3.json' = 'fcf8365fc00aeade30d8bdfa4c4f3e0f5ea869aabb1fbc1ce80466c3b999ae5a'
+            'experiments/platform/.gitattributes' = 'f4658d044d758f0774f2689884c8f0bd056bf02a07bebfb2c3da7dcaf270d7cd'
+            'experiments/platform/project_windows_saved_store_build_v2.py' = 'c8ca4eafe05f14028d6d930e81f0cf42fa4d90d5cb2582914c1468b75bf3e0d8'
+            'tests/test_windows_saved_store_wheel_profiles.py' = '11be1ec8ecf9c0255967585df1b5a0c00fdc90a20f3a955185259c4750c104d9'
+            'tests/.gitattributes' = 'c00d6a9f76fed1ad28260f8b96a9f89b9205b2f00153ed4028f3938aa94c5e8b'
+            'tests/test_windows_saved_store_profile_workflow.py' = '9b1dc251542b2f017c3b0b6879e27e1ba18acb2940065183538e9535efe88a03'
+            'tests/fixtures/windows_saved_store_wheel_metadata_v1.json' = '3c18bc5babed6aae2e4da8ce8549cdabe830c9b6233abc0ee571e30d9a73aa66'
+          }
+          # Materialize raw Git blobs for the fixed paths before source execution.
+          # Keep every accepted source/attribute byte; no checkout conversion flags.
+          $materialize = @'
+          import hashlib,json,os,re,stat,subprocess,sys
+          from pathlib import Path,PurePosixPath
+          
+          LIMIT=1024*1024
+          MANIFEST_SHA='fcf8365fc00aeade30d8bdfa4c4f3e0f5ea869aabb1fbc1ce80466c3b999ae5a'
+          
+          def git(repo,*arguments,limit=65536):
+              result=subprocess.run(['git',*arguments],cwd=repo,stdin=subprocess.DEVNULL,
+                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+              if result.returncode or len(result.stdout)>limit or len(result.stderr)>65536:
+                  raise ValueError('git_data_refused')
+              return result.stdout
+          
+          def canonical(name):
+              if not isinstance(name,str) or not name.isascii():
+                  raise ValueError('path_refused')
+              path=PurePosixPath(name)
+              if (path.is_absolute() or path.as_posix()!=name or not path.parts
+                      or any(part in ('.','..') or not re.fullmatch(r'[A-Za-z0-9_.-]+',part)
+                             or part.endswith('.') for part in path.parts)):
+                  raise ValueError('path_refused')
+              return path
+          
+          def regular(path,directory=False):
+              value=path.lstat()
+              if (stat.S_ISLNK(value.st_mode) or getattr(value,'st_file_attributes',0)&0x400
+                      or not (stat.S_ISDIR(value.st_mode) if directory else stat.S_ISREG(value.st_mode))
+                      or not directory and value.st_nlink!=1):
+                  raise ValueError('target_kind_refused')
+              return value
+          
+          def materialize(repo,expected,checkpoint):
+              if not repo.is_absolute():raise ValueError('absolute_repo_required')
+              regular(repo,directory=True)
+              for name,wanted in expected.items():
+                  row={'path':name,'expected_sha256':wanted,'status':'attempted','failure_type':None}
+                  checkpoint(row)
+                  try:
+                      relative=canonical(name)
+                      if not isinstance(wanted,str) or re.fullmatch(r'[0-9a-f]{64}',wanted) is None:
+                          raise ValueError('digest_refused')
+                      entry=git(repo,'ls-tree','-z','HEAD','--',name).split(b'\0')
+                      if len(entry)!=2 or entry[1]!=b'':raise ValueError('git_entry_refused')
+                      metadata,actual=entry[0].split(b'\t',1)
+                      mode,kind,blob=metadata.decode('ascii').split()
+                      if mode!='100644' or kind!='blob' or actual.decode('ascii')!=name or not re.fullmatch(r'[0-9a-f]{40}',blob):
+                          raise ValueError('git_mode_refused')
+                      size=git(repo,'cat-file','-s',blob,limit=32).strip()
+                      if re.fullmatch(rb'[0-9]+',size) is None or not 0<int(size)<=LIMIT:
+                          raise ValueError('blob_size_refused')
+                      raw=git(repo,'cat-file','blob',blob,limit=LIMIT)
+                      digest=hashlib.sha256(raw).hexdigest()
+                      if len(raw)!=int(size) or digest!=wanted:raise ValueError('blob_hash_refused')
+                      target=repo/relative
+                      for parent in target.parents:
+                          regular(parent,directory=True)
+                          if parent==repo:break
+                      before=regular(target)
+                      flags=os.O_WRONLY|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0)
+                      descriptor=os.open(target,flags)
+                      with os.fdopen(descriptor,'wb') as stream:
+                          opened=os.fstat(stream.fileno())
+                          if (not stat.S_ISREG(opened.st_mode) or opened.st_nlink!=1
+                                  or getattr(opened,'st_file_attributes',0)&0x400
+                                  or (opened.st_dev,opened.st_ino)!=(before.st_dev,before.st_ino)):
+                              raise ValueError('target_changed_before_write')
+                          stream.seek(0);stream.truncate();stream.write(raw);stream.flush()
+                      regular(target)
+                      with target.open('rb') as verify_stream:verified=verify_stream.read(LIMIT+1)
+                      if hashlib.sha256(verified).hexdigest()!=wanted:
+                          raise ValueError('materialized_hash_refused')
+                      row.update(status='materialized',git_blob=blob,git_mode=mode,bytes=len(raw),actual_sha256=digest)
+                  except Exception as error:
+                      row.update(status='refused',failure_type=type(error).__name__)
+                      raise
+                  finally:checkpoint(row)
+          
+          def selection(mode,argument,repo):
+              if mode=='fixed':
+                  value=json.loads(argument)
+                  if (not isinstance(value,dict) or len(value)!=27
+                          or len({name.casefold() for name in value})!=27):raise ValueError('fixed_set_refused')
+                  return value
+              if mode!='manifest':raise ValueError('mode_refused')
+              with (repo/'experiments/platform/windows_saved_store_source_manifest_v3.json').open('rb') as stream:
+                  raw=stream.read(LIMIT+1)
+              if len(raw)>LIMIT or hashlib.sha256(raw).hexdigest()!=MANIFEST_SHA:
+                  raise ValueError('manifest_hash_refused')
+              value=json.loads(raw);inputs={**value['modules'],**value['build_inputs']}
+              if len(value['modules'])!=113 or len(value['build_inputs'])!=3 or len(inputs)!=116:
+                  raise ValueError('manifest_set_refused')
+              return {name:row['sha256'] for name,row in inputs.items()}
+          
+          def main():
+              mode,argument,root=sys.argv[1:];repo=Path(root)
+              if mode not in ('fixed','manifest'):raise ValueError('mode_refused')
+              output=Path(os.environ['RUNNER_TEMP'])/('saved-store-build-safe-'+mode+'-materialization.json')
+              if not output.is_absolute() or output.exists() or output.is_symlink():
+                  raise ValueError('fresh_report_required')
+              report={'status':'started','mode':mode,'rows':[],'failure_type':None,'account_fixture_invoked':False,
+                      'accounts_or_credentials_created':False,'t2_d3_gate':'unpassed','production_port_allowed':False}
+              def save(row=None):
+                  if row is not None and not any(item is row for item in report['rows']):report['rows'].append(row)
+                  output.write_text(json.dumps(report,ensure_ascii=True,indent=2)+'\n',encoding='ascii')
+              save()
+              try:
+                  expected=selection(mode,argument,repo)
+                  materialize(repo,expected,save)
+                  report['status']='raw_git_bytes_materialized'
+              except Exception as error:report.update(status='materialization_refused',failure_type=type(error).__name__)
+              finally:save()
+              return 0 if report['status']=='raw_git_bytes_materialized' else 1
+          
+          if __name__=='__main__':raise SystemExit(main())
+          '@
+          python -I -B -c $materialize fixed ($expected | ConvertTo-Json -Compress) (Get-Location).Path
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rows = [Collections.Generic.List[object]]::new()
+          foreach ($path in $expected.Keys) {
+            $row = [ordered]@{ path = $path; expected_sha256 = $expected[$path]; actual_sha256 = $null; matched = $false; failure_type = $null }
+            try { $row.actual_sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant(); $row.matched = $row.actual_sha256 -ceq $expected[$path] } catch { $row.failure_type = $_.Exception.GetType().FullName }
+            $rows.Add($row)
+            [ordered]@{ status = 'safe_inputs_observed'; sources = $rows.ToArray(); fixture_invoked = $false; accounts_or_credentials_created = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json -Depth 6 | Set-Content "$env:RUNNER_TEMP/saved-store-build-safe-inputs.json" -Encoding utf8
+          }
+          if (@($rows | Where-Object { -not $_.matched }).Count) { throw 'Safe source identity refused.' }
+          python -I experiments/platform/check_windows_saved_store_merge_inputs_v1.py --repo (Get-Location).Path --output "$env:RUNNER_TEMP/saved-store-build-safe-merge.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Normal merged provenance refused.' }
+          python -I -B -c $materialize manifest '{}' (Get-Location).Path
+          if ($LASTEXITCODE -ne 0) { throw 'Canonical 116-input materialization refused.' }
+          python -I experiments/platform/check_windows_saved_store_account_inputs_v3.py --repo (Get-Location).Path --manifest experiments/platform/windows_saved_store_source_manifest_v3.json --driver experiments/platform/windows_saved_store_combined_driver_v2.py --output "$env:RUNNER_TEMP/saved-store-build-safe-source116.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Complete source closure refused.' }
+      - name: Prepare isolated pinned controller tooling
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $controller = Join-Path $env:RUNNER_TEMP 'saved-store-build-safe-controller'
+          if (Test-Path -LiteralPath $controller) { throw 'Require new controller environment.' }
+          python -I -m venv $controller
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $python = Join-Path $controller 'Scripts/python.exe'
+          & $python -I -m pip install 'build==1.3.0' 'setuptools==84.0.0' 'pytest==9.1.1'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $python -I -m pip check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "T2_SAFE_CONTROLLER=$python" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $config = Join-Path $env:RUNNER_TEMP 'saved-store-build-safe-pytest.ini'
+          if (Test-Path -LiteralPath $config) { throw 'Refuse retained test config.' }
+          [IO.File]::WriteAllText($config, "[pytest]`n", [Text.UTF8Encoding]::new($false))
+      - name: Run pure source and refusal controls without repository conftest
+        shell: pwsh
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+        run: |
+          & $env:T2_SAFE_CONTROLLER -I -B -m pytest -q -p no:cacheprovider --noconftest -c "$env:RUNNER_TEMP/saved-store-build-safe-pytest.ini" tests/test_windows_saved_store_account_inputs_v2.py tests/test_windows_saved_store_build_projection.py tests/test_windows_saved_store_build_preflight.py tests/test_windows_saved_store_wheel_profiles.py tests/test_windows_saved_store_profile_workflow.py 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/saved-store-build-safe-pure-tests.txt"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain all seven exact cold controls without helper construction
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cold = (Resolve-Path experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+          & $cold -Helper $helper -Output "$env:RUNNER_TEMP/saved-store-build-safe-cold"
+          $report = Get-Content -LiteralPath "$env:RUNNER_TEMP/saved-store-build-safe-cold/diagnostic.json" -Raw | ConvertFrom-Json
+          if ($report.status -cne 'cold_compile_completed' -or $report.cases.Count -ne 7 -or
+              $report.account_fixture_invoked -cne $false -or $report.accounts_or_credentials_created -cne $false -or
+              $report.gui_objects_created -cne $false -or $report.native_helper_constructed -cne $false -or
+              $report.storage_witness_invoked -cne $false -or $report.production_port_allowed -cne $false) { throw 'Incomplete cold control evidence.' }
+      - name: Observe only finite projection build and equivalent module startup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = (Resolve-Path experiments/platform/windows_saved_store_build_preflight_v2.ps1).Path
+          $repo = (Get-Location).Path
+          $launch = [ordered]@{ status = 'launch_started'; exit_code = $null; failure_type = $null; failure_line = $null; accounts_or_credentials_created = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false }
+          $launchPath = "$env:RUNNER_TEMP/saved-store-build-safe-launch.json"
+          $launch | ConvertTo-Json | Set-Content -LiteralPath $launchPath -Encoding utf8
+          try {
+            & $script -Repo $repo -ControllerPython $env:T2_SAFE_CONTROLLER -Output (Join-Path $env:RUNNER_TEMP 'saved-store-build-safe')
+            $launch.exit_code = $LASTEXITCODE
+            $launch.status = 'launch_returned'
+          } catch { $launch.failure_type = $_.Exception.GetType().FullName; $launch.failure_line = $_.InvocationInfo.ScriptLineNumber }
+          finally { $launch | ConvertTo-Json | Set-Content -LiteralPath $launchPath -Encoding utf8 }
+          if ($launch.exit_code -ne 0 -or $launch.failure_type) { throw 'Safe preflight refused; inspect raw artifacts.' }
+      - name: Retain partial raw captures and all refusal checkpoints
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-platform-build-safe-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/saved-store-build-safe-inputs.json
+            ${{ runner.temp }}/saved-store-build-safe-fixed-materialization.json
+            ${{ runner.temp }}/saved-store-build-safe-manifest-materialization.json
+            ${{ runner.temp }}/saved-store-build-safe-merge.json
+            ${{ runner.temp }}/saved-store-build-safe-source116.json
+            ${{ runner.temp }}/saved-store-build-safe-pure-tests.txt
+            ${{ runner.temp }}/saved-store-build-safe-launch.json
+            ${{ runner.temp }}/saved-store-build-safe-cold/
+            ${{ runner.temp }}/saved-store-build-safe/*.json
+            ${{ runner.temp }}/saved-store-build-safe/*.txt
+            ${{ runner.temp }}/saved-store-build-safe/source/
+            ${{ runner.temp }}/saved-store-build-safe/wheel/*.whl
+          if-no-files-found: warn

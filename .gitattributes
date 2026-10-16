@@ -4,3 +4,47 @@ tests/fixtures/** -text
 docs/first-repair-1.3.0.md -text
 examples/starter/participants.json -text
 examples/starter/worker.py -text
+
+# The disabled T2 proposal is reviewed and compiled by exact source digest.
+experiments/platform/windows_saved_store_standard_user_proposal.ps1 -text
+experiments/platform/check_windows_saved_store_proposal.ps1 -text
+
+# Both T2 Python witnesses carry exact reviewed source digests across hosts.
+experiments/platform/windows_saved_store_proof.py -text
+experiments/platform/windows_saved_store_namespace_witness_v3.py -text
+
+# Additive GUI proposal sources are reviewed and checked by exact byte digest.
+experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b2.ps1 -text
+experiments/platform/windows_saved_store_gui_lease_helper_v3.ps1 -text
+experiments/platform/check_windows_saved_store_gui_proposal_v3.ps1 -text
+experiments/platform/test_windows_saved_store_gui_validation_v3b2.ps1 -text
+experiments/platform/test_windows_saved_store_gui_paths_v3b.ps1 -text
+
+# A separately approved execution proposal must retain its exact Python bytes.
+experiments/platform/windows_saved_store_combined_driver_v1.py -text
+experiments/platform/windows_saved_store_namespace_witness_v4.py -text
+
+# The T2 native-module source pin compares canonical Git bytes on every host.
+src/attune_harness/windows_effects.py -text
+
+# The zero-account startup diagnostic is also checked by exact source digest.
+experiments/platform/windows_saved_store_helper_preamble_diagnostic_v1.ps1 -text
+
+# The additive T2 process-local normalization sources retain exact reviewed bytes.
+experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1 -text
+experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1 -text
+experiments/platform/windows_saved_store_helper_preamble_diagnostic_v2.ps1 -text
+
+# Cold helper preflight is a separate exact-byte reviewed source.
+experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1 -text
+
+# Merge provenance checker is reviewed by exact bytes on Windows.
+experiments/platform/check_windows_saved_store_merge_inputs_v1.py -text
+
+# Additive current-source T2 driver and complete wheel-source closure are byte-bound.
+experiments/platform/windows_saved_store_combined_driver_v2.py -text
+experiments/platform/windows_saved_store_source_manifest_v2.json -text
+experiments/platform/check_windows_saved_store_account_inputs_v2.py -text
+
+# Owned finite build projection code is also byte-bound.
+experiments/platform/project_windows_saved_store_build_v1.py -text

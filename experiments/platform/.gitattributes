@@ -1,0 +1,10 @@
+.gitattributes -text
+check_windows_saved_store_account_inputs_v3.py -text
+project_windows_saved_store_build_v2.py -text
+windows_saved_store_build_preflight_v2.ps1 -text
+windows_saved_store_source_manifest_v3.json -text
+windows_saved_store_component_adapter_v1.py -text
+windows_saved_store_component_route_v1.py -text
+windows_saved_store_build_preflight_v3.ps1 -text
+windows_saved_store_combined_driver_v3.py -text
+windows_saved_store_source_manifest_v4.json -text

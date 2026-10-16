@@ -1,0 +1,256 @@
+name: Saved-store reviewed standard-user observations
+
+# Bounded current-source observations; one separately approved event only.
+# This workflow collects observations; it never passes T2/D3 or authorizes T5.
+on:
+  pull_request:
+    paths:
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/platform/windows_saved_store_combined_driver_v2.py'
+      - 'experiments/platform/check_windows_saved_store_account_inputs_v2.py'
+      - 'experiments/platform/project_windows_saved_store_build_v1.py'
+      - 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+      - 'experiments/platform/windows_saved_store_namespace_witness_v4.py'
+      - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1'
+      - 'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1'
+      - 'experiments/platform/windows_saved_store_proof.py'
+      - 'src/attune_harness/windows_effects.py'
+      - '.github/workflows/windows-saved-store-reviewed-execution.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: saved-store-reviewed-execution-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  observations:
+    # Projection/build behavior must first pass separate safe account-disabled CI.
+    # No account event is approved; this source blueprint stays disabled.
+    if: ${{ false }}
+    name: T2 observations only / ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verify exact reviewed inputs before any fixture operation
+        shell: pwsh
+        env:
+          T2_EVENT_NAME: ${{ github.event_name }}
+          T2_EVENT_SHA: ${{ github.sha }}
+          T2_EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
+          T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Restore only this pinned source from the checked-out index. This
+          # is local to the command; it changes no global/repository setting.
+          git -c core.autocrlf=false checkout-index --force -- src/attune_harness/windows_effects.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $expected = [ordered]@{
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1' = '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf'
+            'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1' = '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885'
+            'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
+            'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
+            'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
+            'src/attune_harness/windows_effects.py' = 'ffc46d2f054a7bcf6c95230551a87fb5c73d9992ecebdde9497d2226d0763139'
+            'experiments/platform/windows_saved_store_combined_driver_v2.py' = 'b61a452cb8f59862cee4a366510b74c73544d62e83dc4a81288e28b82e717ca0'
+            'experiments/platform/windows_saved_store_source_manifest_v2.json' = 'd6e80ebd18c19d5b17b35bfdd4c0dc521a24e1dbb0a18eeba14247fcd7e875d8'
+            'experiments/platform/check_windows_saved_store_account_inputs_v2.py' = '7fc6169c570d65d4493d70443ca27cb643d9127d8a3c416ac7cd7636388eb6be'
+            'experiments/platform/check_windows_saved_store_merge_inputs_v1.py' = '91d373245ace997eca32725ceea73f2131ef3ac1f39f5194f423f4cf15351559'
+            'experiments/platform/project_windows_saved_store_build_v1.py' = '3a3aa7a53cdb53b8421d6116bdd0160757967b3472e6a39052987971828f20d8'
+          }
+          $observed = [Collections.Generic.List[object]]::new()
+          foreach ($path in $expected.Keys) {
+            $row = [ordered]@{ path = $path; expected_sha256 = $expected[$path]; actual_sha256 = $null; matched = $false; failure_type = $null }
+            try {
+              $row.actual_sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+              $row.matched = $row.actual_sha256 -ceq $expected[$path]
+            } catch { $row.failure_type = $_.Exception.GetType().FullName }
+            $observed.Add($row)
+            [ordered]@{ status = 'reviewed_inputs_observed'; commit = $env:GITHUB_SHA; sources = $expected; observations = $observed.ToArray(); t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json -Depth 5 | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-inputs.json" -Encoding utf8
+          }
+          if (@($observed | Where-Object { -not $_.matched }).Count) { throw 'Reviewed input identity refused; inspect every retained row before accounts.' }
+          python -I experiments/platform/check_windows_saved_store_merge_inputs_v1.py --repo (Get-Location).Path --output "$env:RUNNER_TEMP/saved-store-reviewed-merge.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Merged provenance refused before accounts.' }
+          # Use the exact hash-checked fixed list; no shell wildcard or config change.
+          python -I -c "import json,subprocess; m=json.load(open('experiments/platform/windows_saved_store_source_manifest_v2.json',encoding='ascii')); paths=[*m['modules'],*m['build_inputs']]; subprocess.run(['git','-c','core.autocrlf=false','checkout-index','--force','--',*paths],check=True)"
+          if ($LASTEXITCODE -ne 0) { throw 'Canonical source materialization failed.' }
+          python -I experiments/platform/check_windows_saved_store_account_inputs_v2.py --repo (Get-Location).Path --manifest experiments/platform/windows_saved_store_source_manifest_v2.json --driver experiments/platform/windows_saved_store_combined_driver_v2.py --output "$env:RUNNER_TEMP/saved-store-reviewed-source116.json"
+          if ($LASTEXITCODE -ne 0) { throw 'The 113-source/3-build-input or driver closure refused before accounts.' }
+      - name: Prove cold helper compilation before any account creation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $preflight = (Resolve-Path experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+          & $preflight -Helper $helper -Output "$env:RUNNER_TEMP/saved-store-cold-preflight"
+          $report = Get-Content -LiteralPath "$env:RUNNER_TEMP/saved-store-cold-preflight/diagnostic.json" -Raw | ConvertFrom-Json
+          if ($report.status -cne 'cold_compile_completed' -or $report.cases.Count -ne 7 -or
+              $report.account_fixture_invoked -cne $false -or $report.accounts_or_credentials_created -cne $false -or
+              $report.gui_objects_created -cne $false -or $report.native_helper_constructed -cne $false -or
+              $report.storage_witness_invoked -cne $false -or $report.production_port_allowed -cne $false) {
+              throw 'Cold preflight did not establish all controls; refuse account fixture.'
+          }
+      - name: Create a dedicated controller build environment
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $venv = Join-Path $env:RUNNER_TEMP 'saved-store-reviewed-controller'
+          python -I -m venv $venv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$venv/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build the local wheel without provider dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -I -m pip install 'build==1.3.0' 'setuptools==84.0.0'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $repo = (Get-Location).Path
+          $owned = Join-Path $env:RUNNER_TEMP 'saved-store-reviewed-projection'
+          if (Test-Path -LiteralPath $owned) { throw 'Require a new owned build root.' }
+          $null = New-Item -ItemType Directory -Path $owned
+          $owner = [Security.Principal.WindowsIdentity]::GetCurrent().User
+          $acl = [Security.AccessControl.DirectorySecurity]::new()
+          $acl.SetAccessRuleProtection($true, $false)
+          $acl.SetOwner($owner)
+          foreach ($sid in @($owner.Value, 'S-1-5-18')) {
+            $identity = [Security.Principal.SecurityIdentifier]::new($sid)
+            $rule = [Security.AccessControl.FileSystemAccessRule]::new($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+            $acl.AddAccessRule($rule)
+          }
+          Set-Acl -LiteralPath $owned -AclObject $acl
+          $projection = Join-Path $owned 'source'
+          $projector = Join-Path $repo 'experiments/platform/project_windows_saved_store_build_v1.py'
+          $manifest = Join-Path $repo 'experiments/platform/windows_saved_store_source_manifest_v2.json'
+          python -I -B $projector --repo $repo --manifest $manifest --projection $projection --output (Join-Path $owned 'created.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Finite projection creation refused before backend/accounts.' }
+          python -I -B $projector --repo $repo --manifest $manifest --projection $projection --verify-only --output (Join-Path $owned 'verified-before-backend.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Finite projection verification refused before backend/accounts.' }
+          python -I -B $projector --repo $repo --manifest $manifest --projection $projection --build-output (Join-Path $owned 'wheel') --output (Join-Path $owned 'build.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Owned isolated projection build refused before accounts.' }
+          $postExpected = [ordered]@{
+            'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
+            'experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1' = '5786e2eefbb6e61f65ef4caaf17a4668ad7dd14ae8f552d72dffcc21845729bf'
+            'experiments/platform/windows_saved_store_helper_cold_compile_v1.ps1' = '496275b061b807302281834e036546361b5a1aa3651a3553c553b23db4db6885'
+            'experiments/platform/windows_saved_store_combined_driver_v1.py' = 'e3aa0931328aabd2541b64b21f717c478b8121278dc7d10bb597e0cb0cf41937'
+            'experiments/platform/windows_saved_store_proof.py' = 'b233497ffe18973eca3a4db29b2eca7ee5269c4ae2ef78429a8cf10db1ce7355'
+            'experiments/platform/windows_saved_store_namespace_witness_v4.py' = 'f326803457453fccf02b795144ef1a48986c4c7068eef87aa56d21591ddd643e'
+            'src/attune_harness/windows_effects.py' = 'ffc46d2f054a7bcf6c95230551a87fb5c73d9992ecebdde9497d2226d0763139'
+            'experiments/platform/windows_saved_store_combined_driver_v2.py' = 'b61a452cb8f59862cee4a366510b74c73544d62e83dc4a81288e28b82e717ca0'
+            'experiments/platform/windows_saved_store_source_manifest_v2.json' = 'd6e80ebd18c19d5b17b35bfdd4c0dc521a24e1dbb0a18eeba14247fcd7e875d8'
+            'experiments/platform/check_windows_saved_store_account_inputs_v2.py' = '7fc6169c570d65d4493d70443ca27cb643d9127d8a3c416ac7cd7636388eb6be'
+            'experiments/platform/check_windows_saved_store_merge_inputs_v1.py' = '91d373245ace997eca32725ceea73f2131ef3ac1f39f5194f423f4cf15351559'
+            'experiments/platform/project_windows_saved_store_build_v1.py' = '3a3aa7a53cdb53b8421d6116bdd0160757967b3472e6a39052987971828f20d8'
+          }
+          $postObserved = [Collections.Generic.List[object]]::new()
+          foreach ($path in $postExpected.Keys) {
+            $row = [ordered]@{ path = $path; expected_sha256 = $postExpected[$path]; actual_sha256 = $null; matched = $false; failure_type = $null }
+            try {
+              $row.actual_sha256 = (Get-FileHash -LiteralPath (Join-Path $repo $path) -Algorithm SHA256).Hash.ToLowerInvariant()
+              $row.matched = $row.actual_sha256 -ceq $postExpected[$path]
+            } catch { $row.failure_type = $_.Exception.GetType().FullName }
+            $postObserved.Add($row)
+            [ordered]@{ status = 'post_build_inputs_observed'; observations = $postObserved.ToArray(); t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json -Depth 5 | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-post-build-inputs.json" -Encoding utf8
+          }
+          if (@($postObserved | Where-Object { -not $_.matched }).Count) { throw 'Execution input changed during build; refuse accounts.' }
+          $wheels = @(Get-ChildItem (Join-Path $owned 'wheel/attune_harness-*.whl'))
+          if ($wheels.Count -ne 1) { throw 'Require one new local projection wheel.' }
+          python -I experiments/platform/check_windows_saved_store_account_inputs_v2.py --repo $repo --manifest $manifest --driver experiments/platform/windows_saved_store_combined_driver_v2.py --wheel $wheels[0].FullName --output "$env:RUNNER_TEMP/saved-store-reviewed-wheel119.json"
+          if ($LASTEXITCODE -ne 0) { throw 'The complete source/wheel/RECORD closure refused after backend, before accounts.' }
+          python -I -c "import json,sys; print(json.dumps({'controller_executable':sys.executable,'base_executable':sys._base_executable,'version':sys.version},ensure_ascii=True))" | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-runtime.json" -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [ordered]@{ wheel = $wheels[0].Name; sha256 = (Get-FileHash $wheels[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant(); os = '${{ matrix.os }}'; python = '${{ matrix.python }}'; t2_d3_gate = 'unpassed'; production_port_allowed = $false } | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/saved-store-reviewed-build.json" -Encoding utf8
+      - name: Observe with the exact reviewed owned GUI fixture
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # All code is unchanged/pinned above. This is the ONLY execution site.
+          $fixture = (Resolve-Path experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1).Path
+          $helper = (Resolve-Path experiments/platform/windows_saved_store_gui_lease_helper_v4.ps1).Path
+          $driver = (Resolve-Path experiments/platform/windows_saved_store_combined_driver_v2.py).Path
+          $basePython = python -I -c "import sys; print(sys._base_executable)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $wheel = (Get-ChildItem "$env:RUNNER_TEMP/saved-store-reviewed-projection/wheel/attune_harness-*.whl").FullName
+          $output = Join-Path $env:RUNNER_TEMP 'saved-store-reviewed-observations'
+          # This fresh pwsh step cannot reuse the previous step's variables.
+          $owned = (Resolve-Path (Join-Path $env:RUNNER_TEMP 'saved-store-reviewed-projection')).Path
+          $controller = [Security.Principal.WindowsIdentity]::GetCurrent().User
+          $ownedItem = Get-Item -LiteralPath $owned -Force
+          if (-not $ownedItem.PSIsContainer -or ($ownedItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Owned build root must remain a plain directory.' }
+          $ownedAcl = Get-Acl -LiteralPath $owned
+          $ownedRules = @($ownedAcl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
+          if ($ownedAcl.GetOwner([Security.Principal.SecurityIdentifier]).Value -cne $controller.Value -or
+              -not $ownedAcl.AreAccessRulesProtected -or $ownedRules.Count -ne 2 -or
+              @($ownedRules | Where-Object { $_.IdentityReference.Value -ceq $controller.Value }).Count -ne 1 -or
+              @($ownedRules | Where-Object { $_.IdentityReference.Value -ceq 'S-1-5-18' }).Count -ne 1 -or
+              @($ownedRules | Where-Object { $_.IdentityReference.Value -notin @($controller.Value, 'S-1-5-18') -or
+                  $_.AccessControlType -ne [Security.AccessControl.AccessControlType]::Allow -or
+                  $_.FileSystemRights -ne [Security.AccessControl.FileSystemRights]::FullControl }).Count) {
+              throw 'Owned build root privacy changed; refuse fixture.'
+          }
+          foreach ($absoluteInput in @($fixture, $helper, $driver, $basePython, $wheel, $output, $owned)) {
+              if (-not [IO.Path]::IsPathFullyQualified($absoluteInput)) { throw 'Every fixture input/output must be absolute before changing directory.' }
+          }
+          $fixtureCwd = Join-Path $owned 'fixture-cwd'
+          if (Test-Path -LiteralPath $fixtureCwd) { throw 'Require a new empty fixture working directory.' }
+          $null = New-Item -ItemType Directory -Path $fixtureCwd
+          $cwdAcl = [Security.AccessControl.DirectorySecurity]::new()
+          $cwdAcl.SetAccessRuleProtection($true, $false)
+          $cwdAcl.SetOwner($controller)
+          foreach ($sid in @($controller.Value, 'S-1-5-18')) {
+              $identity = [Security.Principal.SecurityIdentifier]::new($sid)
+              $rule = [Security.AccessControl.FileSystemAccessRule]::new($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+              $cwdAcl.AddAccessRule($rule)
+          }
+          Set-Acl -LiteralPath $fixtureCwd -AclObject $cwdAcl
+          if (@(Get-ChildItem -LiteralPath $fixtureCwd -Force).Count) { throw 'Fixture working directory must start empty.' }
+          # Process-only removal; user/machine environment remains unchanged.
+          $env:PYTHONHOME = $null
+          $env:PYTHONPATH = $null
+          $env:PYTHONUSERBASE = $null
+          $env:PYTHONNOUSERSITE = '1'
+          Set-Location -LiteralPath $fixtureCwd
+          & $fixture -ExecuteApprovedFixture -ExecuteReviewedGuiLease -GuiHelper $helper -BasePython $basePython -Wheel $wheel -ProofScript $driver -Output $output
+      - name: Retain observations and independent cleanup outcomes
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: saved-store-reviewed-observations-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            ${{ runner.temp }}/saved-store-cold-preflight/
+            ${{ runner.temp }}/saved-store-reviewed-observations/
+            ${{ runner.temp }}/saved-store-reviewed-inputs.json
+            ${{ runner.temp }}/saved-store-reviewed-build.json
+            ${{ runner.temp }}/saved-store-reviewed-merge.json
+            ${{ runner.temp }}/saved-store-reviewed-source116.json
+            ${{ runner.temp }}/saved-store-reviewed-wheel119.json
+            ${{ runner.temp }}/saved-store-reviewed-runtime.json
+            ${{ runner.temp }}/saved-store-reviewed-post-build-inputs.json
+            ${{ runner.temp }}/saved-store-reviewed-projection/
+          if-no-files-found: warn
