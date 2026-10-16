@@ -20,9 +20,29 @@ The 1.3.0 tutorials and decks remain historical; replacement decks and separate
 Help deployment are deferred.
 The v1 compatibility contract remains in effect; experimental features and
 platform limits are listed below.
-[Qualification status](#what-is-qualified-and-what-is-not).
+[Released 1.4.0 qualification status](#what-is-qualified-and-what-is-not).
 
 [Install Attune Harness](#installation) · [User guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
+
+## Planned 1.5.0: Windows compatibility
+
+Version 1.5.0 is the target for the full Windows parity spec and is unreleased.
+The installation commands and qualification table below describe published 1.4.0.
+
+The unreleased `main` branch includes these merged Windows components:
+
+- [Captured test execution](https://github.com/Smart-AI-Memory/attune-harness/pull/271).
+- [Native readers for local memory files](https://github.com/Smart-AI-Memory/attune-harness/pull/272).
+- [Experimental native memory transport with offline SDK evidence](https://github.com/Smart-AI-Memory/attune-harness/pull/269).
+
+Component tests and installed-wheel checks have passed on Windows CI. Full
+Windows parity remains in progress: saved memory and tasks depend on the storage
+durability proof; a process-cleanup failure is under investigation; live provider
+acceptance, Windows 11 desktop validation and combined installed-wheel and CLI
+qualification remain open. Follow the [Windows parity spec](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
+and [storage proof work](https://github.com/Smart-AI-Memory/attune-harness/pull/268)
+for scope, evidence and remaining limits. Release readiness depends on closing
+those requirements.
 
 ## Plan, build, review, fix, and test
 
