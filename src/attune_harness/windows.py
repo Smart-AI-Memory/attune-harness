@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 
 
 def kernel():
@@ -19,6 +20,7 @@ def kernel():
         'OpenProcess':([w.DWORD,w.BOOL,w.DWORD],w.HANDLE),
         'AssignProcessToJobObject':([w.HANDLE,w.HANDLE],w.BOOL),
         'TerminateJobObject':([w.HANDLE,w.UINT],w.BOOL),
+        'QueryInformationJobObject':([w.HANDLE,ctypes.c_int,w.LPVOID,w.DWORD,ctypes.POINTER(w.DWORD)],w.BOOL),
         'CloseHandle':([w.HANDLE],w.BOOL),
         'CreateFileW':([w.LPCWSTR,w.DWORD,w.DWORD,w.LPVOID,w.DWORD,w.DWORD,w.HANDLE],w.HANDLE),
         'GetFileInformationByHandleEx':([w.HANDLE,ctypes.c_int,w.LPVOID,w.DWORD],w.BOOL),
@@ -45,6 +47,14 @@ class ExtendedLimits(ctypes.Structure):
     _fields_=[('basic',BasicLimits),('io_counters',ctypes.c_uint64*6),
               ('process_memory',ctypes.c_size_t),('job_memory',ctypes.c_size_t),
               ('peak_process_memory',ctypes.c_size_t),('peak_job_memory',ctypes.c_size_t)]
+
+
+class BasicAccounting(ctypes.Structure):
+    # Win32 LARGE_INTEGER is 64 bits; DWORD is 32 bits on every host.
+    _fields_=[('user_time',ctypes.c_int64),('kernel_time',ctypes.c_int64),
+              ('period_user_time',ctypes.c_int64),('period_kernel_time',ctypes.c_int64),
+              ('page_faults',ctypes.c_uint32),('total_processes',ctypes.c_uint32),
+              ('active_processes',ctypes.c_uint32),('terminated_processes',ctypes.c_uint32)]
 
 
 class WindowsJob:
@@ -88,8 +98,19 @@ class WindowsJob:
             if handle is not None:checked(self.api.CloseHandle(handle))
 
     def stop(self,process):
+        deadline=time.monotonic()+5
         checked(self.api.TerminateJobObject(self.handle,1))
-        process.wait(timeout=5)
+        process.wait(timeout=max(0,deadline-time.monotonic()))
+        while time.monotonic()<deadline:
+            accounting=BasicAccounting()
+            checked(self.api.QueryInformationJobObject(
+                self.handle,1,ctypes.byref(accounting),ctypes.sizeof(accounting),None))
+            if time.monotonic()>=deadline:
+                break
+            if accounting.active_processes==0:
+                return
+            time.sleep(min(0.01,max(0,deadline-time.monotonic())))
+        raise TimeoutError('Windows owned job did not stop within five seconds')
 
     def launch_failure(self):
         path=self.directory/'launch-error.json'
