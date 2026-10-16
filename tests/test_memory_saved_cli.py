@@ -19,12 +19,14 @@ def dump(path, value):
 
 
 def configured_store(tmp_path):
+    # The trusted fixture produces a canonical long path on Windows.
+    tmp_path = tmp_path.resolve(strict=True)
     config = dump(tmp_path / 'config.json', {'saved': {'root': str(tmp_path / 'store')}})
     scope = dump(tmp_path / 'scope.json', {'kind': 'global'})
     return config, scope
 
 
-@pytest.mark.skipif(os.name != 'posix', reason='Saved file store is POSIX-only')
+@pytest.mark.skipif(os.name not in ('posix', 'nt'), reason='Saved local storage profile')
 def test_all_saved_commands(tmp_path, capsys):
     config, scope = configured_store(tmp_path)
     request = dump(tmp_path / 'request.json', dict(request_id='save1', kind='memory',
@@ -54,7 +56,7 @@ def test_all_saved_commands(tmp_path, capsys):
     assert invoke(capsys, config, 'complete', task, '--request', request)[1]['record']['status'] == 'completed'
 
 
-@pytest.mark.skipif(os.name != 'posix', reason='Saved file store is POSIX-only')
+@pytest.mark.skipif(os.name not in ('posix', 'nt'), reason='Saved local storage profile')
 def test_missing_redis_is_pending_and_request_errors_redacted(tmp_path, capsys, monkeypatch):
     config, scope = configured_store(tmp_path)
     monkeypatch.delenv('UNSET_SAVED_TEST_REDIS', raising=False)
@@ -77,9 +79,13 @@ def test_invalid_configuration_is_structured(tmp_path, capsys):
     assert code == 2 and result['status'] == 'failed'
 
 
-@pytest.mark.skipif(os.name == 'posix', reason='Non-POSIX refusal')
-def test_non_posix_store_refuses_before_write(tmp_path, capsys):
+@pytest.mark.skipif(os.name != 'nt', reason='Real Windows private-root refusal')
+def test_windows_inherited_root_refuses_before_lock_or_state(tmp_path, capsys):
     config, scope = configured_store(tmp_path)
+    # Ordinary mkdir inherits its DACL; the private owner requires a protected DACL.
+    root = tmp_path / 'store'
+    root.mkdir()
     code, result = invoke(capsys, config, 'list', '--scope', scope)
     assert code == 2 and result['status'] == 'failed'
-    assert not (tmp_path / 'store').exists()
+    assert not (root / '.saved.lock').exists()
+    assert not (root / 'state.json').exists()
