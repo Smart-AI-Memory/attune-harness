@@ -1,5 +1,15 @@
 # Supported journeys and their limits
 
+**Historical 1.2.0 map.** The dated text and table below are retained as
+historical claims, including the original “current map” wording. The saved-store
+row's “All three” entry does not establish Windows support: the released 1.2.0
+and 1.4.0 owners refuse non-POSIX storage. See the
+[released saving profile](memory-saving.md#released-140-profile).
+Unreleased `main` now includes a merged Windows saved-store implementation
+checkpoint with passing current finite witnesses; full T5 acceptance, the
+historical busy-failure cause, and final parity remain open in the
+[draft 1.5.0 readiness record](release-readiness-1.5.0.md).
+
 Written September 29, 2026 against the released **1.2.0** (`v1.2.0`, commit
 `d833c371f5fb132ddc2af35e5cb069169dae1df3`). This is the current map (O-04). It
 replaces the [September 17 release journey map](release-journey-map.md) and the

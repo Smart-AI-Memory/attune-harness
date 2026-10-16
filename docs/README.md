@@ -35,7 +35,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Starter files — approved spec](specs/starter-files/README.md): O-70; `init --for plan|fix` writes the request and probe that `plan` and `fix` need; Q1–Q6 ruled, targets 1.3.0
 - [Starter files requirements](specs/starter-files/design.md): R1–R5 and what each must not change
 - [Starter files tasks](specs/starter-files/tasks.md): Six ordered PRs, the CI journeys first
-- [Native Windows parity — draft spec](specs/windows-parity/README.md): Complete feature journeys, native safety and durability gates, and ordered implementation PRs; implementation paused for review
+- [Native Windows parity — approved spec](specs/windows-parity/README.md): Complete feature journeys, native safety and durability gates, and ordered implementation PRs; implementation and final qualification remain in progress
 - [Windows parity acceptance](specs/windows-parity/design.md): R1–R8, compatibility boundaries and native failure tests
 - [Windows parity fixture producers](specs/windows-parity/fixtures.md): Exact inputs and response bindings for the command walk
 - [Windows parity tasks](specs/windows-parity/tasks.md): Ordered PRs, durability decision gate and planning completion review
@@ -59,6 +59,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
+- [1.5.0 draft release notes](release-notes-1.5.0.md): Planned Windows changes, current installation guidance, and unreleased limits
+- [1.5.0 draft readiness record](release-readiness-1.5.0.md): Merged component evidence, production blockers, and final parity/publication gates
 - [1.4.0 release notes](release-notes-1.4.0.md): Saved forms, consultation additions, compatibility, bounded scope and retained preparation evidence
 - [1.4.0 readiness record](release-readiness-1.4.0.md): Source dependencies, documentation owners and final evidence required before publication
 - [1.3.0 release notes](release-notes-1.3.0.md): `init --for plan` and `init --for fix` write the starter files; example participants finish both journeys
