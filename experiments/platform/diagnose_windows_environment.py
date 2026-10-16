@@ -17,7 +17,8 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     installed = Path(attune_harness.__file__).resolve().parent
     receipt = {'installed': str(installed), 'model_calls': 0, 'sources': {}}
-    for name in ('process.py', 'windows.py', '_windows_worker.py'):
+    for name in ('process.py', 'windows.py', '_windows_worker.py',
+                 'memory_saved.py', 'memory_saved_windows.py', 'windows_effects.py'):
         actual = (installed / name).read_bytes()
         if actual != (root / 'src' / 'attune_harness' / name).read_bytes():
             raise ValueError('Installed source differs: ' + name)
@@ -25,7 +26,8 @@ def main():
     argv = [sys.executable, '-u', '-m', 'pytest', '-vv', '-o', 'pythonpath=',
             '-o', 'faulthandler_timeout=20',
             '--junitxml=' + str(output / 'tests.xml'),
-            str(root / 'tests' / 'test_windows_runtime.py')]
+            str(root / 'tests' / 'test_windows_runtime.py'),
+            str(root / 'tests' / 'test_memory_saved_windows_native.py')]
     environment = dict(os.environ)
     environment.pop('PYTHONPATH', None)
     environment.pop('PYTEST_ADDOPTS', None)

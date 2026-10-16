@@ -566,6 +566,105 @@ def expected_revision_bytes(before, value):
     return memory.raw
 
 
+def _kill_error_facts(error):
+    """Bound the retained exception chain; preserve native numbers, not paths."""
+    facts, seen = [], set()
+    for _ in range(4):
+        if error is None or id(error) in seen:
+            break
+        seen.add(id(error))
+        facts.append({'type': type(error).__name__, 'errno': getattr(error, 'errno', None),
+                      'winerror': getattr(error, 'winerror', None),
+                      'code': getattr(error, 'code', None),
+                      'outcome': getattr(error, 'outcome', None)})
+        cause = error.__cause__
+        error = (cause if cause is not None else
+                 None if error.__suppress_context__ else error.__context__)
+    return facts
+
+
+def _kill_read_failure_diagnostic(root, store, first, value, before, after):
+    """Observe only after the original raw read failed; this cannot qualify it."""
+    from attune_harness.memory_saved_windows import locked
+    from attune_harness.windows_effects import Native
+    import hashlib
+
+    def bytes_facts(raw):
+        return {'length': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(),
+                'matches_before': raw == before, 'matches_after': raw == after}
+
+    report = {'claim': 'post-failure diagnostic; ordered observations change timing; '
+                        'no immediate-read, power-loss or restored durability claim',
+              'native_open_attempts': [], 'product_recovery': {}}
+    try:
+        api = Native()
+    except BaseException as error:
+        report['native_setup_error'] = _kill_error_facts(error)
+        return report
+    # Same requested read/query access and OPEN_EXISTING; only sharing differs.
+    # Both are single acquisitions AFTER the failed CRT read, never its retries.
+    for share in (3, 7):
+        row = {'desired_access': 0x00120081, 'share': share,
+               'creation_disposition': 3, 'flags': 0x00200000,
+               'open_success': False, 'open_winerror': None, 'close_success': None}
+        report['native_open_attempts'].append(row)
+        handle = None
+        try:
+            ctypes.set_last_error(0)
+            handle = api.k.CreateFileW(str(root / 'state.json'), row['desired_access'],
+                                      share, None, 3, row['flags'], None)
+            if handle in (None, ctypes.c_void_p(-1).value):
+                row['open_winerror'] = ctypes.get_last_error()
+                handle = None
+                continue
+            row['open_success'] = True
+            standard = api.info(handle, api.Standard, 1)
+            row['standard'] = {'delete_pending': bool(standard.DeletePending),
+                               'directory': bool(standard.Directory),
+                               'links': int(standard.NumberOfLinks),
+                               'size': int(standard.EndOfFile)}
+            entry, size, _ = api.metadata(handle)
+            row['before_metadata'] = entry
+            if not 0 <= size <= MAX_STATE:
+                raise ValueError('diagnostic state exceeds existing bound')
+            raw = api.read(handle, size, limit=MAX_STATE)
+            later, later_size, _ = api.metadata(handle)
+            row['after_metadata'] = later
+            row['metadata_stable'] = entry == later and size == later_size
+            row['bytes'] = bytes_facts(raw)
+        except BaseException as error:
+            row['error'] = _kill_error_facts(error)
+        finally:
+            if handle is not None:
+                try:
+                    ctypes.set_last_error(0)
+                    row['close_success'] = bool(api.k.CloseHandle(handle))
+                    if not row['close_success']:
+                        row['close_winerror'] = ctypes.get_last_error()
+                except BaseException as error:
+                    row['close_success'] = False
+                    row['close_error'] = _kill_error_facts(error)
+        if handle is not None and row['close_success'] is not True:
+            report['stopped_after_unconfirmed_close'] = True
+            report['unobserved'] = {'remaining_native_share_modes': [7] if share == 3 else [],
+                                    'production_reads': True}
+            return report  # No close retry or operation after the unresolved handle.
+    # Production admission may flush enclosing parents and takes the real lock.
+    # Record it separately; it cannot establish the earlier raw-read predicate.
+    recovery = report['product_recovery']
+    recovery['admission_may_republish_parents'] = True
+    try:
+        with locked(root) as lease:
+            raw = lease.read_payload()
+        recovery['before_retry_bytes'] = bytes_facts(raw)
+        visible = store.get(first['id'], {'kind': 'global'})
+        recovery['visible_revision'] = visible['revision']
+        recovery['same_id_write_and_replay_observed'] = False
+    except BaseException as error:
+        recovery['error'] = _kill_error_facts(error)
+    return report
+
+
 @pytest.mark.parametrize('stage', ['preparation', 'file_flush', 'rename', 'pre_response'])
 def test_native_kill_boundary_whole_state_and_same_id_recovery(canonical_tmp, stage, record_property):
     root = canonical_tmp / ('Kill ' + stage)
@@ -587,7 +686,21 @@ def test_native_kill_boundary_whole_state_and_same_id_recovery(canonical_tmp, st
         child.wait(timeout=10)
         exit_code = child.returncode
         assert exit_code != 0
-        observed = (root / 'state.json').read_bytes()
+        try:
+            observed = (root / 'state.json').read_bytes()
+        except OSError as primary:
+            diagnostic = {'original_error': _kill_error_facts(primary)}
+            try:
+                diagnostic['observations'] = _kill_read_failure_diagnostic(
+                    root, store, first, value, before, after)
+            except BaseException as secondary:
+                diagnostic['diagnostic_error'] = _kill_error_facts(secondary)
+            try:
+                record_property('saved_native_kill_read_failure', json.dumps(
+                    diagnostic, ensure_ascii=True, allow_nan=False))
+            except BaseException:
+                pass  # The original immediate read remains the first failure.
+            raise
         expected = before if stage in ('preparation', 'file_flush') else after
         assert observed == expected
         # The real common decoder must accept the whole persisted state.
