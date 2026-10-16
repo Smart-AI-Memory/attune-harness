@@ -194,8 +194,122 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
     original_launch = WindowsJob.launch
     cancel = Event()
     controller_state = {'stage': 'startup'}
+    query_handle = w.HANDLE()
+    query_state = {'duplicate_result': None, 'duplicate_winerror': None,
+                   'setup_error_type': None, 'close_attempted': False}
+    query_functions = {}
+
+    def close_query_handle(packet):
+        if (query_state['duplicate_result'] and query_handle.value
+                and not query_state['close_attempted']):
+            query_state['close_attempted'] = True
+            packet['close_attempted'] = True
+            try:
+                packet['close_result'] = int(api.CloseHandle(query_handle))
+                if not packet['close_result']:
+                    packet['close_winerror'] = ctypes.get_last_error()
+            except Exception as error:
+                packet['close_error_type'] = type(error).__name__[:64]
+
+    def sample_job_list():
+        packet = {**query_state, 'duplicate_access_request': 0x0004,
+                  'duplicate_inherit_request': False, 'duplicate_options': 0,
+                  'query_calls': 0, 'query_result': None, 'query_winerror': None,
+                  'returned_bytes': None, 'assigned': None, 'listed': None,
+                  'pids': [], 'wait_before': None, 'wait_after': None, 'complete': False,
+                  'identity_matches': False, 'falsifier': False,
+                  'classification': 'inconclusive'}
+        try:
+            if (not query_state['duplicate_result'] or not query_handle.value
+                    or query_state['setup_error_type']):
+                return packet
+            capacity = 256
+            class ProcessIds(ctypes.Structure):
+                _fields_ = [('assigned', ctypes.c_uint32),
+                            ('listed', ctypes.c_uint32),
+                            ('pids', ctypes.c_size_t * capacity)]
+            buffer = ProcessIds()
+            returned = w.DWORD()
+            offset, pointer_bytes = ProcessIds.pids.offset, ctypes.sizeof(ctypes.c_size_t)
+            packet.update(capacity=capacity, buffer_bytes=ctypes.sizeof(buffer),
+                          list_offset=offset, pointer_bytes=pointer_bytes,
+                          expected_pid=observations[0]['owned_pid'])
+            if offset != 8 or pointer_bytes not in (4, 8):
+                packet['layout_error'] = True
+                return packet
+            packet['pid_before'] = int(query_functions['GetProcessId'](handles[0]))
+            if not packet['pid_before']:
+                packet['pid_before_winerror'] = ctypes.get_last_error()
+            if packet['pid_before'] != packet['expected_pid']:
+                return packet
+            packet['wait_before'] = int(api.WaitForSingleObject(handles[0], 0))
+            if packet['wait_before'] == 0xFFFFFFFF:
+                packet['wait_before_winerror'] = ctypes.get_last_error()
+            try:
+                packet['query_calls'] = 1
+                packet['query_result'] = int(query_functions['QueryInformationJobObject'](
+                    query_handle, 3, ctypes.byref(buffer), ctypes.sizeof(buffer),
+                    ctypes.byref(returned)))
+                if not packet['query_result']:
+                    packet['query_winerror'] = ctypes.get_last_error()
+            finally:
+                packet['wait_after'] = int(api.WaitForSingleObject(handles[0], 0))
+                if packet['wait_after'] == 0xFFFFFFFF:
+                    packet['wait_after_winerror'] = ctypes.get_last_error()
+            packet.update(returned_bytes=int(returned.value),
+                          assigned=int(buffer.assigned), listed=int(buffer.listed),
+                          pids=[int(buffer.pids[i])
+                                for i in range(min(int(buffer.listed), capacity))])
+            packet['pid_after'] = int(query_functions['GetProcessId'](handles[0]))
+            if not packet['pid_after']:
+                packet['pid_after_winerror'] = ctypes.get_last_error()
+            packet['identity_matches'] = (
+                packet['pid_before'] == packet['pid_after'] == packet['expected_pid'])
+            packet['complete'] = bool(
+                packet['query_result'] and packet['assigned'] == packet['listed']
+                and packet['listed'] <= capacity
+                and offset + packet['listed'] * pointer_bytes
+                    <= packet['returned_bytes'] <= ctypes.sizeof(buffer)
+                and all(pid > 0 for pid in packet['pids'])
+                and len(set(packet['pids'])) == len(packet['pids']))
+        except Exception as error:
+            packet['error_type'] = type(error).__name__[:64]
+            code = getattr(error, 'winerror', None)
+            packet['error_winerror'] = code if type(code) is int else None
+        finally:
+            close_query_handle(packet)
+        packet['falsifier'] = bool(
+            packet['complete'] and packet['identity_matches']
+            and packet.get('wait_before') == packet.get('wait_after') == 258
+            and packet['expected_pid'] not in packet['pids']
+            and packet.get('close_result') and 'error_type' not in packet)
+        if packet['falsifier']:
+            packet['classification'] = 'omitted_while_nonsignaled'
+        return packet
 
     def launch(self, *args, **kwargs):
+        try:
+            extra_signatures = {
+                'GetCurrentProcess': ([], w.HANDLE),
+                'DuplicateHandle': ([w.HANDLE, w.HANDLE, w.HANDLE,
+                                     ctypes.POINTER(w.HANDLE), w.DWORD, w.BOOL,
+                                     w.DWORD], w.BOOL),
+                'GetProcessId': ([w.HANDLE], w.DWORD),
+                'QueryInformationJobObject': ([w.HANDLE, ctypes.c_int, w.LPVOID,
+                                              w.DWORD, ctypes.POINTER(w.DWORD)], w.BOOL),
+            }
+            for name, (argument_types, result_type) in extra_signatures.items():
+                function = getattr(api, name)
+                function.argtypes, function.restype = argument_types, result_type
+                query_functions[name] = function
+            current = query_functions['GetCurrentProcess']()
+            # Query-only and noninheritable; retaining it delays last-job-handle close.
+            query_state['duplicate_result'] = int(query_functions['DuplicateHandle'](
+                current, self.handle, current, ctypes.byref(query_handle), 0x0004, False, 0))
+            if not query_state['duplicate_result']:
+                query_state['duplicate_winerror'] = ctypes.get_last_error()
+        except Exception as error:
+            query_state['setup_error_type'] = type(error).__name__[:64]
         process = original_launch(self, *args, **kwargs)
         # Keep the bootstrap Popen handle alive through all stop observations.
         jobs.append((self, process))
@@ -259,6 +373,7 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
             work.rmdir()
         except OSError as error:
             cwd_error = error
+        job_list_observation = sample_job_list()
         record_property('owned_cwd_return_observation', json.dumps({
             'ending': ending, 'returncode': result.returncode, 'failure': result.failure,
             'stdout_bytes': len(result.stdout.encode('utf-8')),
@@ -267,7 +382,8 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
             'cwd_error_type': type(cwd_error).__name__ if cwd_error is not None else None,
             'cwd_winerror': getattr(cwd_error, 'winerror', None),
             'live_control': list(observations), 'controller': dict(controller_state),
-            'bootstrap_references': len(jobs), 'child_references': len(handles)}))
+            'bootstrap_references': len(jobs), 'child_references': len(handles),
+            'job_list_observation': job_list_observation}))
         assert child_wait == 0
         if cwd_error is not None:
             raise cwd_error
@@ -282,16 +398,26 @@ def test_windows_return_drains_owned_cwd_before_immediate_removal(
             'immediate_child_signaled': True, 'immediate_cwd_removed': True,
             'bootstrap_handle_retained': True, 'child_handle_retained': True}))
     finally:
-        cancel.set()
-        release.write_text('release')
-        controller.join(timeout=5)
-        for handle in handles:
-            try:
-                # Failure-only owned-handle cleanup cannot satisfy assertions above.
-                if api.WaitForSingleObject(handle, 0) != 0:
-                    if not api.TerminateProcess(handle, 1):
+        try:
+            cancel.set()
+            release.write_text('release')
+            controller.join(timeout=5)
+            for handle in handles:
+                try:
+                    # Failure-only owned-handle cleanup cannot satisfy assertions above.
+                    if api.WaitForSingleObject(handle, 0) != 0:
+                        if not api.TerminateProcess(handle, 1):
+                            raise ctypes.WinError(ctypes.get_last_error())
+                        assert api.WaitForSingleObject(handle, 5000) == 0
+                finally:
+                    if not api.CloseHandle(handle):
                         raise ctypes.WinError(ctypes.get_last_error())
-                    assert api.WaitForSingleObject(handle, 5000) == 0
-            finally:
-                if not api.CloseHandle(handle):
-                    raise ctypes.WinError(ctypes.get_last_error())
+        finally:
+            cleanup = {}
+            close_query_handle(cleanup)
+            if cleanup:
+                try:
+                    record_property('owned_job_query_cleanup', json.dumps(cleanup))
+                except Exception:
+                    # A diagnostic reporting failure must not replace the original failure.
+                    pass
