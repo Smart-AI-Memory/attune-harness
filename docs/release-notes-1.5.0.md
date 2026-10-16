@@ -23,8 +23,8 @@ for the evidence and open gates.
   [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275), with
   qualification still open. The target retains revisions, withdrawn history,
   request-ID replay, pending task reviews, and an optional rebuildable Redis
-  index. The current crash-recovery failure must be resolved before this is a
-  release claim.
+  index. Full saved-store acceptance remains open while the historical
+  eight-writer busy failure has no established cause.
 - **Use the experimental native-memory transport.** The merged Windows
   transport has offline evidence through the supervised helper and pinned SDK.
   Live provider acceptance remains open. Experimental native memory remains
