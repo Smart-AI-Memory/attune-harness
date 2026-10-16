@@ -60,6 +60,201 @@ def test_native_memory_task_lifecycle_utf8_and_spaces(canonical_tmp):
     assert json.loads(raw)['schema_version'] == 1
 
 
+_CONTENTION = """
+import ctypes, hashlib, json, os, struct
+from attune_harness.memory_saved_windows import _Native
+
+# One fixed eight-writer observation, never a saved-store data transport.
+class ContentionCells:
+    header_bytes, cell_bytes, cells, writers = 512, 512, 512, 8
+    total_bytes = header_bytes + cell_bytes * cells * writers
+
+    def __init__(self, name, nonce, *, create=False, slot=None):
+        self.native = _Native()  # Fixed ABI/security setup precedes every save.
+        self.k, w = self.native.k, self.native.w
+        self.handle, self.view, self.closed = None, None, False
+        self.slot, self.sequence, self.failed = slot, 0, False
+        self.name, self.nonce = name, nonce
+        class SecurityAttributes(ctypes.Structure):
+            _fields_ = [('length', w.DWORD), ('descriptor', ctypes.c_void_p),
+                        ('inherit', w.BOOL)]
+        self.k.CreateFileMappingW.argtypes = [w.HANDLE, ctypes.POINTER(SecurityAttributes),
+                                             w.DWORD, w.DWORD, w.DWORD, w.LPCWSTR]
+        self.k.CreateFileMappingW.restype = w.HANDLE
+        self.k.OpenFileMappingW.argtypes = [w.DWORD, w.BOOL, w.LPCWSTR]
+        self.k.OpenFileMappingW.restype = w.HANDLE
+        self.k.MapViewOfFile.argtypes = [w.HANDLE, w.DWORD, w.DWORD, w.DWORD, ctypes.c_size_t]
+        self.k.MapViewOfFile.restype = ctypes.c_void_p
+        self.k.UnmapViewOfFile.argtypes = [ctypes.c_void_p]
+        self.k.UnmapViewOfFile.restype = w.BOOL
+        self.k.QueryPerformanceCounter.argtypes = [ctypes.POINTER(ctypes.c_longlong)]
+        self.k.QueryPerformanceCounter.restype = w.BOOL
+        self.k.QueryPerformanceFrequency.argtypes = [ctypes.POINTER(ctypes.c_longlong)]
+        self.k.QueryPerformanceFrequency.restype = w.BOOL
+        value = ctypes.c_longlong()
+        if not self.k.QueryPerformanceFrequency(ctypes.byref(value)) or value.value <= 0:
+            raise OSError('Contention QPC frequency unavailable')
+        self.frequency = value.value
+        try:
+            ctypes.set_last_error(0)
+            if create:
+                with self.native._descriptor() as descriptor:
+                    attributes = SecurityAttributes(ctypes.sizeof(SecurityAttributes), descriptor, False)
+                    self.handle = self.k.CreateFileMappingW(ctypes.c_void_p(-1).value,
+                        ctypes.byref(attributes), 4, 0, self.total_bytes, name)
+                    error = ctypes.get_last_error()
+                if not self.handle:
+                    self.handle = None
+                    raise OSError(error, 'Contention mapping creation')
+                if error == 183:
+                    raise OSError(error, 'Contention mapping collision')
+            else:
+                self.handle = self.k.OpenFileMappingW(6, False, name)  # Noncreating.
+                error = ctypes.get_last_error()
+                if not self.handle:
+                    self.handle = None
+                    raise OSError(error, 'Contention mapping unavailable')
+            self.view = self.k.MapViewOfFile(self.handle, 6, 0, 0, self.total_bytes)
+            error = ctypes.get_last_error()
+            if not self.view:
+                raise OSError(error, 'Contention mapping view unavailable')
+            header = json.dumps({'schema': 1, 'nonce': nonce, 'frequency': self.frequency,
+                                 'writers': 8, 'cells': 512}, sort_keys=True).encode('ascii')
+            expected = self.frame(1, header)
+            self.expected_header = expected
+            if create:
+                ctypes.memset(self.view, 0, self.total_bytes)  # Touch pages before launch.
+                ctypes.memmove(self.view, expected, self.header_bytes)
+            elif ctypes.string_at(self.view, self.header_bytes) != expected:
+                raise ValueError('Contention header/nonce/frequency differs')
+            if slot is not None:
+                if not 0 <= slot < 8:
+                    raise ValueError('Contention slot is outside the fixed eight writers')
+                self.add('attached', pid=os.getpid(), frequency=self.frequency)
+        except BaseException as primary:
+            try: self.close()
+            except BaseException as cleanup: raise primary from cleanup
+            raise
+
+    @classmethod
+    def frame(cls, sequence, payload):
+        if not 1 <= sequence <= cls.cells or len(payload) > cls.cell_bytes - 56:
+            raise ValueError('Contention cell exceeds its fixed bound')
+        prefix = struct.pack('<II', sequence, len(payload)) + payload
+        return prefix + bytes(cls.cell_bytes - 48 - len(prefix)) + hashlib.sha256(prefix).digest() + struct.pack('<QQ', sequence, ~sequence & ((1 << 64) - 1))
+
+    def qpc(self):
+        try:
+            value = ctypes.c_longlong()
+            if not self.k.QueryPerformanceCounter(ctypes.byref(value)):
+                raise OSError('Contention QPC sample unavailable')
+            return value.value
+        except BaseException:
+            self.failed = True
+            return None
+
+    def add(self, event, **fields):
+        try:
+            if self.failed or self.closed or self.sequence >= self.cells:
+                self.failed = True
+                return
+            payload = json.dumps({'event': event, **fields}, separators=(',', ':'),
+                                 ensure_ascii=True, allow_nan=False).encode('ascii')
+            frame = self.frame(self.sequence + 1, payload)
+            offset = self.header_bytes + (self.slot * self.cells + self.sequence) * self.cell_bytes
+            ctypes.memmove(self.view + offset, frame, self.cell_bytes)
+            self.sequence += 1
+        except BaseException:
+            self.failed = True  # Observer faults never alter a saved-store operation.
+
+    def read_rows(self, children):
+        if len(children) > self.writers:
+            raise ValueError('Contention reader exceeds eight slots')
+        if ctypes.string_at(self.view, self.header_bytes) != self.expected_header:
+            raise ValueError('Contention parent header changed')
+        result = []
+        for index, child in enumerate(children):
+            rows, raw_prefix, error, first_unverified, gap_evidence = [], [], None, None, None
+            if not child.get('cleanup_wait_completed'):
+                result.append({'slot': index, 'valid_prefix': [], 'incomplete': 'original wait not completed'})
+                continue
+            for number in range(self.cells):
+                offset = self.header_bytes + (index * self.cells + number) * self.cell_bytes
+                frame = ctypes.string_at(self.view + offset, self.cell_bytes)
+                if frame == bytes(self.cell_bytes):
+                    for later in range(number + 1, self.cells):
+                        later_offset = self.header_bytes + (index * self.cells + later) * self.cell_bytes
+                        later_frame = ctypes.string_at(self.view + later_offset, self.cell_bytes)
+                        if later_frame != bytes(self.cell_bytes):
+                            error = 'zero gap followed by later cell data'
+                            first_unverified = frame.hex()
+                            gap_evidence = {'zero_cell_index': number, 'zero_frame_hex': frame.hex(),
+                                'later_nonzero_cell_index': later, 'later_nonzero_frame_hex': later_frame.hex()}
+                            break
+                    break
+                try:
+                    sequence, size = struct.unpack('<II', frame[:8])
+                    tail, inverse = struct.unpack('<QQ', frame[-16:])
+                    if sequence != number + 1 or tail != sequence or inverse != (~sequence & ((1 << 64) - 1)) or size > self.cell_bytes - 56:
+                        raise ValueError('partial, reordered or oversized contention cell')
+                    prefix = frame[:8 + size]
+                    if hashlib.sha256(prefix).digest() != frame[-48:-16]:
+                        raise ValueError('contention cell digest differs')
+                    row = json.loads(frame[8:8 + size])
+                    if not isinstance(row, dict) or not isinstance(row.get('event'), str):
+                        raise ValueError('contention event shape differs')
+                    rows.append(row)
+                    raw_prefix.append(frame.hex())
+                except BaseException as fault:
+                    first_unverified = frame.hex()
+                    error = type(fault).__name__ + ': ' + str(fault)[:160]
+                    break  # Retain only the verified prefix; never skip a gap.
+            if error is None and (not rows or rows[0] != {'event': 'attached', 'pid': child['pid'], 'frequency': self.frequency}):
+                error = 'missing or mismatched original child identity/frequency'
+            if len(rows) == self.cells:
+                error = 'cell capacity reached; overflow/completeness unknown'
+            terminal = bool(rows and rows[-1].get('event') in ('save_returned', 'save_error'))
+            result.append({'slot': index, 'pid': child['pid'], 'valid_prefix': rows,
+                'raw_prefix_hex': raw_prefix, 'first_unverified_frame_hex': first_unverified,
+                'zero_gap_evidence': gap_evidence,
+                'incomplete': error or ('original invocation not successful; prefix only'
+                    if child.get('original_invocation_status') != 'succeeded'
+                    else None if terminal else 'no terminal observation'),
+                'terminal_observed': terminal,
+                'original_invocation_status': child.get('original_invocation_status', 'unobserved'),
+                'killed_by_parent': child.get('killed_by_parent', False),
+                'claim': 'prefix events are not an invocation success or complete ownership census'})
+        return {'schema': 1, 'frequency': self.frequency, 'header_hex': self.expected_header.hex(),
+                'writers': result,
+                'claim': 'diagnostic timing and observer resources; no original-run causal claim'}
+
+    def close(self):
+        if self.closed: return
+        self.closed = True  # Unknown cleanup is never retried.
+        error = None
+        if self.view is not None:
+            view, self.view = self.view, None
+            try:
+                if not self.k.UnmapViewOfFile(view): raise ctypes.WinError(ctypes.get_last_error())
+            except BaseException as fault: error = fault
+        if self.handle is not None:
+            handle, self.handle = self.handle, None
+            try:
+                if not self.k.CloseHandle(handle): raise ctypes.WinError(ctypes.get_last_error())
+            except BaseException as fault:
+                if error is None: error = fault
+        if error is not None: raise error
+"""
+
+
+def _new_contention_cells():
+    import uuid
+    namespace = {}
+    exec(_CONTENTION, namespace)
+    nonce = uuid.uuid4().hex
+    return namespace['ContentionCells']('Local\\AttuneSavedContention-' + nonce, nonce, create=True)
+
+
 _SAVE = """
 import ctypes, json, sys, time
 from pathlib import Path
@@ -72,6 +267,27 @@ trace = {'schema_version': 1, 'clock': {'implementation': clock.implementation,
     'lock': {'attempts': 0, 'identity_observations': []}, 'flushes': [],
     'held': False, 'lock_closed': False}
 lock_key = None
+cells = ContentionCells(sys.argv[3], sys.argv[4], slot=int(sys.argv[5]))
+original_backend_time = backend.time
+
+class DeadlineTime:
+    first = None
+    def monotonic(self):
+        begin = cells.qpc()
+        value = original_backend_time.monotonic()
+        end = cells.qpc()
+        if self.first is None:
+            self.first = value
+            cells.add('deadline_start', begin=begin, end=end, value=value,
+                      deadline=value + backend.LOCK_SECONDS)
+        elif value >= self.first + backend.LOCK_SECONDS:
+            cells.add('deadline_expired', begin=begin, end=end, value=value,
+                      deadline=self.first + backend.LOCK_SECONDS)
+        return value
+    def sleep(self, seconds):
+        return original_backend_time.sleep(seconds)
+
+backend.time = DeadlineTime()
 
 def stamp():
     try: return time.monotonic_ns()
@@ -113,12 +329,13 @@ def inspect(session, handle, kind):
         try:
             trace['lock']['identity_observations'].append({
                 'at_ns': stamp(), 'identity': entry['identity'], 'held': trace['held']})
+            cells.add('identity', at=cells.qpc(), identity=entry['identity'], held=trace['held'])
         except BaseException:
             trace['observer_failed'] = True
     return result
 
 def lock_once(native, handle):
-    begin = stamp()
+    begin, qpc_begin = stamp(), cells.qpc()
     trace['lock'].setdefault('first_attempt_ns', begin)
     trace['lock']['attempts'] += 1
     try:
@@ -127,9 +344,11 @@ def lock_once(native, handle):
     except BaseException as primary:
         error = facts(primary)  # Original native error precedes clock/event observations.
         trace['lock']['native_exception'] = error
+        cells.add('lock_exception', begin=qpc_begin, end=cells.qpc(), error=error)
         note('lock_exception', begin_ns=begin, end_ns=stamp(), error=error)
         raise
-    end = stamp()
+    qpc_end, end = cells.qpc(), stamp()
+    cells.add('lock_attempt', begin=qpc_begin, end=qpc_end, acquired=bool(result), native_error=error)
     trace['lock'].update(last_attempt_begin_ns=begin, last_attempt_end_ns=end,
                          last_native_error=error)
     if result:
@@ -140,40 +359,50 @@ def lock_once(native, handle):
 
 def unlock(native, handle):
     begin = stamp()
+    cells.add('unlock_begin', at=cells.qpc())
     try:
         result = original_unlock(native, handle)
     except BaseException as primary:
         error = facts(primary)
         trace['unlock'] = {'begin_ns': begin, 'end_ns': stamp(), 'error': error}
+        cells.add('unlock_error', at=cells.qpc(), error=error)
         raise
     trace['held'] = False
     trace['unlock'] = {'begin_ns': begin, 'end_ns': stamp(), 'success': True}
+    cells.add('unlock_returned', at=cells.qpc())
     return result
 
 def close(native, handle):
     selected, begin = id(handle) == lock_key, stamp()
+    if selected: cells.add('lock_close_begin', at=cells.qpc())
     try:
         result = original_close(native, handle)
     except BaseException as primary:
         error = facts(primary)
-        if selected: trace['lock_close'] = {'begin_ns': begin, 'end_ns': stamp(), 'error': error}
+        if selected:
+            trace['lock_close'] = {'begin_ns': begin, 'end_ns': stamp(), 'error': error}
+            cells.add('lock_close_error', at=cells.qpc(), error=error)
         else: note('other_close_error', error=error, at_ns=stamp())
         raise
     if selected:
         trace['lock_closed'], trace['held'] = True, False
         trace['lock_close'] = {'begin_ns': begin, 'end_ns': stamp(), 'success': True}
+        cells.add('lock_close_returned', at=cells.qpc())
     return result
 
 def flush(native, handle):
     row = {'begin_ns': stamp(), 'held': trace['held'], 'is_lock': id(handle) == lock_key}
+    cells.add('flush_begin', at=cells.qpc(), held=trace['held'], is_lock=row['is_lock'])
     try:
         result = original_flush(native, handle)
     except BaseException as primary:
         error = facts(primary)
         row.update(end_ns=stamp(), error=error)
+        cells.add('flush_error', at=cells.qpc(), held=trace['held'], error=error)
         raise
     else:
         row.update(end_ns=stamp(), statuses=result)
+        cells.add('flush_returned', at=cells.qpc(), held=trace['held'], statuses=result)
         return result
     finally:
         try:
@@ -186,11 +415,13 @@ def flush(native, handle):
 
 def commit(session, payload):
     trace['commit'] = {'begin_ns': stamp(), 'held': trace['held'], 'payload_bytes': len(payload)}
+    cells.add('commit_begin', at=cells.qpc(), held=trace['held'])
     try:
         return original_commit(session, payload)
     finally:
         try:
             trace['commit'].update(end_ns=stamp(), dispatched=session.dispatched)
+            cells.add('commit_end', at=cells.qpc(), held=trace['held'], dispatched=session.dispatched)
         except BaseException:
             trace['observer_failed'] = True
 
@@ -205,21 +436,30 @@ try:
 except BaseException as error:
     primary = error
     trace['outcome'] = facts(error)
+    cells.add('save_error', at=cells.qpc(), error=trace['outcome'])
     raise
 else:
     trace['outcome'] = {'type': 'returned', 'record_id': result['record']['id'],
                         'revision': result['record']['revision']}
+    cells.add('save_returned', at=cells.qpc())
 finally:
+    backend.time = original_backend_time
     trace['save_end_ns'] = stamp()
-    # Pipe I/O is outside confirmed ownership. If release is unresolved, do not
-    # add a potentially blocking report while this process might own the lock.
-    if not trace['held']:
-        try:
-            encoded = json.dumps(trace, ensure_ascii=True, allow_nan=False)
-            if len(encoded) > 32768: raise ValueError('bounded diagnostic report exceeded')
-            print('SAVED_CONCURRENCY_DIAGNOSTIC ' + encoded, file=sys.stderr, flush=True)
-        except BaseException:
-            if primary is None: raise
+    try:
+        # Existing pipe report stays after confirmed saved-lock release.
+        if not trace['held']:
+            try:
+                encoded = json.dumps(trace, ensure_ascii=True, allow_nan=False)
+                if len(encoded) > 32768: raise ValueError('bounded diagnostic report exceeded')
+                print('SAVED_CONCURRENCY_DIAGNOSTIC ' + encoded, file=sys.stderr, flush=True)
+            except BaseException:
+                if primary is None: raise
+    finally:
+        active = sys.exc_info()[1]
+        try: cells.close()
+        except BaseException as cleanup:
+            if active is not None: raise active from cleanup
+            raise
 print(json.dumps(result, ensure_ascii=True, allow_nan=False), flush=True)
 """
 
@@ -249,7 +489,7 @@ def _concurrency_outputs(row):
 
 def writers(root, requests, record_property, phase):
     import time
-    children, rows, primary, cleanup_error = [], [], None, None
+    children, rows, primary, cleanup_error, cells = [], [], None, None, None
     clock = time.get_clock_info('monotonic')
     def stamp():
         try: return time.monotonic_ns()
@@ -258,15 +498,16 @@ def writers(root, requests, record_property, phase):
         try: return time.monotonic()
         except BaseException: return None
     try:
+        cells = _new_contention_cells()  # One protected page-file mapping before launch.
         for value in requests:
             row = {'request_id': value['request_id'], 'launch_begin_ns': stamp(),
                    'output_received': False, 'killed_by_parent': False}
-            child = subprocess.Popen([sys.executable, '-I', '-c', _SAVE, str(root),
-                json.dumps(value, ensure_ascii=True)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            child = subprocess.Popen([sys.executable, '-I', '-c', _CONTENTION + _SAVE, str(root),
+                json.dumps(value, ensure_ascii=True), cells.name, cells.nonce, str(len(children))], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 text=True)
             children.append(child)
             rows.append(row)
-            row['launch_end_ns'] = stamp()
+            row['launch_end_ns'], row['pid'] = stamp(), child.pid
         results = []
         for child, row in zip(children, rows):
             stdout, stderr = child.communicate(timeout=30)
@@ -322,13 +563,21 @@ def writers(root, requests, record_property, phase):
                 except BaseException as error:
                     row['diagnostic_parse_error'] = _kill_error_facts(error)
                     row['diagnostic_unobserved'] = True
-            record_property('saved_native_concurrency_' + phase, json.dumps({
+            retained = cells.read_rows(rows) if cells is not None else {'incomplete': 'mapping setup failed'}
+            encoded = json.dumps({
                 'clock': {'implementation': clock.implementation, 'resolution': clock.resolution,
                           'monotonic': clock.monotonic, 'adjustable': clock.adjustable},
                 'claim': 'diagnostic observations affect timing; no original-run causal claim',
-                'children': rows}, ensure_ascii=True, allow_nan=False))
+                'children': rows, 'retained_cells': retained}, ensure_ascii=True, allow_nan=False)
+            if len(encoded) > 8 * 1024 * 1024:
+                raise ValueError('Bounded contention parent report exceeded')
+            record_property('saved_native_concurrency_' + phase, encoded)
         except BaseException as error:
             if primary is None and cleanup_error is None: cleanup_error = error
+        if cells is not None:
+            try: cells.close()
+            except BaseException as error:
+                if cleanup_error is None: cleanup_error = error
         if primary is not None and cleanup_error is not None:
             raise primary from cleanup_error
         if primary is None and cleanup_error is not None:
