@@ -39,7 +39,7 @@ Component tests and installed-wheel checks have passed on Windows CI. Full
 Windows parity remains in progress: saved memory and tasks depend on the storage
 durability proof; a process-cleanup failure is under investigation; live provider
 acceptance, Windows 11 desktop validation and combined installed-wheel and CLI
-qualification remain open. Follow the [Windows parity spec](docs/specs/windows-parity/README.md)
+qualification remain open. Follow the [Windows parity spec](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
 and [storage proof work](https://github.com/Smart-AI-Memory/attune-harness/pull/268)
 for scope, evidence and remaining limits. Release readiness depends on closing
 those requirements.
