@@ -149,3 +149,120 @@ def test_windows_lock_reparse_point_is_rejected(tmp_path):
     with pytest.raises(OSError):
         with store.lease():pass
     assert target.read_text(encoding='utf-8')=='x'
+
+
+@pytest.mark.parametrize('ending', ['parent_exit', 'timeout', 'cancel'])
+def test_windows_return_drains_owned_cwd_before_immediate_removal(
+        tmp_path, monkeypatch, record_property, ending):
+    """Retain real process handles; no test-side rundown wait can make it pass."""
+    import ctypes
+    from ctypes import wintypes as w
+    from threading import Thread
+    from attune_harness.windows import WindowsJob
+
+    work = tmp_path / 'owned cwd café'
+    work.mkdir()
+    ready = tmp_path / 'child-ready.json'
+    parent_ready = tmp_path / 'parent-ready'
+    release = tmp_path / 'release-parent'
+    child = ('import json,os,pathlib,time;'
+             f'assert pathlib.Path.cwd().samefile({str(work)!r});'
+             f'pathlib.Path({str(ready)!r}).write_text(json.dumps({{"pid":os.getpid()}}));'
+             'time.sleep(20)')
+    parent = ('import pathlib,subprocess,sys,time;'
+              f'subprocess.Popen([sys.executable,"-c",{child!r}]);'
+              f'ready=pathlib.Path({str(ready)!r});'
+              '\nwhile not ready.exists(): time.sleep(0.01)\n'
+              'print("spawned",flush=True);'
+              f'pathlib.Path({str(parent_ready)!r}).write_text("ready");'
+              f'release=pathlib.Path({str(release)!r});'
+              '\nwhile not release.exists(): time.sleep(0.01)\n')
+    if ending != 'parent_exit':
+        parent += 'time.sleep(20)\n'
+    api = ctypes.WinDLL('kernel32', use_last_error=True)
+    signatures = {
+        'OpenProcess': ([w.DWORD, w.BOOL, w.DWORD], w.HANDLE),
+        'WaitForSingleObject': ([w.HANDLE, w.DWORD], w.DWORD),
+        'IsProcessInJob': ([w.HANDLE, w.HANDLE, ctypes.POINTER(w.BOOL)], w.BOOL),
+        'TerminateProcess': ([w.HANDLE, w.UINT], w.BOOL),
+        'CloseHandle': ([w.HANDLE], w.BOOL),
+    }
+    for name, (args, result) in signatures.items():
+        function = getattr(api, name)
+        function.argtypes, function.restype = args, result
+    jobs, handles, observations, errors = [], [], [], []
+    original_launch = WindowsJob.launch
+    cancel = Event()
+
+    def launch(self, *args, **kwargs):
+        process = original_launch(self, *args, **kwargs)
+        # Keep the bootstrap Popen handle alive through all stop observations.
+        jobs.append((self, process))
+        return process
+
+    monkeypatch.setattr(WindowsJob, 'launch', launch)
+
+    def control():
+        try:
+            deadline = time.monotonic() + 4.5
+            while not (parent_ready.exists() and jobs) and time.monotonic() < deadline:
+                time.sleep(0.01)
+            assert parent_ready.exists() and jobs, 'owned child startup was not witnessed'
+            pid = json.loads(ready.read_text())['pid']
+            assert type(pid) is int and pid > 0
+            handle = api.OpenProcess(0x00101001, False, pid)  # SYNCHRONIZE | QUERY_LIMITED_INFORMATION | TERMINATE.
+            if not handle:
+                raise ctypes.WinError(ctypes.get_last_error())
+            handles.append(handle)
+            member = w.BOOL()
+            if not api.IsProcessInJob(handle, jobs[0][0].handle, ctypes.byref(member)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            assert member.value and api.WaitForSingleObject(handle, 0) == 258
+            assert not list(work.iterdir())
+            try:
+                work.rmdir()
+            except OSError as error:
+                assert error.winerror in (5, 32), error
+                observations.append({'owned_pid': pid, 'live_cwd_winerror': error.winerror})
+            else:
+                raise AssertionError('live owned cwd did not prevent removal')
+            if ending == 'cancel':
+                cancel.set()
+            elif ending == 'parent_exit':
+                release.write_text('release')
+        except BaseException as error:
+            errors.append(error)
+            cancel.set()
+            release.write_text('release')
+
+    controller = Thread(target=control)
+    controller.start()
+    try:
+        result = invoke(command(parent), '', cwd=work, timeout=5, cancel=cancel)
+        # No sleep, process wait or retry is allowed before these assertions.
+        assert api.WaitForSingleObject(handles[0], 0) == 0
+        work.rmdir()
+        controller.join(timeout=5)
+        assert not controller.is_alive() and not errors, errors
+        assert observations and 'spawned' in result.stdout
+        expected = {'parent_exit': None, 'timeout': 'timeout_effects_unknown',
+                    'cancel': 'cancelled_effects_unknown'}[ending]
+        assert result.failure == expected and result.returncode is not None
+        record_property('owned_cwd_stop_observation', json.dumps({
+            **observations[0], 'ending': ending, 'failure': result.failure,
+            'immediate_child_signaled': True, 'immediate_cwd_removed': True,
+            'bootstrap_handle_retained': True, 'child_handle_retained': True}))
+    finally:
+        cancel.set()
+        release.write_text('release')
+        controller.join(timeout=5)
+        for handle in handles:
+            try:
+                # Failure-only owned-handle cleanup cannot satisfy assertions above.
+                if api.WaitForSingleObject(handle, 0) != 0:
+                    if not api.TerminateProcess(handle, 1):
+                        raise ctypes.WinError(ctypes.get_last_error())
+                    assert api.WaitForSingleObject(handle, 5000) == 0
+            finally:
+                if not api.CloseHandle(handle):
+                    raise ctypes.WinError(ctypes.get_last_error())

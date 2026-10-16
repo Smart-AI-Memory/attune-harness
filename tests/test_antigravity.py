@@ -82,7 +82,7 @@ def test_malformed_or_uncertain_provider_output_refuses(mutation):
         decode(raw, MODEL)
 
 
-def test_real_process_uses_empty_cwd_explicit_effort_and_single_use(tmp_path):
+def test_real_process_uses_empty_cwd_explicit_effort_and_single_use(tmp_path, record_property):
     binary = tmp_path / ('agy-fixture.cmd' if sys.platform == 'win32' else 'agy-fixture')
     # An injected argument prefix keeps this a portable real subprocess fixture.
     script = tmp_path / 'fixture.py'
@@ -105,8 +105,25 @@ def test_real_process_uses_empty_cwd_explicit_effort_and_single_use(tmp_path):
     from attune_harness.process import invoke
     seen = []
     def runner(argv, prompt, **kwargs):
+        from attune_harness.process import ProcessError
         seen.append(argv)
-        return invoke((sys.executable, str(script), *argv[1:]), prompt, **kwargs)
+        try:
+            result = invoke((sys.executable, str(script), *argv[1:]), prompt, **kwargs)
+        except ProcessError as error:
+            result = error.result
+            record_property('antigravity_cwd_before_adapter_cleanup', str(kwargs['cwd']))
+            record_property('antigravity_runner_observation', json.dumps({
+                'returncode': result.returncode, 'failure': result.failure,
+                'stdout_bytes': len(result.stdout.encode('utf-8')),
+                'stderr_bytes': len(result.stderr.encode('utf-8')),
+                'diagnostics': error.diagnostics, 'stop_confirmed': error.process_stopped}))
+            raise
+        record_property('antigravity_runner_observation', json.dumps({
+            'returncode': result.returncode, 'failure': result.failure,
+            'stdout_bytes': len(result.stdout.encode('utf-8')),
+            'stderr_bytes': len(result.stderr.encode('utf-8'))}))
+        record_property('antigravity_cwd_before_adapter_cleanup', str(kwargs['cwd']))
+        return result
     exchange = AntigravityExchange(model=MODEL, effort='high', timeout=3, executable=str(binary), runner=runner)
     raw = json.dumps({'version': 1, 'attempt': {'accepted': 'offline fixture'}})
     assert json.loads(json.loads(exchange(raw))['text'])['verdict'] == 'uncertain'
@@ -229,3 +246,124 @@ def test_google_configuration_refuses_before_prepare(change):
     if change == 'bad_provider': seat['identity']['provider'] = 'claude'
     with pytest.raises(ValueError):
         c.configuration(cfg, 'source-review')
+
+
+@pytest.mark.parametrize('failure', [None, 'timeout_effects_unknown',
+                                     'cancelled_effects_unknown', 'output_limit'])
+@pytest.mark.parametrize('cleanup_kind', ['permission', 'recursion'])
+def test_adapter_cleanup_preserves_original_result_and_refuses_success(
+        tmp_path, monkeypatch, failure, cleanup_kind):
+    import attune_harness.antigravity as adapter
+    from attune_harness.process import ProcessResult
+    from types import SimpleNamespace
+
+    result = ProcessResult(('owned-fixture',), 0 if failure is None else 1,
+                           encoded(stream()), 'original diagnostic', failure)
+    cleanup_error = (PermissionError(13, 'private cleanup path') if cleanup_kind == 'permission'
+                     else RecursionError('synthetic retained cleanup cascade'))
+    calls = []
+
+    class Temporary:
+        name = str(tmp_path)
+
+        def cleanup(self):
+            assert exchange.last_process is result
+            calls.append('cleanup')
+            raise cleanup_error
+
+    def runner(*args, **kwargs):
+        calls.append('dispatch')
+        return result
+
+    monkeypatch.setattr(adapter, 'tempfile', SimpleNamespace(TemporaryDirectory=lambda **kwargs: Temporary()))
+    monkeypatch.setattr(adapter, 'decode', lambda *args: pytest.fail('decoded success after failed cleanup'))
+    exchange = AntigravityExchange(model=MODEL, effort='high', timeout=3, runner=runner)
+    with pytest.raises(NativeError) as caught:
+        exchange('{"version":1}')
+    error = caught.value
+    assert error.failure == (failure or 'cleanup_failed_effects_unknown')
+    assert error.process_stopped is True
+    assert error.process_result is result and exchange.last_process is result
+    assert error.original_error is cleanup_error and error.__cause__ is cleanup_error
+    assert error.diagnostics[0].startswith('adapter_cleanup:' + type(cleanup_error).__name__)
+    assert 'private' not in str(error) and len(error.diagnostics) == 1
+    assert exchange.identity is None and exchange.usage is None
+    with pytest.raises(NativeError, match='already dispatched'):
+        exchange('{"version":1}')
+    assert calls == ['dispatch', 'cleanup']
+
+
+@pytest.mark.parametrize('cleanup_fails', [False, True])
+def test_adapter_retains_unconfirmed_supervision_outcome(tmp_path, monkeypatch, cleanup_fails):
+    import attune_harness.antigravity as adapter
+    from attune_harness.process import ProcessError, ProcessResult
+    from types import SimpleNamespace
+
+    result = ProcessResult(('owned-fixture',), 0, 'bounded partial', '', 'timeout_effects_unknown')
+    stop_error = OSError(5, 'synthetic job query refusal')
+    execution_error = ProcessError(result, ('supervision:OSError:errno=5',),
+                                   process_stopped=False, original_error=stop_error)
+    calls = []
+
+    class Temporary:
+        name = str(tmp_path)
+
+        def cleanup(self):
+            assert exchange.last_process is result
+            calls.append('cleanup')
+            if cleanup_fails:
+                raise PermissionError(13, 'synthetic cleanup refusal')
+
+    def runner(*args, **kwargs):
+        calls.append('dispatch')
+        raise execution_error
+
+    monkeypatch.setattr(adapter, 'tempfile', SimpleNamespace(TemporaryDirectory=lambda **kwargs: Temporary()))
+    exchange = AntigravityExchange(model=MODEL, effort='high', timeout=3, runner=runner)
+    with pytest.raises(NativeError) as caught:
+        exchange('{"version":1}')
+    error = caught.value
+    assert error.failure == result.failure and error.process_stopped is False
+    assert error.original_error is execution_error and error.process_result is result
+    assert error.diagnostics[0] == 'supervision:OSError:errno=5'
+    assert ('adapter_cleanup:PermissionError:errno=13' in error.diagnostics) == cleanup_fails
+    assert exchange.last_process is result and calls == ['dispatch', 'cleanup']
+    with pytest.raises(NativeError, match='already dispatched'):
+        exchange('{"version":1}')
+    assert calls == ['dispatch', 'cleanup']
+
+
+@pytest.mark.parametrize('kind', ['runner_error', 'interrupt'])
+@pytest.mark.parametrize('cleanup_fails', [False, True])
+def test_runner_exception_type_survives_adapter_cleanup(tmp_path, monkeypatch, kind, cleanup_fails):
+    import attune_harness.antigravity as adapter
+    from types import SimpleNamespace
+
+    original = RuntimeError('original runner error') if kind == 'runner_error' else KeyboardInterrupt('original interrupt')
+    cleanup_error = PermissionError(13, 'synthetic cleanup refusal')
+    calls = []
+
+    class Temporary:
+        name = str(tmp_path)
+
+        def cleanup(self):
+            calls.append('cleanup')
+            if cleanup_fails:
+                raise cleanup_error
+
+    def runner(*args, **kwargs):
+        calls.append('dispatch')
+        raise original
+
+    monkeypatch.setattr(adapter, 'tempfile', SimpleNamespace(TemporaryDirectory=lambda **kwargs: Temporary()))
+    exchange = AntigravityExchange(model=MODEL, effort='high', timeout=3, runner=runner)
+    with pytest.raises(type(original)) as caught:
+        exchange('{"version":1}')
+    assert caught.value is original and exchange.last_process is None
+    if cleanup_fails:
+        assert original.cleanup_diagnostics == ('adapter_cleanup:PermissionError:errno=13',)
+        assert original.__cause__ is cleanup_error
+    assert calls == ['dispatch', 'cleanup']
+    with pytest.raises(NativeError, match='already dispatched'):
+        exchange('{"version":1}')
+    assert calls == ['dispatch', 'cleanup']
