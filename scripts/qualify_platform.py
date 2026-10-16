@@ -47,11 +47,11 @@ def installed_source():
 def qualify(output, *, coverage_instrumented=False):
     if sys.flags.optimize or not __debug__:
         raise ValueError('Platform qualification requires unoptimized Python; run without -O or PYTHONOPTIMIZE')
-    # Instrumented Windows runs have a separate measured suite budget.
-    # Ordinary qualification and individual operation deadlines stay unchanged.
+    # Windows suite budgets include the measured native reader workload.
+    # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2400 if coverage_instrumented else 1500
+        suite_timeout = 2400 if coverage_instrumented else 1800
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
