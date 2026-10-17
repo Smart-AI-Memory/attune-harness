@@ -241,6 +241,9 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     expected_timeout = 900
     if system == 'Windows':
         expected_timeout = 2400 if instrumented else 1800
+    original_xml = (b'<testsuites><testsuite tests="1" failures="0" errors="0" skipped="0">'
+                    b'<testcase name="synthetic completed case"/></testsuite></testsuites>')
+    original_log = b'original pytest output retained across controller timeout\n'
 
     def child(argv, **kwargs):
         calls.append(argv)
@@ -249,6 +252,9 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
             assert 'faulthandler_timeout=0' in argv
             assert 'harness_qualification_stacks' in argv
             assert kwargs['env']['PYTHONPATH'] == str(qualifier.ROOT / 'scripts')
+            (output / 'tests.xml').write_bytes(original_xml)
+            kwargs['stdout'].write(original_log)
+            kwargs['stdout'].flush()
             (output / 'plugin-probe.json').write_text(json.dumps({'steps': {
                 step: {'outcome': 'passed'} for step in qualifier.PROBE_STEPS}}))
             if timed_out:
@@ -269,7 +275,11 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     receipt = json.loads((output / 'platform.json').read_text())
     assert receipt['suite_timeout_seconds'] == expected_timeout
     assert receipt['test_timings'].startswith('test-timings.jsonl;')
-    assert len(calls) == 2
+    assert len(calls) == (1 if timed_out else 2)
+    assert receipt['pytest_exit'] == receipt['exit'] == (124 if timed_out else 0)
+    assert receipt['command'] == calls[0]
+    assert (output / 'tests.xml').read_bytes() == original_xml
+    assert (output / 'tests.txt').read_bytes() == original_log
     if instrumented:
         assert receipt['status'] == ('instrumented_failed' if timed_out else 'instrumented_checks_passed')
         assert receipt['native_process_and_recovery'] == 'not_qualified_instrumented'
@@ -280,6 +290,10 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
         assert 'instrumentation' not in receipt
     if timed_out:
         assert receipt['failure'] == 'suite_timeout'
+        assert all(receipt[name] == 'unrun'
+                   for name in ('memory_redis', 'native_memory_reader', 'r2_journey'))
+        assert not (output / 'memory-redis.json').exists()
+        assert not (output / 'memory-redis.txt').exists()
         failed = {**measurement.identity(), 'test_exit': 124, 'input_drift': False}
         with pytest.raises(ValueError, match='unfinished'):
             measurement.compatible([failed], measurement.identity())
