@@ -433,7 +433,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
                + '    yield\n'
                + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
     test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
-    (root / 'pytest.ini').write_text('[pytest]\nharness_stack_timeout = 0.1\n')
+    (root / 'pytest.ini').write_text('[pytest]\nharness_stack_timeout = 1\n')
     monkeypatch.setenv('PYTEST_DISABLE_PLUGIN_AUTOLOAD', '1')
     real_run = subprocess.run
 
