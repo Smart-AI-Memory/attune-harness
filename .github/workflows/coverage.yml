@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    # Instrumentation allows a 40-minute Windows child and 25-minute macOS child.
+    # Instrumentation allows a 42-minute Windows child and 25-minute macOS child.
     # Hosted budgets include setup and evidence; ordinary qualification is unchanged.
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || 25 }}
     steps:
