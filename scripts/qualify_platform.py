@@ -51,7 +51,7 @@ def qualify(output, *, coverage_instrumented=False):
     # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2400 if coverage_instrumented else 1800
+        suite_timeout = 2520 if coverage_instrumented else 1800
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
@@ -193,6 +193,6 @@ def qualify(output, *, coverage_instrumented=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--coverage-instrumented',action='store_true',
-                   help='Allow 2400 seconds on Windows, 900 elsewhere, for coverage instrumentation; never qualify this run')
+                   help='Allow 2520 seconds on Windows, 900 elsewhere, for coverage instrumentation; never qualify this run')
     args=p.parse_args()
     raise SystemExit(qualify(args.output.absolute(),coverage_instrumented=args.coverage_instrumented))

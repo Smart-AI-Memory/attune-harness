@@ -154,7 +154,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
     monkeypatch.setattr(measurement.platform, 'system', lambda: system)
     expected_timeout = {
         'full': {'Windows': 1200, 'Linux': 1200, 'Darwin': 1500},
-        'platform': {'Windows': 2580, 'Linux': 1080, 'Darwin': 1080},
+        'platform': {'Windows': 2700, 'Linux': 1080, 'Darwin': 1080},
     }[suite][system]
 
     def successful_child(argv, **kwargs):
@@ -240,7 +240,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(qualifier.platform, 'system', lambda: system)
     expected_timeout = 900
     if system == 'Windows':
-        expected_timeout = 2400 if instrumented else 1800
+        expected_timeout = 2520 if instrumented else 1800
     original_xml = (b'<testsuites><testsuite tests="1" failures="0" errors="0" skipped="0">'
                     b'<testcase name="synthetic completed case"/></testsuite></testsuites>')
     original_log = b'original pytest output retained across controller timeout\n'

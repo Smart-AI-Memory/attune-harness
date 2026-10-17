@@ -219,7 +219,7 @@ def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
         b'</testcase></testsuite></testsuites>')
     original_log = b'original immediate wait failure; disposal unconfirmed\n'
     calls = []
-    expected_timeout = 2400 if instrumented else 1800
+    expected_timeout = 2520 if instrumented else 1800
 
     def child(argv, **kwargs):
         if calls:
