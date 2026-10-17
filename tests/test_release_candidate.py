@@ -68,7 +68,15 @@ def test_other_version_forms_remain_refused(version):
         candidate.validate_target(**data)
 
 
-@pytest.mark.parametrize("bash_path", ["bash", "/bin/bash"] if sys.platform == "darwin" else ["bash"])
+WINDOWS_GIT_BASH = str(
+    Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "bin" / "bash.exe"
+)
+@pytest.mark.parametrize(
+    "bash_path",
+    ["bash", "/bin/bash"] if sys.platform == "darwin"
+    else [WINDOWS_GIT_BASH] if os.name == "nt"
+    else ["bash"],
+)
 @pytest.mark.parametrize("target,version,valid", [
     ("pypi", "1.0.0", True), ("pypi", "1.0.0rc1", True),
     ("pypi", "1.0.0rc12", True), ("pypi", "1.0.0rc0", False),

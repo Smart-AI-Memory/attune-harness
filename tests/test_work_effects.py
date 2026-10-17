@@ -24,7 +24,7 @@ work = contracts.work
 def prepare(
     work,
     *,
-    script="print('ready')",
+    script="import sys;sys.stdout.buffer.write(b'ready\\n')",
     required=True,
     runner=True,
     kind="check",
@@ -504,7 +504,11 @@ def test_fsync_failure_does_not_turn_visible_bytes_into_success(work, monkeypatc
             def fail(fd):
                 raise OSError("synthetic fsync failure")
 
-            m.setattr(os, "fsync", fail)
+            if os.name == "nt":
+                from attune_harness.windows_effects import Native
+                m.setattr(Native, "flush", lambda self, handle: fail(handle))
+            else:
+                m.setattr(os, "fsync", fail)
             return original(plan, item)
 
     with monkeypatch.context() as m:
@@ -524,12 +528,18 @@ def test_completed_result_is_stale_after_later_source_change(work):
         execute(case)
 
 
-def test_unsupported_platform_refuses_handles_before_effects(work, monkeypatch):
+def test_unsupported_platform_rejects_unsupported_profile(work, monkeypatch):
     case = prepare(work)
-    # Remove the required primitive rather than changing global os.name/Path behavior.
-    monkeypatch.delattr(os, "O_NOFOLLOW")
-    with pytest.raises(FeatureUnavailable, match="POSIX"):
-        execute(case)
+    if os.name == "nt":
+        # Windows has no O_NOFOLLOW; exercise the unsupported POSIX-profile guard directly.
+        with pytest.raises(FeatureUnavailable, match="POSIX"):
+            work_effects.require_platform({"profile": work_effects.PROFILE})
+    else:
+        # Remove the required primitive rather than changing global os.name/Path behavior.
+        monkeypatch.delattr(os, "O_NOFOLLOW")
+        with pytest.raises(FeatureUnavailable, match="POSIX"):
+            execute(case)
+    assert not (case[0] / "pkg").exists()
 
 
 def test_operation_budget_cannot_expand_with_file_parent_count(work):
@@ -564,15 +574,24 @@ def test_empty_creation_and_short_writes_are_complete(work, monkeypatch):
 
 def test_partial_os_writes_are_drained(work, monkeypatch):
     case = prepare(work)
-    original = os.write
-    monkeypatch.setattr(os, "write", lambda fd, data: original(fd, data[:2]))
+    if os.name == "nt":
+        from attune_harness.windows_effects import Native
+        original = Native.write_chunk
+        monkeypatch.setattr(Native, "write_chunk", lambda native, handle, data: original(native, handle, data[:2]))
+    else:
+        original = os.write
+        monkeypatch.setattr(os, "write", lambda fd, data: original(fd, data[:2]))
     assert execute(case)["build"]["status"] == "completed"
     assert (case[0] / "pkg/sub/new.py").read_text() == "answer = 42\n"
 
 
 def test_no_progress_write_retains_partial_file(work, monkeypatch):
     case = prepare(work)
-    monkeypatch.setattr(os, "write", lambda fd, data: 0)
+    if os.name == "nt":
+        from attune_harness.windows_effects import Native
+        monkeypatch.setattr(Native, "write_chunk", lambda native, handle, data: 0)
+    else:
+        monkeypatch.setattr(os, "write", lambda fd, data: 0)
     with pytest.raises(OSError, match="no write progress"):
         execute(case)
     with pytest.raises(UnresolvedOperation):
