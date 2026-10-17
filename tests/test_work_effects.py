@@ -53,6 +53,8 @@ def prepare(
         environment={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
         oracle_paths=["oracle.py"],
     )
+    if os.name == "nt":
+        probe["environment"]["SystemRoot"] = os.environ["SystemRoot"]
     data["effects"] = work_effects.freeze(
         root,
         data["intent"]["scope"],
