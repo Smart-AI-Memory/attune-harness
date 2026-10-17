@@ -8,7 +8,18 @@ from pathlib import Path
 from threading import Lock
 
 from .native import NativeError, NativeIdentity, _json
-from .process import invoke
+from .process import ProcessError, _diagnostic, invoke
+
+class AntigravityProcessError(NativeError):
+    """Retain execution and cleanup evidence without returning decoded success."""
+
+    def __init__(self, process, diagnostics, original_error, *, failure, process_stopped):
+        self.process_result = process
+        self.diagnostics = tuple(diagnostics[:4])
+        self.original_error = original_error
+        super().__init__('Antigravity: ' + failure + ': ' + '; '.join(self.diagnostics),
+                         failure=failure, process_stopped=process_stopped)
+
 
 ANSWER_SCHEMA = {
     'type': 'object', 'properties': {
@@ -118,11 +129,40 @@ class AntigravityExchange:
                 '--output-format', 'stream-json', '--json-schema',
                 json.dumps(ANSWER_SCHEMA), '--print-timeout', f'{self.timeout}s')
         environment = dict(os.environ, AGY_CLI_DISABLE_AUTO_UPDATE='true')
-        with tempfile.TemporaryDirectory(prefix='harness-agy-') as cwd:
-            self.last_process = self.runner(argv, stdin, cwd=Path(cwd), timeout=self.timeout,
+        temporary = tempfile.TemporaryDirectory(prefix='harness-agy-')
+        execution_error = cleanup_error = None
+        try:
+            self.last_process = self.runner(argv, stdin, cwd=Path(temporary.name), timeout=self.timeout,
                                             max_output_bytes=self.limit, cancel=self.cancel,
                                             environment=environment)
+        except BaseException as error:
+            execution_error = error
+            if isinstance(error, ProcessError):
+                self.last_process = error.result
+        try:
+            temporary.cleanup()
+        except BaseException as error:
+            cleanup_error = error
+        if execution_error is not None and not isinstance(execution_error, ProcessError):
+            if cleanup_error is not None:
+                execution_error.cleanup_diagnostics = (_diagnostic('adapter_cleanup', cleanup_error),)
+                raise execution_error from cleanup_error
+            raise execution_error
+        if cleanup_error is not None and not isinstance(cleanup_error, Exception):
+            cleanup_error.process_result = self.last_process
+            raise cleanup_error from execution_error
         process = self.last_process
+        if execution_error is not None or cleanup_error is not None:
+            diagnostics = list(execution_error.diagnostics) if execution_error is not None else []
+            if cleanup_error is not None:
+                diagnostics.append(_diagnostic('adapter_cleanup', cleanup_error))
+            failure = (execution_error.failure if execution_error is not None else
+                       process.failure or 'cleanup_failed_effects_unknown')
+            stopped = (execution_error.process_stopped if execution_error is not None else
+                       process.returncode is not None)
+            raise AntigravityProcessError(process, diagnostics, execution_error or cleanup_error,
+                                           failure=failure, process_stopped=stopped) from (
+                                               execution_error or cleanup_error)
         if process.failure or process.returncode != 0:
             raise NativeError(f'Antigravity: {process.failure or "nonzero_exit"}: {process.stderr}',
                               failure=process.failure or 'nonzero_exit',
