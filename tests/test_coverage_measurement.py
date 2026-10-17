@@ -497,7 +497,8 @@ def bad_teardown():
     yield
     raise RuntimeError('teardown remains failed')
 def test_pass(capfd):
-    time.sleep(0.02)
+    # Leave margin for Python 3.10's coarse Windows monotonic clock.
+    time.sleep(0.05)
     captured = capfd.readouterr()
     assert 'elapsed_seconds' not in captured.out + captured.err
 def test_fail(): assert False, 'call remains failed'

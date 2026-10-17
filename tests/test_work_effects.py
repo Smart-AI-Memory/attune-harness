@@ -587,6 +587,8 @@ def test_partial_os_writes_are_drained(work, monkeypatch):
 
 def test_no_progress_write_retains_partial_file(work, monkeypatch):
     case = prepare(work)
+    # Target creation rather than the preceding replacement's staging write.
+    case[3]["files"] = [case[3]["files"][1]]
     if os.name == "nt":
         from attune_harness.windows_effects import Native
         monkeypatch.setattr(Native, "write_chunk", lambda native, handle, data: 0)
