@@ -155,6 +155,8 @@ def trial_execution(protocol,trial,directory,exchange_factory):
         (checkout/'module.py').write_text(case['source']);(checkout/'probe.py').write_text(case['probe'])
         probe={'argv':[sys.executable,'probe.py'],'cwd':'.','timeout':30,'max_output_bytes':8192,
                'environment':{'PATH':'/usr/bin:/bin','PYTHONDONTWRITEBYTECODE':'1','PYTHONNOUSERSITE':'1'},'oracle_paths':['probe.py']}
+        if os.name=='nt':
+            probe['environment']['SystemRoot']=os.environ['SystemRoot']
         if trial['arm']=='direct':
             return direct_repair(checkout,probe,registry['participants']['lead'],directory/'run',exchange_factory,interrupt=case['interrupt'])
         create_repair_task(directory,config,goal='Repair the seeded implementation defect.',checkout=checkout,allowed=['module.py'],

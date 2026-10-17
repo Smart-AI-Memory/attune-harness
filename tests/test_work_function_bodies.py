@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 import subprocess
 import sys
 
@@ -188,7 +189,7 @@ def prepare_body_build(work, *, two_steps=False):
     data["controls"] = []
 
     def probe(script, oracle):
-        return {
+        definition = {
             "argv": [sys.executable, "-B", script],
             "cwd": ".",
             "timeout": 10,
@@ -196,6 +197,9 @@ def prepare_body_build(work, *, two_steps=False):
             "environment": {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
             "oracle_paths": [oracle],
         }
+        if os.name == "nt":
+            definition["environment"]["SystemRoot"] = os.environ["SystemRoot"]
+        return definition
 
     data["effects"] = work_effects.freeze(
         root,
