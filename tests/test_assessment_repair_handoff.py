@@ -1,6 +1,7 @@
 """Structured assessment identity can feed repair without granting effects."""
 
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -150,6 +151,8 @@ def repair_inputs(case, *, allowed=("app.py",), source=None, finding_ids=None, d
         },
         "oracle_paths": ["probe.py"],
     }
+    if os.name == "nt":
+        probe["environment"]["SystemRoot"] = os.environ["SystemRoot"]
     return create_repair_task(
         project,
         case[1],
@@ -279,6 +282,8 @@ def test_assessment_binding_is_project_local(case, tmp_path):
         },
         "oracle_paths": ["probe.py"],
     }
+    if os.name == "nt":
+        probe["environment"]["SystemRoot"] = os.environ["SystemRoot"]
     with pytest.raises(ValueError, match="same project"):
         create_repair_task(
             other,

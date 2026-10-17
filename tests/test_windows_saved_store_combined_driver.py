@@ -14,7 +14,8 @@ driver=importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(driver)
 
 @pytest.mark.parametrize('payload,digest,path',[
- (driver.ORIGINAL_PAYLOAD,driver.ORIGINAL_SHA,ROOT/'experiments/platform/windows_saved_store_proof.py'),
+ pytest.param(driver.ORIGINAL_PAYLOAD,driver.ORIGINAL_SHA,ROOT/'experiments/platform/windows_saved_store_proof.py',
+              id='original-payload'),
  (driver.NAMESPACE_PAYLOAD,driver.NAMESPACE_SHA,ROOT/'experiments/platform/windows_saved_store_namespace_witness_v4.py'),
 ])
 def test_exact_payload(payload,digest,path):
@@ -23,7 +24,9 @@ def test_exact_payload(payload,digest,path):
  assert hashlib.sha256(raw).hexdigest()==digest
  compile(raw,str(path),'exec') # Compile as data; never execute the payload.
 
-@pytest.mark.parametrize('payload,digest',[(driver.ORIGINAL_PAYLOAD,'0'*64),(b'!',driver.ORIGINAL_SHA)])
+@pytest.mark.parametrize('payload,digest',[
+ pytest.param(driver.ORIGINAL_PAYLOAD,'0'*64,id='original-payload-wrong-digest'),
+ (b'!',driver.ORIGINAL_SHA)])
 def test_refuse_changed_payload(payload,digest):
  with pytest.raises(ValueError):driver.payload_bytes(payload,digest)
 

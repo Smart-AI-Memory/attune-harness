@@ -201,14 +201,20 @@ def test_plan_never_reads_secret_or_invokes_provider_or_runner(corpus, voyage_bu
     _, cfg, provider = corpus
     registry, _, _, _ = voyage_bundle
     class GuardedEnvironment(dict):
+        def _lookup_key(self, key):
+            if isinstance(key, bytes):
+                if key.lower() == b'voyage_api_key':
+                    pytest.fail('plan read VOYAGE_API_KEY')
+                return key
+            if key.casefold() == 'voyage_api_key':
+                pytest.fail('plan read VOYAGE_API_KEY')
+            return key.upper() if os.name == 'nt' else key
+
         def __getitem__(self, key):
-            if key == 'VOYAGE_API_KEY':
-                pytest.fail('plan read VOYAGE_API_KEY')
-            return super().__getitem__(key)
+            return super().__getitem__(self._lookup_key(key))
+
         def get(self, key, default=None):
-            if key == 'VOYAGE_API_KEY':
-                pytest.fail('plan read VOYAGE_API_KEY')
-            return super().get(key, default)
+            return super().get(self._lookup_key(key), default)
     monkeypatch.setattr(os, 'environ', GuardedEnvironment(os.environ))
     monkeypatch.setattr(plugin_runtime, 'run', lambda *a, **kw: pytest.fail('plugin runner called'))
     from attune_harness.voyage_provider import VoyageProvider

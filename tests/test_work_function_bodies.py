@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 import subprocess
 import sys
 
@@ -116,7 +117,7 @@ def prepare_body_build(work, *, two_steps=False):
     (root / "oracle.py").write_text("from source import value\nassert value()==42\n")
     (root / "baseline.py").write_text("from source import value\nassert value()==1\n")
     if two_steps:
-        (root / "second.py").write_text("def second():\n    return 1\n")
+        (root / "second.py").write_bytes(b"def second():\n    return 1\n")
         (root / "first_oracle.py").write_text(
             "from source import value\nassert value()==42\n"
         )
@@ -188,7 +189,7 @@ def prepare_body_build(work, *, two_steps=False):
     data["controls"] = []
 
     def probe(script, oracle):
-        return {
+        definition = {
             "argv": [sys.executable, "-B", script],
             "cwd": ".",
             "timeout": 10,
@@ -196,6 +197,9 @@ def prepare_body_build(work, *, two_steps=False):
             "environment": {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
             "oracle_paths": [oracle],
         }
+        if os.name == "nt":
+            definition["environment"]["SystemRoot"] = os.environ["SystemRoot"]
+        return definition
 
     data["effects"] = work_effects.freeze(
         root,

@@ -488,7 +488,7 @@ class Native:
                     if entry["kind"] != "directory":
                         raise ValueError("Root path traverses a non-directory")
                 if check and entry["identity"] != plan["root_identity"]:
-                    raise UnresolvedOperation("Windows checkout identity changed")
+                    raise ValueError("Checkout identity changed")
                 yield current
             finally:
                 for handle in reversed(opened):
@@ -522,16 +522,23 @@ class Native:
             raise UnresolvedOperation("File size changed while reading")
         return buffer.raw[:size]
 
+    def write_chunk(self, handle, raw):
+        buffer, count = ctypes.create_string_buffer(raw), self.w.DWORD()
+        self._check(self.k.WriteFile(handle, buffer, len(raw), ctypes.byref(count), None), "WriteFile")
+        return count.value
+
+    def flush(self, handle):
+        self._check(self.k.FlushFileBuffers(handle), "FlushFileBuffers")
+
     def write(self, handle, raw):
         offset = 0
         while offset < len(raw):
             segment = raw[offset:offset + 65536]
-            buffer, count = ctypes.create_string_buffer(segment), self.w.DWORD()
-            self._check(self.k.WriteFile(handle, buffer, len(segment), ctypes.byref(count), None), "WriteFile")
-            if not 0 < count.value <= len(segment):
-                raise UnresolvedOperation("Windows file write made no progress")
-            offset += count.value
-        self._check(self.k.FlushFileBuffers(handle), "FlushFileBuffers")
+            count = self.write_chunk(handle, segment)
+            if not 0 < count <= len(segment):
+                raise OSError("Creation made no write progress")
+            offset += count
+        self.flush(handle)
 
     def rename(self, source, parent, target):
         name = leaf(target).encode("utf-16-le")
@@ -682,7 +689,7 @@ def create_entry(plan, item):
         with api.parent(root, path) as (parent, name):
             parent_entry, _, _ = _observed(api, parent)
             if name.casefold() in {existing.casefold() for existing in api.names(parent)}:
-                raise UnresolvedOperation("Windows creation collides with existing leaf")
+                raise FileExistsError("Windows creation collides with existing leaf")
             with api.owned(api.child(parent, name, create=True, directory=directory,
                                      writable=True)) as created:
                 if not directory:
@@ -819,7 +826,10 @@ def reconcile(plan, event, events, *, kind, retry_before=False):
                        "native_rename": {"transmission": "unknown", "observation_only": True}}
             validate_repair_result(item, receipt)
         else:
-            receipt = observed_effect_result(item, candidate)
+            try:
+                receipt = observed_effect_result(item, candidate)
+            except ValueError as exc:
+                raise UnresolvedOperation("Windows effect after-image differs from proposal") from exc
             if original is not None and (candidate["attributes"] != original["attributes"]
                                          or candidate["security_sha256"] != original["security_sha256"]):
                 raise UnresolvedOperation("Windows effect metadata changed unexpectedly")

@@ -1,8 +1,14 @@
 import copy
+from contextlib import ExitStack, contextmanager
+import hashlib
 import json
-import select
+import os
+import secrets
+import socket
+import stat
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -16,33 +22,238 @@ from attune_harness.review_store import PersistenceError, read_record
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _peer_executable():
+    """Bind an existing base interpreter; the Harness client stays in its venv."""
+    base = Path(sys.base_prefix).resolve(strict=True)
+    relative = 'python.exe' if os.name == 'nt' else f'bin/python{sys.version_info.major}.{sys.version_info.minor}'
+    executable = (base / relative).resolve(strict=True)
+    info = executable.stat()
+    assert stat.S_ISREG(info.st_mode), 'Peer interpreter is not a regular file'
+    profile = {
+        'executable': os.path.normcase(str(executable)),
+        'base': os.path.normcase(str(base)),
+        'version': list(sys.version_info),
+        'file': [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns],
+        'sha256': hashlib.sha256(executable.read_bytes()).hexdigest(),
+    }
+    after = executable.stat()
+    assert profile['file'] == [after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns], 'Peer interpreter changed'
+    return profile
+
+
+_PEER_BOOT = r'''
+import hashlib, json, os, runpy, socket, sys
+from pathlib import Path
+
+route, arguments = json.loads(sys.argv[1]), json.loads(sys.argv[2])
+executable = Path(sys.executable).resolve(strict=True)
+info = executable.stat()
+profile = {
+    'token': route['token'], 'pid': os.getpid(),
+    'executable': os.path.normcase(str(executable)),
+    'base': os.path.normcase(str(Path(sys.base_prefix).resolve(strict=True))),
+    'prefix': os.path.normcase(str(Path(sys.prefix).resolve(strict=True))),
+    'version': list(sys.version_info),
+    'file': [info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns],
+    'sha256': hashlib.sha256(executable.read_bytes()).hexdigest(),
+}
+channel = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+channel_closed = False
+
+def close_channel(primary=None):
+    global channel_closed
+    if channel_closed:
+        return
+    channel_closed = True
+    try:
+        channel.close()
+    except BaseException as error:
+        if primary is None:
+            raise
+        try:
+            primary._a2a_cleanup_errors = (error,)
+        except BaseException:
+            pass
+
+try:
+    channel.settimeout(5)
+    channel.connect(('127.0.0.1', route['port']))
+    channel.sendall(json.dumps(profile).encode('utf-8') + b'\n')
+except BaseException as error:
+    close_channel(error)
+    raise
+original = sys.stdout
+
+class Readiness:
+    def __init__(self):
+        self.pending = ''
+        self.closed = False
+
+    def write(self, value):
+        if self.closed:
+            return original.write(value)
+        self.pending += value
+        if '\n' in self.pending:
+            line, rest = self.pending.split('\n', 1)
+            self.closed = True
+            try:
+                channel.sendall((line + '\n').encode('utf-8'))
+            except BaseException as error:
+                close_channel(error)
+                raise
+            else:
+                close_channel()
+            sys.stdout = original
+            if rest:
+                original.write(rest)
+        return len(value)
+
+    def flush(self):
+        if self.closed:
+            original.flush()
+
+readiness = Readiness()
+sys.stdout = readiness
+if route['deny_resolver']:
+    def unavailable(*args, **kwargs):
+        raise AssertionError("loopback fixture invoked hostname resolution")
+    socket.getfqdn = unavailable
+sys.argv = arguments
+primary = None
+try:
+    runpy.run_path(sys.argv[0], run_name='__main__')
+except BaseException as error:
+    primary = error
+    raise
+finally:
+    sys.stdout = original
+    if not readiness.closed:
+        readiness.closed = True
+        close_channel(primary)
+'''
+
+
+def _remaining(deadline):
+    remaining = deadline - time.monotonic()
+    assert remaining > 0, 'Peer did not start'
+    return remaining
+
+
+def _peer_line(connection, process, expected, token, deadline):
+    """One bounded socket stream carries identity, then the peer's actual line."""
+    raw = bytearray()
+    while True:
+        connection.settimeout(_remaining(deadline))
+        part = connection.recv(4096)
+        if not part:
+            break
+        raw.extend(part)
+        assert len(raw) <= 65_536, 'Peer readiness exceeded its fixture bound'
+    header, separator, line = bytes(raw).partition(b'\n')
+    assert separator, 'Peer did not start'
+    profile = json.loads(header)
+    assert profile == {**expected, 'prefix': expected['base'], 'token': token,
+                       'pid': process.pid}, 'Peer interpreter identity mismatch'
+    _remaining(deadline)
+    if not line:
+        return ''
+    assert line.endswith(b'\n') and line.count(b'\n') == 1, 'Peer did not start'
+    decoded = line.decode('utf-8')
+    _remaining(deadline)
+    return decoded
+
+
+def _dispose_peer(actions, primary=None):
+    """Attempt each owned cleanup once without replacing an existing failure."""
+    errors = []
+    for action in actions:
+        try:
+            action()
+        except BaseException as error:
+            errors.append(error)
+    if errors and primary is not None:
+        # Keep the original exception and its cause, with honest cleanup detail.
+        try:
+            primary._a2a_cleanup_errors = getattr(primary, '_a2a_cleanup_errors', ()) + tuple(errors)
+        except BaseException:
+            pass
+    elif errors:
+        try:
+            errors[0]._a2a_cleanup_errors = tuple(errors[1:])
+        except BaseException:
+            pass
+        raise errors[0]
+
+
+@contextmanager
+def _running_peer(folder, arguments, *, deny_resolver=False, communicate=False):
+    """Own one direct peer, its relay and the retained stderr diagnostic."""
+    expected = _peer_executable()
+    sockets = []
+    error = process = None
+    primary = None
+    try:
+        error = (folder / 'stderr.txt').open('w', encoding='utf-8')
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sockets.append(listener)
+        listener.bind(('127.0.0.1', 0))
+        listener.listen(1)
+        token = secrets.token_hex(32)
+        route = {'port': listener.getsockname()[1], 'token': token,
+                 'deny_resolver': deny_resolver}
+        deadline = time.monotonic() + 5
+        process = subprocess.Popen(
+            [expected['executable'], '-I', '-c', _PEER_BOOT,
+             json.dumps(route), json.dumps(arguments)],
+            stdout=subprocess.PIPE, stderr=error, text=True)
+        listener.settimeout(_remaining(deadline))
+        connection, _ = listener.accept()
+        sockets.append(connection)
+        line = _peer_line(connection, process, expected, token, deadline)
+        actions = [owned.close for owned in reversed(sockets)]
+        sockets.clear()  # An attempted close is never blindly repeated.
+        _dispose_peer(actions)
+        _remaining(deadline)
+        yield process, error, line
+    except BaseException as failure:
+        primary = failure
+        raise
+    finally:
+        actions = []
+        if process is not None:
+            actions.append(process.terminate)
+            if communicate:
+                actions.append(lambda: process.communicate(timeout=5))
+            else:
+                actions.append(lambda: process.wait(timeout=5))
+            actions.append(lambda: process.stdout.close() if not process.stdout.closed else None)
+        actions.extend(owned.close for owned in reversed(sockets))
+        sockets.clear()
+        if error is not None:
+            actions.append(error.close)
+        _dispose_peer(actions, primary)
+
+
 @pytest.fixture
 def peer_factory(tmp_path):
     processes = []
-    def create(fault='none', hold=False, operations=None):
-        folder = tmp_path / str(len(processes))
-        folder.mkdir()
-        log = folder / 'peer.json'
-        error = (folder / 'stderr.txt').open('w', encoding='utf-8')
-        process = subprocess.Popen([sys.executable, '-I', str(ROOT / 'examples/a2a/peer.py'),
-                                    '--log', str(log), '--fault', fault, *(['--hold'] if hold else [])],
-                                   stdout=subprocess.PIPE, stderr=error, text=True)
-        processes.append((process, error))
-        assert select.select([process.stdout], [], [], 5)[0], 'Peer did not start'
-        line = process.stdout.readline()
-        assert line, (folder / 'stderr.txt').read_text(encoding='utf-8')
-        ready = json.loads(line)
-        peer = LocalPeer(ready['endpoint'], ready['card_digest'], ready['card']['name'],
-                         **({'operations': operations} if operations is not None else {}))
-        attempt = Attempt(Task('sum', 'Compute 2 + 2', ('Return the sum as a decimal integer',)),
-                          'attempt-1', 'requirements-v1', 'independent-peer', 'worker', 'a2a-1.0-local')
-        return peer, attempt, folder / 'run', log
-    yield create
-    for process, error in processes:
-        process.terminate()
-        process.wait(timeout=5)
-        process.stdout.close()
-        error.close()
+    with ExitStack() as peers:
+        def create(fault='none', hold=False, operations=None):
+            folder = tmp_path / str(len(processes))
+            folder.mkdir()
+            log = folder / 'peer.json'
+            process, error, line = peers.enter_context(_running_peer(
+                folder, [str(ROOT / 'examples/a2a/peer.py'), '--log', str(log),
+                         '--fault', fault, *(['--hold'] if hold else [])]))
+            processes.append((process, error))
+            assert line, f"Peer did not start; stderr retained at {folder / 'stderr.txt'}"
+            ready = json.loads(line)
+            peer = LocalPeer(ready['endpoint'], ready['card_digest'], ready['card']['name'],
+                             **({'operations': operations} if operations is not None else {}))
+            attempt = Attempt(Task('sum', 'Compute 2 + 2', ('Return the sum as a decimal integer',)),
+                              'attempt-1', 'requirements-v1', 'independent-peer', 'worker', 'a2a-1.0-local')
+            return peer, attempt, folder / 'run', log
+        yield create
 
 
 def start(case, **kwargs):
