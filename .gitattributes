@@ -55,3 +55,4 @@ experiments/e3/tasks.json -text
 experiments/e3/answer-key.json -text
 .github/workflows/windows-saved-store-reviewed-execution.yml -text
 experiments/platform/windows_saved_store_build_preflight_v1.ps1 -text
+tests/test_windows_saved_store_account_inputs_v2.py -text
