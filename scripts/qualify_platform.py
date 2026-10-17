@@ -44,6 +44,35 @@ def installed_source():
     return source
 
 
+def record_plugin_probe(output, receipt):
+    """Copy evidence already written by pytest; never launch or repeat a probe."""
+    try:
+        evidence = json.loads((output/'plugin-probe.json').read_text(encoding='utf-8'))
+        if not isinstance(evidence, dict):
+            raise ValueError('expected a plugin probe object')
+        steps = evidence.get('steps', {})
+        if not isinstance(steps, dict) or any(not isinstance(step, dict) for step in steps.values()):
+            raise ValueError('expected plugin probe steps with object entries')
+        missing = [name for name in PROBE_STEPS if name not in steps]
+        summary = ('plugin probe: '
+                   + ('; '.join(f"{name} {step.get('outcome', 'recorded')}" for name, step in steps.items())
+                      or 'no steps recorded')
+                   + (f"; missing {', '.join(missing)}" if missing else ''))
+        complete = not missing and not any(
+            str(step.get('outcome', '')).startswith('failed') for step in steps.values())
+    except FileNotFoundError:
+        receipt['plugin_probe'] = 'missing: tests/test_plugin_probe.py wrote no receipt; see tests.txt'
+        receipt['checks'].append('plugin probe receipt missing')
+        return False
+    except (OSError, ValueError, TypeError, RecursionError) as error:
+        receipt['plugin_probe'] = f'unreadable: {error}'
+        receipt['checks'].append('plugin probe receipt unreadable; see plugin-probe.json')
+        return False
+    receipt['plugin_probe'] = evidence
+    receipt['checks'].append(summary)
+    return complete
+
+
 def qualify(output, *, coverage_instrumented=False):
     if sys.flags.optimize or not __debug__:
         raise ValueError('Platform qualification requires unoptimized Python; run without -O or PYTHONOPTIMIZE')
@@ -125,6 +154,7 @@ def qualify(output, *, coverage_instrumented=False):
         if coverage_instrumented:
             receipt['status']='instrumented_failed'
             receipt['native_process_and_recovery']='not_qualified_instrumented'
+        record_plugin_probe(output, receipt)
         (output/'platform.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
         print(json.dumps({k:v for k,v in receipt.items() if k not in ('sources','command')},indent=2))
         return run.returncode
@@ -159,26 +189,9 @@ def qualify(output, *, coverage_instrumented=False):
                              if memory.returncode==0 else 'memory redis checks failed; see memory-redis.txt')
     if memory.returncode!=0 and run.returncode==0:
         run=subprocess.CompletedProcess(argv,memory.returncode)
-    # The plugin probe's receipt (D29.1): gpg found and its version, the signature verdicts by
-    # status line, the child bootstrap's imports; tests/test_plugin_probe.py writes it step by
-    # step, so a failed step is in it. A missing receipt is a failed qualification, never a skip.
-    probe=output/'plugin-probe.json'
-    if probe.is_file():
-        try:
-            receipt['plugin_probe']=json.loads(probe.read_text(encoding='utf-8'))
-            steps=receipt['plugin_probe'].get('steps',{})
-        except (ValueError,UnicodeDecodeError) as error:
-            # A write cut by the suite budget leaves a partial file: keep the fact, fail the qualification.
-            receipt['plugin_probe']=f'unreadable: {error}';steps={}
-        missing=[name for name in PROBE_STEPS if name not in steps]
-        receipt['checks'].append('plugin probe: '+('; '.join(f"{name} {step.get('outcome','recorded')}" for name,step in steps.items()) or 'no steps recorded')
-                                 +(f"; missing {', '.join(missing)}" if missing else ''))
-        if (missing or any(str(step.get('outcome','')).startswith('failed') for step in steps.values())) and run.returncode==0:
-            run=subprocess.CompletedProcess(argv,1)
-    else:
-        receipt['plugin_probe']='missing: tests/test_plugin_probe.py wrote no receipt; see tests.txt'
-        receipt['checks'].append('plugin probe receipt missing')
-        if run.returncode==0:run=subprocess.CompletedProcess(argv,1)
+    # Retain the already-written probe after normal post-suite checks, as before.
+    if not record_plugin_probe(output, receipt) and run.returncode == 0:
+        run = subprocess.CompletedProcess(argv, 1)
     receipt['exit']=run.returncode
     if os.name in ('posix','nt'):receipt['native_process_and_recovery']='passed' if run.returncode==0 else 'failed'
     receipt['status']='checks_passed' if run.returncode==0 else 'failed'

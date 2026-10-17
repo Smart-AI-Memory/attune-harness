@@ -102,10 +102,34 @@ def test_invalid_install_is_refused_before_output_or_dispatch(wheel_install, tmp
     assert not output.exists()
 
 
+def probe_bytes(qualifier, case):
+    """Existing-child probe payloads; no probe or native process is executed."""
+    if case == 'missing':
+        return None
+    if case == 'malformed':
+        return b'{"steps": {"discovery": '
+    if case == 'nonobject':
+        return b'[]'
+    if case == 'invalid-utf8':
+        return b'\xff'
+    steps = {name: {'outcome': 'passed'} for name in qualifier.PROBE_STEPS}
+    if case == 'partial':
+        steps = {'discovery': steps['discovery']}
+    elif case == 'failed':
+        steps['bootstrap']['outcome'] = 'failed: injected'
+    elif case == 'bad-steps':
+        steps = []
+    elif case == 'bad-step':
+        steps['discovery'] = None
+    return json.dumps({'schema_version': 1, 'steps': steps}).encode()
+
+
 @pytest.mark.parametrize('pytest_exit,memory_exit,probe,expected', [
     (0, 0, 'passed', 0), (0, 3, 'passed', 3),
     (0, 0, 'missing', 1), (0, 0, 'failed', 1),
     (5, 0, 'passed', 5), (5, 3, 'missing', 5),
+    *[(0, 0, state, 1) for state in ('partial', 'malformed', 'nonobject',
+                                   'invalid-utf8', 'bad-steps', 'bad-step', 'unreadable')],
 ])
 def test_receipt_exit_matches_final_verdict(tmp_path, monkeypatch, pytest_exit, memory_exit, probe, expected):
     qualifier = load('qualify_platform')
@@ -114,14 +138,20 @@ def test_receipt_exit_matches_final_verdict(tmp_path, monkeypatch, pytest_exit, 
     monkeypatch.setattr(qualifier, 'installed_source', lambda: source)
     monkeypatch.setattr(qualifier.importlib.metadata, 'version', lambda _: '1.3.0')
     output = tmp_path/'qualification'
+    calls = []
+    original_read_text = Path.read_text
+    def read_text(path, *args, **kwargs):
+        if probe == 'unreadable' and path == output/'plugin-probe.json':
+            raise PermissionError(13, 'injected existing probe read failure')
+        return original_read_text(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'read_text', read_text)
 
     def run(argv, **kwargs):
+        calls.append(tuple(argv))
         if '-m' in argv and 'pytest' in argv:
-            if probe != 'missing':
-                steps = {name: {'outcome': 'passed'} for name in qualifier.PROBE_STEPS}
-                if probe == 'failed':
-                    steps['bootstrap']['outcome'] = 'failed: injected'
-                (output/'plugin-probe.json').write_text(json.dumps({'steps': steps}))
+            payload = probe_bytes(qualifier, probe)
+            if payload is not None:
+                (output/'plugin-probe.json').write_bytes(payload)
             return subprocess.CompletedProcess(argv, pytest_exit)
         if memory_exit == 0:
             memory = {'native_reader': 'available',
@@ -137,6 +167,16 @@ def test_receipt_exit_matches_final_verdict(tmp_path, monkeypatch, pytest_exit, 
     assert observed == receipt['exit'] == expected
     assert receipt['pytest_exit'] == pytest_exit
     assert receipt['status'] == ('checks_passed' if expected == 0 else 'failed')
+    assert len(calls) == (1 if pytest_exit else 2)
+    assert calls[0][1:3] == ('-m', 'pytest')
+    if pytest_exit == 0:
+        assert str(ROOT/'scripts/check_installed.py') in calls[1]
+    if probe in ('passed', 'partial', 'failed'):
+        assert receipt['plugin_probe'] == json.loads(probe_bytes(qualifier, probe))
+    elif probe == 'missing':
+        assert receipt['plugin_probe'].startswith('missing:')
+    else:
+        assert receipt['plugin_probe'].startswith('unreadable:')
 
 
 @pytest.mark.parametrize('name', ['check_installed', 'qualify_platform'])
@@ -202,8 +242,10 @@ def test_optimized_cli_deadline_is_platform_specific(tmp_path, monkeypatch, plat
 
 @pytest.mark.parametrize('pytest_outcome', [1, 2, 'timeout'])
 @pytest.mark.parametrize('instrumented', [False, True])
+@pytest.mark.parametrize('probe_case', ['passed', 'partial', 'failed', 'missing', 'malformed',
+                                      'nonobject', 'bad-steps', 'bad-step', 'unreadable', 'invalid-utf8'])
 def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
-        wheel_install, tmp_path, monkeypatch, pytest_outcome, instrumented):
+        wheel_install, tmp_path, monkeypatch, pytest_outcome, instrumented, probe_case):
     """Actual qualifier orchestration, with every child dispatch intercepted."""
     qualifier = load('qualify_platform')
     monkeypatch.setattr(qualifier, 'platform', SimpleNamespace(
@@ -220,6 +262,13 @@ def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
     original_log = b'original immediate wait failure; disposal unconfirmed\n'
     calls = []
     expected_timeout = 2520 if instrumented else 1800
+    payload = probe_bytes(qualifier, probe_case)
+    original_read_text = Path.read_text
+    def read_text(path, *args, **kwargs):
+        if probe_case == 'unreadable' and path == output/'plugin-probe.json':
+            raise PermissionError(13, 'injected existing probe read failure')
+        return original_read_text(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'read_text', read_text)
 
     def child(argv, **kwargs):
         if calls:
@@ -232,6 +281,8 @@ def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
         (output/'tests.xml').write_bytes(original_xml)
         kwargs['stdout'].write(original_log)
         kwargs['stdout'].flush()
+        if payload is not None:
+            (output/'plugin-probe.json').write_bytes(payload)
         if pytest_outcome == 'timeout':
             raise subprocess.TimeoutExpired(argv, expected_timeout)
         return subprocess.CompletedProcess(argv, pytest_outcome)
@@ -259,3 +310,19 @@ def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
         assert receipt['failure'] == 'suite_timeout'
     else:
         assert 'failure' not in receipt
+
+    if payload is None:
+        assert not (output/'plugin-probe.json').exists()
+        assert receipt['plugin_probe'].startswith('missing:')
+        assert 'plugin probe receipt missing' in receipt['checks']
+    else:
+        assert (output/'plugin-probe.json').read_bytes() == payload
+        if probe_case in ('passed', 'partial', 'failed'):
+            assert receipt['plugin_probe'] == json.loads(payload)
+            if probe_case == 'partial':
+                assert any('missing ' in check for check in receipt['checks'])
+            if probe_case == 'failed':
+                assert receipt['plugin_probe']['steps']['bootstrap']['outcome'] == 'failed: injected'
+        else:
+            assert receipt['plugin_probe'].startswith('unreadable:')
+            assert 'plugin probe receipt unreadable; see plugin-probe.json' in receipt['checks']
