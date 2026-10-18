@@ -166,8 +166,10 @@ def _validate_windows_manifest(plan):
                 part.casefold() in repair.PROTECTED for part in PurePosixPath(path).parts
             ):
                 raise ValueError('Protected Windows state cannot be an effect path')
-    if not plan['allowed'] or not plan['protected'] or set(plan['allowed']) & set(plan['protected']):
-        raise ValueError('Windows effects require distinct files and protected inputs')
+    if not plan['allowed'] or not plan['protected']:
+        raise ValueError('Effects require explicit files and protected acceptance inputs')
+    if set(plan['allowed']) & set(plan['protected']):
+        raise ValueError('Protected acceptance inputs cannot be edited')
     before = plan['before']
     if not isinstance(before, dict) or len(before) > MAX_ENTRIES:
         raise ValueError('Invalid Windows before snapshot')
@@ -190,7 +192,7 @@ def _validate_windows_manifest(plan):
             if parent_path + '/' not in before:
                 needed.add(parent_path)
     if set(plan['parents']) != needed:
-        raise ValueError('Missing Windows parents must be exactly authorized')
+        raise ValueError('Missing parents must be explicitly and exactly authorized')
     if any(path not in before or before[path]['kind'] != 'file' for path in plan['protected']):
         raise ValueError('Windows protected inputs must be existing files')
     if 'function_bodies' in plan:

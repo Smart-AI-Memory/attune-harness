@@ -36,7 +36,7 @@ def work(tmp_path, monkeypatch):
     monkeypatch.setattr(review_participants, "NativeExchange", poison)
     root = tmp_path / "project"
     root.mkdir()
-    (root / "source.py").write_text("def value():\n    return 1\n")
+    (root / "source.py").write_bytes(b"def value():\n    return 1\n")
     (root / "plan.md").write_text("Preserve all findings and default JSON.\n")
     (root / "unrelated.txt").write_text("Keep my dirty work\n")
     config = tmp_path / "participants.json"

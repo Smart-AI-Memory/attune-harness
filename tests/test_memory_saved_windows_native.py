@@ -1023,14 +1023,31 @@ def writers(root, requests, record_property, phase, observation=None):
             try:
                 stdout, stderr = child.communicate(timeout=30)
             except BaseException as error:
+                row['communicate_error'] = _kill_error_facts(error)
                 try: _contention_partial_output(row, error)
                 except BaseException: pass  # Observation cannot replace the original error.
-                raise
+                if primary is None:
+                    primary = error
+                break
             row.update(stdout=stdout, stderr=stderr, output_received=True,
                        observed_exit=child.returncode, observed_ns=stamp())
-            assert child.returncode == 0, stderr
-            results.append(json.loads(stdout))
-            row['result_accepted'] = True
+            if child.returncode == 0:
+                try:
+                    result = json.loads(stdout)
+                except Exception as error:
+                    row['result_parse_error'] = _kill_error_facts(error)
+                    if primary is None:
+                        primary = error
+                else:
+                    results.append(result)
+                    row['result_accepted'] = True
+            try:
+                assert child.returncode == 0, stderr
+            except AssertionError as error:
+                if primary is None:
+                    primary = error
+        if primary is not None:
+            raise primary
         return results
     except BaseException as error:
         primary = error

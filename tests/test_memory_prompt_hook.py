@@ -13,7 +13,7 @@ SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'memory_prompt_hook.p
 @pytest.mark.parametrize('raw,dispatch', [(b'{"prompt":"release"}', True), (b'{"prompt":"--help"}', True),
     (b'{"prompt":"$(touch /tmp/not-a-command)"}', True),
     (b'{"prompt":""}', False), (b'{}', False), (b'bad json', False),
-    (b'{"prompt":"' + b'x' * 513 + b'"}', False), (b'x' * 65537, False),
+    (b'{"prompt":"' + b'x' * 513 + b'"}', False), pytest.param(b'x' * 65537, False, id='oversized-input'),
     (b'{"prompt":"release","extra":' + b'[' * 5000 + b'0' + b']' * 5000 + b'}', False)])
 def test_bridge_bounds_input_and_preserves_prompt_as_one_argument(monkeypatch, raw, dispatch):
     calls = []

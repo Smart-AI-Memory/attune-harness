@@ -48,3 +48,12 @@ experiments/platform/check_windows_saved_store_account_inputs_v2.py -text
 
 # Owned finite build projection code is also byte-bound.
 experiments/platform/project_windows_saved_store_build_v1.py -text
+
+# Preserve frozen evaluator inputs and reviewed preflight pins as literal Git bytes.
+experiments/e3/protocol.json -text
+experiments/e3/tasks.json -text
+experiments/e3/answer-key.json -text
+.github/workflows/windows-saved-store-reviewed-execution.yml -text
+experiments/platform/windows_saved_store_build_preflight_v1.ps1 -text
+tests/test_windows_saved_store_account_inputs_v2.py -text
+tests/test_windows_saved_store_build_projection.py -text

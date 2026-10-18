@@ -433,7 +433,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
                + '    yield\n'
                + ('    time.sleep(30)\n' if phase == 'teardown' else ''))
     test.write_text(f'import time\n{fixture}\ndef test_wait(stall):\n    {wait}\n')
-    (root / 'pytest.ini').write_text('[pytest]\nharness_stack_timeout = 0.1\n')
+    (root / 'pytest.ini').write_text('[pytest]\nharness_stack_timeout = 1\n')
     monkeypatch.setenv('PYTEST_DISABLE_PLUGIN_AUTOLOAD', '1')
     real_run = subprocess.run
 
@@ -453,7 +453,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     assert timings[-1]['event'] == 'phase_start' and timings[-1]['phase'] == phase
     assert timings[-1]['nodeid'].endswith('test_wait.py::test_wait')
     stacks = (output / 'slow-stacks.txt').read_text()
-    assert str(test) in stacks
+    assert f'File {str(test)!r},' in stacks
     assert ('in test_wait' if phase == 'call' else 'in stall') in stacks
     receipt = json.loads((output / 'manifest.json').read_text())
     assert receipt['test_exit'] is None and receipt['input_drift'] is False
@@ -486,7 +486,7 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
                                             'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
     transcript = (tmp_path / 'slow-stacks.txt').read_text()
     assert 'Slow test Python stacks:' in transcript
-    assert str(test) in transcript
+    assert f'File {str(test)!r},' in transcript
     assert ('in test_wait' if phase == 'call' else 'in stall') in transcript
     assert 'End slow-test Python stacks' in transcript
     timings = [json.loads(line) for line in (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
@@ -511,7 +511,8 @@ def bad_teardown():
     yield
     raise RuntimeError('teardown remains failed')
 def test_pass(capfd):
-    time.sleep(0.02)
+    # Leave margin for Python 3.10's coarse Windows monotonic clock.
+    time.sleep(0.05)
     captured = capfd.readouterr()
     assert 'elapsed_seconds' not in captured.out + captured.err
 def test_fail(): assert False, 'call remains failed'
