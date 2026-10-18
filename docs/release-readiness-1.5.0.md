@@ -1,9 +1,11 @@
 # Attune Harness 1.5.0 preparation readiness
 
-**DRAFT — UNRELEASED.** Preparation snapshot: October 16, 2026. The target is
-1.5.0 after full Windows parity; the runtime metadata remains `1.4.0`.
-No final release SHA, 1.5.0 distribution, publication date, or release approval
-is established by this record.
+**DRAFT — UNRELEASED.** Current package and plugin metadata identify an
+unpublished `1.5.0` validation candidate. The historical preparation snapshot
+below is from October 16, 2026; its `1.4.0` artifact identities remain unchanged.
+Full Windows parity and final release acceptance remain pending. This record
+does not establish an accepted final release SHA, a published 1.5.0 distribution,
+a publication date, or release approval.
 
 Documentation target base: `0735cca55480b031050dc8d7e3c2ea72a3cd6dc1`, tree
 `040e2acd576af04542d49dc17c71fc4cf5c3cf84`. Patrick merged the saved-store

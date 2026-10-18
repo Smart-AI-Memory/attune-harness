@@ -1,11 +1,12 @@
 # Attune Harness 1.5.0 release notes
 
-**DRAFT — UNRELEASED.** Version 1.5.0 is planned after the full
+**DRAFT — UNRELEASED.** Release 1.5.0 remains planned after the full
 [Windows parity specification](specs/windows-parity/README.md) is complete.
-The runtime version remains `1.4.0`. These notes describe the release target
-and prepared components; they do not announce Windows qualification or a
-published 1.5.0 package. See the [readiness record](release-readiness-1.5.0.md)
-for the evidence and open gates.
+Current package and plugin metadata identify an unpublished `1.5.0` validation
+candidate. Earlier `1.4.0` artifacts retain their recorded identities. These notes
+describe the release target and prepared components; they do not announce Windows
+qualification or a published 1.5.0 package. See the
+[readiness record](release-readiness-1.5.0.md) for the evidence and open gates.
 
 ## Planned Windows changes
 
