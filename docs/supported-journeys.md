@@ -27,7 +27,7 @@ non-programmer walkthrough and the migration rows) are listed at the end.
 
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
-| Install | `pipx install 'attune-harness[all]==1.2.0'` ([README](../README.md#installation)) | Python 3.10 and 3.12 on macOS, Ubuntu and Windows are in the CI matrix; other versions are not | Six installed-wheel platform jobs on every push to `main`; the release gate compares PyPI's hashes with the publish run's `SHA256SUMS` | Harness and attune-ai pin different MCP SDK lines and cannot share an environment. Install each in its own environment |
+| Install | `pipx install 'attune-harness[all]==1.2.0'` ([README](../README.md#installation)) | Python 3.10 and 3.12 on macOS, Ubuntu and Windows are in the CI matrix; other versions are not | Installed-wheel qualification runs for each row in the [canonical matrix](qualification.md#platforms) on every push to `main`; the release gate compares PyPI's hashes with the publish run's `SHA256SUMS` | Harness and attune-ai pin different MCP SDK lines and cannot share an environment. Install each in its own environment |
 | First run | `init`, then a `test` preview and the `review` intake ([README](../README.md#your-first-five-minutes)) | All three platforms | The README's journey-tagged block runs as written in every platform job | `init` writes offline demo participants. Native participants need `init --profile claude` or `codex`, and a review then needs `--allow-external` |
 
 ## Work
@@ -71,11 +71,11 @@ automatic recall.**
 
 | Journey | Entry point | Platform limit | Evidence | Where it stops, and what to do |
 | --- | --- | --- | --- | --- |
-| Voyage code retrieval | `[voyage]` extra, `VOYAGE_API_KEY`, `index plan\|build\|update\|inspect` ([Voyage guide](voyage-retrieval.md)) | Live calls recorded on macOS only | One fixed query through eight live stages (direct and signed-plugin paths agreed); offline replay in all six installed-wheel jobs | Paid calls. No general ranking-quality claim. A stage with unknown effects is not retried automatically |
+| Voyage code retrieval | `[voyage]` extra, `VOYAGE_API_KEY`, `index plan\|build\|update\|inspect` ([Voyage guide](voyage-retrieval.md)) | Live calls recorded on macOS only | One fixed query through eight live stages (direct and signed-plugin paths agreed); offline replay across the [installed-wheel qualification matrix](qualification.md#platforms) | Paid calls. No general ranking-quality claim. A stage with unknown effects is not retried automatically |
 | Claude Code plugin | `/plugin marketplace add Smart-AI-Memory/attune-harness` ([README](../README.md)) | Wherever Claude Code runs; the CLI must be installed separately | `tests/test_claude_plugin.py` keeps the manifests in step with the package, and a test checks the skill's commands against the CLI | Carries the Harness skill, `cross-review`, `roundtable` and `smart-test`, with no MCP server. The live-session receipt is a draft (#180) |
 | Codex plugin | Packaged from a checkout ([Codex plugin guide](codex-plugin.md)) | Wherever Codex runs | `tests/test_codex_plugin_package.py` | Not in the wheel; plugin version 0.1.0 |
 | MCP and A2A | `mcp-serve` (retrieval grants over stdio) | Local only | Independent-client receipts for MCP (2025-11-25 and 2026-07-28 profiles) and A2A 1.0 | No remote authentication and no automatic host installation |
-| Signed Python plugins | `extension install\|inspect\|enable` | All three | Installed-wheel tests on six platform jobs: signatures, revocation, grants, import closure, subprocess bounds | Not an OS sandbox for hostile same-user code. Installing a plugin does not authorize it to run |
+| Signed Python plugins | `extension install\|inspect\|enable` | All three | Installed-wheel tests across the [qualification matrix](qualification.md#platforms): signatures, revocation, grants, import closure, subprocess bounds | Not an OS sandbox for hostile same-user code. Installing a plugin does not authorize it to run |
 
 ## Not carried yet
 

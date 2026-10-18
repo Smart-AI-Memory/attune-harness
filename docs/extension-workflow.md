@@ -293,11 +293,12 @@ and recorded (the `run` binding is what will apply it). Disabling drops `plugin`
 since it ends the grant. The envelope is pinned as `extension-enable-plugin`
 in [the envelope table](envelopes.md).
 
-### The probe on every platform job (D29.1)
+### The probe on every installed-wheel job (D29.1)
 
 `tests/test_plugin_probe.py`, in the platform selection, is the ruling's
-probe: on each of the six platform jobs it finds gpg, generates a scratch
-key, verifies a detached signature and asserts that the verdict came from
+probe: on each installed-wheel job in the
+[qualification matrix](qualification.md#platforms), it finds gpg, generates a
+scratch key, verifies a detached signature and asserts that the verdict came from
 `GOODSIG` and a `VALIDSIG` with the listed fingerprint, produces the
 unlisted-signer, tampered-digest and revoked-key refusals (the first and the
 last with exit status 0), and launches the `run` binding's child ahead of its

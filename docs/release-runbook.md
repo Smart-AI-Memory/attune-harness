@@ -17,7 +17,7 @@ update this table when they change.
 | GitHub environment `pypi` | Required reviewer | `silversurfer562` |
 | GitHub environment `testpypi` | Branches allowed to deploy | `main` — changed by Patrick and verified through GitHub API September 27, 2026 |
 | GitHub environment `testpypi` | Required reviewer | `silversurfer562` |
-| Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It is one verdict over the six platform jobs (Ubuntu, macOS and Windows on Python 3.10 and 3.12) and the full test suite on Ubuntu |
+| Branch protection on `main` | Required checks | `Qualification` only, pinned to GitHub Actions. It aggregates the installed-wheel and full-suite matrices plus the documentation link check; see the [qualification guide](qualification.md#platforms) for the matrix |
 | Branch protection on `main` | Other rules | Branch must be up to date, signed commits, enforced for admins, pull request required with no approving review needed |
 | PyPI project `attune-harness` | Trusted publisher | Must name this repository, `publish-pypi.yml` and the `pypi` environment. Uploads use OIDC; there is no API token |
 
@@ -29,11 +29,11 @@ was a deployment blocker; changing it did not publish a candidate. 0.2.0 hit the
 same problem on `pypi`: the only allowed branch had been deleted as merged.
 Before deleting a branch, check whether an environment still depends on it.
 
-Do not change the required check back to the six platform names. A pull request
-that only touches documentation skips the platform jobs, so those names never
-report for it, and it could never merge. `Qualification` always reports, and it
-fails unless the platform jobs passed or were skipped for a pull request the
-classifier found documentation-only. Pushes to `main` never skip, so every
+Keep the aggregate `Qualification` check as the required check. A pull request
+that only touches documentation skips the matrix jobs before GitHub expands
+them, so individual job names do not report. `Qualification` always reports,
+and it fails unless the platform jobs passed or were skipped for a pull request
+the classifier found documentation-only. Pushes to `main` never skip, so every
 commit there has a full run, and the release gate reads only those. The reasons
 are in the comments in `.github/workflows/qualification.yml`.
 
@@ -313,7 +313,7 @@ dispatch or publish:
    metadata from the unpublished fixture writer. It does not change those
    runtime fields; do not require whole-wheel or whole-`METADATA` byte equality.
    Read the matching push runs, then inspect the successful run's aggregate
-   `Qualification` check and six platform receipts:
+   `Qualification` check, installed-wheel receipts and full-suite receipts:
 
    ```sh
    git fetch origin main
