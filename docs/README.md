@@ -17,6 +17,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [First checked repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
 - [Four training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
 - [Written training walkthroughs for Harness 1.4.0](tutorials-next-release-candidate.md): Save and approve a work request, inspect saved state and reopen forms; source-attributed limits and historical 1.3.0 guidance retained
+- [Four walkthroughs for the planned Harness 1.5.0](tutorials-1.5.0-candidate.md): Goal-based quick selector for provisional candidate procedures on forms, planning, local evidence and continuity; final released-artifact reconciliation remains required
 
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
