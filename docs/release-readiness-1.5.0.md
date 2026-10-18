@@ -143,7 +143,7 @@ records their remaining evidence needs; it does not create a new process.
 | Production storage (T5/R4) | Reviewed delivered source; locking, privacy, namespace publication, complete writes and barriers; concurrency, crash/restart, replay, task, index, and CLI evidence | Current finite witnesses pass; full acceptance and the historical eight-writer busy-failure cause remain open |
 | Owned-process completion and recovery | Current-source evidence for the declared child-completion and recovery contract, retaining the failing cases | Pending; PR #274 remains open |
 | Native-memory acceptance (T7/R5) | Controlled production-transport acceptance, actual outcome and usage, with the existing authority and uncertainty boundaries | Pending; offline SDK evidence is separate, and an unknown prior outcome blocks redispatch |
-| Native server qualification (T8) | Final combined full suite and installed journeys on Windows Server 2022/2025 with Python 3.10/3.12; required cases run rather than hidden by an OS-wide skip | Pending |
+| Native server qualification (T8) | Final combined full suite and installed journeys on Windows Server 2022/2025 with Python 3.10/3.12; required cases run rather than hidden by an OS-wide skip | Pending. In the latest [main qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39087566327), Windows 3.12 full source passed; Windows 3.10 timed out at 2,700 seconds (`exit 124`, `timeout_effects_unknown`), and qualification failed. An [earlier run of the same source tree](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39084249044) passed Windows 3.10 within the deadline; that comparison does not identify the later timeout's cause. |
 | Native desktop qualification (T8) | Final installed-wheel journeys on Windows 11 with Python 3.10/3.12 under standard user permissions; OS build, architecture, and fixed local NTFS recorded separately | Pending; server or primitive evidence cannot substitute |
 | Shell and documented journeys (T6/R6) | Real Windows PowerShell and PowerShell 7 commands, literal path quoting, printed continuations, preview/acceptance, completed handoffs, and recovery against the installed candidate | Pending |
 | Compatibility and combined artifact (R7) | Exact final source, wheel and installed modules; dependencies and runtime; historical schema/token/receipt compatibility; required final-head reviews and regression checks | Pending; earlier wheels and component receipts retain their original identities |
@@ -165,7 +165,31 @@ they are not a substitute for its walkthroughs.
 | --- | --- | --- | --- | --- |
 | [README](../README.md), [installation](installation.md), and release notes | Draft 1.5.0 release-notes content approved; install/version instructions still describe published 1.4.0. Final candidate pins and readiness acceptance remain pending | Release documentation owner; agent-plugin instructions require the selected runtime to match | No new install, existing-tool upgrade, or migration walkthrough run during this draft | Preserve versioned 1.4.0 notes and installation evidence |
 | [CLI guide](cli-guide.md), [supported journeys](supported-journeys.md), and [qualification](qualification.md) | Existing entry points checked against parser and source; platform reconciliation awaits final T8 | Release documentation owner; help projections remain separately owned | Source inspection is not a completed native command journey | Keep the historical evidence and its version labels |
-| [Written forms walkthrough](tutorials-next-release-candidate.md) | Existing 1.4.0 behavior retained; 1.5.0 reconciliation remains pending | Tutorial/deck and Help owners must coordinate actual derivatives | No new browser, accessibility, comprehension, or model-quality observation | Retain 1.3.0 decks and the written 1.4.0 procedure with their source labels |
+| [Navigation](tutorials-1.5.0-candidate.md#navigation-an-accepted-intent) | Provisional source `677a51439cbc76a4a8726280025358e3af175d2e`, installed local wheel with metadata `1.4.0`; final release binding pending | Replacement 9-slide PPTX/HTML and existing Help `start-and-continue` projection prepared locally; publication held | Saved both literal answers, approved the complete request, reloaded and inspected accepted read-only state; no planning/build state or model call | Preserve original 1.3.0 decks/Help and [written 1.4.0 guide](tutorials-next-release-candidate.md) |
+| [Specification workflow](tutorials-1.5.0-candidate.md#specification-workflow-preview-and-acceptance) | Same candidate and wheel; full current checkpoint digest used | Replacement 10-slide PPTX/HTML and existing Help `plan-and-accept` projection prepared locally | `created`, `draft`, then `accepted`; `calc.py` unchanged, no build state; starter reviewer makes no substantive judgment | Original plan/deck evidence retained |
+| [Four workflows](tutorials-1.5.0-candidate.md#four-workflows-research-a-question) | Same candidate and wheel; exact example inputs and hashes retained | Replacement 12-slide PPTX/HTML and existing Help `research` projection prepared locally | Retrieval returned two sources; verification accepted one link with `result.semantic_ran: false`; repair/execution examples remain references | Original four-workflow guidance and qualification limits retained |
+| [Session continuity](tutorials-1.5.0-candidate.md#session-continuity-saved-answers-in-another-session) | Same candidate and wheel; a separate synthetic draft | Replacement 10-slide PPTX/HTML and existing Help `save-and-resume` projection prepared locally | Exact saved goal survived same-page reload and fresh listener; remaining success stayed blank; unsaved text disappeared; no execution resume | Retain earlier version labels and browser observations |
+
+The four-topic candidate review uses the local wheel SHA-256
+`695dc2e8c52a25f641ec752e188ce25ae5c14fac6255881fda90e7a9bb6ddaff`.
+All 107 installed Harness modules match the selected source. The installed-wheel
+qualifier passed on macOS arm64, Python 3.12.14 (2,826 passed, 193 skipped).
+This is candidate software evidence; it does not qualify Windows, model quality,
+accessibility or user comprehension. The Help patch retains historical source
+bytes and has a local build, 73 passing site tests, and checks of 17 selected
+page views. Decks have 41 inspected slides across the four topics. The exact
+local artifacts, hashes, checks and failed-harness explanations remain in the
+private documentation review bundle; no hosted preview was created.
+The broader source suite also found a deep-JSON memory-prompt hook mismatch on
+this Python build, reproduced from unchanged candidate files. Its disposition
+on the selected release runtimes remains open; no green full-source suite is
+claimed by this documentation review.
+
+Before publication, compare final source, dependency pins and metadata with
+this candidate and rerun changed units. After publication, verify the GitHub
+tag/release and live PyPI file hashes against publishing evidence and the
+installed artifact, then reconcile labels and links. Passing candidate checks
+does not close that final released-artifact gate.
 
 This draft adds no version bump, tag, release, package upload, website or Help
 publication, account operation, workflow dispatch, or provider call. Final
