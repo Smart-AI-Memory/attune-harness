@@ -497,10 +497,11 @@ def test_platform_timeout_keeps_active_stack_in_retained_log(tmp_path, phase):
     log = tmp_path / 'tests.txt'
     with log.open('wb') as stream:
         with pytest.raises(subprocess.TimeoutExpired):
+            # Leave time for pytest to enter the selected phase before capture.
             subprocess.run([sys.executable, '-m', 'pytest', '-vv',
                             '-p', 'harness_qualification_stacks',
                             '-o', 'faulthandler_timeout=0',
-                            '-o', 'harness_stack_timeout=0.1', str(test)],
+                            '-o', 'harness_stack_timeout=2', str(test)],
                            cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT,
                            timeout=10, env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                                             'PYTHONPATH': str(SCRIPT.parent),
@@ -604,10 +605,11 @@ def test_churn(capsys):
                     '\ndef test_fast(): pass\n')
     log = tmp_path / 'tests.txt'
     with log.open('wb') as stream:
+        # Let the child enter the test body before the watchdog captures it.
         run = subprocess.run([sys.executable, '-m', 'pytest', '-vv',
                               '-p', 'harness_qualification_stacks',
                               '-o', 'faulthandler_timeout=0',
-                              '-o', 'harness_stack_timeout=0.1', str(test)],
+                              '-o', 'harness_stack_timeout=2', str(test)],
                              cwd=tmp_path, stdout=stream, stderr=subprocess.STDOUT, timeout=10,
                              env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                                   'PYTHONPATH': str(SCRIPT.parent),
