@@ -2,10 +2,23 @@
 
 ## Platforms
 
-`.github/workflows/qualification.yml` builds and installs the wheel on GitHub's
-macOS, Ubuntu and Windows runners, using Python 3.10 and 3.12. Each job runs
+`.github/workflows/qualification.yml` builds and installs the wheel on the
+following matrix. Each installed-wheel job runs
 `python -I scripts/qualify_platform.py --output qualification` and uploads the
 platform identity, installed source hashes, test output and JUnit results.
+GitHub documents the [hosted runner labels and images][github-runners].
+
+[github-runners]: https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+
+| Job | Runner | Python | Scope |
+| --- | --- | --- | --- |
+| `installed-library` | `ubuntu-latest`, `macos-latest` | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
+| `installed-library` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
+| `full-suite` | `ubuntu-latest` | 3.10 | Every test from the source tree |
+| `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Every test from the source tree |
+
+These hosted jobs provide Windows Server CI evidence. T8 also requires
+separate Windows 11 standard-user installed-wheel validation.
 
 The jobs exercise timeout, cancellation, bounded output, descendant termination,
 lost acknowledgements, crash-released locks and explicit recovery. Windows uses
@@ -16,11 +29,9 @@ Windows implementation. Retain both versions' evidence when comparing support.
 Model providers are not called by CI. These tests qualify the runner/platform and
 adapter fixtures; native model behavior requires the separate frozen campaign.
 
-Each platform job runs the test files selected in `scripts/qualify_platform.py`
-against the installed wheel. One more job, on Ubuntu with Python 3.10, runs every
-test from the source tree with plain `pytest`, so a test outside that selection
-cannot break unnoticed. It qualifies no platform. The required `Qualification`
-check passes only when the platform jobs and that job pass.
+The full-suite matrix runs plain `pytest` to catch tests outside the
+installed-wheel selection. The required `Qualification` check passes only when
+the installed-wheel jobs, full-suite jobs and documentation link check pass.
 
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and
@@ -50,17 +61,18 @@ declared paths separately.
 
 The signed Python plugin qualification on unreleased main covers signatures,
 revocation, effective grants, cooperating import closure, bounded subprocesses
-and host-owned journals in the six installed-wheel macOS, Ubuntu and Windows
-Python 3.10/3.12 jobs. The Voyage live comparison used one fixed public-corpus
+and host-owned journals in the installed-wheel matrix above. The Voyage live
+comparison used one fixed public-corpus
 query and eight stages total across two paths (four matching request/result
 pairs), with identical normalized SDK and signed
 plugin requests/results and five ranked sources. CI replays normalized recorded
-responses and a synthetic interruption offline on all six jobs. These receipts
+responses and a synthetic interruption offline across the installed-wheel
+matrix. These receipts
 do not qualify arbitrary plugins, hostile same-user code as an OS sandbox,
 general ranking quality, raw HTTP capture or live provider calls on each OS.
 See [the recorded fixture](../tests/fixtures/voyage-live-recorded/README.md),
 [reviewed PR #161](https://github.com/Smart-AI-Memory/attune-harness/pull/161)
-and [six-platform installed-wheel run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36340878620).
+and [historical six-platform installed-wheel run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36340878620).
 
 The [September 16 fix receipt](sol-review-fix-receipt.md) distinguishes local
 source regression results from historical installed-host evidence.

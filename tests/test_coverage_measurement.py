@@ -305,8 +305,29 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
     workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['installed-library']
     # The hosted budget includes setup/evidence time outside the child budget.
-    # Windows must have headroom for 30 minutes without changing POSIX's 20.
-    assert job['timeout-minutes'] == "${{ matrix.os == 'windows-latest' && 35 || 20 }}"
+    # Both Windows Server versions must have 30 minutes of child headroom;
+    # POSIX remains at 20 minutes.
+    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 35 || 20 }}"
+    assert set(job['strategy']['matrix']['os']) == {
+        'ubuntu-latest', 'macos-latest', 'windows-2022', 'windows-2025'}
+    assert job['strategy']['matrix']['python'] == ['3.10', '3.12']
+
+
+def test_full_suite_covers_both_windows_servers_and_python_versions():
+    import yaml
+
+    workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
+    job = yaml.safe_load(workflow.read_text())['jobs']['full-suite']
+    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 55 || 15 }}"
+    windows_rows = {
+        (row['os'], row['python'])
+        for row in job['strategy']['matrix']['include']
+        if row['os'].startswith('windows-')
+    }
+    assert windows_rows == {
+        ('windows-2022', '3.10'), ('windows-2022', '3.12'),
+        ('windows-2025', '3.10'), ('windows-2025', '3.12'),
+    }
 
 
 def test_coverage_job_budget_keeps_measurement_headroom():
@@ -552,7 +573,7 @@ def test_teardown(bad_teardown): pass
 @pytest.mark.parametrize('fails', [False, True])
 def test_python_watchdog_handles_frame_churn_and_preserves_test_verdict(tmp_path, fails):
     test = tmp_path / 'test_churn.py'
-    test.write_text('''import faulthandler, threading, time, types
+    test.write_text('''import faulthandler, os, threading, time, types
 from pathlib import Path
 def template(): return 1
 def test_churn(capsys):
@@ -567,7 +588,13 @@ def test_churn(capsys):
             types.FunctionType(template.__code__.replace(), {})()
     worker = threading.Thread(target=churn)
     worker.start()
-    try: time.sleep(0.3)
+    stack_log = Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'slow-stacks.txt'
+    deadline = time.monotonic() + 3.0
+    try:
+        while 'End slow-test Python stacks' not in stack_log.read_text():
+            if time.monotonic() >= deadline:
+                raise AssertionError('slow-stack watchdog did not finish its retained dump')
+            time.sleep(0.01)
     finally:
         stop.set()
         worker.join()

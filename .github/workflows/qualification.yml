@@ -31,11 +31,12 @@ jobs:
   # what the tests exercise, so the platform jobs below are skipped for it.
   #
   # Branch protection requires the single `Qualification` check at the bottom of
-  # this file, never the six platform names. Keep it that way. GitHub evaluates a
-  # job's `if` before it expands the matrix, so a skipped matrix job reports one
-  # check under the unexpanded name; if the six names were required, they would
-  # never arrive and no documentation pull request could merge. For the same
-  # reason this workflow has no `paths` filter: `Qualification` must always report.
+  # this file, never individual matrix job names. Keep it that way. GitHub
+  # evaluates a job's `if` before it expands the matrix, so a skipped matrix job
+  # reports one check under the unexpanded name; if individual names were
+  # required, they would never arrive and no documentation pull request could
+  # merge. For the same reason this workflow has no `paths` filter:
+  # `Qualification` must always report.
   #
   # Only pull requests skip. Pushes and dispatches always qualify in full, so
   # every commit on main has a real run. The release gate reads only those.
@@ -114,11 +115,11 @@ jobs:
     # answer empty, which means qualify.
     if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 20 }}
+    timeout-minutes: ${{ startsWith(matrix.os, 'windows-') && 35 || 20 }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-2022, windows-2025]
         python: ['3.10', '3.12']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -170,16 +171,20 @@ jobs:
     needs: changes
     if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 55 || 15 }}
+    timeout-minutes: ${{ startsWith(matrix.os, 'windows-') && 55 || 15 }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             python: '3.10'
-          - os: windows-latest
+          - os: windows-2022
             python: '3.10'
-          - os: windows-latest
+          - os: windows-2022
+            python: '3.12'
+          - os: windows-2025
+            python: '3.10'
+          - os: windows-2025
             python: '3.12'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -274,7 +279,7 @@ jobs:
             verdict=pass
           fi
           case "$verdict" in
-            pass) message="All six platform jobs, the full test suite and the documentation link check passed. ($state)" ;;
+            pass) message="All installed-wheel jobs, the full test suite and the documentation link check passed. ($state)" ;;
             skipped)
               if [[ "$REASON" == release-branch ]]; then
                 message="Release-branch pull request: every Markdown link resolves; the matrix was not run here because the branch's own push run qualifies this commit and the release gate reads only push and dispatch runs. ($state)"
