@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-### Planned 1.5.0: Windows compatibility (draft)
+## 1.5.0 (unreleased validation candidate)
 
-Unreleased preparation for the full Windows parity target; the runtime remains
-`1.4.0`. Merged captured-test, file-memory reader, offline native-memory, and
+Local validation candidate for the full Windows parity target; candidate metadata
+is `1.5.0`. Publication and final source acceptance remain pending. Merged captured-test, file-memory reader, offline native-memory, and
 saved-store implementation checkpoints do not establish complete Windows
 qualification. Current finite saved-store witnesses pass, while the historical
 eight-writer busy failure and full T5 acceptance remain open. Process completion,
