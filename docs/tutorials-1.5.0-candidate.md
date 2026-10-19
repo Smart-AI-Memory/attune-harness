@@ -178,11 +178,14 @@ git -C "$P" add calc.py tests/test_calc.py
 git -C "$P" commit -m "Training fixture"
 ```
 
-Run the three actions. Set `C` to the full `checkpoint_digest` returned by step
-2, for example `C='the-full-returned-digest'`. It changes with your task; do not
-copy a digest from someone else's report. Step 1 returns `created` and writes
-`$T.work.json` beside the task directory. Step 2 returns `draft` with no missing
-questions for this fixture. Step 3 returns `accepted`. Confirm with:
+These commands prepare the fixture only. Return to the
+[workflow table](#specification-workflow-preview-and-acceptance) and run steps
+1–3 once. In step 2, set `C` to the full returned `checkpoint_digest`; it changes
+with your task, so use that task's value.
+
+After that single execution, step 1 returns `created` and writes `$T.work.json`
+beside the task directory. Step 2 returns `draft` with no missing questions for
+this fixture. Step 3 returns `accepted`. Confirm the accepted result with:
 
 ```sh
 attune-harness status "$T"

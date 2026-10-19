@@ -45,7 +45,7 @@ with zero paid provider calls, separate from the four observed procedures and
 from model-quality or Windows qualification.
 
 The current canonical review document is
-`d2f61a0bb841552d92a1febd252d195a83a9c96527b01ec53d846b4be4190e33`.
+`e2bec1b87b108dbc484a4cb336e1038790671134ca0e565fdbc0c1790a7ba2f8`.
 It is an outside-wheel documentation revision after the build-time archive; the
 archive's original canonical identity remains unchanged. Its six command
 fences, numbered actions and complete procedure sections preserve the observed
