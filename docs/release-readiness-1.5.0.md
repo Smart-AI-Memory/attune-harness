@@ -3,9 +3,77 @@
 **DRAFT — UNRELEASED.** Current package and plugin metadata identify an
 unpublished `1.5.0` validation candidate. The historical preparation snapshot
 below is from October 16, 2026; its `1.4.0` artifact identities remain unchanged.
-Full Windows parity and final release acceptance remain pending. This record
-does not establish an accepted final release SHA, a published 1.5.0 distribution,
+Full Windows parity is deferred, and final release acceptance remains pending.
+This record does not establish an accepted final release SHA, a published 1.5.0 distribution,
 a publication date, or release approval.
+
+## Current candidate and release scope
+
+Patrick approved preparing verified 1.5.0 changes while deferring the full
+Windows parity claim. This changes the release claim, not the strict Windows
+acceptance criteria or publication authority.
+
+The documentation proposal uses integrated runtime baseline
+`18e9f2894e0c0e6ac0d18dda2c65615648f1dcc7`, tree
+`ab897c080d41e2d7c03409a42d58af3c537b7657`.
+[Qualification run 39148684067](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39148684067)
+passed all 16 jobs, including eight installed-wheel platform/runtime cells and
+four Windows Server full-source-suite cells. This is hosted CI evidence for
+that commit and the artifacts it built. It does not qualify Windows 11,
+PowerShell procedures, live native memory, full storage acceptance, strict
+arbitrary-descendant stop behavior, or this later metadata-changed artifact.
+
+The selected local review wheel is
+`17823fbd7037ce26e9de6108a8db9680956ee2b7a20224bc490173ccb5e0bd6d`.
+Its original build-time source archive is
+`b0d9d2ca6e88ae10e3ec63ead65eabe0b3577b2aba9d2e8f0ecde914f459e2cb`;
+the source commit was null when it was built. The archive retains all 1,008
+tracked build inputs. The changed README description required distinct wheel
+bytes. Compared with retained wheel `85912054`, only the metadata description,
+build-generator value and wheel `RECORD` differ. All 107 runtime modules,
+metadata headers and dependency requirements, wheel tags and five dependency
+locks match. The new environment has the same 94 dependency distributions;
+5,539 installed package/data files match byte for byte. Generated launchers,
+bytecode and installation-provenance files are excluded from that comparison.
+
+A fresh noneditable installation, installed-module/source identity and
+`pip check` passed on macOS arm64/Python 3.12.2. Local checks passed: 114 focused
+packaging checks; 5,057 full-source tests with 237 skips and seven passing
+subtests; and 2,826 installed-selection tests with 193 skips and two passing subtests. The retained evidence records the commands,
+phase timings, warnings, skips and exact environment. These are software checks
+with zero paid provider calls, separate from the four observed procedures and
+from model-quality or Windows qualification.
+
+The current canonical review document is
+`d2f61a0bb841552d92a1febd252d195a83a9c96527b01ec53d846b4be4190e33`.
+It is an outside-wheel documentation revision after the build-time archive; the
+archive's original canonical identity remains unchanged. Its six command
+fences, numbered actions and complete procedure sections preserve the observed
+walkthrough inputs. All 25 example files and the effective runtime/dependency
+inputs match the retained observations. The final documentation source receives
+an additive source/archive binding; it does not replace the original build
+receipt or make a new walkthrough-execution claim.
+
+The earlier local wheel remains
+`859120544a5040532f06a19eab02996377afc0f73b05f7d0b19829378249b586`.
+Its original source archive is
+`f38205a1bdb15c4890d8e7c08d633a5f1353a369c868d0b78900e8d2614a157e`,
+with a null source commit at build time. The later archive
+`88ee9faa605eb374be4e04ca297d3ac082b070e0bdff8922fa2b7137cd06de36`
+binds all 1,008 earlier integrated-candidate inputs; two outside-wheel release
+documents differ from the original archive. All original identities and failed
+or uncertain outcomes remain retained. Neither local wheel is claimed
+byte-identical to a hosted CI artifact or future published distribution.
+
+Before release, accept the final integrated source and artifact, reconcile any
+subsequent changes, check affected claims and close the final documentation
+completion review. A documentation proposal is not accepted final main.
+Release tags, publication and published PyPI-byte verification remain
+separately gated. Windows 11 candidate reports and later uncommitted runtime
+proposals do not qualify this integrated source without their exact receipts
+and source bindings.
+
+## Historical October 16 preparation snapshot
 
 Documentation target base: `0735cca55480b031050dc8d7e3c2ea72a3cd6dc1`, tree
 `040e2acd576af04542d49dc17c71fc4cf5c3cf84`. Patrick merged the saved-store
@@ -138,18 +206,29 @@ process-completion failure also remains unresolved.
 
 The approved [Windows requirements](specs/windows-parity/design.md) and
 [ordered tasks](specs/windows-parity/tasks.md) govern completion. This table
-records their remaining evidence needs; it does not create a new process.
+records their remaining evidence needs; it does not create a new process. Full
+Windows parity remains open after deferral. Candidate release acceptance still
+requires R7 source/artifact binding and R8 claims and completion review for the
+selected release scope; no Windows criterion is waived.
 
 | Gate | Required evidence before a release claim | Status in this draft |
 | --- | --- | --- |
 | Production storage (T5/R4) | Reviewed delivered source; locking, privacy, namespace publication, complete writes and barriers; concurrency, crash/restart, replay, task, index, and CLI evidence | Current finite witnesses pass; full acceptance and the historical eight-writer busy-failure cause remain open |
 | Owned-process completion and recovery | Current-source evidence for the declared child-completion and recovery contract, retaining the failing cases | Pending; PR #274 remains open |
 | Native-memory acceptance (T7/R5) | Controlled production-transport acceptance, actual outcome and usage, with the existing authority and uncertainty boundaries | Pending; offline SDK evidence is separate, and an unknown prior outcome blocks redispatch |
-| Native server qualification (T8) | Final combined full suite and installed journeys on Windows Server 2022/2025 with Python 3.10/3.12; required cases run rather than hidden by an OS-wide skip | Pending. In the latest [main qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39087566327), Windows 3.12 full source passed; Windows 3.10 timed out at 2,700 seconds (`exit 124`, `timeout_effects_unknown`), and qualification failed. An [earlier run of the same source tree](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39084249044) passed Windows 3.10 within the deadline; that comparison does not identify the later timeout's cause. |
+| Native server qualification (T8) | Final combined source and installed checks on Windows Server 2022/2025 with Python 3.10/3.12 | The four full-source and four installed-wheel Windows cells passed for `18e9f289` in [run 39148684067](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39148684067). This hosted checkpoint does not close the deferred full-parity claim or qualify a later artifact. |
 | Native desktop qualification (T8) | Final installed-wheel journeys on Windows 11 with Python 3.10/3.12 under standard user permissions; OS build, architecture, and fixed local NTFS recorded separately | Pending; server or primitive evidence cannot substitute |
 | Shell and documented journeys (T6/R6) | Real Windows PowerShell and PowerShell 7 commands, literal path quoting, printed continuations, preview/acceptance, completed handoffs, and recovery against the installed candidate | Pending |
 | Compatibility and combined artifact (R7) | Exact final source, wheel and installed modules; dependencies and runtime; historical schema/token/receipt compatibility; required final-head reviews and regression checks | Pending; earlier wheels and component receipts retain their original identities |
 | Claims and completion review (R8) | Reconcile the inventory and public platform guidance with final receipts; close the implementation completion review | Pending; this preparation review does not close full-spec completion |
+
+The earlier server checkpoint remains retained: in
+[run 39087566327](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39087566327),
+Windows 3.12 full source passed, Windows 3.10 timed out at 2,700 seconds
+(`exit 124`, `timeout_effects_unknown`), and qualification failed.
+[Run 39084249044](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39084249044)
+passed Windows 3.10 for the earlier same-tree comparison. Later success does not
+identify that historical timeout's cause.
 
 Do not promote a Windows journey into the README's Qualified column from a
 component pass or a diagnostic result. Final T8 must use the combined source,
@@ -162,6 +241,44 @@ Use the existing [documentation readiness procedure](release-runbook.md#document
 for the release review and coordinate derivatives with their owners. These
 notes and the [draft release notes](release-notes-1.5.0.md) prepare that review;
 they are not a substitute for its walkthroughs.
+
+The later frozen local 1.5.0 checkpoint completes the four scoped walkthroughs
+against wheel `85912054` on macOS arm64/Python 3.12.2: Navigation,
+Specification workflow, Four workflows/research, and Session continuity.
+Its canonical document SHA-256 is
+`b70d24337ce0cf2d39aff7f8ea5ec9401db8497ad72b9fd989dddd540ad6820a`.
+The 41-slide replacement PowerPoint/HTML pairs, existing Help derivatives,
+reuse checks and 249-file review manifest are prepared and inspected locally.
+These materials remain provisional and unpublished. Their original scoped
+results do not establish Windows shell, native PowerPoint, model-quality,
+migration or final published-artifact qualification. Final release-scope
+reconciliation and completion review remain open.
+
+The later limited-release review selects wheel `17823fbd` and canonical
+`d2f61a0b` while retaining those wheel859 procedure observations. Four new
+PowerPoint/HTML pairs preserve all 41 complete notes projections, 26 native
+tables and eight historical image placements. All 24 changed footer surfaces
+were inspected; the other 17 rendered slides match their fresh references.
+The 557 recorded local/static deck targets resolve. Native PowerPoint and a
+live external HTTP crawl remain unverified.
+
+The matching Help overlay retains four topics and nine routes. Its 73 site
+tests, historical/candidate drift checks, lint, types and direct 126-page build
+passed. Lint retains three existing warnings and no errors. Local checks cover
+nine current views, 17 linked responses and 22 pinned source-file/heading
+targets. Eight new captures inspect changed disclosures; unchanged procedures
+reuse their retained captures. Eight reusable claims retain all 20 primary
+propositions. The website overlay remains a local patch; nothing was pushed or
+published. Central read-back verified the source/archive/patch and claim chains.
+
+Scoped artifact and derivative reviews are complete. Final integrated-source
+acceptance and the overall pre-publication completion review remain separate
+requirements. Full Windows parity stays deferred and unqualified.
+
+### Historical four-topic preparation (metadata 1.4.0)
+
+The following table and its wheel identities preserve the earlier preparation
+checkpoint. They do not describe the later 1.5.0 walkthrough artifact.
 
 | Canonical topic/source | Candidate evidence and disposition | Derivatives and owners | Walkthrough result and limits | Older guidance |
 | --- | --- | --- | --- | --- |

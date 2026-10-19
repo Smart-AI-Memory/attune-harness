@@ -1,10 +1,30 @@
-# Four training walkthroughs for the planned Harness 1.5.0
+# Four training walkthroughs for the unpublished Harness 1.5.0 candidate
 
-**PROVISIONAL CANDIDATE.** These procedures were reproduced on macOS against
-a local wheel built from `677a51439cbc76a4a8726280025358e3af175d2e`. Its runtime
-metadata remains `1.4.0`. This is preparation for planned 1.5.0, not a published
-1.5.0 package. The tested wheel SHA-256 is
-`695dc2e8c52a25f641ec752e188ce25ae5c14fac6255881fda90e7a9bb6ddaff`.
+**PROVISIONAL REVIEW CANDIDATE.** The selected installed local 1.5.0 wheel
+has SHA-256
+`17823fbd7037ce26e9de6108a8db9680956ee2b7a20224bc490173ccb5e0bd6d`.
+Its runtime source is byte-identical to main baseline
+`18e9f2894e0c0e6ac0d18dda2c65615648f1dcc7`; the review proposal adds only
+documentation changes. Its source commit was null at build time. Build-time
+source archive
+`b0d9d2ca6e88ae10e3ec63ead65eabe0b3577b2aba9d2e8f0ecde914f459e2cb`
+and exact input hashes retain that proposal.
+
+All 107 installed runtime modules and the resolved dependency versions match
+the retained wheel859 environment. The new wheel changes the README description
+and build-generator metadata; it retains the same package metadata headers,
+dependency requirements and wheel tags. A fresh noneditable installation and
+`pip check` passed. Final source integration, artifact qualification and content review are
+separate requirements.
+
+The four procedure outcomes below were observed on retained wheel
+`859120544a5040532f06a19eab02996377afc0f73b05f7d0b19829378249b586`
+on macOS arm64/Python 3.12.2. Their original uncommitted source/archive
+`f38205a1bdb15c4890d8e7c08d633a5f1353a369c868d0b78900e8d2614a157e`
+and later f9/main bindings remain historical evidence. This review reuses those
+unchanged procedures and records exact runtime/example/dependency equivalence;
+it does not relabel their executions as new observations on a different wheel.
+Full Windows parity is deferred and remains unqualified. Publication stays held.
 
 Practice saving and approving a request, accepting a sample plan, checking local
 evidence, and continuing saved answers. Browser approval records the reviewed
@@ -12,8 +32,8 @@ request. Starting work requires separate authority. Use disposable examples.
 
 The [1.3.0 walkthroughs](tutorials-1.3.0.md) and
 [written 1.4.0 interim guide](tutorials-next-release-candidate.md) retain their
-original version and evidence. This candidate replaces their procedures only
-for this explicitly identified local build. Final release reconciliation remains
+original version and evidence. Use this revision only for the explicitly identified review candidate and
+its stated evidence limits. Final release reconciliation remains
 required before publication.
 
 ## Choose a walkthrough
@@ -28,11 +48,11 @@ required before publication.
 ## Selected runtime and examples
 
 Use the installed interpreter from the selected candidate wheel. Confirm that
-its source modules match the source commit above and use that environment's
+its source modules match the frozen source inputs above and use that environment's
 `attune-harness` executable throughout. Do not treat the version string alone
 as source identity. No published 1.5.0 install command is supplied.
 
-Set `R` to the absolute checkout of the selected source commit. The examples
+Set `R` to the absolute checkout of the pinned source inputs described above. The examples
 come from the repository, not the wheel. Run outside that checkout. Keep
 practice task directories outside their sample projects. Activate the selected
 candidate environment, then set its interpreter for the examples:
@@ -124,6 +144,8 @@ Title: How does a sample plan become accepted?
 
 Prerequisite: the installed candidate described above. P = prepared Git checkout, T = new task outside P, R = candidate source checkout, PY = active Python.
 
+**Before step 1:** Complete [Prepare the planning example](#prepare-the-planning-example), then return to the numbered actions.
+
 | Step | Action |
 | --- | --- |
 | 1 | Run: `attune-harness init --for plan --goal "Repair addition" --project "$P" --scope calc.py --interpreter "$PY" --tests tests/test_calc.py --task-dir "$T"` |
@@ -135,11 +157,13 @@ Expected: JSON shows status “accepted”. calc.py still contains a - b.
 Limit: Acceptance starts no build. The starter reviewer approves without judging.
 <!-- /walkthrough -->
 
+### Prepare the planning example
+
 This uses the existing CLI to preview and accept a sample plan. Use a
 fresh disposable Git checkout, not a working project. Activate the environment
 with the installed candidate described above first. `examples/` comes from a repository checkout, not the
 installed package. Set `R` to an absolute checkout path at the pinned candidate
-source commit. Set `P` and `T` to unused absolute paths, with `T` outside `P`. For
+source inputs. Set `P` and `T` to unused absolute paths, with `T` outside `P`. For
 example, after setting `R`:
 
 ```sh
@@ -176,6 +200,8 @@ Title: What can you check in a local source?
 
 Prerequisite: The installed candidate includes rag and verify. E = a fresh copy of its local-workflow example directory.
 
+**Before step 1:** Complete [Prepare the research example](#prepare-the-research-example), then return to the numbered actions.
+
 | Step | Action |
 | --- | --- |
 | 1 | Run: `attune-harness retrieve "quartz retention policy" --corpus "$E/project" --output "$E/retrieval-report.json"` |
@@ -188,7 +214,9 @@ Expected: Two matching sources. Verification shows “verified”, passed true a
 Limit: `result.semantic_ran` is false. This example establishes link validity, not policy correctness.
 <!-- /walkthrough -->
 
-With the candidate source checkout `R` from the previous section, copy its example into
+### Prepare the research example
+
+Use `R` and the installed environment from [Selected runtime and examples](#selected-runtime-and-examples). Copy the candidate example into
 a new directory outside that checkout. Set `E` to the absolute copy path:
 
 ```sh
@@ -275,33 +303,56 @@ copy or quoting syntax into PowerShell. No new Windows command is claimed here.
 
 ## Verification and release boundary
 
-All four procedures were reproduced against the installed candidate on macOS
-arm64 with Python 3.12.14. All 107 installed Harness modules matched source
-bytes. Navigation ended accepted, retained both literal answers after reload,
-and exposed a read-only accepted request. Continuity retained the exact saved
-goal across same-page reload and a fresh listener, left success blank, and
-remained a draft. Unsaved typing disappeared on reload. Neither created
-planning or build state.
+The retained wheel859 walkthroughs reproduced all four procedures on macOS
+arm64/Python 3.12.2. Their 107 installed modules and 1,008 frozen source inputs
+matched their recorded original bindings. The selected replacement wheel178
+has identical runtime modules, example inputs and dependency versions; its
+changed description/build metadata has a separate exact artifact binding. Navigation ended accepted,
+retained both literal answers after an actual same-page reload, and exposed a
+read-only accepted request. Continuity retained the exact saved goal across
+same-page reload and a fresh listener, left success blank, and remained a draft.
+Unsaved typing disappeared on reload. Neither created planning or build state.
 
 Planning returned `created`, `draft`, then `accepted`, left `calc.py` unchanged,
-and created no build state. Retrieval returned two Markdown sources with
+and created no build state. Retrieval returned two Markdown sources with matching
 hashes. Verification returned `verified`, `passed: true`, one verified link,
 and `result.semantic_ran: false`. It does not judge the sample policy's truth.
 The synthetic examples made no model calls. The starter reviewer approves
 without substantive judgment.
 
-Browser evidence combines isolated headless Chromium 147.0.7727.15 states with
-direct inspection of fresh-listener reopening in the in-app browser. The
-retained test-harness failures and their causes are recorded separately; no
-product success is inferred from a timed-out test. These checks establish the
-listed sample outcomes, not independent user comprehension, exact Tab order,
-assistive-technology support, 400% zoom, real-provider quality or native Windows
-qualification. Broader saved-memory and execution-resume examples retain their
-separate evidence and authority boundaries.
+Browser evidence uses isolated headless Chromium 147.0.7727.15. Each successful
+walkthrough retained one page through its reloads. The first CLI report-reader
+looked at the wrong envelope field after nine successful commands; its original
+output remains retained and the documented `result` fields were checked without
+repeating those commands. Earlier browser-harness connection/tab attempts also
+remain retained separately. They do not establish product failures or completed
+same-page checks. The successful continuous-page run supplies those observations.
 
-Before publication, compare the final candidate source, dependency pins and
-artifact metadata with this baseline, and rerun affected units. After package
-publication, verify the exact GitHub tag/release and live PyPI file hashes
-against the publishing evidence, confirm installed artifact identity, and
-reconcile the version/source labels and links. The current candidate assets
-remain provisional until that verification.
+The retained wheel859 local full source suite and installed qualifier passed separately:
+5,057 full-source passes, 237 skips and seven passing subtests; 2,826 installed
+selection passes, 193 skips and two passing subtests. The qualifier's additional
+R2, Redis-without-server and ten plugin steps passed, with zero model calls.
+Those completed suites were not repeated for this documentation review.
+
+These checks establish the listed sample outcomes. They do not establish
+independent user comprehension, exact Tab order, assistive-technology support,
+400% zoom, real-provider quality or native Windows qualification. Broader saved
+memory, process completion and execution-resume examples retain their separate
+evidence and authority boundaries. Older 1.4.0 screenshots or observations remain
+historical and must be labelled with their original provenance when reused.
+
+Full Windows parity is deferred from the 1.5.0 release claim. The strict
+arbitrary-descendant stop requirement remains unchanged and unqualified.
+Full storage acceptance, live native-memory acceptance, Windows 11
+standard-user desktop journeys, Windows PowerShell and PowerShell 7 journeys
+retain their separate open evidence needs. Hosted Server passes do not close
+those requirements.
+
+Before publication, bind the final selected source, installed wheel, examples,
+dependencies, packaged metadata and these review materials. Recheck affected
+inputs and close the candidate review; preserve unchanged earlier evidence.
+Final source integration and publication approval remain separate gates.
+After Patrick separately approves publication, verify the actual GitHub
+tag/release and live PyPI file hashes against the publishing evidence and
+confirm the installed published bytes. All assets remain provisional until
+their final-source and publication gates.

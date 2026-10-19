@@ -1,14 +1,17 @@
 # Attune Harness 1.5.0 release notes
 
-**DRAFT — UNRELEASED.** Release 1.5.0 remains planned after the full
-[Windows parity specification](specs/windows-parity/README.md) is complete.
-Current package and plugin metadata identify an unpublished `1.5.0` validation
-candidate. Earlier `1.4.0` artifacts retain their recorded identities. These notes
-describe the release target and prepared components; they do not announce Windows
-qualification or a published 1.5.0 package. See the
-[readiness record](release-readiness-1.5.0.md) for the evidence and open gates.
+**DRAFT — UNRELEASED.** The 1.5.0 candidate covers merged changes with the
+bounded evidence below. Full Windows parity is deferred; its strict acceptance
+criteria remain unchanged. Current package and plugin metadata identify an
+unpublished `1.5.0` candidate. Earlier artifacts retain their recorded identities.
+These notes grant no publication approval. See the
+[readiness record](release-readiness-1.5.0.md) for source bindings and open checks.
 
-## Planned Windows changes
+## Merged Windows components
+
+The following entries describe implementation checkpoints. They do not
+establish full Windows parity, Windows 11 desktop qualification, or live
+provider acceptance.
 
 - **Test a captured change.** The merged Windows implementation previews a
   test plan, runs accepted tests in a captured copy, and retains their output
@@ -35,6 +38,12 @@ qualification or a published 1.5.0 package. See the
 The [readiness record](release-readiness-1.5.0.md#component-evidence) links the
 merged component evidence. Component success does not qualify their final
 combination, every Windows configuration, or model quality.
+
+Candidate commit `18e9f2894e0c0e6ac0d18dda2c65615648f1dcc7` passed all
+16 jobs in [Qualification run 39148684067](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39148684067),
+including four Windows Server full-source-suite cells and four Windows
+installed-wheel cells across Server 2022/2025 and Python 3.10/3.12. These
+results cover that source and the artifacts built by that run.
 
 ## Installation and upgrade
 
@@ -79,12 +88,18 @@ and approving a request do not execute work. Read the
 human-observation limits. A Windows port does not establish new browser,
 model-quality, or migration claims.
 
-## Release gates
+## Release checks and deferred parity
 
-Full parity still requires current production storage and process-recovery
-qualification, live native-memory acceptance, Windows 11 desktop journeys under
+Final release preparation still requires the selected source and exact installed
+artifact, applicable regression checks, matching documentation and completion
+review. A README change can change wheel metadata and distribution hashes; the
+previous wheel must retain its original identity. Publication remains held for
+Patrick's separate approval.
+
+The deferred full Windows parity claim still requires current production
+storage and process-recovery qualification, live native-memory acceptance, Windows 11 desktop journeys under
 standard user permissions, Windows Server 2022/2025 with Python 3.10/3.12, and
 combined installed-wheel and documented CLI qualification. The
 [readiness record](release-readiness-1.5.0.md#remaining-release-gates) tracks
-these requirements. The [release runbook](release-runbook.md) governs final
-preparation and separately authorized publication.
+these outstanding requirements separately from the candidate release checks.
+The [release runbook](release-runbook.md) governs final preparation and separately authorized publication.

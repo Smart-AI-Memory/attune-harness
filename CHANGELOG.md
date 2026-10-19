@@ -4,13 +4,15 @@
 
 ## 1.5.0 (unreleased validation candidate)
 
-Local validation candidate for the full Windows parity target; candidate metadata
-is `1.5.0`. Publication and final source acceptance remain pending. Merged captured-test, file-memory reader, offline native-memory, and
-saved-store implementation checkpoints do not establish complete Windows
-qualification. Current finite saved-store witnesses pass, while the historical
-eight-writer busy failure and full T5 acceptance remain open. Process completion,
-live provider acceptance, and final server/desktop installed journeys also remain
-open. See the [draft release notes](docs/release-notes-1.5.0.md) and
+Unreleased candidate for verified merged changes; the full Windows parity claim
+is deferred. Candidate metadata is `1.5.0`; publication and final source/artifact
+acceptance remain pending. Merged captured-test, file-memory reader, offline
+native-memory, and saved-store checkpoints retain their documented limits.
+Full storage acceptance, the historical eight-writer busy-failure cause, strict
+descendant-stop and recovery, live native-memory acceptance, Windows 11
+standard-user desktop journeys, and Windows shell qualification remain open.
+Hosted Server CI results cover only their recorded source and artifacts. See the
+[draft release notes](docs/release-notes-1.5.0.md) and
 [preparation readiness](docs/release-readiness-1.5.0.md).
 
 ## 1.4.0
