@@ -24,28 +24,38 @@ platform limits are listed below.
 
 [Install Attune Harness](#installation) · [User guide](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
 
-## Planned 1.5.0: Windows compatibility
+## 1.5.0 candidate: full Windows parity deferred
 
-Version 1.5.0 is the target for the full Windows parity spec and is unreleased.
-The installation commands and qualification table below describe published 1.4.0.
+Version 1.5.0 is an unpublished candidate for the merged changes described here.
+Full Windows parity is deferred. Its strict descendant-stop requirement remains
+unchanged and has not been established. The installation commands and
+qualification table below still describe published 1.4.0.
 
-The unreleased `main` branch includes these merged Windows components:
+The candidate includes these merged Windows components:
 
 - [Captured test execution](https://github.com/Smart-AI-Memory/attune-harness/pull/271).
 - [Native readers for local memory files](https://github.com/Smart-AI-Memory/attune-harness/pull/272).
 - [Experimental native memory transport with offline SDK evidence](https://github.com/Smart-AI-Memory/attune-harness/pull/269).
 - [Saved memory and task storage implementation checkpoint](https://github.com/Smart-AI-Memory/attune-harness/pull/275).
 
-Current finite native saved-store witnesses pass, with the separate fixed-component
-durability feasibility premise retained. Full saved-store acceptance remains open:
-the historical eight-writer busy failure has no established cause, and later
-passes do not explain it. A process-cleanup failure is also unresolved. Live
-provider acceptance, Windows 11 standard-user desktop validation, actual shell
-journeys, and final combined installed-wheel qualification remain open.
-Follow the [Windows parity spec](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
-and [draft 1.5.0 readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.5.0.md)
-for the source-bound evidence and remaining release requirements. These component
-results do not establish full Windows parity.
+For candidate commit `18e9f2894e0c0e6ac0d18dda2c65615648f1dcc7`,
+[Qualification run 39148684067](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39148684067)
+passed all 16 jobs. This includes installed-wheel checks on macOS, Ubuntu,
+Windows Server 2022 and Windows Server 2025 with Python 3.10 and 3.12, plus
+the four Windows full-source-suite cells. These results cover that source and
+the CI-built artifacts.
+
+Full saved-store acceptance remains open: the historical eight-writer busy
+failure has no established cause. Strict descendant-stop and process recovery,
+live native-memory acceptance, Windows 11 standard-user desktop journeys, and
+Windows PowerShell and PowerShell 7 journeys remain unqualified. Passing hosted
+Server checks does not close these separate requirements.
+
+Read the [1.5.0 readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.5.0.md)
+for the candidate evidence and remaining release checks. The
+[Windows parity specification](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/specs/windows-parity/README.md)
+retains its acceptance criteria. Publication requires a separate decision;
+no full-parity claim is made for this candidate.
 
 ## Plan, build, review, fix, and test
 
@@ -198,6 +208,9 @@ seat preflight and prints the next prepare command. See the
 
 I would rather you find the limits here than in your own checkout. Green software
 tests and model quality are different claims, and this project keeps them apart.
+
+This table preserves the published 1.4.0 scope. The 1.5.0 candidate's hosted CI
+results and deferred Windows claims are described above.
 
 | Area | Qualified | Not qualified |
 | --- | --- | --- |
