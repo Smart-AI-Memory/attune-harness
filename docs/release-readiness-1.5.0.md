@@ -48,11 +48,15 @@ The current canonical review document is
 `e2bec1b87b108dbc484a4cb336e1038790671134ca0e565fdbc0c1790a7ba2f8`.
 It is an outside-wheel documentation revision after the build-time archive; the
 archive's original canonical identity remains unchanged. Its six command
-fences, numbered actions and complete procedure sections preserve the observed
-walkthrough inputs. All 25 example files and the effective runtime/dependency
-inputs match the retained observations. The final documentation source receives
-an additive source/archive binding; it does not replace the original build
-receipt or make a new walkthrough-execution claim.
+fences and eight numbered action lines preserve the observed command inputs.
+The planning preparation prose now returns to the action table for one
+execution. A separate check on installed wheel178 passed one init, draft,
+accept and accepted-status sequence. A repeated-init negative control refused
+with exit 2 and preserved the accepted task/request bytes. Neither check started
+a build or called a model. The other three journeys were not rerun. All 25
+example files and effective runtime/dependency inputs match the retained
+observations. Later source/archive bindings remain additive; they do not
+replace the original build receipt or relabel the four wheel859 observations.
 
 The earlier local wheel remains
 `859120544a5040532f06a19eab02996377afc0f73b05f7d0b19829378249b586`.
@@ -254,7 +258,7 @@ results do not establish Windows shell, native PowerPoint, model-quality,
 migration or final published-artifact qualification. Final release-scope
 reconciliation and completion review remain open.
 
-The later limited-release review selects wheel `17823fbd` and canonical
+The earlier limited-release snapshot selected wheel `17823fbd` and canonical
 `d2f61a0b` while retaining those wheel859 procedure observations. Four new
 PowerPoint/HTML pairs preserve all 41 complete notes projections, 26 native
 tables and eight historical image placements. All 24 changed footer surfaces
@@ -262,7 +266,7 @@ were inspected; the other 17 rendered slides match their fresh references.
 The 557 recorded local/static deck targets resolve. Native PowerPoint and a
 live external HTTP crawl remain unverified.
 
-The matching Help overlay retains four topics and nine routes. Its 73 site
+Its matching Help overlay retains four topics and nine routes. Its 73 site
 tests, historical/candidate drift checks, lint, types and direct 126-page build
 passed. Lint retains three existing warnings and no errors. Local checks cover
 nine current views, 17 linked responses and 22 pinned source-file/heading
@@ -270,6 +274,19 @@ targets. Eight new captures inspect changed disclosures; unchanged procedures
 reuse their retained captures. Eight reusable claims retain all 20 primary
 propositions. The website overlay remains a local patch; nothing was pushed or
 published. Central read-back verified the source/archive/patch and claim chains.
+
+The current E2 correction preserves all 41 visible slide surfaces and their
+rendered PNG bytes from that snapshot. Complete notes and HTML projections
+include the corrected planning preparation and separate wheel178 witness.
+All four package checks and 659 local/static deck targets passed; ten actual
+Spec notes return links reached the intended workflow table. Its local Help
+overlay passed 74 tests, both drift checks, lint/types and eight conditional
+canonical-publication controls. Six new captures inspect the changed planning
+handoff and source disclosures. Nine routes, 17 linked responses, 22 pinned
+source targets and all eight reuse claims/20 propositions passed. The earlier
+126-page production build covers the d2 snapshot; the E2 correction has local
+dev compilation and browser inspection only. Its final production build and
+public-source disclosure inspection await accepted main.
 
 Scoped artifact and derivative reviews are complete. Final integrated-source
 acceptance and the overall pre-publication completion review remain separate
