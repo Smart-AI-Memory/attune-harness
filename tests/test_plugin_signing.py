@@ -670,7 +670,8 @@ def test_gpg_reads_exactly_the_validated_signature_bytes(signer, monkeypatch, fo
 
 @pytest.mark.parametrize('case', [
     'message-tail', 'second-signature', 'raw-tail', 'leading-message', 'end-before-begin',
-    'duplicate-end', 'missing-end', 'missing-separator', 'invalid-header', 'non-ascii',
+    'duplicate-end', 'damaged-begin', 'damaged-end', 'missing-end', 'missing-separator',
+    'invalid-header', 'non-ascii', 'non-ascii-header',
     'unicode-line-break', 'invalid-base64', 'base64-after-padding', 'bad-crc', 'short-crc',
     'duplicate-crc', 'crc-before-payload', 'near-bound-tail',
 ])
@@ -689,10 +690,13 @@ def test_malformed_or_extra_armour_is_refused_before_gpg(monkeypatch, case):
         'leading-message': message + armour,
         'end-before-begin': end + b'\n' + armour,
         'duplicate-end': armour + end + b'\n',
+        'damaged-begin': armour.replace(begin, begin + b'x'),
+        'damaged-end': armour.replace(end, end + b'x'),
         'missing-end': armour.replace(end, b''),
         'missing-separator': armour.replace(b'\n\n', b'\n'),
         'invalid-header': armour.replace(b'\n\n', b'\nnot a header\n\n'),
         'non-ascii': armour.replace(payload, payload + b'\xff'),
+        'non-ascii-header': armour.replace(b'\n\n', b'\nComment: caf\xc3\xa9\n\n'),
         'unicode-line-break': armour.replace(b'\n\n', b'\xe2\x80\xa8\n\n'),
         'invalid-base64': armour.replace(payload, payload + b'!'),
         'base64-after-padding': armour.replace(payload, payload + b'AAAA'),
