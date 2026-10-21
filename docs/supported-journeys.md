@@ -2,12 +2,13 @@
 
 ## Current map — 1.5.0, reviewed October 21, 2026
 
-Checked against `main` at `462d37be4fa06140c62e5f39f3489a4f8785c112`,
+Checked against `main` at `4b773a6edb488afbe9b66348b7020c1b40dfbb67`,
 the CLI/source owners and existing journey tests. The
 [published 1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
 identifies release source `7caa86ab6d476e9599b08ff75a81bc816e60c382`,
-distribution hashes and published-install evidence. The later main commit
-updates the Claude Code catalog. This map adds no fresh execution receipt.
+distribution hashes and published-install evidence. The runtime source is
+unchanged between that release and the main snapshot checked here. This map
+adds no fresh execution receipt.
 
 The [hosted baseline run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937)
 passed all 16 jobs for `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d`,
@@ -16,6 +17,50 @@ cells across Server 2022/2025 and Python 3.10/3.12. These are bounded software
 checks for that source and its artifacts. Full Windows parity remains deferred;
 see the [Windows checkpoint](specs/windows-parity/tasks.md). The original 1.2.0
 map is retained below as historical evidence.
+
+## Windows capabilities and reliability
+
+Version 1.5.0 includes native Windows implementations for captured tests,
+file-memory reads, saved memory and task storage, and experimental native-memory
+transport. The table describes their available functionality and the limits of
+the retained evidence. Full Windows parity remains deferred.
+
+| Windows capability | What's available | Reliability boundary |
+| --- | --- | --- |
+| Build and repair scoped files | Build accepted files and apply scoped repairs in a dedicated checkout under the declared fixed-local NTFS profile. Hosted checks exercise these native effects. | Strict completion of every owned descendant and process recovery remain open. General process supervision is not an OS security sandbox. See [repair guidance](cli-guide.md#scoped-repair). |
+| Test a captured change | Preview and accept a test plan, run it in a captured copy, and keep output and check evidence. Eligible `test --from-task` handoffs have installed component witnesses. | Preserve accepted input, protected files and single-dispatch recovery. Complete descendant termination before reading captured output or reporting process completion remains a separate requirement. See [captured testing](cli-guide.md#test-this-change). |
+| Read configured memory files | Recall, resolve and refresh raw, personal and curated memory, and serve eligible file pointers through native retained-handle reads. Existing file and query limits are preserved. | Use admitted local NTFS roots; unsupported volumes and unsafe paths are refused. Combined Windows desktop and shell acceptance remains open. See [memory guidance](cli-guide.md#memory). |
+| Save memories and task intent | Save and revise memories and task intent, retaining history, request-ID replay and pending reviews. Redis is an optional rebuildable index. | Full saved-store acceptance remains open, including the unresolved historical eight-writer busy failure. Standard-user durability, concurrency and recovery requirements still apply. See [saved storage](memory-saving.md). |
+| Prepare native-memory proposals | The experimental transport has Windows offline evidence through the supervised helper and pinned SDK. | The `memory-native` extra is separate from base/`all`; live-provider acceptance remains open. Configuration and installation grant no provider-call authority. See [native memory](specs/windows-parity/README.md#native-memory-proposal-transport). |
+
+Windows Server checks cover their recorded source, artifacts and runtime cells.
+Windows 11 standard-user desktop, Windows PowerShell and PowerShell 7 journeys
+still need their own acceptance evidence. An unobserved journey is an evidence
+gap; it does not by itself mean the command is absent.
+
+### Reliability requirements
+
+Reliable operation remains the acceptance standard for each workflow:
+
+- **Complete process shutdown:** confirm every owned descendant has terminated
+  before reading or decoding captured output, or reporting process completion.
+  Preserve the existing shared five-second stop deadline and successful
+  fast-child behavior.
+- **Truthful outcomes and recovery:** preserve the original result and failure
+  information. Uncertain effects must remain explicit; status or resume must not
+  silently repeat a dispatched operation.
+- **Durable saved data:** retain the approved standard-user durability requirement,
+  including its power-loss proof obligation. Process-crash tests alone do not
+  establish power-loss durability, and an app-crash-only fallback is not approved.
+- **Consistent concurrent writes:** retain committed saves, exact request-ID
+  replay and revision-conflict behavior. Recovery must preserve a valid before
+  or after state without duplicate history.
+
+These are requirements, not a claim that every Windows implementation already
+satisfies them. The [approved design and acceptance criteria](specs/windows-parity/design.md)
+and [retained Windows checkpoint](specs/windows-parity/tasks.md) preserve the
+remaining obligations and original evidence. Describing support by workflow
+does not relax those criteria or remove Windows components already delivered.
 
 ## Install and first run
 

@@ -11,12 +11,11 @@ three defects that serializer-only tests missed.
 [Read the historical 1.3.0 experiment and its limits](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.3.0/docs/plan-build-native-results.md).
 For a small working example, see [how checks and receipts work](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md#checks-and-receipts).
 
-**1.5.0 · verified Windows components; full Windows parity deferred.**
+**1.5.0 · Windows capabilities with explicit reliability requirements.**
 This guide describes the 1.5.0 release scope and its limits. Read the
 [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.0/docs/release-notes-1.5.0.md)
-for installation, evidence and deferred work. Release-tag links become available
-when the release tag is created; package publication requires separate approval.
-The v1 compatibility contract remains in effect.
+for installation, evidence and remaining reliability work. The v1 compatibility
+contract remains in effect.
 
 The [1.5.0 preparation walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/tutorials-1.5.0-candidate.md)
 retain their tested wheel identities, POSIX examples and observed limits.
@@ -28,6 +27,13 @@ them.
 [Install Attune Harness](#installation) · [User guide (1.4.0 baseline)](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
 
 ## 1.5.0 scope: full Windows parity deferred
+
+Windows support is described by workflow. The
+[Windows capabilities and reliability table](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/supported-journeys.md#windows-capabilities-and-reliability)
+shows what is available, the evidence for each component, and the remaining
+reliability requirements. These requirements protect process completion,
+truthful recovery and stored data; they remain unchanged while full parity is
+deferred.
 
 Version 1.5.0 includes these merged Windows components:
 
