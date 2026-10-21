@@ -17,6 +17,7 @@ wrote at its creation; only the verifier-not-running refusals use a stub.
 
 # qualify: platform
 
+import base64
 import copy
 import json
 import os
@@ -630,6 +631,97 @@ def test_only_definite_signature_packets_reach_gpg(signer, monkeypatch):
     outcome = signing.inspect_signature(digest, stored, [signer.entry])
     assert outcome['refusal'] == signing.NOT_A_SIGNATURE and outcome['verifier']['gpg'] is None
     assert time.perf_counter() - started < 1.0
+
+
+@pytest.mark.parametrize('form', ['binary', 'armour', 'crlf', 'headers', 'no-crc', 'outer-space'])
+def test_gpg_reads_exactly_the_validated_signature_bytes(signer, monkeypatch, form):
+    """A real verdict and the subprocess file must use the entire packet guard's buffer."""
+    digest = 'a' * 64
+    armoured = signer.sign(signing.signed_bytes(digest)).replace(b'\r\n', b'\n')
+    payload = armoured.split(b'\n\n', 1)[1].split(b'\n=', 1)[0]
+    binary = base64.b64decode(payload)
+    forms = {
+        'binary': binary,
+        'armour': armoured,
+        'crlf': armoured.replace(b'\n', b'\r\n'),
+        'headers': armoured.replace(b'\n\n', b'\nVersion: Harness test\nComment: byte binding\n\n', 1),
+        'no-crc': b'\n'.join(line for line in armoured.split(b'\n') if not line.startswith(b'=')),
+        'outer-space': b' \t\r\n' + armoured + b'\r\n \t',
+    }
+    guarded, received = [], []
+    real_guard, real_invoke = signing.signature_packets, signing.invoke
+
+    def guard(raw):
+        guarded.append(raw)
+        return real_guard(raw)
+
+    def spy(argv, prompt, **kwargs):
+        if '--verify' in argv:
+            received.append((kwargs['cwd'] / signing.SIGNATURE_NAME).read_bytes())
+        return real_invoke(argv, prompt, **kwargs)
+
+    monkeypatch.setattr(signing, 'signature_packets', guard)
+    monkeypatch.setattr(signing, 'invoke', spy)
+    outcome = signing.inspect_signature(digest, forms[form], [signer.entry])
+    assert outcome['refusal'] is None and outcome['signer'] == signer.fingerprint
+    assert outcome['verifier']['packets'] == 1
+    assert guarded == received == [binary]
+
+
+@pytest.mark.parametrize('case', [
+    'message-tail', 'second-signature', 'raw-tail', 'leading-message', 'end-before-begin',
+    'duplicate-end', 'missing-end', 'missing-separator', 'invalid-header', 'non-ascii',
+    'unicode-line-break', 'invalid-base64', 'base64-after-padding', 'bad-crc', 'short-crc',
+    'duplicate-crc', 'crc-before-payload', 'near-bound-tail',
+])
+def test_malformed_or_extra_armour_is_refused_before_gpg(monkeypatch, case):
+    """New fixtures reproduce #118's seam without expanding a compressed message."""
+    begin, end = b'-----BEGIN PGP SIGNATURE-----', b'-----END PGP SIGNATURE-----'
+    # A structurally valid Signature packet, not a cryptographic claim.
+    binary = b'\xc2\x09' + b'123456789'
+    payload = base64.b64encode(binary)
+    armour = begin + b'\n\n' + payload + b'\n' + end + b'\n'
+    message = b'-----BEGIN PGP MESSAGE-----\n\nyAAD\n-----END PGP MESSAGE-----\n'
+    cases = {
+        'message-tail': armour + message,
+        'second-signature': armour + armour,
+        'raw-tail': armour + binary,
+        'leading-message': message + armour,
+        'end-before-begin': end + b'\n' + armour,
+        'duplicate-end': armour + end + b'\n',
+        'missing-end': armour.replace(end, b''),
+        'missing-separator': armour.replace(b'\n\n', b'\n'),
+        'invalid-header': armour.replace(b'\n\n', b'\nnot a header\n\n'),
+        'non-ascii': armour.replace(payload, payload + b'\xff'),
+        'unicode-line-break': armour.replace(b'\n\n', b'\xe2\x80\xa8\n\n'),
+        'invalid-base64': armour.replace(payload, payload + b'!'),
+        'base64-after-padding': armour.replace(payload, payload + b'AAAA'),
+        'bad-crc': armour.replace(end, b'=AAAA\n' + end),
+        'short-crc': armour.replace(end, b'=AAA\n' + end),
+        'duplicate-crc': armour.replace(end, b'=AAAA\n=AAAA\n' + end),
+        'crc-before-payload': armour.replace(b'\n\n', b'\n\n=AAAA\n'),
+        'near-bound-tail': armour + b'x' * (signing.SIGNATURE_LIMIT - len(armour)),
+    }
+    raw = cases[case]
+    assert len(raw) <= signing.SIGNATURE_LIMIT
+    monkeypatch.setattr(signing, 'find_gpg', lambda: pytest.fail('GPG discovery ran for malformed armor'))
+    monkeypatch.setattr(signing, 'invoke', lambda *a, **k: pytest.fail('GPG ran for malformed armor'))
+    outcome = signing.inspect_signature('a' * 64, raw, [FAKE_ENTRY])
+    assert outcome['refusal'] == signing.NOT_A_SIGNATURE
+    assert outcome['verifier']['gpg'] is None
+    with pytest.raises(FeatureUnavailable, match=re.escape(signing.NOT_A_SIGNATURE)):
+        signing.signature_packets(raw)
+
+
+def test_armour_crc24_known_vector_and_optional_footer():
+    """Check CRC24 against the published vector, independently of GPG's encoder."""
+    assert signing._crc24(b'123456789') == 0x21CF02
+    assert signing._crc24(b'') == 0xB704CE
+    binary = b'\xc2\x09' + b'123456789'
+    encoded = base64.b64encode(binary)
+    armour = b'-----BEGIN PGP SIGNATURE-----\n\n' + encoded + b'\n-----END PGP SIGNATURE-----\n'
+    assert signing.dearmour(armour) == binary
+    assert signing.signature_packets(binary) == 1
 
 
 def test_signature_file_bounds(case, plugin, tmp_path, signers):
