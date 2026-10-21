@@ -8,7 +8,8 @@ directory the host creates for the call with mode 0700 and removes after it,
 with a keyring built from the accepted registry's public key blocks and
 nothing else: the user's own keyring, option files and agent play no part
 (``--no-options`` on every call). Before gpg runs, the file is dearmoured and
-its packet headers walked: only Signature packets of definite length reach
+its packet headers walked: the exact binary bytes walked are written for GPG,
+and extra data outside the armor block is refused. Only Signature packets of definite length reach
 the verifier, so a compressed message inside the size bound cannot cost
 seconds of gpg on every check. The verdict is read from the ``--status-fd``
 lines alone, never from the exit status, which gpg sets to 0 for a signature
@@ -18,6 +19,7 @@ for Windows' among them, and every receipt records the path used and the
 version line (D29.1). No dependency is added.
 """
 
+import base64
 import binascii
 import copy
 import os
@@ -144,23 +146,45 @@ def read_signature(directory: Path) -> bytes:
     return raw
 
 
+def _crc24(data: bytes) -> int:
+    """The optional armor checksum (RFC 9580, section 6.1.1)."""
+    crc = 0xB704CE
+    for octet in data:
+        crc ^= octet << 16
+        for _ in range(8):
+            crc <<= 1
+            if crc & 0x1000000:
+                crc ^= 0x1864CFB
+    return crc
+
+
 def dearmour(raw: bytes) -> bytes:
-    """The packet bytes of ``artifact.sig``: a PGP SIGNATURE armour decoded, or the bytes as they are."""
-    if not raw.lstrip().startswith(SIGNATURE_ARMOUR_BEGIN.encode("ascii")):
+    """Decode one complete signature envelope, or return binary input unchanged."""
+    begin, end = SIGNATURE_ARMOUR_BEGIN.encode("ascii"), SIGNATURE_ARMOUR_END.encode("ascii")
+    if not raw.lstrip().startswith(begin):
         return raw
-    lines = raw.decode("ascii", errors="replace").splitlines()
     try:
-        begin = next(index for index, line in enumerate(lines) if line.strip() == SIGNATURE_ARMOUR_BEGIN)
-        end = next(index for index, line in enumerate(lines) if line.strip() == SIGNATURE_ARMOUR_END)
-    except StopIteration:
-        raise FeatureUnavailable(NOT_A_SIGNATURE) from None
-    body = lines[begin + 1:end]
-    while body and body[0].strip():
-        body.pop(0)  # armour headers end at the first blank line
-    encoded = "".join(line.strip() for line in body if line.strip() and not line.startswith("="))
-    try:
-        return binascii.a2b_base64(encoded)
-    except (binascii.Error, ValueError):
+        raw.decode("ascii")  # no Unicode line separators or replacement characters
+        lines = raw.strip().splitlines()  # bytes split only on CR/LF
+        if lines[0] != begin or lines[-1] != end:
+            raise ValueError("signature envelope")
+        body = [line.strip() for line in lines[1:-1]]
+        separator = body.index(b"")
+        if any(b":" not in line for line in body[:separator]):
+            raise ValueError("armor header")
+        body = [line for line in body[separator + 1:] if line]
+        checksum = None
+        if body and body[-1].startswith(b"="):
+            checksum = base64.b64decode(body.pop()[1:], validate=True)
+            if len(checksum) != 3:
+                raise ValueError("armor checksum length")
+        data = base64.b64decode(b"".join(body), validate=True)
+        # Retain the deployed GPG path's refusal of a bad checksum when present;
+        # normalizing to binary must not silently accept that input instead.
+        if checksum is not None and checksum != _crc24(data).to_bytes(3, "big"):
+            raise ValueError("armor checksum")
+        return data
+    except (UnicodeError, binascii.Error, ValueError):
         raise FeatureUnavailable(NOT_A_SIGNATURE) from None
 
 
@@ -375,6 +399,7 @@ def inspect_signature(artifact_digest: str, signature: bytes, signers) -> dict:
     data = signed_bytes(artifact_digest)
     verifier = {"gpg": None, "version": None, "path_style": None, "status": [], "exit_status": None, "packets": None}
     try:
+        signature = dearmour(signature)
         verifier["packets"] = signature_packets(signature)
         gpg, searched = find_gpg()
     except FeatureUnavailable as refused:

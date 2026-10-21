@@ -1775,6 +1775,25 @@ Unnumbered, 2026-09-24 (4.3 cycle 1, after the review): a mutation that removes 
 
 Unnumbered, 2026-09-24 (second review of #118): the pre-gpg packet walk checks a decoding gpg does not use. `signature_packets` dearmours only the lines between the first `BEGIN PGP SIGNATURE` and the first `END PGP SIGNATURE`, while `inspect_signature` hands gpg the original file, which gpg reads to the end. A good detached signature followed by an armoured compressed message (773 bytes, well inside the 16 KiB bound) passed the walk and cost gpg 0.69 s against 0.03 s before `NODATA` refused it; by inference a message near the bound runs each check into the 10 s `VERIFIER_TIMEOUT`, at enable and before and after every call. #118 merged with this open by Patrick's decision. Candidate follow-up: write `dearmour(signature)` into the private home as a binary `artifact.sig`, so gpg reads exactly the packets the walk validated, and add the 773-byte case to `test_only_definite_signature_packets_reach_gpg`; the cross-review's fail-closed case (an `END` line before the `BEGIN`) goes away with it. Done when a trailing armoured message is refused without gpg running. Effort: small, touches `src/`, so a different-model review. Patrick's call whether it is wanted before the next plugin cycle.
 
+**Follow-through, October 21, 2026 — journey/review:** candidate source `51692f8`
+decodes one complete signature envelope, checks its entire binary packet buffer,
+and writes those exact bytes for GPG. Trailing messages, duplicate blocks and
+malformed armor refuse before GPG discovery; valid binary, LF/CRLF armor,
+headers and optional checksums retain real-GPG verification. New fixtures test
+the same boundary without recreating or relabeling the historical 773-byte
+artifact or its timings. The original byte-binding regression failed before
+the fix; 114 focused checks passed afterward, with three additional header and
+delimiter cases in `cffc999`. Five author mutation controls were caught.
+Independent review requested/configured as GPT-6 Astra approved the immutable
+source with no actionable findings; separately attested runtime identity was
+unavailable. See [the design note](design-plugin-signature-input.md) and
+[review record](review-findings.md). Full-suite, installed-wheel and native
+Windows evidence belong to the candidate PR; local parsing checks do not
+qualify Windows. Historical evidence above remains unchanged. The first user
+benefit is refusal of trailing armor at plugin enable, before GPG starts.
+Next: review the draft and its CI evidence; merge remains Patrick's decision.
+This follow-through authorizes no additional implementation or merge.
+
 Unnumbered, 2026-09-24 (review of #124): whether option values are on the frozen list. The surface guard records verbs, subcommands, positionals with their arity, required options, one-of groups and every option string, but not an option's `choices` or its default; dropping `independent-review` from `--plan` or changing `retrieve --k`'s default passes the guard, caught only where another test happens to use the value. D25.2 names "required arguments" for the CLI and does not say either way. `docs/compatibility.md` states the gap. Candidate follow-up, if Patrick rules them in: record `choices` (and, if wanted, `default`) in `cli_surface.describe`, regenerate the fixture, and say so on the page. Done when the ruling is recorded and the page matches it. Effort: one line and a fixture rewrite; the decision is Patrick's, before `rc1`.
 
 Unnumbered, 2026-09-24 (#116, #125): what the file scratch store's lock orders. After #125 the lock orders compare-and-sets against each other and against the expiry cleanup in `keys()`. `forget` takes no lock, so a forget between a compare-and-set's compare and its replace is not seen on the file store, where Redis's `WATCH` refuses the same case; and a stash without an expected version takes none, so it can overwrite a record a compare-and-set just landed, which is why `version` is documented as exact only when every writer passes an expected version (#116's Left open). Both are stated in the docstrings and the envelopes page. Candidate follow-up: take the lock in `forget` when the lock file exists, and decide whether every file stash takes it (every stash then pays the lock and can be refused as busy after the two-second bound instead of overwriting; `.scratch.lock` appears in every store). Done when Patrick has ruled on each and the code and docs match. Effort: small to medium, touches `src/`.
