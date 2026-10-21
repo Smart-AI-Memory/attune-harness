@@ -2,21 +2,18 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-This text was moved here from the README for the 0.1.0 release so that the package
-page can stay brief. Nothing was dropped. Links were adjusted for this location and
-install commands name the version documented here.
+Updated on October 21, 2026.
 
 ## Installation
 
-This guide describes 1.4.0 and its supported limits. Install it in its own
-environment. The [preparation readiness record](release-readiness-1.4.0.md) retains
-dated checks and source identities; its older preparation statements are
-historical, rather than installation instructions.
+This guide describes the 1.5.0 commands. Install Harness in its own environment.
+Use the [workflow guide](supported-journeys.md) to check capabilities and
+reliability requirements.
 
 Start with a managed base installation:
 
 ```sh
-uv tool install 'attune-harness==1.4.0'
+uv tool install 'attune-harness==1.5.0'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
@@ -184,11 +181,12 @@ refusal's `next_action` names `init`.
 
 ## Plan and build
 
-For a short process that stops at checkpoint-bound plan acceptance, see the
-[1.3.0 training walkthroughs](tutorials-1.3.0.md#specification-workflow-preview-and-acceptance).
+For a guided plan-acceptance example, choose a
+[preparation walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
+and use its stated source and fixtures.
 
-From 1.3.0, two commands take a Git checkout from a named file to an accepted
-plan with a finished build. `init --for plan` writes the work request, with
+The planning and build commands take a Git checkout from a named file to an
+accepted plan with a finished build. `init --for plan` writes the work request, with
 its effects manifest frozen, beside the task directory (`starter-plan.work.json`
 for `--task-dir ~/harness-tasks/starter-plan`), outside the checkout the
 manifest freezes. The example command participants in
@@ -201,7 +199,7 @@ that names it from a checkout of this repository, with a virtual
 environment activated so that `python` is on PATH on every platform
 (`source .venv/bin/activate`, or `.venv\Scripts\activate` on Windows).
 Use your own participants for real work: the participants `init` writes are
-for review and cannot build. On 1.2.0 `init --for` is refused.
+for review and cannot build.
 This journey and the `fix` one below run in CI as printed.
 
 <!-- journey: plan-starter -->
@@ -290,7 +288,7 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
-For browser draft intake and explicit intent approval in the **1.4.0 forms companion**, register a
+For browser draft intake and explicit intent approval in the **forms companion**, register a
 canonical absolute saved feature-work draft directory and enable form actions:
 
 ```bash
@@ -353,7 +351,7 @@ The record contains `type: attune-harness.browser-launch`, `version: 1`,
 The server keeps running after this line. Treat `launch_url` as private access
 data: it includes a fragment token for this listener, not a permanent task link.
 Do not retain it in a shared artifact. A new listener produces a new link.
-`execution_enabled` is false in the 1.4.0 forms companion; structured launch
+`execution_enabled` is false in the forms companion; structured launch
 does not enable browser builds or dispatch.
 
 An assistant can pass the exact link to an available host browser-opening tool.
@@ -365,7 +363,7 @@ integration, not a native MCP conversation-panel registration.
 See [the opening and resume workflow](../.agents/skills/attune-harness/references/browser.md).
 
 Browser build grants, dispatch, resume and broader GUI navigation remain future
-work outside the **1.4.0 forms companion**. `--allow-build-commands` exits 2 before
+work outside the **forms companion**. `--allow-build-commands` exits 2 before
 task/listener/browser effects;
 imported server construction with that option also refuses. `/build/preview`,
 `/build/start`, resume/grant routes and general `/snapshot` navigation are absent
@@ -492,9 +490,11 @@ External command participants require `--allow-external`; native participants al
 require the separate `--allow-native` authorization. Approval alone does not grant
 paid dispatch. A paused command returns 1; a blocked/failed command returns 2.
 Successful intake, approval and completed execution return 0 with distinct statuses.
-The supported build profile is an ordered chain in a dedicated local POSIX checkout,
-with fixed protected checks and one producer per output. Native model effectiveness,
-active integration and release remain separate qualification boundaries.
+Build uses an ordered chain in a dedicated local checkout, with fixed protected
+checks and one producer per output. The
+[workflow guide](supported-journeys.md#windows-capabilities-and-reliability)
+describes Windows NTFS requirements. Native model effectiveness and host
+integration require their own acceptance evidence.
 
 ## Task-oriented evidence review
 
@@ -565,9 +565,10 @@ pytest evidence. `test`/`resume` return 0 for passed tests, 1 for a preview, fai
 or no executed tests, and 2 for interrupted/blocked execution. `status` returns 0
 when inspection succeeds; read its displayed outcome for the test result.
 
-This profile supports local POSIX Git working-tree changes, regular files and
-default pytest Python file discovery. Custom file patterns and collectors,
-committed revision ranges, Git metadata and ignored inputs are not qualified.
+This profile supports local Git working-tree changes, regular files and
+default pytest Python file discovery on POSIX and Windows. Custom file patterns
+and collectors, committed revision ranges, Git metadata and ignored inputs are
+not qualified.
 To test a completed Harness repair, use `--from-task` instead of project/scope:
 
 ```sh
@@ -593,11 +594,10 @@ available. See the [implementation results](test-this-change-results.md).
 
 ## Scoped repair
 
-From 1.3.0, `init --for fix` writes the trusted probe, `probe.json`, that
-`fix` needs, and validates it before writing. It does not run the probe. The
-repair starts from a failing test and ends when the probe passes. On 1.2.0
-`init --for` is refused. This journey runs in CI as printed, with the example
-participants in `examples/starter/`.
+`init --for fix` writes the trusted probe, `probe.json`, that `fix` needs,
+and validates it before writing. It does not run the probe. The repair starts
+from a failing test and ends when the probe passes. This journey runs in CI
+as printed, with the example participants in `examples/starter/`.
 
 <!-- journey: fix-starter -->
 ```sh
@@ -612,16 +612,16 @@ attune-harness fix --goal "Repair addition" --project /path/to/repo \
 ```
 
 `fix` replaces explicitly listed existing UTF-8 files in an exclusively owned,
-bounded POSIX checkout with a local `.git` directory. Keep task state outside that
+bounded checkout with a local `.git` directory. Keep task state outside that
 checkout. Creation, deletion, renames, symlinks/hardlinks and linked Git worktrees
-are outside this first profile. The entire checkout is bounded to 2,048 entries
+are outside the repair profile. The POSIX checkout is bounded to 2,048 entries
 and 16 MiB, including protected metadata.
 
-On Windows, `fix` is experimental as of 0.2.0. It requires a fixed local NTFS
-drive-letter volume, limits files to 64 KiB, and refuses reparse points, files
-with more than one hard link and alternate data streams before writing. It passes
-its own native tests and is not qualified beyond them. See the
-[design note](design-windows-effect-backend.md).
+The Windows repair profile requires a fixed local NTFS drive-letter volume,
+limits files to 64 KiB, and refuses reparse points, files with more than one
+hard link and alternate data streams before writing. See the
+[capability table](supported-journeys.md#windows-capabilities-and-reliability)
+for its process-completion and recovery requirements.
 
 The `fix-starter` block above is the copy-and-paste example: `init --for fix`
 writes the trusted probe, and the example participants propose and approve
@@ -683,7 +683,8 @@ capabilities|recall|resolve|refresh` over explicit roots of the `raw`,
 is refused immediately with "Memory reader must be 'native'" (D28); no
 installed attune-ai distribution supplied it. Harness reads the
 [frozen legacy formats](specs/native-memory/formats.md) without importing
-attune-ai. Descriptor reads remain POSIX-only.
+attune-ai. Native reads use POSIX descriptors. On Windows, retained handles
+enforce the [local NTFS profile](supported-journeys.md#windows-capabilities-and-reliability).
 The `redis`, `scratch` and `reader` keys are set aside before the roots
 contract is validated, so one file serves every memory verb. The other two
 sections need only Harness.
@@ -720,9 +721,9 @@ The root uses the same explicit authority config as `memory recall`; a Redis
 `corpus` or `path` does not grant access by itself. The latest `wrong` verdict
 for the stem suppresses the pointer. A missing `.verdicts.jsonl` means no
 recorded verdict; an unreadable, malformed or unsafe log suppresses pointers
-from that root. Sidecar reads share an 8 MiB budget and use the existing POSIX
-descriptor reader. Redis-only configs and Windows still serve eligible curated
-nodes, but cannot serve unchecked file pointers. Lesson and rule pointers
+from that root. Sidecar reads share an 8 MiB budget and use the native reader
+for the selected platform. Redis-only configurations serve eligible curated
+nodes without granting file-pointer access. Lesson and rule pointers
 keep their existing semantics. Pointer `text` bodies are never displayed.
 
 Once the command line has parsed, it never fails: with no digest, because the
@@ -895,15 +896,3 @@ HTML and Markdown use Context, Goal, Desired end state, Current focus, Current
 position and Next action. HTML help buttons expose the same definitions used in
 the visible reference; the full saved goal and definitions remain available
 without JavaScript. Snapshot inspection time and caller-report time are separate.
-
-## Historical preparation introduction (October 12 snapshot)
-
-The following text records the earlier preparation state and does not direct
-the current installation. The
-[original introduction](https://github.com/Smart-AI-Memory/attune-harness/blob/09f79820831ea7cdc3df83a8b2f772fd57ee25c7/docs/cli-guide.md)
-retains its original source and publication boundaries.
-
-**1.4.0 candidate, unpublished.** Final source and installed-wheel qualification
-are pending. The commands below become usable after publication. Use
-[released 1.3.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.3.0)
-for a published installation. See the [candidate readiness record](release-readiness-1.4.0.md).

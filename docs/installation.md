@@ -1,6 +1,8 @@
 # Install Harness and get started
 
-Use this guide for the released `attune-harness` 1.4.0 runtime. Python 3.10 or
+Updated on October 21, 2026.
+
+Use this guide for the released `attune-harness` 1.5.0 runtime. Python 3.10 or
 later is required. Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
@@ -11,7 +13,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is n
 already available. Then install Harness:
 
 ```sh
-uv tool install 'attune-harness==1.4.0'
+uv tool install 'attune-harness==1.5.0'
 ```
 
 uv manages an isolated environment and exposes the `attune-harness` command;
@@ -27,7 +29,7 @@ uv tool list --show-paths
 attune-harness --help
 ```
 
-Expect `attune-harness v1.4.0` in the tool list and the command help with
+Expect `attune-harness v1.5.0` in the tool list and the command help with
 `init`, `plan`, `build`, `review`, `fix`, `test`, `status` and `resume`.
 If the command is not found, follow uv's reported executable-directory guidance
 or its tool guide before continuing.
@@ -39,8 +41,8 @@ Preserve saved task directories and separately retained evidence environments.
 Changing the tool version does not qualify migration of older saved work.
 
 You can also install the base package with
-`pipx install 'attune-harness==1.4.0'`, or use
-`pip install 'attune-harness==1.4.0'` in a dedicated virtual environment.
+`pipx install 'attune-harness==1.5.0'`, or use
+`pip install 'attune-harness==1.5.0'` in a dedicated virtual environment.
 
 ## Select Python for module and fixture examples
 
@@ -66,7 +68,7 @@ $harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
 & $harnessPython -m attune_harness
 ```
 
-Expect version `1.4.0`, then a JSON receipt with status `verified` for the
+Expect version `1.5.0`, then a JSON receipt with status `verified` for the
 deterministic arithmetic example. If the listed environment is at a different
 path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
 Substitute that same interpreter for `python` in module and fixture commands
@@ -81,10 +83,10 @@ Select a profile when installing or deliberately updating your managed tool:
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install 'attune-harness==1.4.0'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install 'attune-harness[redis]==1.4.0'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install 'attune-harness[voyage]==1.4.0'` |
-| Both Redis and Voyage | `uv tool install 'attune-harness[all]==1.4.0'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install 'attune-harness==1.5.0'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install 'attune-harness[redis]==1.5.0'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install 'attune-harness[voyage]==1.5.0'` |
+| Both Redis and Voyage | `uv tool install 'attune-harness[all]==1.5.0'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
@@ -104,29 +106,18 @@ Choose the host you use:
 - **Direct CLI:** Read [checks and receipts](cli-guide.md#checks-and-receipts)
   or use `attune-harness COMMAND --help` for the chosen task.
 
-Practice the [1.4.0 forms walkthrough](tutorials-next-release-candidate.md#save-and-approve-a-clear-work-request).
+Choose a [practice walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
+and read its source, interpreter and fixture requirements before starting.
 Ask the agent or operator running Harness for a fresh practice form and its
 complete private launcher link. Saving answers, approving the request and
 executing work remain separate actions. Keep the launcher running while using
 the form; saved work is stored in its task directory, not in the launcher URL.
 
-## What was checked
+## Verify your installation
 
-On October 12, 2026, the actual published 1.4.0 wheel was installed on macOS
-arm64 with Python 3.10.11 using both a fresh dependency-complete `[all]`
-environment and a separate uv 0.11.28 base tool environment. All 105 runtime
-modules matched the published source. Both environments passed the existing
-29-case offline CLI check and plan/accept/build/review/status journey with
-zero model calls. The base environment correctly reported Redis as absent.
-
-The base installation resolved 48 distributions and `[all]` resolved 93,
-excluding installer packages, on that machine. Counts vary by environment;
-this comparison does not establish equal feature coverage or measured speed.
-
-The release also passed the six installed-platform profiles described in the
-[qualification guide](qualification.md). Those profiles are separate from
-this Mac uv experiment. A fresh uv install on Linux or Windows, an existing-tool
-upgrade, native browser comprehension and saved-work migration were not
-established by the experiment. The published
-[release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.4.0)
-links the exact source, publishing run and archive checksums.
+Compare your selected version and interpreter with the checks above. The
+[1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
+identifies the published source and distribution hashes, CI results and a fresh
+macOS base-install check. The [workflow guide](supported-journeys.md) describes
+capabilities and reliability requirements for the workflow you choose. Keep
+existing saved tasks and evidence environments when updating an installation.
