@@ -29,6 +29,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
 - [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
 - [Parallel rounds and partial outcomes](design-consultation-partial-rounds.md): Concurrent seats, `partial` status and operator-authorized refused-turn retries (#233, design before code)
+- [Plugin signature input](design-plugin-signature-input.md): One complete armor envelope and exact validated binary bytes for GPG; preserves the #118 evidence
 
 - [First-run journey — complete spec](specs/first-run-journey/README.md): A cold 1.0.1 walkthrough, and making every verb work from a fresh install; released in 1.1.0
 - [First-run journey requirements](specs/first-run-journey/design.md): R1–R7 and what each must not change
