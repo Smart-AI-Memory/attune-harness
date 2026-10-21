@@ -26,14 +26,14 @@ them.
 
 [Install Attune Harness](#installation) · [User guide (1.4.0 baseline)](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
 
-## 1.5.0 scope: full Windows parity deferred
+<a id="150-scope-full-windows-parity-deferred"></a>
+
+## Windows capabilities in 1.5.0
 
 Windows support is described by workflow. The
 [Windows capabilities and reliability table](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/supported-journeys.md#windows-capabilities-and-reliability)
-shows what is available, the evidence for each component, and the remaining
-reliability requirements. These requirements protect process completion,
-truthful recovery and stored data; they remain unchanged while full parity is
-deferred.
+shows what is available, the evidence for each component, and the reliability
+requirements that protect process completion, recovery and stored data.
 
 Version 1.5.0 includes these merged Windows components:
 
@@ -50,17 +50,15 @@ the four Windows full-source-suite cells. These results cover that source and
 the CI-built artifacts. The later release documentation changes package metadata;
 final distributions have their own release-workflow evidence and hashes.
 
-Full saved-store acceptance remains open: the historical eight-writer busy
-failure has no established cause. Strict arbitrary-descendant stop and process
-recovery, live native-memory acceptance, Windows 11 standard-user desktop
-journeys, and Windows PowerShell and PowerShell 7 journeys remain unqualified.
-Passing hosted Server checks does not close these separate requirements.
+Use the table to check the process-completion, storage and recovery boundaries
+for your workflow. It also identifies the live-memory and Windows desktop/shell
+journeys that need further acceptance evidence.
 
 The [preparation readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/release-readiness-1.5.0.md)
 retains earlier artifact identities and evidence. The
-[Windows parity specification](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/specs/windows-parity/README.md)
-retains its strict acceptance criteria. Full Windows parity is deferred for
-1.5.0; the specification is not a qualification claim.
+[Windows reliability specification](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/specs/windows-parity/README.md)
+retains the detailed acceptance criteria. Component evidence and reliability
+requirements are recorded separately.
 
 ## Plan, build, review, fix, and test
 

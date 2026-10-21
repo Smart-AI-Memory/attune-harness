@@ -14,16 +14,16 @@ The [hosted baseline run](https://github.com/Smart-AI-Memory/attune-harness/acti
 passed all 16 jobs for `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d`,
 including four Windows Server full-source and four Windows installed-wheel
 cells across Server 2022/2025 and Python 3.10/3.12. These are bounded software
-checks for that source and its artifacts. Full Windows parity remains deferred;
-see the [Windows checkpoint](specs/windows-parity/tasks.md). The original 1.2.0
-map is retained below as historical evidence.
+checks for that source and its artifacts. See the capability table below and
+the [Windows checkpoint](specs/windows-parity/tasks.md) for workflow-specific
+reliability boundaries. The original 1.2.0 map is retained below as historical evidence.
 
 ## Windows capabilities and reliability
 
 Version 1.5.0 includes native Windows implementations for captured tests,
 file-memory reads, saved memory and task storage, and experimental native-memory
-transport. The table describes their available functionality and the limits of
-the retained evidence. Full Windows parity remains deferred.
+transport. The table pairs their available functionality with the reliability
+boundaries of the retained evidence.
 
 | Windows capability | What's available | Reliability boundary |
 | --- | --- | --- |
@@ -56,11 +56,10 @@ Reliable operation remains the acceptance standard for each workflow:
   replay and revision-conflict behavior. Recovery must preserve a valid before
   or after state without duplicate history.
 
-These are requirements, not a claim that every Windows implementation already
-satisfies them. The [approved design and acceptance criteria](specs/windows-parity/design.md)
-and [retained Windows checkpoint](specs/windows-parity/tasks.md) preserve the
-remaining obligations and original evidence. Describing support by workflow
-does not relax those criteria or remove Windows components already delivered.
+Use the [approved design and acceptance criteria](specs/windows-parity/design.md)
+and [retained Windows checkpoint](specs/windows-parity/tasks.md) to review the
+evidence for these guarantees. The requirements remain unchanged; the table
+keeps each remaining reliability boundary beside its available capability.
 
 ## Install and first run
 
@@ -76,7 +75,7 @@ does not relax those criteria or remove Windows components already delivered.
 | Plan, accept and build | `plan --request`, `plan --accept`, then `build`; [plan/build guide](cli-guide.md#plan-and-build). | The [R2 installed journey](journeys/r2-clean-environment.md) supplies the offline owner chain. Review findings and optional function-body boundaries are integrated. Native/model reliability is a separate qualification; accepting intent does not authorize paid calls. |
 | Review evidence and select a repair | `review`; explicit `fix --from-assessment` with selected finding IDs. See the [CLI guide](cli-guide.md#task-oriented-evidence-review). | [The handoff owner](../src/attune_harness/task_handoff.py) binds selected provenance. Model narratives remain unverified proposals. Selecting findings does not authorize a wider repair or automatic execution. |
 | Repair scoped files | `fix --goal --checkout --scope --probe`; [repair guide](cli-guide.md#scoped-repair). | Existing protected probes and effects owners apply. Windows effects have hosted checks, while strict arbitrary-descendant stop/recovery and declared Windows shell/desktop journeys remain open. Use the documented source profile and a dedicated checkout. |
-| Test a captured change | `test --project --scope`; `test --from-task` for eligible completed work. See [testing guidance](cli-guide.md#test-this-change). | Windows captured execution is merged in [#271](https://github.com/Smart-AI-Memory/attune-harness/pull/271), with installed component witnesses. Acceptance, single-dispatch recovery and immutable evidence remain required; component success does not establish full Windows parity. |
+| Test a captured change | `test --project --scope`; `test --from-task` for eligible completed work. See [testing guidance](cli-guide.md#test-this-change). | Windows captured execution is merged in [#271](https://github.com/Smart-AI-Memory/attune-harness/pull/271), with installed component witnesses. Acceptance, single-dispatch recovery and immutable evidence remain required; the process-completion boundary is listed in the table above. |
 | Consult configured seats | `init --for roundtable`, then `roundtable` or `source-review` `check`, `prepare`, `status` and `evidence`. See the [1.4.0 feature guide](release-notes-1.4.0.md#changes-in-140). | Setup/check operations do not dispatch models; explicit execution has its own configuration, authority and budget. Readable evidence and partial-round recovery exist. Unknown effects block blind retries; no general model-quality claim follows. |
 | Import another project's plan | `plan --import-plan PATH --allow-outside-project`; [R4 guide](journeys/r4-legacy-spec-state.md). | Import preserves provenance and grants no execution authority. The existing reader/refusal limits remain; malformed-input behavior is not requalified here. |
 
@@ -114,8 +113,8 @@ does not feed it into automatic recall.
 S3 fresh-session recall/exclusion, S6 a qualifying non-programmer installed
 walkthrough and S9 installed migration-row observations remain open in the
 [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary).
-Bounded maintainer forms observations do not close all three. Full Windows
-parity additionally needs the [unchanged spec criteria](specs/windows-parity/design.md),
+Bounded maintainer forms observations do not close all three. Windows acceptance
+follows the [unchanged reliability criteria](specs/windows-parity/design.md),
 including strict process/recovery, full storage, live native memory, Windows 11
 standard-user desktop and Windows PowerShell/PowerShell 7 journeys. The calendar
 and a published package do not close these gaps.
