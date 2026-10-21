@@ -1,5 +1,7 @@
 # Attune Harness
 
+Updated on October 21, 2026.
+
 **Run agent tasks, check the results independently, and keep the evidence.**
 
 Attune Harness checks work from AI agents, commands, or your own code against
@@ -17,14 +19,11 @@ This guide describes the 1.5.0 release scope and its limits. Read the
 for installation, evidence and remaining reliability work. The v1 compatibility
 contract remains in effect.
 
-The [1.5.0 preparation walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/tutorials-1.5.0-candidate.md)
-retain their tested wheel identities, POSIX examples and observed limits.
-Their source and interpreter requirements still apply. The 1.3.0 tutorials and
-1.4.0 interim guide remain versioned historical references. Replacement decks
-and Help materials are prepared separately; package publication does not deploy
-them.
+The [walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/tutorials-1.5.0-candidate.md)
+include tested POSIX examples and record their wheel, source and interpreter
+requirements.
 
-[Install Attune Harness](#installation) · [User guide (1.4.0 baseline)](https://github.com/Smart-AI-Memory/attune-harness/blob/69f645bd4f471926554d1919c92b8cad2b06274d/docs/cli-guide.md)
+[Install Attune Harness](#installation) · [User guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/supported-journeys.md)
 
 <a id="150-scope-full-windows-parity-deferred"></a>
 
