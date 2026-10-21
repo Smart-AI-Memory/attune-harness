@@ -68,6 +68,7 @@ def gpg_or_fail():
 
 
 STYLE = {}
+SIGNER_SETUP_TIMEOUT = 120
 
 
 def gpg_style():
@@ -75,7 +76,17 @@ def gpg_style():
     if 'style' not in STYLE:
         home = Path(tempfile.mkdtemp(prefix='hs-probe-'))
         try:
-            STYLE.update(signing.probe_gpg(gpg_or_fail(), home))
+            # Fixture discovery shares the key-generation budget: coverage can
+            # delay cold process setup on Windows. Actual verification still
+            # probes GPG independently under its own ten-second deadline.
+            result = invoke((gpg_or_fail(), '--batch', '--no-tty', '--no-options', '--version'), '',
+                            cwd=home, timeout=SIGNER_SETUP_TIMEOUT, max_output_bytes=signing.VERIFIER_OUTPUT,
+                            environment=signing._environment())
+            assert result.failure is None and result.returncode == 0, result
+            lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+            assert lines and lines[0].startswith('gpg'), result
+            default_home = next((line[len('Home:'):].strip() for line in lines if line.startswith('Home:')), '')
+            STYLE.update(version=lines[0], path_style='posix' if default_home.startswith('/') else 'native')
         finally:
             shutil.rmtree(home, ignore_errors=True)
         STYLE['style'] = STYLE['path_style']
@@ -94,7 +105,7 @@ def run_gpg(home, *args):
     start its agent from it (D29.1's first two findings).
     """
     result = invoke((gpg_or_fail(), '--batch', '--no-tty', '--homedir', spelled(home), *args), '',
-                    cwd=home, timeout=120, max_output_bytes=1_048_576)
+                    cwd=home, timeout=SIGNER_SETUP_TIMEOUT, max_output_bytes=1_048_576)
     assert result.failure in (None, 'nonzero_exit') and result.returncode == 0, (args, result)
     return result
 
@@ -514,6 +525,58 @@ def test_grant_names_only_what_the_manifest_declares(case, bundle, tmp_path, sig
     state = ext.mutate(w.directory, state['state_digest'], 'disable')
     del w.section['evidence']['grant']
     assert w.enable(state)['plugin']['grant'] == {}  # nothing granted is a valid grant
+
+
+@pytest.mark.parametrize('home,style', [('/c/Users/fixture/gnupg', 'posix'), ('C:/fixture/gnupg', 'native')])
+def test_signer_setup_probe_has_own_budget(monkeypatch, tmp_path, home, style):
+    """Slow instrumented fixture setup must not relax the production verifier deadline."""
+    monkeypatch.setitem(globals(), 'STYLE', {})
+    monkeypatch.setattr(signing, 'PROBED', {})
+    monkeypatch.setenv('GNUPGHOME', str(tmp_path / 'never-open-this-keyring'))
+    monkeypatch.setitem(globals(), 'GPG', 'fixture-gpg')
+    calls = []
+
+    def slow_probe(argv, prompt, **kwargs):
+        calls.append((argv, kwargs))
+        assert argv == ('fixture-gpg', '--batch', '--no-tty', '--no-options', '--version')
+        assert prompt == '' and kwargs['cwd'].is_dir()
+        assert kwargs['max_output_bytes'] == signing.VERIFIER_OUTPUT
+        assert 'GNUPGHOME' not in kwargs['environment'] and kwargs['environment']['LC_ALL'] == 'C'
+        if kwargs['timeout'] <= 10:
+            return ProcessResult(argv, None, '', '', 'timeout_effects_unknown')
+        return ProcessResult(argv, 0, f'gpg (GnuPG) fixture\nHome: {home}\n', '')
+
+    monkeypatch.setitem(globals(), 'invoke', slow_probe)
+    monkeypatch.setattr(signing, 'invoke', slow_probe)
+    assert gpg_style() == gpg_style() == style
+    assert len(calls) == 1 and calls[0][1]['timeout'] == 120
+    assert not calls[0][1]['cwd'].exists()
+    assert signing.PROBED == {}  # fixture setup does not pre-populate the actual verifier's cache
+    assert signing.VERIFIER_TIMEOUT == 10
+    with pytest.raises(FeatureUnavailable, match='timeout_effects_unknown'):
+        signing.probe_gpg('fixture-gpg', tmp_path)
+    assert len(calls) == 2 and calls[1][1]['timeout'] == 10
+    assert not (tmp_path / 'never-open-this-keyring').exists()
+
+
+@pytest.mark.parametrize('failure,stdout,returncode', [
+    ('timeout_effects_unknown', '', None), (None, 'not a GPG version', 0), ('nonzero_exit', '', 2),
+])
+def test_signer_setup_probe_refuses_failure_without_caching(monkeypatch, failure, stdout, returncode):
+    monkeypatch.setitem(globals(), 'STYLE', {})
+    monkeypatch.setattr(signing, 'PROBED', {})
+    homes = []
+
+    def failed_probe(argv, prompt, **kwargs):
+        homes.append(kwargs['cwd'])
+        return ProcessResult(argv, returncode, stdout, '', failure)
+
+    monkeypatch.setitem(globals(), 'invoke', failed_probe)
+    monkeypatch.setattr(signing, 'invoke', failed_probe)
+    with pytest.raises(AssertionError):
+        gpg_style()
+    assert STYLE == signing.PROBED == {}
+    assert len(homes) == 1 and not homes[0].exists()
 
 
 def test_gpg_absent_from_path_is_a_named_refusal(case, plugin, tmp_path, signers, monkeypatch):

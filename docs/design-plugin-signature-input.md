@@ -55,3 +55,21 @@ Exercise near-bound input and mutations that restore the original write or
 remove the envelope guard. Run focused tests, the full suite and installed-wheel
 qualification, then obtain an independent review of the immutable change.
 Native Windows remains a CI check; local POSIX results do not qualify it.
+
+## CI fixture follow-through
+
+October 21, 2026: current-head Windows supplemental coverage retained one
+failure in the golden-envelope test's scratch signer setup. Its first
+`gpg --version` probe used the production verifier's 10-second deadline and
+timed out before key generation. The instrumented run completed with 2,880
+passes and one failure; all 117 signing cases and ordinary Windows qualification
+passed. This was not a suite deadline or packet-validation failure.
+
+Probe the fixture's GPG path style independently under its existing 120-second
+key-generation budget, with a bounded output, private scratch directory,
+`--no-options` and the verifier's minimal environment. Cache only the fixture's
+metadata. Keep actual verification and its version probe at 10 seconds; do not
+change source, workflow deadlines, golden outputs or assertions to clear this
+failure. A deterministic regression must simulate setup needing more than
+10 seconds and still prove production refuses that same delayed probe. Preserve
+the failed run and artifact; a fresh Windows run must confirm the repair.
