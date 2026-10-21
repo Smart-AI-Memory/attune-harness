@@ -22,6 +22,24 @@ between saving answers, accepting intent and authorizing execution. Refer to
 named sections rather than screen position. Apply the standard to helper,
 status, error, and approval text as well as tutorials.
 
+## Command references
+
+Use bold and code formatting together when naming a verb command in prose, for
+example **`plan`**, **`build`**, **`review`**, **`fix`**, **`test`**, **`status`** or
+**`resume`**. For example: Use **`plan`** to develop the work contract, then
+**`build`** to execute accepted work.
+
+Keep runnable command lines, flags, arguments and output in code formatting.
+Do not add bold markup inside executable examples or code blocks:
+
+```sh
+attune-harness plan --help
+```
+
+This command-name convention does not apply to ordinary action verbs in UI
+instructions. Continue to write **Next:** Click **Continue form**, with Click in
+normal text and the named control in bold.
+
 ## Entered text
 
 Preserve users' wording and capitalization. Do not silently rewrite answers to

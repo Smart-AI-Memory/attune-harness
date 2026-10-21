@@ -48,7 +48,8 @@ Generated on September 22, 2026 from the 191 Markdown files under
 
 - [Release and delivery checkpoints](project-plan.md): Current 1.5.0 release and acceptance gaps, with the historical stabilization plan and gate evidence retained
 
-- [Supported journeys and their limits](supported-journeys.md): Current 1.5.0 entry points, evidence and remaining limits; historical 1.2.0 map retained
+- [Choose a Harness workflow](supported-journeys.md): Find a task, open its procedure and check requirements that affect your choices
+- [Windows reliability reference](windows-reliability.md): Exact reliability requirements and technical evidence
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
 - [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
