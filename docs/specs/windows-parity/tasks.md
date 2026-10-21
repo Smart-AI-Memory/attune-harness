@@ -1,5 +1,42 @@
 # Windows parity tasks
 
+## Current checkpoint — October 21, 2026
+
+Checked against main `462d37be4fa06140c62e5f39f3489a4f8785c112` and the
+[published 1.5.0 scope](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
+The package includes merged Windows components; full Windows parity remains
+deferred. The [requirements](design.md), original task acceptance conditions and
+authority boundaries remain unchanged. A merged checkpoint is not a completed
+T1–T8 acceptance claim.
+
+| Task | Delivered checkpoint | Remaining acceptance |
+| --- | --- | --- |
+| T1 | [#281](https://github.com/Smart-AI-Memory/attune-harness/pull/281) retains complete source-suite results; [#283](https://github.com/Smart-AI-Memory/attune-harness/pull/283) adds the Server 2022/2025 matrix. | Keep original failures, refusals and skips visible. Final R1 coverage belongs to the final combined artifact. |
+| T2 | [#268](https://github.com/Smart-AI-Memory/attune-harness/pull/268) supplies the accepted finite standard-user storage feasibility checkpoint, with assumptions retained in the [readiness record](../../release-readiness-1.5.0.md#component-evidence). | Primitive feasibility does not certify the later production store, desktop profile or power-loss behavior. |
+| T3 | [#271](https://github.com/Smart-AI-Memory/attune-harness/pull/271) merges native captured-change test execution and component witnesses. | Combined installed, shell and recovery requirements still apply. |
+| T4 | [#270](https://github.com/Smart-AI-Memory/attune-harness/pull/270) and [#272](https://github.com/Smart-AI-Memory/attune-harness/pull/272) merge retained-handle readers and serving, preserving the declared capacity/path/identity profile. | Retain component bounds; final desktop and combined-journey acceptance remain separate. |
+| T5 | [#275](https://github.com/Smart-AI-Memory/attune-harness/pull/275) merges the saved-store implementation checkpoint; [#278](https://github.com/Smart-AI-Memory/attune-harness/pull/278) retains contention observations. | Full saved-store acceptance and the historical eight-writer busy-failure cause remain open. Passing observed schedules do not explain the earlier failure. |
+| T6 | Existing effects, starter and hosted command journeys supply bounded software evidence. | Actual Windows PowerShell/PowerShell 7 and Windows 11 standard-user documented journeys remain open, together with strict stop/recovery. |
+| T7 | [#269](https://github.com/Smart-AI-Memory/attune-harness/pull/269) merges Windows transport with offline supervised-helper and pinned-SDK evidence. | Live native-memory acceptance remains open; offline evidence is not a provider-quality result or permission to redispatch an uncertain operation. |
+| T8 | [Baseline run 39205220937](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937) passes the four Windows Server source-suite and four installed-wheel cells at `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d`. The release record identifies later final distribution evidence separately. | Full combined parity still requires the unchanged R1–R8 conditions, including desktop, declared shells, storage, process recovery and live acceptance. |
+
+The existing process-completion work remains in draft
+[#274](https://github.com/Smart-AI-Memory/attune-harness/pull/274) and
+[#279](https://github.com/Smart-AI-Memory/attune-harness/pull/279). Their retained
+failed runs and later diagnostics are distinct observations; this status update
+does not establish a production fix. Continue through the existing work owners.
+
+Completion review is complete for this documentation checkpoint. Full-spec
+implementation review and acceptance remain pending. No task criterion, paid-call
+budget, merge gate or release authority changes here.
+
+## Historical implementation plan and planning review
+
+The original planning snapshot follows unchanged. References to active work or
+the absence of implementation describe that snapshot; the checkpoint above
+records subsequent delivery. Its task scopes, gates and done conditions still
+govern acceptance.
+
 **Status: approved for staged implementation.** [Scope](README.md) and
 [requirements](design.md) govern each task. Estimates are scope estimates, not
 measured durations. T1 is active; T2 feasibility work is active in an isolated

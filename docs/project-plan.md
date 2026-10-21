@@ -1,5 +1,60 @@
 # Stabilization, release readiness and phased GUI delivery
 
+## Current checkpoint — October 21, 2026
+
+Reconciled against main `462d37be4fa06140c62e5f39f3489a4f8785c112`.
+[Version 1.5.0 was published October 19](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
+from `7caa86ab6d476e9599b08ff75a81bc816e60c382`. The subsequent main commit
+points the Claude Code marketplace at that release. The earlier 1.3.0 hold,
+October 6–12 schedule and 1.2.0 evidence index below are retained historical
+planning records; they no longer describe the current release state.
+
+Use the [current journey map](supported-journeys.md) for delivered entry points
+and limits, and the [opportunity register](opportunity-log.md#current-register)
+for scoped next steps. The approved Windows parity specification remains the
+implementation priority. This update neither starts a new feature chain nor
+changes its requirements or authorization.
+
+## Delivery phases
+
+| Existing work | Current checkpoint | Remaining evidence or decision |
+| --- | --- | --- |
+| Release delivery | 1.3.0, 1.4.0 and 1.5.0 have versioned release records. The [1.5.0 record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0) identifies source, distribution hashes and published-install checks. | Each future release still follows the runbook. This documentation review does not repeat publication or install verification. |
+| Windows parity | Testing, file readers, offline native-memory transport and a saved-store implementation checkpoint are merged. See the [current task checkpoint](specs/windows-parity/tasks.md). | Strict stop/recovery, full storage acceptance, live native-memory acceptance, Windows 11 desktop and declared Windows-shell journeys remain open. Hosted component/software success does not close full parity. |
+| User observations | S3/S6/S9 remain open in the [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary); bounded maintainer forms observations retain their own scope. | Collect fresh-session recall/exclusion, a qualifying non-programmer installed walkthrough and installed migration-row observations, or record an explicit disposition. Software checks cannot supply them. |
+| Graphical companion | The released [1.4.0 forms behavior](release-notes-1.4.0.md) continues within 1.5.0. Saving answers and approving a request grant no execution; browser build controls remain unavailable in the released profile. | Preserve the [GUI specification](specs/graphical-companion/README.md) and M2/M3/M4 acceptance gates. Earlier development prototypes do not establish production readiness or a new broadening decision. |
+| Opportunity maintenance | Review handoffs (D/O-28) and function-body controls (E/O-34/O-35) exist in source. | Maintain the current register; verify any remaining evidence gap before selecting work. C remains a prerequisite for another paid trial, not a new allocation. |
+
+The smallest current follow-through is the register/journey reconciliation;
+the most urgent product unit remains the existing Windows investigation.
+Neither this checkpoint nor the historical phase dates dispatches workers,
+authorizes paid calls, changes settings, or grants merge/publication authority.
+
+## Where each gate's evidence is
+
+The [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
+links the production publish run, source and distribution hashes, and reports
+its bounded fresh-install checks. The
+[hosted baseline qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937)
+passed 16 jobs for `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d`, including
+four Windows Server source-suite and four Windows installed-wheel cells across
+Server 2022/2025 and Python 3.10/3.12. These identities are separate from a later
+documentation head or wheel. This review read the release metadata and hosted
+job conclusions; it did not independently download/replay their artifacts.
+
+S3/S6/S9 remain observations owed, while the
+[Windows task checkpoint](specs/windows-parity/tasks.md) names the deferred
+native requirements. The [historical gate index](#historical-gate-evidence-for-120)
+retains the original S1–S9 evidence, kind labels and 1.2.0 hashes. Consult each
+receipt at its stated source; do not transfer an earlier pass to a later artifact.
+
+## Historical stabilization plan — October 2026
+
+The following plan retains its original wording, decisions and measurements.
+Its present-tense status and relative dates describe the earlier planning
+checkpoint. The current sections above supersede its scheduling and release
+status claims without rewriting that evidence.
+
 **Approved release boundary (October 6):** 1.3.0 includes browser draft intake,
 preview and explicit intent approval, alongside CLI/agent forms. The local server
 exposes only registered-task form navigation and the existing decision owners.
@@ -50,7 +105,7 @@ tag. The [runbook](release-runbook.md) now calls for reopening development
 with a `.dev0` version after 1.3.0. Source availability, publication and
 observed user acceptance are separate states.
 
-## Delivery phases
+## Historical delivery phases
 
 PR #199 remains held for the October 6–11 release window; October 12 is a review point,
 not an automatic release or end to compatibility obligations. Patrick subsequently
@@ -137,7 +192,7 @@ the existing plan/progress evidence and complete the proportional opportunity re
 Autonomous work covers in-scope inspection, implementation, tests and draft PRs;
 merges, releases, additional spend and settings retain their existing gates.
 
-## Where each gate's evidence is
+## Historical gate evidence for 1.2.0
 
 Added September 29, 2026 for the released **1.2.0** (O-09/O-16). This index
 links to existing receipts; it adds no new receipt format. Each item is

@@ -39,15 +39,15 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Native Windows parity — approved spec](specs/windows-parity/README.md): Complete feature journeys, native safety and durability gates, and ordered implementation PRs; implementation and final qualification remain in progress
 - [Windows parity acceptance](specs/windows-parity/design.md): R1–R8, compatibility boundaries and native failure tests
 - [Windows parity fixture producers](specs/windows-parity/fixtures.md): Exact inputs and response bindings for the command walk
-- [Windows parity tasks](specs/windows-parity/tasks.md): Ordered PRs, durability decision gate and planning completion review
+- [Windows parity tasks](specs/windows-parity/tasks.md): Current component checkpoints and remaining acceptance, with the original task gates retained
 - [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
 - [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
 - [Portable journey tasks](specs/portable-user-journey/tasks.md): Ordered work and verification gates; not yet authorized
 
-- [Stable v1 and the first two weeks after release](project-plan.md): Current release gates, observed candidate period and four bounded follow-through opportunities
+- [Release and delivery checkpoints](project-plan.md): Current 1.5.0 release and acceptance gaps, with the historical stabilization plan and gate evidence retained
 
-- [Supported journeys and their limits](supported-journeys.md): Every journey 1.2.0 carries, with its entry point, platform limit, evidence and where it stops
+- [Supported journeys and their limits](supported-journeys.md): Current 1.5.0 entry points, evidence and remaining limits; historical 1.2.0 map retained
 - [CLI guide](cli-guide.md): Every command, its arguments and exit codes
 - [Running a signed Python plugin](executable-plugin-run.md): Run-binding contract, explicit grants, receipts and current limits
 - [Attune Harness in Codex Plugins](codex-plugin.md): Package and install the workflow skill as a distinct personal plugin
@@ -83,7 +83,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Voyage context for coding agents](voyage-retrieval.md): Voyage context for coding agents
 - [Review using host-owned source passages](passage-review.md): Review using host-owned source passages
 - [Agent collaboration: what is in force, and what is planned](agent-collaboration-plan.md): Planned and aspirational items for the agents
-- [Engineering opportunity log](opportunity-log.md): Opportunities noticed and not yet authorized; dated evidence
+- [Engineering opportunity log](opportunity-log.md): Reconciled recommendations and scoped status corrections, with historical opportunities and evidence retained
 - [The standing brief for a different-model review](review-brief.md): What the reviewing agent is told before every `src/` change merges
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each

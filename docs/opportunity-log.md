@@ -1,5 +1,94 @@
 # Engineering opportunity log
 
+## Current review — October 21, 2026
+
+Reconciled against `main` at `462d37be4fa06140c62e5f39f3489a4f8785c112`.
+[Version 1.5.0 is published](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
+from `7caa86ab6d476e9599b08ff75a81bc816e60c382`; the later main commit updates
+the Claude Code catalog. The [current journey map](supported-journeys.md)
+separates delivered components from remaining acceptance evidence.
+
+This review checks the recommendations and register rows below against source,
+existing tests, release metadata and hosted job results. It does not rerun old
+experiments, qualify a new platform or supply missing human observations. The
+September recommendations, register and dated evidence remain below with their
+original results. Their estimates, open counts and instructions describe those
+dates, rather than a current assignment. IDs O-01–O-80 remain unchanged; the
+unnumbered findings remain unnumbered. Rows outside this review retain their
+dated status and need a freshness check before selection. There is no new total
+of open opportunities.
+
+## Recommended order
+
+| Priority | Existing scope | Remaining action and done condition |
+| --- | --- | --- |
+| 1 | O-07; [approved Windows parity work](specs/windows-parity/tasks.md) | Continue through the existing owners. Production stop/recovery, full saved-store acceptance, live native memory, desktop and shell journeys remain open. Complete the unchanged requirements with source-bound evidence; a passing component or later diagnostic result cannot substitute for them. |
+| 2 | O-03/O-04/O-12; S3/S6/S9 | Collect fresh-session recall/exclusion, a qualifying non-programmer installed walkthrough, and migration-row observations. Record artifact/platform, actual outcome and help needed; keep each observation or explicit disposition separate from software checks. |
+| 3 | O-04/O-09/O-16 | Keep this register, the journey map and linked planning summaries aligned at release milestones. Done when current next steps reach delivered entry points and name the remaining evidence. This documentation reconciliation is the selected slice. |
+| Later candidates | O-72/O-74/O-76; the September 24 signature-input finding | Scope readable assessment evidence, runnable continuation checks, repository-root test selection and the retained signature mismatch separately. Reproduce runtime findings before proposing a repair; this ordering authorizes none of them. |
+| Before another paid trial | C: O-14/O-15/O-23/O-31 | Verify delivered references, all model-visible inputs, grader context and launcher access against retained controls. Reject the contaminated fixture without changing its original grades. No trial or spending is allocated here. |
+
+The smallest useful slice is the documentation reconciliation. The most urgent
+product work is the existing Windows completion/recovery investigation, not a
+second implementation of already delivered controls. Timing work
+(O-06/O-11/O-20/O-27) needs a current matched baseline before choosing caching
+or deadline changes. Sharing separation (O-02), other-project packaging (O-05)
+and public-content publication (O-36) retain their existing boundaries.
+
+## Current register
+
+These are scoped status corrections, not a new qualification campaign. Source
+integration, a retained passing check, publication and observed acceptance are
+different states.
+
+| ID / group | Verified current position | Remaining action |
+| --- | --- | --- |
+| O-01/O-16/O-17/O-36; A/B | Durable plan/Spec decisions and concise status/evidence presentation exist in source. The original [A](status-guidance-a-results.md) and [B](durable-decisions-b-results.md) receipts retain their local scope. | Keep broader presentation and host-lifetime observations separate; do not reopen the delivered first surfaces. Public-content approval and claimed savings remain separate. |
+| O-03/O-04/O-12 | The [journey map](supported-journeys.md) now describes 1.5.0 entry points and limits. S3/S6/S9 remain open in the [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary). | Obtain the missing observations. A published package and bounded maintainer form observations do not establish general user acceptance. |
+| O-07 | The [1.5.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0) and [hosted baseline run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937) provide distinct published-artifact and server/software checkpoints. Windows testing, readers, offline transport and saved-store components are merged. | Full Windows parity remains deferred. Follow the [task checkpoint](specs/windows-parity/tasks.md) for storage, process, live-provider, Windows 11 and declared-shell gaps; earlier core checks never qualified every integration. |
+| O-09/O-16; F | The [current evidence index](project-plan.md#where-each-gates-evidence-is) links release evidence and remaining observations while retaining the historical 1.2.0 index. | Identify a concrete missing receipt field before extending a schema. This review adds navigation, not executor/runtime evidence or a new receipt format. |
+| O-12 | Explicit assessment-to-repair provenance is implemented in [the handoff owner](../src/attune_harness/task_handoff.py), with [owner tests](../tests/test_assessment_repair_handoff.py). | Preserve explicit scope and acceptance; this is not automatic repair or a general native-journey qualification. |
+| O-14/O-15/O-23/O-31; C | Retained reference-delivery, corrected-grader, bad-artifact and launcher evidence remain reusable. The contaminated broader trial remains contaminated. | Audit the complete inputs before a new trial. This review does not establish that every current experiment launcher has a leakage guard. |
+| O-28; D | **Integration present.** [Build turns](../src/attune_harness/work_build.py) carry `review_context`; [the handoff owner](../src/attune_harness/work_review_handoff.py) binds findings, evidence, dispositions and task targets to retained planning state. [Regression tests](../tests/test_work_review_handoff_coverage.py) cover this surface. | Close the missing-integration recommendation. Keep any fresh model-quality or complete native-journey claim separate; do not rebuild D. |
+| O-34/O-35; E | **Integration present.** [Effects](../src/attune_harness/work_effects.py) freeze and validate function boundaries; [body materialization](../src/attune_harness/work_bodies.py) and build response contract 3 implement the supported profile. [Owner tests](../tests/test_work_function_bodies.py) and [build tests](../tests/test_plan_build_function_bodies.py) exercise it. | Close the prototype-to-production integration recommendation. Fresh response cost, speed and general reliability remain unmeasured; behavioral checks are still necessary. |
+| O-70/O-77/O-78/O-80 | Starter requests/probes, the command worker, participant guidance and failed-write rollback are delivered in [starter source](../src/attune_harness/init_cli.py) and the [starter specification](specs/starter-files/tasks.md). O-70's documented journey condition is closed. | Preserve the recorded platform limits and original failures. O-76's remaining root-selection case is separate. |
+| O-71/O-72/O-74/O-76 | Source still uses stdin-only intake detection, generic non-feature status rendering and a path validator that refuses `.` as `test_root`. The runnable-continuation audit is not completed by this documentation change. | Retain these bounded candidates; use the existing Windows journey owner for O-71. O-76's symlink guidance and printed starter journey are already addressed. |
+| O-73 | The [Claude catalog](../.claude-plugin/marketplace.json) targets the released 1.5.0 tag; [the runbook](release-runbook.md) retains the release-version coupling. | Keep plugin delivery distinct from upgrading an installed runtime or changing the version policy. |
+
+The September 23 overnight follow-through records merged fixes for O-38, O-42,
+O-43, O-58, O-59, O-60, O-63, O-64, O-65, O-67 and O-68. Its earlier open
+count is historical. This review does not re-certify every old closure, inspect
+unexamined branches, or decide watch items such as O-39. Consult the dated note
+and its primary artifact before selecting an entry not rechecked above.
+
+O-04 follow-through, 2026-10-21 — **R6** lens. At main `462d37be`, the register
+still recommended D/E implementation already present in the source owners,
+while the journey map retained 1.2.0 setup and platform limits. This bounded
+reconciliation supplies current entry points, release/evidence links and explicit
+remaining acceptance gaps. The historical sections and experiment grades remain
+unchanged. Done when the documentation checks and preserved-history comparison
+pass and the draft PR records unverified claims. Completion review: complete for
+this reconciliation; no new opportunity ID is needed. The first opportunity a
+user meets is O-04, current journey and next-action guidance. This note authorizes
+no implementation, paid trial, merge or publication.
+
+O-55 follow-through, 2026-10-21 — **review** lens. The documentation checker
+accepts relative `.md` targets but does not check source-file links or heading
+fragments (`scripts/check_doc_links.py`, `links()`). A nonexistent `.py` target
+in this draft passed that check before source inspection corrected it. This
+reconciliation therefore checks its added local targets and fragments separately.
+Candidate follow-up: extend the existing checker only if that broader coverage
+is selected. Done when missing source targets and invalid local fragments fail
+deterministic controls while retained historical exceptions stay explicit.
+Effort: small; scripts/tests, separate from this documentation-only slice. The
+original Markdown/index closure remains completed. This note authorizes no work.
+
+## Historical recommendations and register — September 2026
+
+The following snapshots retain their original wording and evidence. Their
+present-tense claims apply to the recorded dates; use the current sections above
+to select work.
+
 Keep opportunities visible without automatically adding them to the active spec.
 The current register separates open work, completed improvements, experiments and
 release follow-through. Dated notes below retain the evidence and reasoning;
@@ -15,7 +104,7 @@ decisions** as the affordable scope (estimated 25–40k working tokens together)
 remaining groups are deferred for the October 1 review below. This work does not
 upgrade the active plugin or change the original experiment grades.
 
-## Recommended order
+## Historical recommended order
 
 “Low hanging fruit” means a bounded change with a direct user benefit. Effort is
 an engineering estimate from inspection, not a measured schedule: **small** fits
@@ -164,7 +253,7 @@ are not outstanding allocations. Completed portions of other entries likewise
 stay completed. Together with A and B, this accounts for all O-01–O-36 without
 turning historical lessons into duplicate tasks.
 
-## Current register
+## Historical register
 
 “Verified locally” describes the recorded source/installed checks or replay. It
 does not mean the active plugin was upgraded, the feature was published, or a
