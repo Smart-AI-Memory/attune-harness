@@ -1,6 +1,18 @@
 /* Executes the production script with deterministic DOM, fetch and timer seams.
  * This is a behavioral client check; actual browser rendering remains a host check. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+// File markers do not depend on stdout/stderr reaching EOF. No timer or forced exit.
+const diagnosticPath=require.main===module ? process.argv[3] : undefined;
+function trace(stage){
+ if(!diagnosticPath)return;
+ try{fs.appendFileSync(diagnosticPath,JSON.stringify({stage,uptime_seconds:process.uptime(),node:process.version,pid:process.pid,resources:process.getActiveResourcesInfo()})+'\n');}
+ catch(error){console.error('Browser diagnostic write failed:',error.code||error.name);}
+}
+if(diagnosticPath){
+ trace('node-runner-entered');
+ process.on('beforeExit',code=>trace('before-exit:'+code));
+ process.on('exit',code=>trace('exit:'+code));
+}
 class Element {
  constructor(tag,doc){this.tagName=tag.toUpperCase();this.doc=doc;this.children=[];this._text='';this.value='';this.disabled=false;this.hidden=false;this.scrollTop=0;}
  set textContent(v){this._text=String(v);this.children=[];this.firstChild={parentNode:this,textContent:this._text};}
@@ -26,7 +38,7 @@ async function setup(){
  const status=new Element('p',doc);
  const selection={anchorNode:null,focusNode:null,setBaseAndExtent(a,ao,f,fo){this.anchorNode=a;this.anchorOffset=ao;this.focusNode=f;this.focusOffset=fo;}};const window={scrollX:0,scrollY:0,getSelection:()=>selection,scrollTo(x,y){this.scrollX=x;this.scrollY=y;}};
  const context=vm.createContext({window,document:doc,status,token:'test',console,Map,JSON,Error,Object,setTimeout(fn){const id=++seq;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},refresh:async()=>snapshot.fresh,fetch:async(path,opts)=>{calls.push({path,opts});assert(queue.length,`Unexpected request ${path}`);const next=queue.shift();if(next instanceof Error)throw next;if(typeof next==='function')return next();return {ok:next.ok!==false,text:async()=>next.error||'409 conflict',json:async()=>next};}});
- queue.push({editable:true,tasks:[]});vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);await flush();
+ queue.push({editable:true,tasks:[]});trace('before-script-read');const source=fs.readFileSync(process.argv[2],'utf8');trace('before-script-evaluation');vm.runInContext(source,context);trace('after-script-evaluation');await flush();trace('setup-complete');
  return {doc,root,status,selection,window,snapshot,queue,calls,timers,run:s=>vm.runInContext(s,context),panel:doc.querySelector('#form-panel')};
 }
 async function flush(){for(let i=0;i<60;i++)await Promise.resolve();}
@@ -34,6 +46,8 @@ const shown={task:'A',checkpoint:'checkpoint-old',decision:'single-use',display:
 function build(running=true,evidence={receipt:'one'}){return {note:'Inspect saved state',running,view:{summary:'Recorded',next_action:'review',completed:['one'],evidence},reviews:[]};}
 function workspace(task='A',data=build()){return {editable:true,tasks:[{task,label:task,status:'accepted',checkpoint:'cp',build:data}]};}
 if(require.main===module)(async()=>{
+ trace('regressions-start');
+ trace('submission-failure-recovery');
  for(const failure of [{ok:false,error:'409 conflict'},new Error('network lost')]){
   const h=await setup();h.run(`renderDecision(${JSON.stringify(shown)})`);const input=h.panel.querySelector('textarea');input.value='Recover this answer';const select=h.panel.querySelector('select');select.value='Two';input.focus();input.setSelectionRange(2,7);
   h.queue.push(failure);h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();
@@ -41,14 +55,17 @@ if(require.main===module)(async()=>{
   const count=h.calls.length;h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();assert.equal(h.calls.length,count,'expired form must never replay');
  }
  const h=await setup();h.run(`renderDecision(${JSON.stringify(shown)})`);const input=h.panel.querySelector('textarea');input.value='Unsaved';h.queue.push(new Error('refresh lost'));await h.run('refreshWorkspace()');assert.equal(h.panel.querySelector('textarea'),input);assert.equal(input.value,'Unsaved');assert(h.panel.querySelector('button').disabled);
+ trace('post-submit-refresh-failure');
  const f=await setup();f.run(`renderDecision(${JSON.stringify(shown)})`);const savedInput=f.panel.querySelector('textarea');savedInput.value='Saved or uncertain';f.snapshot.fresh=false;f.queue.push({message:'Saved',heading:'Draft saved — ready for review'},new Error('workspace unavailable'));f.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();assert.equal(f.panel.querySelector('textarea'),savedInput,'failed post-submit refresh must retain recoverable input');assert.equal(savedInput.value,'Saved or uncertain');assert(savedInput.readOnly,'expired answer remains readable and copyable');assert(f.panel.querySelector('button').disabled);assert.equal(f.calls.filter(c=>c.path==='/decision/submit').length,1);assert.match(f.panel.querySelector('.expired-notice').textContent,/Saved.*previous form is now read-only/);assert.doesNotMatch(f.panel.querySelector('.expired-notice').textContent,/expired|not confirmed/);assert.match(f.status.textContent,/Decision inspection failed.*workspace unavailable/);assert.equal(f.panel.querySelector('h2').textContent,'Draft saved — ready for review','confirmed heading survives inspection failure');
  // Pending copy must not claim success; confirmed save survives later inspection failure.
+ trace('pending-response');
  const pending=await setup();pending.run(`renderDecision(${JSON.stringify(shown)})`);pending.panel.querySelector('textarea').value='Pending answer';let deliverSave;
  pending.queue.push(()=>new Promise(resolve=>deliverSave=resolve));pending.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();
  assert.match(pending.panel.querySelector('.expired-notice').textContent,/Submitting this response/);assert(pending.panel.querySelector('button').disabled);
  pending.queue.push({editable:true,tasks:[]});deliverSave({ok:true,json:async()=>({message:'Answers saved. Open the next form to review the current draft.'})});await flush();
  assert.match(pending.panel.querySelector('.expired-notice').textContent,/Answers saved.*previous form is now read-only/);assert.equal(pending.calls.filter(c=>c.path==='/decision/submit').length,1);
  // An offline owner-state sequence proves that acceptance never grants execution.
+ trace('owner-state-sequence');
  const j=await setup(),button=text=>j.root.querySelectorAll('button').find(b=>b.textContent===text);
  const current={...shown,checkpoint:'current-cp',decision:'current-decision',display:{...shown.display,definition:{fields:[{id:'answer_0',type:'text_input',text:'Remaining question after partial intake'}]}}};
  const intakeState={editable:true,tasks:[{task:'A',label:'A',status:'intake',note:'Questions remain',checkpoint:'current-cp',available:true}]};
@@ -69,6 +86,8 @@ if(require.main===module)(async()=>{
 
  assert(!j.root.querySelectorAll('button').some(b=>/build|resume|grant/i.test(b.textContent)),'release must not render execution controls');
  assert(j.calls.every(c=>['/workspace','/decision/open','/decision/submit'].includes(c.path)),'release must only call forms routes');
+ trace('read-only-state');
  const r=await setup();r.queue.push({editable:false,tasks:[{task:'A',label:'Read-only draft',status:'draft',note:'Next: continue form.',available:true,action_label:'Continue form',action_tip:'Answer the remaining questions.'}]});await r.run('loadTasks()');assert.match(r.root.textContent,/Read-only draft/);assert.equal(r.doc.querySelector('#decisions').hidden,false);assert.equal(r.root.querySelectorAll('button').length,0,'read-only draft has no decision controls');assert.doesNotMatch(r.root.textContent,/Tip:/,'read-only workspace must not direct users to a hidden control');
+ trace('assertions-complete');
  console.log('client regressions passed');
-})().catch(e=>{console.error(e);process.exitCode=1;});
+})().catch(e=>{trace('runner-failed');console.error(e);process.exitCode=1;});

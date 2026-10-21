@@ -17,7 +17,30 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
     source = tmp_path / 'forms.js'
     source.write_text(script, encoding='utf-8')
     runner = Path(__file__).parent / 'client' / runner_name
-    result = subprocess.run([node, str(runner), str(source)], capture_output=True, text=True, timeout=30)
+    diagnostics = tmp_path / 'browser-progress.jsonl'
+    command = [node, str(runner), str(source)]
+    if runner_name == 'gui_forms_intake.cjs':
+        command.append(str(diagnostics))
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired as error:
+        # pytest retains failure capture in tests.txt and failure JUnit output.
+        # Keep the original timeout/cleanup; diagnostics must never mask it.
+        details = [f'Browser regression timed out: {runner_name}; limit={error.timeout}s']
+        try:
+            with diagnostics.open(encoding='utf-8') as trace:
+                details.append('Node progress (first 16384 characters):\n' + trace.read(16384))
+        except OSError as diagnostic_error:
+            details.append(f'Node progress unavailable: {type(diagnostic_error).__name__}')
+        for label, output in [('stdout', error.stdout), ('stderr', error.stderr)]:
+            if isinstance(output, bytes):
+                output = output.decode('utf-8', errors='replace')
+            details.append(f'Partial {label} (last 4096 characters): {output[-4096:] if output else "<empty>"}')
+        message = '\n'.join(details)
+        print(message)
+        if hasattr(error, 'add_note'):  # Python 3.11+: retained in failure JUnit too.
+            error.add_note(message)
+        raise
     assert result.returncode == 0, result.stdout + result.stderr
     assert 'client regressions passed' in result.stdout
 
