@@ -288,6 +288,8 @@ network resources. It does not refresh: inspect again before acting. Completed
 planning is still a draft, and stale passing checks do not establish current
 completion. Output contains local paths and task intent; choose where to share it.
 
+### Browser forms
+
 For browser draft intake and explicit intent approval in the **forms companion**, register a
 canonical absolute saved feature-work draft directory and enable form actions:
 
