@@ -61,10 +61,9 @@ SOURCE_SUFFIXES = {'.py', '.pyi', '.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx',
 
 def visible(text: str) -> str:
     """Mask comments and fenced/indented code, preserving source line numbers."""
-    text = re.sub(r'<!--.*?(?:-->|\Z)', lambda m: re.sub(r'[^\n]', ' ', m[0]), text,
-                  flags=re.DOTALL)
     result = []
     fence = None
+    comment = False
     for line in text.splitlines(keepends=True):
         quote = re.match(r'^(?: {0,3}> ?)+', line)
         depth = quote[0].count('>') if quote else 0
@@ -78,12 +77,35 @@ def visible(text: str) -> str:
             if (marker and marker[1][0] == fence[0][0]
                     and len(marker[1]) >= len(fence[0]) and not marker[2].strip()):
                 fence = None
-        elif marker:
+        elif marker and not comment:
             fence = marker[1], depth
             hidden = True
-        elif content.startswith(('    ', '\t')):
+        elif not comment and content.startswith(('    ', '\t')):
             hidden = True
-        result.append(re.sub(r'[^\n]', ' ', line) if hidden else line)
+        if hidden:
+            result.append(re.sub(r'[^\n]', ' ', line))
+            continue
+        # Comments inside code examples are literal text. Conversely, a fence
+        # marker inside an actual HTML comment cannot hide the following page.
+        candidates = inline_code_mask(line)
+        pieces = []
+        position = 0
+        while position < len(line):
+            if comment:
+                end = line.find('-->', position)
+                stop = len(line) if end < 0 else end + 3
+                pieces.append(re.sub(r'[^\n]', ' ', line[position:stop]))
+                position = stop
+                comment = end < 0
+            else:
+                start = candidates.find('<!--', position)
+                if start < 0:
+                    pieces.append(line[position:])
+                    break
+                pieces.append(line[position:start])
+                position = start
+                comment = True
+        result.append(''.join(pieces))
     return ''.join(result)
 
 

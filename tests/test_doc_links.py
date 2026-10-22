@@ -164,6 +164,19 @@ def test_quoted_and_list_fences_do_not_hide_later_real_links(repository):
     assert checker.check(root) == ['docs/guide.md:9: unknown heading or anchor: docs/guide.md#fake']
 
 
+@pytest.mark.parametrize('example', [
+    '```html\n<!-- literal comment\n```\n',
+    '`<!-- literal comment`\n',
+    '<!-- actual comment\n```\n-->\n',
+    '> ```html\n> <!-- literal comment\n> ```\n',
+])
+def test_comments_and_code_cannot_hide_the_following_link(repository, example):
+    root, write = repository
+    write('docs/guide.md', '# Guide\n' + example + '[Broken](../src/missing.py)\n')
+    findings = checker.check(root)
+    assert len(findings) == 1 and 'dead link to src/missing.py' in findings[0]
+
+
 def test_encoded_and_escaped_source_paths(repository):
     root, write = repository
     write('src/space name.py', 'value = 1\n')
