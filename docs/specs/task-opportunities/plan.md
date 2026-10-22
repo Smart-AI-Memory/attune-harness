@@ -7,7 +7,9 @@ reader, contextual briefing, explicit Saved Tasks collection and local assistant
 reply preparation are present in the 1.5.0 source tag. See the
 [current implementation and owner walk](README.md) and
 [unchanged user acceptance](task-1-return-to-work.md#walkthrough-and-acceptance).
-Real interrupted-task acceptance remains open.
+One assisted Markdown return, context correction and stale-draft refresh are
+recorded in the current checkpoint. Complete interrupted-task acceptance remains
+open.
 
 The selected completion slice updates the pause-and-return procedure and skill
 guidance, verifies the printed commands, and observes one real task. Runtime

@@ -13,7 +13,7 @@ interrupted-task acceptance remains open. Start with the
 | Saved Tasks and assistant handoff | Explicit task collections, local navigation and copyable replies are implemented. Replies identify task/revision and request current inspection; they do not send, approve or execute. |
 | Integrated source | [#142](https://github.com/Smart-AI-Memory/attune-harness/pull/142), [#143](https://github.com/Smart-AI-Memory/attune-harness/pull/143) and [#226](https://github.com/Smart-AI-Memory/attune-harness/pull/226) are merged. The view and continuation reader match the 1.5.0 source tag at `7caa86ab6d476e9599b08ff75a81bc816e60c382`. |
 | Software evidence | The October 22 source review ran 70 task-view checks and six navigation checks successfully; four opt-in Chrome checks were skipped. The three PRs' exact-head APIs each report 19 completed successful checks. These are separate from fresh installed or human acceptance. |
-| Real return journey | Still open: finding the agreed entrance after interruption, understanding the real stopping point, correcting context and reaching the right handoff without rereading the conversation. Record assistance explicitly. |
+| Real return journey | One assisted Markdown walkthrough is recorded below. Independent rediscovery, the original stopping point and complete interrupted-task acceptance remain open. |
 | Released browser forms | The forms companion handles saved-intent intake and approval. It does not expose the general `/snapshot` briefing. Use static CLI output for this slice. |
 
 The earlier [snapshot design](task-1-design.md) remains historical. The
@@ -50,6 +50,21 @@ authoritative; this table does not introduce additional approvals.
 | Return the handoff to the assistant | [Handoff text](../../../src/attune_harness/task_view.py#L398) requires current inspection and existing authorization. Lifecycle owners retain execution/refusal rules. | Paste the prepared reply. Reinspect the identified task/note before acting. This walkthrough can stop at the valid handoff; opening/copying does not authorize **`resume`**. |
 
 ## Acceptance and evidence
+
+On October 22, one real retained navigation task was inspected with the installed
+1.5.0 wheel on macOS. The assistant located the task, checked its inputs, prepared
+an attributed re-entry note and supplied a Markdown briefing. The host refused
+local HTML navigation, so rendered-browser behavior was not observed. The user
+confirmed that the Markdown file was visible, selected **Next useful step** and
+corrected the intended sequence of prototype and production work. On explicit
+request, the existing **`plan --revise`** flow refreshed the stale input and
+retained a current, unaccepted draft with its previous revision in history.
+
+This observation supports assisted reading, context correction and handoff to an
+existing owner. The original pause context was missing; the assistant explained
+the stale-input blocker. It does not establish independent goal/stopping-point
+recall, discovery after reopening a closed host, HTML controls, S6 or full GUI
+acceptance. Private task details and the observation remain local.
 
 The returning user can identify the correct task and explain its goal, stopping
 point, evidenced progress, unresolved matters and next useful action, then reach

@@ -128,7 +128,7 @@ uncertain attempts require inspection/reconciliation, not automatic repetition.
 
 ## Pause and return to work
 
-Use the existing [CLI pause-and-return procedure](../../../../docs/cli-guide.md#pause-and-return-to-work)
+Use the existing [CLI pause-and-return procedure](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#pause-and-return-to-work)
 for one saved `feature-work-v1` task. Inspect its actual directory with
 `status --format json`; read its current status, identity, revision and next
 action. Verify the profile from the validated saved owner; feature-work status
@@ -150,6 +150,10 @@ as the documented wrapper does. Retain task, note and report paths in the
 existing handoff/chat. On return, inspect and regenerate before opening that
 report. Keep an older report visibly historical if current inspection fails.
 The released forms companion does not expose this general briefing.
+If the host blocks local HTML, use the same task/note with `--format markdown`
+and return the readable briefing and handoff in the conversation or file viewer.
+This text fallback has no interactive reply controls and does not establish
+rendered-browser behavior. Do not treat a queued opening request as visible output.
 
 Let the user recover the goal, stopping point, evidence, uncertainty and next
 action. The report's **Continue with guidance**, **Correct context** and

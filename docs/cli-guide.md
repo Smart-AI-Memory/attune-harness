@@ -455,6 +455,19 @@ print(report)
    reply text before replacing or reloading a report. A local snapshot path is
    distinct from the forms companion's expiring private launcher link.
 
+   If the host cannot open a local HTML file, ask the assistant to return the
+   same briefing as Markdown and read it in the conversation, file viewer or
+   terminal:
+
+```sh
+attune-harness status /path/outside/repo/work --format markdown --continuation /path/outside/repo/pause-note.json
+```
+
+   Markdown provides the handoff text without interactive controls. Copy
+   **Your reply to the assistant** manually. Record this as a text walkthrough,
+   not a rendered-browser check. A queued opening request does not confirm that
+   a report is visible. Keep host security restrictions in place.
+
 5. Read **Context**, **Goal**, **Desired end state**, **Current focus**,
    **Current position** and **Next action**. Expand the supporting detail if
    needed. Historical notes, changed sources and uncertain operations require

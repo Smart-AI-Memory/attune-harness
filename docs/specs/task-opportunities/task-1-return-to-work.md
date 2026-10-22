@@ -1,7 +1,8 @@
 # Task 1: return to work
 
 Status, corrected October 22, 2026: the static briefing and continuation
-implementation is integrated; real interrupted-task acceptance remains pending.
+implementation is integrated. One assisted text walkthrough is recorded in the
+current checkpoint; complete interrupted-task acceptance remains pending.
 The [current checkpoint](README.md) records source, evidence, remaining work and
 the command-owner walk. This task supersedes the earlier record-first and
 review-first framing. Passing software checks does not establish user acceptance.
@@ -74,6 +75,11 @@ Done when:
   establishes user usefulness separately from software correctness.
 
 ## Remaining completion work
+
+The October 22 [observation](README.md#acceptance-and-evidence) covers one assisted
+return, context correction and stale-draft refresh. The printed-command checks
+cover the five context states below. Retain these results; collect the missing
+original-pause and independent-return evidence before closing this task.
 
 1. Use the [pause-and-return procedure](../../cli-guide.md#pause-and-return-to-work)
    with one real saved feature-work task and an explicit caller-owned note.
