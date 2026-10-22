@@ -261,8 +261,13 @@ def execute_control(args):
             from .test_change import public_test_task
             result = public_test_task(result)
         if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
-            from .human_output import document, markdown
-            print(markdown(result) if args.format == 'markdown' else document(result), end='')
+            if (result.get('task_profile') == 'assessment-intake-v1'
+                    and result['status'] == 'completed' and 'repair' not in result['request']):
+                from .assessment_view import render
+                print(render(result, args.format), end='')
+            else:
+                from .human_output import document, markdown
+                print(markdown(result) if args.format == 'markdown' else document(result), end='')
             return 0
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         if args.command == 'status':

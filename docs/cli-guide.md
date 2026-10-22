@@ -538,6 +538,14 @@ creates a durable interruption for later resume. A completed assessment can repo
 a refuted or unknown document; participant narratives remain unverified proposals.
 The JSON includes the task directory and identity.
 
+Inspect a completed assessment with **`status`** and `--format markdown` or
+`--format html`. The readable report shows the accepted goal and criteria,
+recorded document-check verdicts, retrieved source paths and hashes, and
+separately attributed participant judgments. Record pointers identify the
+supporting fields in the saved JSON. Semantic acceptance remains unverified;
+reading status does not rerun checks, refresh source evidence or grant execution.
+The default JSON output is unchanged.
+
 Use `--help-all` when you need additional recovery or setup controls.
 See the [assessment receipt](specs/unified-task-execution/assessment-receipt.md)
 for installed software evidence and outstanding native-model qualification.
