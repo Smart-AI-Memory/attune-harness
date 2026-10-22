@@ -1,6 +1,18 @@
 /* Executes the production script with deterministic DOM, fetch and timer seams.
  * This is a behavioral client check; actual browser rendering remains a host check. */
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+// File markers do not depend on stdout/stderr reaching EOF. No timer or forced exit.
+const diagnosticPath=require.main===module ? process.argv[3] : undefined;
+function trace(stage){
+ if(!diagnosticPath)return;
+ try{fs.appendFileSync(diagnosticPath,JSON.stringify({stage,uptime_seconds:process.uptime(),node:process.version,pid:process.pid,resources:process.getActiveResourcesInfo()})+'\n');}
+ catch(error){console.error('Browser diagnostic write failed:',error.code||error.name);}
+}
+if(diagnosticPath){
+ trace('node-runner-entered');
+ process.on('beforeExit',code=>trace('before-exit:'+code));
+ process.on('exit',code=>trace('exit:'+code));
+}
 class Element {
  constructor(tag,doc){this.tagName=tag.toUpperCase();this.doc=doc;this.children=[];this._text='';this.value='';this.disabled=false;this.hidden=false;this.scrollTop=0;}
  set textContent(v){this._text=String(v);this.children=[];this.firstChild={parentNode:this,textContent:this._text};}
@@ -33,17 +45,22 @@ const shown={task:'A',checkpoint:'checkpoint-old',decision:'single-use',display:
 function build(running=true,evidence={receipt:'one'}){return {note:'Inspect saved state',running,view:{summary:'Recorded',next_action:'review',completed:['one'],evidence},reviews:[]};}
 function workspace(task='A',data=build()){return {editable:true,tasks:[{task,label:task,status:'accepted',checkpoint:'cp',build:data}]};}
 (async()=>{
+ trace('failed-submit-retains-input');
  for(const failure of [{ok:false,error:'409 conflict'},new Error('network lost')]){
   const h=await setup();h.run(`renderDecision(${JSON.stringify(shown)})`);const input=h.panel.querySelector('textarea');input.value='Recover this answer';const select=h.panel.querySelector('select');select.value='Two';input.focus();input.setSelectionRange(2,7);
   h.queue.push(failure);h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();
   assert.equal(h.panel.querySelector('textarea'),input,'failure must retain original input node');assert.equal(input.value,'Recover this answer');assert.equal(h.panel.querySelector('select'),select);assert.equal(select.value,'Two');assert(select.disabled);const recovery=h.panel.querySelector('.retained-answers');assert(recovery,'expired fields need copyable recovery text');assert(recovery.textContent.includes(shown.display.definition.fields[0].text+': Recover this answer'));assert(recovery.textContent.includes(shown.display.definition.fields[1].text+': Two'));assert(!recovery.textContent.includes('answer_0:'));assert(!recovery.textContent.includes('answer_1:'));assert.equal(recovery.getAttribute('aria-label'),'Retained answers for copying');assert.equal(h.panel.querySelectorAll('.retained-answers').length,1);assert.equal(h.panel.querySelectorAll('.expired-notice').length,1);h.run('expirePanel()');assert.equal(h.panel.querySelectorAll('.retained-answers').length,1,'repeated expiry must not duplicate recovery');assert.equal(h.panel.querySelectorAll('.expired-notice').length,1,'repeated expiry must not duplicate notice');assert.equal(h.doc.activeElement,input);assert.equal(input.selectionStart,2);assert.equal(input.selectionEnd,7);assert(h.panel.querySelector('button').disabled,'expired submission must stay disabled');
   const count=h.calls.length;h.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();assert.equal(h.calls.length,count,'expired form must never replay');
  }
+ trace('refresh-failure');
  const h=await setup();h.run(`renderDecision(${JSON.stringify(shown)})`);const input=h.panel.querySelector('textarea');input.value='Unsaved';h.queue.push(new Error('refresh lost'));await h.run('refreshWorkspace()');assert.equal(h.panel.querySelector('textarea'),input);assert.equal(input.value,'Unsaved');assert(h.panel.querySelector('button').disabled);
+ trace('post-submit-refresh-failure');
  const f=await setup();f.run(`renderDecision(${JSON.stringify(shown)})`);const savedInput=f.panel.querySelector('textarea');savedInput.value='Saved or uncertain';f.snapshot.fresh=false;f.queue.push({message:'Saved'},new Error('workspace unavailable'));f.panel.querySelector('form').onsubmit({preventDefault(){}});await flush();assert.equal(f.panel.querySelector('textarea'),savedInput,'failed post-submit refresh must retain recoverable input');assert.equal(savedInput.value,'Saved or uncertain');assert(savedInput.readOnly,'expired answer remains readable and copyable');assert(f.panel.querySelector('button').disabled);assert.equal(f.calls.filter(c=>c.path==='/decision/submit').length,1);
+ trace('build-evidence');
  const p=await setup();p.queue.push(workspace());await p.run("watchBuild('A')");const evidence=p.panel.querySelector('pre');evidence.focus();p.selection.setBaseAndExtent(evidence.firstChild,3,evidence.firstChild,8);const originalText=evidence.firstChild;p.panel.scrollTop=47;p.window.scrollY=63;
  p.queue.push(workspace());const tick=[...p.timers.values()][0];p.timers.clear();await tick();await flush();assert.equal(p.panel.querySelector('pre'),evidence,'unchanged polling must retain evidence node');assert.equal(p.doc.activeElement,evidence);assert.equal(p.panel.scrollTop,47);assert.equal(p.selection.anchorNode,originalText,'unchanged evidence must preserve text selection');assert.equal(p.window.scrollY,63);
  p.queue.push(workspace('A',build(false,{receipt:'two'})));const tick2=[...p.timers.values()][0];p.timers.clear();await tick2();await flush();assert.equal(p.panel.querySelector('pre'),evidence,'changed polling must update stable evidence node');assert.match(evidence.textContent,/two/);assert.equal(p.doc.activeElement,evidence);assert.equal(p.panel.scrollTop,47);assert.equal(p.selection.anchorOffset,3);assert.equal(p.selection.focusOffset,8);assert.equal(p.selection.anchorNode,evidence.firstChild);assert.equal(p.window.scrollY,63);assert.equal(p.timers.size,0,'terminal build must stop polling');
+ trace('cross-element-selection');
  for(const changed of ['both','evidence','reviews']){
   const range=await setup();const original={...build(true,{receipt:'original evidence'}),reviews:[{finding:'original review'}]};range.queue.push(workspace('A',original));await range.run("watchBuild('A')");
   const [left,right]=range.panel.querySelectorAll('pre');const originalLeft=left.firstChild,originalRight=right.firstChild;range.selection.setBaseAndExtent(originalLeft,4,originalRight,9);
@@ -51,9 +68,12 @@ function workspace(task='A',data=build()){return {editable:true,tasks:[{task,lab
   assert.equal(range.selection.anchorNode,left.firstChild,`${changed}: evidence endpoint survives cross-element selection`);assert.equal(range.selection.focusNode,right.firstChild,`${changed}: reviewer endpoint survives cross-element selection`);assert.equal(range.selection.anchorOffset,4);assert.equal(range.selection.focusOffset,9);
   if(changed==='reviews')assert.equal(left.firstChild,originalLeft,'unchanged anchor keeps original text node');if(changed==='evidence')assert.equal(right.firstChild,originalRight,'unchanged focus keeps original text node');
  }
+ trace('stale-poll-response');
  const d=await setup();let resolve;d.queue.push(()=>new Promise(r=>resolve=r));const pending=d.run("watchBuild('A')");d.run(`renderDecision(${JSON.stringify({...shown,task:'B'})})`);const before=d.panel.querySelector('textarea');resolve({ok:true,json:async()=>workspace()});await pending;assert.equal(d.panel.querySelector('textarea'),before,'late task response must not replace newly opened form');assert.equal(d.timers.size,0);
+ trace('task-switch');
  const switcher=await setup();let deliver;switcher.queue.push(()=>new Promise(r=>deliver=r));const oldPoll=switcher.run("watchBuild('A')");switcher.queue.push(workspace('B',build(false,{receipt:'B'})));await switcher.run("watchBuild('B')");const newEvidence=switcher.panel.querySelector('pre');deliver({ok:true,json:async()=>workspace('A',build(true,{receipt:'A'}))});await oldPoll;assert.equal(switcher.panel.querySelector('pre'),newEvidence);assert.match(newEvidence.textContent,/B/);assert.equal(switcher.timers.size,0);
  // An offline owner-state sequence proves that acceptance never grants execution.
+ trace('owner-state-sequence');
  const j=await setup(),button=text=>j.root.querySelectorAll('button').find(b=>b.textContent===text);
  const current={...shown,checkpoint:'current-cp',decision:'current-decision',display:{...shown.display,definition:{fields:[{id:'answer_0',type:'text_input',text:'Remaining question after partial intake'}]}}};
  const intakeState={editable:true,tasks:[{task:'A',label:'A',status:'intake',note:'Questions remain',checkpoint:'current-cp',available:true}]};
@@ -71,5 +91,6 @@ function workspace(task='A',data=build()){return {editable:true,tasks:[{task,lab
  j.queue.push({message:'Started'},workspace('A',{...build(true),available:false}),workspace('A',{...build(false),available:false}));button('Grant these commands and build').onclick();await flush();
  const starts=j.calls.filter(c=>c.path==='/build/start');assert.equal(starts.length,1);assert.equal(JSON.parse(starts[0].opts.body).grant,'single-use-grant');assert.match(j.panel.textContent,/Recorded progress and evidence/);
  j.queue.push(workspace('A',{...build(false),available:true}));await j.run('loadTasks()');j.queue.push({...grant,resume:true,grant:'resume-grant'});button('Preview command build').onclick();await flush();assert(button('Grant resume of these commands'));assert.equal(j.calls.filter(c=>c.path==='/build/start').length,1,'eligible resume still requires a separate deliberate grant');
+ trace('assertions-complete');
  console.log('client regressions passed');
-})().catch(e=>{console.error(e);process.exitCode=1;});
+})().catch(e=>{trace('runner-failed');console.error(e);process.exitCode=1;});
