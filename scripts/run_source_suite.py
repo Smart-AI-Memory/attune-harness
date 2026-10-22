@@ -149,7 +149,9 @@ def run_suite(output, timeout, *, root=ROOT, shards=1):
         revision = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
                                   capture_output=True, timeout=10, check=True)
         receipt['revision'] = revision.stdout.decode('ascii').strip()
-        temporary_base = Path(os.environ.get('RUNNER_TEMP') or tempfile.gettempdir()).resolve()
+        # Preserve the native temporary filesystem and inherited permissions.
+        # Hosted RUNNER_TEMP can have different ACLs from the system temp.
+        temporary_base = Path(tempfile.gettempdir()).resolve()
         if temporary_base.is_relative_to(root):
             raise ValueError('Partition temporary roots must be outside the source checkout')
         temporary_roots = [Path(tempfile.mkdtemp(prefix=f'harness-source-shard-{index}-',

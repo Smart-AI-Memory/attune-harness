@@ -80,10 +80,20 @@ reader admission compares parent directory observations before and after an
 open; peer scratch creation can therefore cause a correct refusal. Allocate
 distinct canonical temporary roots outside the checkout before either child
 starts, set all three standard temporary variables and pytest's temporary-root
-variable, and supply an explicit per-child pytest base directory. Prefer the
-hosted `RUNNER_TEMP` base and give each child its own value so nested drivers
-do not return to the shared parent namespace. Record the
+variable, and supply an explicit per-child pytest base directory. Give each child
+its own `RUNNER_TEMP` value so nested drivers do not return to the shared parent
+namespace. Record the
 paths and retain failed scratch for inspection. Keep fixture projects outside
 the source checkout so Git discovery behavior stays unchanged. Verify the
 actual child environment and fixture paths, then require a new native pass;
 the shared-namespace explanation remains a hypothesis until that evidence.
+
+The next native pass used hosted `RUNNER_TEMP` as the allocation base. Server
+2022/Python 3.10 finished in 677.422 seconds but failed effects tests with
+`Created Windows directory has unsupported metadata`. The owner raises that
+refusal when a created directory lacks the required inherited permissions.
+The fixture paths had moved from the system temporary tree to `D:\\a\\_temp`.
+Retain those failed receipts. Restore the original system temporary base while
+keeping separate child roots and nested temporary variables; do not change the
+effects guard or broaden the supported permission profile. Require another
+native pass before calling the repair complete.

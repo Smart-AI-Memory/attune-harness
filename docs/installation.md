@@ -1,11 +1,16 @@
 # Install Harness and get started
 
-Updated on October 21, 2026.
+Updated on October 22, 2026.
 
 Use this guide for the released `attune-harness` 1.5.0 runtime. Python 3.10 or
 later is required. Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
+
+Version 1.5.1 is [in preparation](release-notes-1.5.1.md). Its final package and
+release checks are pending; use the published 1.5.0 commands below until the
+new release is available. Existing saved work and retained evidence environments
+should be preserved when selecting another runtime.
 
 ## Install the runtime
 

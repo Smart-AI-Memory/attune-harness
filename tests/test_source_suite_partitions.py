@@ -34,13 +34,22 @@ def partition_project(project, *, assertion='True', rendezvous=False):
             '    observed.update(tempdir=tempfile.gettempdir(), fixture=str(tmp_path), '
             'basetemp=str(request.config._tmp_path_factory.getbasetemp()))\n'
             '    Path(__file__).with_suffix(".temp.json").write_text(json.dumps(observed))\n'
+            '    if os.name == "nt":\n'
+            '        from attune_harness.windows_effects import Native\n'
+            '        api = Native()\n'
+            '        with api.root({"root": str(tmp_path)}, check=False) as parent:\n'
+            '            with api.owned(api.child(parent, "created", create=True, '
+            'directory=True, writable=True)) as child:\n'
+            '                entry, size, inherited = api.metadata(child)\n'
+            '        assert inherited, "partition fixtures lost inherited Windows permissions"\n'
             + barrier + '    assert ' + assertion + '\n')
 
 
 def test_actual_partitions_run_concurrently_and_cover_every_case(tmp_path, project, monkeypatch):
     temporary_base = tmp_path / 'workers'
     temporary_base.mkdir()
-    monkeypatch.setenv('RUNNER_TEMP', str(temporary_base))
+    monkeypatch.setattr(RUNNER.tempfile, 'gettempdir', lambda: str(temporary_base))
+    monkeypatch.setenv('RUNNER_TEMP', str(project / 'different-hosted-runner-base'))
     partition_project(project, rendezvous=True)
     output = tmp_path / 'evidence'
     assert RUNNER.run_suite(output, 40, root=project, shards=2) == 0
@@ -170,7 +179,7 @@ def test_zero_worker_exits_without_evidence_fail_the_aggregate(tmp_path, project
 def test_temporary_namespace_inside_checkout_refuses_before_dispatch(tmp_path, project, monkeypatch):
     temporary = project / 'temporary'
     temporary.mkdir()
-    monkeypatch.setenv('RUNNER_TEMP', str(temporary))
+    monkeypatch.setattr(RUNNER.tempfile, 'gettempdir', lambda: str(temporary))
     monkeypatch.setattr(RUNNER, '_run_suite', lambda *args, **kwargs:
                         pytest.fail('Unsafe temporary namespace dispatched'))
     output = tmp_path / 'evidence'

@@ -49,8 +49,10 @@ its own pytest base directory. Standard temporary-directory variables and
 nested pytest use that root. The receipts record these runner-local paths for
 failure inspection. Separate namespaces prevent peer cleanup and temporary-file
 churn from interfering with native directory-stability checks.
-The parent uses the hosted `RUNNER_TEMP` when available; each child receives
-its own `RUNNER_TEMP` so nested drivers also stay within that namespace.
+The parent keeps the system temporary base to preserve native filesystem and
+permission behavior. Each child receives its own `RUNNER_TEMP` so nested drivers
+also stay within that namespace; the hosted runner scratch base is not substituted
+for the system temporary base.
 
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and
