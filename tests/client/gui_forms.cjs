@@ -37,7 +37,7 @@ async function setup(){
  const status=new Element('p',doc);
  const selection={anchorNode:null,focusNode:null,setBaseAndExtent(a,ao,f,fo){this.anchorNode=a;this.anchorOffset=ao;this.focusNode=f;this.focusOffset=fo;}};const window={scrollX:0,scrollY:0,getSelection:()=>selection,scrollTo(x,y){this.scrollX=x;this.scrollY=y;}};
  const context=vm.createContext({window,document:doc,status,token:'test',console,Map,JSON,Error,Object,setTimeout(fn){const id=++seq;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);},refresh:async()=>snapshot.fresh,fetch:async(path,opts)=>{calls.push({path,opts});assert(queue.length,`Unexpected request ${path}`);const next=queue.shift();if(next instanceof Error)throw next;if(typeof next==='function')return next();return {ok:next.ok!==false,text:async()=>next.error||'409 conflict',json:async()=>next};}});
- queue.push({editable:true,tasks:[]});vm.runInContext(fs.readFileSync(process.argv[2],'utf8'),context);await flush();
+ queue.push({editable:true,tasks:[]});trace('before-script-read');const source=fs.readFileSync(process.argv[2],'utf8');trace('before-script-evaluation');vm.runInContext(source,context);trace('after-script-evaluation');await flush();trace('setup-complete');
  return {doc,root,status,selection,window,snapshot,queue,calls,timers,run:s=>vm.runInContext(s,context),panel:doc.querySelector('#form-panel')};
 }
 async function flush(){for(let i=0;i<60;i++)await Promise.resolve();}
