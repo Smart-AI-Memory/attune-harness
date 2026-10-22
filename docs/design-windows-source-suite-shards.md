@@ -65,3 +65,25 @@ freshness contracts are separate from this capacity defect.
 Completion review remains pending until verification and the reviewable PR
 record the actual outcome. This note authorizes no merge, manual workflow
 dispatch, paid provider call or release.
+
+## First native pass and temporary namespaces
+
+The first partitioned Server 2022 runs finished in 1,163.531 seconds (Python
+3.10) and 1,195.282 seconds (Python 3.12), but one partition reported intermittent
+memory-reader refusals in each cell. The other partition passed. The
+[run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39863977684)
+and original artifacts remain retained. This establishes runtime margin for
+those attempts, not a passing source qualification.
+
+Both source processes inherited the common system temporary directory. Native
+reader admission compares parent directory observations before and after an
+open; peer scratch creation can therefore cause a correct refusal. Allocate
+distinct canonical temporary roots outside the checkout before either child
+starts, set all three standard temporary variables and pytest's temporary-root
+variable, and supply an explicit per-child pytest base directory. Prefer the
+hosted `RUNNER_TEMP` base and give each child its own value so nested drivers
+do not return to the shared parent namespace. Record the
+paths and retain failed scratch for inspection. Keep fixture projects outside
+the source checkout so Git discovery behavior stays unchanged. Verify the
+actual child environment and fixture paths, then require a new native pass;
+the shared-namespace explanation remains a hypothesis until that evidence.

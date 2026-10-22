@@ -44,6 +44,14 @@ an aggregate `source-suite.json` plus each child's output, JUnit, collection and
 timing records under `shard-0/` and `shard-1/`. Ubuntu and serial driver callers
 keep their existing behavior. See the [design and baseline evidence](design-windows-source-suite-shards.md).
 
+Each child has a distinct canonical temporary root outside the checkout, with
+its own pytest base directory. Standard temporary-directory variables and
+nested pytest use that root. The receipts record these runner-local paths for
+failure inspection. Separate namespaces prevent peer cleanup and temporary-file
+churn from interfering with native directory-stability checks.
+The parent uses the hosted `RUNNER_TEMP` when available; each child receives
+its own `RUNNER_TEMP` so nested drivers also stay within that namespace.
+
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and
 status with `attune` absent and no model called. The platform receipt's

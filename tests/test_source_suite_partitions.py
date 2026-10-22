@@ -26,12 +26,21 @@ def partition_project(project, *, assertion='True', rendezvous=False):
     assert other.exists(), 'partitions were not concurrent'
 ''' if rendezvous else ''
         (project / name).write_text(
-            'import time\nfrom pathlib import Path\nimport pytest\n'
+            'import time, os, tempfile, json\nfrom pathlib import Path\nimport pytest\n'
             '@pytest.mark.parametrize("value", [1, 2])\n'
-            'def test_case(value):\n' + barrier + '    assert ' + assertion + '\n')
+            'def test_case(value, tmp_path, request):\n'
+            '    observed = {key: os.environ.get(key) for key in '
+            '("TMP", "TEMP", "TMPDIR", "PYTEST_DEBUG_TEMPROOT", "RUNNER_TEMP")}\n'
+            '    observed.update(tempdir=tempfile.gettempdir(), fixture=str(tmp_path), '
+            'basetemp=str(request.config._tmp_path_factory.getbasetemp()))\n'
+            '    Path(__file__).with_suffix(".temp.json").write_text(json.dumps(observed))\n'
+            + barrier + '    assert ' + assertion + '\n')
 
 
-def test_actual_partitions_run_concurrently_and_cover_every_case(tmp_path, project):
+def test_actual_partitions_run_concurrently_and_cover_every_case(tmp_path, project, monkeypatch):
+    temporary_base = tmp_path / 'workers'
+    temporary_base.mkdir()
+    monkeypatch.setenv('RUNNER_TEMP', str(temporary_base))
     partition_project(project, rendezvous=True)
     output = tmp_path / 'evidence'
     assert RUNNER.run_suite(output, 40, root=project, shards=2) == 0
@@ -47,6 +56,18 @@ def test_actual_partitions_run_concurrently_and_cover_every_case(tmp_path, proje
     assert not selections[0] & selections[1]
     assert selections[0] | selections[1] == set(manifests[0]['collected'])
     assert all((output / f'shard-{index}' / 'tests.xml').is_file() for index in range(2))
+    observed = [json.loads((project / f'{name}.temp.json').read_text())
+                for name in ('test_first', 'test_right')]
+    assert observed[0]['tempdir'] != observed[1]['tempdir']
+    assert receipt['temporary_roots'] == [item['tempdir'] for item in observed]
+    for item in observed:
+        temporary = Path(item['tempdir']).resolve()
+        assert temporary.parent == temporary_base.resolve()
+        assert all(Path(item[key]).resolve() == temporary for key in
+                   ('TMP', 'TEMP', 'TMPDIR', 'PYTEST_DEBUG_TEMPROOT', 'RUNNER_TEMP'))
+        assert Path(item['basetemp']).resolve() == temporary / 'pytest'
+        assert Path(item['fixture']).resolve().is_relative_to(temporary / 'pytest')
+        assert not temporary.is_relative_to(project)
 
 
 def test_assertion_failure_in_a_partition_fails_the_whole_suite(tmp_path, project):
@@ -144,6 +165,19 @@ def test_zero_worker_exits_without_evidence_fail_the_aggregate(tmp_path, project
     assert RUNNER.run_suite(output, 10, root=project, shards=2) == 2
     receipt = json.loads((output / 'source-suite.json').read_text())
     assert receipt['status'] == 'failed' and receipt['shard_exits'] == [0, 0]
+
+
+def test_temporary_namespace_inside_checkout_refuses_before_dispatch(tmp_path, project, monkeypatch):
+    temporary = project / 'temporary'
+    temporary.mkdir()
+    monkeypatch.setenv('RUNNER_TEMP', str(temporary))
+    monkeypatch.setattr(RUNNER, '_run_suite', lambda *args, **kwargs:
+                        pytest.fail('Unsafe temporary namespace dispatched'))
+    output = tmp_path / 'evidence'
+    assert RUNNER.run_suite(output, 10, root=project, shards=2) == 2
+    receipt = json.loads((output / 'source-suite.json').read_text())
+    assert receipt['status'] == 'failed' and 'outside the source checkout' in receipt['error']
+    assert 'temporary_roots' not in receipt
 
 
 def test_workflow_command_runs_actual_partition_driver(tmp_path, project):

@@ -11,6 +11,7 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
+import tempfile
 import time
 from threading import Event
 
@@ -18,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'scripts'
 
 
-def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None):
+def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None, temporary_root=None):
     """Keep process failure distinct from pytest success; never retry a suite."""
     from attune_harness.process import invoke
 
@@ -32,7 +33,8 @@ def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None):
             '-p', 'harness_qualification_stacks', '-o', 'faulthandler_timeout=0',
             '-o', 'tmp_path_retention_policy=failed')
     if shard is not None:
-        argv += ('--harness-shard-index=' + str(shard), '--harness-shard-count=2')
+        argv += ('--harness-shard-index=' + str(shard), '--harness-shard-count=2',
+                 '--basetemp=' + str(temporary_root / 'pytest'))
     receipt = {
         'schema_version': 1, 'suite': 'full_source', 'status': 'running',
         'root': str(root), 'command': list(argv), 'timeout_seconds': timeout,
@@ -42,11 +44,19 @@ def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None):
     }
     if shard is not None:
         receipt['shard'] = {'index': shard, 'count': 2}
+        receipt['temporary_root'] = str(temporary_root)
     path = output / 'source-suite.json'
     path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     environment = dict(os.environ)
     environment.update(PYTHONUTF8='1', HARNESS_QUALIFICATION_OUTPUT=str(output),
                        PYTHONPATH=str(SCRIPTS) + os.pathsep + str(root / 'src'))
+    if temporary_root is not None:
+        # Native readers refuse directory churn while admitting a path. Keep
+        # shard fixtures and nested process scratch in separate namespaces;
+        # nested pytest cannot clean a peer's fixtures. Retain roots for
+        # failure inspection on the runner.
+        environment.update({name: str(temporary_root) for name in
+                            ('TMP', 'TEMP', 'TMPDIR', 'PYTEST_DEBUG_TEMPROOT', 'RUNNER_TEMP')})
     started = time.monotonic()
     try:
         revision = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
@@ -139,10 +149,18 @@ def run_suite(output, timeout, *, root=ROOT, shards=1):
         revision = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
                                   capture_output=True, timeout=10, check=True)
         receipt['revision'] = revision.stdout.decode('ascii').strip()
+        temporary_base = Path(os.environ.get('RUNNER_TEMP') or tempfile.gettempdir()).resolve()
+        if temporary_base.is_relative_to(root):
+            raise ValueError('Partition temporary roots must be outside the source checkout')
+        temporary_roots = [Path(tempfile.mkdtemp(prefix=f'harness-source-shard-{index}-',
+                                               dir=temporary_base)).resolve()
+                           for index in range(2)]
+        receipt['temporary_roots'] = [str(folder) for folder in temporary_roots]
         with ThreadPoolExecutor(max_workers=2) as workers:
             try:
                 futures = [workers.submit(_run_suite, output / f'shard-{index}', timeout,
-                                          root=root, shard=index, cancel=cancel) for index in range(2)]
+                                          root=root, shard=index, cancel=cancel,
+                                          temporary_root=temporary_roots[index]) for index in range(2)]
                 codes = [future.result() for future in futures]
             except BaseException:
                 cancel.set()
