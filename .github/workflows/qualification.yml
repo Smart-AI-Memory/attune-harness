@@ -211,7 +211,9 @@ jobs:
         # The existing a8 full-source reference used this 2700-second child
         # budget. Keep evidence time outside it; this is not an installed-job cap.
         timeout-minutes: 50
-        run: python -I scripts/run_source_suite.py --output full-suite --timeout 2700
+        # Two disjoint module partitions run concurrently inside this cell.
+        # The driver verifies complete collection and case journals before success.
+        run: python -I scripts/run_source_suite.py --output full-suite --timeout 2700 --shards 2
       - name: Keep Windows full source-suite evidence
         if: ${{ always() && runner.os == 'Windows' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

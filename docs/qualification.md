@@ -33,6 +33,17 @@ The full-suite matrix runs plain `pytest` to catch tests outside the
 installed-wheel selection. The required `Qualification` check passes only when
 the installed-wheel jobs, full-suite jobs and documentation link check pass.
 
+Each Windows full-source cell runs two concurrent supervised pytest partitions
+through `scripts/run_source_suite.py --shards 2`. Module-path hashing keeps each
+module's fixtures and test order together. Both processes collect the complete
+suite; the driver checks matching collections, disjoint complete selections,
+case start/end journals and successful process exits before reporting success.
+Each child retains the 2,700-second deadline. A timeout or missing evidence fails
+the whole cell even if pytest printed success. The `full-suite-*` artifact keeps
+an aggregate `source-suite.json` plus each child's output, JUnit, collection and
+timing records under `shard-0/` and `shard-1/`. Ubuntu and serial driver callers
+keep their existing behavior. See the [design and baseline evidence](design-windows-source-suite-shards.md).
+
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and
 status with `attune` absent and no model called. The platform receipt's

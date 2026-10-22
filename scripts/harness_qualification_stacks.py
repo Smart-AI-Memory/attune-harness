@@ -4,6 +4,7 @@ This watchdog needs the GIL: it cannot diagnose a C extension that holds it.
 The qualifier's separate process budget still terminates such a stuck suite.
 """
 import json
+import hashlib
 import os
 from pathlib import Path
 import sys
@@ -19,6 +20,32 @@ _monotonic = time.monotonic
 def pytest_addoption(parser):
     parser.addini('harness_stack_timeout', 'Seconds before retaining slow-test stacks',
                   default='60')
+    parser.addoption('--harness-shard-index', type=int, default=0)
+    parser.addoption('--harness-shard-count', type=int, default=1)
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_collection_modifyitems(config, items):
+    count = config.getoption('--harness-shard-count')
+    index = config.getoption('--harness-shard-index')
+    if count not in (1, 2) or not 0 <= index < count:
+        raise pytest.UsageError('Invalid source-suite partition')
+    if count == 1:
+        return
+    collected = [item.nodeid for item in items]
+    selected, deselected = [], []
+    for item in items:
+        module = item.nodeid.split('::', 1)[0]
+        owner = hashlib.sha256(module.encode('utf-8')).digest()[0] % count
+        (selected if owner == index else deselected).append(item)
+    manifest = {'schema_version': 1, 'shard': {'index': index, 'count': count},
+                'collected': collected, 'selected': [item.nodeid for item in selected]}
+    path = Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'collection.json'
+    with path.open('x', encoding='utf-8') as stream:
+        json.dump(manifest, stream, ensure_ascii=True, allow_nan=False, indent=2)
+        stream.write('\n')
+    items[:] = selected
+    config.hook.pytest_deselected(items=deselected)
 
 
 def pytest_configure(config):
