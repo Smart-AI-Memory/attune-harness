@@ -14,6 +14,11 @@ import zipfile
 import pytest
 
 
+def write_utf8(path, value):
+    """Keep disposable fixture bytes identical to the wheel's LF payload."""
+    path.write_text(value, encoding='utf-8', newline='')
+
+
 @pytest.fixture
 def helper():
     path = Path(__file__).resolve().parents[1] / 'scripts/measure_inspection_timing.py'
@@ -44,11 +49,11 @@ def forms_install(helper, tmp_path, monkeypatch):
     for name, value in files.items():
         path = package / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(value, encoding='utf-8')
+        write_utf8(path, value)
     metadata = site / 'attune_forms-0.17.0.dist-info'
     metadata.mkdir()
-    (metadata / 'METADATA').write_text('Name: attune-forms\nVersion: 0.17.0\n')
-    (metadata / 'WHEEL').write_text('Wheel-Version: 1.0\nTag: py3-none-any\n')
+    write_utf8(metadata / 'METADATA', 'Name: attune-forms\nVersion: 0.17.0\n')
+    write_utf8(metadata / 'WHEEL', 'Wheel-Version: 1.0\nTag: py3-none-any\n')
     distribution = importlib.metadata.PathDistribution(metadata)
     module = ModuleType('attune_forms')
     module.__file__ = str(package / '__init__.py')
@@ -69,11 +74,11 @@ def preflight_args(helper, forms_install, tmp_path, monkeypatch):
     installed = tmp_path / 'harness-site/attune_harness'
     for root in (source, installed):
         root.mkdir(parents=True)
-        (root / '__init__.py').write_text('NAME = "harness"\n')
+        write_utf8(root / '__init__.py', 'NAME = "harness"\n')
     metadata = installed.parent / 'attune_harness-1.5.0.dist-info'
     metadata.mkdir()
-    (metadata / 'METADATA').write_text('Name: attune-harness\nVersion: 1.5.0\n')
-    (metadata / 'WHEEL').write_text('Wheel-Version: 1.0\nTag: py3-none-any\n')
+    write_utf8(metadata / 'METADATA', 'Name: attune-harness\nVersion: 1.5.0\n')
+    write_utf8(metadata / 'WHEEL', 'Wheel-Version: 1.0\nTag: py3-none-any\n')
     distribution = importlib.metadata.PathDistribution(metadata)
     module = ModuleType('attune_harness')
     module.__file__ = str(installed / '__init__.py')
@@ -109,22 +114,22 @@ def test_forms_identity_covers_import_origin_artifact_and_package_data(helper, f
 def test_forms_refusals_precede_output_creation(helper, forms_install, tmp_path, monkeypatch, case):
     args = preflight_args(helper, forms_install, tmp_path, monkeypatch)
     if case == 'editable':
-        (forms_install.metadata / 'direct_url.json').write_text(json.dumps(
+        write_utf8(forms_install.metadata / 'direct_url.json', json.dumps(
             {'dir_info': {'editable': True}, 'url': 'file:///disposable-source'}))
     elif case == 'no-wheel':
         (forms_install.metadata / 'WHEEL').unlink()
     elif case == 'modified-python':
-        (forms_install.package / 'render.py').write_text('VALUE = 2\n')
+        write_utf8(forms_install.package / 'render.py', 'VALUE = 2\n')
     elif case == 'modified-data':
-        (forms_install.package / 'templates/preview.html').write_text('<p>changed</p>\n')
+        write_utf8(forms_install.package / 'templates/preview.html', '<p>changed</p>\n')
     elif case == 'extra-file':
-        (forms_install.package / 'unrecorded.py').write_text('VALUE = 1\n')
+        write_utf8(forms_install.package / 'unrecorded.py', 'VALUE = 1\n')
     elif case == 'missing-file':
         (forms_install.package / 'render.py').unlink()
     elif case == 'shadowed-origin':
         shadow = tmp_path / 'shadow/__init__.py'
         shadow.parent.mkdir()
-        shadow.write_text(forms_install.files['__init__.py'])
+        write_utf8(shadow, forms_install.files['__init__.py'])
         forms_install.module.__file__ = str(shadow)
     elif case == 'mismatched-artifact':
         write_wheel(forms_install.wheel, 'attune_forms',
