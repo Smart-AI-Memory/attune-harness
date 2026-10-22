@@ -1,6 +1,6 @@
 # Attune Harness
 
-Updated on October 21, 2026.
+Updated on October 22, 2026.
 
 **Run agent tasks, check the results independently, and keep the evidence.**
 
@@ -11,6 +11,12 @@ and any errors.
 For a small working example, see [checks and receipts](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#checks-and-receipts).
 
 **Current release: [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)** · [PyPI package](https://pypi.org/project/attune-harness/1.5.0/)
+
+**Next release: 1.5.1 (in preparation).** The planned maintenance release improves
+plugin signature validation and makes completed document-assessment evidence
+easier to inspect. Read the [draft release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-notes-1.5.1.md)
+and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.5.1.md) for the changes and
+remaining checks. The installation commands below select published 1.5.0.
 
 The v1 compatibility contract remains in effect.
 

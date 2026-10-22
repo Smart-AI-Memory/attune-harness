@@ -2,11 +2,13 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on October 21, 2026.
+Updated on October 22, 2026.
 
 ## Installation
 
-This guide describes the 1.5.0 commands. Install Harness in its own environment.
+This guide describes the 1.5.0 commands, with planned 1.5.1 changes labeled below.
+Version 1.5.1 is [in preparation](release-notes-1.5.1.md); the installation
+command selects published 1.5.0. Install Harness in its own environment.
 Use the [workflow guide](supported-journeys.md) to check capabilities and
 reliability requirements.
 
@@ -538,6 +540,11 @@ creates a durable interruption for later resume. A completed assessment can repo
 a refuted or unknown document; participant narratives remain unverified proposals.
 The JSON includes the task directory and identity.
 
+### Inspect completed assessment evidence (1.5.1 candidate)
+
+The following presentation is merged on `main` for the planned 1.5.1 release;
+published 1.5.0 uses the earlier generic status report.
+
 Inspect a completed assessment with **`status`** and `--format markdown` or
 `--format html`. The readable report shows the accepted goal and criteria,
 recorded document-check verdicts and checker findings, retrieved source paths and
@@ -546,6 +553,20 @@ supporting fields in the saved JSON. Semantic acceptance remains unverified;
 reading status does not rerun checks, refresh source evidence or grant execution.
 Non-layout control characters display as `\uXXXX`, and line endings display as
 line breaks. Saved text and the default JSON output are unchanged.
+
+Use the task directory returned by your completed review. For example, if it is
+`~/harness-tasks/review-task`:
+
+```sh
+attune-harness status ~/harness-tasks/review-task --format markdown
+attune-harness status ~/harness-tasks/review-task --format html > assessment.html
+```
+
+Expect **Assessment evidence**, a **Document check verdict** and separately
+attributed participant judgments. A document-check verdict of `verified`,
+`refuted` or `unknown` describes the recorded checks; **Semantic acceptance**
+remains unverified. Incomplete assessments, repair tasks and other task profiles
+keep their existing presentation.
 
 Use `--help-all` when you need additional recovery or setup controls.
 See the [assessment receipt](specs/unified-task-execution/assessment-receipt.md)
