@@ -1,0 +1,47 @@
+# Historical local-link defects at main 17679c94bc10367d47debce8dee398ef794e1e6d.
+# Format: original document<TAB>exact original URL. One original occurrence.
+# These dated records retain local receipt scripts, author-machine paths,
+# removed experiment/source files and four moved or non-rendered anchors.
+# Preserve their evidence; reject new broken links outside these exact pairs.
+# A resolved or unused exception must be removed. This list is not a backlog
+# of source files to recreate, receipts to regenerate or permission to do so.
+docs/extension-workflow-receipt.md	receipts/extensions-cleanup-probe.py
+docs/fresh-installation-results.md	receipts/release-readiness-follow-through/fresh-install/qualify.py
+docs/fresh-installation-results.md	receipts/release-readiness-follow-through/fresh-install/resolve.py
+docs/handoffs/README-independence-wording-draft-2026-09-21.md	#what-is-qualified-and-what-is-not
+docs/harness-phased-plan.md	/Users/patrickroebuck/.codex/worktrees/593b/attune-ai/src/attune/plugins/base.py
+docs/opportunity-log.md	plan-1.0.md#release-gate-status--september-27-2026
+docs/plan-build-function-body-replay-results.md	../experiments/plan_build/replay_function_bodies.py
+docs/plan-build-repair-contenders-results.md	receipts/plan-build-repair-contenders-native-2026-09-18/verify-closeout.py
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-harness/src/attune_harness/recovery.py:36
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-harness/src/attune_harness/retrieval.py:15
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-harness/src/attune_harness/review.py:16
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-rag/src/attune_rag/embedding.py:103
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-rag/src/attune_rag/hybrid.py:21
+docs/rag-options-research-2026-09-15.md	/Users/patrickroebuck/attune-rag/src/attune_rag/transformer.py:49
+docs/release-readiness-follow-through-results.md	receipts/release-readiness-follow-through/close_with_installed_host.py
+docs/research/control-and-latency-2026-09-16.md	../receipts/control-latency-2026-09-16/probe.py
+docs/research/control-and-latency-2026-09-16.md	/Users/patrickroebuck/attune-forms/src/attune_forms/conformance.py
+docs/research/form-visibility-2026-09-17.md	../../experiments/form_visibility/probe_native_question.cjs
+docs/research/luna-stage-contract-results-2026-09-16.md	../receipts/luna-stage-contract-2026-09-16/analyze.py
+docs/research/luna-stage-contract-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/mcp/memory_handlers.py
+docs/research/luna-stage-contract-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/personal.py
+docs/research/luna-stage-contract-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/session_stash.py
+docs/research/luna-voyage-follow-up-2026-09-16.md	../receipts/control-latency-2026-09-16/analyze_native_receipts.py
+docs/research/memory-citations-results-2026-09-16.md	../receipts/memory-citations-2026-09-16/analyze.py
+docs/research/memory-routing-results-2026-09-16.md	../receipts/memory-routing-2026-09-16/analyze.py
+docs/research/memory-routing-v2-results-2026-09-16.md	../receipts/memory-routing-v2-2026-09-16/analyze.py
+docs/research/memory-sorter-results-2026-09-16.md	../receipts/memory-sorter-2026-09-16/analyze.py
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/atomic_io.py:99
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/file_stash.py:180
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/long_term_classification.py:142
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/personal.py:169
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/personal.py:420
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/promotion.py:38
+docs/research/memory-worker-results-2026-09-16.md	/Users/patrickroebuck/attune-ai/src/attune/memory/session_stash.py:39
+docs/specs/windows-parity/README.md	../../supported-journeys.md#L57
+docs/test-this-change-results.md	../README.md#test-this-change
+docs/voyage-accuracy-receipt.md	../.pilot/voyage-accuracy-2026-09-15/run.py
+docs/voyage-latency-assessment-2026-09-15.md	receipts/voyage-next-increment-2026-09-15/latency_probe.py
+docs/voyage-next-increment-2026-09-15.md	../src/attune_harness/attune_bridge.py
+docs/voyage-next-increment-2026-09-15.md	receipts/voyage-next-increment-2026-09-15/audit.py

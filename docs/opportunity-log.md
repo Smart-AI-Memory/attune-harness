@@ -83,6 +83,20 @@ deterministic controls while retained historical exceptions stay explicit.
 Effort: small; scripts/tests, separate from this documentation-only slice. The
 original Markdown/index closure remains completed. This note authorizes no work.
 
+O-55 implementation follow-through, 2026-10-21 — **review** lens. The checker
+now validates local Markdown headings and HTML anchors, tracked source targets,
+and source line ranges. Inline/reference links are checked; code examples and
+comments do not create links or headings. Existing PyPI and document-index gates
+remain. Forty newly exposed historical defects have exact document/URL entries
+in `scripts/historical_link_exceptions.txt`; resolved or unused entries fail.
+The older known-dead list loses one entry that occurred only inside an example.
+Historical document bodies and retained receipts remain unchanged. Focused
+negative controls and repository checking pass locally; full-suite, installed
+and native Windows results belong to the candidate PR. This implements the
+bounded checker gap, not all Markdown syntax, external URL checking or artifact
+availability. The first user benefit is rejection of a new broken source or
+section link before merge. No merge or publication is authorized by this note.
+
 ## Historical recommendations and register — September 2026
 
 The following snapshots retain their original wording and evidence. Their
