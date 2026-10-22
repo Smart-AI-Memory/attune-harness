@@ -111,6 +111,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Spec authority, Task 2: plan](specs/spec-authority/task-2-plan.md): Task 2's four steps
 - [Attune Harness — phased delivery plan](harness-phased-plan.md): The earlier phased plan, superseded in part
 - [Task companion plan](specs/task-opportunities/plan.md): Return to work first, followed by connected observation and ranked opportunities
+- [Return-to-work implementation and completion](specs/task-opportunities/README.md): Integrated behavior, remaining real-task acceptance and command-owner walk
 - [Return-to-work first increment](specs/task-opportunities/task-1-return-to-work.md): Explicit continuation context, evidence boundaries and human acceptance criteria
 - [Task companion worked journey](specs/task-opportunities/journey.md): Return-to-work scenario and later connected interactions; human acceptance pending
 - [Earlier task snapshot design](specs/task-opportunities/task-1-design.md): Superseded first-view framing retained for its design and evidence

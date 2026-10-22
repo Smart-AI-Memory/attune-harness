@@ -23,7 +23,8 @@ because the skill was opened.
 | Repair a known failure | `fix` | Dedicated checkout, existing files, frozen probe, worker/review choice |
 | Test working-tree changes | `test` | Git checkout, changed scope, interpreter with pytest |
 | Inspect progress or outcome | `status` | Saved task directory |
-| Continue saved work | `resume` | Saved task directory; inspect it first |
+| Return after an interruption | `status`, then a static briefing | Saved task directory; explicit pause note if available |
+| Execute the next saved step | `resume` | Inspect the task first; remaining work must be authorized |
 | Open or reopen saved forms | Browser companion | Saved task directory and explicit read-only/edit intent |
 
 `review` assesses documentary evidence; it is not a general source-code security
@@ -34,6 +35,10 @@ than silently routing them through Attune AI or claiming Harness ran them.
 For browser forms, use [the browser companion reference](references/browser.md).
 Opening or reopening a form is inspection, not workflow execution. Do not call
 `resume` merely to reopen the form; it may dispatch saved work.
+For pause capture and the static return briefing, use
+[Pause and return to work](references/workflows.md#pause-and-return-to-work).
+Opening that briefing is also inspection. It does not require a forms server or
+authorize `resume`.
 
 ## Establish the runtime
 
@@ -72,8 +77,10 @@ Opening or reopening a form is inspection, not workflow execution. Do not call
 - Read structured results as well as exit status. A preview or pause is not a
   completed task; successful `status` means inspection succeeded. A completed
   review can still contain refuted or unknown claims.
-- On pause, inspect `status` and continue through `resume` within existing
-  authorization. On uncertain effects, retain the record and use the documented
+- Before a session pause, inspect `status` and retain explicit stopping context
+  through the pause-and-return procedure. On return, inspect and orient the user
+  before any `resume` dispatch within existing authorization. On uncertain effects,
+  retain the record and use the documented
   reconciliation path; do not retry blindly or start a replacement task to bypass
   a blocked record. Stop for missing authority, unsupported scope, or unresolved
   effects, and state the concrete next action.

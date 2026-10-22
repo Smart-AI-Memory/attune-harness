@@ -1,8 +1,10 @@
 # Task 1: return to work
 
-Status: implementing; human acceptance pending. This supersedes the record-first and review-first framing of
-Task 1. The existing snapshot implementation is unfinished work available for
-reuse; it has not met this task's human acceptance criteria.
+Status, corrected October 22, 2026: the static briefing and continuation
+implementation is integrated; real interrupted-task acceptance remains pending.
+The [current checkpoint](README.md) records source, evidence, remaining work and
+the command-owner walk. This task supersedes the earlier record-first and
+review-first framing. Passing software checks does not establish user acceptance.
 
 ## User outcome
 
@@ -71,15 +73,19 @@ Done when:
   existing JSON compatibility pass the relevant checks. The real walkthrough
   establishes user usefulness separately from software correctness.
 
-## Preparation before implementation resumes
+## Remaining completion work
 
-1. Inspect the existing snapshot code and evidence for reusable parts.
-2. Establish the smallest explicit continuation/evidence input that supports this
-   real journey, preferring existing owners over another store.
-3. Prepare a concrete return-to-work example and evaluate its usefulness before
-   expanding the UI. A hand-authored example is labeled as such.
-4. Freeze the exact source scope and meaningful tests for the revised slice, then
-   implement and qualify it under the repository's normal review process.
+1. Use the [pause-and-return procedure](../../cli-guide.md#pause-and-return-to-work)
+   with one real saved feature-work task and an explicit caller-owned note.
+2. Verify the printed procedure against current, absent, historical, stale and
+   unresolved context in disposable owner fixtures. Preserve task/note bytes and
+   current guidance; keep software results separate from the human observation.
+3. Observe returning to the real task, recovering context and preparing the next
+   valid assistant handoff without rereading the conversation. Record the chosen
+   artifact/runtime, browser/platform, actual result and help needed. An assisted
+   walkthrough does not establish independent discovery from a closed host.
+4. Update the acceptance record from that observation. Runtime changes remain
+   outside this completion slice; scope a demonstrated source defect separately.
 
 The connected companion remains the destination. This task establishes the value
 and evidence model of returning to work before live updates or new opportunities
@@ -120,9 +126,12 @@ reported progress, saved-scope changes, open decisions and remaining planned wor
 The existing owner's guidance always wins; the supplied suggestion stays advisory
 below it and cannot override a blocked/uncertain/stale or completed state. Detailed
 record fields go in native HTML disclosure sections; Markdown stays readable.
-No executable buttons, forms, scripts or remote assets are introduced.
+The original implementation excluded scripts and buttons. The later
+[Saved Tasks and human briefing increment](journey.md#production-integration-saved-tasks-and-a-human-briefing)
+supersedes that boundary only for fixed local reply preparation and navigation.
+It sends no response, accepts no checkpoint and dispatches no work.
 
-Exact additional source scope: `task_continuation.py`, `task_view.py` and
+Original implementation scope: `task_continuation.py`, `task_view.py` and
 `task_cli.py`, with the existing single-read changes in `work_cli.py` and
 `work_runtime.py`. Tests precede these changes: a saved/reopened real-owner task,
 revision comparison and resolved decisions, absent context, stale input and old
