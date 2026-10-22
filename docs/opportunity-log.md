@@ -97,6 +97,22 @@ bounded checker gap, not all Markdown syntax, external URL checking or artifact
 availability. The first user benefit is rejection of a new broken source or
 section link before merge. No merge or publication is authorized by this note.
 
+O-74 implementation follow-through, 2026-10-21 — **R6** lens. Completed
+assessment status now presents the accepted goal and criteria, recorded document
+checks and checker findings, retrieved source identities and separately attributed
+participant judgments in Markdown and HTML. Exact saved-record pointers make the evidence
+inspectable; software verdicts and participant claims retain distinct labels.
+The report preserves entered wording and repeated line breaks, visibly escapes
+non-layout control characters without changing saved text, and states that
+semantic acceptance and current source freshness are not established.
+Default JSON, saved records, other task profiles and execution authority remain
+unchanged. Focused checks, independent review and final source/installed/native
+results belong to the candidate PR. This closes the completed-assessment
+presentation slice only; richer repair presentation and observed user acceptance
+remain separate. The first user benefit is inspecting why an assessment was
+called complete without reconstructing its JSON. No merge, publication or paid
+trial is authorized by this note.
+
 ## Historical recommendations and register — September 2026
 
 The following snapshots retain their original wording and evidence. Their
