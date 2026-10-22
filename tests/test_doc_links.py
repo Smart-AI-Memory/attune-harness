@@ -263,3 +263,12 @@ def test_readme_pypi_policy_and_actual_command_exit_status(repository):
     result = subprocess.run([sys.executable, '-I', str(SCRIPT)], cwd=root,
                             capture_output=True, text=True, timeout=10)
     assert result.returncode == 0
+
+
+@pytest.mark.parametrize('image', ['![Image](assets/diagram.png)',
+                                  '![Image][ref]\n\n[ref]: assets/diagram.png'])
+def test_readme_pypi_policy_still_rejects_relative_images(repository, image):
+    root, write = repository
+    write('README.md', '# Main\n' + image + '\n')
+    assert any('link will not resolve on PyPI: assets/diagram.png' in item
+               for item in checker.check(root))

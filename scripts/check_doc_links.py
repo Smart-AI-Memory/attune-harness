@@ -46,11 +46,11 @@ import sys
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
-LINK = re.compile(r'(?<![!\\])\[((?:[^\[\]\n]|\[[^\[\]\n]*\])*)\]\(\s*'
+LINK = re.compile(r'(?<!\\)\[((?:[^\[\]\n]|\[[^\[\]\n]*\])*)\]\(\s*'
                   r'(<[^>\n]*>|(?:\\.|[^\s()\\]|\([^()\n]*\))+)'
                   r'(?:\s+[\"\'][^\n]*?[\"\'])?\s*\)')
 REFERENCE = re.compile(r'^ {0,3}\[([^\]\n]+)\]:\s*(<[^>\n]*>|\S+)', re.MULTILINE)
-REFERENCE_USE = re.compile(r'(?<!!)\[([^\]\n]+)\](?:\[([^\]\n]*)\])?')
+REFERENCE_USE = re.compile(r'(?<!\\)\[([^\]\n]+)\](?:\[([^\]\n]*)\])?')
 KNOWN_NAME = "known_dead_links.txt"
 HISTORICAL_NAME = "historical_link_exceptions.txt"
 INDEX = "docs/README.md"
