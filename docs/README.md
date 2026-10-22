@@ -62,8 +62,11 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
-- [1.5.0 draft release notes](release-notes-1.5.0.md): Planned Windows changes, current installation guidance, and unreleased limits
-- [1.5.0 draft readiness record](release-readiness-1.5.0.md): Merged component evidence, production blockers, and final parity/publication gates
+- [1.5.1 draft release notes](release-notes-1.5.1.md): Planned maintenance release for signature validation, assessment evidence and documentation guidance; unpublished
+- [1.5.1 preparation readiness](release-readiness-1.5.1.md): Assessed source, failed current-main qualification, documentation review and remaining release gates
+- [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0): Published source, distribution hashes and installed-package checks
+- [1.5.0 preparation release notes](release-notes-1.5.0.md): Preserved pre-publication scope and installation guidance; use the release record for publication evidence
+- [1.5.0 preparation readiness record](release-readiness-1.5.0.md): Historical component evidence and open parity requirements; its unpublished-candidate wording predates publication
 - [1.4.0 release notes](release-notes-1.4.0.md): Saved forms, consultation additions, compatibility, bounded scope and retained preparation evidence
 - [1.4.0 readiness record](release-readiness-1.4.0.md): Source dependencies, documentation owners and final evidence required before publication
 - [1.3.0 release notes](release-notes-1.3.0.md): `init --for plan` and `init --for fix` write the starter files; example participants finish both journeys

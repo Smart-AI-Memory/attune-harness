@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+Planned maintenance release: **1.5.1**. Final version metadata, qualification
+and publication are pending. See the [draft release notes](docs/release-notes-1.5.1.md)
+and [readiness record](docs/release-readiness-1.5.1.md).
+
+- Verify plugin signatures using exactly the binary bytes checked by the packet
+  guard. Refuse trailing messages, additional armor blocks and malformed armor
+  before GPG starts; preserve valid binary signatures and supported armored
+  signatures, including optional checksum validation (#289).
+- Show recorded evidence for completed document assessments in **`status`**
+  Markdown and HTML reports: accepted goals and criteria, checker outcomes,
+  retrieved-source identities and separately attributed participant judgments.
+  Default JSON and saved records are unchanged; inspection does not rerun checks
+  or establish semantic acceptance or current source freshness (#292).
+- Clarify installation, workflow selection, Windows reliability requirements
+  and saved-work guidance. Retain browser timeout diagnostics for form-test
+  failures (#288, #290).
+- Check local documentation fragments, source-file targets and source line
+  ranges, retaining explicit historical exceptions (#291). Add bounded tests
+  that follow selected refusal guidance through the next command without
+  authorizing work or calling a model (#293, #295).
+
 ## 1.5.0
 
 Ship verified merged changes while deferring full Windows parity. The merged

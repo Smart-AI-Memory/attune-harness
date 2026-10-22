@@ -17,6 +17,7 @@ never absorbed as an expected failure. See
 """
 # qualify: platform
 
+import ast
 import hashlib
 import importlib.util
 import json
@@ -141,6 +142,22 @@ def run_report(table, cwd):
     return subprocess.run([sys.executable, '-c', doc_journeys.substitute(code, table)],
                           cwd=cwd, env=env, capture_output=True, text=True,
                           encoding='utf-8', timeout=120)
+
+
+@pytest.mark.parametrize('base', [r'C:\Users\reader\Saved work', r'D:\a\_temp\return-work'])
+def test_documented_report_preserves_windows_path_literals(base):
+    """The printed wrapper must preserve native paths before calling the CLI."""
+    placeholders = ('/path/outside/repo/work', '/path/outside/repo/pause-note.json',
+                    '/path/outside/repo/return-to-work.html')
+    values = [base + '\\' + name for name in ('work', 'pause-note.json', 'return-to-work.html')]
+    table = dict(zip(placeholders, values))
+    (code,) = doc_journeys.commands(doc_journeys.journeys()['pause-return-report'])
+    wrapper = ast.parse(doc_journeys.substitute(code, table))
+    observed = {node.targets[0].id: ast.literal_eval(node.value.args[0])
+                for node in wrapper.body if isinstance(node, ast.Assign)
+                and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Name) and node.value.func.id == 'Path'}
+    assert observed == dict(zip(('task', 'note', 'report'), values))
 
 
 @pytest.mark.parametrize('state', ['current', 'historical', 'stale', 'unresolved'])

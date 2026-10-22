@@ -5,6 +5,23 @@ signing, accepted grants and a bounded subprocess. **It is not a security sandbo
 Network-declaring run plugins refuse until the host-owned paid-stage journal is
 integrated. The README's platform qualification claim is unchanged.
 
+## Signature validation in the 1.5.1 candidate
+
+The planned [1.5.1 maintenance release](release-notes-1.5.1.md) tightens the
+signature input passed to GPG. Harness decodes one complete ASCII signature
+envelope, checks every binary packet, then gives GPG exactly those checked
+bytes. Trailing messages, additional armor blocks, invalid base64 and malformed
+delimiters refuse before GPG starts. Binary signatures and supported LF/CRLF
+armor remain accepted; an optional checksum is validated when present.
+
+This change is merged on `main` and is absent from published 1.5.0. Signer
+authority, accepted grants and subprocess deadlines keep their existing rules.
+The [design and regression record](design-plugin-signature-input.md) explains
+the input boundary and retained historical evidence. Final release qualification
+is [pending](release-readiness-1.5.1.md).
+
+## Declare and run a plugin
+
 A tool declaration beside an existing `retrieve` declaration can be:
 
 ```json
