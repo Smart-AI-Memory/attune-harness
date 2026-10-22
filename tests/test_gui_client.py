@@ -19,8 +19,7 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
     runner = Path(__file__).parent / 'client' / runner_name
     diagnostics = tmp_path / 'browser-progress.jsonl'
     command = [node, str(runner), str(source)]
-    if runner_name == 'gui_forms_intake.cjs':
-        command.append(str(diagnostics))
+    command.append(str(diagnostics))
     try:
         result = subprocess.run(command, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired as error:
