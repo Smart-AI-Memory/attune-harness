@@ -3,6 +3,7 @@
 
 from html.parser import HTMLParser
 import json
+import importlib
 import os
 import subprocess
 import sys
@@ -23,16 +24,23 @@ class Page(HTMLParser):
     def __init__(self, text):
         super().__init__(convert_charrefs=True)
         self.tags, self.text, self.code, self.stack = [], [], [], []
+        self.blocks, self.active_blocks = [], []
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
         self.tags.append((tag, dict(attrs)))
+        if tag in ('p', 'dd'):
+            self.active_blocks.append((tag, []))
         if tag == 'br':
             self.text.append('\n')
+            for _, parts in self.active_blocks:
+                parts.append('\n')
         if tag not in ('br', 'meta', 'img', 'hr', 'input', 'link'):
             self.stack.append(tag)
 
     def handle_endtag(self, tag):
+        if self.active_blocks and self.active_blocks[-1][0] == tag:
+            self.blocks.append(''.join(self.active_blocks.pop()[1]))
         if tag == 'p':
             self.text.append('\n')
         if tag in self.stack:
@@ -40,6 +48,8 @@ class Page(HTMLParser):
 
     def handle_data(self, data):
         self.text.append(data)
+        for _, parts in self.active_blocks:
+            parts.append(data)
         if 'code' in self.stack:
             self.code.append(data)
 
@@ -91,6 +101,10 @@ def test_completed_assessment_exposes_actual_verdicts_sources_and_attribution(ca
         assert claim['evidence'] in ''.join(page(output, format).code)
         assert claim['location'] in ''.join(page(output, format).code)
         assert '/execution/verification/result/claims/' + str(index) in visible
+    for index, finding in enumerate(task['execution']['verification']['result']['findings']):
+        assert finding['kind'] in visible and finding['severity'] in visible
+        assert finding['detail'] in visible
+        assert '/execution/verification/result/findings/' + str(index) in visible
     for index, source in enumerate(task['execution']['initial_retrieval']['sources']):
         assert source['path'] in visible and source['sha256'] in visible
         assert '/execution/initial_retrieval/sources/' + str(index) in visible
@@ -231,3 +245,57 @@ def test_completed_repairs_keep_existing_generic_presentation(effect_case, capsy
     assert task['status'] == 'completed'
     expected = markdown(task) if format == 'markdown' else document(task)
     assert status(capsys, directory, format) == expected
+
+
+@pytest.mark.parametrize('format', ['markdown', 'html'])
+def test_terminal_controls_are_visible_in_prose_and_technical_evidence(case, capsys, format):
+    literal = 'Before\x1bcAfter\x07'
+    # The real verifier retains the invalid Python source as technical evidence.
+    (case[0].parent / 'project/guide.md').write_text('```python\n' + literal + '\n```', encoding='utf-8')
+    task = complete(case, goal=literal, criteria=literal,
+                    narrative=lambda _: {'kind': 'final', 'text': literal})
+    expected = json.dumps(task, ensure_ascii=False, allow_nan=False, indent=2) + '\n'
+    before = (case[2] / 'record.json').read_bytes()
+    output = status(capsys, case[2], format)
+    parsed = page(output, format)
+    assert '\x1b' not in output and '\x07' not in output
+    assert r'Before\u001bcAfter\u0007' in ''.join(parsed.text)
+    assert r'Before\u001bcAfter\u0007' in ''.join(parsed.code)
+    assert 'saved text is unchanged' in ''.join(parsed.text)
+    assert main(['status', str(case[2])]) == 0
+    assert capsys.readouterr().out == expected
+    assert (case[2] / 'record.json').read_bytes() == before
+
+
+@pytest.mark.parametrize('format', ['markdown', 'html'])
+def test_checker_warning_explains_unknown_even_when_every_claim_passed(case, capsys, monkeypatch, format):
+    verifier = importlib.import_module('attune_verify._verify')
+    def fail_checker(*args, **kwargs):
+        raise OSError('Counts checker unavailable for this recorded assessment')
+    monkeypatch.setattr(verifier, '_check_counts', fail_checker)
+    task = complete(case)
+    result = task['execution']['verification']['result']
+    assert task['execution']['verification']['status'] == 'unknown'
+    assert result['claims'] and all(claim['status'] == 'verified' for claim in result['claims'])
+    assert any(finding['kind'] == 'checker_error' for finding in result['findings'])
+    before = (case[2] / 'record.json').read_bytes()
+    output = status(capsys, case[2], format)
+    visible = ''.join(page(output, format).text)
+    assert 'unknown' in visible
+    for index, finding in enumerate(result['findings']):
+        assert finding['kind'] in visible and finding['severity'] in visible
+        assert finding['detail'] in visible
+        assert '/execution/verification/result/findings/' + str(index) in visible
+    assert main(['status', str(case[2])]) == 0
+    assert json.loads(capsys.readouterr().out) == task
+    assert (case[2] / 'record.json').read_bytes() == before
+
+
+@pytest.mark.parametrize('format', ['markdown', 'html'])
+def test_literal_prose_preserves_every_leading_repeated_and_trailing_break(case, capsys, format):
+    literal = '\n\nFIRST\n\n\nFOURTH\n\n'
+    complete(case, goal=literal, criteria=literal,
+             narrative=lambda _: {'kind': 'final', 'text': literal})
+    parsed = page(status(capsys, case[2], format), format)
+    assert parsed.blocks.count(literal) == 4  # Goal, criteria and two attributed judgments.
+    assert literal not in parsed.code

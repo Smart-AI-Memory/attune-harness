@@ -540,11 +540,12 @@ The JSON includes the task directory and identity.
 
 Inspect a completed assessment with **`status`** and `--format markdown` or
 `--format html`. The readable report shows the accepted goal and criteria,
-recorded document-check verdicts, retrieved source paths and hashes, and
-separately attributed participant judgments. Record pointers identify the
+recorded document-check verdicts and checker findings, retrieved source paths and
+hashes, and separately attributed participant judgments. Record pointers identify the
 supporting fields in the saved JSON. Semantic acceptance remains unverified;
 reading status does not rerun checks, refresh source evidence or grant execution.
-The default JSON output is unchanged.
+Non-layout control characters display as `\uXXXX`, and line endings display as
+line breaks. Saved text and the default JSON output are unchanged.
 
 Use `--help-all` when you need additional recovery or setup controls.
 See the [assessment receipt](specs/unified-task-execution/assessment-receipt.md)

@@ -2,6 +2,7 @@
 
 import html
 import re
+import unicodedata
 
 
 def _sections(task):
@@ -12,6 +13,7 @@ def _sections(task):
         ("Document check verdict", verification.get("status", "Not recorded"), False),
         ("Semantic acceptance", "Unverified; participant judgments are not automatically adjudicated.", False),
         ("Scope", "Recorded checks cover supported document claims. This inspection does not rerun checks or establish current source freshness.", False),
+        ("Display", "Non-layout control characters appear as \\uXXXX; saved text is unchanged. Line endings display as line breaks.", False),
     ]
     yield "Goal and criteria", [
         ("Goal", request["answers"]["goal"], False),
@@ -44,6 +46,19 @@ def _sections(task):
             ("Detail", claim.get("detail") or "No additional detail recorded.", False),
             ("Record pointer", "/execution/verification/result/claims/" + str(index), True),
         ]
+    for index, finding in enumerate(verification.get("result", {}).get("findings", [])):
+        rows = [
+            ("Kind", finding["kind"], False),
+            ("Severity", finding["severity"], False),
+            ("Detail", finding["detail"], False),
+            ("Record pointer", "/execution/verification/result/findings/" + str(index), True),
+        ]
+        if finding.get("location"):
+            rows.append(("Location", finding["location"], True))
+        if finding.get("evidence"):
+            rows.append(("Evidence", finding["evidence"], finding["kind"] in
+                         ("dead_link", "unknown_flag", "unresolved_import", "invalid_code")))
+        yield "Recorded checker finding " + str(index + 1), rows
     retrieval = run.get("initial_retrieval", {})
     yield "Recorded retrieval", [
         ("Outcome", retrieval.get("status", "Not recorded"), False),
@@ -69,8 +84,15 @@ def _sections(task):
         ]
 
 
+def _text(value):
+    """Show control codes visibly, preserving the saved text and intended layout."""
+    text = str(value).replace("\r\n", "\n").replace("\r", "\n")
+    return "".join("\\u%04x" % ord(c) if unicodedata.category(c) == "Cc" and c not in "\n\t"
+                   else c for c in text)
+
+
 def _markdown(value, technical):
-    text = str(value)
+    text = _text(value)
     if technical:
         width = max((len(v) for v in re.findall(r"`+", text)), default=0) + 1
         if "\n" not in text and text.strip():
@@ -87,7 +109,9 @@ def _markdown(value, technical):
         prefix = re.match(r"[ \t]*", escaped).group()
         escaped = "".join("&#32;" if c == " " else "&#9;" for c in prefix) + escaped[len(prefix):]
         lines.append(escaped)
-    return "  \n".join(lines)
+    # Inline breaks keep leading, repeated and trailing blank lines visible;
+    # Markdown paragraph separators would collapse consecutive empty lines.
+    return "<br>".join(lines)
 
 
 def render(task, format):
@@ -105,10 +129,11 @@ def render(task, format):
     for title, rows in sections:
         body.append("<section><h2>" + html.escape(title) + "</h2><dl>")
         for label, value, technical in rows:
-            text = html.escape(str(value))
+            literal = _text(value)
+            text = html.escape(literal)
             if technical:
                 text = "<code>" + text + "</code>"
-                if "\n" in str(value):
+                if "\n" in literal:
                     text = "<pre>" + text + "</pre>"
             else:
                 text = text.replace("\n", "<br>")
