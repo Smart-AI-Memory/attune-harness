@@ -18,18 +18,24 @@ spec.loader.exec_module(checker)
 @pytest.fixture
 def repository(tmp_path):
     subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    tracked_paths = set()
 
     def write(name, text, *, tracked=True):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding='utf-8')
-        if tracked:
+        if tracked and name not in tracked_paths:
             subprocess.run(['git', '-C', str(tmp_path), 'add', '--', name], check=True)
+            tracked_paths.add(name)
         return path
 
-    write('docs/README.md', '[Guide](guide.md)\n')
-    write('docs/guide.md', '# Guide\n')
-    write('src/example.py', 'first = 1\nsecond = 2\nthird = 3\n')
+    write('docs/README.md', '[Guide](guide.md)\n', tracked=False)
+    write('docs/guide.md', '# Guide\n', tracked=False)
+    write('src/example.py', 'first = 1\nsecond = 2\nthird = 3\n', tracked=False)
+    # The gate reads working-tree bytes and Git membership, not staged content.
+    # Batch initial admission; rewriting a tracked fixture needs no Git process.
+    subprocess.run(['git', '-C', str(tmp_path), 'add', '--', 'docs', 'src'], check=True)
+    tracked_paths.update(('docs/README.md', 'docs/guide.md', 'src/example.py'))
     return tmp_path, write
 
 
