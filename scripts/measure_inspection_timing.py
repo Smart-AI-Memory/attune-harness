@@ -2,7 +2,8 @@
 
 Run with a noneditable baseline wheel installed in a disposable environment:
   python -B measure_inspection_timing.py --baseline /absolute/clean/clone \
-      --revision FULL_SHA --wheel /absolute/baseline.whl --output /new/private/run
+      --revision FULL_SHA --wheel /absolute/baseline.whl \
+      --forms-wheel /absolute/attune_forms.whl --output /new/private/run
 
 Only disposable fixture tests execute; no provider calls, cache eviction,
 cleanup or production edits are used.
@@ -13,9 +14,11 @@ import argparse
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from email.parser import BytesParser
 import functools
 import hashlib
 import importlib.metadata
+import io
 import json
 import math
 import os
@@ -26,6 +29,7 @@ import statistics
 import subprocess
 import sys
 import time
+import zipfile
 
 
 def sha(path):
@@ -73,6 +77,77 @@ def tree_identity(root):
 def dependencies():
     return dict(sorted((d.metadata['Name'], d.version)
                        for d in importlib.metadata.distributions()))
+
+
+def forms_identity(wheel_path):
+    """Match the imported Forms package, including data, to a noneditable wheel."""
+    import attune_forms
+    distribution = importlib.metadata.distribution('attune-forms')
+    direct = json.loads(distribution.read_text('direct_url.json') or '{}')
+    if direct.get('dir_info', {}).get('editable') or not distribution.read_text('WHEEL'):
+        raise ValueError('Install the pinned attune-forms wheel, not an editable source tree')
+    package = Path(distribution.locate_file('attune_forms'))
+    origin = getattr(attune_forms, '__file__', None)
+    if (not origin or package.is_symlink() or not package.is_dir()
+            or Path(origin).is_symlink()
+            or Path(origin).resolve() != (package / '__init__.py').resolve()):
+        raise ValueError('Imported attune-forms origin differs from the installed artifact')
+    package = package.resolve()
+    wheel_bytes = Path(wheel_path).read_bytes()
+    with zipfile.ZipFile(io.BytesIO(wheel_bytes)) as wheel:
+        metadata = [n for n in wheel.namelist() if n.endswith('.dist-info/METADATA')]
+        if len(metadata) != 1:
+            raise ValueError('attune-forms wheel must contain one distribution metadata record')
+        if metadata[0].removesuffix('METADATA') + 'WHEEL' not in wheel.namelist():
+            raise ValueError('attune-forms artifact lacks wheel metadata')
+        headers = BytesParser().parsebytes(wheel.read(metadata[0]), headersonly=True)
+        if (headers.get('Name', '').lower().replace('_', '-') != 'attune-forms'
+                or headers.get('Version') != distribution.version):
+            raise ValueError('attune-forms wheel metadata differs from the installed distribution')
+        expected = {}
+        for name in wheel.namelist():
+            if not name.startswith('attune_forms/') or name.endswith('/'):
+                continue
+            relative = name.removeprefix('attune_forms/')
+            parts = relative.split('/')
+            if any(p in ('', '.', '..') for p in parts) or '\\' in relative or relative in expected:
+                raise ValueError('attune-forms wheel contains an ambiguous package path')
+            if '__pycache__' not in parts and not relative.endswith(('.pyc', '.pyo')):
+                expected[relative] = hashlib.sha256(wheel.read(name)).hexdigest()
+    installed = {}
+    for path in sorted(package.rglob('*')):
+        if path.is_symlink():
+            raise ValueError('attune-forms package contains a symlink')
+        relative = path.relative_to(package)
+        if (path.is_file() and '__pycache__' not in relative.parts
+                and path.suffix not in ('.pyc', '.pyo')):
+            installed[relative.as_posix()] = sha(path)
+    if '__init__.py' not in expected or expected != installed:
+        raise ValueError('attune-forms wheel and installed package files must agree')
+    return {'version': distribution.version, 'imported_origin': str(Path(origin).resolve()),
+            'installed_package': str(package), 'files': installed,
+            'wheel_sha256': hashlib.sha256(wheel_bytes).hexdigest()}
+
+
+def retain_forms_wheel(source, output, expected_sha256):
+    retained = output / 'artifacts' / Path(source).name
+    retained.parent.mkdir(exist_ok=True)
+    retained.write_bytes(Path(source).read_bytes())
+    if sha(retained) != expected_sha256:
+        raise ValueError('attune-forms wheel changed while retaining the artifact')
+    return retained
+
+
+def pair_schedule(repetitions, seed):
+    """Keep the first pair separate from a seeded, counterbalanced warm schedule."""
+    randomizer = random.Random(seed)
+    warm = [False, True] * (repetitions // 2)
+    if repetitions % 2:
+        warm.append(bool(randomizer.getrandbits(1)))
+    randomizer.shuffle(warm)
+    first = [False, True]
+    random.Random(f'{seed}:process-first').shuffle(first)
+    return [first] + [[measured, not measured] for measured in warm]
 
 
 def load_targets():
@@ -146,6 +221,8 @@ def instrument(modules):
 
 def worker(config):
     """One process-first pair followed by warm pairs; setup is outside timers."""
+    if digest(forms_identity(config['forms_wheel'])) != config['forms_identity_digest']:
+        raise ValueError('Worker attune-forms identity differs from preflight')
     load_targets()
     from attune_harness import test_change, test_scope, task_contract, task_policies
     from attune_harness import review_store
@@ -159,10 +236,7 @@ def worker(config):
     definition = json.loads(Path(config['definition']).read_text())
     op = config['operation'].removesuffix('-completed')
     rows = []
-    randomizer = random.Random(config['seed'])
-    for repeat in range(config['repetitions'] + 1):
-        order = [False, True]
-        randomizer.shuffle(order)
+    for repeat, order in enumerate(pair_schedule(config['repetitions'], config['seed'])):
         for position, measured in enumerate(order):
             directory = Path(config['new_tasks']) / f'{config["operation"]}-{repeat}-{int(measured)}'
 
@@ -267,13 +341,14 @@ def measure(args):
     installed_hashes = {p.name: sha(p) for p in installed.glob('*.py')}
     if source_hashes != installed_hashes:
         raise ValueError('Imported package differs from baseline source')
-    import zipfile
     with zipfile.ZipFile(args.wheel) as wheel:
         wheel_hashes = {Path(n).name: hashlib.sha256(wheel.read(n)).hexdigest()
                         for n in wheel.namelist() if n.startswith('attune_harness/') and n.endswith('.py')}
     if wheel_hashes != installed_hashes:
         raise ValueError('Wheel, source and import hashes must agree')
+    forms_before = forms_identity(args.forms_wheel)
     output.mkdir(parents=True, exist_ok=False)
+    forms_wheel = retain_forms_wheel(args.forms_wheel, output, forms_before['wheel_sha256'])
     for name in ('fixtures', 'tasks', 'new-tasks', 'commands'):
         (output / name).mkdir()
     env = {k: v for k, v in os.environ.items()
@@ -290,6 +365,8 @@ def measure(args):
             'cpu_count': os.cpu_count(), 'python': sys.version, 'executable': sys.executable,
             'interpreter_sha256': sha(Path(sys.executable).resolve()), 'installed': str(installed),
             'installed_sources': installed_hashes, 'dependencies': dependencies(),
+            'forms_wheel': str(forms_wheel), 'forms_before': forms_before,
+            'pair_schedule': pair_schedule(args.repetitions, args.seed),
             'repetitions': args.repetitions, 'cold_repetitions': args.cold_repetitions,
             'seed': args.seed, 'argv': sys.argv, 'fixtures': {}}
     (output / 'metadata.json').write_text(json.dumps(meta, indent=2) + '\n')
@@ -329,6 +406,8 @@ def measure(args):
                       'completed_task': str(completed_task),
                       'operation': operation, 'scope': scope, 'test': test,
                       'repetitions': args.repetitions, 'seed': args.seed,
+                      'forms_wheel': str(forms_wheel),
+                      'forms_identity_digest': digest(forms_before),
                       'new_tasks': str(output / 'new-tasks' / kind)}
             Path(config['new_tasks']).mkdir(exist_ok=True)
             values = json.loads(run([sys.executable, '-B', __file__, '--worker', json.dumps(config)],
@@ -384,10 +463,13 @@ def measure(args):
         (output / 'metadata.json').write_text(json.dumps(meta, indent=2) + '\n')
     meta['baseline_after'] = identity(baseline)
     meta['installed_after'] = {p.name: sha(p) for p in installed.glob('*.py')}
+    meta['forms_after'] = forms_identity(forms_wheel)
+    meta['forms_unchanged'] = forms_before == meta['forms_after']
     meta['baseline_unchanged'] = meta['baseline_before'] == meta['baseline_after']
     meta['installed_unchanged'] = installed_hashes == meta['installed_after']
     meta['script_unchanged'] = sha(__file__) == meta['script_sha256']
-    assert meta['baseline_unchanged'] and meta['installed_unchanged'] and meta['script_unchanged']
+    assert (meta['baseline_unchanged'] and meta['installed_unchanged']
+            and meta['script_unchanged'] and meta['forms_unchanged'])
     meta['finished_utc'] = datetime.now(timezone.utc).isoformat()
     (output / 'metadata.json').write_text(json.dumps(meta, indent=2) + '\n')
     (output / 'summary.json').write_text(json.dumps(summarize(rows), indent=2) + '\n')
@@ -399,6 +481,7 @@ def main():
     parser.add_argument('--baseline', type=Path)
     parser.add_argument('--revision')
     parser.add_argument('--wheel', type=Path)
+    parser.add_argument('--forms-wheel', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--repetitions', type=int, default=20)
     parser.add_argument('--cold-repetitions', type=int, default=10)
@@ -407,8 +490,8 @@ def main():
     args = parser.parse_args()
     if args.worker:
         return worker(json.loads(args.worker))
-    if not all((args.baseline, args.revision, args.wheel, args.output)):
-        parser.error('--baseline, --revision, --wheel and --output are required')
+    if not all((args.baseline, args.revision, args.wheel, args.forms_wheel, args.output)):
+        parser.error('--baseline, --revision, --wheel, --forms-wheel and --output are required')
     if sys.flags.optimize:
         parser.error('Run without -O; measurement integrity checks require assertions')
     if args.repetitions < 2 or args.cold_repetitions < 2:
