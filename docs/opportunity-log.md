@@ -374,6 +374,24 @@ Candidate: a golden check that runs each runnable `next_action` in the refusal
 rows, as the `init` case does. Done when every refusal row either runs its next
 action or is marked prose-only. Effort small–medium. No work authorized.
 
+O-72 follow-through, 2026-10-22 — **R6** lens.
+[PR #293](https://github.com/Smart-AI-Memory/attune-harness/pull/293), merged as
+`0def308` from candidate `ef4ab5e`, adds 17 bounded POSIX missing-registry and
+path/status continuation checks through the CLI entry point. Five cases verify an
+allowlisted **`init`** command and execute independently authored argv: two reach
+the original review draft directly; three require explicit manual config
+selection afterward. Twelve further cases retain explicit manual/prose
+dispositions. Resulting drafts, evidence bindings and unchanged status records
+are checked. All 28 exact-head PR CI checks passed, and the merged tree matched
+the tested candidate. Original refusals and the initial malformed-fixture failure
+remain retained. This completes only the selected audit slice; broader O-72,
+shell execution, Windows recovery and observed human comprehension remain open.
+Candidate: make the config selection explicit in Help and consider consistent
+missing-registry diagnostics through the existing owners. Done when the selected
+Help examples name each required selection and reach their documented next state
+in deterministic fixtures. Effort: small guidance slice; runtime changes
+separately scoped. This note authorizes nothing.
+
 O-73, 2026-09-28 — **next-rung** lens (T2). Claude Code caches a plugin by its
 version: a reinstall at 1.0.1 kept the old skill text. Under D30.2 the plugin
 shares the package version, so skill fixes reach Claude users only at a
