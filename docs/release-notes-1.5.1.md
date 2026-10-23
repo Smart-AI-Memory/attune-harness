@@ -8,6 +8,30 @@ package and both plugin manifests to 1.5.1. The
 [readiness record](release-readiness-1.5.1.md) separates candidate validation,
 remaining acceptance and publication approval.
 
+## Put existing capabilities to work
+
+Version 1.5.1 emphasizes clearer paths through the capabilities Harness already
+provides. Use the [installation guide](installation.md) to prepare your runtime,
+then the [workflow selector](supported-journeys.md) to choose work to plan,
+build, review, fix or test. The guides connect entry points, expected results
+and approval requirements. Saved progress and the
+[pause-and-return procedure](cli-guide.md#pause-and-return-to-work) help you
+inspect work and continue from a known stopping point.
+
+## Use Harness on Windows
+
+Windows users can install Harness and use its documented CLI workflows within
+the supported profiles. Windows implementations include captured test
+execution, native file-memory reads, saved memory and task storage, and
+experimental native-memory transport. This maintenance release improves the
+Windows memory-target walk and the evidence retained by software checks.
+
+Hosted checks exercise Windows Server 2022 and 2025 with Python 3.10 and 3.12.
+Use the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability)
+to select a workflow and understand its limits. The checks qualify their
+recorded source and artifacts; the remaining desktop, shell, recovery and
+storage acceptance work is listed below.
+
 ## Validate the exact plugin signature input
 
 Harness now gives GPG the exact binary signature bytes checked by its packet

@@ -1,6 +1,6 @@
 # Attune Harness
 
-Updated on October 22, 2026.
+Updated on October 23, 2026.
 
 **Run agent tasks, check the results independently, and keep the evidence.**
 
@@ -12,8 +12,9 @@ For a small working example, see [checks and receipts](https://github.com/Smart-
 
 **Version 1.5.1** · [Release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1) · [PyPI package](https://pypi.org/project/attune-harness/1.5.1/)
 
-This maintenance release improves plugin signature validation, completed
-assessment evidence, pause-and-return guidance and Windows full-suite checks.
+This maintenance release helps you choose a workflow, follow clearer guidance,
+inspect assessment evidence and return to saved work. It also strengthens
+plugin signature validation and Windows full-suite checks.
 Read the [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-notes-1.5.1.md)
 and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-readiness-1.5.1.md)
 for the changes, evidence and remaining limits.
@@ -74,11 +75,19 @@ for bringing an existing specification into Harness.
 
 ## Windows capabilities in 1.5.1
 
-Windows includes captured test execution, native file-memory reads, saved memory
-and task storage, and experimental native-memory transport. Use the
+Windows users can install Harness and use its documented CLI workflows within
+the supported profiles. The Windows implementations include captured test
+execution, native file-memory reads, saved memory and task storage, and
+experimental native-memory transport. Use the
 [capability and reliability table](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/supported-journeys.md#windows-capabilities-and-reliability)
-to check the available functionality and process-completion, storage and recovery
-requirements for your workflow.
+to choose a workflow and check its process-completion, storage and recovery
+requirements.
+
+Hosted software checks exercise Windows Server 2022 and 2025 with Python 3.10
+and 3.12. Full Windows parity, complete saved-store acceptance, broader process
+recovery, live native-memory acceptance, and Windows 11 desktop and shell
+qualification remain open. The linked table explains which limits apply to
+each workflow; the release evidence identifies the source and artifacts tested.
 
 ## Plan, build, review, fix, and test
 

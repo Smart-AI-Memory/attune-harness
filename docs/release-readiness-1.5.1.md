@@ -32,6 +32,21 @@ and remote tag immediately before any authorized outward step. Availability is
 not a reservation. Index-install commands select 1.5.1 only after publication;
 README links to the new tag become available when that release is created.
 
+## Windows use and the release boundary
+
+Windows users can install Harness and use its documented CLI workflows within
+the supported profiles. The Windows implementations include captured test
+execution, native file-memory reads, saved memory and task storage, and
+experimental native-memory transport. The
+[capability table](supported-journeys.md#windows-capabilities-and-reliability)
+connects these capabilities to their process, storage and recovery requirements.
+
+The hosted software matrix exercises Windows Server 2022 and 2025 with Python
+3.10 and 3.12. The evidence below identifies the source and artifacts each
+result qualifies. Full Windows parity and the remaining desktop, shell,
+recovery, storage and live-provider acceptance work retain their stated limits
+and owners; users should select a workflow using its documented profile.
+
 ## Software evidence and its limits
 
 The combined precursor is #296 head
