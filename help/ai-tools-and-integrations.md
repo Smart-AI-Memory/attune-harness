@@ -64,7 +64,7 @@ Sample prompts are requests you can give your agent, not CLI arguments.
 Typical initiator: **AI/Human**. Read each row's human decision before executing.
 These are alternative starting points for different goals, not one universal chain.
 
-| Command and action | Forms in 1.5.0 | Prerequisite and human judgment | Sample prompt | Expected result or evidence |
+| Command and action | Forms in 1.5.1 preparation | Prerequisite and human judgment | Sample prompt | Expected result or evidence |
 | --- | --- | --- | --- | --- |
 | `init` — prepare starter files | `--profile demo`, `claude` or `codex`; `--for fix`, `plan` or `roundtable` are options, not subcommands | Choose the project, scope and participants. Inspect generated files. The default is a deterministic demo; a starter registry is not automatically build-capable. | `Prepare a plan request for this file and its tests. Show me the generated scope before proceeding.` | Starter configuration/request files; no task acceptance or model execution. |
 | `plan` — define and accept work | Actions include `--request`, `--answers`, `--decision`, `--revise`, `--run`, `--stage`, `--accept`, `--reimport` | A new request needs `--project`, `--config` and `--task-dir`. A person reviews intent, effects and checks before accepting the exact current checkpoint. | `Prepare a plan for this change. Show the scope and checks, and stop for my acceptance.` | Saved draft/questions or proposal, checkpoint and next action; acceptance records a scope decision. |
@@ -279,9 +279,13 @@ legacy run under their original arguments. They are not extra steps required
 after every new task. Use each command's own `--help` when maintaining an
 existing script.
 
+## Completed assessment evidence in 1.5.1 preparation
+
+For an existing completed document assessment, run `attune-harness status TASK --format markdown` or `attune-harness status TASK --format html`. These presentations now show the accepted goal and criteria, checker outcomes, source identities and separately attributed participant judgments. Default JSON and saved records are unchanged. Inspection neither reruns checks nor establishes semantic acceptance or source freshness. Other profiles and incomplete assessments retain their existing presentation. Read the [1.5.1 inspection procedure](/harness/help/1-5-1/#inspect-completed-assessment-evidence).
+
 ## Verification boundary
 
-This catalog was checked against the published **1.5.0** installation: top-level
+The original catalog was checked against the published **1.5.0** installation: top-level
 `--help`, `--help-all`, all 32 command help pages and 59 nested help selections,
 plus the installed CLI dispatch/workflow source and release-pinned CLI guide.
 The session-directory refusal and the local practice walkthroughs have separate
@@ -291,5 +295,7 @@ your actual paths, configuration and acceptance values. Release/platform limits
 from the [1.5.0 getting-started guide](/harness/help/1-5-0/) still apply.
 
 ## Sources and verification limits
+
+The 1.5.1 preparation baseline is the [reviewed changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/docs/cli-guide.md) and [metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/pyproject.toml). The [preparation record](/harness/help/preparation.json) keeps the final-source/artifact gate open. The sources and observations below describe published 1.5.0, not a final 1.5.1 qualification.
 
 Read the [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.

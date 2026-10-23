@@ -20,17 +20,30 @@ spec.loader.exec_module(builder)
 
 def test_all_current_routes_and_contents_links_work(tmp_path):
     record = builder.build_site(tmp_path / "site")
-    assert record["version"] == "1.5.0"
-    assert record["pages"] == 10
+    assert record["version"] == "1.5.1"
+    assert record["status"] == "preparation"
+    assert record["published_version"] == "1.5.0"
+    assert record["pages"] == 12
     directory = tmp_path / "site/harness/help"
     files = list(directory.rglob("index.html"))
-    assert len(files) == 10
+    assert len(files) == 12
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
-        assert 'aria-label="On this page"' in text
+        assert (
+            'class="goal-index"'
+            if page.parent.name == "goals"
+            else 'aria-label="On this page"'
+        ) in text
         assert 'id="main-content" tabindex="-1"' in text
-        assert "published <strong>Harness 1.5.0</strong>" in text
+        if page.parent.name == "goals":
+            assert "Preparation only; this version is not yet released" in text
+        else:
+            assert (
+                "published <strong>Harness 1.5.0</strong>"
+                if page.parent.name == "1-5-0"
+                else "Guidance target: <strong>Harness 1.5.1</strong> preparation"
+            ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
     for anchor in (
         "plan-accept-then-build",
@@ -47,6 +60,76 @@ def test_all_current_routes_and_contents_links_work(tmp_path):
         in (directory / "start-and-continue/index.html").read_text()
     )
     assert (directory / "verification.json").is_file()
+
+
+def test_goal_projection_preserves_navigation_controls_and_historical_evidence(
+    tmp_path,
+):
+    builder.build_site(tmp_path / "site")
+    root = tmp_path / "site/harness/help"
+    text = (root / "goals/index.html").read_text()
+    assert text.count('class="goal-item"') == 21
+    assert text.count('class="testing-goal"') == 6
+    assert text.index('href="#research-question"') < text.index(
+        'href="#feature-request"'
+    )
+    assert "Learn before you build" in text
+    assert 'src="/harness/help/goals/controls.js"' in text
+    assert 'type="application/json" id="goal-guide-data"' in text
+    assert "unapproved" in text and "captured from Harness 1.5.0" in text
+    state = json.loads((root / "assets/state-check.json").read_text())
+    assert state["acceptance"] is None and state["status"] == "draft"
+    assert state["planning_or_build_present"] is False
+    for name in builder.GOAL_ASSETS:
+        assert (root / "assets" / name).read_bytes() == (
+            ROOT / "help/assets" / name
+        ).read_bytes()
+    assert (root / "verification.json").read_bytes() == (
+        ROOT / "help/verification.json"
+    ).read_bytes()
+    assert 'href="/harness/help/goals/"' in (root / "index.html").read_text()
+
+
+@pytest.mark.parametrize(
+    "defect", ["script", "event", "binding", "count", "asset", "source"]
+)
+def test_invalid_goal_source_refuses_before_export(tmp_path, defect):
+    content = tmp_path / "content"
+    shutil.copytree(ROOT / "help", content)
+    master = content / "goals/guide.html"
+    text = master.read_text()
+    if defect == "script":
+        text += "<script>window.invalid = true</script>"
+    elif defect == "event":
+        text += '<button onclick="run()">Bad control</button>'
+    elif defect == "binding":
+        text = text.replace('id="wording-choices"', 'id="missing-choices"')
+    elif defect == "count":
+        text = text.replace('class="goal-item"', 'class="removed-goal"', 1)
+    elif defect == "asset":
+        text = text.replace(
+            "/harness-help-assets/intake-filled.jpg", "/harness-help-assets/missing.jpg"
+        )
+    elif defect == "source":
+        manifest = json.loads((content / "manifest.json").read_text())
+        manifest["topics"][0]["source"] = "../outside.html"
+        (content / "manifest.json").write_text(json.dumps(manifest))
+    master.write_text(text)
+    with pytest.raises(ValueError):
+        builder.build_site(tmp_path / "site", content)
+    assert not (tmp_path / "site").exists()
+
+
+def test_worksheet_data_cannot_close_its_json_script(tmp_path):
+    content = tmp_path / "content"
+    shutil.copytree(ROOT / "help", content)
+    data = json.loads((content / "goals/data.json").read_text())
+    data["initial"] += '</script><script id="injected">bad()</script>'
+    (content / "goals/data.json").write_text(json.dumps(data))
+    builder.build_site(tmp_path / "site", content)
+    text = (tmp_path / "site/harness/help/goals/index.html").read_text()
+    assert '<script id="injected">' not in text
+    assert "\\u003c/script>" in text
 
 
 def test_invalid_legacy_heading_alias_refuses_a_build(tmp_path):

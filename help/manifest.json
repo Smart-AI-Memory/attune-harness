@@ -1,18 +1,33 @@
 {
-  "version": "1.5.0",
-  "behavior_commit": "7caa86ab6d476e9599b08ff75a81bc816e60c382",
+  "version": "1.5.1",
+  "behavior_commit": "0f2711b4c88ee4f231f61d71cd70a0c840be6357",
   "content_origin": {
     "repository": "Smart-AI-Memory/attune-ai",
     "commit": "6695106f8a185e310b7b8f9d463395cb0752c22a",
     "path": "website/lib/harness-help"
   },
-  "chronology_source": "https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md",
+  "chronology_source": "https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/CHANGELOG.md",
   "topics": [
+    {
+      "slug": "goals",
+      "title": "What do you want to accomplish?",
+      "goal": "Choose from 21 goals and six testing FAQs, with prompts and review points.",
+      "kind": "goals",
+      "source": "goals/guide.html"
+    },
+    {
+      "slug": "1-5-1",
+      "title": "Prepare for Harness 1.5.1",
+      "goal": "Review planned changes, candidate setup and the remaining release gates.",
+      "kind": "preparation"
+    },
     {
       "slug": "1-5-0",
       "title": "Harness 1.5.0 overview",
       "goal": "Install the published release, check a local result, and choose your next workflow.",
-      "kind": "task"
+      "kind": "task",
+      "version": "1.5.0",
+      "status": "published"
     },
     {
       "slug": "ai-tools-and-integrations",
@@ -81,11 +96,15 @@
       "goal": "Choose the required integration and find guidance for the version you use.",
       "kind": "reference",
       "legacy_anchors": {
-        "what-a-normal-130-install-supplies": "what-a-normal-150-install-supplies"
+        "what-a-normal-130-install-supplies": "what-the-inspected-base-install-supplies",
+        "what-a-normal-150-install-supplies": "what-the-inspected-base-install-supplies"
       }
     }
   ],
   "overview_anchors": {
-    "learning-title": "choose-a-task"
-  }
+    "learning-title": "choose-a-task",
+    "start-with-the-current-release": "check-the-version-before-starting"
+  },
+  "status": "preparation",
+  "published_version": "1.5.0"
 }

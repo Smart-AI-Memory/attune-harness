@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>$title | Harness Help</title>
   <meta name="description" content="$goal">
+  <meta name="robots" content="$robots">
   <link rel="canonical" href="$canonical">
   <link rel="stylesheet" href="/harness/help/help.css">
+  $head
 </head>
 <body class="harness-help">
   <a class="help-skip" href="#main-content">Skip to main content</a>
@@ -16,19 +18,17 @@
   </header>
   <div class="help-shell">
     <aside class="help-sidebar">
-      <nav aria-label="Help topics"><a href="/harness/help/">Help Center overview</a><ol>$navigation</ol></nav>
-      <p class="help-version">Guides for <strong>Harness $version</strong></p>
+      <nav aria-label="Help topics"><a href="/harness/help/">Help Center overview</a><a class="help-featured-nav" href="/harness/help/goals/">Browse all goals</a><ol>$navigation</ol></nav>
+      <p class="help-version">Guidance target <strong>Harness $site_version</strong><br>$site_notice<br>Published 1.5.0 remains available.</p>
     </aside>
     <main id="main-content" tabindex="-1" class="help-main">
-      <nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">$breadcrumb</span></nav>
-      <p class="help-eyebrow">Attune Harness · $version</p>
-      <h1>$title</h1><p class="help-lead">$goal</p>
-      <p class="help-version-note">These instructions describe published <strong>Harness $version</strong>. Check each walkthrough's verification limits.</p>
+      $page_intro
       $contents
       <article class="help-prose">$body</article>
       <nav class="help-next" aria-label="Continue learning"><a href="/harness/help/">All help topics</a><a href="#main-content">Back to top</a></nav>
     </main>
   </div>
-  <footer class="help-footer">Harness $version · <a href="/harness/help/dependencies/">Dependencies and reference</a> · <a href="/harness/help/verification.json">Verification record</a> · <a href="https://github.com/Smart-AI-Memory/attune-harness/issues">Report a problem</a></footer>
+  <footer class="help-footer">Guidance target Harness $site_version · $site_notice <a href="/harness/help/goals/">Browse all goals</a> · <a href="/harness/help/dependencies/">Dependencies and reference</a> · <a href="/harness/help/verification.json">Published 1.5.0 verification</a> · <a href="/harness/help/preparation.json">Preparation record</a></footer>
+  $scripts
 </body>
 </html>

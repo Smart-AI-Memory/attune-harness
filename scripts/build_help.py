@@ -15,6 +15,13 @@ import markdown
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / "help"
 HELP_ROOT = "/harness/help/"
+GOAL_ASSETS = (
+    "intake-filled.jpg",
+    "request-review.jpg",
+    "state-check.json",
+    "BRIEF.md",
+    "CSV-CONTRACT-NOTES.md",
+)
 
 
 class PageLinks(HTMLParser):
@@ -35,7 +42,98 @@ class PageLinks(HTMLParser):
             self.links.append(values["href"])
 
 
-def validate_pages(rendered: dict[str, str]) -> None:
+class GoalGuide(PageLinks):
+    """Validate the trusted HTML master before adding its local controls."""
+
+    def __init__(self, text: str):
+        self.targets = []
+        self.counts = [0, 0]
+        super().__init__(text)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag in {"script", "iframe", "form"}:
+            raise ValueError(f"Executable or submitting goal element: {tag}")
+        if any(
+            name.startswith("on")
+            or (value and value.strip().lower().startswith("javascript:"))
+            for name, value in attrs
+        ):
+            raise ValueError("Executable goal attribute")
+        if values.get("id") in self.ids:
+            raise ValueError("Duplicate goal ID")
+        if tag == "details":
+            classes = (values.get("class") or "").split()
+            self.counts[0] += "goal-item" in classes
+            self.counts[1] += "testing-goal" in classes
+        self.targets.extend(
+            values[key] for key in ("data-copy", "data-status") if values.get(key)
+        )
+        super().handle_starttag(tag, attrs)
+        if values.get("src"):
+            self.links.append(values["src"])
+
+
+def render_goals(content: Path, manifest: dict) -> str:
+    """Project the goals master, retaining its wording and historical captures."""
+    body = (content / "goals/guide.html").read_text(encoding="utf-8")
+    replacements = {
+        "HARNESS_VERSION": manifest["version"],
+        "HARNESS_SOURCE_REF": manifest["behavior_commit"],
+        "RELEASE_SLUG": "1-5-1",
+        "RELEASE_NOTICE": (
+            "Published guidance."
+            if manifest["status"] == "published"
+            else f"Preparation only; this version is not yet released. Use published {manifest['published_version']} until publication."
+        ),
+    }
+    for key, value in replacements.items():
+        body = body.replace("{{" + key + "}}", html.escape(value))
+    body = body.replace("/harness-help-assets/", HELP_ROOT + "assets/")
+    if re.search(r"\{\{[A-Z_]+\}\}", body):
+        raise ValueError("Unresolved goal placeholder")
+    check = GoalGuide(body)
+    check.targets.extend(href[1:] for href in check.links if href.startswith("#"))
+    if set(check.targets) - check.ids or check.counts != [21, 6]:
+        raise ValueError("Goal guide requires 21 goals, six FAQs and valid bindings")
+    required = {
+        "wording-choices",
+        "spec-output",
+        "output-details",
+        "draft-status",
+        "decision-summary",
+        "choice-progress",
+        "result-heading",
+        "topic-status",
+        "open-topics",
+        "close-topics",
+        "prepare-draft",
+        "reset-choices",
+        "download-draft",
+    }
+    if not required.issubset(check.ids):
+        raise ValueError("Missing goal worksheet control")
+    data = json.loads((content / "goals/data.json").read_text(encoding="utf-8"))
+    if (
+        not isinstance(data, dict)
+        or not isinstance(data.get("proposals"), dict)
+        or not isinstance(data.get("initial"), str)
+        or any(
+            not isinstance(data.get("proposals", {}).get(key, {}).get(field), str)
+            for key in ("p1", "p2")
+            for field in ("before", "after")
+        )
+    ):
+        raise ValueError("Invalid goal worksheet data")
+    payload = json.dumps(data, ensure_ascii=False).replace("<", "\\u003c")
+    return (
+        '<noscript><p class="help-callout">Open each topic to read its guidance. The local worksheet, copy and download controls require JavaScript; they record no approval.</p></noscript>'
+        + body
+        + f'<script type="application/json" id="goal-guide-data">{payload}</script>'
+    )
+
+
+def validate_pages(rendered: dict[str, str], resources: set[str] | None = None) -> None:
     """Refuse a build with a broken local route or heading fragment."""
     pages = {
         HELP_ROOT + (slug + "/" if slug else ""): PageLinks(text)
@@ -48,7 +146,8 @@ def validate_pages(rendered: dict[str, str]) -> None:
                 HELP_ROOT
             ):
                 continue
-            if target.path == HELP_ROOT + "verification.json" and not target.fragment:
+            allowed = resources or {HELP_ROOT + "verification.json"}
+            if target.path in allowed and not target.fragment:
                 continue
             if target.path not in pages or (
                 target.fragment
@@ -76,7 +175,13 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
     template = Template((content / "template.html").read_text(encoding="utf-8"))
     sources = [
         content / name
-        for name in ("manifest.json", "template.html", "help.css", "verification.json")
+        for name in (
+            "manifest.json",
+            "template.html",
+            "help.css",
+            "verification.json",
+            "preparation.json",
+        )
     ]
     pages = [
         (
@@ -86,16 +191,39 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             "overview.md",
         )
     ]
-    pages.extend((t["slug"], t["title"], t["goal"], f'{t["slug"]}.md') for t in topics)
+    pages.extend(
+        (t["slug"], t["title"], t["goal"], t.get("source", f'{t["slug"]}.md'))
+        for t in topics
+    )
+    assets = {f"assets/{name}": content / "assets" / name for name in GOAL_ASSETS}
+    assets.update(
+        {
+            f"goals/{name}": content / "goals" / name
+            for name in ("goals.css", "controls.js")
+        }
+    )
+    sources.extend(assets.values())
+    sources.extend(
+        content / "goals" / name
+        for name in ("data.json", "origin.json", "origin-release.json")
+    )
     rendered = {}
     for slug, title, goal, filename in pages:
         source = content / filename
+        if not source.resolve().is_relative_to(content.resolve()):
+            raise ValueError("Help source leaves its content directory")
         sources.append(source)
         renderer = markdown.Markdown(
             extensions=["fenced_code", "tables", "toc", "sane_lists"],
             extension_configs={"toc": {"toc_depth": "2-3", "permalink": True}},
         )
-        body = renderer.convert(source.read_text(encoding="utf-8"))
+        topic = next((t for t in topics if t["slug"] == slug), {})
+        is_goals = slug == "goals"
+        body = (
+            render_goals(content, manifest)
+            if is_goals
+            else renderer.convert(source.read_text(encoding="utf-8"))
+        )
         aliases = (
             manifest.get("overview_anchors", {})
             if not slug
@@ -118,7 +246,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             cards = (
                 '<div class="help-cards">'
                 + "".join(
-                    f'<section class="help-card"><p class="help-eyebrow">{html.escape(t["kind"])} · {html.escape(manifest["version"])}</p>'
+                    f'<section class="help-card"><p class="help-eyebrow">{html.escape(t["kind"])} · {html.escape(t.get("version", manifest["version"]))}</p>'
                     f'<h2><a href="{HELP_ROOT}{t["slug"]}/">{html.escape(t["title"])}</a></h2>'
                     f'<p>{html.escape(t["goal"])}</p></section>'
                     for t in topics
@@ -137,17 +265,64 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             + f'>{html.escape(t["title"])}</a></li>'
             for t in topics
         )
+        version = topic.get("version", manifest["version"])
+        published = topic.get("status", manifest["status"]) == "published"
+        notice = (
+            f"These instructions describe published <strong>Harness {html.escape(version)}</strong>. Check each walkthrough's verification limits."
+            if published
+            else f'Guidance target: <strong>Harness {html.escape(version)}</strong> preparation. Unpublished; use published {html.escape(manifest["published_version"])} until release.'
+        )
         rendered[slug] = template.substitute(
             title=html.escape(title),
             goal=html.escape(goal),
-            version=html.escape(manifest["version"]),
+            site_version=html.escape(manifest["version"]),
+            site_notice=(
+                "Published release."
+                if manifest["status"] == "published"
+                else "Preparation; publication pending."
+            ),
+            robots=(
+                "index,follow"
+                if topic.get("status", manifest["status"]) == "published"
+                else "noindex,follow"
+            ),
             navigation=navigation,
             body=body,
-            contents=f'<nav class="help-contents" aria-label="On this page"><h2>On this page</h2>{renderer.toc}</nav>',
+            page_intro=(
+                ""
+                if is_goals
+                else f'<nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">{html.escape(title)}</span></nav><p class="help-eyebrow">Attune Harness · {html.escape(version)}</p><h1>{html.escape(title)}</h1><p class="help-lead">{html.escape(goal)}</p><p class="help-version-note">{notice}</p>'
+            ),
+            contents=(
+                ""
+                if is_goals
+                else f'<nav class="help-contents" aria-label="On this page"><h2>On this page</h2>{renderer.toc}</nav>'
+            ),
+            head=(
+                '<link rel="stylesheet" href="/harness/help/goals/goals.css">'
+                if is_goals
+                else ""
+            ),
+            scripts=(
+                '<script type="module" src="/harness/help/goals/controls.js"></script>'
+                if is_goals
+                else ""
+            ),
             canonical=f'https://smartaimemory.com{HELP_ROOT}{slug + "/" if slug else ""}',
             breadcrumb=html.escape(title),
         )
-    validate_pages(rendered)
+    for source in sources:
+        if not source.is_file() or not source.resolve().is_relative_to(
+            content.resolve()
+        ):
+            raise ValueError("Unavailable or nonlocal Help source asset")
+    validate_pages(
+        rendered,
+        {
+            HELP_ROOT + name
+            for name in (*assets, "verification.json", "preparation.json")
+        },
+    )
     output.mkdir(parents=True, exist_ok=False)
     root = output / "harness" / "help"
     root.mkdir(parents=True)
@@ -155,12 +330,19 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
     (root / "verification.json").write_bytes(
         (content / "verification.json").read_bytes()
     )
+    (root / "preparation.json").write_bytes((content / "preparation.json").read_bytes())
+    for name, source in assets.items():
+        target = root / name
+        target.parent.mkdir(exist_ok=True)
+        target.write_bytes(source.read_bytes())
     for slug, page in rendered.items():
         directory = root / slug
         directory.mkdir(exist_ok=True)
         (directory / "index.html").write_text(page, encoding="utf-8")
     record = {
         "version": manifest["version"],
+        "status": manifest["status"],
+        "published_version": manifest["published_version"],
         "behavior_commit": manifest["behavior_commit"],
         "source_repository": "Smart-AI-Memory/attune-harness",
         "pages": len(rendered),

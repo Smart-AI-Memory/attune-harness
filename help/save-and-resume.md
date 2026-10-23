@@ -1,7 +1,7 @@
 ## Before you begin
 
 Complete [Get started](/harness/help/get-started/) in a fresh working directory.
-Keep its published 1.5.0 environment active. `R` is the absolute release checkout
+Keep the selected 1.5.1 validation environment active. `R` is the absolute preparation checkout
 at commit `7caa86ab6d476e9599b08ff75a81bc816e60c382`; its example files are not in the wheel.
 These examples use a POSIX shell and canonical paths. On macOS, use
 `/private/tmp` instead of the `/tmp` symlink. Choose unused practice directories.
@@ -64,6 +64,8 @@ Neither starts work. Browser forms cannot dispatch builds or resume execution.
 Explicit [CLI saved memory](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/memory-saving.md) is a separate store from browser form answers.
 
 ## Verification and sources
+
+For 1.5.1 preparation, compare the procedure with the [reviewed source](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/docs/cli-guide.md) and [preparation record](/harness/help/preparation.json). The final selected artifact still requires replay; the older observations below retain their original identity.
 
 The [current verification record](/harness/help/verification.json) distinguishes fresh published-1.5.0 observations
 from the retained [candidate walkthrough evidence](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/tutorials-1.5.0-candidate.md).

@@ -194,7 +194,12 @@ articles, posts and future books can add editorial context around the same unit.
 
 The Help Center's canonical guides, version manifest and static build live in
 this repository's [help directory](../help/README.md). Build and verify the
-export against the named published release. The existing Attune-AI website
+export against its named source, artifact and publication status. Current
+[1.5.1 preparation walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md)
+use an explicitly identified local version-overlay wheel; the final release
+artifact still needs selection and qualification. Preserve the 1.3.0 provenance
+above and the published 1.5.0 observations under their original identities.
+The existing Attune-AI website
 still serves the earlier implementation until a separate website cutover;
 an unpublished local route or reviewed branch is not a live help URL.
 

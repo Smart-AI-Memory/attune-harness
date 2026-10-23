@@ -28,7 +28,7 @@ an older submission or edit task evidence to bypass the refusal.
 ## A dependency or command is unavailable
 
 1. Check the installed distribution in the interpreter you selected: `python -c "from importlib.metadata import version; print(version('attune-harness'))"`.
-2. Read the selected route's `--help` and the actual diagnostic. Follow the installed interface if it differs from this 1.5.0 guide.
+2. Read the selected route's `--help` and the actual diagnostic. Follow the installed interface if it differs from this preparation guide.
 3. Compare your installation with [the release dependency map](/harness/help/dependencies/). A `--no-deps` installation omits the normal base dependencies; restore the normal install in a disposable isolated environment.
 
 **Expected result:** The CLI and interpreter refer to one environment. Optional
@@ -58,5 +58,7 @@ Do not include private launcher links, credentials or project data.
 Voyage request retrieval requires a fresh canonical directory for durable receipts. Include `--session-dir SESSION_DIR` with `retrieve QUERY --request REQUEST.json --allow-provider`; replace both paths with the reviewed request and an unused session directory. This option retains evidence; provider execution still needs its separate authorization. A refusal before session creation is not a completed retrieval.
 
 ## Sources and verification limits
+
+The 1.5.1 preparation baseline is the [reviewed changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/docs/cli-guide.md) and [metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/pyproject.toml). The [preparation record](/harness/help/preparation.json) keeps the final-source/artifact gate open. The sources and observations below describe published 1.5.0, not a final 1.5.1 qualification.
 
 Read the [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.

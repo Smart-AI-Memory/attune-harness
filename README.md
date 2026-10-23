@@ -30,7 +30,7 @@ The v1 compatibility contract remains in effect.
 The [Harness Help Center](https://smartaimemory.com/harness/help/) brings together
 step-by-step guides, expected results, troubleshooting and command references.
 Harness owns the [Help Center source and static build](https://github.com/Smart-AI-Memory/attune-harness/blob/main/help/README.md). Its
-1.5.0 guides and portable export are maintained here; the existing public site
+goals guide, versioned instructions and portable export are maintained here; the existing public site
 will switch to that export in a separate website change.
 Start with [Get started with Harness 1.5.0](https://smartaimemory.com/harness/help/1-5-0/)
 to install the release and check a local result. Use
@@ -38,10 +38,12 @@ to install the release and check a local result. Use
 to find commands by task, follow their order and understand where approval is
 needed.
 
-For hands-on practice, choose a
-[walkthrough](https://github.com/Smart-AI-Memory/attune-harness/blob/77d5b2b4fe9f3c6285a5b535f4e735103f7e192d/docs/tutorials-1.5.0-candidate.md#choose-a-walkthrough).
-Each records its tested setup, steps and expected result; use that setup for its
-examples.
+For hands-on practice, choose a [current 1.5.1 preparation
+walkthrough](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md#choose-a-walkthrough).
+These use an explicitly identified local validation wheel; 1.5.1 is unpublished
+and its final artifact remains unselected. Keep the published 1.5.0 installation
+above for use today. The [goals guide](https://smartaimemory.com/harness/help/goals/)
+helps you choose a task; website publication follows its separate release gate.
 
 ## Advanced planning for Spec-Driven Development
 

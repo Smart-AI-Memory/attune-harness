@@ -1,8 +1,15 @@
-## Start with the current release
+## Choose what you want to accomplish
+
+[Browse all goals](/harness/help/goals/) for prompts, instructions and review
+points across 21 goals and six testing FAQs. Start with **Learn before you
+build**, or choose planning, implementation, verification or saved work.
+
+## Check the version before starting
 
 [Install Harness 1.5.0](1-5-0/) and check the deterministic local result. Then
-choose a task. All guides here describe published 1.5.0; their verification
-limits remain explicit.
+choose a task. [Prepare for Harness 1.5.1](/harness/help/1-5-1/) describes the
+unpublished maintenance update, candidate validation and remaining release
+gates. Historical 1.5.0 observations retain their original identity.
 
 ## Choose a task
 

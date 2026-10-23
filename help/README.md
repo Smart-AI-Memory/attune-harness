@@ -4,6 +4,33 @@ Harness owns the Help Center's Markdown, version manifest, static renderer and
 verification. The existing public URL remains
 <https://smartaimemory.com/harness/help/> until a separate website cutover.
 
+## Coordinated goals and 1.5.1 preparation
+
+The goals guide is also canonical Harness content. Port its authored HTML, local
+worksheet data, styles, controls and historical 1.5.0 captures from the reviewed
+website commit without changing saved example wording. The static renderer acts
+as its projector: validate markup, IDs, control bindings, 21 goals, six testing
+FAQs and assets before exporting. Keep the learning category first and the
+compact clickable rows; add a prominent goals link to the landing page.
+
+The build must preserve native disclosure behavior without JavaScript and the
+unapproved local worksheet with JavaScript. Hash its script and assets alongside
+the Markdown output. Do not add a Next.js or provider runtime to the source build.
+The existing website goals route would shadow the cutover rewrite; its owner
+will retain website entry points while this export owns all Help routes.
+
+Guidance for planned 1.5.1 must say preparation, identify its reviewed source and
+retain publication as a separate gate. Published 1.5.0 observations and captures
+keep that identity. A metadata-only validation wheel is not the selected final
+release artifact. Reconcile current instructions against the changelog and code;
+do not relabel an older result as a new walkthrough.
+
+Rejected alternative: retaining a separate React goals implementation would
+restore two content owners and allow the cutover to discard either navigation
+or controls. A portable HTML/CSS/JavaScript page keeps the source ownership and
+the existing public URL together. Verify it through the real website rewrite,
+including the worksheet, deep links and historical images, before cutover.
+
 ## Design and scope
 
 Update the seven former 1.3.0 guides for published 1.5.0, correct the missing
@@ -48,10 +75,10 @@ dependency is added by this build dependency.
 
 ## Maintain the guides
 
-Edit the registered Markdown files and `manifest.json` together. Verify changed
+Edit the registered Markdown or goal master and `manifest.json` together. Verify changed
 commands and labels against the named release, and record actual walkthrough
 results and limits. Check the built HTML's local routes and fragments. Keep
-unpublished features out of the current guides. Historical walkthroughs remain
+unpublished features in explicitly labeled preparation guidance. Historical walkthroughs remain
 in their original versioned files under `docs/`.
 
 The first PR supplies this self-contained site. A separate website PR will

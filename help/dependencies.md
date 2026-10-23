@@ -1,7 +1,6 @@
-## What a normal 1.5.0 install supplies
+## What the inspected base install supplies
 
-Harness requires Python 3.10 or later. Its released package metadata pins these
-base dependencies. You do not need to install attune-forms separately for the
+Harness requires Python 3.10 or later. The inspected 1.5.1 preparation source retains the 1.5.0 dependency pins below; final version metadata remains unselected. The metadata-only validation wheel changes the package version, with the runtime modules and these pins unchanged. You do not need to install attune-forms separately for the
 Harness forms journey.
 
 | Package | Pinned version | Used for |
@@ -13,7 +12,7 @@ Harness forms journey.
 | tiktoken | 0.12.0 | Token counting |
 | packaging | 26.3 | Version compatibility checks |
 
-These are Harness's **release pins**, not a claim that they are each package's
+These are the inspected **dependency pins**, not a claim that they are each package's
 latest version. Independent dependency upgrades require compatibility review.
 The [release package metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) is authoritative.
 
@@ -49,8 +48,10 @@ General workspace navigation and a browser specification editor remain outside t
 
 ## Changes and chronology
 
-The [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md) records the sequence: 1.3.0 supplied browser draft intake and intent approval; later changes under the prepared 1.4.0 heading refined approval labels, saved-request inspection and reload recovery. Those changes are present in published 1.5.0. The 1.5.0 release ships the stated Windows components while deferring full parity. The Unreleased 1.5.1 changes are not part of these instructions.
+The [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md) records the sequence: 1.3.0 supplied browser draft intake and intent approval; later changes under the prepared 1.4.0 heading refined approval labels, saved-request inspection and reload recovery. Those changes are present in published 1.5.0. The 1.5.0 release ships the stated Windows components while deferring full parity. The Unreleased 1.5.1 entries follow that release: signature-input validation, completed-assessment evidence presentation and documentation/continuation checks. They belong to the preparation source, not published 1.5.0. Read the [1.5.1 preparation guide](/harness/help/1-5-1/) for their boundary.
 
 ## Sources and verification limits
+
+The 1.5.1 preparation baseline is the [reviewed changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/docs/cli-guide.md) and [metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/pyproject.toml). The [preparation record](/harness/help/preparation.json) keeps the final-source/artifact gate open. The sources and observations below describe published 1.5.0, not a final 1.5.1 qualification.
 
 Read the [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.
