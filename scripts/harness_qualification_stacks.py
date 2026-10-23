@@ -102,8 +102,18 @@ def pytest_runtest_makereport(item, call):
     # FutureTimeoutError is distinct from built-in TimeoutError on Python 3.10.
     if call.excinfo is not None and call.excinfo.errisinstance(
             (TimeoutError, FutureTimeoutError)):
-        _timing(item.config, 'timeout_snapshot', nodeid=report.nodeid, phase=report.when)
-        _dump(report.nodeid, item.config._harness_stack_log)
+        event, details = 'timeout_snapshot', {}
+        try:
+            _dump(report.nodeid, item.config._harness_stack_log)
+        except Exception as error:
+            # Diagnostics must not replace the original timeout with an
+            # INTERNALERROR. Retain a bounded marker without exception text.
+            event = 'timeout_snapshot_failed'
+            details = {'error_type': type(error).__name__[:80]}
+        try:
+            _timing(item.config, event, nodeid=report.nodeid, phase=report.when, **details)
+        except Exception:
+            pass  # A failed diagnostic journal must preserve the test verdict too.
 
 
 def pytest_sessionfinish(session, exitstatus):

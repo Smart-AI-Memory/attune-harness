@@ -671,3 +671,46 @@ def test_timeout(boundary):
               and row['phase'] == phase]
     assert len(failed) == 1 and failed[0]['outcome'] == 'failed'
     assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+
+
+@pytest.mark.parametrize('failure', ['stack', 'journal', 'both'])
+def test_failed_timeout_diagnostic_preserves_original_verdict(tmp_path, failure):
+    test = tmp_path / 'test_diagnostic_failure.py'
+    test.write_text("""import pytest, harness_qualification_stacks as stacks
+@pytest.fixture(autouse=True)
+def break_diagnostic(request, monkeypatch):
+    class BrokenStack:
+        def write(self, data):
+            raise OSError('private diagnostic detail')
+    if FAILURE in ('stack', 'both'):
+        monkeypatch.setattr(request.config, '_harness_stack_log', BrokenStack())
+    real = stacks._timing
+    def timing(config, event, **details):
+        if event.startswith('timeout_snapshot') and FAILURE in ('journal', 'both'):
+            raise OSError('private diagnostic detail')
+        return real(config, event, **details)
+    monkeypatch.setattr(stacks, '_timing', timing)
+def test_timeout():
+    raise TimeoutError('original timeout remains failed')
+""".replace('FAILURE', repr(failure)))
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks',
+                          '-o', 'faulthandler_timeout=0', str(test)],
+                         cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    assert 'original timeout remains failed' in run.stdout
+    assert 'INTERNALERROR' not in run.stdout + run.stderr
+    timings = [json.loads(line) for line in
+               (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    snapshots = [row for row in timings if row['event'].startswith('timeout_snapshot')]
+    if failure == 'stack':
+        assert len(snapshots) == 1
+        assert snapshots[0]['event'] == 'timeout_snapshot_failed'
+        assert snapshots[0]['error_type'] == 'OSError'
+        assert 'private diagnostic detail' not in json.dumps(timings)
+    else:
+        assert snapshots == []
