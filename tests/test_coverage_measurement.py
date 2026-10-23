@@ -620,3 +620,54 @@ def test_churn(capsys):
     assert 'in test_churn' in transcript
     assert 'Slow test Python stacks: test_churn.py::test_fast' not in transcript
     assert not (tmp_path / 'native-called').exists()
+
+
+@pytest.mark.parametrize('phase', ['setup', 'call'])
+def test_future_timeout_keeps_worker_stack_before_teardown(tmp_path, phase):
+    """A future can time out before the slow-test timer ever samples it."""
+    test = tmp_path / 'test_future.py'
+    test.write_text("""import concurrent.futures, threading, pytest
+release = threading.Event()
+entered = threading.Event()
+def blocked_owner():
+    entered.set()
+    assert release.wait(5), 'fixture worker was not released'
+@pytest.fixture
+def owner():
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(blocked_owner)
+    assert entered.wait(2)
+    try:
+        yield future
+    finally:
+        release.set()
+        executor.shutdown(wait=True)
+@pytest.fixture
+def boundary(owner):
+    PHASE_SETUP
+    yield owner
+def test_timeout(boundary):
+    PHASE_CALL
+""".replace('PHASE_SETUP', 'owner.result(timeout=0.05)' if phase == 'setup' else 'pass')
+       .replace('PHASE_CALL', 'boundary.result(timeout=0.05)' if phase == 'call' else 'pass'))
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks',
+                          '-o', 'faulthandler_timeout=0', str(test)],
+                         cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    assert 'TimeoutError' in run.stdout
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
+    assert 'test_future.py::test_timeout' in transcript
+    assert 'in blocked_owner' in transcript
+    assert 'End slow-test Python stacks' in transcript
+    timings = [json.loads(line) for line in
+               (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    snapshots = [row for row in timings if row['event'] == 'timeout_snapshot']
+    assert len(snapshots) == 1 and snapshots[0]['phase'] == phase
+    failed = [row for row in timings if row['event'] == 'phase_end'
+              and row['phase'] == phase]
+    assert len(failed) == 1 and failed[0]['outcome'] == 'failed'
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
