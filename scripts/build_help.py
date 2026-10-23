@@ -96,6 +96,24 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             extension_configs={"toc": {"toc_depth": "2-3", "permalink": True}},
         )
         body = renderer.convert(source.read_text(encoding="utf-8"))
+        aliases = (
+            manifest.get("overview_anchors", {})
+            if not slug
+            else next(t for t in topics if t["slug"] == slug).get("legacy_anchors", {})
+        )
+        for old, current in aliases.items():
+            if not re.fullmatch(r"[a-z0-9-]+", old) or not re.fullmatch(
+                r"[a-z0-9-]+", current
+            ):
+                raise ValueError("Invalid legacy heading alias")
+            heading = re.search(r'<h[23] id="' + re.escape(current) + '"', body)
+            if heading is None:
+                raise ValueError(f"Missing target for legacy heading: {old}")
+            body = (
+                body[: heading.start()]
+                + f'<span class="help-anchor" id="{old}" aria-hidden="true"></span>'
+                + body[heading.start() :]
+            )
         if not slug:
             cards = (
                 '<div class="help-cards">'

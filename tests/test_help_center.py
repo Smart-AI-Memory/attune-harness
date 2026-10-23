@@ -40,11 +40,23 @@ def test_all_current_routes_and_contents_links_work(tmp_path):
         assert f'id="{anchor}"' in reference
         assert f'href="#{anchor}"' in reference
     assert "--session-dir SESSION_DIR" in reference
+    planning = (directory / "plan-and-accept/index.html").read_text()
+    assert 'id="how-does-a-sample-plan-become-accepted"' in planning
     assert (
         "Approve this work request"
         in (directory / "start-and-continue/index.html").read_text()
     )
     assert (directory / "verification.json").is_file()
+
+
+def test_invalid_legacy_heading_alias_refuses_a_build(tmp_path):
+    content = tmp_path / "content"
+    shutil.copytree(ROOT / "help", content)
+    manifest = json.loads((content / "manifest.json").read_text())
+    manifest["overview_anchors"] = {"old": "missing"}
+    (content / "manifest.json").write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="Missing target"):
+        builder.build_site(tmp_path / "site", content)
 
 
 def test_broken_local_route_and_fragment_refuse_before_writing(tmp_path):

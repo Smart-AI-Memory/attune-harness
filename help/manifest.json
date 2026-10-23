@@ -30,25 +30,44 @@
       "slug": "start-and-continue",
       "title": "Start and continue work",
       "goal": "Turn saved draft answers into an intent you can inspect and accept.",
-      "kind": "task"
+      "kind": "task",
+      "legacy_anchors": {
+        "what-happens-when-you-accept-an-intent": "save-review-and-approve-the-request",
+        "prepare-a-disposable-form-example": "prepare-and-open-the-practice-form",
+        "verification-scope": "verification-and-sources"
+      }
     },
     {
       "slug": "plan-and-accept",
       "title": "Plan and accept work",
       "goal": "Review the exact scope and accept its current checkpoint before execution.",
-      "kind": "task"
+      "kind": "task",
+      "legacy_anchors": {
+        "how-does-a-sample-plan-become-accepted": "preview-and-accept-the-plan",
+        "verification-scope": "verification-and-sources"
+      }
     },
     {
       "slug": "research",
       "title": "Research a question",
       "goal": "Find local evidence and recognize what the verification actually checked.",
-      "kind": "task"
+      "kind": "task",
+      "legacy_anchors": {
+        "what-can-you-check-in-a-local-source": "retrieve-sources-and-verify-a-link",
+        "verification-scope": "verification-and-sources"
+      }
     },
     {
       "slug": "save-and-resume",
       "title": "Save and resume",
       "goal": "Keep saved answers across sessions and inspect work before continuing execution.",
-      "kind": "task"
+      "kind": "task",
+      "legacy_anchors": {
+        "what-survives-a-new-form-session": "continue-a-saved-draft",
+        "prepare-a-disposable-form-example": "prepare-and-open-the-practice-form",
+        "verification-scope": "verification-and-sources",
+        "continue-execution-deliberately": "inspect-before-continuing-execution"
+      }
     },
     {
       "slug": "troubleshooting",
@@ -60,7 +79,13 @@
       "slug": "dependencies",
       "title": "Dependencies and reference",
       "goal": "Choose the required integration and find guidance for the version you use.",
-      "kind": "reference"
+      "kind": "reference",
+      "legacy_anchors": {
+        "what-a-normal-130-install-supplies": "what-a-normal-150-install-supplies"
+      }
     }
-  ]
+  ],
+  "overview_anchors": {
+    "learning-title": "choose-a-task"
+  }
 }

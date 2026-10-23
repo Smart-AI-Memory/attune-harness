@@ -60,3 +60,4 @@ body{margin:0}
 .headerlink{margin-left:.4em;font-size:.8em}
 .help-skip{position:absolute;left:16px;top:-100px;padding:10px;background:var(--help-bg);z-index:1}
 .help-skip:focus{top:10px}
+.help-anchor{display:block;height:0;scroll-margin-top:24px}
