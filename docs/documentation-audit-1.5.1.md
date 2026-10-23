@@ -21,7 +21,7 @@ as separate candidates. They were not consolidated into this branch.
 | Canonical Help landing, eleven topics, goals, examples and captures | #299 owns `help/`, its manifest, `scripts/build_help.py` and renderer checks. Get started uses a 1.5.1 candidate wheel, with a published 1.5.0 fallback. | Consume the canonical export; do not maintain another React copy or hand-edit generated HTML. Final source and publication metadata still require reconciliation. |
 | CLI entry points | `cli_help.py` gives task routes and `COMMAND --help`; it contains no old-version website destination. The CLI guide and host skills describe commands and scope rather than an invented `docs` command. | Keep commands tied to the selected installed runtime. This audit does not add a CLI route or change runtime behavior. |
 | Agent/plugin documentation | `.agents/skills/attune-harness/`, its browser/workflow references, and `plugin/attune-harness/skills/` retain runtime discovery, inspection versus execution, and authorization boundaries. | Versioned installation and marketplace pins are release-owner work; an older released pin is not evidence of drift by itself. |
-| Current technical references | Installation, supported journeys, CLI, operations, consultation, plugins, memory, local/review/recovery/extension/pilot/passage workflows, MCP/A2A, retrieval and documentation generation were inspected for setup and version boundaries. | #300 contains the reviewed refresh. The consultation introduction still recommends 1.4.0; #301's owner has accepted a correction to link current installation while retaining feature-introduction history. |
+| Current technical references | Installation, supported journeys, CLI, operations, consultation, plugins, memory, local/review/recovery/extension/pilot/passage workflows, MCP/A2A, retrieval and documentation generation were inspected for setup and version boundaries. | #300 contains the reviewed refresh. #301 commit `93f161b8` corrects consultation setup to current installation while retaining its feature-introduction and October 12 history. Final integration remains separate. |
 | Qualification and compatibility | Software qualification, coverage, Windows reliability, compatibility and envelope contracts retain their scoped claims. | Passing Server CI does not establish Windows 11 desktop/shell, all storage/recovery, live providers or human acceptance. No old table is promoted to new qualification. |
 | Project, opportunity and readiness summaries | #300 updates the documentation index, project checkpoint, opportunity register and release summaries. | Keep release blockers and observed outcomes tied to their exact heads. The audit adds its archive section at the end of the index to avoid #300's current-walkthrough insertion. |
 | Historical guides, release records and results | The [archive catalog](archive/README.md) labels eighteen versioned records as historical and links originals. Dated results/designs and specifications retain their dates and status. | Original files, headings, commands, source hashes and citations remain unchanged. A historical candidate's “unpublished” wording describes that candidate, even after a different artifact was released. |
@@ -84,27 +84,72 @@ at `d21e1c6ea9b7b9123569e686c65c96f1aa2a89d5` now contains only Navigation,
 pricing, how-it-works and its handoff; an ordinary follow-up commit removed the
 archive addition from its net diff while preserving the original commit.
 
-The archive and #2574 publisher can integrate independently; both must precede
-#2575, followed by #2579. This avoids the active Docs page linking an archive
-supplied only by a later adapter-dependent PR. All remain drafts. A passing
+The archive, #2574 publisher and later Author-reference prerequisite #2581 can
+integrate independently; all must precede #2575, followed by #2579. This avoids
+active Docs links depending on destinations supplied only by a later PR. All remain drafts. A passing
 disposable combination does not establish a standalone branch, production
 deployment or package publication. Exact local verification and current
 unverified checks belong to each PR description.
 
-## Active links to historical guidance
+## Migration correction and remaining source-index links
 
-The migration guide intentionally describes an installed 1.0.0 baseline and
-retains its historical Windows file-memory limitation. Current website Docs
-still links to that file as “Review the migration boundaries.” Archive
-classification alone does not correct that active-link mismatch. The release
-owner must supply current source guidance or explicitly label the link as
-historical; the source/link disposition remains unverified.
+The original active website links reached an explicitly historical 1.0.0 guide.
+The [current migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/93f161b8e65bf86b4a7670e899ff96ff260644f1/docs/migration.md)
+is now committed in #301 at signed `93f161b8e65bf86b4a7670e899ff96ff260644f1`.
+It distinguishes 1.5.1 preparation from published 1.5.0 and states current
+Windows limits. All 21 relative targets and anchors resolve. The historical
+1.0.0 guide and consultation historical tail remain byte-identical.
 
-The owner is preparing a separate current `docs/migration.md` in #301 while
-preserving the 1.0.0 record byte-for-byte. The website also pins an older source
-commit through `preparation.json`; a filename change alone would point at a
-missing file. Keep this gap open until both the current path and a containing
-source ref are committed, inspected and wired by the existing owners.
+Canonical #299 `fd42e9cb` updates the common documentation ref; publisher #2574
+`f2e35afd97ec48976000ec85a4afa162a01cb3c6` imports that source. Only
+`preparation.documentation_commit` changes from the previous preparation
+metadata; behavioral, validation, tutorial and historical-observation identities
+remain unchanged. #2575 `edd14d471cff759e505695c5e1c83685d67dd717` changes both
+Docs migration paths to `docs/migration.md` through the existing adapter.
+Both actual browser clicks independently reached that exact committed guide.
+This closes the website's current-to-historical mismatch in the committed
+dependency combination; it does not qualify final main or production.
+
+Two current-reference dispositions remain pending final #301 reconciliation
+after #300 and #305 reach main:
+
+- `docs/project-plan.md` S9 still links the historical file as its current
+  migration guide; switch that link to `migration.md` while retaining unfinished
+  acceptance and evidence gates.
+- The old `docs/README.md` index row needs an explicit historical 1.0.0 label.
+  Preserve its original target and the underlying record.
+
+The release owner accepted both corrections and is avoiding competing writes
+to #300's project-plan lane and #305's index end-context. Their through-main
+dependency remains open under the current no-merge instruction. The frozen
+inventory JSON records its original snapshots and is unchanged.
+
+## Author reference placement
+
+The #2575 owner removed the large Attune Author section from the Harness Docs
+flow in signed `0eb99800a607386260dc8171516ef9372547b654`, a separate follow-up
+to the migration commit. A concise reference beside the earlier Attune AI
+references preserves the visible `/docs#attune-author` anchor and links the
+dedicated page. Separate main-based [prerequisite #2581](https://github.com/Smart-AI-Memory/attune-ai/pull/2581)
+at `eb102ccf37e85b7b73977cea7c2991bb537594c6` supplies `/attune-author/` and
+retains `#attune-author`. Its 1,940-byte section exactly matches website main
+`6695106f8` and Docs `948ba152`, SHA-256
+`ef3183373161ea0453f17da04dc67f0e18b2e42cb2feae92188798e58b9d9990`.
+The destination identifies the earlier project reference and links back to
+Docs. Its standalone build, HTTP and bounded mobile/keyboard checks pass.
+
+The final disposable five-input combination uses publisher `f2e35afd`, Docs
+`0eb99800`, archive `bb7841b0`, Navigation `86489edb` and Author `eb102ccf`.
+78 website tests, TypeScript/125-page production build, lint and the
+12-page/24-file export check pass. All 33 HTTP checks pass, including 23 exact
+publisher responses, current migration links, concise reference, Author page,
+archive, sitemap exclusions and unknown-topic/import-metadata 404s. Actual
+Docs anchor to Author to Docs, current Quick Start, migration and Navigation to
+Help to Get started journeys pass. Verified 320/390-pixel checks show no
+page-wide overflow; Enter links, root skip-link order and visible focus pass.
+The Docs owner independently inspected all 16 overlaid Git blobs, the result
+files and desktop journey. This new receipt is separate from the prior
+migration-only combination and does not establish final main or production.
 
 ## Bounded mobile and keyboard checks
 
@@ -124,11 +169,13 @@ accessibility conformance, screen-reader testing or independent user acceptance.
 After the initial audit snapshot, the release owner verified #303 merged as
 main `e78576eda9b99369472f3f58f768230a4a2656c9`, with the merged tree matching
 its tested reader prerequisite. Separate #304 timeout diagnostics remain open.
-#299 and #300 retain
-failed old-head Windows observations; #301's green head still needs their
-integration through main and a fresh final artifact. The GUI timeout's cause
-remains unknown. Diagnostics and later passing schedules do not establish a
-runtime latency repair.
+#299 and #300 retain failed old-head Windows observations and now have normal
+owner updates through current main; fresh qualification and final #301 source
+integration/artifact checks remain separate. The release owner also retains a
+new saved-store contention failure before installed qualification, separate
+from the earlier Python build-future timeout and main's Node-child timeout.
+Their underlying causes remain unproven. Diagnostic revisions and passing
+schedules do not establish a runtime latency repair or release readiness.
 
 The website PRs remain drafts. #2574 needs reviewed merged canonical source;
 #2575 needs that publisher's JSON through main. A separate website automation
