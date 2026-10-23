@@ -192,9 +192,11 @@ articles, posts and future books can add editorial context around the same unit.
    requesting release approval. Package and website publishing retain their
    existing authorization boundaries.
 
-The first Help Center is prepared separately in the existing Attune-AI website
-repository. Its topic manifest and pinned walkthrough provenance support these
-records; an unpublished local route or reviewed branch is not a live help URL.
+The Help Center's canonical guides, version manifest and static build live in
+this repository's [help directory](../help/README.md). Build and verify the
+export against the named published release. The existing Attune-AI website
+still serves the earlier implementation until a separate website cutover;
+an unpublished local route or reviewed branch is not a live help URL.
 
 ## Things that look wrong and are not
 

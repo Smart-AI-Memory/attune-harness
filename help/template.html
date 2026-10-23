@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title | Harness Help</title>
+  <meta name="description" content="$goal">
+  <link rel="canonical" href="$canonical">
+  <link rel="stylesheet" href="/harness/help/help.css">
+</head>
+<body class="harness-help">
+  <a class="help-skip" href="#main-content">Skip to main content</a>
+  <header class="help-header">
+    <a class="help-brand" href="/harness/help/">Attune Harness <span>Help Center</span></a>
+    <nav aria-label="Help Center context"><a href="https://smartaimemory.com/">Smart AI Memory</a><a href="https://github.com/Smart-AI-Memory/attune-harness">Harness repository</a></nav>
+  </header>
+  <div class="help-shell">
+    <aside class="help-sidebar">
+      <nav aria-label="Help topics"><a href="/harness/help/">Help Center overview</a><ol>$navigation</ol></nav>
+      <p class="help-version">Guides for <strong>Harness $version</strong></p>
+    </aside>
+    <main id="main-content" tabindex="-1" class="help-main">
+      <nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">$breadcrumb</span></nav>
+      <p class="help-eyebrow">Attune Harness · $version</p>
+      <h1>$title</h1><p class="help-lead">$goal</p>
+      <p class="help-version-note">These instructions describe published <strong>Harness $version</strong>. Check each walkthrough's verification limits.</p>
+      $contents
+      <article class="help-prose">$body</article>
+      <nav class="help-next" aria-label="Continue learning"><a href="/harness/help/">All help topics</a><a href="#main-content">Back to top</a></nav>
+    </main>
+  </div>
+  <footer class="help-footer">Harness $version · <a href="/harness/help/dependencies/">Dependencies and reference</a> · <a href="/harness/help/verification.json">Verification record</a> · <a href="https://github.com/Smart-AI-Memory/attune-harness/issues">Report a problem</a></footer>
+</body>
+</html>

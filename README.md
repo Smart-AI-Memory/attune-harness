@@ -29,6 +29,9 @@ The v1 compatibility contract remains in effect.
 
 The [Harness Help Center](https://smartaimemory.com/harness/help/) brings together
 step-by-step guides, expected results, troubleshooting and command references.
+Harness owns the [Help Center source and static build](https://github.com/Smart-AI-Memory/attune-harness/blob/main/help/README.md). Its
+1.5.0 guides and portable export are maintained here; the existing public site
+will switch to that export in a separate website change.
 Start with [Get started with Harness 1.5.0](https://smartaimemory.com/harness/help/1-5-0/)
 to install the release and check a local result. Use
 [AI tools and integrations](https://smartaimemory.com/harness/help/ai-tools-and-integrations/)

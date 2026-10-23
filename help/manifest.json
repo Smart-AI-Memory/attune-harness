@@ -1,0 +1,66 @@
+{
+  "version": "1.5.0",
+  "behavior_commit": "7caa86ab6d476e9599b08ff75a81bc816e60c382",
+  "content_origin": {
+    "repository": "Smart-AI-Memory/attune-ai",
+    "commit": "6695106f8a185e310b7b8f9d463395cb0752c22a",
+    "path": "website/lib/harness-help"
+  },
+  "chronology_source": "https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md",
+  "topics": [
+    {
+      "slug": "1-5-0",
+      "title": "Harness 1.5.0 overview",
+      "goal": "Install the published release, check a local result, and choose your next workflow.",
+      "kind": "task"
+    },
+    {
+      "slug": "ai-tools-and-integrations",
+      "title": "AI tools and integrations",
+      "goal": "Find commands by typical use, understand their order and know where judgment and approval enter.",
+      "kind": "reference"
+    },
+    {
+      "slug": "get-started",
+      "title": "Get started",
+      "goal": "Check your installation and see a local result before starting real work.",
+      "kind": "task"
+    },
+    {
+      "slug": "start-and-continue",
+      "title": "Start and continue work",
+      "goal": "Turn saved draft answers into an intent you can inspect and accept.",
+      "kind": "task"
+    },
+    {
+      "slug": "plan-and-accept",
+      "title": "Plan and accept work",
+      "goal": "Review the exact scope and accept its current checkpoint before execution.",
+      "kind": "task"
+    },
+    {
+      "slug": "research",
+      "title": "Research a question",
+      "goal": "Find local evidence and recognize what the verification actually checked.",
+      "kind": "task"
+    },
+    {
+      "slug": "save-and-resume",
+      "title": "Save and resume",
+      "goal": "Keep saved answers across sessions and inspect work before continuing execution.",
+      "kind": "task"
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "Troubleshooting",
+      "goal": "Recover a form or installation while preserving the saved task and its evidence.",
+      "kind": "troubleshooting"
+    },
+    {
+      "slug": "dependencies",
+      "title": "Dependencies and reference",
+      "goal": "Choose the required integration and find guidance for the version you use.",
+      "kind": "reference"
+    }
+  ]
+}
