@@ -26,6 +26,9 @@ publication gates and retained platform limits.
   checking complete collection, disjoint selections and case journals. Keep the
   existing deadlines and give each child its own system-temporary namespace
   (#298).
+- Confirm dangling Windows raw-memory targets without freezing unrelated
+  ancestor contents for the whole target walk. Keep exact path bindings,
+  missing-parent snapshots, link metadata and metadata-only access checks (#301).
 - Document the complete pause-and-return procedure and verify its printed
   commands. Preserve native Windows paths in its Python wrapper with raw string
   literals; retain assisted observations separately from full human acceptance

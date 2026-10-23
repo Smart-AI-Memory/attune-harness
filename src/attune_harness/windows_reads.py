@@ -2,9 +2,10 @@
 
 This module supplies bytes and native evidence, not a public version-token format.
 Callers retain their own path policy, selected-file/aggregate bounds and records.
-As with the effects primitives, this is not hostile-writer isolation. Namespace
-and metadata changes observed during an operation refuse instead of returning a
-possibly stale observation. No source handle requests write or delete access.
+As with the effects primitives, this is not hostile-writer isolation. Changes to
+selected bindings or captured source observations refuse. Unrelated ancestor
+contents need not stay frozen between observations. No source handle requests
+write or delete access.
 """
 
 from contextlib import ExitStack, contextmanager
@@ -594,6 +595,15 @@ class ReadRoot:
             raise ValueError('Malformed symbolic-link buffer length')
         return data.raw[:used.value]
 
+    def _target_binding_state(self, handle):
+        state = self._probe_state(handle)
+        # Like _check_binding, bind ordinary directories without freezing their
+        # contents between completed observations. Each probe remains stable;
+        # links and files retain their full timestamp evidence.
+        if state[3] and not state[2] & FILE_ATTRIBUTE_REPARSE_POINT:
+            return (state[0], None, *state[2:])
+        return state
+
     def _target_absent(self, path, handles, checks, seen):
         """Walk target metadata only, never letting the OS follow a reparse."""
         api = self._api
@@ -630,17 +640,20 @@ class ReadRoot:
                 handles.enter_context(api.owned(child))
                 if name not in members:
                     raise ValueError('Symbolic-link target uses an alias or appeared')
-                state = self._probe_state(child)
+                state = self._target_binding_state(child)
                 data = self._reparse_data(child) if state[2] & FILE_ATTRIBUTE_REPARSE_POINT else None
-                def binding(parent=parent, name=name, before=parent_state, names=names,
+                def binding(parent=parent, name=name, before=parent_state,
                             child=child, state=state, data=data):
-                    after, after_names, members = self._listing(parent)
-                    if after != before or after_names != names or name not in members:
+                    after, _, members = self._listing(parent)
+                    # Ancestors can contain other readers' temporary files.
+                    # Preserve their identity/security and this exact name,
+                    # rather than freezing every sibling until the walk ends.
+                    if after.entry != before.entry or name not in members:
                         raise ValueError('Symbolic-link target namespace changed')
-                    if self._probe_state(child) != state:
+                    if self._target_binding_state(child) != state:
                         raise ValueError('Symbolic-link target metadata changed')
                     with api.owned(api.child(parent, name, writable=False, metadata_only=True)) as reopened:
-                        if self._probe_state(reopened) != state:
+                        if self._target_binding_state(reopened) != state:
                             raise ValueError('Symbolic-link target binding changed')
                         if data is not None and self._reparse_data(reopened) != data:
                             raise ValueError('Symbolic-link target was retargeted')
@@ -658,7 +671,7 @@ class ReadRoot:
                 if at < len(parts) - 1:
                     directory = handles.enter_context(api.owned(
                         api.child(parent, name, directory=True, writable=False)))
-                    if self._probe_state(directory) != state:
+                    if self._target_binding_state(directory) != state:
                         raise ValueError('Symbolic-link target directory changed before traversal')
                     parent = directory
             else:

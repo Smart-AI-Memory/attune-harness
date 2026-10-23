@@ -86,6 +86,21 @@ full Windows parity and desktop/shell acceptance remain separate. See
 [PR #298](https://github.com/Smart-AI-Memory/attune-harness/pull/298) and the
 [partition design](design-windows-source-suite-shards.md).
 
+## Check dangling Windows memory targets
+
+Raw-memory reads treat a confirmed dangling `findings.jsonl` symbolic link as
+absent without reading its target content. The Windows target walk now binds
+each selected ancestor name and identity without freezing unrelated siblings or
+ordinary-directory timestamps between completed observations. This avoids a
+false refusal when another operation changes an ancestor's unrelated contents.
+
+The missing target's immediate parent retains its complete namespace snapshot.
+Link metadata and reparse data, selected path bindings, completed directory scans
+and exact native missing-status checks still refuse observed changes or unsafe
+access. Targets receive no content authority. See
+[PR #301](https://github.com/Smart-AI-Memory/attune-harness/pull/301); its evidence
+separates portable regressions from native Windows results.
+
 ## Installation and compatibility
 
 Use [published 1.5.0](installation.md) while 1.5.1 is in preparation. After

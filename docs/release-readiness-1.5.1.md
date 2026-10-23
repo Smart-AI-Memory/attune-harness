@@ -2,8 +2,9 @@
 
 **Prepared — publication held.** This record accompanies the final 1.5.1
 release-preparation PR, based on merged main
-`5fca534972ac3904c6aa92a0a0fd89e7cf9ba4a9`. The PR changes version metadata and
-documentation; it does not change runtime source, dependencies or saved formats.
+`5fca534972ac3904c6aa92a0a0fd89e7cf9ba4a9`. The PR changes version metadata,
+documentation and Windows dangling-target ancestor validation. Dependencies and
+saved formats remain unchanged.
 Its **Verified** section records the actual preparation commit, built artifacts,
 local results and current CI. The eventual reviewed merge is the release SHA;
 this document does not substitute a precursor SHA for it or authorize publication.
@@ -22,7 +23,8 @@ assessment evidence (#292), browser timeout diagnostics (#288), installation and
 workflow guidance (#290), local documentation-link validation (#291), bounded
 refusal-continuation checks (#293, #295), 1.5.1 guidance (#297), Windows full-suite
 partitioning (#298) and the pause-and-return documentation and native-path fix
-(#296). See the [release notes](release-notes-1.5.1.md) for user-visible changes.
+(#296), plus the bounded Windows raw-memory target-walk repair in #301. See the
+[release notes](release-notes-1.5.1.md) for user-visible changes.
 
 A live [PyPI metadata](https://pypi.org/pypi/attune-harness/json) check on October 22,
 2026, reported latest 1.5.0 and no 1.5.1 release entry. Recheck both the version slot
@@ -51,6 +53,16 @@ or weakening assertions. The [design](design-windows-source-suite-shards.md) and
 [qualification guide](qualification.md) explain the proof and its limits.
 The original #296 path failures, Node timeouts and local environment/GPG setup
 failures also remain retained; fresh evidence is added beside them.
+
+The first #301 candidate's [Server 2022/Python 3.10 source cell](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39891752523/job/120212928695)
+failed a dangling-target absence case with `Symbolic-link target namespace
+changed`, despite missing before/after Windows stat witnesses and zero content
+reads. Controlled regressions reproduce that refusal through unrelated ancestor
+changes; the historical receipt does not identify which ancestor or field changed.
+The repair binds selected ancestor names and identities between observations,
+preserving strict missing-parent, link, scan and unsafe-access guards. Its current
+source review, local verification and native CI results belong to the PR; the
+earlier failure remains evidence rather than becoming a passing receipt.
 
 ## Documentation readiness
 
