@@ -118,6 +118,31 @@ remain separate. The first user benefit is inspecting why an assessment was
 called complete without reconstructing its JSON. No merge, publication or paid
 trial is authorized by this note.
 
+O-04/O-36 follow-through, 2026-10-22 — **next-rung** lens. The broader goal is
+current, discoverable guidance whose stated outcome and human decision survive
+the actual delivered artifact. At runtime source `0f2711b4`, the documentation
+audit found active pointers to old development environments, stale opportunity
+status and a superseded CI failure. Current references and a separate 1.5.1
+walkthrough page now record four actual offline procedures, 5,214 source checks
+and 2,937 installed-wheel checks, with skips, metadata-overlay identity and
+untested limits explicit in the [readiness record](release-readiness-1.5.1.md).
+This does not accept a final release artifact or close S3/S6/S9.
+
+**R6** lens. A fresh browser review of the canonical Help port found that table
+wrapping moved the spec worksheet outside its collapsed goal despite passing
+topic-count and link checks. Help source `295230ac` fixes the transformation
+and adds structural ownership/resource guards; browser inspection confirms the
+worksheet and testing FAQs stay in their owning topics, with local unapproved
+choices and exact draft copying. This closes that observed projection defect,
+not general accessibility or user acceptance. Keep the next action within O-36:
+reconcile the final imported website, then observe a person carry one real goal
+to its artifact and decision. Done when the named journey succeeds or records
+the remaining undocumented handoff; effort is one separately scoped observation.
+The user first meets this through the Help landing's goals link and compact
+learning-first rows. Completion review: complete for the documentation audit;
+integration, final-source qualification and publication remain gated. This note
+authorizes no implementation, paid call, merge or publication.
+
 ## Historical recommendations and register — September 2026
 
 The following snapshots retain their original wording and evidence. Their

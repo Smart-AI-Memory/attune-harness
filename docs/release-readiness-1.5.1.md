@@ -60,6 +60,34 @@ inspection preserved saved-file hashes, attribution and unverified semantic
 acceptance. No model calls occurred. Independent user acceptance, other browsers
 and Windows shell/desktop observations remain separate.
 
+### Completed local software checks
+
+The full source suite passed on macOS arm64/Python 3.10.11: **5,214 passed,
+238 skipped and seven subtests passed** in 643.77 seconds, with four warnings.
+The noneditable validation wheel passed `scripts/qualify_platform.py`:
+**2,937 passed, 197 skipped and two subtests passed** in 341.18 seconds, with
+three warnings. Its receipt reports `checks_passed`, exit 0 and zero model calls;
+the subsequent installed memory/R2 checks and all ten signed-plugin probe steps
+passed. Platform skips retain their declared boundaries. These local results
+do not replace exact-final-source CI or qualify native Windows behavior.
+
+The disposable managed base installation separately passed
+`scripts/check_installed.py --mode all`: plan, acceptance, build, review and
+status completed with command/deterministic participants and zero model calls.
+An initial `--mode core` invocation refused that normal dependency-bearing
+installation; `core` is the deliberately dependency-free wheel profile. The
+correct `all` invocation passed without a runtime change. The publish workflow
+checks both profiles separately.
+
+The final documentation-only diff passes the local link/index checker and
+44 documentation-link tests. Their sandboxed run emitted one cache-write
+warning. The static API-documentation command returned seven verified static
+claims while explicitly leaving runtime behavior unchecked.
+
+The PyPI environment was read without mutation: only `main` is permitted and
+Patrick remains the required reviewer. Trusted-publisher configuration and an
+actual upload were not exercised by this review.
+
 ### Historical software evidence on the earlier source
 
 [Library qualification run 39786227278](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
@@ -144,7 +172,18 @@ learning-first compact navigation, 21 goal accordions, six testing FAQs and
 local unapproved worksheet. The website entry-point PR must drop its duplicate
 Help implementation after the canonical export is reviewable. These are open
 drafts; final integration, source pins, drift/build/link checks and release gating
-remain required. A prepared guide is not a production deployment.
+remain required. Independent browser review found the spec worksheet outside
+its collapsed topic in the first port. Corrected Help source
+`295230ac53d601c9a2539020a3f5be7044cc7559` preserves worksheet ownership and
+all six testing FAQs inside their topic; the renderer now rejects broken nesting
+and missing resources. Its 12-page export, compact link, worksheet choices,
+reset and exact clipboard copying were checked in the browser. This does not
+substitute for the final website rewrite/import checks.
+
+Website #2575's `when-green` run 39880319742 failed with HTTP 401 at its
+metadata API call, while build/test/preview checks passed. Credential repair
+remains a website administration action, separate from Harness package CI and
+PyPI's OIDC environment. A prepared guide is not a production deployment.
 
 Existing 1.3.0/1.4.0 training pages, decks and HTML captures remain explicitly
 historical. The four current procedures are in `tutorials-1.5.1.md`; no current
@@ -167,8 +206,9 @@ Package preparation does not deploy Help Center, tutorial or deck updates.
    changelog heading, review README claims and pin its documentation links to
    the release tag or an existing reviewed revision. Reconcile later changes
    with these notes. Keep the marketplace at 1.5.0 until the new tag exists.
-3. Complete affected walkthrough checks and coordinate the actual help/tutorial/
-   deck dispositions with their owners. Record the candidate source, artifact,
+3. Reconcile the observed walkthroughs with the final source; rerun affected
+   procedures if their inputs or behavior change. Finish the actual Help/website
+   integration and confirm tutorial/deck dispositions with their owners. Record the candidate source, artifact,
    observed results and explicitly retained older guidance.
 4. Build and validate distributions, install the wheel and run the required
    installed checks. After the preparation PR merges, verify exact-main CI and
