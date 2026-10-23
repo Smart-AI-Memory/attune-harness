@@ -1,7 +1,11 @@
 # Worked example: return to work, then review and choose
 
-Status: proposed acceptance scenario, not an execution receipt or a claim that
-the feature is available. This will become the short tutorial after verification.
+Current checkpoint — October 22, 2026: the static return briefing, continuation
+notes, explicit Saved Tasks navigation and local reply preparation are integrated.
+Use the [pause-and-return procedure](../../cli-guide.md#pause-and-return-to-work).
+The [owner walk](README.md#command-owner-walk) records its valid input chain.
+Steps 1–2 still need real interrupted-task acceptance; steps 3–9 describe later
+connected capabilities. This scenario is not an execution or acceptance receipt.
 
 1. **Return after an interruption.** A user asks to pick up a saved task. The
    overview restores the goal, the retained stopping point, supported progress,
@@ -70,7 +74,9 @@ the number of opportunities selected as evidence that the journey succeeded.
 
 ## Production integration: Saved Tasks and a human briefing
 
-Design status: implementation in progress. Completion review: pending.
+Implementation status: integrated in source; real-task acceptance remains open.
+The paragraphs below retain the increment's design and limits. They do not
+establish independent discovery, current browser behavior or complete acceptance.
 
 The returning user needs a stable entrance as well as an understandable task.
 Keep `status TASK` JSON unchanged. Add repeatable `--include-task TASK` for an
@@ -141,4 +147,6 @@ goal and definitions stay visible. Do not hide necessary task facts in tooltips.
 JSON status stays unchanged. Tests cover state/authority combinations, hostile
 input, field and byte limits, cross-format content, and unchanged owner bytes.
 The installed journey must exercise the updated renderer and encoding on Windows.
-Completion review: pending for this increment.
+Completion review for the current guidance slice is recorded with its PR and
+observation handoff. The real-task acceptance requirement remains open until an
+actual walkthrough supplies its evidence.
