@@ -1,7 +1,8 @@
 /* Executes the production script with deterministic DOM, fetch and timer seams.
  * This is a behavioral client check; actual browser rendering remains a host check. */
 if(require.main===module && process.argv[3]){
- process.stderr.write(JSON.stringify({stage:'node-main-entered',uptime_seconds:process.uptime(),node:process.version,pid:process.pid})+'\n');
+ const entry={stage:'node-main-entered',uptime_seconds:process.uptime(),node:process.version,pid:process.pid};
+ process.stderr.write(JSON.stringify(entry)+'\n');
 }
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 // File markers do not depend on stdout/stderr reaching EOF. No timer or forced exit.
