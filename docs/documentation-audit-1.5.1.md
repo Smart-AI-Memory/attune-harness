@@ -227,7 +227,10 @@ reference-only delta does not requalify broader accessibility or user acceptance
 
 After the initial audit snapshot, the release owner verified #303 merged as
 main `e78576eda9b99369472f3f58f768230a4a2656c9`, with the merged tree matching
-its tested reader prerequisite. Separate #304 timeout diagnostics remain open.
+its tested reader prerequisite. The later #304 diagnostic-reader correction
+`a2aa2ff252298073ee343a8052297d4ec82efc0c` is now API-verified merged as
+`e9c4262ed549ea39b2b9e0f1ca0c1046e0ec7cb1`. Its diagnostic readiness does not
+establish a cause or runtime repair for the separate Windows failures.
 #299 and #300 retain failed old-head Windows observations and now have normal
 owner updates through current main; fresh qualification and final #301 source
 integration/artifact checks remain separate. The release owner also retains a
