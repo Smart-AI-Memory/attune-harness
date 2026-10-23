@@ -185,7 +185,9 @@ def run_suite(output, timeout, *, root=ROOT, shards=1, deadline=None):
         temporary_base = Path(tempfile.gettempdir()).resolve()
         if temporary_base.is_relative_to(root):
             raise ValueError('Partition temporary roots must be outside the source checkout')
-        temporary_roots = [Path(tempfile.mkdtemp(prefix=f'harness-source-shard-{index}-',
+        # Shared-deadline macOS workers need room for nested Unix socket names.
+        temporary_roots = [Path(tempfile.mkdtemp(prefix=(str(index) if deadline is not None
+                                                       else f'harness-source-shard-{index}-'),
                                                dir=temporary_base)).resolve()
                            for index in range(2)]
         receipt['temporary_roots'] = [str(folder) for folder in temporary_roots]

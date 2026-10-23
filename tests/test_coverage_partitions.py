@@ -96,6 +96,27 @@ def test_late_zero_exits_cannot_clear_latched_aggregate_timeout(tmp_path, projec
 
 
 @POSIX
+def test_shared_partition_native_namespaces_allow_nested_unix_sockets(tmp_path, project):
+    for name in ('test_first.py', 'test_right.py'):
+        (project / name).write_text(
+            'import socket, tempfile\nfrom pathlib import Path\n'
+            'def test_case():\n'
+            '    home = Path(tempfile.mkdtemp(prefix="hs-"))\n'
+            '    with socket.socket(socket.AF_UNIX) as connection:\n'
+            '        connection.bind(str(home / "S.gpg-agent"))\n'
+            '    Path(__file__).with_suffix(".namespace").write_text(str(home.parent))\n')
+    output = tmp_path / 'evidence'
+    assert RUNNER.run_suite(output, 30, root=project, shards=2,
+                            deadline=time.monotonic() + 30) == 0
+    receipt = json.loads((output / 'source-suite.json').read_text())
+    roots = [Path(value) for value in receipt['temporary_roots']]
+    assert len(set(roots)) == 2
+    assert all(path.name.startswith(str(index)) for index, path in enumerate(roots))
+    assert {Path(path.read_text()) for path in project.glob('*.namespace')} == set(roots)
+    assert receipt['coverage'] == {'collected_cases': 2, 'executed_cases': 2}
+
+
+@POSIX
 def test_real_partitions_contribute_both_aliases_and_retain_uploaded_evidence(tmp_path, project, monkeypatch):
     coverage = pytest.importorskip('coverage')
     root = Path(__file__).resolve().parents[1]
