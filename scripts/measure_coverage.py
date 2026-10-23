@@ -2,13 +2,17 @@
 import argparse
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import sys
 import sysconfig
+import time
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'src/attune_harness'
@@ -116,6 +120,49 @@ def report(config, directories=None):
     print(json.dumps(summary))
 
 
+def _validate_partition_junit(folder, selected):
+    root = ET.parse(folder / 'tests.xml').getroot()
+    suites, cases = list(root.iter('testsuite')), list(root.iter('testcase'))
+    keys = ('tests', 'failures', 'errors', 'skipped')
+    counts = {key: sum(int(s.get(key, 0)) for s in suites) for key in keys}
+    if (root.tag not in ('testsuites', 'testsuite') or not suites or not cases
+            or len(cases) < len(selected)
+            or any(int(s.get(key, 0)) < 0 for s in suites for key in keys)
+            or counts['failures'] or counts['errors']
+            or any(element.tag in ('failure', 'error') for element in root.iter())
+            or counts['skipped'] != sum(c.find('skipped') is not None for c in cases)):
+        raise ValueError('Partition JUnit does not retain successful selected cases')
+    difference = counts['tests'] - len(cases)
+    if difference:
+        # Pytest 9 counts successful subtests without emitting testcase elements.
+        transcript = (folder / 'stdout.txt').read_text(encoding='utf-8')
+        summaries = re.findall(r'(?m)^.*\b(\d+) subtests passed.* in [0-9.]+s.*$', transcript)
+        if difference < 0 or not summaries or difference != int(summaries[-1]):
+            raise ValueError('Partition JUnit count lacks matching passing-subtest summary')
+
+
+def _darwin_full(output, budget):
+    """Share one deadline and retain live diagnostics in an already-uploaded directory."""
+    deadline = time.monotonic() + budget
+    spec = importlib.util.spec_from_file_location('coverage_source_suite', ROOT / 'scripts/run_source_suite.py')
+    runner = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runner)
+    # This entire directory is already included by coverage.yml, including
+    # partial journals when an outer kill prevents Python finally blocks.
+    partitions = output / 'instrumented-platform'
+    code = runner.run_suite(partitions, budget, root=ROOT, shards=2, deadline=deadline)
+    if code == 0:
+        for index in range(2):
+            folder = partitions / f'shard-{index}'
+            selected = json.loads((folder / 'collection.json').read_text())['selected']
+            _validate_partition_junit(folder, selected)
+    return code
+
+
+def _partitioned_full(suite):
+    return suite == 'full' and platform.system() == 'Darwin'
+
+
 def measure(output, suite):
     if sys.prefix == sys.base_prefix:
         raise ValueError('Use a dedicated disposable virtualenv')
@@ -139,6 +186,12 @@ def measure(output, suite):
     manifest = output / 'manifest.json'
     def save():
         manifest.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
+    partitioned = _partitioned_full(suite)
+    if partitioned:
+        receipt['execution_topology'] = 'two_supervised_module_partitions'
+        receipt['shared_test_budget_seconds'] = 1500
+        receipt['partition_evidence'] = [f'instrumented-platform/shard-{index}' for index in range(2)]
+        receipt['partition_supervisor'] = 'instrumented-platform/source-suite.json'
     save()
     argv = ([sys.executable, '-m', 'pytest', '-q', '-p', 'harness_qualification_stacks',
              '-o', 'faulthandler_timeout=0', '--junitxml=' + str(output / 'tests.xml')]
@@ -159,16 +212,23 @@ def measure(output, suite):
         with stream:
             stream.write(startup_hook(config))
         with (output / 'tests.txt').open('w', encoding='utf-8') as log:
-            run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
-                                 stderr=subprocess.STDOUT,
-                                 timeout=(2700 if platform.system() == 'Windows' else 1080)
-                                 if suite == 'platform' else
-                                 (1500 if platform.system() == 'Darwin' else 1200))
-        receipt['test_exit'] = run.returncode
+            if partitioned:
+                log.write('Two supervised module partitions; see instrumented-platform/shard-* diagnostics.\n')
+                log.flush()
+                receipt['test_exit'] = _darwin_full(output, 1500)
+            else:
+                run = subprocess.run(argv, cwd=ROOT, env=environment, stdout=log,
+                                     stderr=subprocess.STDOUT,
+                                     timeout=(2700 if platform.system() == 'Windows' else 1080)
+                                     if suite == 'platform' else
+                                     (1500 if platform.system() == 'Darwin' else 1200))
+                receipt['test_exit'] = run.returncode
     finally:
         hook.unlink(missing_ok=True)
         receipt['input_drift'] = not inputs_stable(frozen, installed)
         save()
+    if partitioned and (receipt['test_exit'] != 0 or receipt['input_drift']):
+        return receipt['test_exit'] or 1
     report(config)
     return 1 if receipt['input_drift'] else receipt['test_exit']
 

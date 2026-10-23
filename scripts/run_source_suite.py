@@ -2,7 +2,7 @@
 
 import argparse
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 import math
@@ -13,13 +13,23 @@ import subprocess
 import sys
 import tempfile
 import time
-from threading import Event
+from threading import Event, Timer
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / 'scripts'
 
 
-def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None, temporary_root=None):
+def _remaining(limit, deadline):
+    if deadline is None:
+        return limit
+    remaining = min(limit, deadline - time.monotonic())
+    if remaining <= 0:
+        raise TimeoutError('Shared source-suite deadline expired before dispatch')
+    return remaining
+
+
+def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None, temporary_root=None,
+               deadline=None):
     """Keep process failure distinct from pytest success; never retry a suite."""
     from attune_harness.process import invoke
 
@@ -60,9 +70,12 @@ def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None, temporary
     started = time.monotonic()
     try:
         revision = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
-                                  capture_output=True, timeout=10, check=True)
+                                  capture_output=True, timeout=_remaining(10, deadline), check=True)
         receipt['revision'] = revision.stdout.decode('ascii').strip()
-        result = invoke(argv, '', cwd=root, timeout=timeout, max_output_bytes=64 * 1024 * 1024,
+        effective_timeout = _remaining(timeout, deadline)
+        if deadline is not None:
+            receipt['effective_timeout_seconds'] = effective_timeout
+        result = invoke(argv, '', cwd=root, timeout=effective_timeout, max_output_bytes=64 * 1024 * 1024,
                         environment=environment, capture_interrupt=True, cancel=cancel)
         (output / 'stdout.txt').write_text(result.stdout, encoding='utf-8')
         (output / 'stderr.txt').write_text(result.stderr, encoding='utf-8')
@@ -80,6 +93,9 @@ def _run_suite(output, timeout, *, root=ROOT, shard=None, cancel=None, temporary
         code = 2
         receipt.update(exit=code, status='failed', error_type=type(exc).__name__,
                        error=str(exc))
+    if deadline is not None and time.monotonic() >= deadline:
+        code = 124
+        receipt.update(exit=code, status='failed', aggregate_deadline_exceeded=True)
     receipt['elapsed_seconds'] = round(time.monotonic() - started, 6)
     path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     if shard is None:
@@ -128,10 +144,13 @@ def verify_partitions(output, revision):
     return {'collected_cases': len(collected), 'executed_cases': len(covered)}
 
 
-def run_suite(output, timeout, *, root=ROOT, shards=1):
+def run_suite(output, timeout, *, root=ROOT, shards=1, deadline=None):
     """Keep the serial default; verify two concurrent supervised partitions on request."""
     if type(shards) is not int or shards not in (1, 2):
         raise ValueError('Source suite supports one or two shards')
+    if deadline is not None and (isinstance(deadline, bool) or not math.isfinite(deadline)
+                                 or shards != 2):
+        raise ValueError('Shared deadline requires two shards and a finite clock value')
     if shards == 1:
         return _run_suite(output, timeout, root=root)
     if isinstance(timeout, bool) or not math.isfinite(timeout) or not 0 < timeout <= 3600:
@@ -145,9 +164,21 @@ def run_suite(output, timeout, *, root=ROOT, shards=1):
     path = output / 'source-suite.json'
     path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     started, cancel = time.monotonic(), Event()
+    expired, timer = Event(), None
+    if deadline is not None:
+        deadline = min(deadline, started + timeout)
+        receipt['shared_deadline_monotonic'] = deadline
+
+        def expire():
+            expired.set()
+            cancel.set()
+
+        timer = Timer(max(0, deadline - time.monotonic()), expire)
+        timer.daemon = True
+        timer.start()
     try:
         revision = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'],
-                                  capture_output=True, timeout=10, check=True)
+                                  capture_output=True, timeout=_remaining(10, deadline), check=True)
         receipt['revision'] = revision.stdout.decode('ascii').strip()
         # Preserve the native temporary filesystem and inherited permissions.
         # Hosted RUNNER_TEMP can have different ACLs from the system temp.
@@ -162,18 +193,38 @@ def run_suite(output, timeout, *, root=ROOT, shards=1):
             try:
                 futures = [workers.submit(_run_suite, output / f'shard-{index}', timeout,
                                           root=root, shard=index, cancel=cancel,
-                                          temporary_root=temporary_roots[index]) for index in range(2)]
-                codes = [future.result() for future in futures]
+                                          temporary_root=temporary_roots[index], deadline=deadline)
+                           for index in range(2)]
+                first_failure = 0
+                if deadline is None:
+                    codes = [future.result() for future in futures]
+                else:
+                    codes = [None, None]
+                    for future in as_completed(futures):
+                        code = future.result()
+                        codes[futures.index(future)] = code
+                        if code:
+                            first_failure = first_failure or code
+                            cancel.set()
             except BaseException:
                 cancel.set()
                 raise
         receipt['shard_exits'] = codes
-        code = 124 if 124 in codes else next((value for value in codes if value), 0)
+        code = 124 if 124 in codes else first_failure or next((value for value in codes if value), 0)
+        if deadline is not None and (expired.is_set() or time.monotonic() >= deadline):
+            code = 124
         if code == 0:
             receipt['coverage'] = verify_partitions(output, receipt['revision'])
     except (Exception, KeyboardInterrupt) as exc:
         code = 2
         receipt.update(error_type=type(exc).__name__, error=str(exc))
+    finally:
+        if timer is not None:
+            timer.cancel()
+            timer.join()
+    if deadline is not None and (expired.is_set() or time.monotonic() >= deadline):
+        code = 124
+        receipt['aggregate_deadline_exceeded'] = True
     receipt.update(exit=code, status='passed' if code == 0 else 'failed',
                    elapsed_seconds=round(time.monotonic() - started, 6))
     path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')

@@ -72,17 +72,39 @@ and a manifest naming the source revision, source and execution-input hashes,
 platform, suite, exit status and post-run drift status.
 A failed suite remains failed even if its partial coverage report exists. The
 supplemental CI jobs upload those files without imposing a coverage threshold.
-The instrumented POSIX full suite has a 1,200-second child budget and a
-25-minute outer CI job. Windows supplemental measurement temporarily allows
-1,500 seconds for its inner selected suite, 1,680 seconds for the measurement
-wrapper, and 35 minutes for the hosted job, leaving time for environment setup,
-report generation and artifact upload. This headroom addresses observed
-900-second instrumented-suite overruns while the Windows timing investigation
-remains open; it is not a performance correction. A timeout still leaves an
-unfinished receipt that cannot be combined. Uninstrumented platform
-qualification allows 1,500 seconds on Windows and retains its separate
-900-second suite budget on POSIX,
-and individual operation deadlines are unchanged.
+Test execution and the outer CI job have separate limits:
+
+| Measurement | Test execution budget | Outer CI job |
+| --- | --- | --- |
+| Linux full suite | 1,200 seconds | 25 minutes |
+| macOS full suite | One shared 1,500-second deadline across two supervised module partitions | 30 minutes |
+| Windows platform selection | 2,520 seconds inside the platform driver; 2,700 seconds for its measurement wrapper | 50 minutes |
+
+The outer jobs leave time for environment setup, report generation and artifact
+upload. These measurement limits do not change individual operation deadlines.
+Uninstrumented installed-wheel qualification retains 1,800 seconds on Windows
+and 900 seconds on POSIX, with separate 35-minute and 20-minute CI jobs.
+Instrumented results do not qualify a platform. A timeout leaves failed or
+unfinished evidence that cannot be combined.
+
+The macOS full suite uses the existing source-suite supervisor and module
+partition verifier. Both workers must collect the same complete suite, select
+disjoint module partitions whose union covers that collection, and record every
+selected case starting and ending exactly once. Both must finish successfully
+with valid JUnit results. Dispatch, worker setup and execution consume one
+shared deadline; a delayed worker receives only the remaining time. Expiry or a
+failed worker cancels its sibling. The supervisor drains both workers before
+the measurement removes its startup hook. A late successful exit cannot clear
+an expired deadline. This changes scheduling, not the tests, coverage denominator
+or ordinary Windows source-suite supervision, and does not guarantee a speedup.
+
+Before launch, the root manifest records the execution topology, shared budget,
+supervisor receipt and both partition evidence paths. The workers write live
+diagnostics under `instrumented-platform/shard-0/` and
+`instrumented-platform/shard-1/`, which the existing workflow uploads recursively.
+This retains partial files without requiring a final copy, provided the hosted
+job reaches its artifact upload step. Failed, incomplete or input-drifted
+partitions cannot proceed to coverage reporting or combination.
 
 The full POSIX measurement retains `test-timings.jsonl` and `slow-stacks.txt`
 using the same Python watchdog as platform qualification. Each test and phase
@@ -90,6 +112,9 @@ start is written immediately, with outcomes and durations added as they finish.
 After a timeout, inspect the last event to identify the active case and its
 setup, call or teardown phase. Slow tests retain Python stacks after 60 seconds.
 The workflow uploads the journal even when pytest cannot finish its JUnit file.
+Each worker also writes failed setup, call and teardown details immediately to
+`failed-phases.jsonl`, bounded to 64 records and 1 MiB. Truncation is explicit;
+captured streams, environment variables and local variables are omitted.
 The watchdog needs the GIL and cannot sample a C extension that holds it;
 collection time before the first case also has no per-test stack. These
 diagnostics preserve the independent process deadline and coverage admission
