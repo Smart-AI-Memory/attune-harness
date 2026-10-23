@@ -1,11 +1,26 @@
 # Real task progress and ranked opportunities
 
-Status: implementing Task 1, the return-to-work journey described in
-[task-1-return-to-work.md](task-1-return-to-work.md). Its user acceptance is pending.
-The earlier unmerged snapshot implementation is a candidate foundation; passing
-its software checks does not establish completion of the revised first task.
-Each increment retains its verification and review. Merge and release remain
-separate maintainer decisions.
+## Current checkpoint — October 22, 2026
+
+Task 1's static return-to-work implementation is integrated. The continuation
+reader, contextual briefing, explicit Saved Tasks collection and local assistant
+reply preparation are present in the 1.5.0 source tag. See the
+[current implementation and owner walk](README.md) and
+[unchanged user acceptance](task-1-return-to-work.md#walkthrough-and-acceptance).
+One assisted Markdown return, context correction and stale-draft refresh are
+recorded in the current checkpoint. Complete interrupted-task acceptance remains
+open.
+
+The selected completion slice updates the pause-and-return procedure and skill
+guidance, verifies the printed commands, and observes one real task. Runtime
+changes are out of scope. The released forms companion does not expose the
+general return briefing; use the existing static HTML/Markdown route. Connected
+observation and Tasks 2–7 retain their later scope. Each increment keeps its own
+evidence; this checkpoint grants no merge, release or execution authority.
+
+The baseline and proposed architecture below retain the original planning
+context. References to adding Task 1 modules/options describe that earlier work,
+which is now integrated; they are not instructions to implement it again.
 
 ## Outcome and first increment
 
