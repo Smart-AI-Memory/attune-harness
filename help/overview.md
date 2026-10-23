@@ -6,10 +6,13 @@ build**, or choose planning, implementation, verification or saved work.
 
 ## Check the version before starting
 
-[Install Harness 1.5.0](1-5-0/) and check the deterministic local result. Then
-choose a task. [Prepare for Harness 1.5.1](/harness/help/1-5-1/) describes the
-unpublished maintenance update, candidate validation and remaining release
-gates. Historical 1.5.0 observations retain their original identity.
+Attune AI is deprecated. Use Harness for new work. Harness 1.5.1 is the intended
+replacement and remains unpublished. [Prepare for Harness 1.5.1](/harness/help/1-5-1/)
+explains migration, candidate validation and the remaining release gates.
+
+For an available installation today, [install Harness 1.5.0](1-5-0/) and check the
+deterministic local result. Then choose a task. Historical 1.5.0 observations
+retain their original identity.
 
 ## Choose a task
 

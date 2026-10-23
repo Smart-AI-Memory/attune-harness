@@ -207,3 +207,49 @@ def test_journal_clock_survives_test_replacing_shared_clock(tmp_path):
     elapsed = [e['elapsed_seconds'] for e in journal]
     assert elapsed == sorted(elapsed) and all(t >= 0 for t in elapsed)
     assert journal[-1]['event'] == 'suite_end' and journal[-1]['exit_status'] == 0
+
+
+@pytest.mark.parametrize('event,details', [
+    ('timeout_snapshot', {}),
+    ('timeout_snapshot_failed', {'error_type': 'OSError'}),
+])
+def test_timeout_snapshot_journal_preserves_complete_failed_session(tmp_path, event, details):
+    evidence(tmp_path, controller=1, final=1, session=1)
+    path = tmp_path / 'test-timings.jsonl'
+    events = [json.loads(line) for line in path.read_text().splitlines()]
+    events.insert(1, {'schema_version': 1, 'event': event, 'elapsed_seconds': 0.5,
+                     'nodeid': 'test_owner.py::test_timeout', 'phase': 'call', **details})
+    path.write_text(''.join(json.dumps(e) + '\n' for e in events))
+    before = {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+    result = DIAGNOSTIC.diagnose(tmp_path)
+    assert result['classification'] == 'pytest_session_failed'
+    assert result['timing_sequence_valid'] is True
+    assert result['session_end']['exit_status'] == 1
+    assert result['original_outcome']['pytest_exit'] == result['original_outcome']['exit'] == 1
+    assert result['evidence_issues'] == []
+    assert result['qualification_authority'] is False
+    assert before == {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+
+
+@pytest.mark.parametrize('event,details', [
+    ('timeout_snapshot_unknown', {}),
+    ('timeout_snapshot', {'nodeid': None}),
+    ('timeout_snapshot', {'phase': 'unknown'}),
+    ('timeout_snapshot', {'error_type': 'OSError'}),
+    ('timeout_snapshot_failed', {}),
+    ('timeout_snapshot_failed', {'error_type': None}),
+    ('timeout_snapshot_failed', {'error_type': ''}),
+    ('timeout_snapshot_failed', {'error_type': 'E' * 81}),
+])
+def test_invalid_timeout_snapshot_is_inconclusive(tmp_path, event, details):
+    evidence(tmp_path, controller=1, final=1, session=1)
+    path = tmp_path / 'test-timings.jsonl'
+    events = [json.loads(line) for line in path.read_text().splitlines()]
+    events.insert(1, {'schema_version': 1, 'event': event, 'elapsed_seconds': 0.5,
+                     'nodeid': 'test_owner.py::test_timeout', 'phase': 'call', **details})
+    path.write_text(''.join(json.dumps(e) + '\n' for e in events))
+    result = DIAGNOSTIC.diagnose(tmp_path)
+    assert result['classification'] == 'inconclusive_evidence'
+    assert result['timing_sequence_valid'] is False
+    assert result['evidence_issues']
+    assert result['qualification_authority'] is False
