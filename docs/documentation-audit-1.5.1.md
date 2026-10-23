@@ -6,9 +6,30 @@ release.** A fresh PyPI JSON response reported latest version `1.5.0` and no
 remains the installation baseline. This dated audit does not change release
 status or authorize publication.
 
-## Current guidance and ownership
+## Current integration checkpoint
 
-The audit inspected main `c8acd9a1e8efef7cc42773eef417ab56582d1c38`, the separate
+The source prerequisites are now merged. Canonical Help #299 landed as signed
+`013b84a6d1984f388df41452299ddacc90bb5f5b`; its tree matches tested `3073eb4a`.
+Documentation #300 landed as signed
+`13e46e06cbcefc3a5bd806fe58c913a7a695bcb7`; its tree matches tested
+`79ea0ce0c467dcd6349bed2480b54f976a77b07f`. The release owner's named
+#299 → #300 integration sequence is complete. This audit branch normally
+updates from that main without combining any unmerged PR.
+
+The four-file audit/archive scope and the original inventory remain unchanged.
+The inventory is a snapshot of its named candidates, not a regenerated inventory
+of this updated branch. Current migration documentation still uses reviewed
+`0dc82db327af9eae41f7bf812480cc76d2cd7fc7` through the canonical publisher;
+behavioral, validation, tutorial and historical pins retain their identities.
+
+#301 still owns final selected-main and artifact reconciliation, including the
+two source-index corrections below after #305 reaches main. #305, #306 and the
+website drafts have no merge authorization from the completed sequence.
+Publication and production cutover remain separate decisions.
+
+## Guidance and ownership
+
+The original audit inspected main `c8acd9a1e8efef7cc42773eef417ab56582d1c38`, the separate
 documentation candidate `3a8bf4ed6c4d7ccac92a9b9b9c86b64ec7768dad` (#300), canonical
 Help `46b2ee4768401e744d65f90baa6309f7638ece5c` (#299), and release preparation
 `ac634573591981c70d895d784f3bd093ee006750` (#301). Unmerged changes were inspected
@@ -16,12 +37,12 @@ as separate candidates. They were not consolidated into this branch.
 
 | Surface | Current treatment | Owner and remaining work |
 | --- | --- | --- |
-| Root README and PyPI description; package/plugin versions and changelog | Published 1.5.0 remains distinct from planned 1.5.1. PyPI renders the release artifact's README, not the current repository README. | #301 reconciles after #299 and #300 reach main; rebuild and compare the final artifact. Publication and later PyPI rendering remain separate. |
-| Installation, workflow selector and four walkthroughs | #300 supplies isolated-runtime setup and `tutorials-1.5.1.md`, explicitly unpublished. Candidate validation uses a selected local wheel; old observations retain their identities. | #300 is settled with the release owner. Final combined-source and artifact replay remain open. |
+| Root README and PyPI description; package/plugin versions and changelog | Published 1.5.0 remains distinct from planned 1.5.1. PyPI renders the release artifact's README, not the current repository README. | #301 reconciles against merged #299/#300 and the selected audit integration; rebuild and compare the final artifact. Publication and later PyPI rendering remain separate. |
+| Installation, workflow selector and four walkthroughs | Merged #300 supplies isolated-runtime setup and `tutorials-1.5.1.md`, explicitly unpublished. Candidate validation uses a selected local wheel; old observations retain their identities. | Final selected-source and artifact replay remain open under #301. |
 | Canonical Help landing, eleven topics, goals, examples and captures | #299 owns `help/`, its manifest, `scripts/build_help.py` and renderer checks. Get started uses a 1.5.1 candidate wheel, with a published 1.5.0 fallback. | Consume the canonical export; do not maintain another React copy or hand-edit generated HTML. Final source and publication metadata still require reconciliation. |
 | CLI entry points | `cli_help.py` gives task routes and `COMMAND --help`; it contains no old-version website destination. The CLI guide and host skills describe commands and scope rather than an invented `docs` command. | Keep commands tied to the selected installed runtime. This audit does not add a CLI route or change runtime behavior. |
 | Agent/plugin documentation | `.agents/skills/attune-harness/`, its browser/workflow references, and `plugin/attune-harness/skills/` retain runtime discovery, inspection versus execution, and authorization boundaries. | Versioned installation and marketplace pins are release-owner work; an older released pin is not evidence of drift by itself. |
-| Current technical references | Installation, supported journeys, CLI, operations, consultation, plugins, memory, local/review/recovery/extension/pilot/passage workflows, MCP/A2A, retrieval and documentation generation were inspected for setup and version boundaries. | #300 contains the reviewed refresh. #301 commit `93f161b8` corrects consultation setup to current installation while retaining its feature-introduction and October 12 history. Final integration remains separate. |
+| Current technical references | Installation, supported journeys, CLI, operations, consultation, plugins, memory, local/review/recovery/extension/pilot/passage workflows, MCP/A2A, retrieval and documentation generation were inspected for setup and version boundaries. | Merged #300 contains the reviewed refresh. Reviewed #301 source `0dc82db3` includes the consultation setup correction while retaining its feature-introduction and October 12 history. Final integration remains separate. |
 | Qualification and compatibility | Software qualification, coverage, Windows reliability, compatibility and envelope contracts retain their scoped claims. | Passing Server CI does not establish Windows 11 desktop/shell, all storage/recovery, live providers or human acceptance. No old table is promoted to new qualification. |
 | Project, opportunity and readiness summaries | #300 updates the documentation index, project checkpoint, opportunity register and release summaries. | Keep release blockers and observed outcomes tied to their exact heads. The audit adds its archive section at the end of the index to avoid #300's current-walkthrough insertion. |
 | Historical guides, release records and results | The [archive catalog](archive/README.md) labels eighteen versioned records as historical and links originals. Dated results/designs and specifications retain their dates and status. | Original files, headings, commands, source hashes and citations remain unchanged. A historical candidate's “unpublished” wording describes that candidate, even after a different artifact was released. |
@@ -53,9 +74,9 @@ source symbol, old receipt or live service in the corpus was independently
 requalified. Version literals are search evidence, not an instruction to replace
 them. The archive keeps original paths so links and artifact pins survive.
 
-## Website and generated exports
+## Initial website inspection and generated exports
 
-Website source main `6695106f8a185e310b7b8f9d463395cb0752c22a` was inspected beside
+At the initial inspection, website source main `6695106f8a185e310b7b8f9d463395cb0752c22a` was inspected beside
 publisher #2574 (`dcaa5f05f54dc9470783a15613730b85fa4f350b`) and entry points #2575
 (`4bf232f88ee2248b1b89ad8c3f218fdc3a94d224`). Fresh public HTML confirmed the old
 Docs quick start still serves 1.4.0; a search-engine rendering instead returned
@@ -73,7 +94,7 @@ older 1.3.0 content, so it was not used as the current-state authority.
 | Earlier generated training | `website/content/harness-help/tutorials-1.3.0.source.md`, `walkthroughs.generated.json`, `walkthrough-provenance.json` and `next-release.json`, plus their historical projector, remain original evidence. They are not current 1.5.1 source. |
 | Framework docs and companion projects | Earlier Attune AI references and generated `framework-docs` are separate-project material. Do not silently rename them to Harness 1.5.1. General accuracy of that separate corpus was not requalified here. |
 
-## Committed website corrections and delivery order
+## Earlier website correction milestones and delivery order
 
 The Docs owner committed the current Quick Start and compatibility-anchor
 correction as `948ba152259b4e5810f506f498f907dd5cc3f4d5` in website #2575.
@@ -91,7 +112,7 @@ disposable combination does not establish a standalone branch, production
 deployment or package publication. Exact local verification and current
 unverified checks belong to each PR description.
 
-## Migration correction and remaining source-index links
+## Earlier migration correction and remaining source-index links
 
 The original active website links reached an explicitly historical 1.0.0 guide.
 The [current migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/93f161b8e65bf86b4a7670e899ff96ff260644f1/docs/migration.md)
@@ -111,7 +132,7 @@ This closes the website's current-to-historical mismatch in the committed
 dependency combination; it does not qualify final main or production.
 
 Two current-reference dispositions remain pending final #301 reconciliation
-after #300 and #305 reach main:
+after #305 reaches main; #300 is already merged:
 
 - `docs/project-plan.md` S9 still links the historical file as its current
   migration guide; switch that link to `migration.md` while retaining unfinished
@@ -120,11 +141,11 @@ after #300 and #305 reach main:
   Preserve its original target and the underlying record.
 
 The release owner accepted both corrections and is avoiding competing writes
-to #300's project-plan lane and #305's index end-context. Their through-main
+to the reviewed project-plan content and #305's index end-context. The remaining through-main
 dependency remains open under the current no-merge instruction. The frozen
 inventory JSON records its original snapshots and is unchanged.
 
-## Author reference placement
+## Earlier Author reference placement
 
 The #2575 owner removed the large Attune Author section from the Harness Docs
 flow in signed `0eb99800a607386260dc8171516ef9372547b654`, a separate follow-up
@@ -151,7 +172,7 @@ The Docs owner independently inspected all 16 overlaid Git blobs, the result
 files and desktop journey. This new receipt is separate from the prior
 migration-only combination and does not establish final main or production.
 
-## Bounded mobile and keyboard checks
+## Earlier bounded mobile and keyboard checks
 
 On the exact four-input local website combination above, the Navigation and
 archive journey was checked at 390 and 320 CSS pixels. Neither Docs nor the
@@ -231,18 +252,60 @@ its tested reader prerequisite. The later #304 diagnostic-reader correction
 `a2aa2ff252298073ee343a8052297d4ec82efc0c` is now API-verified merged as
 `e9c4262ed549ea39b2b9e0f1ca0c1046e0ec7cb1`. Its diagnostic readiness does not
 establish a cause or runtime repair for the separate Windows failures.
-#299 and #300 retain failed old-head Windows observations and now have normal
-owner updates through current main; fresh qualification and final #301 source
-integration/artifact checks remain separate. The release owner also retains a
-new saved-store contention failure before installed qualification, separate
+#299 and #300 are now merged after their updated-head checks settled; #300's
+tested head recorded 28 successful checks and four successful workflows.
+Their failed old-head Windows observations remain historical. Final #301 source
+integration/artifact checks remain separate. The release owner retains the
+saved-store contention failure before installed qualification, separate
 from the earlier Python build-future timeout and main's Node-child timeout.
 Their underlying causes remain unproven. Diagnostic revisions and passing
 schedules do not establish a runtime latency repair or release readiness.
 
-The website PRs remain drafts. #2574 needs reviewed merged canonical source;
-#2575 needs that publisher's JSON through main. A separate website automation
-job reported HTTP 401; credentials/settings remain the repository owner's lane.
-This task changes neither credentials nor production state.
+The website PRs remain drafts. Publisher #2574 now imports reviewed merged
+canonical source; #2575 still needs that publisher's JSON through main.
+Current publisher `75f9dc6b` has one hosted failure: its when-green job
+`120523448043` reports `Bad credentials (HTTP 401)`. The other hosted checks
+settled with 32 successes, four skips and one neutral result; both Vercel
+statuses succeeded. Those results do not qualify the separate current website
+copy combination or production. Credentials/settings remain the repository
+owner's lane. This task changes neither credentials nor production state.
+
+## Current website copy and merged-source provenance
+
+The later reference cleanup uses publisher `4feebc0abece5ce62cbaaefd663e9a873c9047a1`,
+Docs `968fe63cc56a412893222c6bb8339bb4951b5657`, archive
+`bb7841b07daeb523c3de16f71f9e8a816d7c7100`, entry points
+`ebecedbf6d46a44e4dbea4f92a429ef229e18574` and Author
+`ffbd4120e588b6f2cf290c03d1e88a00ab386332`. All 18 overlaid files and 24
+publisher files match their committed inputs. Its 78 tests, TypeScript/125-page
+build, lint, export check and 23 HTTP checks pass. The Docs owner independently
+verified the inputs and logs, replayed 23 HTTP checks plus two retained
+historical routes, and walked the native FAQ archive by keyboard.
+
+Current Home, Docs, FAQ, Pricing and Contact have no visible predecessor-name
+matches, including their footer. The historical workflow heading and original
+Author section retain their names. Nine historical questions moved unchanged
+from Docs to the collapsed FAQ history; compatibility anchors remain. Contact
+form state, handlers and options remain byte-identical, as do historical article
+attribution and schema fixtures. Eighteen measured observations at 320/390 CSS
+pixels have no page-wide overflow. These checks do not establish full
+accessibility, screen-reader coverage or independent-user acceptance.
+
+Publisher `75f9dc6b60f532bf3b31e41461aab762997f616a` is a provenance-only successor:
+it changes the import receipt's source commit and URL to canonical merge
+`013b84a6`, plus its own handoff. The other 23 payloads and the build hash are
+unchanged. All 24 files match a fresh export of the exact merged source; all
+18 current overlays match, and three bounded HTTP observations pass. The
+documentation pin remains `0dc82db3`; 1.5.1 preparation and published 1.5.0 remain
+distinct. No unchanged full suite, website build or browser campaign was repeated
+for this receipt-only delta. The earlier full results retain their `4feebc0a`
+identity, and the retained local preview still serves that tested combination.
+
+Patrick separately authorized the Attune AI owner to archive its PyPI project.
+The owner's receipt confirms the archive persisted while all 180 version
+entries and 358 release files retained their filenames, URLs, hashes, sizes and
+yank states. This audit performed no administrative action. The standalone
+reader remains distinct; deprecation does not convert data or establish parity.
 
 Before declaring the documentation release complete:
 

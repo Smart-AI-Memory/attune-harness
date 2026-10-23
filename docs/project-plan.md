@@ -1,6 +1,20 @@
 # Stabilization, release readiness and phased GUI delivery
 
-## Current checkpoint — October 21, 2026
+## Current checkpoint — October 22, 2026
+
+Version 1.5.0 remains published. Version 1.5.1 is an unpublished maintenance
+preparation against `0f2711b4c88ee4f231f61d71cd70a0c840be6357`. Current-main
+[qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
+passes, including the Windows source-suite partitions added in #298. The
+[1.5.1 readiness record](release-readiness-1.5.1.md) distinguishes that result
+and fresh documentation observations from final-source selection, metadata,
+artifact validation, Help integration and publication approval.
+
+Use the [current walkthroughs](tutorials-1.5.1.md) for preparation, and the
+published version for an installation today. The deferred Windows requirements
+and S3/S6/S9 observations below retain their existing scope.
+
+### Previous checkpoint — October 21, 2026
 
 Reconciled against main `462d37be4fa06140c62e5f39f3489a4f8785c112`.
 [Version 1.5.0 was published October 19](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),

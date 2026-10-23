@@ -6,13 +6,18 @@ The local reviewer can select source passages while Harness supplies their exact
 
 ## Select the mode
 
-Use the dev7 installation: this workspace's isolated interpreter is `/Users/patrickroebuck/attune-harness/.venv-passage-review/bin/python`, and its coordinator command is `/Users/patrickroebuck/attune-harness/.venv-passage-review/bin/attune-harness`. The older preserved environments do not provide this new flag.
+Use a [current installed interpreter](installation.md#select-python-for-module-and-fixture-examples)
+for `attune_harness.ollama_review` and the matching Harness CLI for coordination.
+The `.venv-passage-review` environment named by the dev7 receipt is retained
+historical evidence, not a required installation path. Preserve that environment
+and its model/tokenizer artifacts; a new installation does not renew its quality
+qualification.
 
 For a **new accepted review**, set that interpreter as the first entry in each local `attune_harness.ollama_review` participant's command array and add `--grounded-passages`. If the array contains `--grounded`, replace that flag. The two modes are mutually exclusive. Use a fresh receipt directory for the new review; keep the chosen model identity, seed, tokenizer and output-budget arguments.
 
 The evaluation configuration uses `--max-output-tokens 2048`; the unchanged default is 512. Only the configuration recorded in the quality receipt has live evaluation evidence.
 
-Use the existing [local review workflow](pilot-workflow.md) to obtain the accepted request and run it. Changing the selected mode changes the accepted participant configuration, so obtain a new accepted review instead of resuming an old checkpoint with different commands.
+Use the [review contract](review-workflow.md) to obtain the accepted request and run it. The [local pilot](pilot-workflow.md) retains its versioned model setup and observations. Changing the selected mode changes the accepted participant configuration, so obtain a new accepted review instead of resuming an old checkpoint with different commands.
 
 The `--grounded` command retains its original dev6 quotation-based behavior. Omitting both flags retains the original narrative mode. Passage review is explicit and opt-in; the quality receipt determines what the evaluated model actually demonstrated.
 

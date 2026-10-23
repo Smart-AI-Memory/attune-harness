@@ -1,23 +1,24 @@
 # Documentation index
 
-Two kinds of file live under `docs/`. The documents in the first list are
-kept current and describe Harness as it is. Everything after them is dated
-evidence: results, receipts, design notes and research from the days they
-were written, kept because other documents cite them, and not refreshed.
-Read a dated file for what was true on its date. Attune AI behaviour that
-some of them describe is being replaced by the spec authority.
+Start with the current installation, workflow selector and 1.5.1 preparation
+walkthroughs. Versioned guides and release records describe their named version;
+designs and specifications retain their own approval and implementation status.
+The dated evidence below preserves results, receipts and research at their original
+source. Read those files for what was true on their date.
 
-Generated on September 22, 2026 from the 191 Markdown files under
-`docs/`; `scripts/check_doc_links.py` keeps every link here honest.
+Reviewed on October 22, 2026. The [1.5.1 readiness record](release-readiness-1.5.1.md)
+states the review scope, validation and remaining gates. Run
+`scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Start here
 
+- [Four current 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Fresh candidate-wheel observations for intake, plan acceptance, offline research and saved-draft continuity; final release reconciliation remains open
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
-- [First checked repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
-- [Four training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
-- [Written training walkthroughs for Harness 1.4.0](tutorials-next-release-candidate.md): Save and approve a work request, inspect saved state and reopen forms; source-attributed limits and historical 1.3.0 guidance retained
-- [Four walkthroughs for the planned Harness 1.5.0](tutorials-1.5.0-candidate.md): Goal-based quick selector for provisional candidate procedures on forms, planning, local evidence and continuity; final released-artifact reconciliation remains required
+- [Historical first repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
+- [Historical training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
+- [Historical training walkthroughs for Harness 1.4.0](tutorials-next-release-candidate.md): Save and approve a work request, inspect saved state and reopen forms; source-attributed limits and historical 1.3.0 guidance retained
+- [Historical 1.5.0 candidate walkthroughs](tutorials-1.5.0-candidate.md): Goal-based quick selector for provisional candidate procedures on forms, planning, local evidence and continuity; final released-artifact reconciliation remains required
 
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
@@ -47,7 +48,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
 - [Portable journey tasks](specs/portable-user-journey/tasks.md): Ordered work and verification gates; not yet authorized
 
-- [Release and delivery checkpoints](project-plan.md): Current 1.5.0 release and acceptance gaps, with the historical stabilization plan and gate evidence retained
+- [Release and delivery checkpoints](project-plan.md): Published 1.5.0, planned 1.5.1 and remaining acceptance gaps, with the historical stabilization plan and gate evidence retained
 
 - [Choose a Harness workflow](supported-journeys.md): Find a task, open its procedure and check requirements that affect your choices
 - [Windows reliability reference](windows-reliability.md): Exact reliability requirements and technical evidence
@@ -64,7 +65,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 - [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
 - [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
 - [1.5.1 draft release notes](release-notes-1.5.1.md): Planned maintenance release for signature validation, assessment evidence and documentation guidance; unpublished
-- [1.5.1 preparation readiness](release-readiness-1.5.1.md): Assessed source, failed current-main qualification, documentation review and remaining release gates
+- [1.5.1 preparation readiness](release-readiness-1.5.1.md): Current source, passing main qualification, candidate documentation observations and remaining release gates
 - [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0): Published source, distribution hashes and installed-package checks
 - [1.5.0 preparation release notes](release-notes-1.5.0.md): Preserved pre-publication scope and installation guidance; use the release record for publication evidence
 - [1.5.0 preparation readiness record](release-readiness-1.5.0.md): Historical component evidence and open parity requirements; its unpublished-candidate wording predates publication

@@ -1,12 +1,13 @@
 # Choose a Harness workflow
 
-Updated on October 22, 2026. For released Attune Harness 1.5.0, with planned
-1.5.1 changes identified below. See the [draft release notes](release-notes-1.5.1.md)
-before relying on behavior introduced after 1.5.0.
+Updated on October 22, 2026 for the unpublished Harness 1.5.1 preparation.
+Use the reviewed local candidate for validation; use published 1.5.0 for an
+installation today. Read the [draft release notes](release-notes-1.5.1.md)
+and [readiness record](release-readiness-1.5.1.md) before relying on candidate behavior.
 
 Find your goal below, then follow the linked procedure for setup and complete
 commands. New to Harness? Start with the [installation guide](installation.md)
-and choose a [practice walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough).
+and choose a [practice walkthrough](tutorials-1.5.1.md#choose-a-walkthrough).
 
 ## Work
 

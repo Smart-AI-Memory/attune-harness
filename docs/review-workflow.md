@@ -1,5 +1,7 @@
 # Coordinated evidence review
 
+For a new assessment, follow [task-oriented review](cli-guide.md#task-oriented-evidence-review) and [1.5.1 evidence inspection](cli-guide.md#inspect-completed-assessment-evidence-151-candidate). This page documents the retained legacy review-form compatibility profile. Its old wheel/environment reconstruction is historical; use the [current runtime setup](installation.md) instead.
+
 This local Phase 2 increment reviews an existing Markdown document with a selected
 lead and an independent reviewer. It uses real attune-forms 0.17.0, attune-rag 1.2.0
 and attune-verify 0.6.0. A completed review preserves both narratives and all native

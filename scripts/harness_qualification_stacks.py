@@ -3,6 +3,7 @@
 This watchdog needs the GIL: it cannot diagnose a C extension that holds it.
 The qualifier's separate process budget still terminates such a stuck suite.
 """
+from concurrent.futures import TimeoutError as FutureTimeoutError
 import json
 import hashlib
 import os
@@ -15,6 +16,7 @@ import pytest
 
 # Keep journal time independent of tests replacing the shared time module.
 _monotonic = time.monotonic
+_stack_write_lock = threading.Lock()
 
 
 def pytest_addoption(parser):
@@ -95,6 +97,23 @@ def pytest_runtest_makereport(item, call):
     report = result.get_result()
     _timing(item.config, 'phase_end', nodeid=report.nodeid, phase=report.when,
             outcome=report.outcome, duration_seconds=report.duration)
+    # A bounded Future can fail before the 60-second watchdog fires. Sample
+    # while its worker is still active, before fixture teardown can release it.
+    # FutureTimeoutError is distinct from built-in TimeoutError on Python 3.10.
+    if call.excinfo is not None and call.excinfo.errisinstance(
+            (TimeoutError, FutureTimeoutError)):
+        event, details = 'timeout_snapshot', {}
+        try:
+            _dump(report.nodeid, item.config._harness_stack_log)
+        except Exception as error:
+            # Diagnostics must not replace the original timeout with an
+            # INTERNALERROR. Retain a bounded marker without exception text.
+            event = 'timeout_snapshot_failed'
+            details = {'error_type': type(error).__name__[:80]}
+        try:
+            _timing(item.config, event, nodeid=report.nodeid, phase=report.when, **details)
+        except Exception:
+            pass  # A failed diagnostic journal must preserve the test verdict too.
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -119,7 +138,10 @@ def _dump(nodeid, stream):
     if len(frames) > 100:
         lines.append('[threads truncated after 100]\n')
     lines.append('End slow-test Python stacks\n')
-    stream.write(''.join(lines).encode('utf-8', errors='backslashreplace'))
+    # The watchdog and a timeout report can arrive together. Keep each
+    # bounded snapshot contiguous in their shared retained stream.
+    with _stack_write_lock:
+        stream.write(''.join(lines).encode('utf-8', errors='backslashreplace'))
 
 
 @pytest.hookimpl(hookwrapper=True)

@@ -1,5 +1,7 @@
 # Local MCP retrieval profile
 
+Use the [selected installed interpreter](installation.md#select-python-for-module-and-fixture-examples) for current commands. The two `.venv-*` paths in the historical dual-SDK qualification command below identify its original separate probe environments; they are not created by installing Harness. Current task-oriented workspace MCP and retrieval setup are in the [CLI guide](cli-guide.md).
+
 Harness's base install pins MCP Python SDK **2.2.0** (an extra before 0.4.0). The qualified stdio
 profiles are **2025-11-25** and **2026-07-28**. The base install carries the review, test and acceptance journeys since 0.4.0.
 The separately installed attune-ai SDK pin is unaffected. Install in a separate
