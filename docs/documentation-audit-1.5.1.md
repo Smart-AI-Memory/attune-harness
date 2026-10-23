@@ -100,6 +100,25 @@ classification alone does not correct that active-link mismatch. The release
 owner must supply current source guidance or explicitly label the link as
 historical; the source/link disposition remains unverified.
 
+The owner is preparing a separate current `docs/migration.md` in #301 while
+preserving the 1.0.0 record byte-for-byte. The website also pins an older source
+commit through `preparation.json`; a filename change alone would point at a
+missing file. Keep this gap open until both the current path and a containing
+source ref are committed, inspected and wired by the existing owners.
+
+## Bounded mobile and keyboard checks
+
+On the exact four-input local website combination above, the Navigation and
+archive journey was checked at 390 and 320 CSS pixels. Neither Docs nor the
+archive overflowed the page; wide historical code stayed inside its own
+horizontal scroller. The labelled mobile menu opened and closed with Enter,
+exposed its expanded state and reached canonical Help by keyboard. Focus had a
+visible three-pixel outline. The archive's skip link moved the next tab stop
+into its main content, the PowerShell disclosure expanded by keyboard, and
+local fragment targets existed. Both pages had one main region and one primary
+heading. These are bounded presentation and keyboard observations, not full
+accessibility conformance, screen-reader testing or independent user acceptance.
+
 ## Release and delivery gaps
 
 After the initial audit snapshot, the release owner verified #303 merged as
@@ -130,8 +149,9 @@ Before declaring the documentation release complete:
    approval and verify production routes after deployment.
 5. Locate separately retained decks/HTML distributions and either mark them
    explicitly historical at their distribution points or qualify replacements.
-   Accessibility, mobile presentation and independent user acceptance remain
-   unverified unless recorded by their owners.
+   The bounded mobile/keyboard observations above do not qualify those
+   distributions. Full accessibility and independent user acceptance remain
+   unverified.
 
 See the draft PR description for checks on this archive/audit change. Historical
 test counts and the earlier owners' receipts remain bound to their original
