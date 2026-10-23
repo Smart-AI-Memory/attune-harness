@@ -1,0 +1,3422 @@
+{
+  "actual_baseline": "3a8bf4ed6c4d7ccac92a9b9b9c86b64ec7768dad",
+  "scope": "All tracked Markdown and historical HTML prototypes in the #300 documentation candidate; file classification is not fresh behavioral qualification. Canonical Help/website listed separately in audit report.",
+  "files": [
+    {
+      "path": ".agents/skills/attune-harness/SKILL.md",
+      "sha256": "dd87692c7fd190c43af9b1afa68b183278a3640d552b4e75e68676a8016ec46c",
+      "title": "Attune Harness workflows",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": ".agents/skills/attune-harness/references/browser.md",
+      "sha256": "04259085906e6e03f637b55a1fd242ac919eddfee52ca7ab2f6c92d007e0cd83",
+      "title": "Open and resume browser forms",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": ".agents/skills/attune-harness/references/workflows.md",
+      "sha256": "d30ed0566e05fd6185d177027d57f94a9ecf0b0b08b7e055adda05e65f3a07af",
+      "title": "Workflow reference",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": ".claude/plans/plan-build.md",
+      "sha256": "92fab5d32b4e1e58ed44851edff91b15d0ea2131f919a808537f470b41d3b4b9",
+      "title": "Plan and build \u2014 first existing-code journey",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": ".claude/plans/release-readiness-follow-through.md",
+      "sha256": "7e1091fd04a8206850157e2f9af99ad0c37372c6272d4877e6e2caa1288aa5f4",
+      "title": "Release readiness follow-through",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sha256": "d9573f0195097193be8832410fbea6a3b3ce5657cdc8ecb5ee8b96096b651d54",
+      "title": ".github/pull_request_template.md",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "27a5448119d7b7d7329afa61dfc8432c939ad6837f12ea4a9a50f41dc90cfcab",
+      "title": "Working in this repository as an agent",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "0ffa0788d54d56495cd4bf8902b616510e487c3a820ea7d79d15423c45f4bd39",
+      "title": "Changelog",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "0.3.0",
+        "0.4.0",
+        "0.5.0",
+        "0.6.0",
+        "1.0.0",
+        "1.0.1",
+        "1.1.0",
+        "1.2.0",
+        "1.29.1",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1",
+        "2.1.284",
+        "2.2.0",
+        "5.3.1"
+      ]
+    },
+    {
+      "path": "README.md",
+      "sha256": "d981a1f935287fc61ba4bc676cc84b283516f78efcc90eeb7658560c8afb5dfa",
+      "title": "Attune Harness",
+      "category": "current-reference",
+      "versions": [
+        "0.12.0",
+        "0.17.0",
+        "0.6.0",
+        "1.2.0",
+        "1.5.0",
+        "1.5.1",
+        "1.6.0",
+        "2.13.0",
+        "2.2.0",
+        "5.3.1"
+      ]
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "2a9cc1cdf19fca54c3f794a83efb5eb1d684759064b9d1605528cc8ea6f15582",
+      "title": "Documentation index",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.4.0",
+        "0.6.0",
+        "1.0.0",
+        "1.0.1",
+        "1.1.0",
+        "1.2.0",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/a2a-workflow-receipt.md",
+      "sha256": "69c228e1320cff9445137080187da89ff497e6f2b5481c8e0053bf33076b20a7",
+      "title": "A2A local interoperability and final protocol receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "1.29.1",
+        "1.5.0",
+        "16.4.0",
+        "2.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/a2a-workflow.md",
+      "sha256": "808dc85e9199a1cf0fbc2ae02a7a09f2fe23433b313bd3de8dba4d75c1b02529",
+      "title": "Local A2A task/artifact profile",
+      "category": "current-reference",
+      "versions": [
+        "127.0.0"
+      ]
+    },
+    {
+      "path": "docs/agent-collaboration-plan.md",
+      "sha256": "8310563b29c0c2fd4627b79d128c47aa3203d9f60e5d024308325d10ce31993e",
+      "title": "Agent collaboration: what is in force, and what is planned",
+      "category": "current-reference",
+      "versions": [
+        "84.0.0"
+      ]
+    },
+    {
+      "path": "docs/architecture-brainstorm-starter.md",
+      "sha256": "db334bfe74a9f37d601c7bdebc56ea0303fbd3425bde4664c5f6d8bf0b7681c2",
+      "title": "docs/architecture-brainstorm-starter.md",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/assessment-quality-comparison-results.md",
+      "sha256": "93b7e949a14ca7e90eda0d84aa61d0936add829dce4968fdca7e8c8e9fb874a4",
+      "title": "Assessment-quality comparison: revise the candidate",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/assessment-quality-correction.md",
+      "sha256": "c6835b30c2937fd04e466e0f663db097f8b302a3d8db5734e68ba6c2b1ddf981",
+      "title": "Assessment correction: bounded comparison passed",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/astra-review-receipt.md",
+      "sha256": "39371791db7040ed20324ca1d88007390998558164ac5c80781c685f08c5b015",
+      "title": "Astra reviewer selection \u2014 dev8 receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/astra-review.md",
+      "sha256": "ca727be90397d74f277f7dfcc63acf3fc0c47daf23e180146aa00ed87c85cd15",
+      "title": "Review with GPT-6 Astra at extra-high reasoning",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/blog/controls-savings-user-journey.md",
+      "sha256": "2175fe315e8df362079c0e587419a5f5af1a56080f7f6572f2bc00af7d898826",
+      "title": "What better controls can save in an AI workflow",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/cli-guide.md",
+      "sha256": "1cf58eccc8d88489e4afb248284e6df61f9ad8771891060d7f18148f358888e3",
+      "title": "CLI guide",
+      "category": "current-reference",
+      "versions": [
+        "0.4.0",
+        "0.5.0",
+        "0.6.0",
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/code-first-rag-receipt.md",
+      "sha256": "21a7aac45d6dc6575c16fb38a3df4ee868d4435b25a0b6623a5eeb4798d5779b",
+      "title": "Repository-first RAG implementation receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "1.29.1",
+        "16.4.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/code-first-rag.md",
+      "sha256": "8ba722cb66bdffb61f958f40d17afc8f6429387f9634c833843fd6b9bfe2a0fa",
+      "title": "Attune RAG anchored in repository code",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/codex-plugin.md",
+      "sha256": "3677d030df245f8d63e35887066cba43ed9fb050f62270376155478fe236ffdf",
+      "title": "Attune Harness in Codex Plugins",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.153.4",
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/communication-grammar-review.md",
+      "sha256": "605e3b7cdb5e60b6527a88d586ce3dc0d9d37aa1d16bcb9f4fd73052e15d574c",
+      "title": "Human\u2013AI communication grammar: bounded review",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.15.0",
+        "0.17.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/compatibility.md",
+      "sha256": "674b5dda18ddc694d98e6c6e7096201a2a6b85bbb97487a497c22c05fcb455c7",
+      "title": "The compatibility list",
+      "category": "current-reference",
+      "versions": [
+        "1.0.0"
+      ]
+    },
+    {
+      "path": "docs/connected-journey-qualification-results.md",
+      "sha256": "541cbb8a154259ca152d2252f1d9e0b19ced85468f01886686c7ae755eae003e",
+      "title": "Connected journey qualification \u2014 results",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "127.0.0"
+      ]
+    },
+    {
+      "path": "docs/coverage-measurement.md",
+      "sha256": "ed410a3ef45296850504d9612a152f497d6182540853871ffa12b5be8b85cd9f",
+      "title": "Supplemental coverage measurement",
+      "category": "current-reference",
+      "versions": [
+        "7.13.5",
+        "9.1.1"
+      ]
+    },
+    {
+      "path": "docs/cross-review-sol-2026-09-16.md",
+      "sha256": "3b2e2ddecdb29eef13d029bd4ebc0571dd13a3b0c037fa739e86257893b24ca5",
+      "title": "Sol cross-review \u2014 September 16, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-a2a-increment.md",
+      "sha256": "846e8692f5cbba8f2233741d067ac4791e5c0d708e395a9c6e68f1866984a8ef",
+      "title": "A2A local peer profile \u2014 design before implementation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "127.0.0"
+      ]
+    },
+    {
+      "path": "docs/design-active-workflow-coverage.md",
+      "sha256": "b57eb34d884db640723043399cbbecd55c816c5e5f5a1b9a423416d1c1706e47",
+      "title": "Active workflow coverage",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-adapter-increment.md",
+      "sha256": "66c7fc2548423bc06c4ef34c2d1c085e66d2d3e43d54c460c725a99c43439917",
+      "title": "Adapter boundary experiment",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-astra-review.md",
+      "sha256": "ed20a8f2108363fbbd410d0938b81a12d2d47f3e96ce0f1aef0073285f38b40b",
+      "title": "Astra review selection \u2014 design",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/design-code-first-rag.md",
+      "sha256": "f494338c95614a89dfa7a623bc1607bed55871e3d2c8bf206ade68f6e41d6cce",
+      "title": "Code-first Attune RAG",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.2.0"
+      ]
+    },
+    {
+      "path": "docs/design-codex-install-journey.md",
+      "sha256": "e829a1adc30e8dd68c7c7219b1fdfc86e8ff1358c95660688698e6a532905090",
+      "title": "Self-contained Codex installation preparation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/design-codex-plugin.md",
+      "sha256": "7d0aff7e01fbe86ba33af986f70079a609433eec0fe550390a6eb900e83d2a2a",
+      "title": "Codex plugin packaging",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-consultation-evidence-google.md",
+      "sha256": "a2f3755f00bb07474640a26f1b5ca565ce2ab120e6e2e221ddef8b248412da48",
+      "title": "Inspectable citation decisions and direct Google consultation",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-consultation-partial-rounds.md",
+      "sha256": "fab49544e91fde43fe3c0fc8df0f938c82e3f2e919325c616282fe7525f2e3a0",
+      "title": "Design: parallel consultation rounds and partial outcomes (#233)",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-documentation.md",
+      "sha256": "c1c7a6712848285f18cd3b0a274c2b9b8cf57355cd2575daca40d2d381bfb4a7",
+      "title": "Code-grounded documentation: first increment",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-durable-decisions-b.md",
+      "sha256": "82b3b16e628321a9a0f7ecee50eb8321ee7bec1f9d51d7ef10fa6889f2906493",
+      "title": "B \u2014 retain decision text before collection",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-e2-increment.md",
+      "sha256": "5f90f217f1685cff7fa0c67b483786e667b95b1944e846bde8f74a3e42cc9bc0",
+      "title": "E2 \u2014 design and criteria frozen before evaluation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/design-e2-revision.md",
+      "sha256": "66a25b81767d9d30114c513b51518a835cf6f56ffefd8bf71356d4ddcfc66711",
+      "title": "E2 revision: historical evidence and actual-call results",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-e3-local-increment.md",
+      "sha256": "8be8867c7e60467ecce3f7bc3acc46b8f9c21d3f622646bc3e7a0fccabd96710",
+      "title": "E3 local collaboration research and explicit local-model adapter",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/design-extension-increment.md",
+      "sha256": "4ee75d7fce506b505f0fc3d3ccd17f3f3259b916dacfaae634ef3ddd122b9a87",
+      "title": "Local extension increment \u2014 design before implementation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "1.29.1",
+        "16.0.0",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/design-feature-workflow.md",
+      "sha256": "bc8843f3e63ced24d42b73750ad66a4cde1dac279918d6ea7e261a1c24103683",
+      "title": "Local verification and retrieval milestone",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.6.0",
+        "1.2.0"
+      ]
+    },
+    {
+      "path": "docs/design-first-increment.md",
+      "sha256": "0c36f6f412ac70e4ff1f56db25e0e6ec2cbda70aa16f873c3b5d1254a26976a1",
+      "title": "First local increment: standalone execution contract",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-grounded-passages.md",
+      "sha256": "8a2566ffa6460cc263462e19fdd70ab84a6ef39d5fdde13315a0d993aac267b9",
+      "title": "Passage selection revision",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-grounded-review.md",
+      "sha256": "48236ac2b7409d45cb4684672cdf935594e15515f0e4dcf252965bb024595855",
+      "title": "Grounded local review increment",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-mcp-increment.md",
+      "sha256": "a372921787d985b6a4fb98b1d955d2fde679f59ba67bed8bc16e5e2527eaea02",
+      "title": "MCP local retrieval profile \u2014 design before implementation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "1.29.1",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/design-model-consultation.md",
+      "sha256": "9ce72d175258a34c0876c4b104391f17b4736367a92ff5ccc6c46a5f2a8bf488",
+      "title": "Shared source review and bounded roundtable",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-native-evidence-review.md",
+      "sha256": "9540322117a649ed83de1f25518a9f497ed6324ca76a89e74f9fcdad257e71b7",
+      "title": "Native evidence review \u2014 repair after the first Astra run",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-native-increment.md",
+      "sha256": "476b5b76a233b7dc79c448a8e6ba20f4fa66dea500fda292ce42360ca780e4d4",
+      "title": "Native CLI boundary increment",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4",
+        "2.1.266"
+      ]
+    },
+    {
+      "path": "docs/design-navigation.md",
+      "sha256": "8e99a76d380dca94555ab6160e8ea154df5a9c65c88b8a402a0ff405b389db1e",
+      "title": "Task-first command navigation",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-opportunities.md",
+      "sha256": "e356e863c19a76d59b456ca30aec759c7602b362f02af33a861cb680299dbd24",
+      "title": "Reliability opportunities 1\u20135",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/design-output-budget-increment.md",
+      "sha256": "482fe22f20c89772fba789e8fc1971e9308f2f45eab9b52d128dfa2d44a131b4",
+      "title": "Configurable review output budget",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-passage-review.md",
+      "sha256": "bd2880b40e97a0dd83e5d5366b94ea40af91ae44684e9161016cf24e4597bd7a",
+      "title": "Passage review \u2014 implementation design",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-phase5-increment.md",
+      "sha256": "496af772564afbb5f66cb0e5852d1cafc00301e385d9eafccafc27021212a54b",
+      "title": "Phase 5 local evaluation increment",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/design-phase6-grammar-fix.md",
+      "sha256": "098dd65e66ee982b9f2db5101c5ec415c479b83f5f0b1aac761fb96b651e5bc4",
+      "title": "Pilot grammar and error diagnostic fix",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-phase6-increment.md",
+      "sha256": "f09457cac2240cb8394ffbc516ddc0a153419d709f1264d96da269900f15d754",
+      "title": "Phase 6 \u2014 local documentation-review pilot",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/design-plugin-signature-input.md",
+      "sha256": "637373903275c62b4fe18602f350e68bcdc2786f7ba1867f18fb39f92b2eae6a",
+      "title": "Bind plugin verification to the validated signature bytes",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-recovery-increment.md",
+      "sha256": "7d3e608590eb6d3e1395eb3e275459c33ad1c0dc748f27f8de75fd49ccb477c3",
+      "title": "Local recovery and lead transfer",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-review-increment.md",
+      "sha256": "bc41186ff30f73f81ce848aa0dcf8c02c942a916b5822c527657111cf9286d47",
+      "title": "Coordinated local evidence review",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.17.0"
+      ]
+    },
+    {
+      "path": "docs/design-review-quality-evaluation.md",
+      "sha256": "ee4be46483d06f50a6e68e0ec7b473273c1c847182e9cbae02222e1407ee0700",
+      "title": "Documentation review quality: frozen local acceptance check",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-saved-store-contention-timing.md",
+      "sha256": "51b84517b92f0b79415fbf36651a16ad509c574267d15ebdd6de5e3ebd8a2908",
+      "title": "Locate saved-store lock-held latency",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-sol-review-fixes.md",
+      "sha256": "debeb3ce3106b27ba425a52a7625df103b503ce015b249893bfcb4fcf17018cd",
+      "title": "Fix the four confirmed Sol review findings",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-spec-test-handoff.md",
+      "sha256": "01c84255bdc7a7005223d39bf64727fa100e259480761af35e5f5f7a3be5103a",
+      "title": "Bound Harness test evidence at Spec acceptance",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-status-guidance-a.md",
+      "sha256": "40d5f0fb8735c802bdc6351bc1e5b13837acdddec758cc6df43118c19b182a3d",
+      "title": "A \u2014 plan/build status guidance",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-token-accounting-increment.md",
+      "sha256": "d5ccc1f158b2dfab527e3bc312cf1d3a4eae24ada6bc827ce3a240346fbf812b",
+      "title": "Model-aware token accounting",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.12.0",
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/design-voyage-100-question-evaluation.md",
+      "sha256": "93a479de93c7b617381d0c602db04718a9f0bfdd2238f2629c3164b92d001658",
+      "title": "100-question code retrieval evaluation",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-voyage-answer-accuracy.md",
+      "sha256": "743bb0a7380ba3e52c77cf19e391dc75f7cc7df244f3b1751d1de2ba84e76d1e",
+      "title": "Final-answer accuracy pilot",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/design-voyage-full-code-evaluation.md",
+      "sha256": "51cc28fe7ce3895710e8ec8f05f4bb16edd8aa4cb3ba70704861c036cb23ce8b",
+      "title": "Full-code retrieval evaluation",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-voyage-retrieval.md",
+      "sha256": "d24d33cdf1b2cfd6c234fc562c959a2737474cef64174f33e83b16a027d56bed",
+      "title": "Voyage application retrieval: implementation design",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.38.0",
+        "0.5.0",
+        "25.0.1",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/design-windows-effect-backend.md",
+      "sha256": "53114c1cf86bc3cd35bcb81d0f112188b2d8cc7c5c1407f0d083c905455900ab",
+      "title": "Windows file-effects backend from the observed native primitive",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-windows-feature-effects.md",
+      "sha256": "36a739c2c614d975e588d26f41ef95f13ac723c1a98d63c99a26a5e18c41adea",
+      "title": "Windows feature and repair effects \u2014 design only",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-windows-runtime.md",
+      "sha256": "8e94bf7ef5076623c31da2e6c6d2a8d6f7309430db82a3fa0b55d43d395f9ca5",
+      "title": "Native Windows execution and recovery",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/design-windows-saved-store-proof.md",
+      "sha256": "87a5220962725932ace4d634867fa6e9731bee47dda489419f6e032bbcf01329",
+      "title": "Saved-store Windows feasibility proof",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "3.12.10",
+        "7.6.6"
+      ]
+    },
+    {
+      "path": "docs/design-windows-source-suite-shards.md",
+      "sha256": "96ad6ccebb420f306a1e4f2697cf9f05ccfeb86b7a86357c099547e4b1c33904",
+      "title": "Bound Windows full-suite runtime with verified partitions",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/documentation-maintenance.md",
+      "sha256": "e64e556c5362958adab9676102800f269139260540400e5192e8c968ad069941",
+      "title": "Documentation content maintenance",
+      "category": "current-reference",
+      "versions": [
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/documentation-workflow.md",
+      "sha256": "a5ecea9464fcd8ca54df434332cdad8ba0163cb97cb83340fb3c25d6777d3be9",
+      "title": "Code-grounded documentation",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/durable-decisions-b-results.md",
+      "sha256": "22119665987def6be18289050b682659fb7208700365c50c875c25e0b16fcdb9",
+      "title": "Opportunity B \u2014 durable decision text verified",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "3.12.13"
+      ]
+    },
+    {
+      "path": "docs/e2-capability-evidence-receipt.md",
+      "sha256": "376c9131646b5792b354b64e778b5192d5ad798468589514b22ed6de959d2eb4",
+      "title": "E2 capability-evidence experiment",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/e2-revision-receipt.md",
+      "sha256": "9bc74aadb3db44f6b510d1420fbe4ea5fa3963288f4ea16ced711adc4c8ee016",
+      "title": "E2 fix: evidence belongs to an invocation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/e3-local-research-receipt.md",
+      "sha256": "39b0251c17611e09290add5465918bee2061a275728bc6ad9ddf980f5dc58d25",
+      "title": "E3 local collaboration research \u2014 revise",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/envelopes.md",
+      "sha256": "4fa3451f2ea4635cb0af66aa81c24f7454dadff7baff2b1e26f0fb3b4c9e1abb",
+      "title": "Envelopes",
+      "category": "current-reference",
+      "versions": [
+        "0.4.0",
+        "0.5.0",
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/executable-plugin-run.md",
+      "sha256": "249e43167869d814558d087145a4ae654d537e1f3cc8adcb8888d30a9eab5ec2",
+      "title": "Running a signed Python plugin",
+      "category": "current-reference",
+      "versions": [
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/extension-workflow-receipt.md",
+      "sha256": "510cd2a8af9c40f1cd5d98abd3cc5277bbff135bd09b2db76eb49d0df09e07dd",
+      "title": "Local extension implementation receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "1.2.0",
+        "1.5.0",
+        "16.4.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/extension-workflow.md",
+      "sha256": "5ea243c5c55ebcbb5aa78f2bc0c5f3c153a43855c69d8372320c61000dc93999",
+      "title": "Local extension workflow",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/fable-review.md",
+      "sha256": "6d35673d8ae2baf1fda144da4cf5b6c0146cb0c250125d02a3ee42813e6c9580",
+      "title": "Fable and Opus review candidates",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/feature-workflow-receipt.md",
+      "sha256": "ff94348b7bf781b34185b2ef9b67f3aa5e2aac6e389c7a07dfa0c3d337f7fdcf",
+      "title": "Four-step local feature milestone \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/first-repair-1.3.0.md",
+      "sha256": "026f75cef8e26611ed0fbc86234d8b50b2f8aad7d61cee4d4e8996940be050a1",
+      "title": "Make your first checked repair with Harness 1.3.0",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "9.1.1"
+      ]
+    },
+    {
+      "path": "docs/forms-accessibility-assessment.md",
+      "sha256": "5f0fb7bb815f9606c7ded1dcbb899f07eb315bc4bc8ff1104b2d1532c89cd156",
+      "title": "Browser form accessibility assessment",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "1.3.0",
+        "1.3.1",
+        "1.4.10",
+        "1.4.11",
+        "1.4.3",
+        "1.4.4",
+        "2.1.1",
+        "2.4.11",
+        "2.4.13",
+        "2.4.3",
+        "2.4.7",
+        "3.3.1",
+        "3.3.2",
+        "3.3.3",
+        "3.3.7",
+        "4.1.2",
+        "4.1.3"
+      ]
+    },
+    {
+      "path": "docs/fresh-installation-results.md",
+      "sha256": "c783594e68ccc502b6d296d274d2ed6219b5b020242f8e6bc53f371d0a7d10fc",
+      "title": "Fresh installation qualification",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.17.0",
+        "0.6.0",
+        "1.2.0",
+        "1.29.1",
+        "2.2.0",
+        "26.6.2",
+        "3.12.13"
+      ]
+    },
+    {
+      "path": "docs/grounded-review-receipt.md",
+      "sha256": "ba043b199e7c3b9623df04842294e707247b03666180630422bb628a57d84f77",
+      "title": "Grounded review dev6 \u2014 closing receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/2026-09-22-autonomous-run.md",
+      "sha256": "fa69192172ad12334668943e9870fdfd0eb7383cc009aa0a1fa81e1596c403f9",
+      "title": "Handoff: autonomous run of September 22, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/handoffs/README-draft-0.1.0.md",
+      "sha256": "e088a34833ac21bd4d4cb81321ed62d84fba86c016c556ffc26a14ad680f5ac7",
+      "title": "Attune Harness",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.12.0",
+        "0.6.0",
+        "1.2.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/README-independence-wording-draft-2026-09-21.md",
+      "sha256": "9d4b02dc63110e127db2ed74dec1229528af4adda68c2ed7c68c669628e308ba",
+      "title": "Draft: README independence wording, corrected",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/archive/shared-memory-before-bounded-review.md",
+      "sha256": "870686919272fd7a73a0e75a53f48c20467582374abe7a5246fe951213083071",
+      "title": "Shared memory adoption handoff",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/codex-update-session-starter.md",
+      "sha256": "588d9e9397e35f1d2bcde9eb5a75ab03745a82db6a597fc91f1a1037f7115452",
+      "title": "Completed: next bounded assessment correction",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.6.0",
+        "0.6.1",
+        "1.29.1",
+        "26.6.2",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/handoffs/first-pypi-release-2026-09-19.md",
+      "sha256": "546420afb59f866537a4776ddb6c00fd8ba4587989a77377f880315377e9721c",
+      "title": "Handoff: attune-harness first PyPI release",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/function-body-controls-e.md",
+      "sha256": "9f91036a55121bcfe44c33484cdb4921d3eed731cfa083a7cb964855d146c6f1",
+      "title": "Item E \u2014 implementation handoff",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "3.12.13"
+      ]
+    },
+    {
+      "path": "docs/handoffs/release-0.1.0-windows-fix-2026-09-21.md",
+      "sha256": "3f6df4b872210aaf3c6952ecb17c5535a3274518f5fb6af3e924d4ba7e081949",
+      "title": "Handoff: attune-harness 0.1.0, Windows record-replace fix, then release",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "1.29.1",
+        "1.6.0",
+        "2.13.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/session-starter-2026-09-19.md",
+      "sha256": "2fd92a397525aec8c8fdec2d26b1d0422a6a0e0076252434970681c0c7ccffae",
+      "title": "Session starter: attune-harness, after 2026-09-19",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/session-starter-cut-attune-ai-dependency-2026-09-21.md",
+      "sha256": "b27e82fa820186fa44874571a6d40debc2f243a7bd2efc4c6fbdcc54f6832a16",
+      "title": "Session starter: make attune-harness run without attune-ai",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.1.1",
+        "0.2.0",
+        "1.29.1",
+        "16.4.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/smartaimemory-controls-article.md",
+      "sha256": "816c94b7bb205173da475c9631d8a0822a10ad25b715b1c4f5a7f076b21e1a2e",
+      "title": "Website integration: controls article and supporting examples",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/handoffs/spec-test-handoff-review.md",
+      "sha256": "0d49000cc441afff698be2375c8538b28c45ba9c7befb0799530c724db08f8b4",
+      "title": "Local review of Spec evidence handoff",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/handoffs/status-guidance-a.md",
+      "sha256": "af411a87fc57af02737a3e1a0764ed76a52683ebec51782cd95ec3ac1ebaf50f",
+      "title": "Implement A \u2014 plan/build status and next-action guidance",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/harness-api-budget.md",
+      "sha256": "6a48b4c3a5e727ccb83b7fad7a50109cab154f83012d99265b02083b91a467ef",
+      "title": "Harness Claude API budget",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/harness-phased-plan.md",
+      "sha256": "f9c74339c424c8c15516b6e39ebae7bd2f0a3ba5ce199b7d71c320dd91104cb2",
+      "title": "Attune Harness \u2014 phased delivery plan",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "2.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/harness-release-readiness-direction.md",
+      "sha256": "819fe5ebd282c5502ccc6c302672ff0fc141cb1f587e883e7c32c547e9f92126",
+      "title": "Harness release readiness \u2014 direction and proposed next step",
+      "category": "versioned-archive",
+      "versions": [
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/installation.md",
+      "sha256": "69784999cbadecf2f20e8427d4a676e6f0dbefff46768cf71c55b4bfebe3edb1",
+      "title": "Install Harness and get started",
+      "category": "current-reference",
+      "versions": [
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/integrated-rag-architecture.md",
+      "sha256": "9b12e3ccd6df27e9663fba4ef5d14804cbbb39ab32a4b10690a0aa4eadc4df12",
+      "title": "ADR \u2014 Integrated RAG owned by Attune Harness",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.38.0",
+        "0.4.0",
+        "0.5.0",
+        "1.2.0",
+        "1.29.1",
+        "16.4.0",
+        "2.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/journeys/r2-clean-environment.md",
+      "sha256": "48b4a5d5ebd614d8bd0ebef62775f97461257d018fcf46a13da488aec6ce48e5",
+      "title": "R2: the clean-environment journey",
+      "category": "current-reference",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/journeys/r4-legacy-spec-state.md",
+      "sha256": "e9920ece49e149ba09ca09878de381c8a5a4336dbb21437f2230f72410c4034e",
+      "title": "R4: another project's spec state, with a receipt",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/journeys/shepherd.md",
+      "sha256": "1fae92c72ddbda5a10fee76fae27e38781a23c896c053b52d51b20e62f68e033",
+      "title": "Shepherd",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/live-probe-receipt.md",
+      "sha256": "a1dae9c8dfa29268b6ddff592c5d389df7a67db6323e061f3c4bd55abe1654d9",
+      "title": "Approved live probes \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4",
+        "2.1.266",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/local-build-receipt.md",
+      "sha256": "6a8ddfd432bfd68032936b264f3c7c326a16501cc2db64b095cba298de35b0dc",
+      "title": "First local build receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "1.29.1",
+        "2.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/local-workflow.md",
+      "sha256": "37f26dd5cf35ff107588bf5229e859134a0ff95a0eac3b8e2c315c2e53606267",
+      "title": "Local verification and retrieval",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "1.3.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/mcp-workflow-receipt.md",
+      "sha256": "12f7f6690c83e481eb3b060a2b1f0b394e32758885c5dff03e96de030a666506",
+      "title": "MCP implementation and SDK upgrade receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "1.29.1",
+        "2.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/mcp-workflow.md",
+      "sha256": "fee07a7fb808e393a2b72f135dcef347deb78bf5876b6e9b29059ae6395e880f",
+      "title": "Local MCP retrieval profile",
+      "category": "current-reference",
+      "versions": [
+        "0.4.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/memory-documentation-journey.md",
+      "sha256": "d54cb55853a7d30713c53859f6eae167c317ba749dbee7070dd85cf96d2b6c72",
+      "title": "Memory documentation journey: local handoff qualified, native sample pending",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/memory-saving.md",
+      "sha256": "3ea5a4892cfd21fb93d53f7f6e39a20456ec38697643cf1d290466ac7b25396b",
+      "title": "Save memories and task intent",
+      "category": "current-reference",
+      "versions": [
+        "1.4.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/migration-from-attune-ai.md",
+      "sha256": "3c6964b71dc515bf7364598d701e747edf20781aafca0d812bbebe968bb73f1e",
+      "title": "Moving from Attune AI to Harness",
+      "category": "versioned-archive",
+      "versions": [
+        "1.0.0",
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/model-consultation.md",
+      "sha256": "30385c7dac2c7ab2981d75c411723da030297bf32d2e0733e503a357e36c34ba",
+      "title": "Source review and roundtable from either coding host",
+      "category": "current-reference",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/native-adapter-experiment.md",
+      "sha256": "ea3a2d858f501b5181fce80211f6b2cc3965dc7bb56141272c2e9d77d984533c",
+      "title": "Next native adapter experiment",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/native-build-receipt.md",
+      "sha256": "bdac4608a06c0e193d45c8c4d7631f14d9c060af45dd0f586bdfb7454c32078d",
+      "title": "Native adapter implementation receipt \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.153.4",
+        "2.1.266",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/native-evidence-review-receipt.md",
+      "sha256": "b17a668e168e00a17dcb825ff0beac74e13e05cb4d26c4c0e1af78b25a81f140",
+      "title": "Astra native evidence review \u2014 dev9 receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/october-release-plan.md",
+      "sha256": "4ff95ff3a4f6a72af6b05eb57b372890f1de260a818786cbb556073971125dbf",
+      "title": "October release and complete-journey plan",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/operations.md",
+      "sha256": "52912456ee553c804aa02b36d35209bb5ec109a3695e637118801696ae18834e",
+      "title": "Checks, handoffs and repair economics",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/opportunities-implementation-report.md",
+      "sha256": "383c7441c82d336099c9d20fcd593232589b7855ff2866fc5d881b333ace48b9",
+      "title": "Attune Harness: opportunities 1\u20135 implementation report",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/opportunity-log.md",
+      "sha256": "077dd9e57e4b94ba0c9d6ac838f1660c3aac08cbb267e43abc3e3cfd83173e50",
+      "title": "Engineering opportunity log",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.1.1",
+        "0.2.0",
+        "0.3.0",
+        "0.4.0",
+        "0.5.0",
+        "1.0.1",
+        "1.1.0",
+        "1.2.0",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1",
+        "16.4.0",
+        "2.5.21",
+        "3.5.0"
+      ]
+    },
+    {
+      "path": "docs/output-budget-receipt.md",
+      "sha256": "2591012b750ce8430160d99f6786a6a034203766c69f7280f117d67e2e801974",
+      "title": "Configurable output budget \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/passage-review-receipt.md",
+      "sha256": "f836b9dc8509eda1e084d67c7f20fe4b5bea5a65ddf09751801e8adcb5a37a85",
+      "title": "Passage review dev7 \u2014 receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/passage-review.md",
+      "sha256": "57091fdb0795c4622d9b43fb1313bb810036fc4d9d88bcf40f5f157b80e7418d",
+      "title": "Review using host-owned source passages",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/phase5-evaluation-receipt.md",
+      "sha256": "8d1ba62c1bb1fc170f2569e0ae8c99f82293fa37550124bf049ff3aa252088f4",
+      "title": "Phase 5 local evaluation receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "16.4.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/phase6-pilot-receipt.md",
+      "sha256": "47c598ec5411927dde2e64d3343586827f313e8e6fd6ef9db16f464436c8d882",
+      "title": "Phase 6 local pilot \u2014 complete",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.1.1",
+        "0.17.0",
+        "0.31.1",
+        "0.6.0",
+        "1.2.0",
+        "1.29.1",
+        "2.2.0",
+        "26.6.2",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/pilot-migration.md",
+      "sha256": "b488e8e8da4b85570ba5f90764b89d0e8f6d3e7dbae777031561df0904dcfa90",
+      "title": "Pilot migration decision record",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/pilot-workflow.md",
+      "sha256": "22aac093555dbb94b5aa6c5562a25c85ee1ecb0b79cb0b0c2ee3e7e5c2f886f5",
+      "title": "Local documentation-review pilot",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.12.0",
+        "0.31.1",
+        "1.5.1",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/plan-1.0.md",
+      "sha256": "feec4806f8038f7b1be1d9b320599ec0c7f24ccfdf8dcabf9c00266c6767bc44",
+      "title": "The four phases between 0.4.0 and 1.0.0",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.3.0",
+        "0.4.0",
+        "0.5.0",
+        "0.6.0",
+        "1.0.0"
+      ]
+    },
+    {
+      "path": "docs/plan-build-connected-results.md",
+      "sha256": "488a9a63dd4e31f53b19af38a374b28a99854823bbbb72ac234362e1adb10d95",
+      "title": "Connected plan/build comparison \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-contract-confirmation-results.md",
+      "sha256": "2f74f6089abba9c599d9a33f9118da0b65332b2de600578517897b115e094d2d",
+      "title": "Plan/build response-contract confirmation \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-contract-correction-results.md",
+      "sha256": "91672fc0f35762f0740c8f49d4f0b1bb4814698052b03cf99421fec3830f4f81",
+      "title": "Task 8 \u2014 response-contract repair and local qualification",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-default-compatibility-results.md",
+      "sha256": "f194eb59f0b05d31cf78ac515b0a548970d471f9ff50e13300d5e3f71a7d82c4",
+      "title": "Default-output oracle correction \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-fresh-journey-results.md",
+      "sha256": "eebb615df1ee3b7242388a30ce3bb7c38ec3bab1289d748bbe8f1392b377d7b7",
+      "title": "Fresh journey qualification \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-function-body-replay-results.md",
+      "sha256": "5156e38579952b18a3166a1b5f99f40b90991f18fefa9a2478c2972d0d43a7c3",
+      "title": "Function-body replay \u2014 completed without model calls",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-handoff-confirmation-results.md",
+      "sha256": "419c08d9c017137658122e6a314f88e5aecea4aed15d55ac91645c6d3f0e4b14",
+      "title": "Fresh connected confirmation \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-handoff-correction-results.md",
+      "sha256": "4036057f63f1a5b7f616c4dd1d5b9f1c55b50b27a970ed4929019e0db98777e6",
+      "title": "Connected handoff correction \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-luna-broader-results.md",
+      "sha256": "b10d6bb91be3b55a56a041e3454654857fdbc52c4e7382edf4dff0915d9d158c",
+      "title": "Broader Luna trial \u2014 stopped and closed",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-native-results.md",
+      "sha256": "07e13a8e9de71538d534c7d6e77dd2201af516ceaaf61720ba0320adaf4752b2",
+      "title": "Plan/build native role comparison \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-contenders-preparation.md",
+      "sha256": "8879beeedba1705cab6f1e93d1b7a50f375023a170bd1bb9a0196de7dd8c06d5",
+      "title": "Luna/Sol repair comparison \u2014 prepared September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-contenders-results.md",
+      "sha256": "d3468a16c6a4bef281d7a12baaf34fa97e39bde9851d06dac210976a768cf0b5",
+      "title": "Expanded Luna/Sol repair comparison \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-feedback-results.md",
+      "sha256": "05f75551c7a90d30544237c1ed8d185eb3325b653ff91d558fe4f20a6e004ba9",
+      "title": "Rejected-reply inspection and repair handoff \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-model-preparation.md",
+      "sha256": "8149bf10754fa8c4ae71fc52a55f93292a1cb44d77a7c23c90dcc9cf94347272",
+      "title": "Repair-worker comparison \u2014 prepared September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-model-results.md",
+      "sha256": "5f59cd74544c154df37dac974f42c451dc9690d010c91377fb341129cd889c65",
+      "title": "Repair-worker comparison \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-native-results.md",
+      "sha256": "9c071ba5b69f6ad09710cf129db640a8509158a61c08dd520538550cb385f0af",
+      "title": "Guided repair trial \u2014 startup failure, September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-native-retry-results.md",
+      "sha256": "091b128749532e055167794a7c97aca5aad4fac8b2503235a8bab0c612a48d0f",
+      "title": "Native guided repair \u2014 unchanged proposal, September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-repair-resume-results.md",
+      "sha256": "4b2fa1dabdf807238e5fec8558cf98879e072b1bd27b5fa7e6660b7a6b8a107f",
+      "title": "Bounded repair and resume qualification \u2014 September 18, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-routing-eligibility-preparation.md",
+      "sha256": "6d1561e7c0d6ae50d0984034949165685354af0d07fdc48b5485b7a2ed07cfd8",
+      "title": "Narrow Luna eligibility \u2014 prepared experiment",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-routing-eligibility-results.md",
+      "sha256": "1cf4050974bbe0288affafa0505f0ca794356b938e6a4adf0120a8995546bc6d",
+      "title": "Narrow Luna eligibility \u2014 completed pilot",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-routing-filter-opportunities.md",
+      "sha256": "6c4bf518a991cf390c3c7fa1f3095d3974f899758e6345428f6c60da424df000",
+      "title": "Python intake filtering: evidence-backed opportunities",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-task1-results.md",
+      "sha256": "4baaa9d2f798aa384914ab9fa97d9679829128a4e972780d9ec9f67c1a3efb66",
+      "title": "Plan/build Task 1 \u2014 concrete journey and baseline ready",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-task6-results.md",
+      "sha256": "dcd7882ff213716717602bc3f08ccf83813f7f1e9f08d0d9fff07b53a1046b28",
+      "title": "Plan/build Task 6 \u2014 steering, controls and Spec",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/plan-build-task7-results.md",
+      "sha256": "45cf5ff689f3dfd70445ad9d846e2be466f224dfdbfe7a161e4732ddf2efd19f",
+      "title": "Plan/build Task 7 \u2014 installed verbs",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/portable-contract.md",
+      "sha256": "50d9d9686db7b9c53c24439860e6374c02c1fa62e04009d55773d020a43d0d71",
+      "title": "Portable contract and qualification map",
+      "category": "current-reference",
+      "versions": [
+        "0.153.4",
+        "0.17.0",
+        "0.4.0",
+        "0.6.0",
+        "1.2.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/project-plan.md",
+      "sha256": "64b1cb9478bef78d2bcde2220b88f16698d347e11319a669e415fb21ce20a251",
+      "title": "Stabilization, release readiness and phased GUI delivery",
+      "category": "current-reference",
+      "versions": [
+        "1.0.0",
+        "1.0.1",
+        "1.1.0",
+        "1.2.0",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/qualification.md",
+      "sha256": "82dafbee1e6fe252723c57ff565106be0ecee586acd7decbbdd37efc666e00a4",
+      "title": "Library qualification",
+      "category": "current-reference",
+      "versions": [
+        "0.2.0"
+      ]
+    },
+    {
+      "path": "docs/rag-options-research-2026-09-15.md",
+      "sha256": "d2d7c25b87d8e80c34283da3044169e763a2a4f08aa0ecda4afcf1ff5d8ca285",
+      "title": "RAG options for Attune Harness",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "1.2.0"
+      ]
+    },
+    {
+      "path": "docs/receipts/phase5/e1-run-02/26/project/guide.md",
+      "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+      "title": "docs/receipts/phase5/e1-run-02/26/project/guide.md",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/receipts/phase5/e1-run-02/26/project/reference.md",
+      "sha256": "59012353b8212e6bff901350520afcbbec6f768db4cf629bb79adebb2e522340",
+      "title": "docs/receipts/phase5/e1-run-02/26/project/reference.md",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/recovery-workflow-receipt.md",
+      "sha256": "c5652a5b702a9a3bdb6c49b6f2ead4af26fff99e8693aca08779dee211fbde75",
+      "title": "Local Phase 3 recovery receipt \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.17.0",
+        "0.6.0",
+        "1.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/recovery-workflow.md",
+      "sha256": "a7ae08db5a1d646f3e6cef9ecc742a872bda8f1796ad4be9825b59aa7f010a40",
+      "title": "Recover and transfer a local review",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/reflections/connected-journey-qualification-2026-09-17.md",
+      "sha256": "77f043049f3d9086d568b1edbfece1ee0119464c96efaaf37c156801e2dcc4c7",
+      "title": "Connected journey reflection \u2014 2026-09-17",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/reflections/session-2026-09-17/kept.md",
+      "sha256": "8f80303efaa5696ab4b819f5512e4af31bae7574ac666bb2343233afdf8de248",
+      "title": "Kept session insights \u2014 2026-09-17",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/reflections/session-2026-09-17/review-revision-1.md",
+      "sha256": "4236047b154730b450ad100a4731705ffccee7026899dfdac41ef7b9a19a6a0c",
+      "title": "Reflect \u2014 Attune session, September 16\u201317",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/reflections/session-2026-09-17/review.md",
+      "sha256": "4f5ffcd2e9d33f3cd7a69716980ee27c0c8af92b6d07321db311006d659c8814",
+      "title": "Reflection review \u2014 revision 2",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/release-journey-map.md",
+      "sha256": "69ff7ed6a6ca46765afdef337774d90ed42e446ecb97ccb77a575466d4271e1a",
+      "title": "Harness release journey map",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.17.0",
+        "0.6.0",
+        "0.6.1",
+        "1.2.0",
+        "1.29.1",
+        "2.2.0",
+        "3.12.13"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.0.0.md",
+      "sha256": "5810b48539bb8b9d86bfed31b57a1782cdaeda34917df90ca4940f9de74cb584",
+      "title": "Attune Harness 1.0.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.0.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.0.0rc1.md",
+      "sha256": "0c43d51674c96addeec84ea7104744347506e26bb7e33f41bf938ead2202632f",
+      "title": "Attune Harness 1.0.0rc1 release notes",
+      "category": "versioned-archive",
+      "versions": []
+    },
+    {
+      "path": "docs/release-notes-1.0.0rc2.md",
+      "sha256": "a79fae5c7e603a87bbd29b45141b438d6198c8a93fb8f45b6504e4bce40e2f4c",
+      "title": "Attune Harness 1.0.0rc2 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "2.13.0",
+        "2.13.1"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.0.1.md",
+      "sha256": "bc103f7f3ec8cd90a9ca5528e066c3a6471a8b4b78077fe6a73338544c8838b9",
+      "title": "Attune Harness 1.0.1 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.0.0",
+        "1.0.1"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.1.0.md",
+      "sha256": "31f3a9dab184d55991aa536341984329d95e1e9350adefb340a37917112ede18",
+      "title": "Attune Harness 1.1.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.0.1",
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.2.0.md",
+      "sha256": "3dbe6afa8497af028cbf2e903b846c9125fa473a47589f4e8e77d1e672cb591d",
+      "title": "Attune Harness 1.2.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.2.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.3.0.md",
+      "sha256": "8a263507751a7a6ac07f9b0dca546a970ecd5a4b9c023ea5852297e55016adea",
+      "title": "Attune Harness 1.3.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.2.0",
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.4.0.md",
+      "sha256": "8eec430dce5736556c7272ec9dee0c2cbb6ba58dae5c7cc4d4fbc4066711d3bc",
+      "title": "Attune Harness 1.4.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.5.0.md",
+      "sha256": "e3b162d668f97fc12d83913debc8854bbae524f3e89b9a7b7759b551b4d912e9",
+      "title": "Attune Harness 1.5.0 release notes",
+      "category": "versioned-archive",
+      "versions": [
+        "1.4.0",
+        "1.5.0"
+      ]
+    },
+    {
+      "path": "docs/release-notes-1.5.1.md",
+      "sha256": "8bd65671dff884f810efb61242be6755111697cc81e1b2a0741beeb27a8576ac",
+      "title": "Attune Harness 1.5.1 release notes",
+      "category": "1.5.1-preparation",
+      "versions": [
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/release-readiness-1.4.0.md",
+      "sha256": "07c98f22e043ce7287c3f2c39cfd7fcb737213a51a4bc5a67357896b264fc340",
+      "title": "Attune Harness 1.4.0 preparation readiness",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/release-readiness-1.5.0.md",
+      "sha256": "b884518db453829d8da03b8c92ed5707bcc612dd09d0af03fa97a2b303682172",
+      "title": "Attune Harness 1.5.0 preparation readiness",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "3.10.11",
+        "3.12.10",
+        "3.12.14",
+        "3.12.2"
+      ]
+    },
+    {
+      "path": "docs/release-readiness-1.5.1.md",
+      "sha256": "87263be3c40a82869d2b86dbe439c288f39b0f97fcb555d8cc0de9f88e7981e5",
+      "title": "Attune Harness 1.5.1 preparation readiness",
+      "category": "1.5.1-preparation",
+      "versions": [
+        "0.153.4",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/release-readiness-follow-through-results.md",
+      "sha256": "d7bec09c15dc54be235afdf8915dd54f0b35b5499de4b539d7df59f3e9c25a41",
+      "title": "Release-readiness follow-through \u2014 complete",
+      "category": "versioned-archive",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/release-runbook.md",
+      "sha256": "99c6290b764ec1576abb37de2e5425499228c947ef5e18c7a501e7d0e416e78e",
+      "title": "Release runbook",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "0.4.0",
+        "0.5.0",
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/reliability-accuracy-review-2026-09-14.md",
+      "sha256": "bc75303275ae54085423d69fd2a3118680225138c24207ce98869af72f4b1187",
+      "title": "Attune Harness reliability and accuracy review",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/research/control-and-latency-2026-09-16.md",
+      "sha256": "b64bfabf146c75376accdf2d3502c84f3f0d3f72cfa72ef8a4b7b09ed577c81e",
+      "title": "Control reliability and time to useful output",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.17.0"
+      ]
+    },
+    {
+      "path": "docs/research/form-visibility-2026-09-17.md",
+      "sha256": "710d028a83cc86fb5bee187b1aca01c67f22452b7fc57d02d33c8b96a38ea27a",
+      "title": "Native question visibility investigation \u2014 2026-09-17",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "26.908.70816"
+      ]
+    },
+    {
+      "path": "docs/research/luna-stage-contract-results-2026-09-16.md",
+      "sha256": "e57243ded6359fc9b8d7aae26a8af42d7d99c5a729da20420ab3f2e8274536fa",
+      "title": "Luna stage contracts and memory fidelity",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/research/luna-voyage-follow-up-2026-09-16.md",
+      "sha256": "cd51f2bfe251840652712f9bdcec97a9987296e92c2dd1783200f903ef3cfac4",
+      "title": "Luna, Voyage and reliable memory work",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/research/memory-citations-results-2026-09-16.md",
+      "sha256": "c2a6040ce3542d8693a49f2d2bdec4853023d3bf1d58d08e613486d6504c37c4",
+      "title": "Memory citation-contract repair results",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/research/memory-journey-results-2026-09-16.md",
+      "sha256": "a76e00b540e9502e8f78ce63d6bcdec86f30caef8d6bece5ed1ce2714d0c73f3",
+      "title": "Luna memory journey: isolated real storage",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/research/memory-routing-results-2026-09-16.md",
+      "sha256": "ae70d4292e343b7fe78b33448986e6c3ed6a57fe0ab8096068443e88e73b60d3",
+      "title": "Memory authoring and routing experiments",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/research/memory-routing-v2-results-2026-09-16.md",
+      "sha256": "8b8b5e0f033632ba60b039f0a175d3e14ce119438fb9bddbd074b3caeb182c0d",
+      "title": "Revised memory controls and routing results",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/research/memory-sorter-results-2026-09-16.md",
+      "sha256": "dc7702f25454bac69aa36a7ba989833d4e8b01898563d641558e0474982c457f",
+      "title": "Mixed-queue memory sorter results",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4"
+      ]
+    },
+    {
+      "path": "docs/research/memory-worker-results-2026-09-16.md",
+      "sha256": "dcf6d03404b5cd98599da345d91f17dd5b3a7f3de1e5b94c34dacc035af951b7",
+      "title": "Bounded memory-worker prototype",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/review-brief.md",
+      "sha256": "53317656b8784489df8f10df5f043924ffc8475d3c9ecc193e8ee5e6d2f22ab5",
+      "title": "The standing brief for a different-model review",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/review-findings.md",
+      "sha256": "ab23aff5d93809cd90f38661bb67acce8a08471408d6b238eef1d83e12fb10b4",
+      "title": "Review findings log",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "1.0.0",
+        "1.29.1",
+        "1.4.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/review-quality-receipt.md",
+      "sha256": "5e8311b50bdc5554d5ffad423a40fa6b1e6daf8b74b215a5a4cd1bbcd87f9850",
+      "title": "Documentation-review quality acceptance \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/review-workflow-receipt.md",
+      "sha256": "182222a2b37431871448dd02d2e4bf478887f9e71136e36a246293079c99c614",
+      "title": "Local coordinated-review receipt \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.17.0",
+        "0.6.0",
+        "1.2.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/review-workflow.md",
+      "sha256": "f7e929b9480a580905a7cdde9c7d3a33a3d48f72056305df39381ca1cd057c60",
+      "title": "Coordinated evidence review",
+      "category": "current-reference",
+      "versions": [
+        "0.1.0",
+        "0.17.0",
+        "0.6.0",
+        "1.2.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/sol-review-fix-receipt.md",
+      "sha256": "ca110526dd350012adc747903c1a206af8f9baa10f62e6ce5989e264b164e4be",
+      "title": "Four Sol review fixes \u2014 September 16, 2026",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/spec-completion-repair-results.md",
+      "sha256": "4d48cab9d0e4f67486f917589830a203455949edac9f9a8daa09fae2e05befc1",
+      "title": "Spec completion evidence repair \u2014 results",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/spec-test-handoff-results.md",
+      "sha256": "dfc1ddee118594bbef141cbd6156f575ee57287fa9db40c6cd401842d61424af",
+      "title": "Spec test handoff: local correction qualified",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/connected-journey-qualification/assessment-correction-design.md",
+      "sha256": "1b26a7cbda0ddd244e83078b8e5a15e65cd82463ae5e676184aefcaf0ad35a4d",
+      "title": "Bounded assessment correction, revision 2",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/connected-journey-qualification/assessment-quality-design.md",
+      "sha256": "c23f7db3148640ebc7e06a2bb1085512274cdb1c71ab03105c53bbf1c1bf1564",
+      "title": "Bounded assessment-quality comparison",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.153.4",
+        "2.1.266"
+      ]
+    },
+    {
+      "path": "docs/specs/connected-journey-qualification/capability-map.md",
+      "sha256": "7a8c7f798daef0f4a804c1c3fd4a1b3ae47d38714607fd6b1a21fb02056ef09a",
+      "title": "Connected capability map \u2014 2026-09-17",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0",
+        "1.2.0",
+        "1.29.1",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/connected-journey-qualification/native-follow-through.md",
+      "sha256": "847cb71702ac916ccec69341506757fc7ce6df6a3a0d73e2f9b9738404e47ac7",
+      "title": "Native qualification: implementation and acceptance schedule",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/cross-review/receipts.md",
+      "sha256": "d46f85ad3b8fe7951465abe33179f9791d8c9ad6639daae7bc4228800aaf72c0",
+      "title": "Cross-review advisory receipts",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/executable-plugins/README.md",
+      "sha256": "f678f04f5ea3877546dcb6382c40368694cf17dc5dc914a546df136674a9c9bc",
+      "title": "Executable plugins: the spec",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/first-run-journey/README.md",
+      "sha256": "5c018aabf1b22b234d64995169ba395c919cada7d337884afe273615ea1715e7",
+      "title": "First-run journey: every verb works from a fresh install",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0",
+        "1.0.1",
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/specs/first-run-journey/design.md",
+      "sha256": "01c48afb81e6770f48100e3e59c5e42505582fe4358c0b1132d53b805bb5ba06",
+      "title": "First-run journey: requirements and acceptance",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/specs/first-run-journey/tasks.md",
+      "sha256": "2d64e8e31148889e39c589141b0273c5ea6152f8a0308edab113f4aac5181c25",
+      "title": "First-run journey: tasks",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/specs/graphical-companion/README.md",
+      "sha256": "a7ea19010cfd08d7b610c5f31f4494c90826c17e6699de937fa1c833ccda59e4",
+      "title": "Production graphical companion",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/specs/graphical-companion/progress.md",
+      "sha256": "04b27b2d2f8aa6873e5c6272538c9e2d1ce91e79ce1f22112df57230b55c9aab",
+      "title": "GUI program progress",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/decisions-2026-09-22.md",
+      "sha256": "188d68e2870cf537bd60534b818f418ee358d8471e922b4fbb56ae87c76916ab",
+      "title": "Native memory: decisions, September 22, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "0.3.0",
+        "0.4.0",
+        "0.5.0",
+        "1.29.1",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/decisions-2026-09-23.md",
+      "sha256": "dd939e1338013bb6a0ae6999197deb784ad9eb760ee2514112665b500ce0435b",
+      "title": "Native memory: decisions, September 23, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/formats.md",
+      "sha256": "45da53b89c7af82e37a7fad7a45796cd52e4a09aedd729caf719c9661c538b53",
+      "title": "Frozen legacy memory formats",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/observations-2026-09-24.md",
+      "sha256": "77fb3fdd59bdb1d3350c71898d0c7b52b78f2999482420786d7ea64c1d8a0789",
+      "title": "Session observations \u2014 September 24, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/phase-2-design.md",
+      "sha256": "f0ffe7b6932a97e756de92e3e9886efbc0166f41ea11710ce17fa184dabd1247",
+      "title": "Native memory, Phase 2: design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.4.0",
+        "0.5.0",
+        "1.0.0",
+        "16.2.1"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/scoping.md",
+      "sha256": "4894a5eed2054e248035e079e80bfd1beea04bea6dfa55bb26dd27a6f0a91978",
+      "title": "Native memory \u2014 scoping note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "3.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/serving-design-2026-09-24.md",
+      "sha256": "4667526d020149f08e89664c2ea1b1c5c95eedd5baf1095e30486b096f164e70",
+      "title": "Memory serving: implementation design, September 24, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/task-4-design.md",
+      "sha256": "ec75cdb02cb8b820f90dd04a3b88265a07bdb4c5596a1188519f94476c5dd45b",
+      "title": "Native memory, Task 4: design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "5.0.1"
+      ]
+    },
+    {
+      "path": "docs/specs/native-memory/transition-end-design.md",
+      "sha256": "39f518fa8b37864a5c1dabfee5f2f156b2cfca6b567f2669e2274e950f67988a",
+      "title": "Native memory, ladder 9 (plan 4.4): ending the transition, design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.2.0",
+        "3.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/phase-3-design.md",
+      "sha256": "93b07d1404c0a01f6fee017c9dac80284c905580f0c4f04b51055ff514e982dc",
+      "title": "Phase 3: design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.5.0",
+        "0.6.0",
+        "1.0.0"
+      ]
+    },
+    {
+      "path": "docs/specs/plan-build/baseline.md",
+      "sha256": "2c5d2188168921ae2f9e18464da81be2aa7d6e99cbb8bd3b0b2ea95233432e9f",
+      "title": "Plan and build \u2014 source assessment",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/contract-correction.md",
+      "sha256": "c59e13cca2ccfbb60680da51d164415446453a3d2c254801dfec098ce67a92e8",
+      "title": "Task 8 \u2014 bounded response-contract correction",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/control-audit.md",
+      "sha256": "583688524489820920e1a4d044e8ddf5c95c31e20d0a7426a15947330e144c63",
+      "title": "Control audit \u2014 plan and build",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.17.0"
+      ]
+    },
+    {
+      "path": "docs/specs/plan-build/default-compatibility-correction.md",
+      "sha256": "1ae4b0db46f545835d407a5a92ff17c0e64f7c3affed664487a1eb714c178cd3",
+      "title": "Preserve captured default output in the experimental oracle",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/dependent-build.md",
+      "sha256": "8fbf9e3cf4c1a5e1e396f3783113adae71741cb56bfb3989d8fb7d3691956fe1",
+      "title": "Task 5 \u2014 dependent feature execution",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/design.md",
+      "sha256": "6a4a22f15b3fdf6163b73608f1f8b4f7c0841286d91fcb280456c671ba71782b",
+      "title": "Design \u2014 one work lifecycle behind plan and build",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/first-journey.md",
+      "sha256": "cd2e4332eaced6bee33eb370be63831680955c721dd17191def3205792dfb186",
+      "title": "First journey and concrete implementation boundaries",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/routing-eligibility-experiment.md",
+      "sha256": "c26beac483ead0166543f2775ab93006499c51d3c692bbad1a486e979ec99a0e",
+      "title": "Narrow Luna eligibility \u2014 experiment design",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/tasks.md",
+      "sha256": "51e2971efdf63b5b9e033733e1f575f4c07433470cf716fa2d56f4ee2925db24",
+      "title": "Task outline \u2014 plan and build",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/plan-build/work-contract.md",
+      "sha256": "f403f76cd9a9cbb1f592219132cc3a16b23003e54ad9a0c4f014a4a91fd2efc9",
+      "title": "Task 2 \u2014 shared work contract",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/portable-user-journey/README.md",
+      "sha256": "8a1ad5a7c874ef85feced54cbf12cf39f2ca6764e076d3bfc0194d6ce64332b2",
+      "title": "Portable user journey: implementation proposal",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.17.0"
+      ]
+    },
+    {
+      "path": "docs/specs/portable-user-journey/design.md",
+      "sha256": "e7b11bc24ff70a92cee3e3dd2ec8bbc463c5f42873f9c40f7a48dc4b49dc0f07",
+      "title": "Design and acceptance criteria",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/portable-user-journey/evaluation.md",
+      "sha256": "4de778210cba55b0fba993fd522308f66ff062413c8eb2bcec4eb2374a8dfec3",
+      "title": "Journey evaluation",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.17.0"
+      ]
+    },
+    {
+      "path": "docs/specs/portable-user-journey/tasks.md",
+      "sha256": "9cb99df4d38164e054a70f78870df72c17d3c33dc3b325c36f5118e715a3c193",
+      "title": "Ordered implementation tasks",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/release-1.0/README.md",
+      "sha256": "96d2ad0ddca84ed074cdffabd4265c1b9da8c064efcbe126ffb326981ff8ba41",
+      "title": "Release 1.0.0: the requirements, and what waits",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.5.0",
+        "0.6.0",
+        "1.0.0",
+        "1.1.0"
+      ]
+    },
+    {
+      "path": "docs/specs/release-1.0/addendum-2026-09-23.md",
+      "sha256": "a0442d0c398902a0e2c0688008480d499c837b81aa2c9015714fbde3138c369b",
+      "title": "Release 1.0.0: addendum, September 23, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.0.0"
+      ]
+    },
+    {
+      "path": "docs/specs/release-1.0/freeze-design.md",
+      "sha256": "6e93237126835b86d92137a76b3d770420169d9a48432138f9c03525df184457",
+      "title": "The interface freeze (4.1): design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.4.0",
+        "1.0.0",
+        "4.1.1",
+        "4.1.2",
+        "4.1.3",
+        "4.1.4",
+        "4.1.5",
+        "4.1.6",
+        "4.1.7",
+        "4.1.8"
+      ]
+    },
+    {
+      "path": "docs/specs/release-1.0/host-surface-design.md",
+      "sha256": "bd19b75f4cfaeb2d3a0ee46e0c013bb1e0cb5e44f59399581dfb51fd3da54620",
+      "title": "The host surface: spec on Harness end to end, design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.17.0",
+        "1.0.0",
+        "16.4.0",
+        "4.1.6"
+      ]
+    },
+    {
+      "path": "docs/specs/release-1.0/workspace-mcp-implementation.md",
+      "sha256": "d40fbbe1e8f62dee2f9d1782353a31d92b4ccaa56d84a97e5f370c180a3367c6",
+      "title": "Workspace MCP and host plugins \u2014 implementation note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0",
+        "2.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/saved-request-journey/README.md",
+      "sha256": "a0d85efe1afca19fb4bd73d820735fa047e577c183a2cd8dd8c7be4ce7944993",
+      "title": "From an idea to a saved, inspectable request",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/adapter-design.md",
+      "sha256": "6e50e82aee0701aee54bbb7681ad02eb7362dcf7530191f410b5099b0723886c",
+      "title": "Current-memory adapter implementation note",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/baseline.md",
+      "sha256": "4846c7b4d3f013342c213cad8be2a561bbdb278696003074b5ed1899b10db3c2",
+      "title": "Existing memory compatibility baseline",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/design.md",
+      "sha256": "be6f803888808ee1fba10fb3e719a22d4d5bb9319d7680b9dc280bd192beb58e",
+      "title": "Shared memory adoption \u2014 design",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/requirements.md",
+      "sha256": "a6f36a889551b76b6b1bd571b07cd8c14b28806ea7be6010ab261e17ad2969b6",
+      "title": "Shared memory adoption",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/task3-review.md",
+      "sha256": "8f43591c92019f12996fcf81e256bd569f83b51259fd31471c61a37e60cbf00b",
+      "title": "Task 3 review disposition",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/task4-gate.md",
+      "sha256": "680b544376ca21c5adf0b0bd058b891ceeb547381da5efdd68f5b3bb0bc6b272",
+      "title": "Historical Task 4 gate \u2014 superseded",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/shared-memory-adoption/verification.md",
+      "sha256": "aa19b8a9e586031b4c629ed0a4d56c6a99f2831a7cf640ed8466028c939c116c",
+      "title": "Shared memory adoption \u2014 verification and support",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "0.6.0",
+        "1.2.0",
+        "1.29.1",
+        "16.4.0",
+        "26.6.2",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/specs/spec-authority/README.md",
+      "sha256": "c18ca1b9b7c405b45d5ffe09558ab778ba0a933bff9f35c32ffb96c0b84bf701",
+      "title": "Spec authority \u2014 owned by Harness, built from reviewed Attune AI code",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/spec-authority/addendum-2026-09-21.md",
+      "sha256": "cde9db99dc46d5d81b3514b2310ae325f64180853783e9115bc7c9b124047140",
+      "title": "Spec authority: addendum, September 21, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "0.2.0",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/specs/spec-authority/addendum-2026-09-22.md",
+      "sha256": "eff20ddba0b7ada42d5fa2c4649d0d739e1be3dcbc33099364353f8918e1bd14",
+      "title": "Spec authority: addendum, September 22, 2026",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/spec-authority/addendum-2026-09-23.md",
+      "sha256": "45621c90d686138d0bb51ccff7d9c011910bf94d6478d75a27be77de61a21cf4",
+      "title": "Spec authority: addendum, September 23, 2026",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/spec-authority/task-2-plan.md",
+      "sha256": "e4369a80af3539038c3b2de010a0ecc88c0cb30d004774c661aae2a17a613dc2",
+      "title": "Spec authority, Task 2: plan",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/spec-authority/task-3-design.md",
+      "sha256": "152e02cab57a3e940e442ab81accbea477900a56d7d454b34830e3fc41db394f",
+      "title": "Spec authority, Task 3: design note",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/spec-authority/task-4-design.md",
+      "sha256": "1b4b69c7ae4ac342aea4fee3881e074a83f48c22bff9ef2943e8d42b03fcff30",
+      "title": "Spec authority, Task 4: design note",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.17.0",
+        "0.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/spec-authority/verdicts.md",
+      "sha256": "aa7c898607ff31836780a5784c843f4eaeea302402ec7d7791a07910ff0625db",
+      "title": "Spec authority, Task 1: module verdicts",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.2.0",
+        "2.5.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/specs/starter-files/README.md",
+      "sha256": "9fcfe66746b6835355c87cf2b134e4c262364d9e7661c637a5ab1336d4652dad",
+      "title": "Starter files: `plan` and `fix` start from a command",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.1.0",
+        "1.2.0",
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/specs/starter-files/design.md",
+      "sha256": "f232d55005751b1c29ed09b840fa053c832287018af192bc3af18082b714e98d",
+      "title": "Starter files: requirements and acceptance",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.1.0",
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/specs/starter-files/tasks.md",
+      "sha256": "d9b7651d000868727feaaf7f03cf49d67055cbf6d305acba87d2ac55c0aea137",
+      "title": "Starter files: tasks",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/specs/task-opportunities/README.md",
+      "sha256": "c4602b61a6b8fb1f25fa1c7893127d5a5be7f7cae815989b1c1e8fd7929d623f",
+      "title": "Return to work: current implementation and completion scope",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/task-opportunities/journey.md",
+      "sha256": "6f4cf5400b53fd43f4080d580188f0731cb567a44908f6a8c79d9ce73e5beab0",
+      "title": "Worked example: return to work, then review and choose",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/task-opportunities/plan.md",
+      "sha256": "8ae4ef1209036c7e15363f9f0752f943c66935acfdd3c4c947896f4beea591a0",
+      "title": "Real task progress and ranked opportunities",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.6.0",
+        "1.5.0"
+      ]
+    },
+    {
+      "path": "docs/specs/task-opportunities/task-1-design.md",
+      "sha256": "f85be1e115a493c1c551054efc0060713d93496fc1edff088ee99f05b42c76ba",
+      "title": "Earlier design: read-only task snapshots",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/task-opportunities/task-1-return-to-work.md",
+      "sha256": "574e19dcce1b804cf142fd5337b08e7977242bcdf140df0e1cdf18f38b743ca3",
+      "title": "Task 1: return to work",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/unified-task-execution/assessment-receipt.md",
+      "sha256": "ff4c613a64c012ad14c31d3786da12bd99c9b3a73eebbc56b0713d67ded4a29e",
+      "title": "Installed assessment software qualification",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/specs/unified-task-execution/repair-receipt.md",
+      "sha256": "ee4d5519ab912e3107b12bfe0b5cb9a44722d145f655de8a654db32a9587e601",
+      "title": "Repair software qualification \u2014 Task 7",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/specs/unified-task-execution/task-8-assistant-grading.md",
+      "sha256": "d0be25c3b97f60cb06b71b5496f7be352c59aa1d10aebcc3554bf477f171895c",
+      "title": "Task 8 assistant outcome grading",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/unified-task-execution/task-8-grading-guide.md",
+      "sha256": "cd648c81028a372ae50a56c52edccf5eb5dc44354899e9246aa66aa0edd54ba0",
+      "title": "Task 8 human grading",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/unified-task-execution/task-8-live-receipt.md",
+      "sha256": "8a4b10784911d96173cce73a75be5e9872c78094cfca251cf8fda1cf5ffab9c7",
+      "title": "Task 8 native qualification receipt",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/specs/unified-task-execution/task-8-review-contract-note.md",
+      "sha256": "d50b619dfe7dd8c044a0dadc063f2012674e42ed43143b842a202eddd7dffb1d",
+      "title": "Task 8 correction note \u2014 review findings semantics",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/voyage-validation-reuse/design.md",
+      "sha256": "18ba315a3c7b19e7053678f94cc916d40ada1d3486c310207ccd788db680621e",
+      "title": "Design: reuse the immediately checked generation",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/voyage-validation-reuse/tasks.md",
+      "sha256": "8ebbef392f915b0bf81ef466827ddbc840b596eb333e2d53e3302e28ad8f5690",
+      "title": "Voyage validation reuse \u2014 task ladder",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/windows-parity/README.md",
+      "sha256": "2f452754352f208a18d6b72b813b7e9315c05944a3716849f84b8e69ec596b1d",
+      "title": "Native Windows feature parity",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/windows-parity/design.md",
+      "sha256": "e25f83f25638866aed0ef64406b11ad54ec4998aeeec955a7d69faaa3b8c9af4",
+      "title": "Windows parity design and acceptance",
+      "category": "specification-or-decision-record",
+      "versions": []
+    },
+    {
+      "path": "docs/specs/windows-parity/fixtures.md",
+      "sha256": "7992573d6c787c24bc71d5be77cf911dcaa0add1962bbd6fef118a948847de1b",
+      "title": "Windows journey fixture producers",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.2.0"
+      ]
+    },
+    {
+      "path": "docs/specs/windows-parity/tasks.md",
+      "sha256": "6a6d3f76a57abcbcce5058043024e4665a751f7cda3092e14942e529884a390c",
+      "title": "Windows parity tasks",
+      "category": "specification-or-decision-record",
+      "versions": [
+        "1.5.0"
+      ]
+    },
+    {
+      "path": "docs/status-guidance-a-results.md",
+      "sha256": "831d691f9c2eac6bb41e7a4a65184fd873e2b1af9f01b63f0ff846eccaa625ea",
+      "title": "Opportunity A \u2014 verified plan/build guidance",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "3.12.13"
+      ]
+    },
+    {
+      "path": "docs/supported-journeys.md",
+      "sha256": "54d16f9aabc79b2615b77e26b0bff460a5e58cca5270e708caa867519fe2d044",
+      "title": "Choose a Harness workflow",
+      "category": "current-reference",
+      "versions": [
+        "1.5.0",
+        "1.5.1"
+      ]
+    },
+    {
+      "path": "docs/test-this-change-results.md",
+      "sha256": "187515d9bed7276df3d118e04a8ad90a9d721f931d270eb747dad3d251a95133",
+      "title": "Test this change \u2014 first slice complete",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/token-accounting-receipt.md",
+      "sha256": "2ffd0bbc454b2fe45ef8d23975b58f632c1c27cd852ff38381609126a4f3c1f1",
+      "title": "Model-aware token accounting \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.12.0",
+        "0.31.1",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/tutorials-1.3.0.md",
+      "sha256": "a31a785ce28a5b035cc202e06959f2832048f235e0724f753fd84f50102a2d97",
+      "title": "Four training walkthroughs for Harness 1.3.0",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0"
+      ]
+    },
+    {
+      "path": "docs/tutorials-1.5.0-candidate.md",
+      "sha256": "e2bec1b87b108dbc484a4cb336e1038790671134ca0e565fdbc0c1790a7ba2f8",
+      "title": "Four training walkthroughs for the unpublished Harness 1.5.0 candidate",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "147.0.7727",
+        "3.12.2"
+      ]
+    },
+    {
+      "path": "docs/tutorials-1.5.1.md",
+      "sha256": "6321226c98cad2c8f2f3cf2c768e26516c35400c57abbb5bf8df11285413caa4",
+      "title": "Four training walkthroughs for Harness 1.5.1",
+      "category": "1.5.1-preparation",
+      "versions": [
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.5.1",
+        "3.10.11"
+      ]
+    },
+    {
+      "path": "docs/tutorials-next-release-candidate.md",
+      "sha256": "5c6e261a0ab91bf835280344bc7a388324652302a07df9b96dee46075bc27244",
+      "title": "Training walkthroughs for Harness 1.4.0",
+      "category": "versioned-archive",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "docs/user-guidance-examples.md",
+      "sha256": "5265129ee943e39cbf641d47fa2ef068cf36bc5c2c553957870ffdf03e83eddd",
+      "title": "Warnings and guidance: concrete examples",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/verification-checkpoint.md",
+      "sha256": "20e4369a2fd1b822e8f5250eb25abe98a1b384d7613460366da3812e04b84e39",
+      "title": "Verification checkpoint \u2014 2026-09-14",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-100-question-evaluation.md",
+      "sha256": "af3f9bf8d2b1654105b1d9db5f013c48385c33195d221e3c4fdd8a8f29649004",
+      "title": "Voyage: 100-question Harness evaluation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-accuracy-receipt.md",
+      "sha256": "c2ed91a19e4e62fc0b1d5b55ad7dadbc3533c9522a1f66841087a406f2218997",
+      "title": "Voyage focused accuracy check",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-answer-accuracy-calibration-2026-09-15.md",
+      "sha256": "cfe653dd583f8100794fb008491a2d91436c066befc2ca0bbc447d17fbdd3a61",
+      "title": "Voyage answer-accuracy calibration: results and operational limits",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.31.1"
+      ]
+    },
+    {
+      "path": "docs/voyage-answer-accuracy-preparation.md",
+      "sha256": "e7b352ad364906a5bcea7b5f11a302eac450dbf801b89a84418ced50ae6b5813",
+      "title": "Model-mix answer accuracy experiment \u2014 preparation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.153.4",
+        "0.31.1",
+        "2.1.266"
+      ]
+    },
+    {
+      "path": "docs/voyage-full-code-evaluation.md",
+      "sha256": "0710aa3ecefe6a8d3bfef8bc30eb435418dad741d157100fe58152d53c4bd4e9",
+      "title": "Voyage: 98-file Harness evaluation",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-index-plugin-design.md",
+      "sha256": "220015d9cb23577ecbd6f586f3418afd7f979aa99d81ada19ca44af7d57f4a82",
+      "title": "Selected Voyage index and offline journey",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-latency-assessment-2026-09-15.md",
+      "sha256": "4ef65bd7c389059134314cea88fddb13fcf65a825550889813aaa8e28eafb9ea",
+      "title": "Voyage retrieval latency: measured breakdown",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-next-increment-2026-09-15.md",
+      "sha256": "46a36aac8723db5a92a2ddc8c3427576f8676189e43bde09d8d947f5a492a4c2",
+      "title": "Voyage retrieval: verified assessment and next increment",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.38.0",
+        "0.5.0",
+        "1.29.1",
+        "16.4.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-paid-stage-adapter-design.md",
+      "sha256": "1f44b188f5e9df66b00e7a387804e99d848be4a7fb3202ec26b4b838f54c1551",
+      "title": "Voyage embed/rerank adapter: host-owned paid-stage journal",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-plugin-binding-design.md",
+      "sha256": "171d15f1980f4e9a75145ed126c642df34dd401e36f7847b55b2eac9f11c600e",
+      "title": "Voyage plugin binding: accepted selection and offline boundary",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-plugin-journal.md",
+      "sha256": "f27946411e7b7e8a2d57dd17f77eec8e8ffec8f77fcff4ced5cbe7cc76dd8adb",
+      "title": "Voyage plugin journal: interrupted dispatch",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-plugin-runner.md",
+      "sha256": "789d02df8ea5e0a0f765cc055049bb2194ce44d358ba6aacfecc7c94b7a8b96d",
+      "title": "Build and accept the Voyage plugin runner",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-rag-session-starter.md",
+      "sha256": "7f2e711ac7dcd316faa43f6f634c1c77b248cfcbd574914b5152a6eae29024d2",
+      "title": "Starter: evaluate and improve Attune RAG with Voyage AI",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-retrieval-implementation-plan.md",
+      "sha256": "e8922974dcedd26b64a999f195a52cbab8ce7182ed942630f250719838e0f480",
+      "title": "Voyage retrieval implementation plan",
+      "category": "dated-evidence-or-design",
+      "versions": []
+    },
+    {
+      "path": "docs/voyage-retrieval-receipt.md",
+      "sha256": "16fdca446dabab8486d2f31273deb0c20a053a4c4540812f5263cfc1f0c9f216",
+      "title": "Voyage implementation receipt",
+      "category": "dated-evidence-or-design",
+      "versions": [
+        "0.1.0",
+        "0.38.0",
+        "0.5.0",
+        "25.0.1",
+        "3.10.11",
+        "3.12.13",
+        "4.26.0"
+      ]
+    },
+    {
+      "path": "docs/voyage-retrieval.md",
+      "sha256": "5677dfa48cb931aca676bee68f8bec0531d1e2cabf69eacfe20c1f188d8116ce",
+      "title": "Voyage context for coding agents",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/windows-read-primitives.md",
+      "sha256": "cd775f9926c4fb9e7350ee4836829898920ebb7ba2792f4be7dee7c7de151e8d",
+      "title": "Windows read primitives",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/windows-reliability.md",
+      "sha256": "6d6ca14e9bd1af1b47033de001b0e6c2f665215b4880caa9aa6ed39a2717a6af",
+      "title": "Windows reliability reference",
+      "category": "current-reference",
+      "versions": [
+        "1.4.0",
+        "1.5.0"
+      ]
+    },
+    {
+      "path": "docs/windows-traps.md",
+      "sha256": "74ea5ec82b562ea045a7cde23fb608e9e12d3b7623f948fa86a9156c42921591",
+      "title": "Windows traps",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "docs/writing-guide.md",
+      "sha256": "1a2ba0062cd21381c9e745c7fbca3e9a0a2bda4f6bbbeb10ee9a4cd3152647e4",
+      "title": "Writing and entered-text guide",
+      "category": "current-reference",
+      "versions": []
+    },
+    {
+      "path": "examples/extensions/plugin/src/attune_harness_evidence/SKILL.md",
+      "sha256": "09692e418215d0a21b02f7e1d25f257784da99771494e9fa9ab2d7e83a8ba6b2",
+      "title": "examples/extensions/plugin/src/attune_harness_evidence/SKILL.md",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "examples/local-workflow/project/guide.md",
+      "sha256": "05133d3a8640227144382f29e7b4aa1fc7a2c2e060a612a1300553df3ec4834a",
+      "title": "Verification workflow",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "examples/local-workflow/project/reference.md",
+      "sha256": "4d7a225d33f43091088a3fe965564305af35176359f6e663c78537459fc33aa7",
+      "title": "Quartz retention policy",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "experiments/voyage/README.md",
+      "sha256": "fbe18895702bd24b05d9f16b12399a10f037c73b877ea5dd5b2afee1954cd35e",
+      "title": "Application retrieval evaluation",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/README.md",
+      "sha256": "a55b84f2378dfeda97cce222a101c1dc82119180aead0bd812aa28401d9d850e",
+      "title": "Harness host plugin candidate",
+      "category": "project-support",
+      "versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "path": "plugin/attune-harness/skills/attune-release-check/SKILL.md",
+      "sha256": "b450c01298cf7a3ea6826f403ac96db191136d1fb06ef84087f9717e71f486d4",
+      "title": "plugin/attune-harness/skills/attune-release-check/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/skills/cross-review/SKILL.md",
+      "sha256": "488fc7151f9b333e406780ea56ebe5c40a319f91e587aadc66d63b16afd7fac3",
+      "title": "plugin/attune-harness/skills/cross-review/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/skills/release-execute/SKILL.md",
+      "sha256": "2ee1a3939a5254c08e6b4374e418be53539b63d1de95cf50c4f2eb81fbefdd3c",
+      "title": "plugin/attune-harness/skills/release-execute/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/skills/roundtable/SKILL.md",
+      "sha256": "8626a2563d085fb38bc9c6f6c396b36d388450f4301b19cb1657f3214896237b",
+      "title": "plugin/attune-harness/skills/roundtable/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/skills/smart-test/SKILL.md",
+      "sha256": "473acc991c007633aa36dcce30154f4ae1f22fbdcf93d43c6ee3284ba61f39de",
+      "title": "plugin/attune-harness/skills/smart-test/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "plugin/attune-harness/skills/spec/SKILL.md",
+      "sha256": "a14841112f33d825ea38513b067ea44cc02e5972c206cf681683cd1122cb4456",
+      "title": "plugin/attune-harness/skills/spec/SKILL.md",
+      "category": "agent-integration",
+      "versions": []
+    },
+    {
+      "path": "prototypes/README.md",
+      "sha256": "45f7be7fc8bb598372f63c6ad0fddce03aaaef807671582018c009cd671a13a7",
+      "title": "Graphical journey prototypes",
+      "category": "historical-prototype",
+      "versions": [
+        "1.3.0",
+        "1.4.0"
+      ]
+    },
+    {
+      "path": "prototypes/live-mining/index.html",
+      "sha256": "1744dbda306b32aebec08c120ece10b2727e247fc495032bed51c94e98ac2c0f",
+      "title": "prototypes/live-mining/index.html",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "prototypes/navigation/harness-workspace.html",
+      "sha256": "f31d4417c7d40774dc66e8fe3e0397a33381cc4441309fc3a46912f8c4886687",
+      "title": "prototypes/navigation/harness-workspace.html",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "prototypes/refined-workspace/attune-workspace.html",
+      "sha256": "404390d4664e570c2b9256414be0401984a24ebd12a68244198f0cb6ebd44e06",
+      "title": "prototypes/refined-workspace/attune-workspace.html",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "prototypes/session-continuity/continuity.html",
+      "sha256": "fe465edfa9724d1767b596f5ec3936b13b05a268cbdd45c037c9188bbc530ee5",
+      "title": "prototypes/session-continuity/continuity.html",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "prototypes/spec-workflow/spec-studio.html",
+      "sha256": "85959b2c5f22d55f4d03cae2c83d1046b046999922d099f54443805658570fb7",
+      "title": "prototypes/spec-workflow/spec-studio.html",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "prototypes/spec-workflow/use-case-review.md",
+      "sha256": "4135c6cc37e09d939f67b0ce8538b4cf19f9f48a0a5be9cbf54afda80b4324d0",
+      "title": "Spec studio \u2014 second iteration use-case review",
+      "category": "historical-prototype",
+      "versions": []
+    },
+    {
+      "path": "tests/client/README.md",
+      "sha256": "a27b2f9fcaa81c1a9f53e9a3cbff8d7085d45bcdf9e06da8b4aba0e35a543cde",
+      "title": "GUI client regression verification",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/README.md",
+      "sha256": "3e6458d6e42aec64a5891208ab9368ed339f901af5329a49af9e0599b7a11fd4",
+      "title": "Unpublished 1.0 candidate saved-state capture",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/memory-roots/curated/rule.md",
+      "sha256": "cdf0cc6cfecc30745de19e8aaf7cf04cf47fb3cdf3ff94d2ef704a9216c7a411",
+      "title": "Quartz rule",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/memory-roots/personal/note.md",
+      "sha256": "317b1f9dc47053ee05c7291901c925b3853a06137ed13ff2c5fc2bc3b5d65d15",
+      "title": "Quartz",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/plan-state/plan.md",
+      "sha256": "be6fb2579ba49336b1c2d15ca4c8255e0d52d46abb5374574197ee6f45657f14",
+      "title": "Synthetic plan",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/review-project/guide.md",
+      "sha256": "de3e23048a5638b99eda93ce9ab55fd1616bb5977f67816114c0349bb30dff81",
+      "title": "tests/fixtures/compat-1.0/files/review-project/guide.md",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/review-project/reference.md",
+      "sha256": "cf29b2d94f65c1fa2094798f8f2e9d955563fe11600b5929fc304b91141aee3e",
+      "title": "tests/fixtures/compat-1.0/files/review-project/reference.md",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/voyage-bundle/SKILL.md",
+      "sha256": "e8e70dafbbd5eac9305f5bde0187f23e2025451e40688ea2a31922100193aeab",
+      "title": "Voyage plugin",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/compat-1.0/files/work-project/plan.md",
+      "sha256": "10b912875bf0de00b7b8db1d4774c1839fe2c586a6176333c3ac49b491933b87",
+      "title": "tests/fixtures/compat-1.0/files/work-project/plan.md",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/attune-ai/chart-widget-kernel.md",
+      "sha256": "afd414bc5d5de98035f54b3b6266ba6450163b19dc430ce3d23eaab049d11d5b",
+      "title": "Chart-widget kernel",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/connected-journey-qualification.md",
+      "sha256": "491739073acec09bcc756aabe998761b2c203c1b18a8ca3de72e2f771e56971a",
+      "title": "Connected journey qualification",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/plan-build.md",
+      "sha256": "92fab5d32b4e1e58ed44851edff91b15d0ea2131f919a808537f470b41d3b4b9",
+      "title": "Plan and build \u2014 first existing-code journey",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/release-readiness-follow-through.md",
+      "sha256": "7e1091fd04a8206850157e2f9af99ad0c37372c6272d4877e6e2caa1288aa5f4",
+      "title": "Release readiness follow-through",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/shared-memory-adoption.md",
+      "sha256": "0257268335ad0914a007dfcec64a2becb97a1e83ecbd2bd3e2bee0d5648664ac",
+      "title": "Shared memory adoption",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/test-this-change.md",
+      "sha256": "163cdf6f96891529db406be00f65fed14748ece32bd45ec7421321b0508f3244",
+      "title": "Test this change",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/unified-task-execution.md",
+      "sha256": "921f270a04bebebf138297163c8878da64d34be0c69706c13b0bbb84e6fa4df1",
+      "title": "Unified task execution",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/plans/harness/voyage-validation-reuse.md",
+      "sha256": "440db51af4eaedd1b8b72440808f1ce01633f59c64e3e88eef79a628c644da9b",
+      "title": "Voyage validation reuse",
+      "category": "project-support",
+      "versions": []
+    },
+    {
+      "path": "tests/fixtures/voyage-live-recorded/README.md",
+      "sha256": "5699fd6d7542ba16401e2fc3e054e355bc2f6b78f0eea086957bf47e1f19800a",
+      "title": "Recorded Voyage stage fixture",
+      "category": "project-support",
+      "versions": []
+    }
+  ],
+  "canonical_help_snapshot": {
+    "commit": "46b2ee4768401e744d65f90baa6309f7638ece5c",
+    "files": [
+      {
+        "path": "help/1-5-0.md",
+        "sha256": "059f0a66179860d78e6b2534aa45bfdca285d5f82ffda3d931f0325c755ba0e0"
+      },
+      {
+        "path": "help/1-5-1.md",
+        "sha256": "fe99e5dd61512fcde03d2992a1d3825388b5dfc58b5f8a9db8e4e5493e2b39b9"
+      },
+      {
+        "path": "help/README.md",
+        "sha256": "f3f4cb02717fd34ec812ebaa881cb0ca57f999d59ed8d9bffc2517a42de060c0"
+      },
+      {
+        "path": "help/ai-tools-and-integrations.md",
+        "sha256": "6460c2b29ca91a7daafdf5c39356ee6260dd1ecec7dfb86a437bd349ffaa0f3c"
+      },
+      {
+        "path": "help/assets/BRIEF.md",
+        "sha256": "21a355e8f643e48b69d6a000795c555b7ecb6faa8dfaac5c9858c5b5cce14773"
+      },
+      {
+        "path": "help/assets/CSV-CONTRACT-NOTES.md",
+        "sha256": "27926a6ec80deb4547a13114d00bf597b2d832da87c644425574e4272b39133c"
+      },
+      {
+        "path": "help/assets/intake-filled.jpg",
+        "sha256": "8a870b315bcb00d7d7c9f9cc39503be3f365588839de560d7e4dea4661e6e887"
+      },
+      {
+        "path": "help/assets/request-review.jpg",
+        "sha256": "706eca2df741bcd351f3253f9cda3583bb8494f68c0e56564b2463047d45c3f6"
+      },
+      {
+        "path": "help/assets/state-check.json",
+        "sha256": "153ebe02a2d1aa248f90794e2fd5d6889b293e0f6053408ad77c6a23a8e39e75"
+      },
+      {
+        "path": "help/dependencies.md",
+        "sha256": "37ebacc6213410b965342745db8e65219099718903c1ac99ead1993d923842a5"
+      },
+      {
+        "path": "help/get-started.md",
+        "sha256": "a2a7290edfa21378c7ed0845fa350428b9b01c32ffd91d6022a1805c1963f837"
+      },
+      {
+        "path": "help/goals/controls.js",
+        "sha256": "f62c35059d901b3b23da4121c29fbc86462bb1797eb0f55cbacd4e5550b654ff"
+      },
+      {
+        "path": "help/goals/data.json",
+        "sha256": "85838cf0f71d2a582b1ab5065f163a77fc3d90ff951315cc0af6ab257c45dd2f"
+      },
+      {
+        "path": "help/goals/goals.css",
+        "sha256": "3c50bbc98c4c26ef2ab1ac36f1e5b103467000e50416fa643bcb3e40edcb9849"
+      },
+      {
+        "path": "help/goals/guide.html",
+        "sha256": "36295f7c004c54f3cbfc5afc9e611a5b4077cb0e1e34a4019efd450da59fec95"
+      },
+      {
+        "path": "help/goals/origin-release.json",
+        "sha256": "da363f1949ce7976de9b7595d2fac8563233267485039ad77a191a3e4cc8ac44"
+      },
+      {
+        "path": "help/goals/origin.json",
+        "sha256": "6e306f0027e25b7cf48ce5cce2f30ab2ce7d3bedb7cd121ed37e46b7e3bfa74b"
+      },
+      {
+        "path": "help/help.css",
+        "sha256": "cacd38b618910aeac62c7631edf0c2699fa90c5f15284a1499bb63c882a10a8b"
+      },
+      {
+        "path": "help/manifest.json",
+        "sha256": "ea92d20bf5ec3e3cb10be5c9a5b8c1fd4acc027eea254c60f0e108851c5f8bdf"
+      },
+      {
+        "path": "help/overview.md",
+        "sha256": "f32b9af7b46a19d985303d17ec5728ffde2164d8a125c138cafee375149dd187"
+      },
+      {
+        "path": "help/plan-and-accept.md",
+        "sha256": "ba9ecbac7f533f730e96805a285efac633102b958170d935e347eda12279f567"
+      },
+      {
+        "path": "help/preparation.json",
+        "sha256": "7edb8af083d0b7bdab43d07913b4445220f5f2b5ef6059a9e020d4dc26179d4a"
+      },
+      {
+        "path": "help/requirements.txt",
+        "sha256": "a1085097273c2b81fa70da674af840a8181963e3bf727186113a01e0a021152b"
+      },
+      {
+        "path": "help/research.md",
+        "sha256": "23b6d2832c87c2dd732f787a62a586415ec6e7d4958a63852acf58b60a1c80f0"
+      },
+      {
+        "path": "help/save-and-resume.md",
+        "sha256": "98d87ce392c2e989ec8a84420d62c627b8c504ca0ff59edcc5eb9da9eef4db18"
+      },
+      {
+        "path": "help/start-and-continue.md",
+        "sha256": "a67923dd6248a7f7aa749735cb1350ace5d1a9536105a70e1b383698c1b24a46"
+      },
+      {
+        "path": "help/template.html",
+        "sha256": "04a931e3bed620dcaac63b784ac12f4b0d48199ce492827e85354220ef74937c"
+      },
+      {
+        "path": "help/troubleshooting.md",
+        "sha256": "9b0a5f17ed6fbd882b421ff134a77218e730f78be363989d2dfff0ca1d6ecbbe"
+      },
+      {
+        "path": "help/verification.json",
+        "sha256": "0288023eb559e4cc35bb5e0e1eae14455bf7f3b48debd7e7b8c542b9ff5240df"
+      },
+      {
+        "path": "scripts/build_help.py",
+        "sha256": "970c845aa3129bbb6d368fb32ae6b9b653a0c5a31e93ebb5317e31a7f3d67e73"
+      },
+      {
+        "path": "tests/test_help_center.py",
+        "sha256": "5d5a5d8d70e0de28a33d588cf7115c9cbd1ae306cff9baa9b3ad7d0037f8d0e0"
+      }
+    ]
+  },
+  "website_export_snapshot": {
+    "commit": "dcaa5f05f54dc9470783a15613730b85fa4f350b",
+    "files": [
+      {
+        "path": "website/public/harness-help-static/1-5-0/index.html",
+        "sha256": "d6ccf0e686f0e376b325c987d824e687c918448472f965f6964f8280122e963c"
+      },
+      {
+        "path": "website/public/harness-help-static/1-5-1/index.html",
+        "sha256": "292e415323047955717163949885e48be1cff12fb8ac7172329f3859ee4237bf"
+      },
+      {
+        "path": "website/public/harness-help-static/ai-tools-and-integrations/index.html",
+        "sha256": "1826d49bfed1eb6d35324f05ec4dff93bbc864600e4e39c58cf391297c621138"
+      },
+      {
+        "path": "website/public/harness-help-static/assets/BRIEF.md",
+        "sha256": "21a355e8f643e48b69d6a000795c555b7ecb6faa8dfaac5c9858c5b5cce14773"
+      },
+      {
+        "path": "website/public/harness-help-static/assets/CSV-CONTRACT-NOTES.md",
+        "sha256": "27926a6ec80deb4547a13114d00bf597b2d832da87c644425574e4272b39133c"
+      },
+      {
+        "path": "website/public/harness-help-static/assets/intake-filled.jpg",
+        "sha256": "8a870b315bcb00d7d7c9f9cc39503be3f365588839de560d7e4dea4661e6e887"
+      },
+      {
+        "path": "website/public/harness-help-static/assets/request-review.jpg",
+        "sha256": "706eca2df741bcd351f3253f9cda3583bb8494f68c0e56564b2463047d45c3f6"
+      },
+      {
+        "path": "website/public/harness-help-static/assets/state-check.json",
+        "sha256": "153ebe02a2d1aa248f90794e2fd5d6889b293e0f6053408ad77c6a23a8e39e75"
+      },
+      {
+        "path": "website/public/harness-help-static/build.json",
+        "sha256": "adf94dd19fa1b39428a4b2ba13532e66b5a9e668b8857f5b56ebfdfa8d41304d"
+      },
+      {
+        "path": "website/public/harness-help-static/dependencies/index.html",
+        "sha256": "10ee5da063866ba848665bc960ef7be6751078602bf916616201abaccdc830e3"
+      },
+      {
+        "path": "website/public/harness-help-static/get-started/index.html",
+        "sha256": "9cbf6cc373b280a84666902ff720d877a7fa4596fb3760d973c9774890db865f"
+      },
+      {
+        "path": "website/public/harness-help-static/goals/controls.js",
+        "sha256": "f62c35059d901b3b23da4121c29fbc86462bb1797eb0f55cbacd4e5550b654ff"
+      },
+      {
+        "path": "website/public/harness-help-static/goals/goals.css",
+        "sha256": "3c50bbc98c4c26ef2ab1ac36f1e5b103467000e50416fa643bcb3e40edcb9849"
+      },
+      {
+        "path": "website/public/harness-help-static/goals/index.html",
+        "sha256": "4ae7958ef303b1473389d98a3f557b763ad46b9a03118161b942834fe81f6e65"
+      },
+      {
+        "path": "website/public/harness-help-static/help.css",
+        "sha256": "cacd38b618910aeac62c7631edf0c2699fa90c5f15284a1499bb63c882a10a8b"
+      },
+      {
+        "path": "website/public/harness-help-static/import.json",
+        "sha256": "12c86e271998da0b069f8438f86ea0c20d6a30ecb53ca9298aacc70e781e9e5e"
+      },
+      {
+        "path": "website/public/harness-help-static/index.html",
+        "sha256": "feb29e4cd342f616dc702f60996a2a4c28fef03ef58103eb2ff0e0ca0d3abe83"
+      },
+      {
+        "path": "website/public/harness-help-static/plan-and-accept/index.html",
+        "sha256": "f28fdc0dcc7896348ba359ffb4be3da922ba45eeb9757bc4199146b578b85642"
+      },
+      {
+        "path": "website/public/harness-help-static/preparation.json",
+        "sha256": "7edb8af083d0b7bdab43d07913b4445220f5f2b5ef6059a9e020d4dc26179d4a"
+      },
+      {
+        "path": "website/public/harness-help-static/research/index.html",
+        "sha256": "1e6bae836ee525f438d9c2b942b7b4603a8e5c9813e081a03c0893d903a8fe3a"
+      },
+      {
+        "path": "website/public/harness-help-static/save-and-resume/index.html",
+        "sha256": "6630df676df379eee2dc9b15b11b8b5cba9007dd075505fa3ff67e0e3fb49522"
+      },
+      {
+        "path": "website/public/harness-help-static/start-and-continue/index.html",
+        "sha256": "af98a823093ad7936453597a62eaf76f69b9924cf4fa6bd5d83aede35fd09593"
+      },
+      {
+        "path": "website/public/harness-help-static/troubleshooting/index.html",
+        "sha256": "08e4a940bfa8ffead34cc62f749a576c18b0a54b0d087a41ed07c556a4f5e5e6"
+      },
+      {
+        "path": "website/public/harness-help-static/verification.json",
+        "sha256": "0288023eb559e4cc35bb5e0e1eae14455bf7f3b48debd7e7b8c542b9ff5240df"
+      }
+    ]
+  },
+  "historical_training_snapshot": {
+    "commit": "dcaa5f05f54dc9470783a15613730b85fa4f350b",
+    "files": [
+      {
+        "path": "website/content/harness-help/tutorials-1.3.0.source.md",
+        "sha256": "a31a785ce28a5b035cc202e06959f2832048f235e0724f753fd84f50102a2d97"
+      },
+      {
+        "path": "website/content/harness-help/walkthroughs.generated.json",
+        "sha256": "c699834b8d54d7b365c60f652433c98eed74e87195342e6ecb9ddbf466985ac8"
+      },
+      {
+        "path": "website/content/harness-help/walkthrough-provenance.json",
+        "sha256": "f3ac2eae0e90a0b6cfa9b8e99a86b64f283b34bc49b6cc3708f8bef792f05af6"
+      },
+      {
+        "path": "website/content/harness-help/next-release.json",
+        "sha256": "7f7869d71099405f531a9f5a1a600d2423963c52842674fb15802d1491e86586"
+      },
+      {
+        "path": "website/scripts/project-harness-walkthroughs.py",
+        "sha256": "96d732af10dbd845127b4803245db1bf20fc2b23aebee8fe61864f723fc7fb61"
+      }
+    ]
+  },
+  "website_entrypoint_snapshot": {
+    "commit": "4bf232f88ee2248b1b89ad8c3f218fdc3a94d224",
+    "files": [
+      {
+        "path": "website/app/docs/page.tsx",
+        "sha256": "90352ccf73783ce21c8ccd98957f664235ab59ca1d3bb453836ad1d034034316"
+      },
+      {
+        "path": "website/app/faq/page.tsx",
+        "sha256": "ced6c91436c9701067730bbc536d785b6c4ea4dfbeb750564f6bc0dc7be3eb6d"
+      },
+      {
+        "path": "website/app/page.tsx",
+        "sha256": "ce8b2cae8267b5a156274261556c663fa612f31d073e35eb1c653e3cb64ff4ef"
+      },
+      {
+        "path": "website/app/sitemap.ts",
+        "sha256": "be796fc64438b6382ed18e2d338e6e3a3739e10b11ee81893f932e87ce0ee325"
+      },
+      {
+        "path": "website/components/Footer.tsx",
+        "sha256": "4adc151b79883421ddcfb63d21868a267148f56e7e0a206b7f8f3f4f16295f5c"
+      },
+      {
+        "path": "website/content/harness-release-readiness-1.5.1.md",
+        "sha256": "9b7463622dc3c700e4229448cc40ac138ea34d5c8fbca4d0093e92c00071893a"
+      },
+      {
+        "path": "website/lib/harness-faq.ts",
+        "sha256": "596b5673075c0a3ed443a249422549732efb7d3b497ae30cd85fbc7ec22a996d"
+      },
+      {
+        "path": "website/lib/harness-release.ts",
+        "sha256": "b8a04748b6777d5a2a269d561c3ae1f8809618ea5d379d3b63382776b65cd93c"
+      }
+    ]
+  }
+}
