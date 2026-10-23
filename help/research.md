@@ -2,21 +2,21 @@
 
 Complete [Get started](/harness/help/get-started/) in a fresh working directory.
 Keep the selected 1.5.1 validation environment active. `R` is the absolute preparation checkout
-at commit `7caa86ab6d476e9599b08ff75a81bc816e60c382`; its example files are not in the wheel.
+at commit `0f2711b4c88ee4f231f61d71cd70a0c840be6357`, as set in Get started; its example files are not in the wheel.
 These examples use a POSIX shell and canonical paths. On macOS, use
 `/private/tmp` instead of the `/tmp` symlink. Choose unused practice directories.
 Windows desktop and shell journeys remain unqualified.
 
 ## Prepare the local corpus
 
-Copy the released example before retrieving or writing reports:
+Copy the example from the preparation checkout before retrieving or writing reports:
 
 ```sh
 E="$PWD/training-research"
 cp -R "$R/examples/local-workflow" "$E"
 ```
 
-Choose an unused `E` directory outside the release checkout. The base install
+Choose an unused `E` directory outside the preparation checkout. The base install
 includes local retrieval and verification. A fresh copy protects prior reports.
 
 ## Retrieve sources and verify a link

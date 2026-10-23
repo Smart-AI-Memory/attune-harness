@@ -2,7 +2,7 @@
 
 Complete [Get started](/harness/help/get-started/) in a fresh working directory.
 Keep the selected 1.5.1 validation environment active. `R` is the absolute preparation checkout
-at commit `7caa86ab6d476e9599b08ff75a81bc816e60c382`; its example files are not in the wheel.
+at commit `0f2711b4c88ee4f231f61d71cd70a0c840be6357`, as set in Get started; its example files are not in the wheel.
 These examples use a POSIX shell and canonical paths. On macOS, use
 `/private/tmp` instead of the `/tmp` symlink. Choose unused practice directories.
 Windows desktop and shell journeys remain unqualified.
