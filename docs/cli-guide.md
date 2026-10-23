@@ -375,9 +375,36 @@ from the release server. CLI owners and static status remain separately availabl
 under their existing authorization boundaries. Future development instructions in
 the [specification](specs/graphical-companion/README.md) are not released scope.
 
-Optionally retain a pause note yourself or ask your assistant to prepare one.
-Use the actual task ID and revision from `status`; this example is a format template:
+### Pause and return to work
 
+Use this procedure to return to an existing feature-work task after an
+interruption. Your assistant can prepare the note and report. The report is
+read-only and does not refresh itself; the released forms companion is a separate
+intake/approval view, not this return briefing.
+
+1. Before leaving, inspect the actual task directory returned by its owner:
+
+<!-- journey: pause-return-inspect -->
+```sh
+attune-harness status /path/outside/repo/work --format json
+```
+
+   Replace `/path/outside/repo/work` with that saved directory. Read its status
+   and next action; exit 0 means inspection succeeded, not that work is complete.
+   Ask your assistant to verify that the saved owner's `task_profile` is
+   `feature-work-v1`; the status envelope supplies task ID/revision but does not
+   repeat the profile. Other profiles keep their own status/recovery route and
+   do not accept this continuation format.
+
+2. Ask your assistant to save a new UTF-8 pause note outside the effects checkout.
+   Copy the actual task ID and revision from the inspection, use the current time
+   with a timezone, and describe where work actually stopped. Preserve earlier
+   notes under their own filenames. Leave `progress` empty when no external work
+   is established; reported work must name its source and retain its limits.
+
+   This is a format template, not an account of completed work:
+
+<!-- journey: pause-return-note -->
 ```json
 {
   "schema_version": 1,
@@ -396,6 +423,86 @@ Use the actual task ID and revision from `status`; this example is a format temp
   }
 }
 ```
+
+3. Generate a report with the same installed environment's Python and
+   `attune-harness` executable. Replace the three paths below with the saved task,
+   new note and agreed report location. Keep note/report files outside the effects
+   checkout and make sure the report's parent directory exists.
+   Keep the `r` string prefixes so Windows backslashes are preserved.
+
+<!-- journey: pause-return-report -->
+```python
+from pathlib import Path
+import subprocess
+
+task = Path(r"/path/outside/repo/work")
+note = Path(r"/path/outside/repo/pause-note.json")
+report = Path(r"/path/outside/repo/return-to-work.html")
+result = subprocess.run(
+    ["attune-harness", "status", str(task), "--format", "html",
+     "--continuation", str(note)],
+    check=True, capture_output=True, text=True, encoding="utf-8",
+)
+report.write_text(result.stdout, encoding="utf-8")
+print(report)
+```
+
+   The wrapper saves output only after successful inspection. On a refusal,
+   `CalledProcessError` retains the CLI diagnostic in `stdout`; ask the assistant
+   to inspect it. Keep any earlier report and do not treat it as current. This
+   wrapper is ordinary caller code, not a new Harness command or capture API.
+
+4. Retain the task, note and report paths in the existing handoff or chat. When
+   you return, ask the assistant to inspect that task and regenerate the report
+   using the same procedure, then open the successful HTML file. Copy unsaved
+   reply text before replacing or reloading a report. A local snapshot path is
+   distinct from the forms companion's expiring private launcher link.
+
+   If the host cannot open a local HTML file, ask the assistant to return the
+   same briefing as Markdown and read it in the conversation, file viewer or
+   terminal:
+
+```sh
+attune-harness status /path/outside/repo/work --format markdown --continuation /path/outside/repo/pause-note.json
+```
+
+   Markdown provides the handoff text without interactive controls. Copy
+   **Your reply to the assistant** manually. Record this as a text walkthrough,
+   not a rendered-browser check. A queued opening request does not confirm that
+   a report is visible. Keep host security restrictions in place.
+
+5. Read **Context**, **Goal**, **Desired end state**, **Current focus**,
+   **Current position** and **Next action**. Expand the supporting detail if
+   needed. Historical notes, changed sources and uncertain operations require
+   following the current saved guidance before any retry.
+
+6. Click **Continue with guidance**, **Correct context** or **Ask a question**
+   to prepare a reply. A current design-review question instead shows
+   **Discuss next decision**. Enter your words where needed, then click
+   **Copy reply** and paste the text into your conversation. If clipboard access
+   fails, copy the selected reply manually. Nothing is sent, approved or executed
+   by the report; unsaved reply drafts clear on reload.
+
+7. Have the assistant reinspect the named task and note before acting. Correcting
+   a caller note does not revise accepted task scope. **`resume`** may dispatch
+   work and is used only when the current task and existing authorization permit
+   it; reopening the briefing does not require **`resume`**.
+
+If no pause note exists, use the saved owner's context without inventing one:
+
+<!-- journey: pause-return-no-note -->
+```sh
+attune-harness status /path/outside/repo/work --format markdown
+```
+
+The report states that no stopping point or comparison baseline was supplied.
+Record what you can establish now; do not reconstruct missing observations as
+fact. To choose among explicitly supplied tasks, use
+[Saved Tasks](#saved-tasks-and-briefing-replies). The note applies to the primary
+task only. For this journey's scope and remaining observed acceptance, see the
+[return-to-work checkpoint](specs/task-opportunities/README.md).
+
+### Continuation note contract
 
 `--continuation` reads only the named UTF-8 JSON file, at most 32 KiB. It requires
 Markdown or HTML; it never changes default JSON or the task. All fields shown in

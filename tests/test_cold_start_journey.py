@@ -17,6 +17,7 @@ never absorbed as an expected failure. See
 """
 # qualify: platform
 
+import ast
 import hashlib
 import importlib.util
 import json
@@ -28,6 +29,11 @@ import sys
 from pathlib import Path
 
 import pytest
+import test_work_build as build_cases
+import test_work_contract as work_contracts
+
+from attune_harness.review_store import PersistenceError, RunStore
+from attune_harness.task_contract import read_task
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -111,7 +117,139 @@ def home(tmp_path):
 def test_documented_journeys_are_tagged():
     """The tags this test runs exist; losing one would silently drop its journey."""
     assert {'checks-and-receipts', 'test-this-change', 'review-bundled-example', 'init',
-            'first-run', 'plan-starter', 'fix-starter'} <= set(doc_journeys.journeys())
+            'first-run', 'plan-starter', 'fix-starter', 'pause-return-inspect',
+            'pause-return-note', 'pause-return-report', 'pause-return-no-note'} <= set(doc_journeys.journeys())
+
+
+@pytest.fixture
+def return_work(tmp_path, monkeypatch):
+    """Reuse the feature-work owner without native or provider dispatch."""
+    return work_contracts.work.__wrapped__(tmp_path.resolve(), monkeypatch)
+
+
+def return_paths(work):
+    base = work[0].parent
+    return {'/path/outside/repo/work': str(work[2]['directory']),
+            '/path/outside/repo/pause-note.json': str(base / 'pause-note.json'),
+            '/path/outside/repo/return-to-work.html': str(base / 'return-to-work.html')}
+
+
+def run_report(table, cwd):
+    """Execute the documented wrapper, with this interpreter's installed CLI."""
+    (code,) = doc_journeys.commands(doc_journeys.journeys()['pause-return-report'])
+    env = environment()
+    env['PATH'] = str(CLI.parent) + os.pathsep + env.get('PATH', '')
+    return subprocess.run([sys.executable, '-c', doc_journeys.substitute(code, table)],
+                          cwd=cwd, env=env, capture_output=True, text=True,
+                          encoding='utf-8', timeout=120)
+
+
+@pytest.mark.parametrize('base', [r'C:\Users\reader\Saved work', r'D:\a\_temp\return-work'])
+def test_documented_report_preserves_windows_path_literals(base):
+    """The printed wrapper must preserve native paths before calling the CLI."""
+    placeholders = ('/path/outside/repo/work', '/path/outside/repo/pause-note.json',
+                    '/path/outside/repo/return-to-work.html')
+    values = [base + '\\' + name for name in ('work', 'pause-note.json', 'return-to-work.html')]
+    table = dict(zip(placeholders, values))
+    (code,) = doc_journeys.commands(doc_journeys.journeys()['pause-return-report'])
+    wrapper = ast.parse(doc_journeys.substitute(code, table))
+    observed = {node.targets[0].id: ast.literal_eval(node.value.args[0])
+                for node in wrapper.body if isinstance(node, ast.Assign)
+                and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Name) and node.value.func.id == 'Path'}
+    assert observed == dict(zip(('task', 'note', 'report'), values))
+
+
+@pytest.mark.parametrize('state', ['current', 'historical', 'stale', 'unresolved'])
+def test_documented_pause_return_report_uses_current_owner_guidance(return_work, monkeypatch, state):
+    work = return_work
+    if state in ('current', 'stale', 'unresolved'):
+        monkeypatch.setattr(build_cases.Worker, 'seen', [])
+        monkeypatch.setattr(build_cases.Worker, 'mutation', None)
+        case = build_cases.prepare(work)
+    if state == 'unresolved':
+        save = RunStore.save
+
+        def lose_reply(store, record):
+            events = record.get('build', {}).get('events', [])
+            if events and events[-1]['kind'] == 'participant_turn' and events[-1]['state'] == 'completed':
+                raise PersistenceError('retained started dispatch, reply not saved')
+            return save(store, record)
+
+        with monkeypatch.context() as patch:
+            patch.setattr(RunStore, 'save', lose_reply)
+            with pytest.raises(PersistenceError):
+                build_cases.execute(case)
+    elif state in ('current', 'stale'):
+        build_cases.execute(case, max_operations=1)
+    else:
+        work_contracts.make(work)
+    table = return_paths(work)
+    journeys = doc_journeys.journeys()
+    (inspect,) = doc_journeys.commands(journeys['pause-return-inspect'])
+    code, status, output = harness(split(doc_journeys.substitute(inspect, table))[1:], work[0].parent)
+    assert code == 0, output
+    assert read_task(work[2]['directory'])['task_profile'] == 'feature-work-v1'
+    assert 'task_profile' not in status
+    template = json.loads(journeys['pause-return-note']['body'])
+    template.update(task_id=status['task_id'], revision=status['revision'])
+    note = Path(table['/path/outside/repo/pause-note.json'])
+    note.write_text(json.dumps(template), encoding='utf-8')
+    if state == 'historical':
+        work_contracts.correction(work, intent={'goal': 'Review the current export with support'})
+    elif state == 'stale':
+        (work[0] / 'source.py').write_text('changed after captured input\n', encoding='utf-8')
+    record = work[2]['directory'] / 'record.json'
+    before = {p: p.read_bytes() for p in (record, note)}
+    result = run_report(table, work[0].parent)
+    assert result.returncode == 0, result.stdout + result.stderr
+    rendered = Path(table['/path/outside/repo/return-to-work.html']).read_text(encoding='utf-8')
+    assert '<!doctype html>' in rendered and 'Return to work' in rendered
+    assert 'Your reply to the assistant' in rendered and 'Reported outside Harness' in rendered
+    assert template['task_id'] in rendered
+    if state == 'current':
+        assert status['status'] == 'paused'
+        assert template['next_step']['action'] in rendered
+    else:
+        assert template['next_step']['action'] not in rendered
+        assert 'suggestion is withheld' in rendered
+    if state == 'historical':
+        assert 'Baseline: revision 1; current revision 2' in rendered
+    elif state == 'stale':
+        assert 'Resolve the mismatch' in rendered
+    elif state == 'unresolved':
+        assert status['status'] == 'unresolved'
+        assert 'do not blindly retry' in rendered
+    assert {p: p.read_bytes() for p in before} == before
+
+
+def test_documented_pause_return_without_note_discloses_missing_context(return_work):
+    work_contracts.make(return_work)
+    table = return_paths(return_work)
+    (command,) = doc_journeys.commands(doc_journeys.journeys()['pause-return-no-note'])
+    record = return_work[2]['directory'] / 'record.json'
+    before = record.read_bytes()
+    code, _, rendered = harness(split(doc_journeys.substitute(command, table))[1:], return_work[0].parent)
+    assert code == 0, rendered
+    assert 'No stopping point was supplied' in rendered
+    assert 'No comparison baseline was supplied' in rendered
+    assert record.read_bytes() == before
+
+
+def test_documented_pause_return_refusal_preserves_previous_report(return_work):
+    record = work_contracts.make(return_work)
+    table = return_paths(return_work)
+    template = json.loads(doc_journeys.journeys()['pause-return-note']['body'])
+    template.update(task_id='another-task', revision=record['request']['revision'])
+    note = Path(table['/path/outside/repo/pause-note.json'])
+    note.write_text(json.dumps(template), encoding='utf-8')
+    report = Path(table['/path/outside/repo/return-to-work.html'])
+    report.write_bytes(b'previous report; explicitly historical')
+    saved = return_work[2]['directory'] / 'record.json'
+    before = {p: p.read_bytes() for p in (note, report, saved)}
+    result = run_report(table, return_work[0].parent)
+    assert result.returncode != 0 and 'CalledProcessError' in result.stderr
+    assert {p: p.read_bytes() for p in before} == before
 
 
 def test_demo(home):

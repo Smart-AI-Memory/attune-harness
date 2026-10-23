@@ -125,3 +125,45 @@ is read-only; inspect its outcome rather than equating exit 0 with verified work
 `resume` may dispatch participants or effects under the saved policy. Confirm the
 remaining work is within authorization. Completed attempts replay saved evidence;
 uncertain attempts require inspection/reconciliation, not automatic repetition.
+
+## Pause and return to work
+
+Use the existing [CLI pause-and-return procedure](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#pause-and-return-to-work)
+for one saved `feature-work-v1` task. Inspect its actual directory with
+`status --format json`; read its current status, identity, revision and next
+action. Verify the profile from the validated saved owner; feature-work status
+JSON does not repeat `task_profile`. If another profile owns the task, preserve
+its existing status/recovery
+route rather than manufacturing a feature-work record.
+
+Before leaving, retain a new caller-owned UTF-8 continuation note outside the
+effects checkout. Copy the observed task identity/revision and record current
+time with timezone, source, actual stopping point and attributed external
+reports. Preserve old note versions. Do not silently rewrite saved answers,
+guess progress or scan for a different task. The note schema and optional
+briefing are documented in the linked procedure; no new storage or automatic
+capture is implied.
+
+Generate static HTML with `status --format html --continuation FILE`. Use one
+verified installed environment and save output only after a successful command,
+as the documented wrapper does. Retain task, note and report paths in the
+existing handoff/chat. On return, inspect and regenerate before opening that
+report. Keep an older report visibly historical if current inspection fails.
+The released forms companion does not expose this general briefing.
+If the host blocks local HTML, use the same task/note with `--format markdown`
+and return the readable briefing and handoff in the conversation or file viewer.
+This text fallback has no interactive reply controls and does not establish
+rendered-browser behavior. Do not treat a queued opening request as visible output.
+
+Let the user recover the goal, stopping point, evidence, uncertainty and next
+action. The report's **Continue with guidance**, **Correct context** and
+**Ask a question** controls prepare local text; **Copy reply** does not send,
+accept or execute it. A current design question uses **Discuss next decision**.
+Reinspect task/note when
+the user returns a reply. Reopening a briefing alone never calls `resume`.
+
+Without a note, render Markdown/HTML without `--continuation` and disclose the
+missing stopping point/baseline. Historical notes and stale/uncertain task
+guidance must not become retry instructions. The note applies only to the primary
+task in an explicit collection. No filesystem discovery, background refresh,
+automatic sending, paid dispatch or new execution authority is added.
