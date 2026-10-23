@@ -1,5 +1,11 @@
 # Harness release readiness — direction and proposed next step
 
+**Historical direction, September 17, 2026.** The starting-evidence table below
+describes that date. Use the [current workflow selector](supported-journeys.md)
+and [1.5.1 readiness record](release-readiness-1.5.1.md) for delivered commands
+and release gates. `plan` and `build` now exist; this record's earlier absence
+claims do not describe the current implementation.
+
 Date: 2026-09-17. This records Patrick's corrected direction and a proposed
 engineering method; it is not a wholesale implementation or release authorization.
 

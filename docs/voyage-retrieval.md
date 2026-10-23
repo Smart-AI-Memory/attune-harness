@@ -114,7 +114,7 @@ and original text. Ranking scores do not establish truth or answer absence.
 
 ## Existing reviews and extensions
 
-Install `[review,voyage]`. Copy the generated task's `retrieval` object into the
+Install the `voyage` extra for the selected Harness version; review support is in the base package. Use the [installation guide](installation.md) for candidate and published-package selection. Copy the generated task's `retrieval` object into the
 participant registry as its optional `retrieval` field. Exclude the reviewed
 document in `scope.exclude_paths`, regenerate the review form, and accept it.
 The review's `corpus` must be one selected application root. Registry changes

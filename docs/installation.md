@@ -2,15 +2,18 @@
 
 Updated on October 22, 2026.
 
-Use this guide for the released `attune-harness` 1.5.0 runtime. Python 3.10 or
+This guide prepares installation of `attune-harness` 1.5.1. Python 3.10 or
 later is required. Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
 
-Version 1.5.1 is [in preparation](release-notes-1.5.1.md). Its final package and
-release checks are pending; use the published 1.5.0 commands below until the
-new release is available. Existing saved work and retained evidence environments
-should be preserved when selecting another runtime.
+**Preparation — unpublished.** Use `uv tool install 'attune-harness==1.5.0'`
+for an installation today, or follow the [published package reference](https://pypi.org/project/attune-harness/1.5.0/).
+Do not run the 1.5.1 index-install commands below until publication. For candidate
+validation now, substitute the reviewed local 1.5.1 wheel for the package
+specifier, for example `uv tool install /absolute/path/to/attune_harness-1.5.1-py3-none-any.whl`.
+Retain its source and hash; a version string does not identify a final artifact.
+Preserve saved work and retained evidence environments when selecting a runtime.
 
 ## Install the runtime
 
@@ -18,7 +21,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is n
 already available. Then install Harness:
 
 ```sh
-uv tool install 'attune-harness==1.5.0'
+uv tool install 'attune-harness==1.5.1'
 ```
 
 uv manages an isolated environment and exposes the `attune-harness` command;
@@ -34,7 +37,7 @@ uv tool list --show-paths
 attune-harness --help
 ```
 
-Expect `attune-harness v1.5.0` in the tool list and the command help with
+Expect `attune-harness v1.5.1` in the tool list and the command help with
 `init`, `plan`, `build`, `review`, `fix`, `test`, `status` and `resume`.
 If the command is not found, follow uv's reported executable-directory guidance
 or its tool guide before continuing.
@@ -46,8 +49,8 @@ Preserve saved task directories and separately retained evidence environments.
 Changing the tool version does not qualify migration of older saved work.
 
 You can also install the base package with
-`pipx install 'attune-harness==1.5.0'`, or use
-`pip install 'attune-harness==1.5.0'` in a dedicated virtual environment.
+`pipx install 'attune-harness==1.5.1'`, or use
+`pip install 'attune-harness==1.5.1'` in a dedicated virtual environment.
 
 ## Select Python for module and fixture examples
 
@@ -73,7 +76,7 @@ $harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
 & $harnessPython -m attune_harness
 ```
 
-Expect version `1.5.0`, then a JSON receipt with status `verified` for the
+Expect version `1.5.1`, then a JSON receipt with status `verified` for the
 deterministic arithmetic example. If the listed environment is at a different
 path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
 Substitute that same interpreter for `python` in module and fixture commands
@@ -88,10 +91,10 @@ Select a profile when installing or deliberately updating your managed tool:
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install 'attune-harness==1.5.0'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install 'attune-harness[redis]==1.5.0'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install 'attune-harness[voyage]==1.5.0'` |
-| Both Redis and Voyage | `uv tool install 'attune-harness[all]==1.5.0'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install 'attune-harness==1.5.1'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install 'attune-harness[redis]==1.5.1'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install 'attune-harness[voyage]==1.5.1'` |
+| Both Redis and Voyage | `uv tool install 'attune-harness[all]==1.5.1'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
@@ -111,7 +114,7 @@ Choose the host you use:
 - **Direct CLI:** Read [checks and receipts](cli-guide.md#checks-and-receipts)
   or use `attune-harness COMMAND --help` for the chosen task.
 
-Choose a [practice walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
+Choose a [practice walkthrough](tutorials-1.5.1.md#choose-a-walkthrough)
 and read its source, interpreter and fixture requirements before starting.
 Ask the agent or operator running Harness for a fresh practice form and its
 complete private launcher link. Saving answers, approving the request and
@@ -121,8 +124,9 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 ## Verify your installation
 
 Compare your selected version and interpreter with the checks above. The
-[1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
-identifies the published source and distribution hashes, CI results and a fresh
-macOS base-install check. The [workflow guide](supported-journeys.md) describes
+[1.5.1 readiness record](release-readiness-1.5.1.md) identifies the reviewed
+source, local validation and remaining release checks. After publication,
+compare the published distribution identity and index installation with that
+evidence. The [workflow guide](supported-journeys.md) describes
 capabilities and reliability requirements for the workflow you choose. Keep
 existing saved tasks and evidence environments when updating an installation.

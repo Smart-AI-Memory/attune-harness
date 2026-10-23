@@ -1,5 +1,10 @@
 # Recover and transfer a local review
 
+Use the [current installed interpreter](installation.md#select-python-for-module-and-fixture-examples)
+in place of `.venv-review-check/bin/python` in the example below. Keep the
+matching source checkout for its example script. For current task-oriented
+continuation, follow the [CLI guide](cli-guide.md#task-oriented-evidence-review).
+
 New review runs support checkpointed continuation. A resumed run reuses completed
 participant/tool results; it never silently repeats a possibly executed operation.
 This implementation supports one local POSIX run directory and the original input

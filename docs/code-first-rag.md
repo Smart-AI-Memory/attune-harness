@@ -1,7 +1,6 @@
 # Attune RAG anchored in repository code
 
-Dev13 provides a repository-first entry point to the Voyage implementation in
-Harness. A separately maintained document collection is not required. Index the
+Harness provides a repository-first entry point to its Voyage implementation. A separately maintained document collection is not required. Index the
 application being built; index Harness/Attune sources when asking about them.
 
 ## Select code, tests and configuration
@@ -68,7 +67,7 @@ Versions 0.1.0 and 0.2.0 shipped `attune_harness.attune_bridge`, which served
 after 0.2.0: Harness is replacing Attune AI and no longer plugs into it. See D8 in the
 [spec authority addendum](specs/spec-authority/addendum-2026-09-21.md).
 
-Use `attune-harness mcp-serve` in Harness's MCP 2.2.0 environment. It serves the
+Use `attune-harness mcp-serve` in the [current Harness environment](installation.md), which pins MCP 2.2.0. It serves the
 same accepted retrieval grants from the same RetrievalSession, so scope, budgets
 and evidence reuse are unchanged. The tool is named `harness.retrieve` there, not
 `code_evidence_query`; see the [MCP workflow](mcp-workflow.md).
