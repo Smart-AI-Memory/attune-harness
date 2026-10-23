@@ -5,9 +5,10 @@ available baseline while 1.5.1 publication is pending. Follow the
 [installation guide](installation.md) for the selected published version or
 exact candidate wheel; preparing this source does not publish a package.
 
-Keep a working Attune AI setup while you validate the Harness journeys you need.
-This guide does not announce Attune AI deprecation, qualify saved-work migration
-or establish complete host or Windows parity. The
+Attune AI is deprecated. Use Harness for new work; 1.5.1 is the intended
+replacement and is still being prepared for publication. Keep a working Attune AI
+setup while you validate the Harness journeys you need. Deprecation does not
+qualify saved-work migration or establish complete host or Windows parity. The
 [historical 1.0.0 migration guide](migration-from-attune-ai.md) preserves the
 September 27 baseline and its original limits; use the current guidance below
 for installation and capability decisions.
@@ -71,9 +72,10 @@ A passing software test or a completed deterministic example does not establish
 user acceptance or complete migration. The non-programmer migration observation
 and broader host acceptance remain open. Read the
 [1.5.1 readiness record](release-readiness-1.5.1.md) for current release gates and
-the [release plan](project-plan.md) for the remaining acceptance work. Attune AI
-deprecation remains a separate decision under the
-[original migration ruling](specs/release-1.0/addendum-2026-09-23.md#d26-the-deprecation-is-a-notice).
+the [release plan](project-plan.md) for the remaining acceptance work. The
+[original migration ruling](specs/release-1.0/addendum-2026-09-23.md#d26-the-deprecation-is-a-notice)
+remains historical context; the current deprecation direction does not change
+existing artifacts, data or the validation requirements above.
 
 **Next:** Open the [installation guide](installation.md), then choose one journey
 from the [workflow map](supported-journeys.md).
