@@ -157,6 +157,7 @@ Generated on September 22, 2026 from the 191 Markdown files under
 | [design-recovery-increment.md](design-recovery-increment.md) | Local recovery and lead transfer |  |
 | [design-review-increment.md](design-review-increment.md) | Coordinated local evidence review |  |
 | [design-review-quality-evaluation.md](design-review-quality-evaluation.md) | Documentation review quality: frozen local acceptance check |  |
+| [design-saved-store-contention-timing.md](design-saved-store-contention-timing.md) | Locate Windows saved-store lock-held latency without changing single-attempt qualification | 2026-10-23 |
 | [design-sol-review-fixes.md](design-sol-review-fixes.md) | Fix the four confirmed Sol review findings | September 16, 2026 |
 | [design-spec-test-handoff.md](design-spec-test-handoff.md) | Bound Harness test evidence at Spec acceptance | 2026-09-17 |
 | [design-status-guidance-a.md](design-status-guidance-a.md) | A — plan/build status guidance | September 18, 2026 |
