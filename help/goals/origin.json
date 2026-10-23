@@ -1,0 +1,47 @@
+{
+  "repository": "Smart-AI-Memory/attune-ai",
+  "commit": "569b15d2d1a49c6c5d465032ec365c0e0527e59a",
+  "files": {
+    "goals/guide.html": {
+      "origin_path": "website/content/harness-help/goal-guide.source.html",
+      "sha256": "36295f7c004c54f3cbfc5afc9e611a5b4077cb0e1e34a4019efd450da59fec95"
+    },
+    "goals/data.json": {
+      "origin_path": "website/content/harness-help/goal-guide.data.json",
+      "sha256": "85838cf0f71d2a582b1ab5065f163a77fc3d90ff951315cc0af6ab257c45dd2f"
+    },
+    "goals/goals.css": {
+      "origin_path": "website/app/harness/help/goals/goals.css",
+      "sha256": "3c50bbc98c4c26ef2ab1ac36f1e5b103467000e50416fa643bcb3e40edcb9849"
+    },
+    "goals/origin-release.json": {
+      "origin_path": "website/content/harness-help/release.json",
+      "sha256": "da363f1949ce7976de9b7595d2fac8563233267485039ad77a191a3e4cc8ac44"
+    },
+    "assets/intake-filled.jpg": {
+      "origin_path": "website/public/harness-help-assets/intake-filled.jpg",
+      "sha256": "8a870b315bcb00d7d7c9f9cc39503be3f365588839de560d7e4dea4661e6e887"
+    },
+    "assets/request-review.jpg": {
+      "origin_path": "website/public/harness-help-assets/request-review.jpg",
+      "sha256": "706eca2df741bcd351f3253f9cda3583bb8494f68c0e56564b2463047d45c3f6"
+    },
+    "assets/state-check.json": {
+      "origin_path": "website/public/harness-help-assets/state-check.json",
+      "sha256": "153ebe02a2d1aa248f90794e2fd5d6889b293e0f6053408ad77c6a23a8e39e75"
+    },
+    "assets/BRIEF.md": {
+      "origin_path": "website/public/harness-help-assets/BRIEF.md",
+      "sha256": "21a355e8f643e48b69d6a000795c555b7ecb6faa8dfaac5c9858c5b5cce14773"
+    },
+    "assets/CSV-CONTRACT-NOTES.md": {
+      "origin_path": "website/public/harness-help-assets/CSV-CONTRACT-NOTES.md",
+      "sha256": "27926a6ec80deb4547a13114d00bf597b2d832da87c644425574e4272b39133c"
+    }
+  },
+  "controls_origin": {
+    "path": "website/lib/harness-help/guide-interactions.ts",
+    "conversion": "TypeScript type erasure to portable ES2022; local static-page bootstrap replaces the React effect wrapper."
+  },
+  "projector_origin": "website/scripts/project-goal-help.py; validation is integrated into scripts/build_help.py"
+}
