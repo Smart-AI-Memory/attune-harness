@@ -620,3 +620,117 @@ def test_churn(capsys):
     assert 'in test_churn' in transcript
     assert 'Slow test Python stacks: test_churn.py::test_fast' not in transcript
     assert not (tmp_path / 'native-called').exists()
+
+
+def assert_timeout_journal_records_failed_session(directory):
+    diagnostic_spec = importlib.util.spec_from_file_location(
+        'timeout_diagnostic', SCRIPT.parent / 'diagnose_qualification.py')
+    diagnostic = importlib.util.module_from_spec(diagnostic_spec)
+    diagnostic_spec.loader.exec_module(diagnostic)
+    (directory / 'platform.json').write_text(json.dumps({
+        'schema_version': 1, 'status': 'failed', 'pytest_exit': 1, 'exit': 1}))
+    result = diagnostic.diagnose(directory)
+    assert result['classification'] == 'pytest_session_failed'
+    assert result['timing_sequence_valid'] is True
+    assert result['session_end']['exit_status'] == 1
+    assert result['junit_counts']['failures'] + result['junit_counts']['errors'] == 1
+    assert result['evidence_issues'] == []
+    assert result['qualification_authority'] is False
+
+
+@pytest.mark.parametrize('phase', ['setup', 'call'])
+def test_future_timeout_keeps_worker_stack_before_teardown(tmp_path, phase):
+    """A future can time out before the slow-test timer ever samples it."""
+    test = tmp_path / 'test_future.py'
+    test.write_text("""import concurrent.futures, threading, pytest
+release = threading.Event()
+entered = threading.Event()
+def blocked_owner():
+    entered.set()
+    assert release.wait(5), 'fixture worker was not released'
+@pytest.fixture
+def owner():
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(blocked_owner)
+    assert entered.wait(2)
+    try:
+        yield future
+    finally:
+        release.set()
+        executor.shutdown(wait=True)
+@pytest.fixture
+def boundary(owner):
+    PHASE_SETUP
+    yield owner
+def test_timeout(boundary):
+    PHASE_CALL
+""".replace('PHASE_SETUP', 'owner.result(timeout=0.05)' if phase == 'setup' else 'pass')
+       .replace('PHASE_CALL', 'boundary.result(timeout=0.05)' if phase == 'call' else 'pass'))
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks',
+                          '-o', 'faulthandler_timeout=0',
+                          '--junitxml=' + str(tmp_path / 'tests.xml'), str(test)],
+                         cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    assert 'TimeoutError' in run.stdout
+    transcript = (tmp_path / 'slow-stacks.txt').read_text()
+    assert 'test_future.py::test_timeout' in transcript
+    assert 'in blocked_owner' in transcript
+    assert 'End slow-test Python stacks' in transcript
+    timings = [json.loads(line) for line in
+               (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    snapshots = [row for row in timings if row['event'] == 'timeout_snapshot']
+    assert len(snapshots) == 1 and snapshots[0]['phase'] == phase
+    failed = [row for row in timings if row['event'] == 'phase_end'
+              and row['phase'] == phase]
+    assert len(failed) == 1 and failed[0]['outcome'] == 'failed'
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    assert_timeout_journal_records_failed_session(tmp_path)
+
+
+@pytest.mark.parametrize('failure', ['stack', 'journal', 'both'])
+def test_failed_timeout_diagnostic_preserves_original_verdict(tmp_path, failure):
+    test = tmp_path / 'test_diagnostic_failure.py'
+    test.write_text("""import pytest, harness_qualification_stacks as stacks
+@pytest.fixture(autouse=True)
+def break_diagnostic(request, monkeypatch):
+    class BrokenStack:
+        def write(self, data):
+            raise OSError('private diagnostic detail')
+    if FAILURE in ('stack', 'both'):
+        monkeypatch.setattr(request.config, '_harness_stack_log', BrokenStack())
+    real = stacks._timing
+    def timing(config, event, **details):
+        if event.startswith('timeout_snapshot') and FAILURE in ('journal', 'both'):
+            raise OSError('private diagnostic detail')
+        return real(config, event, **details)
+    monkeypatch.setattr(stacks, '_timing', timing)
+def test_timeout():
+    raise TimeoutError('original timeout remains failed')
+""".replace('FAILURE', repr(failure)))
+    run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
+                          '-p', 'harness_qualification_stacks',
+                          '-o', 'faulthandler_timeout=0',
+                          '--junitxml=' + str(tmp_path / 'tests.xml'), str(test)],
+                         cwd=tmp_path, capture_output=True, text=True, timeout=10,
+                         env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
+                              'PYTHONPATH': str(SCRIPT.parent),
+                              'HARNESS_QUALIFICATION_OUTPUT': str(tmp_path)})
+    assert run.returncode == 1, run.stdout + run.stderr
+    assert 'original timeout remains failed' in run.stdout
+    assert 'INTERNALERROR' not in run.stdout + run.stderr
+    timings = [json.loads(line) for line in
+               (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
+    assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    assert_timeout_journal_records_failed_session(tmp_path)
+    snapshots = [row for row in timings if row['event'].startswith('timeout_snapshot')]
+    if failure == 'stack':
+        assert len(snapshots) == 1
+        assert snapshots[0]['event'] == 'timeout_snapshot_failed'
+        assert snapshots[0]['error_type'] == 'OSError'
+        assert 'private diagnostic detail' not in json.dumps(timings)
+    else:
+        assert snapshots == []
