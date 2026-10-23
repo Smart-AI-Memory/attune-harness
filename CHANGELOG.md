@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.5.1
 
-Planned maintenance release: **1.5.1**. Final version metadata, qualification
-and publication are pending. See the [draft release notes](docs/release-notes-1.5.1.md)
-and [readiness record](docs/release-readiness-1.5.1.md).
+Maintenance release after 1.5.0. See the [release notes](docs/release-notes-1.5.1.md)
+and [readiness record](docs/release-readiness-1.5.1.md) for preparation evidence,
+publication gates and retained platform limits.
 
 - Verify plugin signatures using exactly the binary bytes checked by the packet
   guard. Refuse trailing messages, additional armor blocks and malformed armor
@@ -22,6 +22,14 @@ and [readiness record](docs/release-readiness-1.5.1.md).
   ranges, retaining explicit historical exceptions (#291). Add bounded tests
   that follow selected refusal guidance through the next command without
   authorizing work or calling a model (#293, #295).
+- Run two supervised Windows full-source test partitions per matrix cell,
+  checking complete collection, disjoint selections and case journals. Keep the
+  existing deadlines and give each child its own system-temporary namespace
+  (#298).
+- Document the complete pause-and-return procedure and verify its printed
+  commands. Preserve native Windows paths in its Python wrapper with raw string
+  literals; retain assisted observations separately from full human acceptance
+  (#296).
 
 ## 1.5.0
 

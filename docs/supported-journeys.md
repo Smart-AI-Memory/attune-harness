@@ -1,8 +1,9 @@
 # Choose a Harness workflow
 
-Updated on October 22, 2026. For released Attune Harness 1.5.0, with planned
-1.5.1 changes identified below. See the [draft release notes](release-notes-1.5.1.md)
-before relying on behavior introduced after 1.5.0.
+Updated on October 22, 2026. This guide describes the 1.5.1 source and package.
+Read the [release notes](release-notes-1.5.1.md) and
+[readiness record](release-readiness-1.5.1.md) for publication status, checks and
+behavior introduced after 1.5.0.
 
 Find your goal below, then follow the linked procedure for setup and complete
 commands. New to Harness? Start with the [installation guide](installation.md)
@@ -27,8 +28,8 @@ sandbox. For Windows build, repair and testing, read the
 
 | What you want to do | Where to start | What to expect |
 | --- | --- | --- |
-| Continue saved work | [Recovery workflow](recovery-workflow.md): `status`, then `resume` | Inspect the current state first. Completed work reuses its saved evidence; uncertain effects require reconciliation before continuation. |
-| Inspect a completed document assessment | [Assessment evidence](cli-guide.md#inspect-completed-assessment-evidence-151-candidate): `status --format markdown` or `html` | Planned for 1.5.1: inspect recorded checker outcomes, source identities and attributed judgments. Reading the report does not rerun checks or establish semantic acceptance. |
+| Continue saved work | [Pause and return](cli-guide.md#pause-and-return-to-work): inspect `status` before any authorized `resume` | Retain an explicit stopping note and inspect its source and freshness. Completed work reuses saved evidence; uncertain effects require reconciliation before continuation. |
+| Inspect a completed document assessment | [Assessment evidence](cli-guide.md#inspect-completed-assessment-evidence-151-candidate): `status --format markdown` or `html` | In 1.5.1, inspect recorded checker outcomes, source identities and attributed judgments. Reading the report does not rerun checks or establish semantic acceptance. |
 | Resolve an interrupted operation | [Recovery workflow](recovery-workflow.md): `reconcile-task` | Choose the action supported by the saved evidence. Do not repeat an operation whose effects are still unknown. |
 | Close a task | [Recovery workflow](recovery-workflow.md): `cancel-task --reason` | Record why work stopped. Cancellation does not undo effects or erase unresolved operations. |
 | Save and approve a request in a browser | [Forms workflow](cli-guide.md#browser-forms) | Open a registered task, save answers and approve the request. Approval does not execute work. Keep the local forms server running while using it. |

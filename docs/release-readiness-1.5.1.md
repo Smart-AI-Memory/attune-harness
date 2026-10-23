@@ -1,111 +1,99 @@
 # Attune Harness 1.5.1 preparation readiness
 
-**Draft — unpublished.** Assessed on October 22, 2026, at
-`0f3c3c0afd33eca6045b7aada242cab490cf1971`, then the current `main`.
-Version 1.5.1 is proposed for the merged maintenance changes in the
-[release notes](release-notes-1.5.1.md). This record does not accept a final
-release SHA or artifact and does not authorize publication.
+**Prepared — publication held.** This record accompanies the final 1.5.1
+release-preparation PR, based on merged main
+`5fca534972ac3904c6aa92a0a0fd89e7cf9ba4a9`. The PR changes version metadata and
+documentation; it does not change runtime source, dependencies or saved formats.
+Its **Verified** section records the actual preparation commit, built artifacts,
+local results and current CI. The eventual reviewed merge is the release SHA;
+this document does not substitute a precursor SHA for it or authorize publication.
 
 ## Version and scope
 
-The current published version is
-[1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
-from `7caa86ab6d476e9599b08ff75a81bc816e60c382`. A live
-[PyPI metadata](https://pypi.org/pypi/attune-harness/json) check on October 22
-reported 1.5.0 as latest and no 1.5.1 version. The remote v1.5.1 tag was absent.
-Check both again before release; availability at assessment time is not a reservation.
+The package and both shared plugin manifests identify **1.5.1**. The changelog has
+its own `## 1.5.1` heading. The Claude marketplace remains pinned to published
+[1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0), source
+`7caa86ab6d476e9599b08ff75a81bc816e60c382`, until a separately approved catalog
+update after the new tag exists. Dependency pins and minimum Python remain
+unchanged; no dependency-lock regeneration is required.
 
-Nine merged commits follow the 1.5.0 source. They include the plugin-signature
-input fix (#289), completed-assessment presentation (#292), documentation and
-browser-test diagnostics (#288, #290), broader documentation link checks (#291)
-and bounded refusal-continuation tests and follow-through (#293, #295).
-The remaining commits update the released Claude catalog (#287) and agent
-collaboration guidance (#276). No dependency-pin, minimum-Python or saved-state
-format change appears in this diff.
+The changes since 1.5.0 include exact plugin-signature input (#289), completed
+assessment evidence (#292), browser timeout diagnostics (#288), installation and
+workflow guidance (#290), local documentation-link validation (#291), bounded
+refusal-continuation checks (#293, #295), 1.5.1 guidance (#297), Windows full-suite
+partitioning (#298) and the pause-and-return documentation and native-path fix
+(#296). See the [release notes](release-notes-1.5.1.md) for user-visible changes.
 
-This preparation changes documentation. Package and both plugin manifests
-remain at 1.5.0, and the Claude marketplace remains pinned to that released tag.
-The version bump and final changelog heading belong to final candidate preparation.
-Open PRs #294 and #296 were not included in this assessed source; any later
-change needs its own scope and evidence reconciliation.
+A live [PyPI metadata](https://pypi.org/pypi/attune-harness/json) check on October 22,
+2026, reported latest 1.5.0 and no 1.5.1 release entry. Recheck both the version slot
+and remote tag immediately before any authorized outward step. Availability is
+not a reservation. Index-install commands select 1.5.1 only after publication;
+README links to the new tag become available when that release is created.
 
-## Current software evidence
+## Software evidence and its limits
 
-[Library qualification run 39786227278](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
-ran on the assessed source and completed with failure.
+The combined precursor is #296 head
+`d9cb0a7ed7fe763af313556921c5fc4bc820d968`. Its tree and merged main `5fca534`
+are identical: `475068962e3b529f066615bbaf94c5a3ef49db9a`.
 
-| Check | Observed result | Claim boundary |
+| Evidence | Observed result | Boundary |
 | --- | --- | --- |
-| Eight installed-wheel jobs: macOS, Ubuntu, Windows Server 2022/2025, Python 3.10/3.12 | Passed | Only the selected tests and artifacts from this run |
-| Ubuntu/Python 3.10 full source suite | Passed | This source/runtime combination |
-| Windows full source suites: Server 2022/Python 3.10 and 3.12; Server 2025/Python 3.10 | Passed | These three source/runtime combinations |
-| [Server 2025/Python 3.12 full source suite](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278/job/119850108502) | Timed out after 2,700 seconds; receipt reports `timeout_effects_unknown`, exit 124 | Cause unresolved; no passing complete-suite result |
-| Documentation links and change classification | Passed | Link resolution and classification, not walkthrough correctness |
-| Required aggregate Qualification | Failed | Publication gate remains closed |
+| [Library qualification 39884922177](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39884922177) | All eight installed-wheel cells, all four Windows full-source cells, Ubuntu full-source, documentation links and aggregate Qualification passed | Combined precursor software and 1.5.0-metadata wheels; not a final 1.5.1 artifact |
+| [Supplemental coverage](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39884922137), [offline SDK](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39884922225) and CodeQL on that head | All passed; 28 checks total succeeded with none pending or failed | No live model-quality or full native-journey acceptance claim |
+| [Previously failing Server 2025/Python 3.12 wheel cell](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39884922177/job/120190776214) | Both unchanged Node fixtures ran and passed without skips: 5.374s and 1.535s | Earlier startup/exit delay cause remains unknown; later success does not alter the failed receipt |
+| Final 1.5.1 preparation | Commit, focused/full local results, distributions, installed qualification and current native CI recorded in the release PR | A candidate wheel is not a published artifact; PR CI does not replace required push-to-main qualification after merge |
 
-The same source passed
-[supplemental coverage](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227398),
-[isolated Windows effects](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227288),
-[native-memory offline SDK](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227318)
-and [CodeQL](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786226259).
-Those results do not replace required qualification or qualify live model use.
-No workflow was dispatched or rerun for this assessment.
+The original [Windows timeout](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
+and subsequent failed partition attempts retain their original source and
+outcomes. #298 introduced complete-case verification and isolated system-temporary
+namespaces, with four passing Windows source cells, without increasing deadlines
+or weakening assertions. The [design](design-windows-source-suite-shards.md) and
+[qualification guide](qualification.md) explain the proof and its limits.
+The original #296 path failures, Node timeouts and local environment/GPG setup
+failures also remain retained; fresh evidence is added beside them.
 
-### Documentation validation
+## Documentation readiness
 
-On macOS/Python 3.10.11, 204 focused documentation-link, assessment-presentation
-and plugin-signature tests passed. The repository link/index check and strict
-Twine check also passed. A disposable noneditable wheel installation supplied
-the isolated CLI subprocess; its three changed runtime modules matched the
-assessed source bytes. The environment reused local dependencies. This wheel
-still identifies as 1.5.0 and is not the published 1.5.0 wheel or a final 1.5.1 artifact.
+This record follows the [release runbook](release-runbook.md#documentation-readiness)
+and [writing guide](writing-guide.md). The approved policy revision is
+`e6e53f6a092deb4536b63bc8609c2453a20e5a53`. Source-bound software checks and
+human observations remain separate. Review results and artifact hashes belong
+to the preparation PR's evidence; final-source and post-publication checks remain
+explicit gates below.
 
-The first local invocation reported one missing-package subprocess failure and
-48 GPG-fixture setup errors. The installed environment and a rerun permitting
-scratch GPG-agent startup passed all 204 checks without source changes. These
-focused checks do not replace the full suite, final installed-wheel
-qualification, native Windows results or the pending walkthrough review.
+| Canonical topic | Candidate disposition and source/test evidence | Derivatives and owner disposition | Walkthrough and older-guidance boundary |
+| --- | --- | --- | --- |
+| [README](../README.md), [installation](installation.md) and [workflow selection](supported-journeys.md) | Changed for 1.5.1: metadata-aligned commands, conditional index installation, release-tag documentation links and current workflow entry points; package/plugin and installed CLI checks in the release PR | Existing website owner: Help Center installation/integration update or explicit retained-version disposition remains pending; no website publication in this PR | New tag and index URLs are expected to be unavailable before release. The linked Help Center 1.5.0 page is labeled earlier-version guidance |
+| [Completed-assessment inspection](cli-guide.md#inspect-completed-assessment-evidence-151-candidate) | Reviewed for 1.5.1 against [renderer](../src/attune_harness/assessment_view.py), [CLI owner](../src/attune_harness/task_cli.py) and [tests](../tests/test_assessment_view.py); this preparation changes no command syntax | Existing evidence-review help/walkthrough owner: derivative reconciliation or explicit disposition remains pending | Recorded checker results, attribution and source identities are software-checked; semantic acceptance and fresh user observation remain open |
+| [Signed-plugin verification](design-plugin-signature-input.md) | Reviewed for 1.5.1 against [verifier](../src/attune_harness/plugin_signing.py) and [regressions](../tests/test_plugin_signing.py); final installed qualification exercises the shipped owner | No separate training derivative identified; no new publication inferred | Older signature findings and receipts retain their original identities; cooperating extensions are not an OS sandbox |
+| [Pause and return](cli-guide.md#pause-and-return-to-work) | Changed in #296; reviewed raw Windows path literals and printed commands against [cold-start tests](../tests/test_cold_start_journey.py), including both native-path controls | Session Continuity topic owner: record the corrected procedure before a derivative update; external coordination is pending | One assisted text walkthrough is retained. Original pause context, independent return, HTML controls, S6 and complete Task 1 acceptance remain open |
+| Four training procedures: [1.5.0 candidate](tutorials-1.5.0-candidate.md), [historical 1.3.0](tutorials-1.3.0.md) | Procedure/example bodies are unchanged by this preparation; retain their source/interpreter requirements. Candidate software checks do not relabel their older executions | Existing owner for help, HTML tutorials and decks: candidate reconciliation or explicit retained-version disposition remains pending; no derivative was republished | Keep the existing versioned sources and observations. No new 1.5.1 browser, non-programmer or training-walkthrough acceptance is claimed |
+| [Windows reliability](windows-reliability.md) and [task checkpoint](specs/windows-parity/tasks.md) | Existing limits reviewed and retained; new partition checks qualify only their actual server/software cells | Existing Windows help/shell/desktop owners retain their acceptance work | Full storage, process recovery, live-provider, Windows 11 desktop and shell parity are not established by this maintenance release |
 
-## Documentation preparation
-
-The following record follows the [release runbook](release-runbook.md#documentation-readiness).
-Source and test references establish what the prose describes; final-candidate
-execution, derivative coordination and released-artifact checks remain separate.
-
-| Topic | Source and check | Disposition | Derivatives and owner | Result and remaining limits | Older guidance |
-| --- | --- | --- | --- | --- | --- |
-| README, installation and workflow selection | Assessed package metadata, [installation guide](installation.md), [workflow selector](supported-journeys.md) | Changed: distinguish published 1.5.0 from planned 1.5.1 | Help Center installation and integration topics: coordinate with existing website owner; update pending | Existing 1.5.0 install commands retained; fresh 1.5.1 index installation unavailable before publication | 1.5.0 release record retained |
-| Completed-assessment inspection | [Renderer](../src/attune_harness/assessment_view.py), [CLI owner](../src/attune_harness/task_cli.py), [owner tests](../tests/test_assessment_view.py) | Changed: label 1.5.1-only presentation and give inspection commands | Evidence-review help topic and related walkthroughs: owner coordination pending | Recorded outcomes, attribution and source identities checked against code; final-candidate command reproduction and human acceptance pending | Published 1.5.0 generic rendering identified explicitly |
-| Signed-plugin verification | [Verifier](../src/attune_harness/plugin_signing.py), [regression tests](../tests/test_plugin_signing.py), [design](design-plugin-signature-input.md) | Changed: explain exact validated bytes and malformed-envelope refusals | No separate plugin-training derivative identified in this review | Source-reviewed behavior; current-main installed-wheel jobs pass; final artifact and full qualification pending | September signature findings and receipts preserved |
-| Four training walkthroughs | [1.5.0 preparation procedures](tutorials-1.5.0-candidate.md), [historical 1.3.0 procedures](tutorials-1.3.0.md) | Pending candidate review; existing observations retain their original source/artifact | Help, HTML tutorials and decks: coordinate with existing content owner | Not rerun against a 1.5.1 artifact; no 1.5.1 walkthrough or derivative acceptance claimed | Existing versioned procedures retained |
-| Windows capability and reliability limits | [Reliability reference](windows-reliability.md), [approved task checkpoint](specs/windows-parity/tasks.md) | Reviewed for scope; existing limits retained | Windows help and shell/desktop procedures: existing owners; qualification pending | Maintenance changes do not establish full parity, storage or process recovery | 1.5.0 preparation record remains historical |
-
-The repository writing guide and approved policy apply. Google's
-[documentation style guide](https://developers.google.com/style) was checked on
-October 22, 2026. Links and software tests support this review; they do not
-establish user comprehension or semantic acceptance of participant judgments.
-Package preparation does not deploy Help Center, tutorial or deck updates.
+Local link/index and README-rendering checks support this review. They do not
+establish a correct remote publication, semantic acceptance or user comprehension.
+External content-owner coordination remains a publication decision; this PR
+records the pending dispositions without sending messages or deploying content.
 
 ## Required before publication
 
-1. Resolve or establish the cause of the Windows source-suite timeout and obtain
-   passing required qualification for the selected final source. A presumed
-   runner flake is not a passing check. Workflow reruns require authorization.
-2. Set the package and both plugin manifests to the final version, add its
-   changelog heading, review README claims and pin its documentation links to
-   the release tag or an existing reviewed revision. Reconcile later changes
-   with these notes. Keep the marketplace at 1.5.0 until the new tag exists.
-3. Complete affected walkthrough checks and coordinate the actual help/tutorial/
-   deck dispositions with their owners. Record the candidate source, artifact,
-   observed results and explicitly retained older guidance.
-4. Build and validate distributions, install the wheel and run the required
-   installed checks. After the preparation PR merges, verify exact-main CI and
-   obtain authorization for the build-only release-workflow rehearsal.
-5. Follow the runbook's separately gated publication, PyPI-byte verification,
-   tag/release creation and subsequent marketplace update. Recheck version and
-   tag availability at the selected source. Publication and merge remain Patrick's.
+1. Review and merge the preparation PR, then require successful Library
+   qualification from the push to that exact main SHA. Preserve its candidate
+   artifacts, source binding and actual outcomes; recheck main before dispatch.
+2. Complete affected command walkthrough checks against that candidate and close
+   the pending official-help/tutorial/deck dispositions with their existing
+   owners, or record an explicit approved retained-version disposition. Keep
+   older guidance versioned; do not promote software checks into human acceptance.
+3. Obtain separate authorization for the build-only `publish-pypi.yml` rehearsal
+   from main with `publish=false`. Inspect the resulting release gate and
+   distributions before seeking publication approval. No rehearsal was dispatched
+   by this preparation.
+4. Recheck PyPI/tag availability and obtain Patrick's separate publication go.
+   Patrick approves the PyPI environment himself. Verify both published files
+   against the publishing run, then follow separately authorized signed tag,
+   GitHub release and marketplace-update steps.
 
 The deferred full Windows parity, process stop/recovery, saved-store acceptance,
-historical eight-writer cause, live native-memory, Windows 11 standard-user desktop,
-shell and user-observation requirements remain open. Preserve earlier receipts;
-add evidence beside them rather than rewriting their identities or outcomes.
+historical eight-writer cause, live native-memory, Windows 11 standard-user
+desktop, shell and human-observation requirements remain open. This preparation
+neither expands their claims nor changes their existing acceptance owners.

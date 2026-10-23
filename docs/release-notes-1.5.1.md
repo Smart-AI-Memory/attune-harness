@@ -1,11 +1,12 @@
 # Attune Harness 1.5.1 release notes
 
-**Draft — unpublished.** Version 1.5.1 is the proposed maintenance release after
+**Prepared — publication pending.** Version 1.5.1 is the maintenance release after
 [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
-These notes cover merged changes through
-`0f3c3c0afd33eca6045b7aada242cab490cf1971`; the final release source and
-distribution have not been accepted. Package and plugin manifests still identify
-1.5.0. The [readiness record](release-readiness-1.5.1.md) tracks remaining checks.
+This preparation includes merged source through
+`5fca534972ac3904c6aa92a0a0fd89e7cf9ba4a9`, including #296 and #298, and sets
+package and both plugin manifests to 1.5.1. The
+[readiness record](release-readiness-1.5.1.md) separates candidate validation,
+remaining acceptance and publication approval.
 
 ## Validate the exact plugin signature input
 
@@ -58,6 +59,33 @@ See [PR #288](https://github.com/Smart-AI-Memory/attune-harness/pull/288),
 [PR #291](https://github.com/Smart-AI-Memory/attune-harness/pull/291) and
 [PR #293](https://github.com/Smart-AI-Memory/attune-harness/pull/293).
 
+## Pause and return with preserved Windows paths
+
+Follow the connected [pause-and-return procedure](cli-guide.md#pause-and-return-to-work)
+to retain a stopping note, inspect saved context, regenerate the report and
+prepare the next assistant handoff before any authorized continuation. The
+printed Python wrapper uses raw path literals so native Windows backslashes
+reach the CLI unchanged. Keep the `r` prefix when replacing its paths.
+
+The printed-command checks cover current, absent, historical, stale and
+unresolved context. One assisted text walkthrough is retained separately from
+Task 1's incomplete independent-return and GUI acceptance. See
+[PR #296](https://github.com/Smart-AI-Memory/attune-harness/pull/296).
+
+## Complete bounded Windows source checks
+
+Each hosted Windows full-source cell now runs two supervised pytest partitions
+without increasing the 2,700-second child deadline. The driver verifies matching
+complete collections, disjoint complete selections, case journals and successful
+process exits. Each child uses a distinct root under the native system temporary
+base. Timeout or missing evidence still fails the cell, even after printed success.
+
+All four repaired Windows source cells passed on the merged precursor, and all
+28 checks passed on #296's combined head. This is server/software evidence;
+full Windows parity and desktop/shell acceptance remain separate. See
+[PR #298](https://github.com/Smart-AI-Memory/attune-harness/pull/298) and the
+[partition design](design-windows-source-suite-shards.md).
+
 ## Installation and compatibility
 
 Use [published 1.5.0](installation.md) while 1.5.1 is in preparation. After
@@ -82,12 +110,16 @@ do not qualify every saved-work migration or upgrade path.
 
 ## Release checks and remaining limits
 
-Publication is blocked. On the assessed source, the required
-[qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
-failed because the Windows Server 2025/Python 3.12 full source suite reached its
-2,700-second deadline. All eight installed-wheel jobs passed; the cause of the
-source-suite timeout is unresolved. The final candidate needs passing
-qualification and a build-only release rehearsal before publication approval.
+The earlier [qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
+retains its Windows full-suite timeout. #298 addresses the measured cumulative
+suite budget with verified partitions; #296's combined head passed all 28 checks,
+including the previously failing Windows wheel job. The old Node startup/exit
+delay's cause remains unknown; no deadline or assertion was weakened.
+
+The release-preparation PR records validation of the actual 1.5.1 candidate.
+Publication still requires the reviewed preparation merge, passing qualification
+for that exact main commit, an authorized build-only release rehearsal and
+Patrick's separate publication approval.
 
 Full Windows parity, strict arbitrary-descendant stop and recovery, full
 saved-store acceptance, the historical eight-writer busy-failure cause, live
