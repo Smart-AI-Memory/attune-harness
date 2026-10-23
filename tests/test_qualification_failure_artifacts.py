@@ -110,6 +110,30 @@ def test_case(owner):
     assert outcome['timing_sequence_valid'] is True and outcome['evidence_issues'] == []
 
 
+@pytest.mark.parametrize('phase', ['setup', 'call', 'teardown'])
+def test_deep_failure_keeps_original_exception_within_text_cap(tmp_path, phase):
+    functions = ''.join(f'def level_{index}():\n    level_{index + 1}()\n' for index in range(79))
+    functions += "def level_79():\n    assert False, 'original exception beyond the long stack'\n"
+    source = '''import pytest
+FUNCTIONS
+@pytest.fixture
+def owner():
+    SETUP
+    yield
+    TEARDOWN
+def test_case(owner):
+    CALL
+'''.replace('FUNCTIONS', functions)
+    source = source.replace('SETUP', 'level_0()' if phase == 'setup' else 'pass')
+    source = source.replace('TEARDOWN', 'level_0()' if phase == 'teardown' else 'pass')
+    source = source.replace('CALL', 'level_0()' if phase == 'call' else 'pass')
+    records = run_child(tmp_path, source)
+    assert len(records) == 1 and records[0]['phase'] == phase
+    assert 'original exception beyond the long stack' in records[0]['failure']
+    assert records[0]['failure_truncated'] is True
+    assert len(records[0]['failure']) <= 4096
+
+
 @pytest.mark.parametrize('fault', ['open', 'format', 'write', 'close'])
 def test_failure_artifact_fault_does_not_replace_pytest_verdict(tmp_path, fault):
     conftest = '''import pytest, harness_qualification_stacks as stacks

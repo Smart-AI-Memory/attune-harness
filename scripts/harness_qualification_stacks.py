@@ -95,7 +95,10 @@ def _timing(config, event, **details):
 
 def _failure_text(report, call):
     if call.excinfo is not None:
-        return str(call.excinfo.getrepr(showlocals=False, style='short', funcargs=False))
+        # Keep the exception before a long traceback consumes the text cap.
+        summary = call.excinfo.exconly()
+        trace = call.excinfo.getrepr(showlocals=False, style='short', funcargs=False)
+        return summary + '\n' + str(trace)
     return report.longreprtext
 
 
