@@ -1,5 +1,12 @@
 # Local documentation-review pilot
 
+**Historical pilot profile.** The dev5 wheel, removed installation extras,
+retained environment and measured model results below describe the original
+campaign. They are not current 1.5.1 installation instructions. Use the
+[installation guide](installation.md) and [review contract](review-workflow.md)
+for current setup. Changing the runtime or model needs a separately accepted
+profile and new qualification before claiming comparable quality results.
+
 This opt-in workflow reviews `docs/e2-revision-receipt.md` in attune-harness.
 It uses real Attune forms, keyword retrieval, strict document verification and
 an explicitly selected local Ollama model for two independent narratives. The

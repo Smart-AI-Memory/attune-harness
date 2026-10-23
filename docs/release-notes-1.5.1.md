@@ -2,9 +2,10 @@
 
 **Prepared — publication pending.** Version 1.5.1 is the maintenance release after
 [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
-This preparation includes merged source through
-`5fca534972ac3904c6aa92a0a0fd89e7cf9ba4a9`, including #296 and #298, and sets
-package and both plugin manifests to 1.5.1. The
+This preparation incorporates merged main
+`13e46e06cbcefc3a5bd806fe58c913a7a695bcb7`, including the reader repair in #303, diagnostic
+compatibility in #304, canonical Help in #299 and current walkthroughs in #300.
+It sets the package and both plugin manifests to 1.5.1. The
 [readiness record](release-readiness-1.5.1.md) separates candidate validation,
 remaining acceptance and publication approval.
 
@@ -122,12 +123,12 @@ The missing target's immediate parent retains its complete namespace snapshot.
 Link metadata and reparse data, selected path bindings, completed directory scans
 and exact native missing-status checks still refuse observed changes or unsafe
 access. Targets receive no content authority. See
-[PR #301](https://github.com/Smart-AI-Memory/attune-harness/pull/301); its evidence
+[PR #303](https://github.com/Smart-AI-Memory/attune-harness/pull/303); its evidence
 separates portable regressions from native Windows results.
 
 ## Installation and compatibility
 
-Use [published 1.5.0](installation.md) while 1.5.1 is in preparation. After
+Use [published 1.5.0](https://pypi.org/project/attune-harness/1.5.0/) while 1.5.1 is in preparation. The [installation guide](installation.md) and [current walkthroughs](tutorials-1.5.1.md) distinguish candidate validation from installation after publication. After
 publication, the base installation command for 1.5.1 will be:
 
 ```sh
@@ -155,7 +156,11 @@ suite budget with verified partitions; #296's combined head passed all 28 checks
 including the previously failing Windows wheel job. The old Node startup/exit
 delay's cause remains unknown; no deadline or assertion was weakened.
 
-The release-preparation PR records validation of the actual 1.5.1 candidate.
+All 28 checks on #300's integrated preparation head passed, including the
+Windows source and installed-wheel cells. The release-preparation PR records
+fresh validation of the actual combined 1.5.1 candidate; precursor results do
+not substitute for it. The separate audit/archive PR #305 remains unmerged
+and is not included in this source.
 Publication still requires the reviewed preparation merge, passing qualification
 for that exact main commit, an authorized build-only release rehearsal and
 Patrick's separate publication approval.

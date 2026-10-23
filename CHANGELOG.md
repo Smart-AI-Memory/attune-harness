@@ -28,7 +28,7 @@ publication gates and retained platform limits.
   (#298).
 - Confirm dangling Windows raw-memory targets without freezing unrelated
   ancestor contents for the whole target walk. Keep exact path bindings,
-  missing-parent snapshots, link metadata and metadata-only access checks (#301).
+  missing-parent snapshots, link metadata and metadata-only access checks (#303).
 - Document the complete pause-and-return procedure and verify its printed
   commands. Preserve native Windows paths in its Python wrapper with raw string
   literals; retain assisted observations separately from full human acceptance

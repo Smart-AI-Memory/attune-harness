@@ -4,14 +4,16 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from browser_process import read_browser_output, run_browser_process
+
 import pytest
 from attune_harness.gui_forms import FORM_SCRIPT
 from attune_harness.gui_forms_intake import INTAKE_SCRIPT
 from attune_harness.gui import INTAKE_BOOTSTRAP
 
 
-@pytest.mark.parametrize('script,runner_name', [(FORM_SCRIPT, 'gui_forms.cjs'), (INTAKE_SCRIPT, 'gui_forms_intake.cjs')])
-def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
+@pytest.mark.parametrize('script,runner_name', [(FORM_SCRIPT, 'gui_forms.cjs'), (INTAKE_SCRIPT, 'gui_forms_intake.cjs')], ids=['development', 'intake'])
+def test_shipped_browser_form_regressions(tmp_path, script, runner_name, record_property):
     node = shutil.which('node')
     assert node, 'GUI client verification requires Node.js; install Node and rerun (no skip).'
     source = tmp_path / 'forms.js'
@@ -21,7 +23,7 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
     command = [node, str(runner), str(source)]
     command.append(str(diagnostics))
     try:
-        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        result = run_browser_process(command, tmp_path, timeout=30)
     except subprocess.TimeoutExpired as error:
         # pytest retains failure capture in tests.txt and failure JUnit output.
         # Keep the original timeout/cleanup; diagnostics must never mask it.
@@ -40,6 +42,8 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name):
         if hasattr(error, 'add_note'):  # Python 3.11+: retained in failure JUnit too.
             error.add_note(message)
         raise
+    finally:
+        record_property('browser_process', read_browser_output(tmp_path / 'browser-process.json', 65536))
     assert result.returncode == 0, result.stdout + result.stderr
     assert 'client regressions passed' in result.stdout
 

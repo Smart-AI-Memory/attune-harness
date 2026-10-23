@@ -1,17 +1,19 @@
 # Install Harness and get started
 
-Updated on October 22, 2026.
+Updated on October 23, 2026.
 
-Use this guide for the `attune-harness` 1.5.1 source and package. Run its
-index-install commands after that version appears on PyPI. Until then,
-[published 1.5.0](https://pypi.org/project/attune-harness/1.5.0/) remains available.
-The [readiness record](release-readiness-1.5.1.md) identifies publication gates;
-preparing this source does not publish a package.
+This guide prepares installation of `attune-harness` 1.5.1. Python 3.10 or
+later is required. Start with the base package: it includes forms, document
+verification, local Markdown retrieval, MCP serving and token counting. Redis
+and Voyage are optional integrations.
 
-Python 3.10 or later is required. Start with the base package: it includes
-forms, document verification, local Markdown retrieval, MCP serving and token
-counting. Redis and Voyage are optional integrations. Preserve existing saved
-work and retained evidence environments when selecting another runtime.
+**Preparation — unpublished.** Use `uv tool install 'attune-harness==1.5.0'`
+for an installation today, or follow the [published package reference](https://pypi.org/project/attune-harness/1.5.0/).
+Do not run the 1.5.1 index-install commands below until publication. For candidate
+validation now, substitute the reviewed local 1.5.1 wheel for the package
+specifier, for example `uv tool install /absolute/path/to/attune_harness-1.5.1-py3-none-any.whl`.
+Retain its source and hash; a version string does not identify a final artifact.
+Preserve saved work and retained evidence environments when selecting a runtime.
 
 ## Install the runtime
 
@@ -112,9 +114,8 @@ Choose the host you use:
 - **Direct CLI:** Read [checks and receipts](cli-guide.md#checks-and-receipts)
   or use `attune-harness COMMAND --help` for the chosen task.
 
-Choose a [retained 1.5.0 practice walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
-and read its original source, interpreter and fixture requirements before starting.
-Its observations retain their original version; they are not new 1.5.1 acceptance.
+Choose a [practice walkthrough](tutorials-1.5.1.md#choose-a-walkthrough)
+and read its source, interpreter and fixture requirements before starting.
 Ask the agent or operator running Harness for a fresh practice form and its
 complete private launcher link. Saving answers, approving the request and
 executing work remain separate actions. Keep the launcher running while using
@@ -122,11 +123,10 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 ## Verify your installation
 
-Compare your selected version and interpreter with the checks above. Use the
-[1.5.1 readiness record](release-readiness-1.5.1.md) for candidate evidence and
-remaining release gates. The earlier
-[1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
-identifies the published source and distribution hashes, CI results and a fresh
-macOS base-install check. The [workflow guide](supported-journeys.md) describes
+Compare your selected version and interpreter with the checks above. The
+[1.5.1 readiness record](release-readiness-1.5.1.md) identifies the reviewed
+source, local validation and remaining release checks. After publication,
+compare the published distribution identity and index installation with that
+evidence. The [workflow guide](supported-journeys.md) describes
 capabilities and reliability requirements for the workflow you choose. Keep
 existing saved tasks and evidence environments when updating an installation.

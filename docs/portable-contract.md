@@ -1,5 +1,11 @@
 # Portable contract and qualification map
 
+This reference covers the bounded portable API and earlier integration profiles.
+Use the [current workflow selector](supported-journeys.md) for the full CLI,
+including plan/build, saved tasks and workspace MCP. The source observations
+below retain their pinned earlier Attune AI checkout; they are not a current
+host-integration inventory.
+
 Status: partial contract and bounded local implementation. Neither roadmap Phase
 0 nor Phase 1 is complete. The current package supports synchronous participant
 exchange, local verification/retrieval and a bounded Phase 2 evidence-review
@@ -44,7 +50,7 @@ adapter/runtime version and probe. A changed version invalidates qualification.
 | Claude native | Candidate lead and reviewer | Experimental CLI translator | Fixture checks pass; live invocation rejected for insufficient credit on the CLI-selected auth source |
 | Codex native | Candidate lead and reviewer | Experimental CLI translator | Live arithmetic/structured response and independent acceptance passed on CLI 0.153.4; broader feature/lifecycle qualification outstanding |
 | Direct model | Candidate additional participant | Command extension seam, no provider-specific transport | Provider transport and live receipt outstanding |
-| ACP / MCP / A2A | Candidate standard boundaries | No implementation | Supported-version selection and independent interoperability outstanding |
+| ACP / MCP / A2A | Bounded protocol profiles | Local MCP stdio and loopback A2A implemented; ACP unimplemented | See the [protocol boundaries below](#qualified-local-protocol-boundaries) and their versioned independent-peer receipts. Remote authenticated profiles and general interoperability remain unqualified. |
 
 Missing mandatory features make the affected operation unavailable. Rich native
 features cannot substitute for them. JSON fixture success qualifies only the

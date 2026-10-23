@@ -1,6 +1,20 @@
 # Stabilization, release readiness and phased GUI delivery
 
-## Current checkpoint — October 21, 2026
+## Current checkpoint — October 22, 2026
+
+Version 1.5.0 remains published. Version 1.5.1 is an unpublished maintenance
+preparation against `0f2711b4c88ee4f231f61d71cd70a0c840be6357`. Current-main
+[qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
+passes, including the Windows source-suite partitions added in #298. The
+[1.5.1 readiness record](release-readiness-1.5.1.md) distinguishes that result
+and fresh documentation observations from final-source selection, metadata,
+artifact validation, Help integration and publication approval.
+
+Use the [current walkthroughs](tutorials-1.5.1.md) for preparation, and the
+published version for an installation today. The deferred Windows requirements
+and S3/S6/S9 observations below retain their existing scope.
+
+### Previous checkpoint — October 21, 2026
 
 Reconciled against main `462d37be4fa06140c62e5f39f3489a4f8785c112`.
 [Version 1.5.0 was published October 19](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
@@ -218,7 +232,7 @@ receipt says so.
 | S6 usability | Preliminary user feedback, described above; no installed-walkthrough receipt | reported | **Observed:** a named non-programmer's installed walkthrough. Still unconfirmed |
 | S7 release mechanics | [Release runbook](release-runbook.md). Each publish run's `release-evidence` artifact holds `SHA256SUMS`, and PyPI's hashes were compared against it: 1.0.0 [run 36451826139](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36451826139), 1.0.1 [run 36466359597](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36466359597), 1.1.0 [run 36522747598](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36522747598), 1.2.0 [run 36629591220](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/36629591220). For 1.2.0 the wheel is `17c3f0953d136314b199af3b72d7ce6773c9766066ac8c086742aa0d863351f7` and the sdist `2f36d6cd492738a8c737c493e222c9a66d252a9fe89d38f1bdb0a554bea638bc` | measured | None; each release repeats the runbook's steps |
 | S8 loose ends | [Qualification guide](qualification.md) (the historical `check_code_rag_host.py` is labeled as such); [documentation maintenance](documentation-maintenance.md) | measured | Any replacement host check needs its own scope |
-| S9 migration | [Migration guide](migration-from-attune-ai.md), [journey map](supported-journeys.md) | — | **Observed:** each row tried against the installed stable artifact. Not yet done |
+| S9 migration | [Current migration guide](migration.md), [journey map](supported-journeys.md) | — | **Observed:** each row tried against the installed stable artifact. Not yet done |
 
 Model judgments appear in none of these rows as evidence. Review narratives,
 native model reviews and assessments are unverified proposals, and the CLI

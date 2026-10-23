@@ -1,5 +1,7 @@
 # Local verification and retrieval
 
+For current setup and reproducible sample commands, use the [installation guide](installation.md) and [1.5.1 research walkthrough](tutorials-1.5.1.md#four-workflows-research-a-question). Retrieval and verification are base dependencies. The older environment-build instructions and milestone boundary below are historical; their removed extras and 0.1.0 wheel are not current installation commands.
+
 This milestone adds two independent optional features. They run locally without
 provider sign-ins, model calls or embedding downloads. Verification checks only
 the claim types supported by attune-verify; retrieval returns source material,

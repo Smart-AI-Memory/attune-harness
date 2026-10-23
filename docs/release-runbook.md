@@ -62,7 +62,14 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    touch `.claude-plugin/marketplace.json`: that catalog serves Claude Code
    users from `main`, and it points at a release tag that does not exist yet
    (step 9). Build locally and run `twine check --strict`, then install the
-   wheel and run `scripts/check_installed.py --mode core`.
+   wheel with its normal base dependencies in a fresh environment and run
+   `scripts/check_installed.py --python /absolute/path/to/that/python --mode all`.
+   In a separate fresh environment, install the same wheel with `--no-deps` and
+   use `--mode core` to check the intentionally minimal profile. The mode names
+   describe dependency profiles: `all` covers the normal base installation,
+   while `core` expects rag/verify dependencies to be absent. Neither mode
+   installs or qualifies every optional integration. Follow the two distinct
+   installations in `.github/workflows/publish-pypi.yml`.
    **README maintenance is required for every release.** Review and update
    `README.md` against the selected shipping source and package metadata. Check
    version/status wording, install instructions, feature and limit claims, and
@@ -192,9 +199,16 @@ articles, posts and future books can add editorial context around the same unit.
    requesting release approval. Package and website publishing retain their
    existing authorization boundaries.
 
-The first Help Center is prepared separately in the existing Attune-AI website
-repository. Its topic manifest and pinned walkthrough provenance support these
-records; an unpublished local route or reviewed branch is not a live help URL.
+The Help Center's canonical guides, version manifest and static build live in
+this repository's [help directory](../help/README.md). Build and verify the
+export against its named source, artifact and publication status. Current
+[1.5.1 preparation walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md)
+use an explicitly identified local version-overlay wheel; the final release
+artifact still needs selection and qualification. Preserve the 1.3.0 provenance
+above and the published 1.5.0 observations under their original identities.
+The existing Attune-AI website
+still serves the earlier implementation until a separate website cutover;
+an unpublished local route or reviewed branch is not a live help URL.
 
 ## Things that look wrong and are not
 

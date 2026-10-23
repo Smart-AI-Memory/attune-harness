@@ -40,6 +40,9 @@ This is part of the documentation review, not a separate approval gate or schedu
    completed content review; do not imply the whole corpus was checked after a
    narrow sweep.
 
-The September 18 opportunity sweep updated the log. The next complete review
-still needs to reconcile older maps that describe plan/build as absent with
-Tasks 1–7's accepted local implementation and Task 8's open native qualification.
+The October 22, 2026 [1.5.1 review](release-readiness-1.5.1.md#documentation-preparation)
+reconciles current entry points, the opportunity register and release summaries.
+Historical maps now point to current guidance while retaining their original
+results. Final-source qualification, Help integration and the earlier human,
+native and platform acceptance gaps remain explicit. The review record separates
+source inspection and software checks from observed user acceptance.

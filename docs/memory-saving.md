@@ -8,7 +8,7 @@ ownership.
 ## Configure and save
 
 For saved intake answers across browser sessions, see the
-[1.3.0 continuity walkthrough](tutorials-1.3.0.md#session-continuity-saved-answers-in-another-session).
+[1.5.1 continuity walkthrough](tutorials-1.5.1.md#session-continuity-saved-answers-in-another-session).
 The form task record and this explicit saved-memory store are separate surfaces.
 
 Use a dedicated absolute store directory in your configuration:
@@ -163,7 +163,7 @@ now includes a fixed-local NTFS saved-store implementation checkpoint, merged
 as [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275). Current
 finite native witnesses pass, while full saved-store acceptance, the historical
 eight-writer busy-failure cause, and final Windows parity remain open. See the
-[draft 1.5.0 readiness record](release-readiness-1.5.0.md). This does not change
+[1.5.1 preparation readiness](release-readiness-1.5.1.md). This does not change
 the released 1.4.0 platform boundary or qualify WSL, every Windows configuration,
 or physical-power-loss behavior.
 
