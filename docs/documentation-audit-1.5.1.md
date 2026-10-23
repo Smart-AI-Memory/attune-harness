@@ -73,6 +73,33 @@ older 1.3.0 content, so it was not used as the current-state authority.
 | Earlier generated training | `website/content/harness-help/tutorials-1.3.0.source.md`, `walkthroughs.generated.json`, `walkthrough-provenance.json` and `next-release.json`, plus their historical projector, remain original evidence. They are not current 1.5.1 source. |
 | Framework docs and companion projects | Earlier Attune AI references and generated `framework-docs` are separate-project material. Do not silently rename them to Harness 1.5.1. General accuracy of that separate corpus was not requalified here. |
 
+## Committed website corrections and delivery order
+
+The Docs owner committed the current Quick Start and compatibility-anchor
+correction as `948ba152259b4e5810f506f498f907dd5cc3f4d5` in website #2575.
+The separate [archive prerequisite #2580](https://github.com/Smart-AI-Memory/attune-ai/pull/2580)
+at `59ddfa95f2c8a93f667843d32b9fa8bfb44cd5cb` preserves the old block unchanged
+and builds against website main independently. [Entry points #2579](https://github.com/Smart-AI-Memory/attune-ai/pull/2579)
+at `d21e1c6ea9b7b9123569e686c65c96f1aa2a89d5` now contains only Navigation,
+pricing, how-it-works and its handoff; an ordinary follow-up commit removed the
+archive addition from its net diff while preserving the original commit.
+
+The archive and #2574 publisher can integrate independently; both must precede
+#2575, followed by #2579. This avoids the active Docs page linking an archive
+supplied only by a later adapter-dependent PR. All remain drafts. A passing
+disposable combination does not establish a standalone branch, production
+deployment or package publication. Exact local verification and current
+unverified checks belong to each PR description.
+
+## Active links to historical guidance
+
+The migration guide intentionally describes an installed 1.0.0 baseline and
+retains its historical Windows file-memory limitation. Current website Docs
+still links to that file as “Review the migration boundaries.” Archive
+classification alone does not correct that active-link mismatch. The release
+owner must supply current source guidance or explicitly label the link as
+historical; the source/link disposition remains unverified.
+
 ## Release and delivery gaps
 
 After the initial audit snapshot, the release owner verified #303 merged as
