@@ -1,11 +1,15 @@
 # Engineering opportunity log
 
-## Current review — October 21, 2026
+## Current review — October 22, 2026
 
-Reconciled against `main` at `462d37be4fa06140c62e5f39f3489a4f8785c112`.
+Reconciled against `main` at `0f2711b4c88ee4f231f61d71cd70a0c840be6357`.
 [Version 1.5.0 is published](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
-from `7caa86ab6d476e9599b08ff75a81bc816e60c382`; the later main commit updates
-the Claude Code catalog. The [current journey map](supported-journeys.md)
+from `7caa86ab6d476e9599b08ff75a81bc816e60c382`; the Claude Code catalog
+targets that released tag. [Version 1.5.1 preparation](release-readiness-1.5.1.md)
+includes the completed-assessment renderer (#292), exact signature-input fix
+(#289), bounded refusal-continuation audit (#293/#295), link checks (#291) and
+passing current-main qualification after #298. Final release identity and
+approval remain separate. The [current journey map](supported-journeys.md)
 separates delivered components from remaining acceptance evidence.
 
 This review checks the recommendations and register rows below against source,
@@ -25,7 +29,7 @@ of open opportunities.
 | 1 | O-07; [approved Windows parity work](specs/windows-parity/tasks.md) | Continue through the existing owners. Production stop/recovery, full saved-store acceptance, live native memory, desktop and shell journeys remain open. Complete the unchanged requirements with source-bound evidence; a passing component or later diagnostic result cannot substitute for them. |
 | 2 | O-03/O-04/O-12; S3/S6/S9 | Collect fresh-session recall/exclusion, a qualifying non-programmer installed walkthrough, and migration-row observations. Record artifact/platform, actual outcome and help needed; keep each observation or explicit disposition separate from software checks. |
 | 3 | O-04/O-09/O-16 | Keep this register, the journey map and linked planning summaries aligned at release milestones. Done when current next steps reach delivered entry points and name the remaining evidence. This documentation reconciliation is the selected slice. |
-| Later candidates | O-72/O-74/O-76; the September 24 signature-input finding | Scope readable assessment evidence, runnable continuation checks, repository-root test selection and the retained signature mismatch separately. Reproduce runtime findings before proposing a repair; this ordering authorizes none of them. |
+| Later candidates | Remaining O-72/O-74/O-76 slices | The bounded continuation audit and completed-assessment renderer are merged; the signature mismatch is repaired. Keep broader refusal journeys, richer repair presentation, observed acceptance and repository-root test selection separate. Reproduce remaining runtime findings before selecting a repair. |
 | Before another paid trial | C: O-14/O-15/O-23/O-31 | Verify delivered references, all model-visible inputs, grader context and launcher access against retained controls. Reject the contaminated fixture without changing its original grades. No trial or spending is allocated here. |
 
 The smallest useful slice is the documentation reconciliation. The most urgent
@@ -44,7 +48,7 @@ different states.
 | ID / group | Verified current position | Remaining action |
 | --- | --- | --- |
 | O-01/O-16/O-17/O-36; A/B | Durable plan/Spec decisions and concise status/evidence presentation exist in source. The original [A](status-guidance-a-results.md) and [B](durable-decisions-b-results.md) receipts retain their local scope. | Keep broader presentation and host-lifetime observations separate; do not reopen the delivered first surfaces. Public-content approval and claimed savings remain separate. |
-| O-03/O-04/O-12 | The [journey map](supported-journeys.md) now describes 1.5.0 entry points and limits. S3/S6/S9 remain open in the [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary). | Obtain the missing observations. A published package and bounded maintainer form observations do not establish general user acceptance. |
+| O-03/O-04/O-12 | The [journey map](supported-journeys.md) distinguishes published 1.5.0 from 1.5.1 preparation and their limits. S3/S6/S9 remain open in the [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary). | Obtain the missing observations. A published package and bounded maintainer form observations do not establish general user acceptance. |
 | O-07 | The [1.5.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0) and [hosted baseline run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937) provide distinct published-artifact and server/software checkpoints. Windows testing, readers, offline transport and saved-store components are merged. | Full Windows parity remains deferred. Follow the [task checkpoint](specs/windows-parity/tasks.md) for storage, process, live-provider, Windows 11 and declared-shell gaps; earlier core checks never qualified every integration. |
 | O-09/O-16; F | The [current evidence index](project-plan.md#where-each-gates-evidence-is) links release evidence and remaining observations while retaining the historical 1.2.0 index. | Identify a concrete missing receipt field before extending a schema. This review adds navigation, not executor/runtime evidence or a new receipt format. |
 | O-12 | Explicit assessment-to-repair provenance is implemented in [the handoff owner](../src/attune_harness/task_handoff.py), with [owner tests](../tests/test_assessment_repair_handoff.py). | Preserve explicit scope and acceptance; this is not automatic repair or a general native-journey qualification. |
@@ -52,7 +56,8 @@ different states.
 | O-28; D | **Integration present.** [Build turns](../src/attune_harness/work_build.py) carry `review_context`; [the handoff owner](../src/attune_harness/work_review_handoff.py) binds findings, evidence, dispositions and task targets to retained planning state. [Regression tests](../tests/test_work_review_handoff_coverage.py) cover this surface. | Close the missing-integration recommendation. Keep any fresh model-quality or complete native-journey claim separate; do not rebuild D. |
 | O-34/O-35; E | **Integration present.** [Effects](../src/attune_harness/work_effects.py) freeze and validate function boundaries; [body materialization](../src/attune_harness/work_bodies.py) and build response contract 3 implement the supported profile. [Owner tests](../tests/test_work_function_bodies.py) and [build tests](../tests/test_plan_build_function_bodies.py) exercise it. | Close the prototype-to-production integration recommendation. Fresh response cost, speed and general reliability remain unmeasured; behavioral checks are still necessary. |
 | O-70/O-77/O-78/O-80 | Starter requests/probes, the command worker, participant guidance and failed-write rollback are delivered in [starter source](../src/attune_harness/init_cli.py) and the [starter specification](specs/starter-files/tasks.md). O-70's documented journey condition is closed. | Preserve the recorded platform limits and original failures. O-76's remaining root-selection case is separate. |
-| O-71/O-72/O-74/O-76 | Source still uses stdin-only intake detection, generic non-feature status rendering and a path validator that refuses `.` as `test_root`. The runnable-continuation audit is not completed by this documentation change. | Retain these bounded candidates; use the existing Windows journey owner for O-71. O-76's symlink guidance and printed starter journey are already addressed. |
+| O-71/O-72/O-74/O-76 | Intake still uses stdin-only terminal detection and the test path validator refuses `.` as `test_root`. The [bounded continuation audit](../tests/test_refusal_continuations.py) and [completed-assessment renderer](../src/attune_harness/assessment_view.py) are merged. | Keep O-71 with the Windows owner. Broader O-72, richer repair presentation and O-76 root selection remain separate. Existing symlink/starter guidance stays addressed; do not reopen delivered assessment rendering. |
+| September 24 signature-input finding | [Verification](../src/attune_harness/plugin_signing.py) now gives GPG exactly the binary bytes checked by the packet guard; [regression checks](../tests/test_plugin_signing.py) cover supported and malformed envelopes. | The selected parser mismatch is repaired in #289. Preserve the earlier measurements; final-release qualification and deployment remain separate. |
 | O-73 | The [Claude catalog](../.claude-plugin/marketplace.json) targets the released 1.5.0 tag; [the runbook](release-runbook.md) retains the release-version coupling. | Keep plugin delivery distinct from upgrading an installed runtime or changing the version policy. |
 
 The September 23 overnight follow-through records merged fixes for O-38, O-42,

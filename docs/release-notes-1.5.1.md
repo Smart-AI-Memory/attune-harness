@@ -3,7 +3,7 @@
 **Draft — unpublished.** Version 1.5.1 is the proposed maintenance release after
 [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
 These notes cover merged changes through
-`0f3c3c0afd33eca6045b7aada242cab490cf1971`; the final release source and
+`0f2711b4c88ee4f231f61d71cd70a0c840be6357`; the final release source and
 distribution have not been accepted. Package and plugin manifests still identify
 1.5.0. The [readiness record](release-readiness-1.5.1.md) tracks remaining checks.
 
@@ -60,7 +60,7 @@ See [PR #288](https://github.com/Smart-AI-Memory/attune-harness/pull/288),
 
 ## Installation and compatibility
 
-Use [published 1.5.0](installation.md) while 1.5.1 is in preparation. After
+Use [published 1.5.0](https://pypi.org/project/attune-harness/1.5.0/) while 1.5.1 is in preparation. The [installation guide](installation.md) and [current walkthroughs](tutorials-1.5.1.md) distinguish candidate validation from installation after publication. After
 publication, the base installation command for 1.5.1 will be:
 
 ```sh
@@ -82,12 +82,14 @@ do not qualify every saved-work migration or upgrade path.
 
 ## Release checks and remaining limits
 
-Publication is blocked. On the assessed source, the required
-[qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
-failed because the Windows Server 2025/Python 3.12 full source suite reached its
-2,700-second deadline. All eight installed-wheel jobs passed; the cause of the
-source-suite timeout is unresolved. The final candidate needs passing
-qualification and a build-only release rehearsal before publication approval.
+Publication remains held for final preparation and approval. Current-main
+[qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
+passes, including all eight installed-wheel jobs and all four Windows full-source
+jobs. PR #298 introduced verified partitions within the unchanged total deadline.
+The earlier [failed run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
+is retained historical evidence, not the current-main result. The selected final
+1.5.1 source and artifact still need their own qualification, documentation
+reconciliation and authorized build-only rehearsal before publication approval.
 
 Full Windows parity, strict arbitrary-descendant stop and recovery, full
 saved-store acceptance, the historical eight-writer busy-failure cause, live

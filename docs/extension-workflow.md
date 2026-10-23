@@ -1,5 +1,7 @@
 # Local extension workflow
 
+This page retains the data-only extension profile and its earlier construction evidence. Use [current installation](installation.md) rather than its historical 0.1.0 wheel recipe. For signed executable Python plugins, follow [the executable-plugin procedure](executable-plugin-run.md); statements about a later run-binding cycle below describe the earlier milestone.
+
 The supported profile is a data-only bundle mapping namespaced tools to Harness's
 existing attune-rag retrieval adapter. A bundle supplies one portable `SKILL.md`;
 its text enters only participants' granted tool contracts. No bundle code is

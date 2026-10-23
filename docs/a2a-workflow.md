@@ -1,5 +1,7 @@
 # Local A2A task/artifact profile
 
+Use the [selected installed interpreter](installation.md#select-python-for-module-and-fixture-examples) in place of `.venv-core-check/bin/python` in the commands below. The peer and client scripts come from the matching source checkout. This remains the bounded local A2A compatibility profile, not a claim of remote or general A2A support.
+
 `attune_harness.a2a.A2AExchange` is a callable for the existing `JsonParticipant`.
 It has no additional dependencies. The tested interface is A2A **1.0**, JSON-RPC
 over literal `http://127.0.0.1:PORT/path`. Use an explicitly selected peer name,
