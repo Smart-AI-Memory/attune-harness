@@ -62,7 +62,14 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    touch `.claude-plugin/marketplace.json`: that catalog serves Claude Code
    users from `main`, and it points at a release tag that does not exist yet
    (step 9). Build locally and run `twine check --strict`, then install the
-   wheel and run `scripts/check_installed.py --mode core`.
+   wheel with its normal base dependencies in a fresh environment and run
+   `scripts/check_installed.py --python /absolute/path/to/that/python --mode all`.
+   In a separate fresh environment, install the same wheel with `--no-deps` and
+   use `--mode core` to check the intentionally minimal profile. The mode names
+   describe dependency profiles: `all` covers the normal base installation,
+   while `core` expects rag/verify dependencies to be absent. Neither mode
+   installs or qualifies every optional integration. Follow the two distinct
+   installations in `.github/workflows/publish-pypi.yml`.
    **README maintenance is required for every release.** Review and update
    `README.md` against the selected shipping source and package metadata. Check
    version/status wording, install instructions, feature and limit claims, and

@@ -22,6 +22,22 @@ GOAL_ASSETS = (
     "BRIEF.md",
     "CSV-CONTRACT-NOTES.md",
 )
+VOID_TAGS = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+}
 
 
 class PageLinks(HTMLParser):
@@ -31,15 +47,36 @@ class PageLinks(HTMLParser):
         super().__init__()
         self.ids = set()
         self.links = []
+        self.stack = []
+        self.detail_owners = {}
+        self.testing_owners = []
         self.feed(text)
+        if self.stack:
+            raise ValueError("Unclosed rendered HTML element")
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Collect IDs and anchor targets from trusted generated HTML."""
         values = dict(attrs)
+        owners = [identity for name, identity in self.stack if name == "details"]
         if values.get("id"):
             self.ids.add(values["id"])
-        if tag == "a" and values.get("href"):
+            self.detail_owners[values["id"]] = owners
+        if tag == "details" and "testing-goal" in (values.get("class") or "").split():
+            self.testing_owners.append(owners)
+        if tag in {"a", "link"} and values.get("href"):
             self.links.append(values["href"])
+        if tag in {"img", "script"} and values.get("src"):
+            self.links.append(values["src"])
+        if tag not in VOID_TAGS:
+            self.stack.append((tag, values.get("id")))
+
+    def handle_endtag(self, tag: str) -> None:
+        """Refuse malformed nesting before a browser can repair ownership."""
+        if tag in VOID_TAGS:
+            return
+        if not self.stack or self.stack[-1][0] != tag:
+            raise ValueError(f"Unbalanced rendered HTML element: {tag}")
+        self.stack.pop()
 
 
 class GoalGuide(PageLinks):
@@ -70,8 +107,6 @@ class GoalGuide(PageLinks):
             values[key] for key in ("data-copy", "data-status") if values.get(key)
         )
         super().handle_starttag(tag, attrs)
-        if values.get("src"):
-            self.links.append(values["src"])
 
 
 def render_goals(content: Path, manifest: dict) -> str:
@@ -139,6 +174,22 @@ def validate_pages(rendered: dict[str, str], resources: set[str] | None = None) 
         HELP_ROOT + (slug + "/" if slug else ""): PageLinks(text)
         for slug, text in rendered.items()
     }
+    goals = pages.get(HELP_ROOT + "goals/")
+    if goals and (
+        any(
+            "project-spec" not in goals.detail_owners.get(identity, [])
+            for identity in (
+                "compare",
+                "review-copy",
+                "output-details",
+                "wording-choices",
+                "spec-output",
+            )
+        )
+        or len(goals.testing_owners) != 6
+        or any("check-change" not in owners for owners in goals.testing_owners)
+    ):
+        raise ValueError("Goal section left its owning disclosure")
     for path, page in pages.items():
         for href in page.links:
             target = urlsplit(urljoin("https://smartaimemory.com" + path, href))
@@ -254,11 +305,12 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 + "</div>"
             )
             body = body.replace("<p>[TOPICS]</p>", cards)
-        body = body.replace(
-            "<table>",
-            '<div class="help-table-scroll" tabindex="0" role="region" aria-label="Reference table, scroll horizontally if needed"><table>',
-        )
-        body = body.replace("</table>", "</table></div>")
+        if not is_goals:
+            body = body.replace(
+                "<table>",
+                '<div class="help-table-scroll" tabindex="0" role="region" aria-label="Reference table, scroll horizontally if needed"><table>',
+            )
+            body = body.replace("</table>", "</table></div>")
         navigation = "".join(
             f'<li><a href="{HELP_ROOT}{t["slug"]}/"'
             + (' aria-current="page"' if t["slug"] == slug else "")
@@ -320,7 +372,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
         rendered,
         {
             HELP_ROOT + name
-            for name in (*assets, "verification.json", "preparation.json")
+            for name in (*assets, "help.css", "verification.json", "preparation.json")
         },
     )
     output.mkdir(parents=True, exist_ok=False)

@@ -68,6 +68,17 @@ def test_goal_projection_preserves_navigation_controls_and_historical_evidence(
     builder.build_site(tmp_path / "site")
     root = tmp_path / "site/harness/help"
     text = (root / "goals/index.html").read_text()
+    structure = builder.PageLinks(text)
+    for identity in (
+        "compare",
+        "review-copy",
+        "output-details",
+        "wording-choices",
+        "spec-output",
+    ):
+        assert "project-spec" in structure.detail_owners[identity]
+    assert len(structure.testing_owners) == 6
+    assert all("check-change" in owners for owners in structure.testing_owners)
     assert text.count('class="goal-item"') == 21
     assert text.count('class="testing-goal"') == 6
     assert text.index('href="#research-question"') < text.index(
@@ -90,6 +101,28 @@ def test_goal_projection_preserves_navigation_controls_and_historical_evidence(
     assert 'href="/harness/help/goals/"' in (root / "index.html").read_text()
 
 
+def test_broken_rendered_structure_and_wrong_disclosure_ownership_are_refused():
+    with pytest.raises(ValueError, match="Unbalanced rendered HTML"):
+        builder.validate_pages({"": "<details><section></div></section></details>"})
+    body = '<details id="project-spec"></details>' + "".join(
+        f'<div id="{identity}"></div>'
+        for identity in (
+            "compare",
+            "review-copy",
+            "output-details",
+            "wording-choices",
+            "spec-output",
+        )
+    )
+    body += (
+        '<details id="check-change">'
+        + '<details class="testing-goal"></details>' * 6
+        + "</details>"
+    )
+    with pytest.raises(ValueError, match="owning disclosure"):
+        builder.validate_pages({"goals": body})
+
+
 @pytest.mark.parametrize(
     "defect", ["script", "event", "binding", "count", "asset", "source"]
 )
@@ -108,7 +141,8 @@ def test_invalid_goal_source_refuses_before_export(tmp_path, defect):
         text = text.replace('class="goal-item"', 'class="removed-goal"', 1)
     elif defect == "asset":
         text = text.replace(
-            "/harness-help-assets/intake-filled.jpg", "/harness-help-assets/missing.jpg"
+            'src="/harness-help-assets/intake-filled.jpg"',
+            'src="/harness-help-assets/missing.jpg"',
         )
     elif defect == "source":
         manifest = json.loads((content / "manifest.json").read_text())
