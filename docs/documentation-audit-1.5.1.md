@@ -188,11 +188,13 @@ is signed and committed in #301 at `0dc82db327af9eae41f7bf812480cc76d2cd7fc7`.
 It records deprecation while preserving the unpublished target, environment,
 saved-data and parity limits. All 21 relative links and their target bytes are
 unchanged from the earlier verified guide; the historical 1.0.0 record remains
-byte-identical. The existing canonical export still pins `93f161b8`, whose
-wording predates this decision. The Help owner retains the common
-documentation-pin update and normal export reimport. Until that committed
-payload is consumed, the current website-to-source correction is an open
-dependency, not a closed documentation gate. Preserve behavioral, validation, tutorial,
+byte-identical. Canonical #299 `d98b31d06b3a3fadbbf2066b874a69df9f325139`
+and publisher #2574 `0d6ea8bc758e6a799f8b54f09e3db9c64b97f729` now supply the
+reviewed common documentation pin and normal reimport. Five payloads change;
+nineteen retain their exact bytes. Only `documentation_commit` changes in
+preparation metadata. This closes the current website-to-old-source mismatch
+in the committed combination; final main and production remain separate gates.
+Preserve behavioral, validation, tutorial,
 historical observation and frozen audit-inventory identities. No package
 metadata, archival setting, runtime, dependency, workflow or credential change
 is included in this documentation phase.
@@ -208,7 +210,18 @@ The six changed notice surfaces have no page-wide overflow at verified 320/390
 CSS pixels. These narrow checks do not extend the earlier accessibility or
 independent-user acceptance claims. The build-directory cleanup and initial
 probe corrections are retained in local evidence; no product change cleared
-them. A source-ref/export update requires a new exact-input receipt.
+them. This receipt remains bound to the earlier publisher and does not qualify
+the later source-ref/export update.
+
+The final reference-delta receipt instead uses publisher `0d6ea8bc` with the
+same four other inputs. All 16 overlaid blobs match; fresh 78 website tests,
+changed-input lint, export checks, TypeScript/125-page build and fifteen HTTP
+checks pass. Both actual Docs migration actions reach `0dc82db3` and display
+deprecation, publication and data-preservation limits. Docs Quick Start and
+Navigation to Help retain the current preparation/published distinction. No
+unreleased 1.5.1 index-install command is exposed in preparation HTML. Earlier
+mobile/keyboard observations remain at their original notice inputs; this
+reference-only delta does not requalify broader accessibility or user acceptance.
 
 ## Release and delivery gaps
 
