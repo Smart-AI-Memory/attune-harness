@@ -426,3 +426,8 @@ Session handoffs and starters, kept as written. The directory is ignored on
 - [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
 
 - [Moving from Attune AI to Harness — historical 1.0.0 guidance](migration-from-attune-ai.md) — Retained pre-release per-journey decisions; use the current migration guide above for 1.5.1 preparation.
+
+## Documentation archive and audit
+
+- [Historical documentation archive](archive/README.md): Original versioned instructions and dated evidence, preserved at their existing paths
+- [1.5.1 documentation surface audit](documentation-audit-1.5.1.md): Current preparation, published baseline, ownership, file inventory and remaining checks
