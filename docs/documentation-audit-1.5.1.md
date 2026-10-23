@@ -164,6 +164,52 @@ local fragment targets existed. Both pages had one main region and one primary
 heading. These are bounded presentation and keyboard observations, not full
 accessibility conformance, screen-reader testing or independent user acceptance.
 
+## Attune AI deprecation direction
+
+Patrick subsequently directed deprecation of Attune AI and a move to Harness
+1.5.1 instead of routine Attune AI dependency or feature maintenance. The
+separate [README notice #2582](https://github.com/Smart-AI-Memory/attune-ai/pull/2582)
+and #2575 website notices remain their owner's lane. #2579 commit
+`39273d3a1660eb1646b9f8b105fd1936534d9775` adds notices on Pricing and How it
+works using the existing release adapter; Navigation already targets canonical
+Help. #2581 commit `1a876991265ad69135a8f3ba6a73f7f31695d90d` labels the retained
+Attune AI installation command historical in the Author wrapper and links the
+current Harness Quick Start. It adds no adapter dependency to that independent
+prerequisite. The original Author and 1.4.0 archive blocks remain byte-identical.
+
+Deprecation does not establish feature parity or migrate saved work. Preserve
+existing environments and published artifacts; the standalone attune-help
+reader is a separate project. The fresh package-index check still reports
+published 1.5.0 with no 1.5.1 artifact. Current setup must continue to distinguish
+candidate validation from a published installation.
+
+The [reviewed current migration correction](https://github.com/Smart-AI-Memory/attune-harness/blob/0dc82db327af9eae41f7bf812480cc76d2cd7fc7/docs/migration.md)
+is signed and committed in #301 at `0dc82db327af9eae41f7bf812480cc76d2cd7fc7`.
+It records deprecation while preserving the unpublished target, environment,
+saved-data and parity limits. All 21 relative links and their target bytes are
+unchanged from the earlier verified guide; the historical 1.0.0 record remains
+byte-identical. The existing canonical export still pins `93f161b8`, whose
+wording predates this decision. The Help owner retains the common
+documentation-pin update and normal export reimport. Until that committed
+payload is consumed, the current website-to-source correction is an open
+dependency, not a closed documentation gate. Preserve behavioral, validation, tutorial,
+historical observation and frozen audit-inventory identities. No package
+metadata, archival setting, runtime, dependency, workflow or credential change
+is included in this documentation phase.
+
+The separate deprecation-notice combination uses publisher `f2e35afd`, Docs
+`fe82c8b3`, archive `bb7841b0`, entry points `39273d3a` and Author `1a876991`.
+All 16 overlaid blobs match their commits. Its 78 website tests, lint, export
+check and TypeScript/125-page production build pass. Fifteen HTTP checks verify
+the notices, current guide targets, preparation-only install gate, published
+fallback, legacy anchors and 404 behavior. Actual browser checks reach Get
+started and open the FAQ deprecation answer with Enter and visible focus.
+The six changed notice surfaces have no page-wide overflow at verified 320/390
+CSS pixels. These narrow checks do not extend the earlier accessibility or
+independent-user acceptance claims. The build-directory cleanup and initial
+probe corrections are retained in local evidence; no product change cleared
+them. A source-ref/export update requires a new exact-input receipt.
+
 ## Release and delivery gaps
 
 After the initial audit snapshot, the release owner verified #303 merged as
