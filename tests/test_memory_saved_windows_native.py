@@ -989,6 +989,17 @@ def _concurrency_outputs(row):
         row['diagnostic_unobserved'] = True
 
 
+def _ordinary_saved_program():
+    import base64
+    import zlib
+    timing = (Path(__file__).parent / 'helpers' / 'windows_saved_held_timing.py').read_text(encoding='utf-8')
+    source = _CONTENTION + timing + '\n' + _SAVE
+    # The original inline program is already near CreateProcessW's command-line
+    # limit. Decode trusted test source before storage starts, keeping argv fixed.
+    encoded = base64.b64encode(zlib.compress(source.encode('utf-8'))).decode('ascii')
+    return 'import base64,zlib\nexec(zlib.decompress(base64.b64decode(' + repr(encoded) + ')))'
+
+
 def writers(root, requests, record_property, phase, observation=None):
     import time
     children, rows, primary, cleanup_error, cells = [], [], None, None, None
@@ -1006,11 +1017,16 @@ def writers(root, requests, record_property, phase, observation=None):
             cells = _new_contention_cells()
             owners = cells.producer_factory(cells.native)
         # Ordinary R4 outside the admitted route adds no producer-object/mapping APIs.
+        script = _CONTENTION + _SAVE
+        if stop is None:
+            # Ordinary diagnostics only. Retained-cell admission and its frozen
+            # script remain unchanged; no additional workload or retry is run.
+            script = _ordinary_saved_program()
         for value in requests:
             row = {'request_id': value['request_id'], 'launch_begin_ns': stamp(),
                    'output_received': False, 'killed_by_parent': False}
             if stop is not None: unsafe = True  # Until all actual producer objects are confirmed.
-            child = subprocess.Popen([sys.executable, '-I', '-c', _CONTENTION + _SAVE, str(root),
+            child = subprocess.Popen([sys.executable, '-I', '-c', script, str(root),
                 json.dumps(value, ensure_ascii=True), '' if cells is None else cells.name,
                 '' if cells is None else cells.nonce, str(len(children)),
                 '' if owners is None else json.dumps(owners.parent, sort_keys=True)], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
