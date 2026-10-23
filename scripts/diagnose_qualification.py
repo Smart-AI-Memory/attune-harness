@@ -87,14 +87,24 @@ def diagnose(directory):
                     raise ValueError('invalid elapsed time')
                 if elapsed < previous or elapsed < 0:
                     warnings.append('Timing clock reversed or became negative; elapsed intervals are unreliable.')
-                if not isinstance(event.get('event'), str) or event['event'] not in {'suite_start', 'suite_end', 'case_start', 'case_end',
-                                             'phase_start', 'phase_end'}:
+                snapshots = {'timeout_snapshot', 'timeout_snapshot_failed'}
+                if not isinstance(event.get('event'), str) or event['event'] not in {
+                        'suite_start', 'suite_end', 'case_start', 'case_end',
+                        'phase_start', 'phase_end', *snapshots}:
                     raise ValueError('unsupported timing event')
-                if event['event'].startswith(('case_', 'phase_')) and not isinstance(event.get('nodeid'), str):
+                snapshot = event['event'] in snapshots
+                if (event['event'].startswith(('case_', 'phase_')) or snapshot) and not isinstance(event.get('nodeid'), str):
                     raise ValueError('missing case identity')
-                if event['event'].startswith('phase_') and (not isinstance(event.get('phase'), str)
+                if (event['event'].startswith('phase_') or snapshot) and (
+                        not isinstance(event.get('phase'), str)
                         or event['phase'] not in {'setup','call','teardown'}):
                     raise ValueError('invalid phase')
+                if event['event'] == 'timeout_snapshot_failed' and (
+                        not isinstance(event.get('error_type'), str)
+                        or not 1 <= len(event['error_type']) <= 80):
+                    raise ValueError('invalid snapshot error type')
+                if event['event'] == 'timeout_snapshot' and 'error_type' in event:
+                    raise ValueError('successful snapshot has an error type')
                 if 'duration_seconds' in event and (type(event['duration_seconds']) not in (int,float)
                         or not math.isfinite(event['duration_seconds'])):
                     raise ValueError('invalid duration')

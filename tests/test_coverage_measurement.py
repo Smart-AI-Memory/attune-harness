@@ -622,6 +622,22 @@ def test_churn(capsys):
     assert not (tmp_path / 'native-called').exists()
 
 
+def assert_timeout_journal_records_failed_session(directory):
+    diagnostic_spec = importlib.util.spec_from_file_location(
+        'timeout_diagnostic', SCRIPT.parent / 'diagnose_qualification.py')
+    diagnostic = importlib.util.module_from_spec(diagnostic_spec)
+    diagnostic_spec.loader.exec_module(diagnostic)
+    (directory / 'platform.json').write_text(json.dumps({
+        'schema_version': 1, 'status': 'failed', 'pytest_exit': 1, 'exit': 1}))
+    result = diagnostic.diagnose(directory)
+    assert result['classification'] == 'pytest_session_failed'
+    assert result['timing_sequence_valid'] is True
+    assert result['session_end']['exit_status'] == 1
+    assert result['junit_counts']['failures'] + result['junit_counts']['errors'] == 1
+    assert result['evidence_issues'] == []
+    assert result['qualification_authority'] is False
+
+
 @pytest.mark.parametrize('phase', ['setup', 'call'])
 def test_future_timeout_keeps_worker_stack_before_teardown(tmp_path, phase):
     """A future can time out before the slow-test timer ever samples it."""
@@ -652,7 +668,8 @@ def test_timeout(boundary):
        .replace('PHASE_CALL', 'boundary.result(timeout=0.05)' if phase == 'call' else 'pass'))
     run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
                           '-p', 'harness_qualification_stacks',
-                          '-o', 'faulthandler_timeout=0', str(test)],
+                          '-o', 'faulthandler_timeout=0',
+                          '--junitxml=' + str(tmp_path / 'tests.xml'), str(test)],
                          cwd=tmp_path, capture_output=True, text=True, timeout=10,
                          env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                               'PYTHONPATH': str(SCRIPT.parent),
@@ -671,6 +688,7 @@ def test_timeout(boundary):
               and row['phase'] == phase]
     assert len(failed) == 1 and failed[0]['outcome'] == 'failed'
     assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    assert_timeout_journal_records_failed_session(tmp_path)
 
 
 @pytest.mark.parametrize('failure', ['stack', 'journal', 'both'])
@@ -695,7 +713,8 @@ def test_timeout():
 """.replace('FAILURE', repr(failure)))
     run = subprocess.run([sys.executable, '-m', 'pytest', '-q',
                           '-p', 'harness_qualification_stacks',
-                          '-o', 'faulthandler_timeout=0', str(test)],
+                          '-o', 'faulthandler_timeout=0',
+                          '--junitxml=' + str(tmp_path / 'tests.xml'), str(test)],
                          cwd=tmp_path, capture_output=True, text=True, timeout=10,
                          env={**os.environ, 'PYTEST_DISABLE_PLUGIN_AUTOLOAD': '1',
                               'PYTHONPATH': str(SCRIPT.parent),
@@ -706,6 +725,7 @@ def test_timeout():
     timings = [json.loads(line) for line in
                (tmp_path / 'test-timings.jsonl').read_text().splitlines()]
     assert timings[-1]['event'] == 'suite_end' and timings[-1]['exit_status'] == 1
+    assert_timeout_journal_records_failed_session(tmp_path)
     snapshots = [row for row in timings if row['event'].startswith('timeout_snapshot')]
     if failure == 'stack':
         assert len(snapshots) == 1
