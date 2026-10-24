@@ -218,6 +218,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
         raise ValueError("Use a canonical output path without symlink parents")
     manifest = json.loads((content / "manifest.json").read_text(encoding="utf-8"))
     topics = manifest["topics"]
+    current_topics = [topic for topic in topics if not topic.get("archived")]
     slugs = [topic["slug"] for topic in topics]
     if len(slugs) != len(set(slugs)) or any(
         not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug) for slug in slugs
@@ -232,6 +233,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             "help.css",
             "verification.json",
             "preparation.json",
+            "release-1.5.1.json",
         )
     ]
     pages = [
@@ -300,7 +302,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                     f'<section class="help-card"><p class="help-eyebrow">{html.escape(t["kind"])} · {html.escape(t.get("version", manifest["version"]))}</p>'
                     f'<h2><a href="{HELP_ROOT}{t["slug"]}/">{html.escape(t["title"])}</a></h2>'
                     f'<p>{html.escape(t["goal"])}</p></section>'
-                    for t in topics
+                    for t in current_topics
                 )
                 + "</div>"
             )
@@ -315,7 +317,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             f'<li><a href="{HELP_ROOT}{t["slug"]}/"'
             + (' aria-current="page"' if t["slug"] == slug else "")
             + f'>{html.escape(t["title"])}</a></li>'
-            for t in topics
+            for t in current_topics
         )
         version = topic.get("version", manifest["version"])
         published = topic.get("status", manifest["status"]) == "published"
@@ -324,6 +326,18 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             if published
             else f'Guidance target: <strong>Harness {html.escape(version)}</strong> preparation. Unpublished; use published {html.escape(manifest["published_version"])} until release.'
         )
+        if topic.get("archived"):
+            original = (
+                f"published <strong>Harness {html.escape(version)}</strong>"
+                if published
+                else f"Harness {html.escape(version)} preparation before publication"
+            )
+            notice = (
+                f"Archived guide: these instructions describe {original}. "
+                "Keep their original evidence limits. "
+                '<a href="/harness/help/archive/">Browse the archive</a> or '
+                '<a href="/harness/help/1-5-1/">use current 1.5.1 guidance</a>.'
+            )
         rendered[slug] = template.substitute(
             title=html.escape(title),
             goal=html.escape(goal),
@@ -335,7 +349,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             ),
             robots=(
                 "index,follow"
-                if topic.get("status", manifest["status"]) == "published"
+                if published and not topic.get("archived")
                 else "noindex,follow"
             ),
             navigation=navigation,
@@ -372,7 +386,13 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
         rendered,
         {
             HELP_ROOT + name
-            for name in (*assets, "help.css", "verification.json", "preparation.json")
+            for name in (
+                *assets,
+                "help.css",
+                "verification.json",
+                "preparation.json",
+                "release-1.5.1.json",
+            )
         },
     )
     output.mkdir(parents=True, exist_ok=False)
@@ -383,6 +403,9 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
         (content / "verification.json").read_bytes()
     )
     (root / "preparation.json").write_bytes((content / "preparation.json").read_bytes())
+    (root / "release-1.5.1.json").write_bytes(
+        (content / "release-1.5.1.json").read_bytes()
+    )
     for name, source in assets.items():
         target = root / name
         target.parent.mkdir(exist_ok=True)

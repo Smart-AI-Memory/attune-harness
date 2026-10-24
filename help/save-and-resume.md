@@ -1,8 +1,8 @@
 ## Before you begin
 
 Complete [Get started](/harness/help/get-started/) in a fresh working directory.
-Keep the selected 1.5.1 validation environment active. `R` is the absolute preparation checkout
-at commit `0f2711b4c88ee4f231f61d71cd70a0c840be6357`, as set in Get started; its example files are not in the wheel.
+Keep the published 1.5.1 environment active. `R` is the absolute release checkout
+at commit `ebb5b03b8a4398325df7ddabd28c08186451452e`, as set in Get started; its example files are not in the wheel.
 These examples use a POSIX shell and canonical paths. On macOS, use
 `/private/tmp` instead of the `/tmp` symlink. Choose unused practice directories.
 Windows desktop and shell journeys remain unqualified.
@@ -61,13 +61,15 @@ Neither starts work. Browser forms cannot dispatch builds or resume execution.
 **Expected result:** Inspection describes the saved draft without running work.
 **Limit:** Restarting a form listener reopens intake; it is different from execution resume. External/native execution can have effects and consume usage.
 
-Explicit [CLI saved memory](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/memory-saving.md) is a separate store from browser form answers.
+For a `feature-work-v1` task, the [pause-and-return procedure](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/cli-guide.md#pause-and-return-to-work) shows how to inspect the current task and write a read-only HTML briefing with a caller-owned continuation note. It does not resume execution or restore an old browser form. Read its task/revision and path requirements before using it.
+
+Explicit [CLI saved memory](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/memory-saving.md) is a separate store from browser form answers.
 
 ## Verification and sources
 
-For 1.5.1 preparation, compare the procedure with the [reviewed source](https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/docs/cli-guide.md) and [preparation record](/harness/help/preparation.json). The final selected artifact still requires replay; the older observations below retain their original identity.
+Published 1.5.1 uses release commit `ebb5b03b8a4398325df7ddabd28c08186451452e`. Read its [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/cli-guide.md) and [release record](/harness/help/release-1.5.1.json) for source, artifact and check identities. The [historical preparation record](/harness/help/preparation.json) retains its original candidate boundary. The older observations below are 1.5.0 evidence; they are not new 1.5.1 walkthrough results.
 
-The [current verification record](/harness/help/verification.json) distinguishes fresh published-1.5.0 observations
+The [historical 1.5.0 verification record](/harness/help/verification.json) distinguishes fresh published-1.5.0 observations
 from the retained [candidate walkthrough evidence](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/tutorials-1.5.0-candidate.md).
 The [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md) supplies the change sequence;
 [released CLI guidance](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md) and released UI source

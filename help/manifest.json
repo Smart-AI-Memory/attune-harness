@@ -1,12 +1,12 @@
 {
   "version": "1.5.1",
-  "behavior_commit": "0f2711b4c88ee4f231f61d71cd70a0c840be6357",
+  "behavior_commit": "ebb5b03b8a4398325df7ddabd28c08186451452e",
   "content_origin": {
     "repository": "Smart-AI-Memory/attune-ai",
     "commit": "6695106f8a185e310b7b8f9d463395cb0752c22a",
     "path": "website/lib/harness-help"
   },
-  "chronology_source": "https://github.com/Smart-AI-Memory/attune-harness/blob/0f2711b4c88ee4f231f61d71cd70a0c840be6357/CHANGELOG.md",
+  "chronology_source": "https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/CHANGELOG.md",
   "topics": [
     {
       "slug": "goals",
@@ -17,23 +17,32 @@
     },
     {
       "slug": "1-5-1",
-      "title": "Prepare for Harness 1.5.1",
-      "goal": "Review planned changes, candidate setup and the remaining release gates.",
-      "kind": "preparation"
+      "title": "Get started with Harness 1.5.1",
+      "goal": "Install the published release, check a local result and choose your next workflow.",
+      "kind": "task",
+      "legacy_anchors": {
+        "version-and-scope": "install-harness-151",
+        "prepare-installation-and-candidate-validation": "install-harness-151",
+        "evidence-and-older-versions": "keep-older-evidence-in-context"
+      }
     },
     {
       "slug": "1-5-0",
-      "title": "Harness 1.5.0 overview",
-      "goal": "Install the published release, check a local result, and choose your next workflow.",
+      "title": "Harness 1.5.0 \u2014 archived",
+      "goal": "Read the historical installation guide and its original verification limits.",
       "kind": "task",
       "version": "1.5.0",
-      "status": "published"
+      "status": "published",
+      "archived": true
     },
     {
       "slug": "ai-tools-and-integrations",
       "title": "AI tools and integrations",
       "goal": "Find commands by typical use, understand their order and know where judgment and approval enter.",
-      "kind": "reference"
+      "kind": "reference",
+      "legacy_anchors": {
+        "completed-assessment-evidence-in-151-preparation": "completed-assessment-evidence-in-151"
+      }
     },
     {
       "slug": "get-started",
@@ -99,12 +108,27 @@
         "what-a-normal-130-install-supplies": "what-the-inspected-base-install-supplies",
         "what-a-normal-150-install-supplies": "what-the-inspected-base-install-supplies"
       }
+    },
+    {
+      "slug": "archive",
+      "title": "Documentation archive",
+      "goal": "Find guides and evidence by version and release state.",
+      "kind": "reference"
+    },
+    {
+      "slug": "1-5-1-preparation",
+      "title": "Harness 1.5.1 preparation \u2014 archived",
+      "goal": "Read the preparation guide under its original source and artifact limits.",
+      "kind": "archive",
+      "version": "1.5.1",
+      "status": "preparation",
+      "archived": true
     }
   ],
   "overview_anchors": {
     "learning-title": "choose-a-task",
     "start-with-the-current-release": "check-the-version-before-starting"
   },
-  "status": "preparation",
-  "published_version": "1.5.0"
+  "status": "published",
+  "published_version": "1.5.1"
 }
