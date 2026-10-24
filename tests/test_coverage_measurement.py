@@ -169,6 +169,9 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
     monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
         run=successful_child, check_output=subprocess.check_output,
         CalledProcessError=subprocess.CalledProcessError, STDOUT=subprocess.STDOUT))
+    # Keep this existing serial-producer drift control independent of scheduling.
+    # New default-topology controls exercise drift through the partition producer.
+    monkeypatch.setattr(measurement, '_partitioned_full', lambda suite: False)
     output = tmp_path / 'result'
     frozen = measurement.identity()
     assert measurement.measure(output, suite) == 1
@@ -359,6 +362,8 @@ def test_darwin_full_timeout_finalizes_unfinished_receipt(tmp_path, monkeypatch)
         prefix='dedicated', base_prefix='base', executable=sys.executable))
     monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
     monkeypatch.setattr(measurement.platform, 'system', lambda: 'Darwin')
+    # Exercise the retained serial finalizer; partition cancellation has real controls.
+    monkeypatch.setattr(measurement, '_partitioned_full', lambda suite: False)
     frozen = {'revision': 'a' * 40, 'sources': measurement.hashes(source),
               'input_hashes': {}, 'coverage_version': measurement.VERSION,
               'pytest_version': '9.1.1'}
@@ -437,6 +442,8 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
     monkeypatch.setattr(measurement, 'ROOT', root)
     monkeypatch.setattr(measurement, 'SOURCE', source)
+    # Preserve this actual serial phase-watchdog control and all its assertions.
+    monkeypatch.setattr(measurement, '_partitioned_full', lambda suite: False)
     frozen = {'revision': 'a' * 40, 'sources': measurement.hashes(source),
               'input_hashes': {}, 'coverage_version': measurement.VERSION,
               'pytest_version': '9.1.1'}

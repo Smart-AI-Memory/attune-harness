@@ -17,6 +17,10 @@ import pytest
 # Keep journal time independent of tests replacing the shared time module.
 _monotonic = time.monotonic
 _stack_write_lock = threading.Lock()
+MAX_FAILURE_RECORDS = 64
+MAX_FAILURE_BYTES = 1024 * 1024
+MAX_FAILURE_TEXT = 4096
+MAX_FAILURE_NODE = 1024
 
 
 def pytest_addoption(parser):
@@ -58,10 +62,23 @@ def pytest_configure(config):
     # Each event is written immediately, including starts whose test is killed.
     config._harness_timing_log = (
         Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'test-timings.jsonl').open('wb', buffering=0)
+    try:
+        config._harness_failure_records = config._harness_failure_bytes = 0
+        config._harness_failure_limited = False
+        config._harness_failure_log = (
+            Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'failed-phases.jsonl').open('xb', buffering=0)
+    except Exception:
+        config._harness_failure_log = None
     _timing(config, 'suite_start')
 
 
 def pytest_unconfigure(config):
+    try:
+        stream = getattr(config, '_harness_failure_log', None)
+        if stream is not None:
+            stream.close()
+    except Exception:
+        pass  # A diagnostic close must not replace pytest's original verdict.
     for name in ('_harness_stack_log', '_harness_timing_log'):
         stream = getattr(config, name, None)
         if stream is not None:
@@ -74,6 +91,51 @@ def _timing(config, event, **details):
               **details}
     config._harness_timing_log.write((json.dumps(record, ensure_ascii=True,
                                                 allow_nan=False) + '\n').encode('ascii'))
+
+
+def _failure_text(report, call):
+    if call.excinfo is not None:
+        # Keep the exception before a long traceback consumes the text cap.
+        summary = call.excinfo.exconly()
+        trace = call.excinfo.getrepr(showlocals=False, style='short', funcargs=False)
+        return summary + '\n' + str(trace)
+    return report.longreprtext
+
+
+def _failed_phase(config, report, call):
+    # Keep the original assertion before a later teardown/outer watchdog can
+    # prevent final JUnit. Separate from timing events consumed by diagnostics.
+    try:
+        stream = config._harness_failure_log
+        if stream is None or config._harness_failure_limited:
+            return
+        nodeid = str(report.nodeid)
+        record = {'schema_version': 1, 'event': 'failed_phase',
+                  'elapsed_seconds': round(_monotonic() - config._harness_timing_epoch, 6),
+                  'nodeid': nodeid[:MAX_FAILURE_NODE],
+                  'nodeid_truncated': len(nodeid) > MAX_FAILURE_NODE,
+                  'phase': report.when, 'outcome': 'failed'}
+        try:
+            text = _failure_text(report, call)
+            record.update(failure=text[:MAX_FAILURE_TEXT],
+                          failure_truncated=len(text) > MAX_FAILURE_TEXT)
+        except Exception as error:
+            record.update(failure='', failure_truncated=False,
+                          representation_error_type=type(error).__name__[:80])
+        data = (json.dumps(record, ensure_ascii=True, allow_nan=False) + '\n').encode('ascii')
+        # Reserve room for one explicit cap marker; no repeated dropped records.
+        if (config._harness_failure_records >= MAX_FAILURE_RECORDS
+                or config._harness_failure_bytes + len(data) > MAX_FAILURE_BYTES - 256):
+            config._harness_failure_limited = True
+            stream.write((json.dumps({'schema_version': 1, 'event': 'failure_log_limit',
+                'records_retained': config._harness_failure_records,
+                'bytes_retained': config._harness_failure_bytes}) + '\n').encode('ascii'))
+            return
+        stream.write(data)
+        config._harness_failure_records += 1
+        config._harness_failure_bytes += len(data)
+    except Exception:
+        pass  # Open/format/write failures cannot replace the failed test.
 
 
 @pytest.hookimpl(tryfirst=True)
@@ -95,6 +157,8 @@ def pytest_runtest_teardown(item):
 def pytest_runtest_makereport(item, call):
     result = yield
     report = result.get_result()
+    if report.failed:
+        _failed_phase(item.config, report, call)
     _timing(item.config, 'phase_end', nodeid=report.nodeid, phase=report.when,
             outcome=report.outcome, duration_seconds=report.duration)
     # A bounded Future can fail before the 60-second watchdog fires. Sample

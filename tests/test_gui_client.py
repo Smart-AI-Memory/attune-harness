@@ -2,6 +2,7 @@
 """Mandatory, dependency-free regression checks for the shipped browser script."""
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from browser_process import read_browser_output, run_browser_process
@@ -22,8 +23,10 @@ def test_shipped_browser_form_regressions(tmp_path, script, runner_name, record_
     diagnostics = tmp_path / 'browser-progress.jsonl'
     command = [node, str(runner), str(source)]
     command.append(str(diagnostics))
+    # Allow bounded Windows Node startup without retrying the regression.
+    timeout = 60 if sys.platform == 'win32' else 30
     try:
-        result = run_browser_process(command, tmp_path, timeout=30)
+        result = run_browser_process(command, tmp_path, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         # pytest retains failure capture in tests.txt and failure JUnit output.
         # Keep the original timeout/cleanup; diagnostics must never mask it.

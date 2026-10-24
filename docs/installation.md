@@ -1,16 +1,17 @@
 # Install Harness and get started
 
-Updated on October 22, 2026.
+Updated on October 23, 2026.
 
 This guide prepares installation of `attune-harness` 1.5.1. Python 3.10 or
 later is required. Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
 
-**Preparation — unpublished.** Use `uv tool install 'attune-harness==1.5.0'`
-for an installation today, or follow the [published package reference](https://pypi.org/project/attune-harness/1.5.0/).
-Do not run the 1.5.1 index-install commands below until publication. For candidate
-validation now, substitute the reviewed local 1.5.1 wheel for the package
+**Check release availability.** The index-install commands below require 1.5.1
+to be published on PyPI. While 1.5.1 is unpublished, use
+`uv tool install 'attune-harness==1.5.0'`, or follow the
+[published 1.5.0 package reference](https://pypi.org/project/attune-harness/1.5.0/).
+For candidate validation, substitute the reviewed local 1.5.1 wheel for the package
 specifier, for example `uv tool install /absolute/path/to/attune_harness-1.5.1-py3-none-any.whl`.
 Retain its source and hash; a version string does not identify a final artifact.
 Preserve saved work and retained evidence environments when selecting a runtime.

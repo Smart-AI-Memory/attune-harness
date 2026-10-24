@@ -1,12 +1,14 @@
 # Source review and roundtable from either coding host
 
-The 1.4.0 source-review and roundtable workflows include `init --for roundtable`,
+The source-review and roundtable workflows include `init --for roundtable`,
 seat `check`, batch `assess-citation --decisions`, opt-in Markdown views,
-concurrent first rounds and explicit refused-turn recovery (#233). Use a 1.4.0
-installation for these additions; the earlier 1.3.0 installation does not provide
-them. The [preparation readiness record](release-readiness-1.4.0.md) retains dated
-checks and source identities, with earlier preparation statements labeled as
-history.
+concurrent first rounds and explicit refused-turn recovery (#233). These
+additions were prepared for 1.4.0 and are included in the published 1.5.0
+baseline; the earlier 1.3.0 installation does not provide them. Use the
+[current installation guide](installation.md) to select the published runtime
+or exact candidate environment. The
+[historical 1.4.0 readiness record](release-readiness-1.4.0.md) retains its dated
+checks and source identities; it does not select the current installation.
 
 The browser companion collects and inspects forms; it does not execute these
 consultation commands. Configuration and local checks do not authorize dispatch

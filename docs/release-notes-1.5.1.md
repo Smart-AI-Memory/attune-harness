@@ -1,11 +1,39 @@
 # Attune Harness 1.5.1 release notes
 
-**Draft — unpublished.** Version 1.5.1 is the proposed maintenance release after
+Version 1.5.1 is the maintenance release after
 [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
-These notes cover merged changes through
-`0f2711b4c88ee4f231f61d71cd70a0c840be6357`; the final release source and
-distribution have not been accepted. Package and plugin manifests still identify
-1.5.0. The [readiness record](release-readiness-1.5.1.md) tracks remaining checks.
+This preparation incorporates merged main
+`31dd4eb92f980c6bcac3867d8ac85a8423879f3a`, including the reader repair in #303,
+diagnostic compatibility in #304, canonical Help in #299, current walkthroughs in
+#300 and the historical-guidance audit in #305. It sets the package and both
+plugin manifests to 1.5.1 and includes the reviewed measurement, failure-evidence
+and test-supervision improvements. The
+[readiness record](release-readiness-1.5.1.md) separates candidate validation,
+remaining acceptance and publication approval.
+
+## Put existing capabilities to work
+
+Version 1.5.1 emphasizes clearer paths through the capabilities Harness already
+provides. Use the [installation guide](installation.md) to prepare your runtime,
+then the [workflow selector](supported-journeys.md) to choose work to plan,
+build, review, fix or test. The guides connect entry points, expected results
+and approval requirements. Saved progress and the
+[pause-and-return procedure](cli-guide.md#pause-and-return-to-work) help you
+inspect work and continue from a known stopping point.
+
+## Use Harness on Windows
+
+Windows users can install Harness and use its documented CLI workflows within
+the supported profiles. Windows implementations include captured test
+execution, native file-memory reads, saved memory and task storage, and
+experimental native-memory transport. This maintenance release improves the
+Windows memory-target walk and the evidence retained by software checks.
+
+Hosted checks exercise Windows Server 2022 and 2025 with Python 3.10 and 3.12.
+Use the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability)
+to select a workflow and understand its limits. The checks qualify their
+recorded source and artifacts; the remaining desktop, shell, recovery and
+storage acceptance work is listed below.
 
 ## Validate the exact plugin signature input
 
@@ -58,6 +86,48 @@ See [PR #288](https://github.com/Smart-AI-Memory/attune-harness/pull/288),
 [PR #291](https://github.com/Smart-AI-Memory/attune-harness/pull/291) and
 [PR #293](https://github.com/Smart-AI-Memory/attune-harness/pull/293).
 
+## Pause and return with preserved Windows paths
+
+Follow the connected [pause-and-return procedure](cli-guide.md#pause-and-return-to-work)
+to retain a stopping note, inspect saved context, regenerate the report and
+prepare the next assistant handoff before any authorized continuation. The
+printed Python wrapper uses raw path literals so native Windows backslashes
+reach the CLI unchanged. Keep the `r` prefix when replacing its paths.
+
+The printed-command checks cover current, absent, historical, stale and
+unresolved context. One assisted text walkthrough is retained separately from
+Task 1's incomplete independent-return and GUI acceptance. See
+[PR #296](https://github.com/Smart-AI-Memory/attune-harness/pull/296).
+
+## Complete bounded Windows source checks
+
+Each hosted Windows full-source cell now runs two supervised pytest partitions
+without increasing the 2,700-second child deadline. The driver verifies matching
+complete collections, disjoint complete selections, case journals and successful
+process exits. Each child uses a distinct root under the native system temporary
+base. Timeout or missing evidence still fails the cell, even after printed success.
+
+All four repaired Windows source cells passed on the merged precursor, and all
+28 checks passed on #296's combined head. This is server/software evidence;
+full Windows parity and desktop/shell acceptance remain separate. See
+[PR #298](https://github.com/Smart-AI-Memory/attune-harness/pull/298) and the
+[partition design](design-windows-source-suite-shards.md).
+
+## Check dangling Windows memory targets
+
+Raw-memory reads treat a confirmed dangling `findings.jsonl` symbolic link as
+absent without reading its target content. The Windows target walk now binds
+each selected ancestor name and identity without freezing unrelated siblings or
+ordinary-directory timestamps between completed observations. This avoids a
+false refusal when another operation changes an ancestor's unrelated contents.
+
+The missing target's immediate parent retains its complete namespace snapshot.
+Link metadata and reparse data, selected path bindings, completed directory scans
+and exact native missing-status checks still refuse observed changes or unsafe
+access. Targets receive no content authority. See
+[PR #303](https://github.com/Smart-AI-Memory/attune-harness/pull/303); its evidence
+separates portable regressions from native Windows results.
+
 ## Installation and compatibility
 
 Use [published 1.5.0](https://pypi.org/project/attune-harness/1.5.0/) while 1.5.1 is in preparation. The [installation guide](installation.md) and [current walkthroughs](tutorials-1.5.1.md) distinguish candidate validation from installation after publication. After
@@ -82,14 +152,26 @@ do not qualify every saved-work migration or upgrade path.
 
 ## Release checks and remaining limits
 
-Publication remains held for final preparation and approval. Current-main
-[qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
-passes, including all eight installed-wheel jobs and all four Windows full-source
-jobs. PR #298 introduced verified partitions within the unchanged total deadline.
-The earlier [failed run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
-is retained historical evidence, not the current-main result. The selected final
-1.5.1 source and artifact still need their own qualification, documentation
-reconciliation and authorized build-only rehearsal before publication approval.
+The earlier [qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
+retains its Windows full-suite timeout. #298 addresses the measured cumulative
+suite budget with verified partitions; #296's combined head passed all 28 checks,
+including the previously failing Windows wheel job. Those precursor fixes
+preserved their deadlines and assertions; the old Node startup/exit delay's
+cause remains unknown.
+
+The current preparation gives the development/intake browser-script regression
+tests a 60-second wait on Windows and 30 seconds elsewhere. Each test still runs
+once with the same functional assertions. This test-supervision allowance does
+not establish the cause of an earlier timeout or change production GUI deadlines.
+
+All 28 checks on #300's integrated preparation head passed, including the
+Windows source and installed-wheel cells. The release-preparation PR records
+fresh validation of the actual combined 1.5.1 candidate; precursor results do
+not substitute for it. The audit/archive work in #305 is included through
+merged main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`.
+Publication still requires the reviewed preparation merge, passing qualification
+for that exact main commit, an authorized build-only release rehearsal and
+Patrick's separate publication approval.
 
 Full Windows parity, strict arbitrary-descendant stop and recovery, full
 saved-store acceptance, the historical eight-writer busy-failure cause, live

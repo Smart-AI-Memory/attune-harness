@@ -32,7 +32,9 @@ def test_missing_executable_and_launch_denied(tmp_path):
 
 
 def test_timeout_retains_partial_output_and_reaps_process(tmp_path):
-    result = invoke(command('import time;print("partial",flush=True);time.sleep(10)'), '', cwd=tmp_path, timeout=0.2)
+    # This stdlib-only fixture excludes site/coverage startup; the production
+    # supervisor still enforces the same deadline and retains parent coverage.
+    result = invoke((sys.executable, '-S', '-c', 'import time;print("partial",flush=True);time.sleep(10)'), '', cwd=tmp_path, timeout=0.2)
     assert result.failure == 'timeout_effects_unknown'
     assert result.stdout == 'partial\n'
     assert result.returncode == -9

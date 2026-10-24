@@ -14,6 +14,7 @@ states the review scope, validation and remaining gates. Run
 
 - [Four current 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Fresh candidate-wheel observations for intake, plan acceptance, offline research and saved-draft continuity; final release reconciliation remains open
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
+- [Move from Attune AI to Harness](migration.md): Current migration decisions, separate environments and Windows limits; historical 1.0.0 guidance retained
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
 - [Historical first repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
 - [Historical training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
@@ -424,7 +425,7 @@ Session handoffs and starters, kept as written. The directory is ignored on
 
 - [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
 
-- [Moving from Attune AI to Harness](migration-from-attune-ai.md) — Pre-release per-journey migration guide; candidate validation remains pending.
+- [Moving from Attune AI to Harness — historical 1.0.0 guidance](migration-from-attune-ai.md) — Retained pre-release per-journey decisions; use the current migration guide above for 1.5.1 preparation.
 
 ## Documentation archive and audit
 

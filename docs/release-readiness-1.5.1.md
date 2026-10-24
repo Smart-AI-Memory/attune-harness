@@ -1,43 +1,76 @@
 # Attune Harness 1.5.1 preparation readiness
 
-**Draft — unpublished.** Assessed on October 22, 2026, at
-`0f2711b4c88ee4f231f61d71cd70a0c840be6357`, current `main` for this review.
-Version 1.5.1 is proposed for the merged maintenance changes in the
-[release notes](release-notes-1.5.1.md). This record does not accept a final
-release SHA or artifact and does not authorize publication.
+**Prepared source — publication held.** This release-preparation branch
+incorporates merged main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`, including
+canonical Help (#299), current installation and walkthrough guidance (#300),
+the Windows reader repair (#303), diagnostic compatibility (#304) and the
+historical-guidance audit (#305). It updates version metadata and documentation,
+coverage measurement, failure diagnostics and test supervision. Production Python
+package modules, dependency pins and workflows are unchanged from that main.
+The eventual reviewed merge is the release SHA. Candidate evidence cannot
+replace qualification of that exact main commit or authorize publication.
 
 ## Version and scope
 
-The current published version is
-[1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
-from `7caa86ab6d476e9599b08ff75a81bc816e60c382`. A live
-[PyPI metadata](https://pypi.org/pypi/attune-harness/json) check on October 22
-reported 1.5.0 as latest and no 1.5.1 version. The remote v1.5.1 tag was absent.
-Check both again before release; availability at assessment time is not a reservation.
+The package and both shared plugin manifests identify **1.5.1**, and the
+changelog has its own `## 1.5.1` heading. The Claude marketplace stays pinned to
+published [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
+until a separately approved update after the new tag exists. Dependency pins,
+minimum Python and saved formats are unchanged. Recheck the PyPI version slot
+and remote tag at the selected source; an earlier absence is not a reservation.
 
-Eleven merged commits follow the 1.5.0 source. They include the plugin-signature
-input fix (#289), completed-assessment presentation (#292), documentation and
-browser-test diagnostics (#288, #290), broader documentation link checks (#291)
-and bounded refusal-continuation tests and follow-through (#293, #295).
-Other commits update the released Claude catalog (#287), agent collaboration guidance (#276), release preparation (#297) and verified Windows source-suite partitions (#298). No dependency-pin, minimum-Python or saved-state
-format change appears in this diff.
+Version 1.5.1 helps users apply existing planning, building, review and saved-work
+capabilities through clearer entry points and guidance. Windows users can install
+Harness and use documented CLI workflows within the supported profiles. Hosted
+Server 2022/2025 checks remain distinct from desktop, shell, recovery, storage and
+live-provider acceptance. Richer GUI/CLI training and a new independent-user
+walkthrough are follow-up work, not added 1.5.1 release requirements.
 
-This preparation changes documentation. Package and both plugin manifests
-remain at 1.5.0, and the Claude marketplace remains pinned to that released tag.
-The version bump and final changelog heading belong to final candidate preparation.
-Open PRs #294, #296 and #299 were not included in this assessed source; any later
-change needs its own scope and evidence reconciliation.
+## Current candidate checks
 
-## Current software evidence
+The [release PR](https://github.com/Smart-AI-Memory/attune-harness/pull/301)
+records the current head's exact commit/tree, distribution hashes, source and
+installed-wheel results, native CI outcomes, skips and independent review.
+Check those records against the selected head before a release decision. Each
+new head requires its own applicable validation; no earlier wheel or passing
+precursor schedule qualifies the combined candidate.
 
-The exact current-main [qualification run 39872982676](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
+Main includes verified #299 and #300 merges. #299 had 29 successful checks and
+one intentional profile skip; #300 had all 28 checks pass, including all eight
+Windows full-source/installed cells and dynamic CodeQL. Their signed squash
+trees match their tested heads. These are source-bound preparation observations,
+not full Windows parity or a final 1.5.1 artifact.
+
+The four-file audit/archive [PR #305](https://github.com/Smart-AI-Memory/attune-harness/pull/305)
+is included through signed main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`.
+Its earlier documentation checks remain evidence for that source. The combined
+release candidate requires the exact-head validation recorded in the release PR.
+
+Earlier #301 schedules retain separate failures: the Windows 2022/Python 3.10
+eight-writer save reported three busy/not_committed callers before the final
+history/replay assertions; a Windows 2025/Python 3.12 GUI build exceeded its
+30-second future deadline. The bounded #306 process trace is complete and stays
+draft/unmerged; the slow storage incident did not reproduce and no causal runtime
+fix was established. Later passing checks do not repair those observations.
+The two-second storage limit, one save per caller, eight writers, assertions and
+durability barriers remain intact.
+
+## Earlier software and documentation evidence
+
+The following October 22 observations belong to preparation source
+`0f2711b4c88ee4f231f61d71cd70a0c840be6357` and its explicitly identified local
+version-overlay wheel. Their original hashes, counts, failures and limitations
+remain historical evidence; they are not executions of this combined candidate.
+
+
+The October 22 assessed-main [qualification run 39872982676](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39872982676)
 completed successfully. All eight installed-wheel jobs, Ubuntu full-source and
 all four Windows full-source jobs pass. Documentation links, classification,
 CodeQL, isolated Windows effects, coverage and native-memory offline checks also
 pass at this source. These are software results, not full Windows parity or live
 model acceptance. No manual workflow was dispatched for this review.
 
-The former source-suite timeout is no longer a current-main blocker after #298.
+The former source-suite timeout did not block the October 22 assessed main after #298.
 Later selected changes still require qualification on their exact integrated
 source. Do not substitute a passing branch or this local wheel for that result.
 
@@ -46,7 +79,7 @@ source. Do not substitute a passing branch or this local wheel for that result.
 The [1.5.1 walkthroughs](tutorials-1.5.1.md#verification-and-release-boundary)
 record four newly exercised no-spend procedures on a fresh noneditable local
 wheel. Its package version alone was changed to 1.5.1 in an isolated snapshot;
-all 108 runtime modules match current main. Wheel SHA-256:
+all 108 runtime modules match assessed source `0f2711b4c88ee4f231f61d71cd70a0c840be6357`. Wheel SHA-256:
 `def6ab630dd677a346cc5ed728ee880a38927bf2e3142272071f96b168decc71`.
 All 96 installed packages pass dependency compatibility checks. This local
 artifact is not the accepted final 1.5.1 release candidate.
@@ -98,9 +131,9 @@ ran on the earlier assessed source and completed with failure.
 | Eight installed-wheel jobs: macOS, Ubuntu, Windows Server 2022/2025, Python 3.10/3.12 | Passed | Only the selected tests and artifacts from this run |
 | Ubuntu/Python 3.10 full source suite | Passed | This source/runtime combination |
 | Windows full source suites: Server 2022/Python 3.10 and 3.12; Server 2025/Python 3.10 | Passed | These three source/runtime combinations |
-| [Server 2025/Python 3.12 full source suite](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278/job/119850108502) | Timed out after 2,700 seconds; receipt reports `timeout_effects_unknown`, exit 124 | Earlier cause unresolved in that receipt; superseded by current-main pass after #298 |
+| [Server 2025/Python 3.12 full source suite](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278/job/119850108502) | Timed out after 2,700 seconds; receipt reports `timeout_effects_unknown`, exit 124 | Earlier cause unresolved in that receipt; the October 22 assessed source passed after #298 |
 | Documentation links and change classification | Passed | Link resolution and classification, not walkthrough correctness |
-| Required aggregate Qualification | Failed | Gate was closed for that earlier source; current-main result is above |
+| Required aggregate Qualification | Failed | Gate was closed for that earlier source; the October 22 assessed-source result is above |
 
 The same source passed
 [supplemental coverage](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227398),
@@ -127,6 +160,7 @@ qualification, native Windows results or the pending walkthrough review.
 
 ## Documentation preparation
 
+
 The following record follows the [release runbook](release-runbook.md#documentation-readiness).
 Source and test references establish what the prose describes; final-candidate
 execution, derivative coordination and released-artifact checks remain separate.
@@ -135,13 +169,14 @@ execution, derivative coordination and released-artifact checks remain separate.
 | --- | --- | --- | --- | --- | --- |
 | README, installation and workflow selection | Assessed package metadata, [installation guide](installation.md), [workflow selector](supported-journeys.md) | Changed: distinguish published 1.5.0 from planned 1.5.1 | Help Center installation and integration topics: coordinate with existing website owner; update pending | Published 1.5.0 remains available; local 1.5.1 validation wheel exercised; final artifact and later index-install checks remain separate | 1.5.0 release record retained |
 | Completed-assessment inspection | [Renderer](../src/attune_harness/assessment_view.py), [CLI owner](../src/attune_harness/task_cli.py), [owner tests](../tests/test_assessment_view.py) | Changed: label 1.5.1-only presentation and give inspection commands | Evidence-review help topic and related walkthroughs: owner coordination pending | Recorded outcomes, attribution and source identities checked against code; local candidate Markdown/HTML commands pass without saved-file changes; final-artifact reconciliation and human acceptance remain pending | Published 1.5.0 generic rendering identified explicitly |
-| Signed-plugin verification | [Verifier](../src/attune_harness/plugin_signing.py), [regression tests](../tests/test_plugin_signing.py), [design](design-plugin-signature-input.md) | Changed: explain exact validated bytes and malformed-envelope refusals | No separate plugin-training derivative identified in this review | Source-reviewed behavior; current-main installed-wheel jobs pass; final artifact and full qualification pending | September signature findings and receipts preserved |
+| Signed-plugin verification | [Verifier](../src/attune_harness/plugin_signing.py), [regression tests](../tests/test_plugin_signing.py), [design](design-plugin-signature-input.md) | Changed: explain exact validated bytes and malformed-envelope refusals | No separate plugin-training derivative identified in this review | Source-reviewed behavior; October 22 assessed-source installed-wheel jobs pass; final artifact and full qualification pending | September signature findings and receipts preserved |
+| Pause and return | [CLI procedure](cli-guide.md#pause-and-return-to-work), [printed-command tests](../tests/test_cold_start_journey.py) | Merged #296 retains raw Windows paths and stopping-note/report/handoff steps | Canonical Help is merged; website delivery remains with its owner | One assisted text walkthrough remains distinct from independent return and GUI acceptance | Earlier session-continuity observations retain their identities |
 | Four training walkthroughs | [Current 1.5.1 procedures](tutorials-1.5.1.md), [1.5.0 preparation procedures](tutorials-1.5.0-candidate.md), [historical 1.3.0 procedures](tutorials-1.3.0.md) | Four local 1.5.1 procedures exercised; earlier observations retain their original source/artifact | Help, HTML tutorials and decks: coordinate with existing content owner | Four procedures pass on the explicitly version-overlay validation wheel; final release identity and actual derivative integration remain pending | Existing versioned procedures retained |
 | Windows capability and reliability limits | [Reliability reference](windows-reliability.md), [approved task checkpoint](specs/windows-parity/tasks.md) | Reviewed for scope; existing limits retained | Windows help and shell/desktop procedures: existing owners; qualification pending | Maintenance changes do not establish full parity, storage or process recovery | 1.5.0 preparation record remains historical |
 
 ### Current reference review
 
-The runtime diff from released 1.5.0 contains only `assessment_view.py`,
+At the October 22 assessment source `0f2711b4`, the runtime diff from released 1.5.0 contained only `assessment_view.py`,
 `plugin_signing.py` and `task_cli.py`. Other instructions were checked for stale
 setup, contradictory capability claims and release status; their retained
 software evidence is not a fresh model or external-service campaign.
@@ -154,15 +189,19 @@ software evidence is not a fresh model or external-service campaign.
 | [Local verification](local-workflow.md), [review](review-workflow.md), [recovery](recovery-workflow.md), [extensions](extension-workflow.md), [pilot](pilot-workflow.md), [passage review](passage-review.md) | Corrected current setup pointers and labeled old development wheels/environments. Existing review/recovery contracts stay bounded; the retained local-model completion and quality measurements were not rerun or promoted to current qualification. |
 | [MCP](mcp-workflow.md), [A2A](a2a-workflow.md), [portable contract](portable-contract.md) | Corrected interpreter guidance and the obsolete “no implementation” protocol row. Local stdio/loopback contracts and independent-peer evidence remain distinct from remote authentication, cross-machine ownership and general interoperability. |
 | [Code retrieval](code-first-rag.md), [Voyage retrieval](voyage-retrieval.md), [code-grounded documentation](documentation-workflow.md) | Corrected obsolete development-version/setup language and removed-extra instructions. Base static documentation behavior was reviewed against its owner and tests; no model callback, Voyage request, index rebuild or retained campaign was executed. |
-| [Codex plugin](codex-plugin.md), [compatibility](compatibility.md), [envelopes](envelopes.md), [migration](migration-from-attune-ai.md) | Reviewed unchanged versioned contracts. Local Codex still reports 0.153.4, matching the explicitly scoped plugin instructions. No host registration, plugin installation, migration campaign or wider desktop qualification occurred. |
-| [Qualification](qualification.md), [coverage](coverage-measurement.md), [Windows reliability](windows-reliability.md), [Windows task checkpoint](specs/windows-parity/tasks.md) | Reviewed software-versus-capability claims against the current successful hosted matrix. Component success does not close deferred Windows recovery/storage, live-provider, desktop/shell or human-observation gates. |
+| [Codex plugin](codex-plugin.md), [compatibility](compatibility.md), [envelopes](envelopes.md), [migration](migration-from-attune-ai.md) | Reviewed unchanged versioned contracts. The October 22 local Codex observation reported 0.153.4, matching the explicitly scoped plugin instructions. No host registration, plugin installation, migration campaign or wider desktop qualification occurred. |
+| [Qualification](qualification.md), [coverage](coverage-measurement.md), [Windows reliability](windows-reliability.md), [Windows task checkpoint](specs/windows-parity/tasks.md) | Reviewed software-versus-capability claims against the October 22 assessed-source hosted matrix. Component success does not close deferred Windows recovery/storage, live-provider, desktop/shell or human-observation gates. |
 | [Earlier journey map](release-journey-map.md), [readiness direction](harness-release-readiness-direction.md) | Historical absence claims now point to delivered plan/build guidance. Original measurements, frozen designs, receipts, wheels and model artifacts were preserved. |
 | [Guidance examples](user-guidance-examples.md), [controls article](blog/controls-savings-user-journey.md) | Reviewed as dated proposed copy and an unpublished editorial draft. Reported 16-attempt comparison, replay controls and 21-call contaminated trial remain consistent with their linked result summaries. Raw unavailable receipts were not independently replayed; no customer savings or publication is claimed. This separate article still requires its own content approval. |
 
 ### Help and training ownership
 
-The canonical Help source is being prepared in Harness
-[PR #299](https://github.com/Smart-AI-Memory/attune-harness/pull/299).
+The canonical Help source from
+[PR #299](https://github.com/Smart-AI-Memory/attune-harness/pull/299) is merged
+as signed `013b84a6d1984f388df41452299ddacc90bb5f5b`, with a tree equal to
+its tested `3073eb4a` head. It retains the reviewed documentation pin
+`0dc82db327af9eae41f7bf812480cc76d2cd7fc7`; original behavior, tutorial and
+observation identities are unchanged.
 The website cutover is
 [PR #2574](https://github.com/Smart-AI-Memory/attune-ai/pull/2574), followed by
 the surrounding entry points in
@@ -170,9 +209,9 @@ the surrounding entry points in
 The named owners agreed to preserve the goals route, prominent landing link,
 learning-first compact navigation, 21 goal accordions, six testing FAQs and
 local unapproved worksheet. The website entry-point PR must drop its duplicate
-Help implementation after the canonical export is reviewable. These are open
-drafts; final integration, source pins, drift/build/link checks and release gating
-remain required. Independent browser review found the spec worksheet outside
+Help implementation after the canonical export is reviewable. The website PRs remain separate
+drafts; final website integration, source pins, drift/build/link checks and
+publication approval remain required. Independent browser review found the spec worksheet outside
 its collapsed topic in the first port. Corrected Help source
 `295230ac53d601c9a2539020a3f5be7044cc7559` preserves worksheet ownership and
 all six testing FAQs inside their topic; the renderer now rejects broken nesting
@@ -198,26 +237,27 @@ Package preparation does not deploy Help Center, tutorial or deck updates.
 
 ## Required before publication
 
-1. Select the final source and obtain its passing required qualification.
-   Current main passes after #298; the older timeout is retained above.
-   Reconcile any additional selected PRs and retain their failures separately.
-   Workflow reruns require authorization.
-2. Set the package and both plugin manifests to the final version, add its
-   changelog heading, review README claims and pin its documentation links to
-   the release tag or an existing reviewed revision. Reconcile later changes
-   with these notes. Keep the marketplace at 1.5.0 until the new tag exists.
-3. Reconcile the observed walkthroughs with the final source; rerun affected
-   procedures if their inputs or behavior change. Finish the actual Help/website
-   integration and confirm tutorial/deck dispositions with their owners. Record the candidate source, artifact,
-   observed results and explicitly retained older guidance.
-4. Build and validate distributions, install the wheel and run the required
-   installed checks. After the preparation PR merges, verify exact-main CI and
-   obtain authorization for the build-only release-workflow rehearsal.
-5. Follow the runbook's separately gated publication, PyPI-byte verification,
-   tag/release creation and subsequent marketplace update. Recheck version and
-   tag availability at the selected source. Publication and merge remain Patrick's.
+1. Select the complete source, reconcile accepted dependencies through main and
+   pass the final candidate checks. Preserve failures and older evidence under
+   their original identities; no runtime or assertion weakening follows.
+2. Review the metadata, changelog, README, current migration guidance and affected
+   walkthroughs against that candidate. Package and plugin versions must agree;
+   the marketplace stays at 1.5.0 until the new tag exists. Close Help/tutorial/deck
+   dispositions with their existing owners or retain an explicit approved older
+   version. Software checks do not establish user comprehension.
+3. Build and validate distributions, install the actual wheel and run the required
+   installed checks. After the preparation PR merges, require successful
+   push-to-main qualification for that exact release SHA.
+4. Obtain separate authorization for the build-only `publish-pypi.yml` rehearsal
+   from main with `publish=false`. Inspect its release gate and distributions;
+   local builds and branch CI do not substitute for that post-merge rehearsal.
+5. Recheck PyPI/tag availability and obtain Patrick's separate publication go.
+   Patrick approves the PyPI environment himself. Verify both published files
+   against the publishing run, then follow separately authorized signed tag,
+   GitHub release and marketplace-update steps.
 
 The deferred full Windows parity, process stop/recovery, saved-store acceptance,
 historical eight-writer cause, live native-memory, Windows 11 standard-user desktop,
-shell and user-observation requirements remain open. Preserve earlier receipts;
-add evidence beside them rather than rewriting their identities or outcomes.
+shell and human-observation requirements remain open with their existing owners.
+No new parity, migration, training or independent-user campaign is added here.
+Publication, PR merges and manual workflow dispatch remain held.
