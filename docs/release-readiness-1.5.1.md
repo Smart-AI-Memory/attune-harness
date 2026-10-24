@@ -1,10 +1,12 @@
 # Attune Harness 1.5.1 preparation readiness
 
-**Prepared source — validation and publication held.** This release-preparation
-branch incorporates merged main `13e46e06cbcefc3a5bd806fe58c913a7a695bcb7`, including canonical Help (#299),
-current installation and walkthrough guidance (#300), the Windows reader repair
-(#303) and diagnostic compatibility (#304). The branch changes version metadata
-and documentation; it has no net runtime, test or workflow change from that main.
+**Prepared source — publication held.** This release-preparation branch
+incorporates merged main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`, including
+canonical Help (#299), current installation and walkthrough guidance (#300),
+the Windows reader repair (#303), diagnostic compatibility (#304) and the
+historical-guidance audit (#305). It updates version metadata and documentation,
+coverage measurement, failure diagnostics and test supervision. Production Python
+package modules, dependency pins and workflows are unchanged from that main.
 The eventual reviewed merge is the release SHA. Candidate evidence cannot
 replace qualification of that exact main commit or authorize publication.
 
@@ -26,10 +28,12 @@ walkthrough are follow-up work, not added 1.5.1 release requirements.
 
 ## Current candidate checks
 
-Final local source tests, fresh distributions, installed-wheel qualification and
-current-head native CI are pending this reconciliation. The release PR records
-their exact commit/tree, artifact hashes, actual outcomes and skips. No earlier
-wheel or passing precursor schedule qualifies this combined candidate.
+The [release PR](https://github.com/Smart-AI-Memory/attune-harness/pull/301)
+records the current head's exact commit/tree, distribution hashes, source and
+installed-wheel results, native CI outcomes, skips and independent review.
+Check those records against the selected head before a release decision. Each
+new head requires its own applicable validation; no earlier wheel or passing
+precursor schedule qualifies the combined candidate.
 
 Main includes verified #299 and #300 merges. #299 had 29 successful checks and
 one intentional profile skip; #300 had all 28 checks pass, including all eight
@@ -37,11 +41,10 @@ Windows full-source/installed cells and dynamic CodeQL. Their signed squash
 trees match their tested heads. These are source-bound preparation observations,
 not full Windows parity or a final 1.5.1 artifact.
 
-The four-file audit/archive PR #305 remains draft and unmerged. Its 15 passing
-checks, two documentation-profile matrix skips and zero unresolved conversations
-do not establish freshness against the selected main. Its files are excluded
-here. If retained in the selected release scope, integrate it through main under
-separate approval, then refresh and requalify this preparation.
+The four-file audit/archive [PR #305](https://github.com/Smart-AI-Memory/attune-harness/pull/305)
+is included through signed main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`.
+Its earlier documentation checks remain evidence for that source. The combined
+release candidate requires the exact-head validation recorded in the release PR.
 
 Earlier #301 schedules retain separate failures: the Windows 2022/Python 3.10
 eight-writer save reported three busy/not_committed callers before the final
