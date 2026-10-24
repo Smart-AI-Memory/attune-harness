@@ -4,7 +4,7 @@ Harness owns the Help Center's Markdown, version manifest, static renderer and
 verification. The existing public URL remains
 <https://smartaimemory.com/harness/help/> until a separate website cutover.
 
-## Coordinated goals and 1.5.1 preparation
+## Published 1.5.1 guidance and historical evidence
 
 The goals guide is also canonical Harness content. Port its authored HTML, local
 worksheet data, styles, controls and historical 1.5.0 captures from the reviewed
@@ -19,11 +19,11 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Guidance for planned 1.5.1 must say preparation, identify its reviewed source and
-retain publication as a separate gate. Published 1.5.0 observations and captures
-keep that identity. A metadata-only validation wheel is not the selected final
-release artifact. Reconcile current instructions against the changelog and code;
-do not relabel an older result as a new walkthrough.
+Current guidance names published 1.5.1 and its immutable release source. The
+release record identifies the public artifacts and software-check boundaries.
+Published 1.5.0 observations, captures and the preparation record keep their
+original identities. A metadata-only validation wheel remains candidate evidence;
+do not relabel it or an older result as a new published-artifact walkthrough.
 
 Rejected alternative: retaining a separate React goals implementation would
 restore two content owners and allow the cutover to discard either navigation

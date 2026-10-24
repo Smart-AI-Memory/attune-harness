@@ -18,15 +18,27 @@ builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
 
 
-def test_all_current_routes_and_contents_links_work(tmp_path):
-    record = builder.build_site(tmp_path / "site")
+@pytest.mark.parametrize(
+    ("status", "published_version"),
+    [("published", "1.5.1"), ("preparation", "1.5.0")],
+)
+def test_all_current_routes_and_contents_links_work(
+    tmp_path, status, published_version
+):
+    content = tmp_path / "content"
+    shutil.copytree(ROOT / "help", content)
+    manifest_path = content / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest.update(status=status, published_version=published_version)
+    manifest_path.write_text(json.dumps(manifest))
+    record = builder.build_site(tmp_path / "site", content)
     assert record["version"] == "1.5.1"
-    assert record["status"] == "preparation"
-    assert record["published_version"] == "1.5.0"
-    assert record["pages"] == 12
+    assert record["status"] == status
+    assert record["published_version"] == published_version
+    assert record["pages"] == 14
     directory = tmp_path / "site/harness/help"
     files = list(directory.rglob("index.html"))
-    assert len(files) == 12
+    assert len(files) == 14
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
@@ -37,13 +49,30 @@ def test_all_current_routes_and_contents_links_work(tmp_path):
         ) in text
         assert 'id="main-content" tabindex="-1"' in text
         if page.parent.name == "goals":
-            assert "Preparation only; this version is not yet released" in text
+            assert (
+                "Published guidance."
+                if status == "published"
+                else "Preparation only; this version is not yet released"
+            ) in text
+        elif page.parent.name == "1-5-1-preparation":
+            assert "Harness 1.5.1 preparation before publication" in text
+            assert "Archived guide:" in text
         else:
             assert (
                 "published <strong>Harness 1.5.0</strong>"
                 if page.parent.name == "1-5-0"
-                else "Guidance target: <strong>Harness 1.5.1</strong> preparation"
+                else (
+                    "published <strong>Harness 1.5.1</strong>"
+                    if status == "published"
+                    else "Guidance target: <strong>Harness 1.5.1</strong> preparation"
+                )
             ) in text
+        assert (
+            '<meta name="robots" content="index,follow">'
+            if status == "published"
+            and page.parent.name not in {"1-5-0", "1-5-1-preparation"}
+            else '<meta name="robots" content="noindex,follow">'
+        ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
     for anchor in (
         "plan-accept-then-build",
@@ -60,6 +89,25 @@ def test_all_current_routes_and_contents_links_work(tmp_path):
         in (directory / "start-and-continue/index.html").read_text()
     )
     assert (directory / "verification.json").is_file()
+    assert (directory / "preparation.json").read_bytes() == (
+        ROOT / "help/preparation.json"
+    ).read_bytes()
+    assert (directory / "release-1.5.1.json").read_bytes() == (
+        ROOT / "help/release-1.5.1.json"
+    ).read_bytes()
+    landing = (directory / "index.html").read_text()
+    assert "Documentation archive" in landing
+    assert '<h2><a href="/harness/help/1-5-0/">' not in landing
+    assert '<h2><a href="/harness/help/1-5-1-preparation/">' not in landing
+    assert (
+        "Harness 1.5.1 preparation"
+        in (directory / "1-5-1-preparation/index.html").read_text()
+    )
+    assert 'id="completed-assessment-evidence-in-151-preparation"' in reference
+    assert (
+        'href="/harness/help/1-5-1-preparation/"'
+        in (directory / "archive/index.html").read_text()
+    )
 
 
 def test_goal_projection_preserves_navigation_controls_and_historical_evidence(
