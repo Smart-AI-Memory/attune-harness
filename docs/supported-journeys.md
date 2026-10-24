@@ -1,9 +1,10 @@
 # Choose a Harness workflow
 
-Updated on October 23, 2026 for the unpublished Harness 1.5.1 preparation.
-Use the reviewed local candidate for validation; use published 1.5.0 for an
-installation today. Read the [draft release notes](release-notes-1.5.1.md)
-and [readiness record](release-readiness-1.5.1.md) before relying on candidate behavior.
+Updated on October 23, 2026 for Harness 1.5.1.
+If 1.5.1 is not yet published, use published 1.5.0 or the reviewed local candidate
+for validation. Read the [release notes](release-notes-1.5.1.md)
+and [readiness record](release-readiness-1.5.1.md) for version changes, evidence
+and remaining limits.
 
 Find your goal below, then follow the linked procedure for setup and complete
 commands. New to Harness? Start with the [installation guide](installation.md)

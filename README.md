@@ -47,9 +47,10 @@ needed.
 
 For hands-on practice, choose a [current 1.5.1 preparation
 walkthrough](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md#choose-a-walkthrough).
-These use an explicitly identified local validation wheel; 1.5.1 is unpublished
-and its final artifact remains unselected. Keep the published 1.5.0 installation
-above for use today. The [goals guide](https://smartaimemory.com/harness/help/goals/)
+These procedures were exercised with an explicitly identified local validation
+wheel before final release-artifact selection. They do not replace the final
+release checks. If 1.5.1 is not yet on PyPI, use the published 1.5.0 installation
+above. The [goals guide](https://smartaimemory.com/harness/help/goals/)
 helps you choose a task; website publication follows its separate release gate.
 
 ## Advanced planning for Spec-Driven Development

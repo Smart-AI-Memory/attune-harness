@@ -1,11 +1,13 @@
 # Attune Harness 1.5.1 release notes
 
-**Prepared — publication pending.** Version 1.5.1 is the maintenance release after
+Version 1.5.1 is the maintenance release after
 [1.5.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0).
 This preparation incorporates merged main
-`13e46e06cbcefc3a5bd806fe58c913a7a695bcb7`, including the reader repair in #303, diagnostic
-compatibility in #304, canonical Help in #299 and current walkthroughs in #300.
-It sets the package and both plugin manifests to 1.5.1. The
+`31dd4eb92f980c6bcac3867d8ac85a8423879f3a`, including the reader repair in #303,
+diagnostic compatibility in #304, canonical Help in #299, current walkthroughs in
+#300 and the historical-guidance audit in #305. It sets the package and both
+plugin manifests to 1.5.1 and includes the reviewed measurement, failure-evidence
+and test-supervision improvements. The
 [readiness record](release-readiness-1.5.1.md) separates candidate validation,
 remaining acceptance and publication approval.
 
@@ -153,14 +155,20 @@ do not qualify every saved-work migration or upgrade path.
 The earlier [qualification run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39786227278)
 retains its Windows full-suite timeout. #298 addresses the measured cumulative
 suite budget with verified partitions; #296's combined head passed all 28 checks,
-including the previously failing Windows wheel job. The old Node startup/exit
-delay's cause remains unknown; no deadline or assertion was weakened.
+including the previously failing Windows wheel job. Those precursor fixes
+preserved their deadlines and assertions; the old Node startup/exit delay's
+cause remains unknown.
+
+The current preparation gives the development/intake browser-script regression
+tests a 60-second wait on Windows and 30 seconds elsewhere. Each test still runs
+once with the same functional assertions. This test-supervision allowance does
+not establish the cause of an earlier timeout or change production GUI deadlines.
 
 All 28 checks on #300's integrated preparation head passed, including the
 Windows source and installed-wheel cells. The release-preparation PR records
 fresh validation of the actual combined 1.5.1 candidate; precursor results do
-not substitute for it. The separate audit/archive PR #305 remains unmerged
-and is not included in this source.
+not substitute for it. The audit/archive work in #305 is included through
+merged main `31dd4eb92f980c6bcac3867d8ac85a8423879f3a`.
 Publication still requires the reviewed preparation merge, passing qualification
 for that exact main commit, an authorized build-only release rehearsal and
 Patrick's separate publication approval.
