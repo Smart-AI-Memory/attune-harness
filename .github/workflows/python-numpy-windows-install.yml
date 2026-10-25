@@ -1,0 +1,45 @@
+name: Python and NumPy Windows install experiment
+
+# Automatic observations for experiment PRs targeting main. No manual dispatch,
+# paid runner, support-policy change or new release gate.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/python-numpy-windows-install.yml'
+      - 'experiments/platform/python_numpy_install_timing.py'
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Windows install / Python ${{ matrix.python }} / NumPy 2.5.4
+    runs-on: windows-2025
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.14']
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Time isolated published install and offline smoke checks
+        shell: pwsh
+        run: python -I experiments/platform/python_numpy_install_timing.py --output "$env:RUNNER_TEMP/python-numpy-install"
+      - name: Retain timings and bounded logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-install-python-${{ matrix.python }}-numpy-2.5.4
+          path: |
+            ${{ runner.temp }}/python-numpy-install/result.json
+            ${{ runner.temp }}/python-numpy-install/*.txt
+            ${{ runner.temp }}/python-numpy-install/constraints/*.lock
+          if-no-files-found: error
