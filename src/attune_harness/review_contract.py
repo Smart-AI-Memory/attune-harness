@@ -92,6 +92,10 @@ def validate_registry(value: dict, path: Path, *, minimum_participants: int = 2)
                 raise ValueError('Native review_mode must be evidence')
         if adapter == 'command':
             keys |= {'command', 'timeout'}
+            if 'environment' in item:
+                from .command_environment import validate as validate_environment
+                keys.add('environment')
+                validate_environment(item['environment'])
             command = item.get('command')
             if not isinstance(command, list) or not 1 <= len(command) <= 32:
                 raise ValueError('command must be an argument list')

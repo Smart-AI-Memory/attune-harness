@@ -10,6 +10,7 @@ from threading import Barrier, Event, Thread, get_ident
 import pytest
 
 from attune_harness import consultation as c
+from attune_harness.command_environment import NOTICE
 from attune_harness.cli import main
 from attune_harness.native import NativeExchange
 from attune_harness.process import ProcessResult
@@ -686,7 +687,7 @@ def test_cli_failure_inspection_reconcile_and_json_compatibility(tmp_path, capsy
     monkeypatch.setattr(c, 'run', no_dispatch)
     before = bytes_of(directory)
     assert main([operation, 'status', str(directory)]) == 2
-    assert capsys.readouterr().out == json.dumps(record, indent=2, allow_nan=False) + '\n'
+    assert capsys.readouterr().out == json.dumps({**record, 'deprecations': [NOTICE]}, indent=2, allow_nan=False) + '\n'
     assert main([operation, 'status', str(directory), '--format', 'markdown']) == 2
     assert '**Status:** ' + record['status'] in capsys.readouterr().out
     assert main([operation, 'evidence', str(directory)]) == 2
@@ -702,7 +703,9 @@ def test_cli_failure_inspection_reconcile_and_json_compatibility(tmp_path, capsy
     assert main(args + ['--retry-refused']) == 0
     reopened = json.loads(capsys.readouterr().out)
     assert reopened['status'] == 'paused'
-    assert reopened == c.load(directory)
+    saved = c.load(directory)
+    assert reopened == {**saved, 'deprecations': [NOTICE]}
+    assert 'deprecations' not in saved
     before = bytes_of(directory)
     assert main(args + ['--retry-refused']) == 2
     assert json.loads(capsys.readouterr().out)['status'] == 'refused'

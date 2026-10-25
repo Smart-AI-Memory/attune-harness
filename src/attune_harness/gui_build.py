@@ -7,6 +7,7 @@ from . import task_view, work_build, work_effects
 from .review_contract import digest
 from .task_contract import load_task_registry
 from .work_contract import PROFILE, check_work_fresh
+from .command_environment import annotate, selected_configurations
 
 
 class Builds:
@@ -94,7 +95,7 @@ class Builds:
                 result['note'] = 'Preview the accepted command build before granting execution.'
             except (ValueError, OSError, RuntimeError) as exc:
                 result['note'] = str(exc)
-        return result
+        return annotate(result, selected_configurations(record))
 
     def preview(self, task, checkpoint):
         if any(not future.done() for future in self.active.values()):
@@ -103,13 +104,14 @@ class Builds:
         request = record['request']
         grant = secrets.token_urlsafe(24)
         self.previews[task] = (grant, digest(record))
-        return {'task': task, 'checkpoint': checkpoint, 'grant': grant,
+        return annotate({'task': task, 'checkpoint': checkpoint, 'grant': grant,
                 'goal': request['intent']['goal'], 'resume': 'build' in record,
                 'effects': request['effects'], 'tasks': request['tasks'],
                 'budgets': request['budgets'], 'participants': [
                     {'role': role, 'id': assignment['participant'],
                      'configuration': request['registry']['participants'][assignment['participant']],
-                     'budgets': assignment['budgets']} for role, assignment in roles.items()]}
+                     'budgets': assignment['budgets']} for role, assignment in roles.items()]},
+                        selected_configurations(record))
 
     def start(self, task, checkpoint, grant, confirmed):
         if confirmed is not True:
@@ -126,4 +128,5 @@ class Builds:
         self.active[task] = self.executor.submit(
             work_build.build_work, self.decisions.tasks[task], checkpoint=checkpoint,
             allow_external=True, allow_native=False)
-        return {'message': 'Command build granted. Inspect recorded progress; never retry an uncertain submission.'}
+        return annotate({'message': 'Command build granted. Inspect recorded progress; never retry an uncertain submission.'},
+                        selected_configurations(record))

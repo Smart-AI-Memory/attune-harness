@@ -15,7 +15,7 @@ from .recovery import (
 )
 from .review import authorize_external
 from .review_contract import FORMS_VERSION, bounded_text, digest, fields, parse_json
-from .review_participants import ReviewExchange
+from .review_participants import ReviewExchange, protect_command_scope
 from .review_store import RunStore
 from .task_contract import read_task, safe_storage
 from .task_runtime import dispatch_assignment, guarded_execution
@@ -894,9 +894,9 @@ def plan_work(
                     "last_identity": None,
                 }
                 run["participants"][role] = outcome
-                exchange = exchange_factory(
+                exchange = protect_command_scope(exchange_factory(
                     config, Path(request["project_root"]), profile=PLANNING_PROFILE
-                )
+                ), store.directory)
                 response = dispatch_assignment(
                     cursor, turn["turn_id"], turn, config, exchange, outcome
                 )

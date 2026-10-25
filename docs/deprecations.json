@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "surface": "command participant configuration",
+    "form": "omitted environment policy (full parent inheritance)",
+    "since": "1.5.2",
+    "removal": "1.6.0",
+    "replacement": "Configure environment with profile command-env-v1 and explicit passthrough names."
+  }
+]
