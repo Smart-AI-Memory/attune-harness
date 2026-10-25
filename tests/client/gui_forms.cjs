@@ -95,6 +95,17 @@ function workspace(task='A',data=build()){return {editable:true,tasks:[{task,lab
  j.queue.push({message:'Started'},workspace('A',{...build(true),available:false}),workspace('A',{...build(false),available:false}));button('Grant these commands and build').onclick();await flush();
  const starts=j.calls.filter(c=>c.path==='/build/start');assert.equal(starts.length,1);assert.equal(JSON.parse(starts[0].opts.body).grant,'single-use-grant');assert.match(j.panel.textContent,/Recorded progress and evidence/);
  j.queue.push(workspace('A',{...build(false),available:true}));await j.run('loadTasks()');j.queue.push({...grant,resume:true,grant:'resume-grant'});button('Preview command build').onclick();await flush();assert(button('Grant resume of these commands'));assert.equal(j.calls.filter(c=>c.path==='/build/start').length,1,'eligible resume still requires a separate deliberate grant');
+ trace('command-environment-notices');
+ const n=await setup(),notice={surface:'command participant configuration',replacement:'Configure explicit names <literal>.',since:'1.5.2',removal:'1.6.0'};
+ n.run(`renderDecision(${JSON.stringify({...shown,deprecations:[notice]})})`);
+ assert.match(n.panel.textContent,/legacy full parent environment/);assert.match(n.panel.textContent,/explicit names <literal>/);
+ assert.equal(n.panel.querySelector('literal'),null,'notice content is literal text');
+ n.run(`renderBuildGrant(${JSON.stringify({...grant,deprecations:[notice]})})`);
+ assert.match(n.panel.textContent,/earliest removal: 1.6.0/);
+ const noticeNode=n.panel.querySelectorAll('p').find(p=>p.textContent.includes('legacy full parent'));
+ const grantButton=n.panel.querySelector('button');assert(n.panel.children.indexOf(noticeNode)<n.panel.children.indexOf(grantButton));
+ n.run(`renderBuildEvidence(${JSON.stringify({...build(false),deprecations:[notice]})})`);assert.match(n.panel.textContent,/legacy full parent environment/);
+ n.queue.push({editable:true,tasks:[{task:'notice',label:'Notice',status:'draft',note:'Inspect',deprecations:[notice]}]});await n.run('loadTasks()');assert.match(n.doc.querySelector('#tasks').textContent,/legacy full parent environment/);
  trace('assertions-complete');
  console.log('client regressions passed');
 })().catch(e=>{trace('runner-failed');console.error(e);process.exitCode=1;});

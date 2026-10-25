@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Add the opt-in `command-env-v1` environment policy for command participants.
+  Pass only named variables from the dispatching process, use temporary home
+  and temp directories, and retain names-only policy audit metadata. Existing
+  configurations without the policy retain full inheritance and show migration
+  notices. The prospective notice release is 1.5.2; removal is no earlier than
+  1.6.0. Before release, verify that 1.5.2 is the first shipped notice release.
+  This change does not remove the legacy form or change the package version.
+  See [Command participant environments](docs/command-environments.md).
+
 ## 1.5.1
 
 Maintenance release after 1.5.0. See the [release notes](docs/release-notes-1.5.1.md)

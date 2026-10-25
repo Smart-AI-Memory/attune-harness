@@ -8,6 +8,7 @@ from . import Task
 from .adapters import Attempt, JsonParticipant
 from .native import NativeExchange
 from .process import invoke
+from .command_environment import invocation as command_environment
 from .review_contract import bounded_text, canonical, digest, fields, parse_json, versioned
 
 PROTOCOL = (
@@ -83,16 +84,24 @@ def decode_action(raw: str, request_digest: str) -> dict:
     return action
 
 
+def protect_command_scope(exchange, *roots):
+    """Bind host-owned exclusions without changing custom factory signatures."""
+    if isinstance(exchange, ReviewExchange) and exchange.configuration['adapter'] == 'command':
+        exchange.protected_roots = (*exchange.protected_roots, *roots)
+    return exchange
+
+
 class ReviewExchange:
     """One selected transport, never a fallback. Each call is a fresh invocation."""
 
-    def __init__(self, configuration: dict, cwd: Path, *, profile='harness-review-v1'):
+    def __init__(self, configuration: dict, cwd: Path, *, profile='harness-review-v1', protected_roots=()):
         if profile not in ('harness-review-v1', 'feature-planning-v1', 'feature-build-v1'):
             raise ValueError('Unsupported participant operation profile')
         self.configuration = configuration
         self.cwd = cwd
         self.profile = profile
         self.last_identity = None
+        self.protected_roots = tuple(protected_roots)
 
     def __call__(self, raw: str) -> str:
         request = parse_json(raw, 524_288)
@@ -132,10 +141,13 @@ class ReviewExchange:
             self.last_identity = {'adapter': adapter, 'model': None}
             return json.dumps({'schema_version': 1, 'request_digest': request['request_digest'], 'action': action})
         if adapter == 'command':
-            result = invoke(tuple(config['command']), raw, cwd=self.cwd,
-                            timeout=config['timeout'], max_output_bytes=65_536)
-            self.last_identity = {'adapter': adapter, 'returncode': result.returncode,
-                                  'failure': result.failure, 'stderr': result.stderr}
+            with command_environment(config, cwd=self.cwd, excluded_roots=self.protected_roots) as (environment, audit):
+                result = invoke(tuple(config['command']), raw, cwd=self.cwd,
+                                timeout=config['timeout'], max_output_bytes=65_536,
+                                **({'environment': environment} if environment is not None else {}))
+                self.last_identity = {'adapter': adapter, 'returncode': result.returncode,
+                                      'failure': result.failure, 'stderr': result.stderr,
+                                      **({'environment': audit} if audit is not None else {})}
             if result.failure:
                 raise RuntimeError(f'Participant command failed ({result.failure}): {result.stderr}')
             return result.stdout

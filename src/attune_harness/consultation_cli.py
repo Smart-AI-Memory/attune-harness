@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from . import consultation
+from .command_environment import annotate, selected_configurations
 from .features import read_text
 from .review_contract import parse_json
 
@@ -60,24 +61,28 @@ def add_commands(sub):
 def execute(args):
     assessment_saved = False
     current = None
+    seats = []
     try:
         if args.consultation_action == 'check':
             from .consultation_preflight import preflight
             config = parse_json(read_text(args.config, 131072))
             consultation.configuration(config, args.command)
+            seats = list(config['participants'].values())
             participants = preflight(config)
-            print(json.dumps({'schema_version': 1, 'operation': args.command, 'status': 'checked',
+            print(json.dumps(annotate({'schema_version': 1, 'operation': args.command, 'status': 'checked',
                               'participants': participants, 'authority': 'inspection_only',
-                              'model_calls': 0}, indent=2, allow_nan=False))
+                              'model_calls': 0}, seats), indent=2, allow_nan=False))
             return 2 if any(seat['state'] in ('not_signed_in', 'missing_binary')
                             for seat in participants.values()) else 0
         elif args.consultation_action == 'prepare':
             config = parse_json(read_text(args.config, 131072))
             result = consultation.prepare(args.command, args.project, args.path, config, args.run_dir)
+            seats = selected_configurations(result)
         else:
             current = consultation.load(args.run_dir)
             if current['operation'] != args.command:
                 raise ValueError('Command does not match the saved consultation')
+            seats = selected_configurations(current)
             if args.consultation_action == 'run':
                 result = consultation.run(args.run_dir, args.accept, allow_external=args.allow_external,
                                           allow_native=args.allow_native, max_operations=args.max_operations)
@@ -112,6 +117,7 @@ def execute(args):
     except Exception as exc:
         result = {'schema_version': 1, 'operation': args.command, 'status': 'refused',
                   'error': {'type': type(exc).__name__, 'detail': str(exc)}}
+    result = annotate(result, seats)
     if getattr(args, 'format', 'json') == 'markdown':
         from .consultation_output import markdown
         print(markdown(result, view=args.consultation_action, retained=current), end='')
