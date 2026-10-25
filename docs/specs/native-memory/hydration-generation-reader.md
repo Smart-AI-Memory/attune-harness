@@ -2,7 +2,7 @@
 
 October 25, 2026. This implements the reader prerequisite in the
 [approved hydration-writer addendum](https://github.com/Smart-AI-Memory/attune-harness/pull/310).
-Source head: `86bc9f64df8509c64eefc2ccc6bc79ca1f477fbb`.
+Source head: `3041eb7cd2d874c922e98c94c90405f32f904632`.
 The writer, conditional publication, cleanup and session-start wrapper remain
 later tasks. Existing installations should retain their current writer until
 the complete replacement journey is accepted.
@@ -83,21 +83,34 @@ additional active-count parser leak; commit `86bc9f6` fixes it. Astra approved
 that source delta with no remaining findings. Its independent API/CLI status
 regressions passed all eight cases, and all 130 snapshot hashes matched.
 
+Python 3.10 CI then exposed an empty-query parsing difference: strict
+`parse_qsl` rejects an empty query on 3.10. Commit `3041eb7` skips query parsing
+only when the URL has no query. Astra approved that delta after running the
+maintained tests and 20 independent URL checks on both Python 3.10.11 and 3.12.2.
+Unsafe nonempty query options remain refused. All 130 snapshot hashes matched.
+
 | Check | Observed result |
 | --- | --- |
-| Contract, native reader, legacy Redis and serving tests | 137 passed, 1 skipped on Python 3.12; the skipped case needs live legacy Redis |
+| Contract, native reader, legacy Redis and serving tests | 137 passed, 1 skipped on both Python 3.10.11 and 3.12.2; the skipped case needs live legacy Redis |
 | Wheel contents | Every packaged Python and Lua source matched the checkout; installed imports succeeded with attune-ai absent |
 | Installed disposable Redis+Search | Redis 7.4.7, Search 2.10.20, redis-py 5.3.1; status, digest, curated node, file node, related and search passed; digest and prompt serving passed; every Redis key value was unchanged |
 | Frozen legacy fixture | SHA-256 `37ed7a15b2bf5ffa4f115317212a9ef8c491668654967315eb2a0670444b3bce` |
-| Full suite and installed platform qualification | Pending |
+| Full suite and installed platform qualification | Running against the final source in an isolated environment using CI's library dependency profile |
 
 The tested wheel SHA-256 is
-`1f4756a9cea351a2274c70e05daabc400851211db43d6bd4a4ab9e942653cc6f`.
+`eae1834a2a73571db1ae80ee8c041aa84c79621172904df4e88916dc64410711`.
 Its packaged Lua SHA-256 is
 `1d8caab5270cf45f47fd7873575ad1f9ef9619addb722271c6b701ee0ce31733`.
 Local receipts bind the wheel, installed sources, fixture and disposable probe;
 the pull request records their locations. Older development probes remain
 historical evidence and do not qualify this source head.
+
+An earlier local platform run failed with one failure and 19 setup errors:
+system-site packages exposed an unqualified Anthropic SDK, and isolated plugin
+children could not find dependencies outside their virtual environment. A fresh
+environment using CI's five dependency constraints corrected those preconditions;
+older environments and failed receipts remain unchanged. Runs stopped after a
+source fix are incomplete evidence. The pull request records final check results.
 
 Windows CI, fresh Claude Code and Codex session delivery, actual socket stalls,
 missing non-index generation keys and publication/cleanup races remain
