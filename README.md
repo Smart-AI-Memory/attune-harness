@@ -1,6 +1,6 @@
 # Attune Harness
 
-Updated on October 23, 2026.
+Updated on October 24, 2026.
 
 **Run agent tasks, check the results independently, and keep the evidence.**
 
@@ -16,12 +16,11 @@ This maintenance release helps you choose a workflow, follow clearer guidance,
 inspect assessment evidence and return to saved work. It also strengthens
 plugin signature validation and Windows full-suite checks.
 Read the [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-notes-1.5.1.md)
-and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-readiness-1.5.1.md)
+and [historical readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-readiness-1.5.1.md)
 for the changes, evidence and remaining limits.
 
-Run the index-install commands below after 1.5.1 appears on PyPI. Until then,
-[published 1.5.0](https://pypi.org/project/attune-harness/1.5.0/) remains available.
-Links to the new release tag become available when that release is created.
+Harness 1.5.1 is published on PyPI. Install it in an isolated environment using
+the commands below, then choose a workflow in the Help Center.
 
 The v1 compatibility contract remains in effect.
 
@@ -34,24 +33,22 @@ The v1 compatibility contract remains in effect.
 
 The [Harness Help Center](https://smartaimemory.com/harness/help/) brings together
 step-by-step guides, expected results, troubleshooting and command references.
-Harness owns the [Help Center source and static build](https://github.com/Smart-AI-Memory/attune-harness/blob/013b84a6d1984f388df41452299ddacc90bb5f5b/help/README.md).
-Its goals guide, versioned instructions and portable export are maintained here;
-website cutover remains a separate change. Start with the
-[installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/installation.md)
-to select a runtime and check a local result. While 1.5.1 is unpublished, the Help
-Center's [1.5.0 getting-started guide](https://smartaimemory.com/harness/help/1-5-0/)
-identifies the available release. Use
+Harness owns the [Help Center source and static build](https://github.com/Smart-AI-Memory/attune-harness/blob/5929c18c542a667a8a175a06b67ca5f2f571b73a/help/README.md).
+Its goals guide, versioned instructions and portable export are maintained here.
+Start with the [published 1.5.1 installation guide](https://smartaimemory.com/harness/help/1-5-1/)
+to select a runtime and check a local result. Use
 [AI tools and integrations](https://smartaimemory.com/harness/help/ai-tools-and-integrations/)
 to find commands by task, follow their order and understand where approval is
 needed.
 
-For hands-on practice, choose a [current 1.5.1 preparation
-walkthrough](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md#choose-a-walkthrough).
+For hands-on practice, choose a task in the
+[goals guide](https://smartaimemory.com/harness/help/goals/), then follow its
+linked Help walkthrough. The [documentation archive](https://smartaimemory.com/harness/help/archive/)
+retains earlier guides and preparation evidence, including the [historical 1.5.1 preparation
+walkthroughs](https://github.com/Smart-AI-Memory/attune-harness/blob/0fe14b47659dacfb9e8c19dba9864f4558005fbe/docs/tutorials-1.5.1.md#choose-a-walkthrough).
 These procedures were exercised with an explicitly identified local validation
-wheel before final release-artifact selection. They do not replace the final
-release checks. If 1.5.1 is not yet on PyPI, use the published 1.5.0 installation
-above. The [goals guide](https://smartaimemory.com/harness/help/goals/)
-helps you choose a task; website publication follows its separate release gate.
+wheel before final release-artifact selection. Those observations remain
+preparation evidence; they are not new published-artifact walkthrough results.
 
 ## Advanced planning for Spec-Driven Development
 
@@ -164,7 +161,7 @@ paid calls.
 
 ## Installation
 
-After publication, install 1.5.1 in an isolated tool environment:
+Install published Harness 1.5.1 in an isolated tool environment:
 
 ```sh
 uv tool install 'attune-harness==1.5.1'
@@ -183,7 +180,7 @@ attune-harness --help
 If Harness is already installed, inspect its version and path before selecting
 1.5.1 explicitly. Preserve saved task directories and retained evidence
 environments; changing the tool version does not qualify saved-work migration.
-The [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/installation.md)
+The [installation guide](https://smartaimemory.com/harness/help/1-5-1/)
 covers environment selection and agent setup for 1.5.1.
 
 Python 3.10 or later. The [worked example](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
@@ -210,7 +207,7 @@ bash treat square brackets as glob characters.
 
 ## Your first five minutes
 
-Follow the [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/installation.md)
+Follow the [installation guide](https://smartaimemory.com/harness/help/1-5-1/)
 for runtime selection and a local check. Then use the
 [user guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/supported-journeys.md)
 to choose a workflow. For a practice form, ask the person or agent running
@@ -248,7 +245,8 @@ seat preflight and prints the next prepare command. See the
 
 Use these records to check your installation and workflow:
 
-- [1.5.1 preparation readiness](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-readiness-1.5.1.md): candidate checks, publication gates and remaining limits.
+- [1.5.1 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1): published artifacts and release-check evidence.
+- [Historical 1.5.1 preparation readiness](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/release-readiness-1.5.1.md): candidate checks, publication requirements and limits recorded before release.
 - [Earlier 1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0): published source, wheel and source archive hashes, and installed-package checks.
 - [Supported journeys](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/supported-journeys.md): available workflows, evidence and reliability requirements.
 - [Qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/qualification.md): the CI matrix and installed-wheel procedure.
@@ -279,7 +277,7 @@ existing Attune AI workflow.
 
 ## Links
 
-- [Installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/installation.md)
+- [Installation guide](https://smartaimemory.com/harness/help/1-5-1/)
 - [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/cli-guide.md)
 - [Portable contract](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/portable-contract.md)
 - [Repository](https://github.com/Smart-AI-Memory/attune-harness) and
