@@ -314,6 +314,10 @@ contains the answer JSON above. External authority is required; native authority
 is unnecessary. Its provider/model identity is declared and unverified. No third
 LLM, live host invocation or model quality is qualified by offline wrapper tests.
 
+For the unreleased opt-in finite environment policy, see
+[Command participant environments](command-environments.md). Version 1.5.1 does
+not accept its `environment` field.
+
 The [design](design-model-consultation.md) explains the retained authority and
 replay boundaries. Documentary `review` and repair remain separate routes.
 

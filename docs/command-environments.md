@@ -1,5 +1,10 @@
 # Command participant environments
 
+**Availability: unreleased.** This policy is not available in the published
+1.5.1 package, whose configuration validators reject the `environment` field.
+Use it only with a candidate that includes this change until a notice release
+ships. The prospective release schedule below does not announce publication.
+
 Add `environment` to a trusted `command` participant configuration to opt in to
 `command-env-v1`. The policy applies to consultation, review, assessment, repair,
 planning and build command participants. Native CLI adapters, provider clients,

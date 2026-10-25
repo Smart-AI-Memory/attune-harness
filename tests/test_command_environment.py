@@ -245,8 +245,13 @@ def test_cleanup_error_does_not_mask_call_error(tmp_path, cwd, monkeypatch):
 @pytest.mark.skipif(os.name == 'nt', reason='Reproduced POSIX recursive cleanup boundary')
 def test_real_recursive_cleanup_preserves_owned_outcome(tmp_path):
     script = '''
-import json,sys
+import hashlib,json,sys
 from pathlib import Path
+source=Path(sys.argv[2])
+sys.path.insert(0,str(source.parent.parent))
+from attune_harness import command_environment as selected
+assert Path(selected.__file__).samefile(source)
+assert hashlib.sha256(Path(selected.__file__).read_bytes()).hexdigest()==sys.argv[3]
 from attune_harness.command_environment import invocation
 root=Path(sys.argv[1])
 cfg={'command':[sys.executable],'environment':{'profile':'command-env-v1','passthrough':[]}}
@@ -261,7 +266,10 @@ except BaseException as exc:
  sys.setrecursionlimit(1000)
  print(json.dumps({'type':type(exc).__name__,'detail':str(exc),'audit':audit}))
 '''
-    result = subprocess.run([sys.executable, '-I', '-B', '-c', script, str(tmp_path)],
+    import hashlib
+    source = Path(ce.__file__).resolve()
+    result = subprocess.run([sys.executable, '-I', '-B', '-c', script, str(tmp_path), str(source),
+                             hashlib.sha256(source.read_bytes()).hexdigest()],
                             capture_output=True, text=True, timeout=20, check=True)
     receipt = json.loads(result.stdout)
     assert receipt['type'] == 'RuntimeError' and receipt['detail'] == 'owned-call-outcome'
