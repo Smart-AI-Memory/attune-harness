@@ -4,6 +4,7 @@ import runpy
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -14,7 +15,7 @@ SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'memory_prompt_hook.p
     (b'{"prompt":"$(touch /tmp/not-a-command)"}', True),
     (b'{"prompt":""}', False), (b'{}', False), (b'bad json', False),
     (b'{"prompt":"' + b'x' * 513 + b'"}', False), pytest.param(b'x' * 65537, False, id='oversized-input'),
-    (b'{"prompt":"release","extra":' + b'[' * 5000 + b'0' + b']' * 5000 + b'}', False)])
+    pytest.param(b'{"prompt":"release","extra":[[0]]}', True, id='ignored-extra')])
 def test_bridge_bounds_input_and_preserves_prompt_as_one_argument(monkeypatch, raw, dispatch):
     calls = []
     monkeypatch.setattr(sys, 'argv', [str(SCRIPT), '--config', '/fixture/memory.json'])
@@ -36,6 +37,32 @@ def test_bridge_bounds_input_and_preserves_prompt_as_one_argument(monkeypatch, r
         assert stdout.buffer.getvalue() == b'banner\n'
     else:
         assert stdout.buffer.getvalue() == b''
+
+
+def test_decoder_recursion_error_skips_without_dispatch_or_payload_log(monkeypatch):
+    raw = b'{"prompt":"private-query","extra":"private-extra"}'
+    monkeypatch.setattr(sys, 'argv', [str(SCRIPT), '--config', '/fixture/memory.json'])
+    monkeypatch.setattr(sys, 'stdin', io.TextIOWrapper(io.BytesIO(raw)))
+    stdout, stderr = io.TextIOWrapper(io.BytesIO()), io.TextIOWrapper(io.BytesIO())
+    monkeypatch.setattr(sys, 'stdout', stdout)
+    monkeypatch.setattr(sys, 'stderr', stderr)
+    main = runpy.run_path(str(SCRIPT))['main']
+
+    def refuse(value):
+        assert value == raw
+        raise RecursionError('private-query private-extra')
+
+    # Decoder depth limits differ between supported Python patch versions.
+    # Exercise the hook's error boundary without relying on that runtime limit.
+    monkeypatch.setitem(main.__globals__, 'json', SimpleNamespace(loads=refuse))
+    monkeypatch.setattr(subprocess, 'run', lambda *args, **kwargs: pytest.fail(
+        'A decoder failure must not dispatch the memory command'))
+    assert main() == 0
+    stdout.flush()
+    stderr.flush()
+    assert stdout.buffer.getvalue() == b''
+    assert stderr.buffer.getvalue() == (
+        b'[attune-harness memory] prompt hook skipped: RecursionError\n')
 
 
 def test_backend_error_cannot_echo_prompt_into_hook_log(monkeypatch):
