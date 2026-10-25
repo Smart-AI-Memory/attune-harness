@@ -43,7 +43,8 @@ def test_decoder_recursion_error_skips_without_dispatch_or_payload_log(monkeypat
     raw = b'{"prompt":"private-query","extra":"private-extra"}'
     monkeypatch.setattr(sys, 'argv', [str(SCRIPT), '--config', '/fixture/memory.json'])
     monkeypatch.setattr(sys, 'stdin', io.TextIOWrapper(io.BytesIO(raw)))
-    stdout, stderr = io.TextIOWrapper(io.BytesIO()), io.TextIOWrapper(io.BytesIO())
+    stdout = io.TextIOWrapper(io.BytesIO(), newline='\n')
+    stderr = io.TextIOWrapper(io.BytesIO(), newline='\n')
     monkeypatch.setattr(sys, 'stdout', stdout)
     monkeypatch.setattr(sys, 'stderr', stderr)
     main = runpy.run_path(str(SCRIPT))['main']
