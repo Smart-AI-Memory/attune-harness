@@ -1,20 +1,19 @@
 # Install Harness and get started
 
-Updated on October 23, 2026.
+Updated on October 25, 2026.
 
-This guide prepares installation of `attune-harness` 1.5.1. Python 3.10 or
+This guide installs published `attune-harness` 1.5.1. Python 3.10 or
 later is required. Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
 
-**Check release availability.** The index-install commands below require 1.5.1
-to be published on PyPI. While 1.5.1 is unpublished, use
-`uv tool install 'attune-harness==1.5.0'`, or follow the
-[published 1.5.0 package reference](https://pypi.org/project/attune-harness/1.5.0/).
-For candidate validation, substitute the reviewed local 1.5.1 wheel for the package
-specifier, for example `uv tool install /absolute/path/to/attune_harness-1.5.1-py3-none-any.whl`.
-Retain its source and hash; a version string does not identify a final artifact.
-Preserve saved work and retained evidence environments when selecting a runtime.
+Version 1.5.1 is available on
+[PyPI](https://pypi.org/project/attune-harness/1.5.1/). The
+[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+identifies its source and artifacts; a version string alone does not identify a
+particular wheel. Preserve saved work and retained evidence environments when
+selecting a runtime. If you use Attune AI, read the
+[current migration guide](migration.md) before changing its setup.
 
 ## Install the runtime
 
@@ -126,8 +125,9 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 Compare your selected version and interpreter with the checks above. The
 [1.5.1 readiness record](release-readiness-1.5.1.md) identifies the reviewed
-source, local validation and remaining release checks. After publication,
-compare the published distribution identity and index installation with that
-evidence. The [workflow guide](supported-journeys.md) describes
-capabilities and reliability requirements for the workflow you choose. Keep
+source, local validation and the release checks required at that time. Compare
+the published distribution identity with the
+[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1);
+preparation evidence retains its original artifact identity. The
+[workflow guide](supported-journeys.md) describes capabilities and reliability requirements for the workflow you choose. Keep
 existing saved tasks and evidence environments when updating an installation.

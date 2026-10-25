@@ -1,5 +1,11 @@
 # Moving from Attune AI to Harness
 
+> **Historical 1.0.0 guide.** The September 27 wording below is retained as a
+> release-era record. Attune AI is now deprecated. Use the
+> [current migration guide](migration.md) for published Harness 1.5.1 and the
+> requirements for changing an existing setup. Preserve working environments,
+> memory sources and writer configuration while validating replacements.
+
 Migration guide drafted September 27, 2026. The rows describe the 1.0.0 core
 release and its known gaps; they are not a notice that Attune AI is deprecated.
 The candidate migration trial remains open. Confirm the installed artifact and

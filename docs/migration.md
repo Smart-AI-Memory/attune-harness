@@ -1,12 +1,11 @@
 # Move from Attune AI to Harness
 
-Updated on October 23, 2026, for 1.5.1 preparation. Published 1.5.0 remains the
-available baseline while 1.5.1 publication is pending. Follow the
-[installation guide](installation.md) for the selected published version or
-exact candidate wheel; preparing this source does not publish a package.
+Updated on October 25, 2026, for published
+[Harness 1.5.1](https://pypi.org/project/attune-harness/1.5.1/). Follow the
+[installation guide](installation.md) to select an isolated runtime and check
+a local result.
 
-Attune AI is deprecated. Use Harness for new work; 1.5.1 is the intended
-replacement and is still being prepared for publication. Keep a working Attune AI
+Attune AI is deprecated. Use Harness for new work. Keep a working Attune AI
 setup while you validate the Harness journeys you need. Deprecation does not
 qualify saved-work migration or establish complete host or Windows parity. The
 [historical 1.0.0 migration guide](migration-from-attune-ai.md) preserves the
@@ -47,7 +46,7 @@ replacement has been validated in your environment.
 
 ## Check the current Windows profile
 
-The 1.5.0 baseline includes native Windows components for captured testing,
+Published 1.5.1 includes native Windows components for captured testing,
 file-memory reads, saved storage and experimental native-memory transport.
 Windows file-memory reads use the supported local NTFS path profile. Read the
 [current Windows capabilities and limits](supported-journeys.md#windows-capabilities-and-reliability)
