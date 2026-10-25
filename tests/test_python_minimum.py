@@ -61,3 +61,9 @@ def test_supplemental_and_native_jobs_keep_their_platform_profiles():
         (name, '3.12') for name in ['ubuntu-latest', 'windows-2022', 'windows-2025']}
     assert cells(workflow('windows-effects-backend.yml')['installed-owner-journey']) == {
         (name, '3.12') for name in ['windows-2022', 'windows-2025']}
+
+
+def test_lint_parser_target_tracks_declared_minimum():
+    settings = tomllib.loads((ROOT / 'pyproject.toml').read_text(encoding='utf-8'))
+    minimum = settings['project']['requires-python'].removeprefix('>=')
+    assert settings['tool']['ruff']['target-version'] == 'py' + minimum.replace('.', '')
