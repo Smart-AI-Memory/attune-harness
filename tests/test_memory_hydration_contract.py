@@ -58,7 +58,11 @@ def test_malformed_foreign_or_incompatible_manifest_is_refused(field, value):
         validate_manifest(json.dumps(record), expected['binding'], expected['function_digest'])
 
 
-@pytest.mark.parametrize('raw', ['null', '[]', '{}', '{"schema_version":1,"schema_version":1}', 'x' * 65537])
+@pytest.mark.parametrize(
+    'raw',
+    ['null', '[]', '{}', '{"schema_version":1,"schema_version":1}', 'x' * 65537],
+    ids=['null', 'array', 'empty-object', 'duplicate-key', 'oversized'],
+)
 def test_manifest_parser_does_not_accept_ambiguous_or_unbounded_input(raw):
     manifest = FIXTURE['manifest']
     with pytest.raises(ValueError):
