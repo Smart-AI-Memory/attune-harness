@@ -13,7 +13,7 @@ signed plugins and the generic process runner keep their existing behavior.
 ```json
 {
   "adapter": "command",
-  "command": ["/absolute/path/to/python", "-I", "/absolute/path/to/peer.py"],
+  "command": ["/absolute/path/to/python", "-I", "-X", "utf8", "/absolute/path/to/peer.py"],
   "timeout": 30,
   "tools": [],
   "max_turns": 1,
@@ -47,6 +47,11 @@ The finite baseline contains:
   home, and sets `SystemRoot` and `WINDIR` from the validated Windows root.
 - `LANG=C`, `LC_ALL=C`, `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`,
   `PYTHONDONTWRITEBYTECODE=1` and `PYTHONNOUSERSITE=1`.
+
+Python's `-I` and `-E` options ignore `PYTHON*` environment variables. An isolated
+Python command must request UTF-8 itself, as `-X utf8` does in the example, or use
+binary buffers with explicit UTF-8 encoding and decoding. The environment policy
+does not force every program's encoding.
 
 An explicit passthrough grant overrides a baseline value. Granting `HOME`,
 `USERPROFILE` or `PATH` deliberately restores access to that parent setting;
