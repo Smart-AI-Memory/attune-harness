@@ -41,6 +41,28 @@ and public-content publication (O-36) retain their existing boundaries.
 
 ## Current register
 
+O-04 follow-through, 2026-10-25 — **review** lens. The broader goal is
+Harness-owned fresh-session recall after attune-ai retirement. Astra's review of
+the generation reader at `4a02b51` reproduced URL and response diagnostic leaks,
+a URL timeout override and an accepted index alias with the wrong source field.
+The native fixes and maintained regressions are in `c729052` and `86bc9f6`;
+Astra approved the final delta. This closes the selected reader findings, not
+the writer or host-observation gaps. O-03/O-04/O-12 still require the complete
+installed journey and fresh host sessions.
+
+One adjacent follow-up remains in the default legacy reader. At `86bc9f6`, an
+offline malformed URL with a synthetic password is echoed by `serve`, and a
+synthetic invalid active count is echoed by inherited `status` conversion
+([URL owner](../src/attune_harness/memory_redis.py), `resolve_url`, and
+`RedisMemory.status`). Both were reproduced without a network connection.
+Candidate follow-up: sanitize legacy connection and response diagnostics while
+preserving its read contract. Done when malformed URL/count and Redis error
+controls expose no synthetic secret through the API or CLI, and existing
+legacy reads still pass. Effort: small; source change with independent review.
+The first user-facing opportunity remains O-04: validate the full replacement
+journey before retiring the old startup writer. This note authorizes no
+additional implementation, merge, publication or production rollout.
+
 These are scoped status corrections, not a new qualification campaign. Source
 integration, a retained passing check, publication and observed acceptance are
 different states.
