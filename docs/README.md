@@ -298,8 +298,15 @@ states the review scope, validation and remaining gates. Run
 
 ### specs/native-memory
 
+The [hydration writer addendum](specs/native-memory/hydration-writer/README.md)
+proposes a Harness-owned writer; implementation awaits Patrick's approval.
+
 | File | Title | Dated |
 | --- | --- | --- |
+| [specs/native-memory/hydration-writer/README.md](specs/native-memory/hydration-writer/README.md) | Draft addendum, prior decisions and source-backed command/refusal walk | 2026-10-24 |
+| [specs/native-memory/hydration-writer/requirements.md](specs/native-memory/hydration-writer/requirements.md) | Proposed preservation, authority, publication and installed-host acceptance requirements | 2026-10-24 |
+| [specs/native-memory/hydration-writer/design.md](specs/native-memory/hydration-writer/design.md) | Proposed source mapping, opt-in generation reads, conditional publication and rollback | 2026-10-24 |
+| [specs/native-memory/hydration-writer/tasks.md](specs/native-memory/hydration-writer/tasks.md) | Sequential implementation tasks, evidence matrix and approval boundaries | 2026-10-24 |
 | [specs/native-memory/scoping.md](specs/native-memory/scoping.md) | Native memory — scoping note | 2026-09-19 |
 | [specs/native-memory/transition-end-design.md](specs/native-memory/transition-end-design.md) | Native memory, ladder 9 (plan 4.4): ending the transition, design note | 2026-09-23 |
 | [specs/native-memory/task-4-design.md](specs/native-memory/task-4-design.md) | Native memory, Task 4: design note | 2026-09-22 |
