@@ -39,7 +39,8 @@ def _attribute(entry, key, default=None):
 def _connection_settings(settings):
     try:
         url = resolve_url(settings)
-        query = parse_qsl(urlsplit(url).query, keep_blank_values=True, strict_parsing=True)
+        raw_query = urlsplit(url).query
+        query = parse_qsl(raw_query, keep_blank_values=True, strict_parsing=True) if raw_query else []
     except (ValueError, UnicodeError, MemoryRedisUnavailable) as error:
         raise MemoryRedisUnavailable('Native Redis memory endpoint is invalid or unavailable; check its configuration') from error
     # redis-py gives URL options precedence over constructor kwargs. Keep the
