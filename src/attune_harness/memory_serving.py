@@ -9,7 +9,7 @@ from pathlib import Path
 from .features import FeatureUnavailable
 from .memory_controls import VERDICT_VALUES
 from .memory_reader import FILE_LIMIT, NativeReader, _windows, roots_config
-from .memory_redis import LIMIT_MAX, PREFIX, MemoryRedisUnavailable
+from .memory_redis import LIMIT_MAX, MemoryRedisUnavailable
 from .review_contract import parse_json
 
 
@@ -94,7 +94,7 @@ def filter_packet(memory, packet, config, limit):
     active = set()
     if ids:
         reply = memory._call('checking active memories', memory.client.execute_command,
-                             'SMISMEMBER', PREFIX + 'status:active', *ids)
+                             'SMISMEMBER', memory.prefix + 'status:active', *ids)
         if (not isinstance(reply, (list, tuple)) or len(reply) != len(ids)
                 or any(type(value) not in (int, bool) or value not in (0, 1) for value in reply)):
             raise MemoryRedisUnavailable('Redis memory returned malformed active membership')
