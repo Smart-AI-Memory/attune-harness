@@ -299,7 +299,7 @@ states the review scope, validation and remaining gates. Run
 ### specs/native-memory
 
 The [hydration writer addendum](specs/native-memory/hydration-writer/README.md)
-proposes a Harness-owned writer; implementation awaits Patrick's approval.
+defines the approved Harness-owned writer; implementation is in progress.
 
 | File | Title | Dated |
 | --- | --- | --- |

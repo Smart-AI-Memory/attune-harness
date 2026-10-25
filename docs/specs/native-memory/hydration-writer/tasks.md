@@ -1,9 +1,8 @@
 # Hydration writer implementation plan
 
-Status: **draft for Patrick's approval, October 24, 2026**. No implementation task
-is authorized or started. Patrick's selection of the Harness-owned option
-authorized drafting these documents only. See [requirements](requirements.md)
-and [design](design.md).
+Status: **approved by Patrick, October 24, 2026**. Task 1 is active; later tasks
+follow their stated dependencies and retained gates. See
+[requirements](requirements.md) and [design](design.md).
 
 ## Entry gate and authorized scope
 

@@ -1,8 +1,8 @@
 # Harness-owned hydration writer — native-memory addendum
 
-Status: **draft for Patrick's approval, October 24, 2026**. Patrick selected a
-Harness-owned writer and authorized this addendum and implementation plan.
-Implementation is not approved. Do not change `src/` until Patrick approves.
+Status: **implementation approved by Patrick, October 24, 2026**. Patrick approved
+the specification and implementation plan after draft PR #310 was presented.
+Task 1 is active. Merge, release, spending and production-rollout gates remain.
 
 ## Outcome and review boundary
 
@@ -97,11 +97,17 @@ commands and records the actual new refusal sites before this journey is shipped
 
 ## Approval requested
 
-Approve the requirements, generation-based design, opt-in reader extension and
-task sequence together, or request changes. Patrick's explicit approval of this
-specification is the implementation gate; approval to merge planning documents
-alone is not implementation go. Merge, release, workflow dispatch, paid calls,
-production hydration and changes to personal host settings remain separate gates.
+Patrick approved the requirements, generation-based design, opt-in reader extension
+and task sequence. Merge, release, workflow dispatch, paid calls, production
+hydration and changes to personal host settings remain separate gates.
+
+Read-only Task 1 discovery found supported `SessionStart` surfaces in both hosts:
+[OpenAI hook documentation](https://learn.chatgpt.com/docs/hooks) documents startup
+context delivery and hook trust, and
+[Claude Code hooks](https://code.claude.com/docs/en/hooks) documents the matching
+event. Installed Codex CLI 0.153.4 and Claude Code 2.1.293 both have an existing
+standalone hydration startup entry. This establishes a usable integration surface,
+not a receipt for the new wrapper or permission to change those settings.
 
 Planning checks and unresolved observations are recorded in the draft PR. For
 this planning milestone, completion review found the first user-facing gap to be

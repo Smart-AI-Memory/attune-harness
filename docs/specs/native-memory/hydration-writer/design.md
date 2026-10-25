@@ -1,7 +1,7 @@
 # Hydration writer design
 
-Status: **draft for Patrick's approval, October 24, 2026**. All choices below are
-proposals. This is not authorization to edit `src/`. See [requirements](requirements.md).
+Status: **approved by Patrick, October 24, 2026**. The design below is approved
+for implementation within the retained gates. See [requirements](requirements.md).
 
 ## Source projection and configuration
 

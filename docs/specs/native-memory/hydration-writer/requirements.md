@@ -1,7 +1,7 @@
 # Hydration writer requirements
 
-Status: **draft for Patrick's approval, October 24, 2026**. Direction is selected;
-requirements and implementation remain unapproved. See the [addendum](README.md).
+Status: **approved by Patrick, October 24, 2026**. Implementation may proceed
+within these requirements and the retained gates. See the [addendum](README.md).
 
 ## H1 — One supported owner
 
