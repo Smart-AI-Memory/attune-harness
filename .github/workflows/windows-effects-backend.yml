@@ -45,8 +45,6 @@ jobs:
       matrix:
         include:
           - os: windows-2025
-            python: '3.10'
-          - os: windows-2025
             python: '3.12'
           - os: windows-2022
             python: '3.12'

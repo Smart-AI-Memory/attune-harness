@@ -41,6 +41,28 @@ and public-content publication (O-36) retain their existing boundaries.
 
 ## Current register
 
+O-07 follow-through, 2026-10-25 — **goal** lens. Patrick approved a near-term
+Python 3.12 minimum as a separate compatibility change. Baseline `430bf286` still
+declares Python `>=3.10`; this candidate declares `>=3.12` and aligns the active
+package CI and current installation guidance. The change is in review, not merged
+or published. Version 1.5.1 and its published Python 3.10 metadata remain
+historical release identities; a release/versioning decision is still open.
+
+An expanded macOS Framework Python 3.12.2 run with the optional native SDK had
+13 argv-witness failures; the same witness failure reproduces on unchanged
+`430bf286`. Preserve that gap separately from the ordinary CI profile, which
+installs Voyage and Redis without the optional SDK. No guard, skip or assertion
+is relaxed to close it; macOS native-SDK acceptance remains unqualified.
+
+Done when minimum-selection controls, focused/full source checks, a built
+noneditable wheel, installed qualification and current-head hosted evidence
+support the new policy, with every existing OS and source/installed scope
+retained. Preserve frozen campaigns and old receipts. This does not fix or close
+Windows read-permission/native failures, qualify Python 3.14 or complete Windows
+parity. Effort: one bounded compatibility PR. The first user-facing difference
+is installer refusal below Python 3.12 for the new artifact. This note authorizes
+no merge, publication, new dependency or unrelated source repair.
+
 O-04 follow-through, 2026-10-25 — **review** lens. The broader goal is
 Harness-owned fresh-session recall after attune-ai retirement. Astra's review of
 the generation reader at `4a02b51` reproduced URL and response diagnostic leaks,
