@@ -257,14 +257,17 @@ def test_index_alias_cannot_replace_its_source_identifier(setup):
         memory_redis.read(config, 'node', {'id': 'aurora'})
 
 
-def test_status_parser_errors_never_echo_malformed_reply_contents(setup, monkeypatch):
+@pytest.mark.parametrize('reply_source', ['search', 'active_count'])
+def test_status_parser_errors_never_echo_malformed_reply_contents(setup, monkeypatch, reply_source):
     config, fake = setup
     original = fake.execute_command
     def malformed(name, *args):
-        if name == 'FT.SEARCH':
+        if name == 'FT.SEARCH' and reply_source == 'search':
             return ['PRIVATE_INDEXED_TEXT']
         return original(name, *args)
     monkeypatch.setattr(fake, 'execute_command', malformed)
+    if reply_source == 'active_count':
+        monkeypatch.setattr(fake, 'scard', lambda *args: 'PRIVATE_INDEXED_TEXT')
     with pytest.raises(memory_redis.MemoryRedisUnavailable, match='malformed status reply') as error:
         memory_redis.read(config, 'status', {})
     assert 'PRIVATE_INDEXED_TEXT' not in str(error.value)

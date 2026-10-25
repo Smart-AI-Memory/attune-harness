@@ -120,6 +120,8 @@ class GenerationMemory(RedisMemory):
     def status(self):
         try:
             return super().status()
+        except (ValueError, TypeError) as error:
+            raise MemoryRedisUnavailable('Native Redis memory returned a malformed status reply') from error
         except MemoryRedisUnavailable as error:
             if str(error).startswith('Redis memory returned'):
                 raise MemoryRedisUnavailable('Native Redis memory returned a malformed status reply') from error
