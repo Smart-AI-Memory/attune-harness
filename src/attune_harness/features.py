@@ -104,6 +104,8 @@ def read_text(path: Path, limit: int = 4 * 1024 * 1024) -> str:
             if remaining <= 0:
                 raise
             time.sleep(min(.005, remaining))
+            if time.monotonic() >= deadline:
+                raise
 
 
 def output_path(path: Path, protected: tuple[Path, ...] = ()) -> Path:

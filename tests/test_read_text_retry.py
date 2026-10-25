@@ -67,6 +67,24 @@ def test_persistent_windows_denial_preserves_exception_at_bound(tmp_path, monkey
     assert 1 < len(calls) <= 402 and all(0 < value <= .005 for value in clock.sleeps)
 
 
+@pytest.mark.parametrize('wake_at', [2.0, 2.25], ids=['exact-deadline', 'scheduler-oversleep'])
+def test_expired_sleep_does_not_start_a_new_attempt(tmp_path, monkeypatch, wake_at):
+    source = tmp_path / 'record.json'
+    source.write_bytes(b'{}')
+    clock = setup_retry(monkeypatch)
+    error = PermissionError(13, 'first open denied')
+    calls = refuse_opens(monkeypatch, source, 1, error)
+
+    def delayed_wake(seconds):
+        clock.sleeps.append(seconds)
+        clock.now = wake_at
+
+    monkeypatch.setattr(features.time, 'sleep', delayed_wake)
+    with pytest.raises(PermissionError) as caught:
+        features.read_text(source)
+    assert caught.value is error and len(calls) == 1 and clock.sleeps == [.005]
+
+
 @pytest.mark.parametrize('windows', [False, True])
 def test_zero_budget_and_non_windows_do_not_retry(tmp_path, monkeypatch, windows):
     source = tmp_path / 'record.json'
