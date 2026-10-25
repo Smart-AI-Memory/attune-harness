@@ -16,7 +16,8 @@ from .process import invoke
 from .recovery import RecoveryCursor, ReviewPaused, validate_events
 from .review_contract import bounded_text, canonical, digest, fields, parse_json
 from .review_store import RunStore, read_record, checkpoint_digest
-from .command_environment import invocation as command_environment, validate as validate_environment
+from .command_environment import (invocation as command_environment, validate as validate_environment,
+                                  annotate, selected_configurations)
 
 PROFILE = 'model-consultation-v1'
 
@@ -437,10 +438,10 @@ def abandon(directory, checkpoint):
 
 def inspect_evidence(directory):
     record = load(directory)
-    return {'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
+    return annotate({'schema_version': 1, 'operation': record['operation'], 'status': record['status'],
             'contract_digest': record['contract_digest'], 'checkpoint_digest': record['checkpoint_digest'],
             'snapshot_digest': record['contract']['snapshot']['digest'], 'claims': claims(record),
-            'authority': 'inspection_only'}
+            'authority': 'inspection_only'}, selected_configurations(record))
 
 
 def assess_citation(directory, checkpoint, round_number, participant, citation, decision, note):

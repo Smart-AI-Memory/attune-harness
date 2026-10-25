@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
 import tempfile
 from threading import Event
 
@@ -92,6 +93,24 @@ def test_cached_tempfile_directory_cannot_redirect_scratch(tmp_path, cwd, monkey
     assert list(cwd.iterdir()) == []
 
 
+@pytest.mark.parametrize('nested', [False, True], ids=['root', 'descendant'])
+def test_case_alias_cannot_put_scratch_inside_protected_scope(tmp_path, nested):
+    protected = tmp_path / 'FrozenScope'
+    protected.mkdir()
+    alias = tmp_path / 'fROZENsCOPE'
+    if not alias.exists() or not alias.samefile(protected):
+        pytest.skip('Volume uses case-sensitive directory names')
+    target = alias
+    if nested:
+        target = alias / 'nested'
+        target.mkdir()
+    before = sorted(str(path) for path in protected.rglob('*'))
+    with pytest.raises(ValueError, match='outside the work scope'):
+        with ce.invocation(configuration(), cwd=protected, parent=parent(target)):
+            pytest.fail('dispatched')
+    assert sorted(str(path) for path in protected.rglob('*')) == before
+
+
 @pytest.mark.parametrize('executable', [r'C:python.exe', r'\python.exe', 'python.exe'])
 def test_windows_executable_must_have_drive_and_root(tmp_path, cwd, executable):
     cfg = configuration()
@@ -117,13 +136,15 @@ def test_windows_map_has_absolute_baseline_and_casefolded_grants(tmp_path, cwd):
         assert environment['PATH'] == r'C:\Windows\System32;C:\Windows'
 
 
-@pytest.mark.parametrize('system_root', ['', r'Windows', r'\Windows', r'C:Windows'])
+@pytest.mark.parametrize('system_root', ['', r'Windows', r'\Windows', r'C:Windows', r'C:\Windows;.', 'C:\\Windows;'])
 def test_windows_system_root_cannot_make_relative_path(tmp_path, cwd, system_root):
     cfg = configuration()
     cfg['command'] = [r'C:\Python\python.exe']
+    before = list(tmp_path.iterdir())
     with pytest.raises(ValueError, match='absolute SystemRoot'):
         with ce.invocation(cfg, cwd=cwd, parent=parent(tmp_path, SystemRoot=system_root), platform='nt'):
             pytest.fail('dispatched')
+    assert list(tmp_path.iterdir()) == before
 
 
 def test_windows_selected_ambiguous_names_refuse(tmp_path, cwd):
@@ -219,6 +240,32 @@ def test_cleanup_error_does_not_mask_call_error(tmp_path, cwd, monkeypatch):
         with ce.invocation(configuration(), cwd=cwd, parent=parent(tmp_path)) as (_, audit):
             raise RuntimeError('original call outcome')
     assert audit['scratch_cleanup'] == 'failed' and 'synthetic-sensitive' not in json.dumps(audit)
+
+
+@pytest.mark.skipif(os.name == 'nt', reason='Reproduced POSIX recursive cleanup boundary')
+def test_real_recursive_cleanup_preserves_owned_outcome(tmp_path):
+    script = '''
+import json,sys
+from pathlib import Path
+from attune_harness.command_environment import invocation
+root=Path(sys.argv[1])
+cfg={'command':[sys.executable],'environment':{'profile':'command-env-v1','passthrough':[]}}
+try:
+ with invocation(cfg,cwd=root/'work',parent={'TMPDIR':str(root)}) as (environment,audit):
+  path=Path(environment['HOME'])
+  for _ in range(140):
+   path=path/'d';path.mkdir()
+  sys.setrecursionlimit(80)
+  raise RuntimeError('owned-call-outcome')
+except BaseException as exc:
+ sys.setrecursionlimit(1000)
+ print(json.dumps({'type':type(exc).__name__,'detail':str(exc),'audit':audit}))
+'''
+    result = subprocess.run([sys.executable, '-I', '-B', '-c', script, str(tmp_path)],
+                            capture_output=True, text=True, timeout=20, check=True)
+    receipt = json.loads(result.stdout)
+    assert receipt['type'] == 'RuntimeError' and receipt['detail'] == 'owned-call-outcome'
+    assert receipt['audit']['scratch_cleanup'] == 'failed'
 
 
 def test_notice_uses_only_selected_configs_and_never_mutates_record():

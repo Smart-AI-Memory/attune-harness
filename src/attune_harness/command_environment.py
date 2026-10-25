@@ -20,7 +20,8 @@ NOTICE = {
     'replacement': 'Configure environment with profile command-env-v1 and explicit passthrough names.',
 }
 LEGACY_MESSAGE = ('This command uses legacy full parent environment inheritance. '
-                  + NOTICE['replacement'])
+                  + NOTICE['replacement']
+                  + f" Notice release: {NOTICE['since']}; earliest removal: {NOTICE['removal']}.")
 
 
 class CommandEnvironmentDeprecationWarning(FutureWarning):
@@ -36,6 +37,9 @@ def selected_configurations(record):
         roster = request['registry']['participants']
         if 'assignments' in request:
             names = [item['participant'] for item in request['assignments']]
+        elif 'execution' in record:
+            names = [item['participant_id'] for item in
+                     record['execution']['recovery']['assignments'].values()]
         else:
             answers = request.get('answers', {})
             names = [answers.get(role) for role in ('assessor', 'reviewer')]
@@ -56,8 +60,7 @@ def annotate(envelope, configurations):
 
 def notice_texts(envelope):
     """Render only this registered notice; unrelated deprecations keep their owner."""
-    return [LEGACY_MESSAGE + f" Notice release: {NOTICE['since']}; earliest removal: {NOTICE['removal']}."
-            for notice in envelope.get('deprecations', []) if notice == NOTICE]
+    return [LEGACY_MESSAGE for notice in envelope.get('deprecations', []) if notice == NOTICE]
 
 
 def validate(policy):
@@ -95,11 +98,26 @@ def _temporary_root(snapshot, windows, system_root, excluded):
            str(PureWindowsPath(system_root) / 'Temp') if windows else '/tmp')
     try:
         root = Path(raw).resolve(strict=True)
-        if not root.is_dir() or any(root.is_relative_to(Path(path).resolve()) for path in excluded):
+        protected = [Path(path).resolve() for path in excluded]
+        # resolve() preserves case on case-insensitive POSIX filesystems. Check
+        # existing ancestors by filesystem identity as well as path spelling.
+        ancestors = (root, *root.parents)
+        if not root.is_dir() or any(
+                root.is_relative_to(path) or (path.exists() and any(
+                    ancestor.samefile(path) for ancestor in ancestors)) for path in protected):
             raise ValueError
     except (OSError, ValueError, RuntimeError):
         raise ValueError('Command scratch location must be an existing directory outside the work scope') from None
     return root
+
+
+def absolute_executable(configuration, *, platform=None):
+    """Return the configured executable only if it has a complete absolute path."""
+    windows = (os.name if platform is None else platform) == 'nt'
+    executable = configuration['command'][0]
+    if not (PureWindowsPath(executable).is_absolute() if windows else Path(executable).is_absolute()):
+        raise ValueError('Command environment profile requires an absolute initial executable')
+    return executable
 
 
 @contextmanager
@@ -117,14 +135,16 @@ def invocation(configuration, *, cwd, excluded_roots=(), parent=None, platform=N
         return
     validate(policy)
     windows = (os.name if platform is None else platform) == 'nt'
-    executable = configuration['command'][0]
-    absolute = PureWindowsPath(executable).is_absolute() if windows else Path(executable).is_absolute()
-    if not absolute:
-        raise ValueError('Command environment profile requires an absolute initial executable')
+    absolute_executable(configuration, platform=platform)
     snapshot = dict(os.environ if parent is None else parent)
     system_root = _value(snapshot, 'SystemRoot', True) if windows else None
-    if windows and (not system_root or not PureWindowsPath(system_root).is_absolute()):
+    if windows and (not system_root or ';' in system_root or not PureWindowsPath(system_root).is_absolute()):
         raise ValueError('Windows command environment requires an absolute SystemRoot')
+    search_path = (str(PureWindowsPath(system_root) / 'System32') + ';' + system_root
+                   if windows else os.defpath)
+    if windows and any(not entry or not PureWindowsPath(entry).is_absolute()
+                       for entry in search_path.split(';')):
+        raise ValueError('Windows command environment requires absolute baseline PATH entries')
     grants = {name: _value(snapshot, name, windows) for name in policy['passthrough']}
     root = _temporary_root(snapshot, windows, system_root, (cwd, *excluded_roots))
     try:
@@ -139,8 +159,7 @@ def invocation(configuration, *, cwd, excluded_roots=(), parent=None, platform=N
             home.mkdir()
             scratch.mkdir()
             environment = {
-                'PATH': (str(PureWindowsPath(system_root) / 'System32') + ';' + system_root
-                         if windows else os.defpath),
+                'PATH': search_path,
                 'HOME': str(home), 'TMPDIR': str(scratch), 'TMP': str(scratch), 'TEMP': str(scratch),
                 'LANG': 'C', 'LC_ALL': 'C', 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8',
                 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1',
@@ -163,5 +182,5 @@ def invocation(configuration, *, cwd, excluded_roots=(), parent=None, platform=N
         # Retain a value-free status instead of a path or the OS diagnostic.
         try:
             temporary.cleanup()
-        except OSError:
+        except (OSError, RecursionError):
             audit['scratch_cleanup'] = 'failed'

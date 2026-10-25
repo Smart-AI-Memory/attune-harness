@@ -14,6 +14,8 @@ import io
 import json
 import sys
 
+from .command_environment import notice_texts
+
 VERBS = ('plan', 'build', 'review', 'fix', 'test', 'resume')
 
 
@@ -40,6 +42,8 @@ def markdown(envelope: dict) -> str:
         if isinstance(result, dict) and result.get('outcome'):
             lines += ['', f'**Outcome:** {_literal(result["outcome"])}: {_literal(result.get("detail", ""))}']
     error = envelope.get('error')
+    for notice in notice_texts(envelope):
+        lines += ['', notice]
     if isinstance(error, dict) and error.get('detail'):
         lines += ['', f'**Refused ({_literal(error.get("type", "error"))}):** {_literal(error["detail"])}']
     record = envelope.get('record_path') or envelope.get('task_directory')

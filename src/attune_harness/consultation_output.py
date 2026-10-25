@@ -11,6 +11,7 @@ import unicodedata
 from pathlib import Path
 
 from .consultation_evidence import claims
+from .command_environment import annotate, notice_texts, selected_configurations
 
 
 def _visible(value):
@@ -54,7 +55,7 @@ def evidence_view(record):
             'authority': 'inspection_only'}
     if view['status'] == 'running':
         view = {**view, 'status': 'unresolved', 'persisted_status': 'running'}
-    return view
+    return annotate(view, selected_configurations(record))
 
 
 def markdown(envelope, *, view, retained=None):
@@ -65,6 +66,8 @@ def markdown(envelope, *, view, retained=None):
     output = [f'## {_text(operation)}: {_text(view)}', '',
               f'**Status:** {_text(envelope.get("status", "unknown"))}', '',
               'Retained model claims and this view grant no execution authority.']
+    for notice in notice_texts(envelope):
+        output += ['', _text(notice)]
     for name in ('contract_digest', 'checkpoint_digest', 'snapshot_digest'):
         value = envelope.get(name)
         if name == 'snapshot_digest' and not value:

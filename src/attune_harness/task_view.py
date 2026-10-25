@@ -12,6 +12,7 @@ from .spec_presenter import _literal, _plain
 from .task_contract import read_task
 from .task_continuation import read_continuation
 from .work_cli import present
+from .command_environment import notice_texts
 
 MAX_VIEW_BYTES = 512 * 1024
 SNAPSHOT_NOTE = (
@@ -57,7 +58,7 @@ def inspect(directory, *, continuation=None):
         item = {k: v for k, v in advice.items() if k in ("id", "status", "source", "kind", "count", "pointer")}
         item.setdefault("pointer", f"/{phase}/advisory/{index}")
         view["advisory"].append(item)
-    for name in ("freshness_error", "readiness_error", "run_error"):
+    for name in ("freshness_error", "readiness_error", "run_error", "deprecations"):
         if name in status:
             view[name] = copy.deepcopy(status[name])
     _check_size(view)
@@ -479,6 +480,8 @@ def _body(view, key):
              f'<p>{_escape(brief["current_focus"])}</p><p><strong>Done when:</strong> {_escape(brief["done_when"])}</p></section>',
              '<section>' + _role_heading("position", key),
              f'<p>{_escape(position)}</p><p class="muted">{_escape(view["summary"])}</p>']
+    for notice in notice_texts(view):
+        parts.append(f'<p>{_escape(notice)}</p>')
     if _feedback_rows(view):
         parts.append('<h3>Feedback already recorded</h3>' + _rows(_feedback_rows(view)))
     parts.extend(['</section><section>' + _role_heading("next_action", key),
@@ -510,6 +513,8 @@ def render(view, format):
     brief, attribution, position = _briefing(view)
     lines = ["# Return to work", "", _literal(brief["title"]), "",
              _literal("Task status checked at " + view["captured_at"]), "", _literal(attribution)]
+    for notice in notice_texts(view):
+        lines.extend(["", _literal(notice)])
     for title, content in ((_ROLES["context"][0], brief["context"]), (_ROLES["goal"][0], brief["goal"]),
                            ("Desired end state", brief["desired_end_state"]),
                            ("Current focus", brief["current_focus"]), ("Done when", brief["done_when"]),
