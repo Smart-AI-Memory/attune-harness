@@ -10,6 +10,7 @@ from attune_harness import consultation as c
 from attune_harness.consultation_output import evidence_view
 from attune_harness.cli import main
 from attune_harness.review_store import RunStore
+from attune_harness.command_environment import NOTICE
 
 
 def configuration(operation):
@@ -56,10 +57,11 @@ def no_dispatch(*args, **kwargs):
 @pytest.mark.parametrize('operation', ['source-review', 'roundtable'])
 @pytest.mark.parametrize('view', ['status', 'evidence'])
 @pytest.mark.parametrize('failed', [False, True])
-def test_json_bytes_exit_and_saved_record_stay_unchanged(tmp_path, capsys, monkeypatch, operation, view, failed):
+def test_json_notice_preserves_exit_and_saved_record(tmp_path, capsys, monkeypatch, operation, view, failed):
     _, directory, prepared, _ = prepare(tmp_path, operation)
     record = complete(directory, prepared, failed)
     expected = record if view == 'status' else c.inspect_evidence(directory)
+    expected = {**expected, 'deprecations': [NOTICE]}
     original = (directory / 'record.json').read_bytes()
     monkeypatch.setattr(c, 'run', no_dispatch)
     args = [operation, view, str(directory)]
@@ -75,6 +77,7 @@ def test_json_bytes_exit_and_saved_record_stay_unchanged(tmp_path, capsys, monke
     assert '**Authenticated model:** False' in readable
     assert ('Seat timed out' if failed else 'Inspect this claim') in readable
     assert (directory / 'record.json').read_bytes() == original
+    assert 'deprecations' not in c.load(directory)
     assert c.load(directory)['checkpoint_digest'] == record['checkpoint_digest']
 
 
@@ -102,7 +105,8 @@ def test_prepare_persists_same_schema_no_dispatch_and_quotes_acceptance(tmp_path
                                        saved['contract_digest'], '--', str(directory)]
         assert '--allow-' not in command
     else:
-        assert out == json.dumps(saved, indent=2, allow_nan=False) + '\n'
+        assert out == json.dumps({**saved, 'deprecations': [NOTICE]}, indent=2, allow_nan=False) + '\n'
+    assert 'deprecations' not in saved
 
 
 @pytest.mark.parametrize('operation', ['source-review', 'roundtable'])

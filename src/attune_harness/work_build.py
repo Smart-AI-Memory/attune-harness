@@ -18,7 +18,7 @@ from .recovery import (
 )
 from .review import authorize_external
 from .review_contract import bounded_text, digest, fields, parse_json
-from .review_participants import ReviewExchange
+from .review_participants import ReviewExchange, protect_command_scope
 from .review_store import RunStore, PersistenceError
 from .task_contract import read_task, safe_storage
 from .task_runtime import dispatch_assignment, guarded_execution, perform_probe
@@ -846,9 +846,9 @@ def build_work(
                 "last_identity": None,
             }
             run["participants"][role + ":" + step["id"]] = outcome
-            exchange = exchange_factory(
+            exchange = protect_command_scope(exchange_factory(
                 configs[role], Path(plan["root"]), profile=PROFILE
-            )
+            ), store.directory, request['project_root'])
             response = dispatch_assignment(
                 cursor, t["turn_id"], t, configs[role], exchange, outcome
             )

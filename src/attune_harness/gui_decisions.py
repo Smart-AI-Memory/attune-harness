@@ -13,6 +13,7 @@ from .work_contract import PROFILE, check_work_fresh, missing_information
 from .work_decisions import require_current_decision, retain_questions
 from .work_runtime import answer_planning, planning_questions
 from .recovery import UnresolvedOperation
+from .command_environment import annotate, selected_configurations
 
 
 GUI_ACTIONS = {"approve_task", "redo_task"}
@@ -104,6 +105,7 @@ class Decisions:
                                               else "Review your answers, then choose whether to accept this intent.")
                     except (ValueError, OSError, UnresolvedOperation) as exc:
                         item["note"] = str(exc)
+                item = annotate(item, selected_configurations(record))
             except (ValueError, OSError) as exc:
                 item = {"task": task, "label": "Unavailable saved task", "heading": "Saved task unavailable", "available": False,
                         "status": "unavailable", "note": str(exc)}
@@ -167,10 +169,10 @@ class Decisions:
         if bridge is not None:
             display["actions"] = [a for a in display["actions"] if a["id"] in GUI_ACTIONS]
         request = record["request"]
-        return {"task": task, "checkpoint": checkpoint, "decision": identity, "display": display,
+        return annotate({"task": task, "checkpoint": checkpoint, "decision": identity, "display": display,
                 "summary": {"intent": request["intent"], "choices": request["choices"],
                             "authoring": request["authoring"], "effects": request.get("effects"),
-                            "blocking_reasons": blocking_reasons}}
+                            "blocking_reasons": blocking_reasons}}, selected_configurations(record))
 
     def submit(self, task, checkpoint, decision, response):
         record = self._record(task)

@@ -6,6 +6,7 @@ import copy
 import pytest
 
 from attune_harness.consultation_evidence import assessment, claims, lines
+from attune_harness.command_environment import NOTICE
 
 
 def record():
@@ -158,7 +159,8 @@ def test_cli_assessment_success_preserves_owner_outcome_and_refused_retry(tmp_pa
     assert main(common) == 0
     emitted = json.loads(capsys.readouterr().out)
     after = c.load(directory)
-    assert emitted == after
+    assert emitted == {**after, 'deprecations': [NOTICE]}
+    assert 'deprecations' not in after
     assert after['status'] == status
     assert after['answers'] == before['answers'] and after['events'] == before['events']
     assert after['checkpoint_digest'] != before['checkpoint_digest']
