@@ -3,7 +3,7 @@
 import hashlib
 from .features import FeatureUnavailable, read_text
 from .review_contract import bounded_text, canonical, digest, fields
-from .review_participants import PROTOCOL, ReviewExchange, decode_action
+from .review_participants import PROTOCOL, ReviewExchange, decode_action, protect_command_scope
 from .review_store import PersistenceError
 from .recovery import RecoveryCursor, ReviewPaused, UnresolvedOperation, snapshot_sources, stable_id
 
@@ -67,7 +67,8 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
         for role, config in selected.items():
             participant_id = assignments[role]['participant_id']
             attempt_id = assignments[role]['attempt_id']
-            exchange = exchange_factory(config, corpus)
+            exchange = protect_command_scope(exchange_factory(config, corpus), store.directory,
+                                             *prepared.get('protected_roots', ()))
             history = ([] if policy is None else [
                 {'action': {'kind': 'tool', 'name': 'retrieve', 'arguments': {'query': answers['query'], 'k': 3}}, 'result': initial},
                 {'action': {'kind': 'tool', 'name': 'verify', 'arguments': {}}, 'result': record['preflight_verification']}])

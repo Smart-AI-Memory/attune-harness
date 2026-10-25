@@ -2,9 +2,11 @@
 
 import re
 import shutil
+import os
 from pathlib import Path
 
 from .consultation import configuration
+from .command_environment import absolute_executable
 from .process import invoke
 from .review_contract import parse_json
 
@@ -67,11 +69,18 @@ def preflight(config):
         adapter = seat['adapter']
         executable = seat['command'][0] if adapter == 'command' else (
             'agy' if adapter == 'antigravity' else adapter)
-        binary = shutil.which(executable)
+        if adapter == 'command' and 'environment' in seat:
+            executable = absolute_executable(seat)
+            binary = executable if Path(executable).is_file() and os.access(executable, os.X_OK) else None
+        else:
+            binary = shutil.which(executable)
         report = {'state': 'unknown', 'binary': binary, 'version': None, 'fix': ''}
         reports[name] = report
         if binary is None:
-            report.update(state='missing_binary', fix=f'Install {executable} and add it to PATH; rerun check.')
+            fix = ('Configure an existing absolute executable and rerun check.'
+                   if adapter == 'command' and 'environment' in seat else
+                   f'Install {executable} and add it to PATH; rerun check.')
+            report.update(state='missing_binary', fix=fix)
             continue
         if adapter in ('command', 'antigravity'):
             report['fix'] = ('Check the configured wrapper or signed-in Antigravity host and explicit model '

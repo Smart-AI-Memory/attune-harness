@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from .features import read_text
+from .command_environment import annotate, selected_configurations
 from .recovery import UnresolvedOperation
 from .review_contract import parse_json
 from .task_contract import read_task
@@ -202,7 +203,7 @@ def present(directory, *, inspect_only=False, _record=None):
     decision = retained_decision(record, stale="freshness_error" in result)
     if decision is not None:
         result["decision"] = decision
-    return result
+    return annotate(result, selected_configurations(record))
 
 
 def _evidence(record):
@@ -698,7 +699,7 @@ def _error(exc, directory=None):
         current = None  # Never conceal the original failure with an inspection error.
     if current:
         result.update(record_path=current["record_path"], evidence=current["evidence"])
-        for key in ("readiness_error", "freshness_error"):
+        for key in ("readiness_error", "freshness_error", "deprecations"):
             if key in current:
                 result[key] = current[key]
         if current["blocking"] and (

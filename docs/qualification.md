@@ -31,7 +31,31 @@ adapter fixtures; native model behavior requires the separate frozen campaign.
 
 The full-suite matrix runs plain `pytest` to catch tests outside the
 installed-wheel selection. The required `Qualification` check passes only when
-the installed-wheel jobs, full-suite jobs and documentation link check pass.
+correctness lint, installed-wheel jobs, full-suite jobs and documentation links
+pass. A documentation-only pull request can skip the platform matrix; lint and
+links must still pass. A failed, cancelled, skipped or missing lint result fails
+the aggregate check.
+
+## Correctness lint
+
+The `Correctness lint` job runs Ruff 0.14.4 on Ubuntu with Python 3.12. It checks
+only `src/` and `scripts/` with the `E9`, `F63`, `F7` and `F82` rule families,
+covering syntax and selected correctness errors such as undefined names,
+invalid control flow and assertions that always pass. Ruff targets Python 3.10
+syntax, preserving the package's `>=3.10` requirement and existing platform
+matrix. It applies no automatic fixes and adds no formatting or coverage gate.
+
+Run the same check with the pinned Ruff version in a separate environment:
+
+```sh
+ruff check --no-cache --no-fix src scripts
+```
+
+Lint does not exercise runtime behavior, qualify a platform or measure model
+quality. Source-suite, installed-wheel, native-memory and platform checks retain
+their separate requirements.
+
+## Source-suite and installed evidence
 
 Each Windows full-source cell runs two concurrent supervised pytest partitions
 through `scripts/run_source_suite.py --shards 2`. Module-path hashing keeps each

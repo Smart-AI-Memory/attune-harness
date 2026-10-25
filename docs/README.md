@@ -28,6 +28,8 @@ states the review scope, validation and remaining gates. Run
 - [Saved-request GUI journey](specs/saved-request-journey/README.md): Candidate intake, save/reopen, read-only accepted request and populated sample; execution remains separate
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
+- [Command participant environments](command-environments.md): Unreleased finite environment profile, explicit grants and legacy migration notices
+- [Command environment design](design-command-environments.md): First shipping slice, protected scratch lifetime and compatibility boundaries
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
 - [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
 - [Parallel rounds and partial outcomes](design-consultation-partial-rounds.md): Concurrent seats, `partial` status and operator-authorized refused-turn retries (#233, design before code)
@@ -96,6 +98,7 @@ states the review scope, validation and remaining gates. Run
 - [Review findings log](review-findings.md): What each review found that the author had missed, by class
 - [Windows traps](windows-traps.md): The platform differences that cost a finding or a failed job, with the fix for each
 - [Windows read primitives](windows-read-primitives.md): Retained-handle reads, selected-file discovery, error contracts and consumer boundaries
+- [Windows read repair](windows-read-repair.md): Bounded input retries and metadata-witness diagnostic boundaries
 - [The four phases between 0.4.0 and 1.0.0](plan-1.0.md): What remains before 1.0.0, with each phase's tasks, receipts and decisions
 - [Release 1.0.0: the requirements, and what waits](specs/release-1.0/README.md): Which promises are requirements of 1.0.0 and which wait for a later milestone, with the count of what remains and ten decisions for Patrick
 - [Release 1.0.0: addendum, September 23, 2026](specs/release-1.0/addendum-2026-09-23.md): D25, the ten release decisions ruled, the freeze's list and October as the month; D26, the deprecation is a notice, and the migration page it adds; D27, the freeze note's seven decisions as recommended; D28, the memory transition's end; D29, the critical path; D30, the host surface
@@ -303,6 +306,7 @@ defines the approved Harness-owned writer; implementation is in progress.
 
 | File | Title | Dated |
 | --- | --- | --- |
+| [specs/native-memory/hydration-generation-reader.md](specs/native-memory/hydration-generation-reader.md) | Hydration generation reader | 2026-10-25 |
 | [specs/native-memory/hydration-writer/README.md](specs/native-memory/hydration-writer/README.md) | Draft addendum, prior decisions and source-backed command/refusal walk | 2026-10-24 |
 | [specs/native-memory/hydration-writer/requirements.md](specs/native-memory/hydration-writer/requirements.md) | Proposed preservation, authority, publication and installed-host acceptance requirements | 2026-10-24 |
 | [specs/native-memory/hydration-writer/design.md](specs/native-memory/hydration-writer/design.md) | Proposed source mapping, opt-in generation reads, conditional publication and rollback | 2026-10-24 |

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .features import read_text
 from .review_contract import digest
-from .review_participants import ReviewExchange
+from .review_participants import ReviewExchange, protect_command_scope
 from .review_store import RunStore
 from .recovery import engine_profile
 from .task_contract import check_fresh, read_task, safe_storage
@@ -78,6 +78,7 @@ def prepare_task(task):
     snapshot = (source['sources'] if source['mode'] == 'keyword' else
                 {'generation': request['registry']['retrieval']['generation'], 'manifest': source['manifest_digest']})
     return {'answers': {**answers, 'objective': answers['goal']}, 'paths': paths,
+            'protected_roots': (request['project_root'],),
             'originals': {paths[n]: read_text(paths[n], 65536) for n in ('document', 'context')},
             'source_snapshot': snapshot}
 
@@ -289,7 +290,8 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
               'initial_retrieval':None,'history':[],'tools':[],'remaining_tool_calls':0,'remaining_turns':1,
               'protocol':PROTOCOL+' '+protocol,'repair':payload}
         response=dispatch_assignment(cursor,a['attempt_id']+':turn:0',turn,config,
-                                     exchange_factory(config,Path(scope['root'])),outcome)
+                                     protect_command_scope(exchange_factory(config,Path(scope['root'])),
+                                                           store.directory, request['project_root']),outcome)
         AssessmentPolicy(task).validate_action(response['action'])
         check_fresh(task)
         outcome.update(status='completed',text=response['action']['text'])
