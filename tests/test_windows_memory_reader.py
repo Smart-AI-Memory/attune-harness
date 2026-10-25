@@ -24,6 +24,7 @@ from attune_harness.memory_reader import FILE_LIMIT, SNAPSHOT_BYTES, NativeReade
 from test_memory_reader import config_for, seed_raw
 from test_memory_serving import file_case, render
 from test_windows_reads import junction
+from windows_read_witness import MetadataWitness
 
 windows_only = pytest.mark.skipif(os.name != 'nt', reason='Actual Windows local-NTFS consumer observation')
 
@@ -842,8 +843,10 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
                 'identity': [value.st_dev, value.st_ino], 'links': value.st_nlink,
                 'attributes': value.st_file_attributes, 'reparse_tag': value.st_reparse_tag}
 
-    def stored_link(path):
-        with windows_reads.open_read_root(path.parent) as admitted:
+    observer = MetadataWitness(monkeypatch, record_property, windows_reads.ReadRoot, native.Native)
+
+    def stored_link(path, phase):
+        with observer.phase(phase, path.name), windows_reads.open_read_root(path.parent) as admitted:
             api = admitted._api
             with api.owned(api.child(admitted._root, path.name, writable=False, metadata_only=True)) as handle:
                 data = admitted._reparse_data(handle)
@@ -858,7 +861,7 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
                 'print_name': data[20 + printed:20 + printed + print_size].decode('utf-16-le'),
                 'reparse_hex': data.hex()}
 
-    before = {path.name: stored_link(path) for path in links}
+    before = {path.name: stored_link(path, 'before') for path in links}
     active = before['next.jsonl' if form == 'chained-relative' else 'findings.jsonl']
     components = active['substitute'].replace('\\', '/').split('/')
     if form != 'absolute':
@@ -881,10 +884,12 @@ def test_raw_canceled_component_absence_matches_actual_windows_stat(tmp_path, mo
         reads.append(True)
         raise AssertionError('Raw link semantics witness attempted a content read')
     monkeypatch.setattr(native.Native, 'read', forbidden_read)
-    packet = NativeReader(config_for(('r', root, 'raw', 'project-a'))).query('Aurora policy')
+    with observer.phase('query'):
+        packet = NativeReader(config_for(('r', root, 'raw', 'project-a'))).query('Aurora policy')
+    record_property('raw_dotdot_reader', json.dumps({'packet': packet, 'content_reads': len(reads)}, sort_keys=True))
     receipt['reader'] = {'status': packet['status'], 'problems': packet['problems']}
     receipt['after_following_stat'] = stat_evidence(source, follow=True)
-    receipt['after_stored_links'] = {path.name: stored_link(path) for path in links}
+    receipt['after_stored_links'] = {path.name: stored_link(path, 'after') for path in links}
     receipt['content_reads'] = len(reads)
     record_property('raw_dotdot_result', json.dumps(receipt, sort_keys=True))
     assert reads == [] and receipt['after_stored_links'] == before, receipt

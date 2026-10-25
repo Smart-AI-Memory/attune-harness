@@ -76,22 +76,36 @@ def with_deprecation(envelope: dict, entry: dict) -> dict:
 
 
 OVERSIZE = "Input exceeds its limit"
+READ_RETRY_SECONDS = 2.0
+RETRY_REFUSED_READ = os.name == 'nt'
 
 
 def read_text(path: Path, limit: int = 4 * 1024 * 1024) -> str:
     """Read bounded, regular UTF-8 input; never truncate it into valid evidence."""
-    if not path.is_file():
-        raise ValueError(f"Not a regular input file: {path}")
-    with path.open('rb') as stream:
-        raw = stream.read(limit + 1)
-        if len(raw) > limit:
-            # Another writer may shrink the file after the read. Never report
-            # a size smaller than what was read.
-            size = max(os.fstat(stream.fileno()).st_size, len(raw))
-            raise ValueError(
-                f"{OVERSIZE} of {limit} bytes; it is {size} bytes: {path}. "
-                "It was refused whole. Harness never shortens an input to fit.")
-    return raw.decode('utf-8')
+    deadline = time.monotonic() + READ_RETRY_SECONDS if RETRY_REFUSED_READ else None
+    while True:
+        try:
+            if not path.is_file():
+                raise ValueError(f"Not a regular input file: {path}")
+            with path.open('rb') as stream:
+                raw = stream.read(limit + 1)
+                if len(raw) > limit:
+                    # Another writer may shrink the file after the read. Never report
+                    # a size smaller than what was read.
+                    size = max(os.fstat(stream.fileno()).st_size, len(raw))
+                    raise ValueError(
+                        f"{OVERSIZE} of {limit} bytes; it is {size} bytes: {path}. "
+                        "It was refused whole. Harness never shortens an input to fit.")
+            return raw.decode('utf-8')
+        except PermissionError:
+            if not RETRY_REFUSED_READ:
+                raise
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise
+            time.sleep(min(.005, remaining))
+            if time.monotonic() >= deadline:
+                raise
 
 
 def output_path(path: Path, protected: tuple[Path, ...] = ()) -> Path:

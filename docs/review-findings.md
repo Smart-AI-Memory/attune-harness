@@ -91,6 +91,8 @@ exact" when the review confirmed a carried module changed nothing.
 
 | #314 | Explicit command participant environment grants | request changes, then approve (configured GPT-6.1 Sol; source `5de7375`) | 0/3/0 | platform, input, mapping, test | APFS case aliases bypassed lexical scratch containment; Windows SystemRoot delimiters introduced relative or empty PATH entries; recursive cleanup masked an owned outcome. All three were reproduced before repair and caught by reverted-guard tests. An isolated child regression also needed an explicit source path/hash binding to avoid testing an unrelated editable install. |
 
+| Local Windows reads | Bounded record-read retry and metadata-witness diagnostics (`f7be2ef`) | request changes, then approve (configured GPT-6 Astra; runtime identity unavailable) | 0/1/0 | wait, bound, test | A scheduler-delayed sleep could start another read at or after the retry deadline. Both exact-deadline and oversleep cases were reproduced before repair; a post-sleep deadline check closes them. The final source-bound review passed 113 controls with 79 native Windows skips; original acceptance assertions and native guards remain unchanged. |
+
 | Local Python minimum | Require Python 3.12 in development metadata and active CI | request changes; finding repaired (configured GPT-6 Astra; runtime model attestation unavailable) | 0/1/0 | test | A permanent `version == 1.5.1` assertion rejected an otherwise unchanged future release. A version-only 1.5.2 control reproduced it. The fix removes the release pin from the lasting minimum/classifier test; current and future-version controls each pass seven cases while old minimum/matrix controls still produce five expected failures. Unchanged version is verified in this PR's scope evidence instead. |
 
 ## What the log says so far
@@ -246,3 +248,22 @@ unchanged. Explicit HOME/PATH grants and retained child output are documented
 limits; environment filtering is not an OS sandbox. Installed-wheel and actual
 Windows evidence remain separate qualification gates. Later removal, version or
 support-policy changes, merge and publication are outside this source approval.
+
+### Windows record reads — configured GPT-6 Astra review, October 25, 2026
+
+Author: configured GPT-6.1 Sol. Separate runtime model attestation was unavailable.
+The initial `945a7b5` received one P2: after a sleep delayed to or beyond the
+retry deadline, the loop could begin another read. The author reproduced both
+independent controls before adding a post-sleep deadline check and two maintained
+regressions. Astra approved exact application source
+`f7be2ef8e4ea5c50465f5b7f038314a4a3c0a0d4`; a source-bound central replay passed
+113 controls, with 79 native Windows cases skipped on macOS.
+
+The review held the original complete regular-file, size and UTF-8 validation,
+POSIX behavior, all 17 original raw-link assertions and production native guards.
+Diagnostic wrappers preserve existing calls, returned objects and exceptions;
+controls catch unbounded label storage and extra native reads. The retry bounds
+new attempts, not a blocking operating-system call. No actionable source finding
+remained after the delta review. Full-suite, installed-wheel and actual Windows
+qualification are separate evidence; a passing diagnostic case does not identify
+the cause of the retained metadata refusal or the original record-open denial.
