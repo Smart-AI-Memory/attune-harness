@@ -242,6 +242,64 @@ def test_oversized_whole_reply_is_refused_without_truncation(setup, operation, a
     assert fake.hashes[fake.prefix + 'node:aurora']['description'] == original
 
 
+def test_malformed_url_never_discloses_its_embedded_password(setup):
+    config, fake = setup
+    config['redis']['url'] = 'redis://user:PRIVATE_PASSWORD@\u2100host/0'
+    text, reason = memory_redis.serve(config)
+    assert text is None and 'endpoint is invalid' in reason
+    assert 'PRIVATE_PASSWORD' not in reason and not fake.calls
+
+
+def test_index_alias_cannot_replace_its_source_identifier(setup):
+    config, fake = setup
+    fake.info['attributes'][0][1] = 'unrelated_field'
+    with pytest.raises(memory_redis.MemoryRedisUnavailable, match='incomplete or incompatible'):
+        memory_redis.read(config, 'node', {'id': 'aurora'})
+
+
+def test_status_parser_errors_never_echo_malformed_reply_contents(setup, monkeypatch):
+    config, fake = setup
+    original = fake.execute_command
+    def malformed(name, *args):
+        if name == 'FT.SEARCH':
+            return ['PRIVATE_INDEXED_TEXT']
+        return original(name, *args)
+    monkeypatch.setattr(fake, 'execute_command', malformed)
+    with pytest.raises(memory_redis.MemoryRedisUnavailable, match='malformed status reply') as error:
+        memory_redis.read(config, 'status', {})
+    assert 'PRIVATE_INDEXED_TEXT' not in str(error.value)
+
+
+@pytest.mark.parametrize('query', ['socket_timeout=60&socket_connect_timeout=60',
+    'decode_responses=false', 'retry_on_timeout=true', 'protocol=3', 'db=0&db=1'])
+def test_native_url_options_cannot_override_reader_controls_before_connect(setup, monkeypatch, query):
+    config, fake = setup
+    config['redis']['url'] += '?' + query
+    called = []
+    _library(monkeypatch, lambda *args, **kwargs: called.append(True))
+    with pytest.raises(memory_redis.MemoryRedisUnavailable, match='db query parameter'):
+        memory_redis.connect(memory_redis._configured(config))
+    assert called == [] and fake.calls == []
+
+
+def test_safe_database_query_keeps_initial_timeouts_bounded(setup, monkeypatch):
+    import redis
+    config, _ = setup
+    config['redis']['url'] += '?db=0'
+    observed = {}
+    class OfflineConnection(redis.connection.Connection):
+        def connect(self):
+            observed.update(socket_timeout=self.socket_timeout, socket_connect_timeout=self.socket_connect_timeout)
+            raise redis.exceptions.ConnectionError('offline probe; no network opened')
+    monkeypatch.setattr(memory_redis, 'require_feature', lambda *args: redis)
+    def factory(url, **kwargs):
+        return redis.Redis.from_url(url, connection_class=OfflineConnection, **kwargs)
+    with pytest.raises(memory_redis.MemoryRedisUnavailable, match='connection unavailable'):
+        memory_redis.connect(memory_redis._configured(config), client_factory=factory)
+    assert 0 < observed['socket_timeout'] <= 1
+    assert 0 < observed['socket_connect_timeout'] <= 1
+
+
 @pytest.mark.parametrize('selection', [
     {'projection': 'unknown', 'dataset': 'demo'}, {'projection': 'harness-v1'},
     {'dataset': 'demo'}, {'projection': 'harness-v1', 'dataset': 'demo', 'index': 'idx:legacy'},

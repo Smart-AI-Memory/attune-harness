@@ -6,12 +6,13 @@ The legacy reader remains the default and retains its separate fixed keyspace.
 
 import hashlib
 import time
+from urllib.parse import parse_qsl, urlsplit
 
 from .memory_hydration_contract import (
     LIBRARY, LAYERS, function_digest, generation_index, generation_prefix,
     namespace, validate_manifest,
 )
-from .memory_redis import REPLY_LIMIT, MemoryRedisUnavailable, RedisMemory, open_client
+from .memory_redis import REPLY_LIMIT, MemoryRedisUnavailable, RedisMemory, open_client, resolve_url
 from .review_contract import canonical
 
 READ_SECONDS = 5.0
@@ -33,6 +34,23 @@ def _attribute(entry, key, default=None):
             if entry[position] == key:
                 return entry[position + 1]
     return default
+
+
+def _connection_settings(settings):
+    try:
+        url = resolve_url(settings)
+        query = parse_qsl(urlsplit(url).query, keep_blank_values=True, strict_parsing=True)
+    except (ValueError, UnicodeError, MemoryRedisUnavailable) as error:
+        raise MemoryRedisUnavailable('Native Redis memory endpoint is invalid or unavailable; check its configuration') from error
+    # redis-py gives URL options precedence over constructor kwargs. Keep the
+    # database selector, but do not let URLs replace decoding, TLS or timeout
+    # controls belonging to this bounded reader.
+    if query and (len(query) != 1 or query[0][0] != 'db'
+                  or not query[0][1].isascii() or not query[0][1].isdigit()):
+        raise MemoryRedisUnavailable('Native Redis memory URL supports only one optional db query parameter')
+    normalized = {**settings, 'url': url}
+    normalized.pop('url_env', None)
+    return normalized
 
 
 class GenerationMemory(RedisMemory):
@@ -99,6 +117,14 @@ class GenerationMemory(RedisMemory):
                 raise MemoryRedisUnavailable('Native Redis memory returned a malformed search reply') from error
             raise
 
+    def status(self):
+        try:
+            return super().status()
+        except MemoryRedisUnavailable as error:
+            if str(error).startswith('Redis memory returned'):
+                raise MemoryRedisUnavailable('Native Redis memory returned a malformed status reply') from error
+            raise
+
     def _index_info(self):
         reply = self._call('checking generation index', self.client.execute_command, 'FT.INFO', self.index)
         try:
@@ -113,7 +139,8 @@ class GenerationMemory(RedisMemory):
             if not isinstance(attributes, (list, tuple)) or len(attributes) != len(expected_types):
                 raise ValueError('Foreign index schema')
             actual = {_attribute(entry, 'attribute'): _attribute(entry, 'type') for entry in attributes}
-            if actual != expected_types:
+            if (actual != expected_types or any(_attribute(entry, 'identifier') != _attribute(entry, 'attribute')
+                                                 for entry in attributes)):
                 raise ValueError('Foreign index schema')
             name = next(entry for entry in attributes if _attribute(entry, 'attribute') == 'name')
             if float(_attribute(name, 'WEIGHT', 1)) != 2:
@@ -167,10 +194,11 @@ class GenerationMemory(RedisMemory):
 
 def connect(settings, *, client_factory=None, timeout=2.0):
     started = time.monotonic()
+    connection_settings = _connection_settings(settings)
     try:
-        client, host, errors = open_client(settings, client_factory=client_factory,
+        client, host, errors = open_client(connection_settings, client_factory=client_factory,
                                            timeout=min(timeout, 1.0), exclusive=True)
-    except MemoryRedisUnavailable as error:
+    except (MemoryRedisUnavailable, ValueError, TypeError) as error:
         raise MemoryRedisUnavailable('Native Redis memory connection unavailable; inspect the configured endpoint') from error
     memory = GenerationMemory(client, settings, host, errors=errors, started=started)
     memory.require_hydration()
