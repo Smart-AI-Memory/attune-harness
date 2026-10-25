@@ -108,6 +108,22 @@ jobs:
             echo "no change under src/"
           fi
 
+  lint:
+    name: Correctness lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install the pinned correctness linter
+        run: python -m pip install "ruff==0.14.4"
+      - name: Check production and maintenance Python
+        run: ruff check --no-cache --no-fix src scripts
+
   installed-library:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
     needs: changes
@@ -247,7 +263,7 @@ jobs:
   # classification, is a failure.
   qualification:
     name: Qualification
-    needs: [changes, installed-library, full-suite, doc-links]
+    needs: [changes, lint, installed-library, full-suite, doc-links]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -262,11 +278,12 @@ jobs:
           PLATFORMS: ${{ needs.installed-library.result }}
           SUITE: ${{ needs.full-suite.result }}
           LINKS: ${{ needs.doc-links.result }}
+          LINT: ${{ needs.lint.result }}
         run: |
-          state="platform jobs: ${PLATFORMS:-none}; full suite: ${SUITE:-none}; documentation links: ${LINKS:-none}; classification: ${CLASSIFIED:-none}; qualify: ${QUALIFY:-unset}; reason: ${REASON:-unset}; event: ${EVENT_NAME:-none}"
+          state="correctness lint: ${LINT:-none}; platform jobs: ${PLATFORMS:-none}; full suite: ${SUITE:-none}; documentation links: ${LINKS:-none}; classification: ${CLASSIFIED:-none}; qualify: ${QUALIFY:-unset}; reason: ${REASON:-unset}; event: ${EVENT_NAME:-none}"
           verdict=fail
-          if [[ "$LINKS" != success ]]; then
-            # A dead link fails every change, documentation-only or not.
+          if [[ "$LINT" != success || "$LINKS" != success ]]; then
+            # Lint and dead links fail every change, documentation-only or not.
             verdict=fail
           elif [[ "$QUALIFY" == false ]]; then
             # Only a pull request may skip, and only on a classification that succeeded.
@@ -281,12 +298,12 @@ jobs:
             verdict=pass
           fi
           case "$verdict" in
-            pass) message="All installed-wheel jobs, the full test suite and the documentation link check passed. ($state)" ;;
+            pass) message="Correctness lint, all installed-wheel jobs, the full test suite and the documentation link check passed. ($state)" ;;
             skipped)
               if [[ "$REASON" == release-branch ]]; then
-                message="Release-branch pull request: every Markdown link resolves; the matrix was not run here because the branch's own push run qualifies this commit and the release gate reads only push and dispatch runs. ($state)"
+                message="Release-branch pull request: correctness lint passed and every Markdown link resolves; the matrix was not run here because the branch's own push run qualifies this commit and the release gate reads only push and dispatch runs. ($state)"
               else
-                message="Documentation-only pull request: every Markdown link resolves; nothing was built, installed or tested, so this passes without qualifying any platform. Every push to main runs the full qualification. ($state)"
+                message="Documentation-only pull request: correctness lint passed and every Markdown link resolves; no wheel was built or tested, so this passes without qualifying any platform. Every push to main runs the full qualification. ($state)"
               fi ;;
             *) message="Qualification did not pass. ($state)" ;;
           esac

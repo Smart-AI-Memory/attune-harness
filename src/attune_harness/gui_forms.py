@@ -37,6 +37,7 @@ function expirePanel(){
 }
 const buildCards=new Map();
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
+function commandNotice(value){return (value.deprecations||[]).filter(n=>n.surface==='command participant configuration').map(n=>'This command uses legacy full parent environment inheritance. '+n.replacement+' Notice release: '+n.since+'; earliest removal: '+n.removal+'.').join(' ');}
 async function api(path,payload){
  const res=await fetch(path,{method:payload?'POST':'GET',headers:{'X-Attune-Session':token||'',...(payload?{'Content-Type':'application/json'}:{})},...(payload?{body:JSON.stringify(payload)}:{}),cache:'no-store'});
  if(!res.ok)throw Error(await res.text());return await res.json();
@@ -45,6 +46,7 @@ async function loadTasks(){
  try{const data=await api('/workspace');tasks.replaceChildren();buildCards.clear();document.querySelector('#decisions').hidden=!data.editable;
  for(const task of data.tasks){
   const card=node('article',undefined,tasks);card.className='task-card';node('h2',task.label,card);node('p',task.status+(task.status==='accepted'&&task.build?' · Intent accepted': ' · '+task.note),card);
+  if(commandNotice(task))node('p',commandNotice(task),card);
   if(task.build){
    const build=task.build,note=node('p','',card),error=node('p','',card);
    if(build.view){const inspect=node('button','Inspect progress and evidence',card);inspect.type='button';inspect.onclick=()=>watchBuild(task.task);}
@@ -87,6 +89,7 @@ function renderDecision(shown){
  stopBuildWatch();expired=false;
  panel.replaceChildren();const display=shown.display;
  const title=node('h2',display.kind==='spec'?'Review draft intent':display.title,panel);title.tabIndex=-1;title.focus();
+ if(commandNotice(shown))node('p',commandNotice(shown),panel);
  node('small','Bound to checkpoint '+shown.checkpoint.slice(0,12)+'. Opening another form or restarting expires this decision.',panel);
  if(display.kind==='spec'){
   const summary=shown.summary,intent=summary.intent;
@@ -162,10 +165,10 @@ function renderBuildEvidence(build,focus=true){
  if(!evidenceNodes){
   expired=false;panel.replaceChildren();
   const heading=node('h2','Recorded progress and evidence',panel);heading.tabIndex=-1;if(focus)heading.focus();
-  evidenceNodes={summary:node('p','',panel),note:node('p','',panel),next:node('p','',panel),completed:node('p','',panel),evidence:node('pre','',panel),reviewsHeading:node('h3','Recorded reviewer findings',panel),reviews:node('pre','',panel)};
+  evidenceNodes={summary:node('p','',panel),notice:node('p','',panel),note:node('p','',panel),next:node('p','',panel),completed:node('p','',panel),evidence:node('pre','',panel),reviewsHeading:node('h3','Recorded reviewer findings',panel),reviews:node('pre','',panel)};
   node('small','Reviewer output is evidence to inspect, not human acceptance. Refresh reads saved state and never repeats execution.',panel);
  }
- const values={summary:view.summary,note:build.note,next:'Next: '+view.next_action,completed:'Completed steps: '+(view.completed.join(', ')||'None recorded'),evidence:JSON.stringify(view.evidence,null,2),reviews:JSON.stringify(build.reviews||[],null,2)};
+ const values={summary:view.summary,notice:commandNotice(build),note:build.note,next:'Next: '+view.next_action,completed:'Completed steps: '+(view.completed.join(', ')||'None recorded'),evidence:JSON.stringify(view.evidence,null,2),reviews:JSON.stringify(build.reviews||[],null,2)};
  const scroll=[window.scrollX,window.scrollY,panel.scrollLeft,panel.scrollTop];
  const selection=window.getSelection();
  let anchor=selection?.anchorNode,focusNode=selection?.focusNode;
@@ -185,6 +188,7 @@ function renderBuildGrant(shown){
  stopBuildWatch();expired=false;
  panel.replaceChildren();const heading=node('h2',shown.resume?'Resume accepted command build':'Run accepted command build',panel);heading.tabIndex=-1;heading.focus();
  node('p',shown.goal,panel);
+ if(commandNotice(shown))node('p',commandNotice(shown),panel);
  node('p','This grants the configured commands and accepted file effects. Commands can access their host resources; they are not guaranteed offline. Native/provider adapters are unavailable in this GUI slice.',panel);
  for(const [label,value] of [['Participants and commands',shown.participants],['Accepted tasks',shown.tasks],['File effects and protected checks',shown.effects],['Budgets',shown.budgets]]){node('h3',label,panel);node('pre',JSON.stringify(value,null,2),panel);}
  const confirm=node('button',shown.resume?'Grant resume of these commands':'Grant these commands and build',panel);confirm.type='button';

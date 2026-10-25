@@ -7,6 +7,7 @@ import sys
 import time
 
 from .review_contract import parse_json
+from .command_environment import annotate, notice_texts, selected_configurations
 from .task_contract import (accept_task, answer_names, check_fresh, create_task,
                             clear_template_cache, form_revision, read_task, task_template)
 
@@ -28,7 +29,7 @@ def present_task(directory, *, bypass=False):
                       'checkpoint_digest': record['checkpoint_digest'],
                       'accepted': False, 'answers': copy.deepcopy(request['answers']),
                       'permissions': {'external': False, 'provider': False}}
-    return {'schema_version': 1, 'operation': 'task-intake', 'status': record['status'],
+    result = {'schema_version': 1, 'operation': 'task-intake', 'status': record['status'],
             'task_id': request['task_id'], 'revision': request['revision'],
             'task_directory': str(Path(record['record_path']).parent),
             'answers': copy.deepcopy(request['answers']),
@@ -38,6 +39,7 @@ def present_task(directory, *, bypass=False):
             'intake_metrics': metrics, 'execution_status': record['status'] if 'execution' in record else 'not_started',
             'note': ('Saved execution exists; use status for its evidence.' if 'execution' in record else
                      'Intake only: no assessment or participant invocation has occurred.')}
+    return annotate(result, selected_configurations(record))
 
 
 def add_arguments(parser):
@@ -142,6 +144,8 @@ def execute_intake(args):
             response['permissions'] = {'external': args.allow_external, 'provider': args.allow_provider}
             if sys.stdin.isatty() and not args.accept:
                 print(presented['markdown'])
+                for notice in notice_texts(presented):
+                    print(notice)
                 for name, value in response['answers'].items():
                     if value is None:
                         response['answers'][name] = input(name + ': ').strip()
@@ -156,6 +160,7 @@ def execute_intake(args):
         if result['status'] == 'accepted' and not args.intake_only:
             from .task_policies import execute_task
             result = execute_task(directory, max_operations=args.pause_after)
+        result = annotate(result, selected_configurations(result))
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
     except Exception as exc:
@@ -260,6 +265,7 @@ def execute_control(args):
         if result.get('task_profile') == 'pytest-change-v1':
             from .test_change import public_test_task
             result = public_test_task(result)
+        result = annotate(result, selected_configurations(result))
         if args.command == 'status' and getattr(args, 'format', 'json') != 'json':
             if (result.get('task_profile') == 'assessment-intake-v1'
                     and result['status'] == 'completed' and 'repair' not in result['request']):

@@ -4,9 +4,13 @@ import html
 import re
 import unicodedata
 
+from .command_environment import notice_texts
+
 
 def _sections(task):
     request, run = task["request"], task["execution"]
+    if notice_texts(task):
+        yield "Command environment", [("Migration", text, False) for text in notice_texts(task)]
     verification = run.get("verification", {})
     yield "Recorded outcomes", [
         ("Execution", task["status"], False),

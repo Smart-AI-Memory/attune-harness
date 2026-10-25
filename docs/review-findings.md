@@ -89,6 +89,10 @@ exact" when the review confirmed a carried module changed nothing.
 | Local #233 integration | Carry approved concurrent rounds and guarded recovery onto `e314e78` (`ce9edc8`) | approve (GPT-5.6-sol) | 0/0/0 | | Runtime and new regression modules match the approved `71da143` bytes; 509 focused checks passed. Integration preserves the forms-only 1.4.0 candidate scope and explicitly excludes #233. |
 | Local signature input | Give GPG the exact validated packet buffer (`51692f8`; test-only follow-up `cffc999`) | approve (configured/requested GPT-6 Astra; separate runtime identity unavailable) | 0/0/0 | input, bound, test | Whole-envelope refusal and exact binary file binding held under real-GPG multi-packet and malformed-input probes. Reviewer ran 114 signing checks and the three added boundary cases; two boundary mutations were caught. Source bytes remain unchanged after review. Preserves the #118 findings above; full-suite, installed-wheel and Windows qualification are separate evidence. |
 
+| #314 | Explicit command participant environment grants | request changes, then approve (configured GPT-6.1 Sol; source `5de7375`) | 0/3/0 | platform, input, mapping, test | APFS case aliases bypassed lexical scratch containment; Windows SystemRoot delimiters introduced relative or empty PATH entries; recursive cleanup masked an owned outcome. All three were reproduced before repair and caught by reverted-guard tests. An isolated child regression also needed an explicit source path/hash binding to avoid testing an unrelated editable install. |
+
+| Local Windows reads | Bounded record-read retry and metadata-witness diagnostics (`f7be2ef`) | request changes, then approve (configured GPT-6 Astra; runtime identity unavailable) | 0/1/0 | wait, bound, test | A scheduler-delayed sleep could start another read at or after the retry deadline. Both exact-deadline and oversleep cases were reproduced before repair; a post-sleep deadline check closes them. The final source-bound review passed 113 controls with 79 native Windows skips; original acceptance assertions and native guards remain unchanged. |
+
 ## What the log says so far
 
 Nineteen reviews. Every `src/` change since the command workspace host (#54)
@@ -207,3 +211,57 @@ actually passed the native leaf/parent swap tests. Their three failures were
 LF fixture translation and refusal wording; tests now preserve explicit LF
 bytes and recognize native reparse refusal. New CI must qualify the corrected
 head before claiming it passes Windows.
+
+### Command participant environments — configured GPT-6.1 Sol review, October 25, 2026
+
+Author: configured GPT-6 Astra. Separate runtime model attestation is unavailable
+for author and reviewer. The first core, `f9b01c0`, received three P2 findings:
+case aliases could place scratch inside a frozen root; semicolons in Windows
+`SystemRoot` could add relative or empty baseline PATH entries; recursive cleanup
+could replace an already-owned result or exception.
+
+The author reproduced each finding before repair. The reviewer approved all
+20 changed production files at exact source commit
+`5de7375cc2e682c20a72e50ffef89c3b9725671a`. Filesystem identity checks supplement
+path spelling, Windows baseline paths refuse delimiters and incomplete entries,
+and expected cleanup failures retain the owned outcome with a value-free failure
+flag. Independent checks passed 68 tests from the immutable source; a bounded
+parallel review passed 61 checks and caught all three reverted guards. Both
+real-child transport mutations also failed when the explicit environment map
+was omitted. The approved narrow Ruff checks passed under Python 3.10 syntax.
+
+Test/docs-only follow-up `b2a24c5` changes no application source. It binds the
+recursive child regression to the parent-selected module path and SHA-256;
+the fixed test passes and the cleanup mutation fails. Legacy display comparisons
+require exactly the registered notice while preserving raw API, saved-byte and
+checkpoint checks. The unreleased guide is linked from the command reference.
+The author passed 881 focused tests and two subtests, then 187 corrected focused
+cases and the full suite: 5,385 passed, 244 skipped. The earlier failed/incomplete
+run is retained: exact display expectations needed the approved notice, and the
+test host PATH lacked the venv's `python` for unchanged starter examples.
+
+No remaining actionable source defect was found in this scope. Native/provider
+and generic runner behavior, accepted configuration and GUI grant digests remain
+unchanged. Explicit HOME/PATH grants and retained child output are documented
+limits; environment filtering is not an OS sandbox. Installed-wheel and actual
+Windows evidence remain separate qualification gates. Later removal, version or
+support-policy changes, merge and publication are outside this source approval.
+
+### Windows record reads — configured GPT-6 Astra review, October 25, 2026
+
+Author: configured GPT-6.1 Sol. Separate runtime model attestation was unavailable.
+The initial `945a7b5` received one P2: after a sleep delayed to or beyond the
+retry deadline, the loop could begin another read. The author reproduced both
+independent controls before adding a post-sleep deadline check and two maintained
+regressions. Astra approved exact application source
+`f7be2ef8e4ea5c50465f5b7f038314a4a3c0a0d4`; a source-bound central replay passed
+113 controls, with 79 native Windows cases skipped on macOS.
+
+The review held the original complete regular-file, size and UTF-8 validation,
+POSIX behavior, all 17 original raw-link assertions and production native guards.
+Diagnostic wrappers preserve existing calls, returned objects and exceptions;
+controls catch unbounded label storage and extra native reads. The retry bounds
+new attempts, not a blocking operating-system call. No actionable source finding
+remained after the delta review. Full-suite, installed-wheel and actual Windows
+qualification are separate evidence; a passing diagnostic case does not identify
+the cause of the retained metadata refusal or the original record-open denial.
