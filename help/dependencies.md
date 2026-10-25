@@ -1,7 +1,8 @@
 ## What the inspected base install supplies
 
-Harness requires Python 3.10 or later. Published 1.5.1 uses the dependency pins
-below. You do not need to install attune-forms separately for the Harness forms
+Current development source requires Python 3.12 or later. Published 1.5.1
+retains its Python 3.10 minimum and uses the dependency pins below. The release
+version for the new minimum remains open. You do not need to install attune-forms separately for the Harness forms
 journey.
 
 | Package | Pinned version | Used for |

@@ -2,14 +2,17 @@
 
 Install published Harness 1.5.1 in a fresh environment. The [release guide](/harness/help/1-5-1/) names its source, package files and Windows limits.
 
-Use Python 3.10 or later. Keep Harness in its own environment: Harness and
+Use Python 3.12 for these examples. Current development source requires Python
+3.12 or later; published 1.5.1 retains its Python 3.10 minimum. Keep Harness in
+its own environment: Harness and
 Attune-AI pin different MCP SDK versions. Attune-AI is not required.
 
-1. In a new working directory, create an environment: `python3 -m venv .venv`.
+1. Select Python 3.12 explicitly. On macOS or Linux, check `python3.12 --version`, then create an environment with `python3.12 -m venv .venv`. On Windows, check `py -3.12 --version`, then use `py -3.12 -m venv .venv` with the [Python launcher](https://docs.python.org/3.12/using/windows.html#python-launcher-for-windows). Install Python 3.12 first if that interpreter is unavailable.
 2. Activate it. On macOS or Linux, use `source .venv/bin/activate`. On Windows PowerShell, use `.venv\Scripts\Activate.ps1`.
-3. Install the published release: `python -m pip install "attune-harness==1.5.1"`.
-4. Check the selected interpreter's installed version: `python -c "from importlib.metadata import version; print(version('attune-harness'))"`.
-5. Run the local demonstration: `python -m attune_harness`.
+3. Run `python --version` and confirm `Python 3.12.x` before installing packages.
+4. Install the published release: `python -m pip install "attune-harness==1.5.1"`.
+5. Check the selected interpreter's installed version: `python -c "from importlib.metadata import version; print(version('attune-harness'))"`.
+6. Run the local demonstration: `python -m attune_harness`.
 
 **Expected result:** The installed version is `1.5.1`. The demonstration prints a JSON
 receipt with a verified result. It uses a deterministic local worker and an

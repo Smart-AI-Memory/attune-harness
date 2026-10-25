@@ -12,10 +12,16 @@ GitHub documents the [hosted runner labels and images][github-runners].
 
 | Job | Runner | Python | Scope |
 | --- | --- | --- | --- |
-| `installed-library` | `ubuntu-latest`, `macos-latest` | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
-| `installed-library` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
-| `full-suite` | `ubuntu-latest` | 3.10 | Every test from the source tree |
-| `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Every test from the source tree |
+| `installed-library` | `ubuntu-latest`, `macos-latest` | 3.12 | Selected platform tests and installed-wheel journeys |
+| `installed-library` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.12 | Selected platform tests and installed-wheel journeys |
+| `full-suite` | `ubuntu-latest` | 3.12 | Every test from the source tree |
+| `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.12 | Every test from the source tree |
+
+The development branch requires Python 3.12 or later. This matrix targets its
+minimum supported interpreter without duplicate cells. Earlier Python 3.10
+receipts retain their historical artifact/runtime identities; they do not qualify
+this new minimum. Version 1.5.1 remains unchanged in source, and release/version
+selection is separate from this compatibility change.
 
 These hosted jobs provide Windows Server CI evidence. T8 also requires
 separate Windows 11 standard-user installed-wheel validation.

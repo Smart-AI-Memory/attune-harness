@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "attune-harness"
 version = "1.5.1"
 description = "Portable execution contracts for multi-model agent work"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -22,7 +22,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.12",
     "Environment :: Console",
 ]

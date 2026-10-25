@@ -1,5 +1,16 @@
 # Windows parity tasks
 
+## Prospective Python minimum — October 25, 2026
+
+Patrick approved Python 3.12 as the development minimum in a separate
+compatibility PR, which is not yet merged or published. Once that policy lands,
+future qualification uses Python 3.12; the original 3.10/3.12 planning rows and
+receipts below retain their historical interpreter identities. This changes only
+the future interpreter profile. All Windows Server 2022/2025, Windows 11 desktop,
+standard-user, filesystem, shell, process, storage and complete-journey acceptance
+requirements remain. No parity requirement is closed by reducing Python cells.
+Release/version selection and any future Python 3.14 qualification remain open.
+
 ## Current checkpoint — October 21, 2026
 
 Checked against main `462d37be4fa06140c62e5f39f3489a4f8785c112` and the

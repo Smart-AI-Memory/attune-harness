@@ -313,10 +313,10 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
     assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 35 || 20 }}"
     assert set(job['strategy']['matrix']['os']) == {
         'ubuntu-latest', 'macos-latest', 'windows-2022', 'windows-2025'}
-    assert job['strategy']['matrix']['python'] == ['3.10', '3.12']
+    assert job['strategy']['matrix']['python'] == ['3.12']
 
 
-def test_full_suite_covers_both_windows_servers_and_python_versions():
+def test_full_suite_covers_both_windows_servers_on_supported_python():
     import yaml
 
     workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
@@ -328,8 +328,7 @@ def test_full_suite_covers_both_windows_servers_and_python_versions():
         if row['os'].startswith('windows-')
     }
     assert windows_rows == {
-        ('windows-2022', '3.10'), ('windows-2022', '3.12'),
-        ('windows-2025', '3.10'), ('windows-2025', '3.12'),
+        ('windows-2022', '3.12'), ('windows-2025', '3.12'),
     }
 
 

@@ -91,6 +91,8 @@ exact" when the review confirmed a carried module changed nothing.
 
 | #314 | Explicit command participant environment grants | request changes, then approve (configured GPT-6.1 Sol; source `5de7375`) | 0/3/0 | platform, input, mapping, test | APFS case aliases bypassed lexical scratch containment; Windows SystemRoot delimiters introduced relative or empty PATH entries; recursive cleanup masked an owned outcome. All three were reproduced before repair and caught by reverted-guard tests. An isolated child regression also needed an explicit source path/hash binding to avoid testing an unrelated editable install. |
 
+| Local Python minimum | Require Python 3.12 in development metadata and active CI | request changes; finding repaired (configured GPT-6 Astra; runtime model attestation unavailable) | 0/1/0 | test | A permanent `version == 1.5.1` assertion rejected an otherwise unchanged future release. A version-only 1.5.2 control reproduced it. The fix removes the release pin from the lasting minimum/classifier test; current and future-version controls each pass seven cases while old minimum/matrix controls still produce five expected failures. Unchanged version is verified in this PR's scope evidence instead. |
+
 ## What the log says so far
 
 Nineteen reviews. Every `src/` change since the command workspace host (#54)
