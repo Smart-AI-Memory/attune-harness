@@ -28,6 +28,8 @@ states the review scope, validation and remaining gates. Run
 - [Saved-request GUI journey](specs/saved-request-journey/README.md): Candidate intake, save/reopen, read-only accepted request and populated sample; execution remains separate
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
+- [Command participant environments](command-environments.md): Unreleased finite environment profile, explicit grants and legacy migration notices
+- [Command environment design](design-command-environments.md): First shipping slice, protected scratch lifetime and compatibility boundaries
 - [Model consultation design](design-model-consultation.md): Immutable source selection, host authority, replay and review boundaries
 - [Citation inspection and Google consultation](design-consultation-evidence-google.md): Advisory host decisions and explicit direct transport limits
 - [Parallel rounds and partial outcomes](design-consultation-partial-rounds.md): Concurrent seats, `partial` status and operator-authorized refused-turn retries (#233, design before code)

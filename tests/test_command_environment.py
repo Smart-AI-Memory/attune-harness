@@ -29,7 +29,7 @@ def parent(tmp_path, **values):
 
 @pytest.fixture
 def cwd(tmp_path):
-    value = tmp_path / 'work'
+    value = tmp_path / 'work-Δ-測試'
     value.mkdir()
     return value
 
@@ -184,12 +184,12 @@ print(json.dumps(response))
 def test_real_children_receive_only_named_canary(tmp_path, cwd, monkeypatch, route, grant):
     peer = tmp_path / 'peer.py'
     peer.write_text(PEER)
-    monkeypatch.setenv('ATTUNE_TEST_ALLOW', 'synthetic-allow')
+    monkeypatch.setenv('ATTUNE_TEST_ALLOW', 'synthetic-allow-Δ-測試')
     monkeypatch.setenv('ATTUNE_TEST_DENY', 'synthetic-deny')
     monkeypatch.setenv('TMPDIR', str(tmp_path))
     monkeypatch.setenv('TEMP', str(tmp_path))
     cfg = configuration(*(['ATTUNE_TEST_ALLOW'] if grant else []))
-    cfg['command'] = [sys.executable, '-I', '-B', str(peer)]
+    cfg['command'] = [sys.executable, '-I', '-X', 'utf8', '-B', str(peer)]
     if route == 'consultation':
         cfg['identity'] = {'provider': 'synthetic', 'model': 'peer-1'}
         turn = {'attempt_id': 'probe', 'contract_digest': 'a'*64, 'participant': 'peer',
@@ -204,7 +204,7 @@ def test_real_children_receive_only_named_canary(tmp_path, cwd, monkeypatch, rou
         raw = exchange(json.dumps({'turn': {'operation_profile': route, 'role': role, 'tools': []}}))
         observed = json.loads(json.loads(raw)['action']['text'])
         audit = exchange.last_identity['environment']
-    assert observed['allowed'] == ('synthetic-allow' if grant else None)
+    assert observed['allowed'] == ('synthetic-allow-Δ-測試' if grant else None)
     assert observed['denied'] is None and not Path(observed['home']).exists()
     assert 'synthetic-' not in json.dumps(audit)
 
@@ -230,11 +230,12 @@ def test_protected_scope_keeps_custom_factory_contract(cwd):
     assert exchange.protected_roots == (cwd.parent,)
 
 
-def test_cleanup_error_does_not_mask_call_error(tmp_path, cwd, monkeypatch):
+@pytest.mark.parametrize('error', [OSError, RecursionError])
+def test_cleanup_error_does_not_mask_call_error(tmp_path, cwd, monkeypatch, error):
     original = tempfile.TemporaryDirectory.cleanup
     def failure(instance):
         original(instance)
-        raise OSError('synthetic-sensitive-cleanup-detail')
+        raise error('synthetic-sensitive-cleanup-detail')
     monkeypatch.setattr(tempfile.TemporaryDirectory, 'cleanup', failure)
     with pytest.raises(RuntimeError, match='original call outcome'):
         with ce.invocation(configuration(), cwd=cwd, parent=parent(tmp_path)) as (_, audit):
@@ -245,7 +246,7 @@ def test_cleanup_error_does_not_mask_call_error(tmp_path, cwd, monkeypatch):
 @pytest.mark.skipif(os.name == 'nt', reason='Reproduced POSIX recursive cleanup boundary')
 def test_real_recursive_cleanup_preserves_owned_outcome(tmp_path):
     script = '''
-import hashlib,json,sys
+import hashlib,json,sys,tempfile
 from pathlib import Path
 source=Path(sys.argv[2])
 sys.path.insert(0,str(source.parent.parent))
@@ -254,17 +255,32 @@ assert Path(selected.__file__).samefile(source)
 assert hashlib.sha256(Path(selected.__file__).read_bytes()).hexdigest()==sys.argv[3]
 from attune_harness.command_environment import invocation
 root=Path(sys.argv[1])
+def fill(directory):
+ path=Path(directory)
+ for _ in range(140):
+  path=path/'d';path.mkdir()
+# Newer standard libraries use an iterative cleanup. Measure this runtime's
+# real cleanup before requiring a recursion failure from the owned invocation.
+control=tempfile.TemporaryDirectory(dir=root)
+fill(control.name)
+control_failed=False
+sys.setrecursionlimit(80)
+try:
+ control.cleanup()
+except RecursionError:
+ control_failed=True
+finally:
+ sys.setrecursionlimit(1000)
 cfg={'command':[sys.executable],'environment':{'profile':'command-env-v1','passthrough':[]}}
 try:
  with invocation(cfg,cwd=root/'work',parent={'TMPDIR':str(root)}) as (environment,audit):
-  path=Path(environment['HOME'])
-  for _ in range(140):
-   path=path/'d';path.mkdir()
+  fill(environment['HOME'])
   sys.setrecursionlimit(80)
   raise RuntimeError('owned-call-outcome')
 except BaseException as exc:
  sys.setrecursionlimit(1000)
- print(json.dumps({'type':type(exc).__name__,'detail':str(exc),'audit':audit}))
+ print(json.dumps({'type':type(exc).__name__,'detail':str(exc),'audit':audit,
+  'control_failed':control_failed,'scratch_removed':not Path(environment['HOME']).exists()}))
 '''
     import hashlib
     source = Path(ce.__file__).resolve()
@@ -273,7 +289,11 @@ except BaseException as exc:
                             capture_output=True, text=True, timeout=20, check=True)
     receipt = json.loads(result.stdout)
     assert receipt['type'] == 'RuntimeError' and receipt['detail'] == 'owned-call-outcome'
-    assert receipt['audit']['scratch_cleanup'] == 'failed'
+    if receipt['control_failed']:
+        assert receipt['audit']['scratch_cleanup'] == 'failed'
+    else:
+        assert 'scratch_cleanup' not in receipt['audit']
+        assert receipt['scratch_removed'] is True
 
 
 def test_notice_uses_only_selected_configs_and_never_mutates_record():
