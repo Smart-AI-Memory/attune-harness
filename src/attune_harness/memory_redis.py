@@ -73,7 +73,7 @@ _ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
 # Characters RediSearch reads as syntax inside a query; each is escaped so a
 # query is words, never operators.
 _SEARCH_SPECIAL = set(",.<>{}[]\"':;!@#$%^&*()-+=~|/\\ ")
-_CONFIG_KEYS = frozenset({"url", "url_env", "password_env", "index"})
+_CONFIG_KEYS = frozenset({"url", "url_env", "password_env", "index", "projection", "dataset"})
 
 
 class MemoryRedisUnavailable(FeatureUnavailable):
@@ -100,6 +100,15 @@ def validate_config(value):
     for key in value:
         if not isinstance(value[key], str) or not value[key]:
             raise ValueError(f"Memory config 'redis.{key}' must be a non-empty string")
+    if 'projection' in value or 'dataset' in value:
+        from .memory_hydration_contract import PROJECTION, token
+        if value.get('projection') != PROJECTION or 'dataset' not in value or 'index' in value:
+            raise ValueError("Native Redis memory requires projection 'harness-v1' and dataset, without index")
+        settings = {'projection': PROJECTION, 'dataset': token(value['dataset'])}
+        for key in ('url', 'url_env', 'password_env'):
+            if key in value:
+                settings[key] = value[key]
+        return settings
     settings = {"index": value.get("index", INDEX)}
     if not _ID_RE.match(settings["index"]):
         raise ValueError("Memory config 'redis.index' is not an index name")
@@ -134,7 +143,7 @@ def _host(url):
     return f"{parts.hostname}:{parts.port or 6379}"
 
 
-def open_client(settings, *, client_factory=None, timeout=2.0):
+def open_client(settings, *, client_factory=None, timeout=2.0, exclusive=False):
     """A pinging client for the configured Redis, or why it cannot be reached.
 
     Loads the pinned ``redis`` package and connects with bounded timeouts.
@@ -148,6 +157,11 @@ def open_client(settings, *, client_factory=None, timeout=2.0):
         "socket_connect_timeout": min(timeout, 1.0),
         "socket_timeout": timeout,
     }
+    if exclusive:
+        from redis.backoff import NoBackoff
+        from redis.retry import Retry
+        options.update(single_connection_client=True, retry=Retry(NoBackoff(), 0),
+                       lib_name=None, lib_version=None)
     if urlsplit(url).password is None and settings.get("password_env"):
         password = os.environ.get(settings["password_env"])
         if password:
@@ -171,6 +185,9 @@ def connect(settings, *, client_factory=None, timeout=2.0):
     ``open_client`` plus the hydration check: the index and the function
     library must exist. Returns a ``RedisMemory``.
     """
+    if settings.get('projection') == 'harness-v1':
+        from .memory_hydration_redis import connect as connect_generation
+        return connect_generation(settings, client_factory=client_factory, timeout=timeout)
     client, host, errors = open_client(settings, client_factory=client_factory, timeout=timeout)
     memory = RedisMemory(client, settings, host, errors=errors)
     memory.require_hydration()
@@ -452,6 +469,14 @@ def _flat(value):
     return "".join(char for char in flat if char >= " " and char != "\x7f" and not "\x80" <= char <= "\x9f")
 
 
+def _configured(config):
+    settings = validate_config(config.get('redis') if isinstance(config, dict) else None)
+    if settings is not None and settings.get('projection') == 'harness-v1':
+        from .memory_reader import NativeReader, roots_config
+        settings['_authority_digest'] = NativeReader(roots_config(config)).binding
+    return settings
+
+
 def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, config_path=None, prompt=None):
     """The digest as text for a hook: ``(text, None)``, or ``(None, reason)``. Never raises.
 
@@ -462,7 +487,7 @@ def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, co
     """
     try:
         from .memory_serving import filter_packet
-        settings = validate_config(config.get("redis") if isinstance(config, dict) else None)
+        settings = _configured(config)
         if settings is None:
             return None, "The memory config has no 'redis' section"
         limit = _bounded(limit, "limit")
@@ -475,6 +500,8 @@ def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, co
         if status != "ok":
             return None, str(packet.get("detail") or status or "no digest")
         packet = filter_packet(memory, packet, config, limit)
+        if settings.get('projection') == 'harness-v1':
+            memory.ensure_current()
         if packet['status'] == 'no_results':
             return None, "no eligible memory remains after serving filters"
         return format_digest(packet, chars=chars, config_path=config_path, provenance=True), None
@@ -486,7 +513,7 @@ def serve(config, *, limit=SERVE_LIMIT, chars=SERVE_CHARS, connect_with=None, co
 
 def read(config, operation, arguments, *, connect_with=None):
     """One read from a memory config: ``disabled`` without a redis section."""
-    settings = validate_config(config.get("redis") if isinstance(config, dict) else None)
+    settings = _configured(config)
     if settings is None:
         return dict(status="disabled", detail="The memory config has no 'redis' section")
     memory = (connect_with or connect)(settings)

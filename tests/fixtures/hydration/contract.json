@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "schema_version": 1,
+    "sources": [
+      {"root_id": "curated", "layer": "curated", "corpus": "curated", "path": "."},
+      {"root_id": "personal", "layer": "file", "corpus": "personal", "path": "."},
+      {"root_id": "reference", "layer": "lesson", "corpus": "lessons", "path": "lessons.md"},
+      {"root_id": "reference", "layer": "rule", "corpus": "rules", "path": "rules"}
+    ]
+  },
+  "manifest": {
+    "schema_version": 1,
+    "generation": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "previous": null,
+    "publication_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "binding": "1111111111111111111111111111111111111111111111111111111111111111",
+    "source_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+    "context_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "function_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "hydrated_at": "2026-10-24T12:00:00Z",
+    "counts": {"curated": 2, "file": 1, "lesson": 1, "rule": 1},
+    "projection_bytes": 4096
+  },
+  "records": {
+    "node:aurora": {"name": "Aurora convention", "description": "Aurora uses explicit source roots.", "type": "reference", "status": "active", "layer": "curated", "tags": "aurora", "updated_at": "2026-10-24"},
+    "node:retired": {"name": "Retired convention", "description": "Old Aurora convention.", "type": "reference", "status": "inactive", "layer": "curated", "tags": "aurora", "updated_at": "2026-10-23"},
+    "file:personal:note": {"name": "Aurora note", "description": "Source pointer", "type": "reference", "layer": "file", "corpus": "personal", "path": "/fixture/personal/note.md", "text": "POINTER BODY MUST NEVER BE SERVED"},
+    "lesson:3": {"name": "Aurora lesson", "description": "Aurora lesson", "layer": "lesson", "corpus": "lessons", "path": "/fixture/reference/lessons.md", "line": "3", "text": "LESSON BODY MUST NEVER BE SERVED"},
+    "rule:cadence": {"name": "cadence", "description": "Aurora cadence", "layer": "rule", "corpus": "rules", "path": "/fixture/reference/rules/cadence.md", "text": "RULE BODY MUST NEVER BE SERVED"}
+  },
+  "active": ["aurora"],
+  "edges": {"aurora": [{"target": "file:personal:note", "type": "RELATED_TO", "description": "Source details"}]}
+}
