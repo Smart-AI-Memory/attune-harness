@@ -16,6 +16,7 @@ from .process import invoke
 from .recovery import RecoveryCursor, ReviewPaused, validate_events
 from .review_contract import bounded_text, canonical, digest, fields, parse_json
 from .review_store import RunStore, read_record, checkpoint_digest
+from .command_environment import invocation as command_environment, validate as validate_environment
 
 PROFILE = 'model-consultation-v1'
 
@@ -47,6 +48,7 @@ def configuration(value, operation):
         if adapter not in ('claude', 'codex', 'antigravity', 'command'):
             raise ValueError('Configure claude, codex, antigravity or command explicitly; no fallback')
         fields(item, ('adapter', 'identity', 'timeout', *(['command'] if adapter == 'command' else []),
+                      *(['environment'] if adapter == 'command' and 'environment' in item else []),
                       *(['effort'] if adapter == 'antigravity' else []),
                       *(['reasoning_effort'] if adapter == 'codex' and 'reasoning_effort' in item else [])))
         pair = identity(item['identity'])
@@ -63,6 +65,8 @@ def configuration(value, operation):
         if type(item['timeout']) not in (int, float) or not 1 <= item['timeout'] <= 300:
             raise ValueError('timeout must be 1..300 seconds')
         if adapter == 'command':
+            if 'environment' in item:
+                validate_environment(item['environment'])
             command = item['command']
             if not isinstance(command, list) or not 1 <= len(command) <= 32:
                 raise ValueError('command must be an argument list')
@@ -172,11 +176,16 @@ def dispatch(config, turn, cwd, cancel):
     attempt = Attempt(task, turn['attempt_id'], turn['contract_digest'], turn['participant'], 'reviewer', PROFILE)
     native = None
     result = None
+    environment_audit = None
     if config['adapter'] == 'command':
         def exchange(raw):
-            nonlocal result
-            result = invoke(tuple(config['command']), raw, cwd=cwd, timeout=config['timeout'],
-                            max_output_bytes=65536, cancel=cancel)
+            nonlocal result, environment_audit
+            roots = (turn['snapshot']['root'],) if 'root' in turn['snapshot'] else ()
+            with command_environment(config, cwd=cwd, excluded_roots=roots) as (environment, audit):
+                environment_audit = audit
+                result = invoke(tuple(config['command']), raw, cwd=cwd, timeout=config['timeout'],
+                                max_output_bytes=65536, cancel=cancel,
+                                **({'environment': environment} if environment is not None else {}))
             if result.failure:
                 raise NativeError(f'Command failed: {result.failure}', failure=result.failure,
                                   process_stopped=result.returncode is not None)
@@ -213,6 +222,7 @@ def dispatch(config, turn, cwd, cancel):
     return {'status': status, 'answer': payload, 'error': error,
             'identity': {'configured': config['identity'],
                          'reported': asdict(native.identity) if native and native.identity else None,
+                         **({'environment': environment_audit} if environment_audit is not None else {}),
                          'authenticated_model': False},
             'provider_usage': getattr(native, 'usage', None),
             'process': asdict(process) if process else None}
