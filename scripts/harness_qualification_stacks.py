@@ -211,7 +211,7 @@ def _configure_listing_witness(config):
             pass
         if sink is not None:
             diagnostic_call(sink, 'emit', event='windows_listing_setup_error',
-                            details=lambda: {'error_type': type(error).__name__})
+                            details=lambda error=error: {'error_type': type(error).__name__})
             diagnostic_call(sink, 'close')
 
 

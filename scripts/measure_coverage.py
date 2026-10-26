@@ -338,7 +338,7 @@ def _observed_run(argv, *, sink, **kwargs):
             try:
                 super().__init__(*args, **kw)
             except BaseException as error:
-                _diagnostic_call(sink, 'emit', event='parent_launch_error', details=lambda: {'error_type': type(error).__name__})
+                _diagnostic_call(sink, 'emit', event='parent_launch_error', details=lambda error=error: {'error_type': type(error).__name__})
                 raise
             _diagnostic_call(sink, 'emit', event='parent_launch_return', details=lambda: {'child_pid': self.pid})
 
@@ -347,7 +347,7 @@ def _observed_run(argv, *, sink, **kwargs):
             try:
                 result = super().communicate(input=input, timeout=timeout)
             except BaseException as error:
-                _diagnostic_call(sink, 'emit', event='parent_communicate_error', details=lambda: {'error_type': type(error).__name__})
+                _diagnostic_call(sink, 'emit', event='parent_communicate_error', details=lambda error=error: {'error_type': type(error).__name__})
                 raise
             _diagnostic_call(sink, 'emit', event='parent_communicate_return', details=lambda: {'returncode': self.returncode})
             return result
@@ -361,7 +361,7 @@ def _observed_run(argv, *, sink, **kwargs):
             try:
                 result = super().wait(timeout=timeout)
             except BaseException as error:
-                _diagnostic_call(sink, 'emit', event='parent_wait_error', details=lambda: {'error_type': type(error).__name__})
+                _diagnostic_call(sink, 'emit', event='parent_wait_error', details=lambda error=error: {'error_type': type(error).__name__})
                 raise
             _diagnostic_call(sink, 'emit', event='parent_wait_return', details=lambda: {'returncode': result})
             return result
@@ -371,7 +371,7 @@ def _observed_run(argv, *, sink, **kwargs):
             try:
                 result = super().kill()
             except BaseException as error:
-                _diagnostic_call(sink, 'emit', event='parent_kill_error', details=lambda: {'error_type': type(error).__name__})
+                _diagnostic_call(sink, 'emit', event='parent_kill_error', details=lambda error=error: {'error_type': type(error).__name__})
                 raise
             _diagnostic_call(sink, 'emit', event='parent_kill_return', details=lambda: {'returncode': self.returncode})
             return result
@@ -381,7 +381,7 @@ def _observed_run(argv, *, sink, **kwargs):
             try:
                 result = super().__exit__(exc_type, value, traceback)
             except BaseException as error:
-                _diagnostic_call(sink, 'emit', event='parent_context_exit_error', details=lambda: {'error_type': type(error).__name__})
+                _diagnostic_call(sink, 'emit', event='parent_context_exit_error', details=lambda error=error: {'error_type': type(error).__name__})
                 raise
             _diagnostic_call(sink, 'emit', event='parent_context_exit_return', details=lambda: {'returncode': self.returncode})
             return result
@@ -391,7 +391,7 @@ def _observed_run(argv, *, sink, **kwargs):
         try:
             result = original_run(argv, **kwargs)
         except BaseException as error:
-            _diagnostic_call(sink, 'emit', event='parent_run_error', details=lambda: {'error_type': type(error).__name__})
+            _diagnostic_call(sink, 'emit', event='parent_run_error', details=lambda error=error: {'error_type': type(error).__name__})
             raise
         _diagnostic_call(sink, 'emit', event='parent_run_return', details=lambda: {'returncode': result.returncode})
         return result
