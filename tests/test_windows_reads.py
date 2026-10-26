@@ -807,3 +807,59 @@ def test_batch_full_directory_scans_do_not_grow_with_selected_file_count(source,
             assert [item.data for item in result.values()] == [str(i).encode('ascii') for i in range(count)]
             counts.append(len(scans))
         assert counts[0] > 0 and counts[0] == counts[1]
+
+
+@windows_only
+def test_batch_checkpoint_admits_empty_directories_and_prunes_explicit_scope(source):
+    (source / 'notes' / 'nested').mkdir(parents=True)
+    (source / 'notes' / 'direct.md').write_bytes(b'direct')
+    (source / 'notes' / 'nested' / 'ignored.md').write_bytes(b'ignored')
+    (source / 'rules' / 'deep').mkdir(parents=True)
+    (source / 'rules' / 'deep' / 'rule.md').write_bytes(b'rule')
+    (source / 'selected-empty').mkdir()
+    (source / 'unrelated').mkdir()
+    (source / 'unrelated' / 'ignored.md').write_bytes(b'ignored')
+    def selected(name):
+        return name.endswith('.md') and (name.rpartition('/')[0] == 'notes' or name.startswith('rules/'))
+    def descend(name):
+        return name in ('notes', 'rules', 'selected-empty') or name.startswith('rules/')
+    with reads.open_read_root(source) as root:
+        with root.observe(select=selected, descend=descend, required_dirs=['notes', 'rules', 'selected-empty'],
+                          max_files=2, max_bytes=100, max_total_bytes=100, checkpoint=True) as observed:
+            assert set(observed) == {'notes/direct.md', 'rules/deep/rule.md'}
+            observed.verify()
+            assert set(observed.evidence['directories']) == {'', 'notes', 'rules', 'rules/deep', 'selected-empty'}
+        with pytest.raises(ValueError, match='closed'):
+            observed.verify()
+        # Existing readers still get an ordinary dict and recursive discovery.
+        with root.observe(select=lambda name: name.endswith('.md'), max_files=20,
+                          max_bytes=100, max_total_bytes=1000) as plain:
+            assert type(plain) is dict
+            assert 'notes/nested/ignored.md' in plain and 'unrelated/ignored.md' in plain
+
+
+@windows_only
+def test_batch_all_present_limit_includes_optional_empty_sidecar_before_content_read(source, monkeypatch):
+    (source / 'optional.json').write_bytes(b'')
+    calls = []
+    original = native.Native.read
+    def read(self, *args, **kwargs):
+        calls.append(True)
+        return original(self, *args, **kwargs)
+    monkeypatch.setattr(native.Native, 'read', read)
+    with reads.open_read_root(source) as root:
+        with pytest.raises(reads.SourceLimitExceeded) as caught:
+            with root.observe(names=['nested/note.md'], optional=['optional.json'], max_files=1,
+                              max_present_files=1, max_bytes=100, max_total_bytes=100, checkpoint=True):
+                pytest.fail('Optional present file exceeded the complete file allowance')
+        assert caught.value.bound == 'files'
+    assert calls == []
+
+
+@windows_only
+def test_batch_missing_required_directory_cannot_look_like_an_empty_selection(source):
+    with reads.open_read_root(source) as root:
+        with pytest.raises((ValueError, FileNotFoundError)):
+            with root.observe(required_dirs=['missing-empty'], max_files=0,
+                              max_bytes=0, max_total_bytes=0, checkpoint=True):
+                pytest.fail('Missing required directory was admitted')
