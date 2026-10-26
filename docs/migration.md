@@ -1,13 +1,12 @@
 # Move from Attune AI to Harness
 
-Updated on October 23, 2026, for 1.5.1 preparation. Published 1.5.0 remains the
-available baseline while 1.5.1 publication is pending. Follow the
-[installation guide](installation.md) for the selected published version or
-exact candidate wheel; preparing this source does not publish a package.
+Updated on October 25, 2026, for published
+[Harness 1.5.1](https://pypi.org/project/attune-harness/1.5.1/). Follow the
+[installation guide](https://smartaimemory.com/harness/help/1-5-1/)
+to select an isolated runtime and check a local result.
 
-Attune AI is deprecated. Use Harness for new work; 1.5.1 is the intended
-replacement and is still being prepared for publication. Keep a working Attune AI
-setup while you validate the Harness journeys you need. Deprecation does not
+Attune AI is deprecated. Use published Harness 1.5.1 for new work. Keep a working
+Attune AI setup while you validate the Harness journeys you need. Deprecation does not
 qualify saved-work migration or establish complete host or Windows parity. The
 [historical 1.0.0 migration guide](migration-from-attune-ai.md) preserves the
 September 27 baseline and its original limits; use the current guidance below
@@ -26,7 +25,7 @@ for installation and capability decisions.
 
 Installing the Python package does not install the host plugins or replace an
 existing host configuration. Follow the [Codex plugin guide](codex-plugin.md)
-or the [Claude installation instructions](installation.md)
+or the [host integration instructions](https://smartaimemory.com/harness/help/dependencies/#integrate-with-a-host)
 for the selected integration.
 
 ## Choose one journey
@@ -38,7 +37,7 @@ replacement has been validated in your environment.
 | You use Attune AI for | Harness route | Keep or verify before switching |
 | --- | --- | --- |
 | Read raw, personal or curated memory files | [File-memory commands](cli-guide.md#memory): **`memory`** recall, resolve and refresh | Keep the existing writers and supported formats. Configure the intended roots; a reader is not a replacement writer. |
-| Hydrate Redis and recall across sessions | [Redis memory and serving](cli-guide.md#memory) | Keep the existing Attune AI hydration hook in its own environment. Harness reads the configured hydrated data; it does not replace that writer. Validate serving in an actual fresh host session. |
+| Hydrate Redis and recall across sessions | [Redis memory and serving](cli-guide.md#memory) | Keep the existing writer and host hooks while validating a replacement. Published 1.5.1 reads the hydrated Redis projection; keeping it current requires a separately configured writer. Preserve working settings and source files, and validate serving in an actual fresh host session. |
 | Save memory or task intent explicitly | [Saved-memory lifecycle](memory-saving.md) | Saved entries retain revisions and history. Saving intent does not execute a task or automatically place that entry in fresh-session recall. |
 | Plan, build, review, fix or test work | [Workflow selector](supported-journeys.md) and [CLI procedures](cli-guide.md) | Check the declared input profile, configured participants, protected checks and recovery path. Accept scope and grant execution separately. Deterministic software checks do not qualify every model or project. |
 | Review source or consult several models | [Source review and roundtable](model-consultation.md) | Choose explicit configured identities and inspect the prepared scope. Installation and local seat checks authorize no paid calls. |
@@ -47,7 +46,7 @@ replacement has been validated in your environment.
 
 ## Check the current Windows profile
 
-The 1.5.0 baseline includes native Windows components for captured testing,
+Harness 1.5.1 includes native Windows components for captured testing,
 file-memory reads, saved storage and experimental native-memory transport.
 Windows file-memory reads use the supported local NTFS path profile. Read the
 [current Windows capabilities and limits](supported-journeys.md#windows-capabilities-and-reliability)
@@ -71,11 +70,13 @@ fallback until the replacement meets your requirements.
 A passing software test or a completed deterministic example does not establish
 user acceptance or complete migration. The non-programmer migration observation
 and broader host acceptance remain open. Read the
-[1.5.1 readiness record](release-readiness-1.5.1.md) for current release gates and
-the [release plan](project-plan.md) for the remaining acceptance work. The
+[published 1.5.1 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+for artifacts and release evidence, the [historical 1.5.1 readiness record](release-readiness-1.5.1.md)
+for preparation checks and limits, and the [release plan](project-plan.md) for
+the remaining acceptance work. The
 [original migration ruling](specs/release-1.0/addendum-2026-09-23.md#d26-the-deprecation-is-a-notice)
 remains historical context; the current deprecation direction does not change
 existing artifacts, data or the validation requirements above.
 
-**Next:** Open the [installation guide](installation.md), then choose one journey
+**Next:** Open the [installation guide](https://smartaimemory.com/harness/help/1-5-1/), then choose one journey
 from the [workflow map](supported-journeys.md).

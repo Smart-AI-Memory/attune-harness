@@ -10,8 +10,10 @@ Harness 1.5.1 is published. [Install Harness 1.5.1](/harness/help/1-5-1/),
 check a local result, and choose a task. You can plan work, review evidence,
 and return to saved progress through the CLI and browser forms.
 
-Attune AI is deprecated. Use Harness for new work and follow the migration
-guidance before changing an existing setup. The [1.5.0 guide](1-5-0/) and its
+Attune AI is deprecated. Use Harness for new work and read the
+[current migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
+before changing an existing setup. Preserve memory sources and writer settings
+while validating the journeys you need. The [1.5.0 guide](1-5-0/) and its
 observations remain available as historical references.
 
 ## Choose a task

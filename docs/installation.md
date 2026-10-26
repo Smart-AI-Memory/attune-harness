@@ -17,6 +17,10 @@ specifier, for example `uv tool install --python 3.12 /absolute/path/to/attune_h
 Retain its source and hash; a version string does not identify a final artifact.
 Preserve saved work and retained evidence environments when selecting a runtime.
 
+The [release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+identifies its source and artifacts. If you use Attune AI, read the
+[current migration guide](migration.md) before changing its setup.
+
 ## Install the runtime
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is not
@@ -129,8 +133,9 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 Compare your selected version and interpreter with the checks above. The
 [1.5.1 readiness record](release-readiness-1.5.1.md) identifies the reviewed
-source, local validation and remaining release checks. After publication,
-compare the published distribution identity and index installation with that
-evidence. The [workflow guide](supported-journeys.md) describes
-capabilities and reliability requirements for the workflow you choose. Keep
+source, local validation and the release checks required at that time. Compare
+the published distribution identity with the
+[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1);
+preparation evidence retains its original artifact identity. The
+[workflow guide](supported-journeys.md) describes capabilities and reliability requirements for the workflow you choose. Keep
 existing saved tasks and evidence environments when updating an installation.
