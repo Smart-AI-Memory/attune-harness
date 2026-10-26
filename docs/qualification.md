@@ -84,6 +84,45 @@ permission behavior. Each child receives its own `RUNNER_TEMP` so nested drivers
 also stay within that namespace; the hosted runner scratch base is not substituted
 for the system temporary base.
 
+### Windows instrumented installed coverage
+
+Supplemental Windows coverage uses two supervised whole-module partitions of
+the installed-wheel selection. The measurement script enables this mode
+explicitly; ordinary installed qualification, POSIX coverage and the source
+runner keep their existing modes. The workflow, dependencies, exclusions and
+operation limits remain unchanged.
+
+Both pytest children collect the same selection after the existing `-k` filter.
+Module-path hashing assigns each admitted case to one child while preserving
+module order. The aggregate requires matching admitted lists, disjoint complete
+subsets, exact-once case start/end journals and successful terminal/JUnit
+accounting, including skips and subtests. It derives counts from the admitted
+cases rather than a fixed historical total.
+
+Each child runs outside the checkout with a separate temporary root, pytest base
+directory and retained stdout/stderr files. Each verifies its actual imported
+noneditable wheel, RECORD, source hashes and measured inputs before and after
+the suite. A parent's import check cannot substitute for either child witness.
+Windows Job Objects own the process trees. A failed launch, unknown ownership,
+nonzero exit, incomplete evidence or expired deadline fails the aggregate;
+later zero exits cannot clear that failure.
+
+The parent starts one 2,520-second monotonic deadline before dispatch. Both
+collections, execution and active aggregate verification share the remaining
+time. The 2,700-second platform wrapper and 50-minute hosted job remain
+unchanged. Parent dispatch/deadline clocks and each pytest journal epoch are
+retained separately; journal positions do not establish remaining parent time.
+Native/Redis/R2 postchecks stay in the parent and run once after successful
+aggregation. The plugin-probe receipt is copied once from its admitted owning
+module's partition; missing or duplicate probe evidence fails aggregation.
+
+The `coverage-windows-latest` artifact retains `installed-suite.json`,
+`partition-context.json` and both `shard-*` diagnostic trees under
+`instrumented-platform/`. Failed or drifted aggregates cannot produce a
+successful coverage receipt. Earlier serial coverage artifacts remain
+historical evidence. Instrumented checks do not qualify native platform behavior,
+model quality or host acceptance; those requirements keep their separate gates.
+
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and
 status with `attune` absent and no model called. The platform receipt's

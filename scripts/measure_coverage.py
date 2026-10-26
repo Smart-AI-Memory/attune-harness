@@ -4,10 +4,12 @@ import hashlib
 import importlib.metadata
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import platform
 import re
+import runpy
 import subprocess
 import sys
 import sysconfig
@@ -31,11 +33,24 @@ def hashes(directory):
             for p in sorted(directory.rglob('*.py'))}
 
 
-def input_hashes():
+def _deadline_kwargs(deadline):
+    if deadline is None:
+        return {}
+    if isinstance(deadline, bool) or not math.isfinite(deadline):
+        raise ValueError('Installed-suite deadline must be a finite monotonic clock value')
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError('Shared installed-suite identity deadline expired')
+    return {'timeout': min(10, remaining)}
+
+
+def input_hashes(*, deadline=None):
     """Bind tracked checkout bytes and untracked test/driver/fixture inputs."""
-    tracked = subprocess.check_output(['git', 'ls-files', '-z', '--cached'], cwd=ROOT)
+    tracked = subprocess.check_output(['git', 'ls-files', '-z', '--cached'], cwd=ROOT,
+                                     **_deadline_kwargs(deadline))
     paths = {ROOT / os.fsdecode(name) for name in tracked.split(b'\0') if name}
     for name in INPUT_TREES:
+        _deadline_kwargs(deadline)
         tree = ROOT / name
         if tree.is_symlink() or (tree.exists() and not tree.is_dir()):
             raise ValueError('Coverage input tree must be a real directory: ' + str(tree))
@@ -54,14 +69,17 @@ def input_hashes():
     paths.update(ROOT.glob('requirements*.txt'))
     if any(path.is_symlink() for path in paths):
         raise ValueError('Coverage inputs cannot contain symlinks')
-    return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted(paths)}
+    result = {}
+    for path in sorted(paths):
+        _deadline_kwargs(deadline)
+        result[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
 
 
-def identity():
+def identity(*, deadline=None):
     return {'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
-                                                text=True).strip(),
-            'sources': hashes(SOURCE), 'input_hashes': input_hashes(),
+                                                text=True, **_deadline_kwargs(deadline)).strip(),
+            'sources': hashes(SOURCE), 'input_hashes': input_hashes() if deadline is None else input_hashes(deadline=deadline),
             'coverage_version': VERSION, 'pytest_version': importlib.metadata.version('pytest')}
 
 
@@ -163,6 +181,42 @@ def _partitioned_full(suite):
     return suite == 'full' and platform.system() == 'Darwin'
 
 
+def _validate_installed_aggregate(output, frozen):
+    """Read back the completed parent's proof without extending its test deadline."""
+    folder = output / 'instrumented-platform'
+    receipt = json.loads((folder / 'installed-suite.json').read_text(encoding='utf-8'))
+    raw = (folder / 'partition-context.json').read_bytes()
+    context = json.loads(raw)
+    context['context_sha256'] = hashlib.sha256(raw).hexdigest()
+    if (receipt.get('status') != 'passed' or type(receipt.get('exit')) is not int or receipt.get('exit') != 0
+            or receipt.get('failure') is not None
+            or receipt.get('deadline_exceeded') or receipt.get('ownership_cleanup') != 'jobs_closed'
+            or receipt.get('shared_budget_seconds') != 2520
+            or receipt.get('started_monotonic') != context['started_monotonic']
+            or receipt.get('deadline_monotonic') != context['deadline_monotonic']
+            or context.get('budget_seconds') != 2520
+            or not math.isclose(context['deadline_monotonic'] - context['started_monotonic'], 2520,
+                                rel_tol=0, abs_tol=0.000001)
+            or receipt['finished_monotonic'] >= context['deadline_monotonic']
+            or context['identity']['measurement'] != frozen
+            or len(receipt.get('workers', [])) != 2
+            or any(type(worker.get('returncode')) is not int or worker.get('returncode') != 0
+                   or worker.get('index') != index
+                   or any(worker.get(key) != context['workers'][index][key]
+                          for key in ('cwd', 'temporary_root', 'basetemp'))
+                   for index, worker in enumerate(receipt['workers']))):
+        raise ValueError('Installed aggregate lacks successful shared-deadline ownership proof')
+    qualifier = runpy.run_path(str(ROOT / 'scripts/qualify_platform.py'))
+    # Active verification already finished under the serialized shared deadline.
+    # This is static proof readback after the parent's once-only postchecks.
+    accounting = qualifier['verify_installed_partitions'](folder, context, None)
+    if (accounting != receipt['accounting']
+            or hashlib.sha256((folder / 'plugin-probe.json').read_bytes()).hexdigest()
+            != accounting['plugin_probe_sha256']):
+        raise ValueError('Installed aggregate or copied probe differs from child evidence')
+    return accounting
+
+
 def measure(output, suite):
     if sys.prefix == sys.base_prefix:
         raise ValueError('Use a dedicated disposable virtualenv')
@@ -187,17 +241,25 @@ def measure(output, suite):
     def save():
         manifest.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     partitioned = _partitioned_full(suite)
+    installed_partitions = suite == 'platform' and platform.system() == 'Windows'
     if partitioned:
         receipt['execution_topology'] = 'two_supervised_module_partitions'
         receipt['shared_test_budget_seconds'] = 1500
         receipt['partition_evidence'] = [f'instrumented-platform/shard-{index}' for index in range(2)]
         receipt['partition_supervisor'] = 'instrumented-platform/source-suite.json'
+    if installed_partitions:
+        receipt['execution_topology'] = 'two_supervised_installed_module_partitions'
+        receipt['shared_test_budget_seconds'] = 2520
+        receipt['partition_evidence'] = [f'instrumented-platform/shard-{index}' for index in range(2)]
+        receipt['partition_supervisor'] = 'instrumented-platform/installed-suite.json'
     save()
     argv = ([sys.executable, '-m', 'pytest', '-q', '-p', 'harness_qualification_stacks',
              '-o', 'faulthandler_timeout=0', '--junitxml=' + str(output / 'tests.xml')]
             if suite == 'full' else
             [sys.executable, '-I', str(ROOT / 'scripts/qualify_platform.py'),
              '--output', str(output / 'instrumented-platform'), '--coverage-instrumented'])
+    if installed_partitions:
+        argv.append('--installed-coverage-partitions')
     environment = {**os.environ, 'TMPDIR': str(temporary), 'TMP': str(temporary),
                    'TEMP': str(temporary), 'PYTHONUTF8': '1'}
     if suite == 'full':
@@ -227,8 +289,16 @@ def measure(output, suite):
         hook.unlink(missing_ok=True)
         receipt['input_drift'] = not inputs_stable(frozen, installed)
         save()
-    if partitioned and (receipt['test_exit'] != 0 or receipt['input_drift']):
+    if (partitioned or installed_partitions) and (receipt['test_exit'] != 0 or receipt['input_drift']):
         return receipt['test_exit'] or 1
+    if installed_partitions:
+        try:
+            receipt['partition_accounting'] = _validate_installed_aggregate(output, frozen)
+        except (OSError, ValueError, TypeError, KeyError, RecursionError) as error:
+            receipt.update(test_exit=1, aggregate_failure=type(error).__name__)
+            save()
+            return 1
+        save()
     report(config)
     return 1 if receipt['input_drift'] else receipt['test_exit']
 

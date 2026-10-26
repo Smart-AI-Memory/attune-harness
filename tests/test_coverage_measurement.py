@@ -16,6 +16,82 @@ measurement = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(measurement)
 
 
+@pytest.mark.parametrize('system,suite,partitioned,timeout', [
+    ('Windows', 'platform', True, 2700), ('Linux', 'platform', False, 1080),
+    ('Darwin', 'platform', False, 1080), ('Linux', 'full', False, 1200)])
+@pytest.mark.parametrize('code', [0, 1, 124])
+def test_only_windows_installed_coverage_selects_new_topology(tmp_path, monkeypatch, system, suite, partitioned, timeout, code):
+    import attune_harness
+    source, installed, site = tmp_path / 'project/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: system)
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    calls, validation, reports = [], [], []
+    def child(argv, **kwargs):
+        calls.append(argv)
+        assert kwargs['timeout'] == timeout
+        assert ('--installed-coverage-partitions' in argv) is partitioned
+        return SimpleNamespace(returncode=code)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(run=child, STDOUT=subprocess.STDOUT))
+    monkeypatch.setattr(measurement, '_validate_installed_aggregate', lambda *args: validation.append(args) or {'control': True})
+    monkeypatch.setattr(measurement, 'report', lambda *args: reports.append(args))
+    output = tmp_path / 'evidence'
+    assert measurement.measure(output, suite) == code
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['test_exit'] == code and receipt['input_drift'] is False
+    assert len(calls) == 1 and len(validation) == int(partitioned and code == 0)
+    assert len(reports) == int(not partitioned or code == 0)
+    assert not (site / 'harness_measure_coverage.pth').exists()
+    if partitioned:
+        assert receipt['shared_test_budget_seconds'] == 2520
+        assert receipt['execution_topology'] == 'two_supervised_installed_module_partitions'
+
+
+def test_missing_installed_aggregate_is_durably_failed_before_coverage_report(tmp_path, monkeypatch):
+    import attune_harness
+    source, installed, site = tmp_path / 'project/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Windows')
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
+        run=lambda *args, **kwargs: SimpleNamespace(returncode=0), STDOUT=subprocess.STDOUT))
+    def forbidden(*args):
+        raise AssertionError('Missing aggregate reached coverage reporting')
+    monkeypatch.setattr(measurement, 'report', forbidden)
+    output = tmp_path / 'evidence'
+    assert measurement.measure(output, 'platform') == 1
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['test_exit'] == 1 and receipt['aggregate_failure'] == 'FileNotFoundError'
+    with pytest.raises(ValueError, match='failed'):
+        measurement.compatible([receipt], frozen)
+
+
+@pytest.mark.parametrize('deadline', [True, float('nan'), float('inf')])
+def test_installed_identity_deadline_rejects_nonfinite_or_boolean_values(deadline):
+    with pytest.raises(ValueError, match='finite'):
+        measurement.identity(deadline=deadline)
+
+
 @pytest.mark.parametrize('field', ['revision', 'sources', 'input_hashes',
                                    'coverage_version', 'pytest_version', 'test_exit', 'input_drift'])
 def test_incompatible_or_failed_run_cannot_be_combined(field):

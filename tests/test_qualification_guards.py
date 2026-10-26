@@ -18,6 +18,51 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize('partition_exit', [0, 1, 124])
+def test_installed_partition_postchecks_run_once_only_after_success(wheel_install, tmp_path, monkeypatch, partition_exit):
+    qualifier = load('qualify_platform')
+    monkeypatch.setattr(qualifier, 'platform', SimpleNamespace(
+        system=lambda: 'Windows', machine=lambda: 'AMD64', python_version=lambda: '3.12-control'))
+    output = tmp_path / 'qualification-partitions'
+    calls = []
+    def partitions(folder, argv, budget):
+        calls.append('partitions')
+        assert folder == output and budget == 2520
+        if partition_exit == 0:
+            (folder / 'plugin-probe.json').write_bytes(probe_bytes(qualifier, 'passed'))
+        return subprocess.CompletedProcess(argv, partition_exit)
+    def postcheck(argv, **kwargs):
+        calls.append('postcheck')
+        assert partition_exit == 0 and str(ROOT / 'scripts/check_installed.py') in argv
+        (output / 'memory-redis.json').write_text(json.dumps({
+            'memory': {'native_reader': 'available', 'tiers_read': ['raw', 'personal', 'curated'], 'reader_named': 'native'},
+            'journey': {'accept': 'accepted', 'build': 'completed', 'review': 'completed'}}))
+        return subprocess.CompletedProcess(argv, 0, stdout='', stderr='')
+    monkeypatch.setattr(qualifier, 'run_installed_partitions', partitions)
+    monkeypatch.setattr(qualifier.subprocess, 'run', postcheck)
+    assert qualifier.qualify(output, coverage_instrumented=True,
+                             installed_coverage_partitions=True) == partition_exit
+    receipt = json.loads((output / 'platform.json').read_text())
+    assert calls == (['partitions', 'postcheck'] if partition_exit == 0 else ['partitions'])
+    assert receipt['execution_topology'] == 'two_supervised_installed_module_partitions'
+    assert receipt['native_process_and_recovery'] == 'not_qualified_instrumented'
+    if partition_exit:
+        assert all(receipt[name] == 'unrun' for name in ('memory_redis', 'native_memory_reader', 'r2_journey'))
+
+
+@pytest.mark.parametrize('system,instrumented', [('Windows', False), ('Linux', True), ('Darwin', True)])
+def test_installed_partition_mode_cannot_change_other_qualification_profiles(tmp_path, monkeypatch, system, instrumented):
+    qualifier = load('qualify_platform')
+    monkeypatch.setattr(qualifier, 'platform', SimpleNamespace(system=lambda: system))
+    def forbidden():
+        raise AssertionError('Invalid mode reached installed dispatch')
+    monkeypatch.setattr(qualifier, 'installed_source', forbidden)
+    output = tmp_path / 'uncreated'
+    with pytest.raises(ValueError, match='Windows instrumented'):
+        qualifier.qualify(output, coverage_instrumented=instrumented, installed_coverage_partitions=True)
+    assert not output.exists()
+
+
 def load(name):
     path = ROOT/'scripts'/f'{name}.py'
     spec = importlib.util.spec_from_file_location('review_'+name, path)
