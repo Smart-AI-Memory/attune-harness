@@ -54,7 +54,7 @@ def test_authority_malformed_frontmatter_and_raw_labels_are_unchanged():
     "password='EXAMPLEprivate'", 'redis://fixture:EXAMPLEprivate@localhost',
     'access_token=' + 'Ab1' * 9, 'api_key=' + 'EXAMPLE' + 'Ab1' * 10,
     'xoxb-EXAMPLE', 'EXAMPLE prose; -----BEGIN PRIVATE KEY-----',
-    'safe ' * 7000 + SHORT,
+    pytest.param('safe ' * 7000 + SHORT, id='late-secret-after-index-bound'),
 ])
 def test_complete_source_secret_union_refuses_without_echoing_input(text):
     with pytest.raises(ValueError) as caught:
