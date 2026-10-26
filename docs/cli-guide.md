@@ -20,7 +20,9 @@ uv tool install 'attune-harness==1.5.0'
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
 acceptance dependencies. Add Redis or Voyage when you need those integrations;
-`all` includes both and excludes experimental native memory. Python 3.10 or later.
+`all` includes both and excludes experimental native memory. Current development
+source requires Python 3.12 or later. Published releases described here retain
+their original Python minimum; the release version for this change remains open.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and
 fixture commands, and separate host-plugin setup. The example below needs no

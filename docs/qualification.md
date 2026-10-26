@@ -12,10 +12,16 @@ GitHub documents the [hosted runner labels and images][github-runners].
 
 | Job | Runner | Python | Scope |
 | --- | --- | --- | --- |
-| `installed-library` | `ubuntu-latest`, `macos-latest` | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
-| `installed-library` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Selected platform tests and installed-wheel journeys |
-| `full-suite` | `ubuntu-latest` | 3.10 | Every test from the source tree |
-| `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.10, 3.12 | Every test from the source tree |
+| `installed-library` | `ubuntu-latest`, `macos-latest` | 3.12 | Selected platform tests and installed-wheel journeys |
+| `installed-library` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.12 | Selected platform tests and installed-wheel journeys |
+| `full-suite` | `ubuntu-latest` | 3.12 | Every test from the source tree |
+| `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.12 | Every test from the source tree |
+
+The development branch requires Python 3.12 or later. This matrix targets its
+minimum supported interpreter without duplicate cells. Earlier Python 3.10
+receipts retain their historical artifact/runtime identities; they do not qualify
+this new minimum. Version 1.5.1 remains unchanged in source, and release/version
+selection is separate from this compatibility change.
 
 These hosted jobs provide Windows Server CI evidence. T8 also requires
 separate Windows 11 standard-user installed-wheel validation.
@@ -41,9 +47,9 @@ the aggregate check.
 The `Correctness lint` job runs Ruff 0.14.4 on Ubuntu with Python 3.12. It checks
 only `src/` and `scripts/` with the `E9`, `F63`, `F7` and `F82` rule families,
 covering syntax and selected correctness errors such as undefined names,
-invalid control flow and assertions that always pass. Ruff targets Python 3.10
-syntax, preserving the package's `>=3.10` requirement and existing platform
-matrix. It applies no automatic fixes and adds no formatting or coverage gate.
+invalid control flow and assertions that always pass. Ruff targets Python 3.12
+syntax, matching the package's `>=3.12` requirement. It applies no automatic fixes
+and adds no formatting or coverage gate.
 
 Run the same check with the pinned Ruff version in a separate environment:
 

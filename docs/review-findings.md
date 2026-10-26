@@ -93,6 +93,8 @@ exact" when the review confirmed a carried module changed nothing.
 
 | Local Windows reads | Bounded record-read retry and metadata-witness diagnostics (`f7be2ef`) | request changes, then approve (configured GPT-6 Astra; runtime identity unavailable) | 0/1/0 | wait, bound, test | A scheduler-delayed sleep could start another read at or after the retry deadline. Both exact-deadline and oversleep cases were reproduced before repair; a post-sleep deadline check closes them. The final source-bound review passed 113 controls with 79 native Windows skips; original acceptance assertions and native guards remain unchanged. |
 
+| Local Python minimum | Require Python 3.12 in development metadata and active CI | request changes; finding repaired (configured GPT-6 Astra; runtime model attestation unavailable) | 0/1/0 | test | A permanent `version == 1.5.1` assertion rejected an otherwise unchanged future release. A version-only 1.5.2 control reproduced it. The fix removes the release pin from the lasting minimum/classifier test; current and future-version controls each pass seven cases while old minimum/matrix controls still produce five expected failures. Unchanged version is verified in this PR's scope evidence instead. |
+
 ## What the log says so far
 
 Nineteen reviews. Every `src/` change since the command workspace host (#54)

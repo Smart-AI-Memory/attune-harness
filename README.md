@@ -89,8 +89,9 @@ experimental native-memory transport. Use the
 to choose a workflow and check its process-completion, storage and recovery
 requirements.
 
-Hosted software checks exercise Windows Server 2022 and 2025 with Python 3.10
-and 3.12. Full Windows parity, complete saved-store acceptance, broader process
+Historical release checks exercised Windows Server 2022 and 2025 with Python
+3.10 and 3.12. Current development CI targets Python 3.12 on both servers.
+Full Windows parity, complete saved-store acceptance, broader process
 recovery, live native-memory acceptance, and Windows 11 desktop and shell
 qualification remain open. The linked table explains which limits apply to
 each workflow; the release evidence identifies the source and artifacts tested.
@@ -168,7 +169,7 @@ paid calls.
 Install published Harness 1.5.1 in an isolated tool environment:
 
 ```sh
-uv tool install 'attune-harness==1.5.1'
+uv tool install --python 3.12 'attune-harness==1.5.1'
 ```
 
 uv keeps Harness and its dependencies isolated and provides the `attune-harness`
@@ -187,7 +188,9 @@ environments; changing the tool version does not qualify saved-work migration.
 The [installation guide](https://smartaimemory.com/harness/help/1-5-1/)
 covers environment selection and agent setup for 1.5.1.
 
-Python 3.10 or later. The [worked example](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
+Current development source requires Python 3.12 or later. Published 1.5.1 retains
+its Python 3.10 minimum; a release version for this compatibility change has not
+been selected. The [worked example](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.5.1/docs/cli-guide.md#checks-and-receipts) needs no API key or attune-ai installation;
 Voyage retrieval needs a Voyage API key and makes paid calls.
 Harness and attune-ai cannot share one environment:
 they pin different lines of the MCP SDK, and installing Harness over attune-ai

@@ -2,26 +2,32 @@
 
 Updated on October 25, 2026.
 
-This guide installs published `attune-harness` 1.5.1. Python 3.10 or
-later is required. Start with the base package: it includes forms, document
+Current development source requires Python 3.12 or later. Published
+`attune-harness` 1.5.1 retains its Python 3.10 minimum; use Python 3.12 for the
+examples below. Release/version selection for the new minimum remains open.
+Start with the base package: it includes forms, document
 verification, local Markdown retrieval, MCP serving and token counting. Redis
 and Voyage are optional integrations.
 
-Version 1.5.1 is available on
-[PyPI](https://pypi.org/project/attune-harness/1.5.1/). The
-[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
-identifies its source and artifacts; a version string alone does not identify a
-particular wheel. Preserve saved work and retained evidence environments when
-selecting a runtime. If you use Attune AI, read the
+**Select the artifact.** The index-install commands below select
+[published 1.5.1](https://pypi.org/project/attune-harness/1.5.1/), whose Python
+minimum remains separate from this development checkout.
+For candidate validation, substitute the reviewed local 1.5.1 wheel for the package
+specifier, for example `uv tool install --python 3.12 /absolute/path/to/attune_harness-1.5.1-py3-none-any.whl`.
+Retain its source and hash; a version string does not identify a final artifact.
+Preserve saved work and retained evidence environments when selecting a runtime.
+
+The [release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+identifies its source and artifacts. If you use Attune AI, read the
 [current migration guide](migration.md) before changing its setup.
 
 ## Install the runtime
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is not
-already available. Then install Harness:
+already available. Then explicitly select Python 3.12 when installing Harness:
 
 ```sh
-uv tool install 'attune-harness==1.5.1'
+uv tool install --python 3.12 'attune-harness==1.5.1'
 ```
 
 uv manages an isolated environment and exposes the `attune-harness` command;
@@ -64,6 +70,7 @@ For a normal uv installation, select it on macOS or Linux:
 
 ```sh
 harness_python="$(uv tool dir)/attune-harness/bin/python"
+"$harness_python" --version
 "$harness_python" -c "import importlib.metadata; print(importlib.metadata.version('attune-harness'))"
 "$harness_python" -m attune_harness
 ```
@@ -72,11 +79,12 @@ On Windows, use PowerShell:
 
 ```powershell
 $harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
+& $harnessPython --version
 & $harnessPython -c "import importlib.metadata; print(importlib.metadata.version('attune-harness'))"
 & $harnessPython -m attune_harness
 ```
 
-Expect version `1.5.1`, then a JSON receipt with status `verified` for the
+Expect Python `3.12.x`, package version `1.5.1`, then a JSON receipt with status `verified` for the
 deterministic arithmetic example. If the listed environment is at a different
 path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
 Substitute that same interpreter for `python` in module and fixture commands
@@ -91,10 +99,10 @@ Select a profile when installing or deliberately updating your managed tool:
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install 'attune-harness==1.5.1'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install 'attune-harness[redis]==1.5.1'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install 'attune-harness[voyage]==1.5.1'` |
-| Both Redis and Voyage | `uv tool install 'attune-harness[all]==1.5.1'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.5.1'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.5.1'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.5.1'` |
+| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.5.1'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes

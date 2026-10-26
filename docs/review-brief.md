@@ -45,7 +45,8 @@ review. Report findings; the author reproduces each before fixing.
 4. **Check the contracts the tests do not.** Which branch is unreachable;
    which test could pass with a plausible bug present; what depends on the
    environment (cwd, platform, root, an installed extra).
-5. **Python 3.10 and Windows.** No newer syntax or stdlib; nothing that only
+5. **Python 3.12 and Windows.** Use syntax and standard library available in
+   Python 3.12; preserve older artifacts' recorded interpreter profiles. Nothing that only
    POSIX provides without a guard. Check the change against each entry of
    [the Windows traps](windows-traps.md): append, case folding, device
    names, replace under an open handle, console script paths. In tests, a
