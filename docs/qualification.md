@@ -112,6 +112,10 @@ collections, execution and active aggregate verification share the remaining
 time. The 2,700-second platform wrapper and 50-minute hosted job remain
 unchanged. Parent dispatch/deadline clocks and each pytest journal epoch are
 retained separately; journal positions do not establish remaining parent time.
+The active supervisor and measurement readback share one finite parent/worker
+clock contract: ordered dispatches, matching remaining time, and reaps before a
+successful finish inside the deadline. Failed cleanup can retain later timestamps
+without clearing the failure. Bootstrap and pytest PIDs identify separate roles.
 Native/Redis/R2 postchecks stay in the parent and run once after successful
 aggregation. The plugin-probe receipt is copied once from its admitted owning
 module's partition; missing or duplicate probe evidence fails aggregation.

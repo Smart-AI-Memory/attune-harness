@@ -139,7 +139,7 @@ def fixture_project(tmp_path):
 def expected_identity(fixture):
     code = ('import json,runpy,time; q=runpy.run_path(' + repr(str(fixture['project'] / 'scripts/qualify_platform.py'))
             + '); print(json.dumps(q["installed_partition_identity"](time.monotonic()+30)))')
-    run = subprocess.run([str(fixture['python']), '-c', code], cwd=fixture['project'],
+    run = subprocess.run([str(fixture['python']), '-I', '-c', code], cwd=fixture['project'],
                          env=fixture['environment'], capture_output=True, text=True, timeout=40)
     assert run.returncode == 0, run.stdout + run.stderr
     return json.loads(run.stdout)
@@ -442,3 +442,47 @@ def test_delayed_launch_receives_only_the_remaining_shared_budget(tmp_path, monk
     assert remaining == pytest.approx([1.0, 0.6])
     assert launches[0]['cwd'] != launches[1]['cwd']
     assert launches[0]['environment']['TMP'] != launches[1]['environment']['TMP']
+
+
+@pytest.mark.parametrize('damage', [
+    'parent_start_nan', 'parent_start_bool', 'parent_deadline_inf', 'finish_nan', 'finish_bool',
+    'finish_before_start', 'finish_at_deadline', 'dispatch_nan', 'dispatch_before_start',
+    'dispatch_after_deadline', 'reap_nan', 'reap_before_dispatch', 'reap_after_finish',
+    'remaining_negative', 'remaining_inconsistent', 'remaining_bool', 'missing_reap',
+    'worker_index_bool', 'worker_pid_bool', 'duplicate_bootstrap_pid', 'foreign_namespace', 'unknown_ownership'])
+def test_complete_parent_clock_and_worker_contract_refuses_impossible_proof(
+        fixture_project, tmp_path, monkeypatch, damage):
+    output = tmp_path / 'measurement'; output.mkdir()
+    result, identity = execute(fixture_project, output / 'instrumented-platform', monkeypatch, budget=2520)
+    assert result.returncode == 0
+    spec = importlib.util.spec_from_file_location('parent_clock_measurement', ROOT / 'scripts/measure_coverage.py')
+    measurement = importlib.util.module_from_spec(spec); spec.loader.exec_module(measurement)
+    assert measurement._validate_installed_aggregate(output, identity['measurement'])
+    path = output / 'instrumented-platform/installed-suite.json'
+    receipt = json.loads(path.read_text())
+    worker = receipt['workers'][0]
+    if damage == 'parent_start_nan': receipt['started_monotonic'] = float('nan')
+    elif damage == 'parent_start_bool': receipt['started_monotonic'] = False
+    elif damage == 'parent_deadline_inf': receipt['deadline_monotonic'] = float('inf')
+    elif damage == 'finish_nan': receipt['finished_monotonic'] = float('nan')
+    elif damage == 'finish_bool': receipt['finished_monotonic'] = False
+    elif damage == 'finish_before_start': receipt['finished_monotonic'] = receipt['started_monotonic'] - 1
+    elif damage == 'finish_at_deadline': receipt['finished_monotonic'] = receipt['deadline_monotonic']
+    elif damage == 'dispatch_nan': worker['dispatched_monotonic'] = float('nan')
+    elif damage == 'dispatch_before_start': worker['dispatched_monotonic'] = receipt['started_monotonic'] - 1
+    elif damage == 'dispatch_after_deadline': worker['dispatched_monotonic'] = receipt['deadline_monotonic'] + 100
+    elif damage == 'reap_nan': worker['reaped_monotonic'] = float('nan')
+    elif damage == 'reap_before_dispatch': worker['reaped_monotonic'] = worker['dispatched_monotonic'] - 1
+    elif damage == 'reap_after_finish': worker['reaped_monotonic'] = receipt['finished_monotonic'] + 1
+    elif damage == 'remaining_negative': worker['remaining_at_dispatch_seconds'] = -1
+    elif damage == 'remaining_inconsistent': worker['remaining_at_dispatch_seconds'] /= 2
+    elif damage == 'remaining_bool': worker['remaining_at_dispatch_seconds'] = True
+    elif damage == 'missing_reap': worker.pop('reaped_monotonic')
+    elif damage == 'worker_index_bool': worker['index'] = False
+    elif damage == 'worker_pid_bool': worker['pid'] = True
+    elif damage == 'duplicate_bootstrap_pid': worker['pid'] = receipt['workers'][1]['pid']
+    elif damage == 'foreign_namespace': worker['cwd'] += '/foreign'
+    else: worker['ownership'] = 'unknown'
+    path.write_text(json.dumps(receipt))
+    with pytest.raises((ValueError, OSError)):
+        measurement._validate_installed_aggregate(output, identity['measurement'])

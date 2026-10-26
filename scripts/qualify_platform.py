@@ -133,18 +133,27 @@ def _partition_owner(nodeid):
     return hashlib.sha256(nodeid.split('::', 1)[0].encode('utf-8')).digest()[0] % 2
 
 
+def _clock_number(value, label):
+    if type(value) not in (int, float):
+        raise ValueError('Clock proof requires a numeric nonboolean ' + label)
+    try:
+        finite = math.isfinite(value)
+    except OverflowError:
+        finite = False
+    if not finite:
+        raise ValueError('Clock proof requires a finite ' + label)
+    return value
+
+
 def validate_installed_context(context):
     """Require canonical isolated namespaces and a finite shared parent interval."""
     if (context.get('schema_version') != 1 or not isinstance(context.get('workers'), list)
             or len(context['workers']) != 2):
         raise ValueError('Installed context requires two worker namespaces')
     for key in ('started_monotonic', 'deadline_monotonic'):
-        value = context.get(key)
-        if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value):
-            raise ValueError('Installed context clock is invalid')
-    budget = context.get('budget_seconds')
-    if (isinstance(budget, bool) or not isinstance(budget, (float, int)) or not math.isfinite(budget)
-            or not 0 < budget <= 2520
+        _clock_number(context.get(key), key)
+    budget = _clock_number(context.get('budget_seconds'), 'shared budget')
+    if (not 0 < budget <= 2520
             or not math.isclose(context['deadline_monotonic'] - context['started_monotonic'], budget,
                                 rel_tol=0, abs_tol=0.000001)):
         raise ValueError('Installed context exceeds its shared budget')
@@ -163,6 +172,56 @@ def validate_installed_context(context):
     if any(left.is_relative_to(right) or right.is_relative_to(left)
            for left in namespaces[0] for right in namespaces[1]):
         raise ValueError('Installed child namespaces overlap')
+
+
+def validate_installed_parent_receipt(receipt, context, *, successful):
+    """Share one parent/worker clock contract between execution and proof readback.
+
+    Worker PIDs identify owned bootstraps; child witnesses identify pytest and
+    can have different PIDs. Failed cleanup may finish after the deadline.
+    A successful proof has no such grace, regardless of later zero exits.
+    """
+    validate_installed_context(context)
+    start = _clock_number(receipt.get('started_monotonic'), 'parent start')
+    deadline = _clock_number(receipt.get('deadline_monotonic'), 'parent deadline')
+    budget = _clock_number(receipt.get('shared_budget_seconds'), 'parent budget')
+    if (start != context['started_monotonic'] or deadline != context['deadline_monotonic']
+            or budget != context['budget_seconds']):
+        raise ValueError('Parent interval differs from its bound context')
+    workers = receipt.get('workers')
+    if not isinstance(workers, list) or len(workers) > 2 or (successful and len(workers) != 2):
+        raise ValueError('Parent proof lacks the expected owned worker slots')
+    finish = None
+    if successful or 'finished_monotonic' in receipt:
+        finish = _clock_number(receipt.get('finished_monotonic'), 'parent finish')
+        if finish < start or (successful and finish >= deadline):
+            raise ValueError('Parent finish is outside its successful shared interval')
+    if successful and (receipt.get('status') != 'passed' or type(receipt.get('exit')) is not int
+                       or receipt['exit'] != 0 or receipt.get('failure') is not None
+                       or receipt.get('deadline_exceeded') or receipt.get('ownership_cleanup') != 'jobs_closed'):
+        raise ValueError('Parent proof retains a process, ownership or deadline failure')
+    previous_dispatch, pids = start, set()
+    for index, worker in enumerate(workers):
+        if (not isinstance(worker, dict) or type(worker.get('index')) is not int or worker['index'] != index
+                or type(worker.get('pid')) is not int or worker['pid'] <= 0 or worker['pid'] in pids
+                or worker.get('ownership') != 'windows_job'
+                or any(worker.get(key) != context['workers'][index][key]
+                       for key in ('cwd', 'temporary_root', 'basetemp'))
+                or 'returncode' not in worker
+                or (worker['returncode'] is not None and type(worker['returncode']) is not int)
+                or (successful and worker['returncode'] != 0)):
+            raise ValueError('Worker clock proof lacks its owned bootstrap/context identity')
+        pids.add(worker['pid'])
+        dispatched = _clock_number(worker.get('dispatched_monotonic'), 'worker dispatch')
+        remaining = _clock_number(worker.get('remaining_at_dispatch_seconds'), 'dispatch remaining time')
+        if (not previous_dispatch <= dispatched < deadline or not 0 < remaining <= budget
+                or not math.isclose(remaining, deadline - dispatched, rel_tol=0, abs_tol=0.000001)):
+            raise ValueError('Worker dispatch order or remaining budget is inconsistent')
+        previous_dispatch = dispatched
+        if successful or 'reaped_monotonic' in worker:
+            reaped = _clock_number(worker.get('reaped_monotonic'), 'worker reap')
+            if reaped < dispatched or (finish is not None and reaped > finish):
+                raise ValueError('Worker reap is outside its dispatch/finish interval')
 
 
 def _installed_reports(terminal, selected):
@@ -377,6 +436,7 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
         path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     save()
     processes = []
+    context = None
     code = 0
     try:
         identity = installed_partition_identity(deadline)
@@ -432,6 +492,7 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
                                            'returncode': None, 'ownership': 'windows_job'})
                 # Register immediately, including failures while launching the sibling.
                 stack.callback(_reap_installed_child, owner, process, receipt['workers'][-1])
+                validate_installed_parent_receipt(receipt, context, successful=False)
                 save()
             while True:
                 _remaining(deadline)
@@ -465,6 +526,14 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
     if receipt['finished_monotonic'] >= deadline:
         code = 124
         receipt.update(exit=code, status='failed', deadline_exceeded=True)
+    if context is not None:
+        try:
+            validate_installed_parent_receipt(receipt, context, successful=code == 0)
+        except ValueError as error:
+            receipt['clock_proof_error'] = str(error)
+            if code == 0:
+                code = 1
+                receipt.update(exit=code, status='failed', failure='parent_clock_proof')
     save()
     (output / 'tests.txt').write_text('Two installed partitions; retain shard-*/stdout.txt and stderr.txt.\n', encoding='utf-8')
     return subprocess.CompletedProcess(argv, code)

@@ -188,25 +188,10 @@ def _validate_installed_aggregate(output, frozen):
     raw = (folder / 'partition-context.json').read_bytes()
     context = json.loads(raw)
     context['context_sha256'] = hashlib.sha256(raw).hexdigest()
-    if (receipt.get('status') != 'passed' or type(receipt.get('exit')) is not int or receipt.get('exit') != 0
-            or receipt.get('failure') is not None
-            or receipt.get('deadline_exceeded') or receipt.get('ownership_cleanup') != 'jobs_closed'
-            or receipt.get('shared_budget_seconds') != 2520
-            or receipt.get('started_monotonic') != context['started_monotonic']
-            or receipt.get('deadline_monotonic') != context['deadline_monotonic']
-            or context.get('budget_seconds') != 2520
-            or not math.isclose(context['deadline_monotonic'] - context['started_monotonic'], 2520,
-                                rel_tol=0, abs_tol=0.000001)
-            or receipt['finished_monotonic'] >= context['deadline_monotonic']
-            or context['identity']['measurement'] != frozen
-            or len(receipt.get('workers', [])) != 2
-            or any(type(worker.get('returncode')) is not int or worker.get('returncode') != 0
-                   or worker.get('index') != index
-                   or any(worker.get(key) != context['workers'][index][key]
-                          for key in ('cwd', 'temporary_root', 'basetemp'))
-                   for index, worker in enumerate(receipt['workers']))):
-        raise ValueError('Installed aggregate lacks successful shared-deadline ownership proof')
     qualifier = runpy.run_path(str(ROOT / 'scripts/qualify_platform.py'))
+    qualifier['validate_installed_parent_receipt'](receipt, context, successful=True)
+    if context['budget_seconds'] != 2520 or context['identity']['measurement'] != frozen:
+        raise ValueError('Installed aggregate differs from the measurement budget or inputs')
     # Active verification already finished under the serialized shared deadline.
     # This is static proof readback after the parent's once-only postchecks.
     accounting = qualifier['verify_installed_partitions'](folder, context, None)
