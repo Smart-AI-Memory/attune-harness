@@ -194,7 +194,7 @@ def _validate_installed_aggregate(output, frozen):
         raise ValueError('Installed aggregate differs from the measurement budget or inputs')
     # Active verification already finished under the serialized shared deadline.
     # This is static proof readback after the parent's once-only postchecks.
-    accounting = qualifier['verify_installed_partitions'](folder, context, None)
+    accounting = qualifier['verify_installed_partitions'](folder, context, None, parent_receipt=receipt)
     if (accounting != receipt['accounting']
             or hashlib.sha256((folder / 'plugin-probe.json').read_bytes()).hexdigest()
             != accounting['plugin_probe_sha256']):

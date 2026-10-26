@@ -337,7 +337,20 @@ def _installed_lifecycle(events, selected, terminal, epoch, context):
                 raise ValueError('Phase-end multiplicity or outcome differs from terminal reports')
 
 
-def verify_installed_partitions(output, context, deadline):
+def _installed_child_interval(worker, epoch, elapsed):
+    """Join a child's journal to its owned bootstrap without equating their PIDs."""
+    epoch = _clock_number(epoch, 'pytest journal epoch')
+    elapsed = _clock_number(elapsed, 'pytest journal elapsed time')
+    dispatched = _clock_number(worker.get('dispatched_monotonic'), 'worker dispatch')
+    reaped = _clock_number(worker.get('reaped_monotonic'), 'worker reap')
+    # The producer rounds monotonic() - epoch to six decimals. Applying the
+    # same monotone transform to the reap bound accommodates serialization,
+    # without extending the unrounded parent deadline or dispatch ordering.
+    if not dispatched <= epoch <= reaped or not 0 <= elapsed <= round(reaped - epoch, 6):
+        raise ValueError('Child journal is outside its owned worker interval')
+
+
+def verify_installed_partitions(output, context, deadline, *, parent_receipt=None):
     """Validate complete evidence; a deadline also checks active identity and time."""
     if deadline is not None:
         _remaining(deadline)
@@ -347,6 +360,13 @@ def verify_installed_partitions(output, context, deadline):
     if context != bound_context or len(context.get('workers', [])) != 2:
         raise ValueError('Installed context differs from its retained input bytes')
     validate_installed_context(context)
+    if parent_receipt is None:
+        parent_receipt = json.loads((output / 'installed-suite.json').read_text(encoding='utf-8'))
+    validate_installed_parent_receipt(parent_receipt, context, successful=deadline is None)
+    if (len(parent_receipt['workers']) != 2 or parent_receipt.get('ownership_cleanup') != 'jobs_closed'
+            or any(type(worker.get('returncode')) is not int or worker['returncode'] != 0
+                   for worker in parent_receipt['workers'])):
+        raise ValueError('Joined proof requires two actually closed successful workers')
     collected, covered, outcomes = None, [], []
     child_pids = set()
     for index in range(2):
@@ -385,6 +405,8 @@ def verify_installed_partitions(output, context, deadline):
             raise ValueError('Installed subset differs from deterministic whole-module ownership')
         events = [json.loads(line) for line in (folder / 'test-timings.jsonl').read_text(encoding='utf-8').splitlines()]
         _installed_lifecycle(events, selected, terminal, identity['timing_epoch_monotonic'], context)
+        _installed_child_interval(parent_receipt['workers'][index], identity['timing_epoch_monotonic'],
+                                  events[-1]['elapsed_seconds'])
         outcomes.append(_installed_junit(folder, selected, terminal))
         covered.extend(selected)
     if Counter(covered) != Counter(collected):
@@ -512,8 +534,11 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
                     break
                 time.sleep(min(0.05, _remaining(deadline)))
         receipt['ownership_cleanup'] = 'jobs_closed'
+        # ExitStack callbacks have reaped both actual bootstraps. Persist that
+        # state and pass the same snapshot; final success/finish comes later.
+        save()
         _remaining(deadline)
-        receipt['accounting'] = verify_installed_partitions(output, context, deadline)
+        receipt['accounting'] = verify_installed_partitions(output, context, deadline, parent_receipt=receipt)
         probe_owner = receipt['accounting']['plugin_probe_owner']
         with (output / 'plugin-probe.json').open('xb') as stream:
             stream.write((output / f'shard-{probe_owner}' / 'plugin-probe.json').read_bytes())

@@ -116,6 +116,9 @@ The active supervisor and measurement readback share one finite parent/worker
 clock contract: ordered dispatches, matching remaining time, and reaps before a
 successful finish inside the deadline. Failed cleanup can retain later timestamps
 without clearing the failure. Bootstrap and pytest PIDs identify separate roles.
+The verifier joins each child's unrounded epoch and rounded journal interval to
+its actual dispatch/reap interval. It applies the journal's existing six-decimal
+serialization to the reap bound; the unrounded parent deadline stays strict.
 Native/Redis/R2 postchecks stay in the parent and run once after successful
 aggregation. The plugin-probe receipt is copied once from its admitted owning
 module's partition; missing or duplicate probe evidence fails aggregation.

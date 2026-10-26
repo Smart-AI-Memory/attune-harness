@@ -343,7 +343,7 @@ def test_shared_deadline_and_ownership_failures_stay_latched(tmp_path, monkeypat
     def sleep(seconds):
         clock[0] += seconds
     monkeypatch.setattr(qualifier, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=sleep))
-    def verify(folder, context, deadline):
+    def verify(folder, context, deadline, *, parent_receipt):
         if scenario == 'aggregate_expiry':
             clock[0] = 2.0
         (folder / 'shard-0/plugin-probe.json').write_text('{}')
@@ -422,7 +422,7 @@ def test_delayed_launch_receives_only_the_remaining_shared_budget(tmp_path, monk
     clock, launches = [10.0], []
     monkeypatch.setattr(qualifier, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
     monkeypatch.setattr(qualifier, 'installed_partition_identity', lambda deadline: {'control': True})
-    def verify(folder, context, deadline):
+    def verify(folder, context, deadline, *, parent_receipt):
         (folder / 'shard-0/plugin-probe.json').write_text('{}')
         return {'plugin_probe_owner': 0}
     monkeypatch.setattr(qualifier, 'verify_installed_partitions', verify)
@@ -486,3 +486,64 @@ def test_complete_parent_clock_and_worker_contract_refuses_impossible_proof(
     path.write_text(json.dumps(receipt))
     with pytest.raises((ValueError, OSError)):
         measurement._validate_installed_aggregate(output, identity['measurement'])
+
+
+@pytest.mark.parametrize('damage', ['reap_before_epoch', 'dispatch_after_epoch', 'finish_before_suite_end'])
+def test_complete_proof_joins_child_epoch_and_suite_end_to_owned_worker(
+        fixture_project, tmp_path, monkeypatch, damage):
+    output = tmp_path / 'measurement'; output.mkdir()
+    folder = output / 'instrumented-platform'
+    result, identity = execute(fixture_project, folder, monkeypatch, budget=2520)
+    assert result.returncode == 0
+    spec = importlib.util.spec_from_file_location('joined_clock_measurement', ROOT / 'scripts/measure_coverage.py')
+    measurement = importlib.util.module_from_spec(spec); spec.loader.exec_module(measurement)
+    assert measurement._validate_installed_aggregate(output, identity['measurement'])
+    path = folder / 'installed-suite.json'; receipt = json.loads(path.read_text())
+    witnesses = [json.loads((folder / f'shard-{i}/installed-identity.json').read_text()) for i in range(2)]
+    if damage == 'reap_before_epoch':
+        receipt['workers'][0]['reaped_monotonic'] = receipt['workers'][0]['dispatched_monotonic']
+    elif damage == 'dispatch_after_epoch':
+        worker = receipt['workers'][1]
+        worker['dispatched_monotonic'] = (witnesses[1]['timing_epoch_monotonic'] + worker['reaped_monotonic']) / 2
+        worker['remaining_at_dispatch_seconds'] = receipt['deadline_monotonic'] - worker['dispatched_monotonic']
+    else:
+        finish = max(worker['dispatched_monotonic'] for worker in receipt['workers'])
+        for worker in receipt['workers']:
+            worker['reaped_monotonic'] = finish
+        receipt['finished_monotonic'] = finish
+    path.write_text(json.dumps(receipt))
+    fixture_project['qualifier'].validate_installed_parent_receipt(
+        receipt, json.loads((folder / 'partition-context.json').read_text()), successful=True)
+    with pytest.raises((ValueError, OSError)):
+        measurement._validate_installed_aggregate(output, identity['measurement'])
+
+
+@pytest.mark.parametrize('epoch, dispatched, reaped', [
+    (0.0, 0.0, 0.0), (10.0, 9.0, 10.0000006),
+    (100.0, 100.0, 100.0000004), (1000000.125, 1000000.0, 1000000.125001)])
+def test_join_uses_existing_six_decimal_serialization_without_clock_grace(epoch, dispatched, reaped):
+    qualifier = load_qualifier()
+    worker = {'dispatched_monotonic': dispatched, 'reaped_monotonic': reaped}
+    last_possible = round(reaped - epoch, 6)
+    qualifier._installed_child_interval(worker, epoch, last_possible)
+    with pytest.raises(ValueError):
+        qualifier._installed_child_interval(worker, epoch, last_possible + 0.000001)
+
+
+def test_join_accepts_reverse_reap_order_and_distinct_bootstrap_pytest_pids(
+        fixture_project, tmp_path, monkeypatch):
+    output = tmp_path / 'measurement'; output.mkdir()
+    folder = output / 'instrumented-platform'
+    result, identity = execute(fixture_project, folder, monkeypatch, budget=2520)
+    assert result.returncode == 0
+    path = folder / 'installed-suite.json'; receipt = json.loads(path.read_text())
+    # ExitStack reaps in reverse registration order; worker indexes do not
+    # impose a reap order, and Windows bootstraps own different pytest PIDs.
+    assert receipt['workers'][0]['reaped_monotonic'] >= receipt['workers'][1]['reaped_monotonic']
+    child_pids = {json.loads((folder / f'shard-{i}/installed-identity.json').read_text())['pid'] for i in range(2)}
+    for index, worker in enumerate(receipt['workers']):
+        worker['pid'] = max(child_pids) + 1000000 + index
+    path.write_text(json.dumps(receipt))
+    spec = importlib.util.spec_from_file_location('joined_positive_measurement', ROOT / 'scripts/measure_coverage.py')
+    measurement = importlib.util.module_from_spec(spec); spec.loader.exec_module(measurement)
+    assert measurement._validate_installed_aggregate(output, identity['measurement'])
