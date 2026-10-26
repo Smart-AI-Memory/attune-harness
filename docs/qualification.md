@@ -113,7 +113,8 @@ time. The 2,700-second platform wrapper and 50-minute hosted job remain
 unchanged. Parent dispatch/deadline clocks and each pytest journal epoch are
 retained separately; journal positions do not establish remaining parent time.
 The active supervisor and measurement readback share one finite parent/worker
-clock contract: ordered dispatches, matching remaining time, and reaps before a
+clock contract: ordered dispatches, remaining time bounded by the same represented
+`deadline - start` interval, and reaps before a
 successful finish inside the deadline. Failed cleanup can retain later timestamps
 without clearing the failure. Bootstrap and pytest PIDs identify separate roles.
 The verifier joins each child's unrounded epoch and rounded journal interval to
@@ -129,6 +130,59 @@ The `coverage-windows-latest` artifact retains `installed-suite.json`,
 successful coverage receipt. Earlier serial coverage artifacts remain
 historical evidence. Instrumented checks do not qualify native platform behavior,
 model quality or host acceptance; those requirements keep their separate gates.
+
+### Optional boundary diagnostics
+
+The measurement and qualifier defaults leave these observers off. Enabling an
+observer in a hosted attempt requires a separate reviewed decision; the workflows
+do not add either option. Keep the existing dedicated measurement environment,
+installed wheel, selectors and budgets.
+
+For Windows instrumented installed partitions, supply a fresh absolute directory
+with `--windows-listing-witness`:
+
+```powershell
+python scripts/measure_coverage.py --suite platform --output C:/new-coverage --windows-listing-witness C:/new-listing-diagnostics
+```
+
+The qualifier also accepts this option together with
+`--coverage-instrumented --installed-coverage-partitions`. The parent precreates
+separate files before dispatch. The test-only observer opens its selected file
+before native observations, copies the original listing's returned `_State`
+values and existing handle labels, and preserves the original calls, result and
+exception. It never resamples the filesystem. It retains at most 64 refusal rows
+and one reserved summary within the same 1 MiB cap. The summary reports dropped
+records, sink errors and short writes; a partial prefix is retained and cannot
+count as complete delivery. Missing labels, incomplete pairs,
+truncation and diagnostic errors remain explicit; they do not prove which field
+caused a refusal. Legacy metadata-witness defaults stay unchanged.
+
+For Linux full measurement, use `--shutdown-boundary-diagnostics` with a fresh
+absolute directory:
+
+```sh
+python scripts/measure_coverage.py --suite full --output /absolute/new-coverage --shutdown-boundary-diagnostics /absolute/new-shutdown-diagnostics
+```
+
+The parent observes its original `subprocess.run` launch, stdlib wait deadline,
+kill and reap boundaries. It keeps the 1,200-second timeout and its original
+scope. This opt-in requires the supported POSIX stdlib `_communicate` signature
+and a single parent launcher; its scoped `Popen` substitution is restored after
+the call. Child markers identify the qualification plugin's configure,
+session-finish and unconfigure owner functions. The existing explicit coverage
+save is wrapped once at its original registration position. These markers do
+not bracket every pytest hook or coverage callback, and none proves interpreter
+exit. Session success with XML can still end in a process timeout.
+
+Use a diagnostic directory outside the checkout, evidence directory and fixture
+ancestor chain. Files are precreated and opened before observations; retained
+copies are written into the artifact after owned processes reap. A shared volume
+ancestor remains, so this is not an isolation guarantee. Records have PID,
+monotonic clock and run bindings, fixed fields and byte/row bounds. Shutdown
+observers recheck direct-child and creator-PID ownership on every access or
+emission, including after fork. Missing, partial or failed diagnostics never
+replace the software verdict or count as successful evidence. These preparations
+do not establish the cause of an earlier Windows refusal or Ubuntu timeout.
 
 Each platform job also runs the R2 clean-environment journey from the installed
 wheel, through `scripts/check_installed.py`: plan, accept, build, review and

@@ -547,3 +547,82 @@ def test_join_accepts_reverse_reap_order_and_distinct_bootstrap_pytest_pids(
     spec = importlib.util.spec_from_file_location('joined_positive_measurement', ROOT / 'scripts/measure_coverage.py')
     measurement = importlib.util.module_from_spec(spec); spec.loader.exec_module(measurement)
     assert measurement._validate_installed_aggregate(output, identity['measurement'])
+
+
+def represented_clock_proof(start, delay=0.0, budget=30):
+    """Portable parent-receipt control; no native process or filesystem sample."""
+    deadline = start + budget
+    namespaces = [{'cwd': f'C:\\consumer{i}', 'temporary_root': f'C:\\temporary{i}',
+                   'basetemp': f'C:\\temporary{i}\\pytest'} for i in range(2)]
+    context = {'schema_version': 1, 'system': 'Windows', 'checkout': 'C:\\checkout',
+               'started_monotonic': start, 'deadline_monotonic': deadline,
+               'budget_seconds': budget, 'workers': namespaces}
+    receipt = {'started_monotonic': start, 'deadline_monotonic': deadline,
+               'shared_budget_seconds': budget, 'finished_monotonic': deadline - 1,
+               'status': 'passed', 'exit': 0, 'failure': None, 'ownership_cleanup': 'jobs_closed',
+               'workers': [{'index': i, **namespace, 'pid': 8000 + i, 'ownership': 'windows_job',
+                            'returncode': 0, 'dispatched_monotonic': start + (delay if i else 0),
+                            'remaining_at_dispatch_seconds': deadline - (start + (delay if i else 0)),
+                            'reaped_monotonic': deadline - 2} for i, namespace in enumerate(namespaces)]}
+    return receipt, context
+
+
+@pytest.mark.parametrize('start, delay', [(501.343, 0), (503.343, 0), (509.796, 0),
+                                          (0.0, 0), (10.0, .125), (1000.0, 1.0)])
+def test_represented_interval_accepts_original_native_vectors_and_delayed_dispatch(start, delay):
+    qualifier = load_qualifier()
+    receipt, context = represented_clock_proof(start, delay)
+    qualifier.validate_installed_parent_receipt(receipt, context, successful=True)
+
+
+@pytest.mark.parametrize('start', [501.343, 503.343, 509.796])
+def test_represented_interval_refuses_nextafter_upper_bound_without_new_epsilon(start):
+    import math
+    qualifier = load_qualifier()
+    receipt, context = represented_clock_proof(start)
+    interval = context['deadline_monotonic'] - context['started_monotonic']
+    receipt['workers'][0]['remaining_at_dispatch_seconds'] = math.nextafter(interval, math.inf)
+    assert math.isclose(receipt['workers'][0]['remaining_at_dispatch_seconds'], interval,
+                        rel_tol=0, abs_tol=0.000001)
+    with pytest.raises(ValueError, match='dispatch order or remaining budget'):
+        qualifier.validate_installed_parent_receipt(receipt, context, successful=True)
+
+
+@pytest.mark.parametrize('late', [False, True])
+def test_represented_interval_still_refuses_exact_or_late_deadline_dispatch(late):
+    import math
+    qualifier = load_qualifier()
+    receipt, context = represented_clock_proof(501.343)
+    deadline = context['deadline_monotonic']
+    dispatched = math.nextafter(deadline, math.inf) if late else deadline
+    receipt['workers'][0].update(dispatched_monotonic=dispatched,
+                                 remaining_at_dispatch_seconds=deadline - dispatched)
+    with pytest.raises(ValueError):
+        qualifier.validate_installed_parent_receipt(receipt, context, successful=True)
+
+
+@pytest.mark.parametrize('start', [501.343, 503.343, 509.796])
+def test_represented_interval_active_supervisor_accepts_same_coarse_clock(tmp_path, monkeypatch, start):
+    qualifier = load_qualifier()
+    clock, owners = [start], []
+    monkeypatch.setattr(qualifier, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda delay: None))
+    monkeypatch.setattr(qualifier, 'installed_partition_identity', lambda deadline: {'control': True})
+    def verify(folder, context, deadline, *, parent_receipt):
+        (folder / 'shard-0/plugin-probe.json').write_text('{}')
+        return {'plugin_probe_owner': 0}
+    monkeypatch.setattr(qualifier, 'verify_installed_partitions', verify)
+    class Process:
+        def __init__(self, index): self.pid = 8000 + index
+        def poll(self): return 0
+    class Owner:
+        def __enter__(self): owners.append(self); return self
+        def launch(self, *args, **kwargs): return Process(len(owners))
+        def launch_failure(self): return None
+        def stop(self, process): raise AssertionError('Already completed synthetic process must not be stopped')
+        def __exit__(self, *args): return None
+    output = tmp_path / 'evidence'; output.mkdir()
+    result = qualifier.run_installed_partitions(output, [sys.executable, '-m', 'pytest'], 30, job_factory=Owner)
+    assert result.returncode == 0, (output / 'installed-suite.json').read_text()
+    receipt = json.loads((output / 'installed-suite.json').read_text())
+    assert receipt['finished_monotonic'] < receipt['deadline_monotonic']
+    assert receipt['workers'][0]['remaining_at_dispatch_seconds'] == receipt['deadline_monotonic'] - start

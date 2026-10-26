@@ -5,6 +5,7 @@ The qualifier's separate process budget still terminates such a stuck suite.
 """
 from concurrent.futures import TimeoutError as FutureTimeoutError
 import json
+import functools
 import hashlib
 import os
 from pathlib import Path
@@ -31,6 +32,7 @@ def pytest_addoption(parser):
     parser.addoption('--harness-shard-index', type=int, default=0)
     parser.addoption('--harness-shard-count', type=int, default=1)
     parser.addoption('--harness-installed-context', default=None)
+    parser.addoption('--harness-windows-listing-witness', default=None)
 
 
 def _installed_witness(config, *, finished=False):
@@ -127,6 +129,113 @@ def pytest_collection_modifyitems(config, items):
     config.hook.pytest_deselected(items=deselected)
 
 
+def _shutdown_owner(function):
+    @functools.wraps(function)
+    def observed(*args, **kwargs):
+        # Diagnostic preparation and emission can fail; the owner stays outside
+        # those handlers and is called exactly once with its original arguments.
+        helper = config = None
+        def emit(event, **fields):
+            try:
+                if helper is not None:
+                    helper._child_diagnostic_event(event, **fields)
+            except Exception:
+                pass
+        try:
+            helper = sys.modules.get('harness_coverage_diagnostics')
+            if (helper is not None and callable(getattr(helper, '_child_sink', None))
+                    and helper._child_sink() is not None):
+                key = 'session' if function.__name__ == 'pytest_sessionfinish' else 'config'
+                subject = args[0] if args else kwargs.get(key)
+                config = subject.config if key == 'session' else subject
+                emit(function.__name__ + '_owner_enter',
+                     observer_entry_monotonic_ns=helper._diagnostic_clock_ns())
+            else:
+                helper = None
+        except Exception:
+            helper = None
+        try:
+            result = function(*args, **kwargs)
+        except BaseException as error:
+            emit(function.__name__ + '_owner_error', error_type=type(error).__name__)
+            raise
+        try:
+            emit(function.__name__ + '_owner_return',
+                 harness_timing_epoch_monotonic=getattr(config, '_harness_timing_epoch', None))
+        except Exception:
+            pass
+        return result
+    return observed
+
+
+def _listing_witness_types():
+    from attune_harness.windows_reads import ReadRoot
+    from attune_harness.windows_effects import Native
+    return ReadRoot, Native
+
+
+def _configure_listing_witness(config):
+    selected = getattr(getattr(config, 'option', None), 'harness_windows_listing_witness', None)
+    if selected is None:
+        return
+    if os.name != 'nt':
+        raise pytest.UsageError('Listing witness requires an explicit Windows installed child')
+    sink = diagnostic_call = None
+    patch = pytest.MonkeyPatch()
+    try:
+        context_path = config.getoption('--harness-installed-context')
+        if context_path is None:
+            raise ValueError('Listing witness requires its installed context')
+        context = json.loads(Path(context_path).read_text(encoding='utf-8'))
+        worker = context['workers'][config.getoption('--harness-shard-index')]
+        if selected != worker.get('listing_witness'):
+            raise ValueError('Listing witness sink differs from its preselected context')
+        from measure_coverage import _DiagnosticSink, _diagnostic_call
+        diagnostic_call = _diagnostic_call
+        sink = _DiagnosticSink(selected, context['context_token'], 'listing',
+                               max_bytes=1024 * 1024, max_row=65536, reserve_summary=True)
+        helper = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'tests/windows_read_witness.py'))
+        reader, native = _listing_witness_types()
+        def record(key, value):
+            diagnostic_call(sink, 'emit', event=key, details=lambda: {'observation': json.loads(value)})
+        witness = helper['ListingWitness'](patch, record, reader, native)
+        config._harness_listing_witness = (patch, witness, sink)
+        config._harness_listing_call = diagnostic_call
+    except Exception as error:
+        # Explicit profile/context errors are setup refusals; best-effort observer
+        # setup failures cannot replace the original test/software outcome.
+        config._harness_listing_setup_error = type(error).__name__
+        try:
+            patch.undo()
+        except Exception:
+            pass
+        if sink is not None:
+            diagnostic_call(sink, 'emit', event='windows_listing_setup_error',
+                            details=lambda: {'error_type': type(error).__name__})
+            diagnostic_call(sink, 'close')
+
+
+def _close_listing_witness(config):
+    sink = diagnostic_call = None
+    try:
+        selected = getattr(config, '_harness_listing_witness', None)
+        if selected is None:
+            return
+        patch, witness, sink = selected
+        diagnostic_call = config._harness_listing_call
+        patch.undo()
+        diagnostic_call(sink, 'finish', event='windows_listing_summary', details=lambda: {
+            'truncated': bool(witness.truncated or witness.diagnostic_errors or witness.active_invocations),
+            'active_invocations': witness.active_invocations,
+            'diagnostic_error_types': witness.diagnostic_errors})
+    except Exception:
+        pass  # Diagnostic cleanup cannot replace the original pytest verdict.
+    finally:
+        if diagnostic_call is not None:
+            diagnostic_call(sink, 'close')
+
+
+@_shutdown_owner
 def pytest_configure(config):
     config._harness_timing_epoch = _monotonic()
     config._harness_stack_log = (
@@ -144,9 +253,12 @@ def pytest_configure(config):
         config._harness_failure_log = None
     _timing(config, 'suite_start')
     _installed_witness(config)
+    _configure_listing_witness(config)
 
 
+@_shutdown_owner
 def pytest_unconfigure(config):
+    _close_listing_witness(config)
     try:
         stream = getattr(config, '_harness_failure_log', None)
         if stream is not None:
@@ -254,6 +366,7 @@ def pytest_runtest_makereport(item, call):
             pass  # A failed diagnostic journal must preserve the test verdict too.
 
 
+@_shutdown_owner
 def pytest_sessionfinish(session, exitstatus):
     if session.config.getoption('--harness-installed-context') is not None:
         try:

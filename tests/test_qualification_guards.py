@@ -371,3 +371,382 @@ def test_unsuccessful_platform_suite_stops_before_post_suite_native_dispatch(
         else:
             assert receipt['plugin_probe'].startswith('unreadable:')
             assert 'plugin probe receipt unreadable; see plugin-probe.json' in receipt['checks']
+
+
+def listing_control(monkeypatch, *, observed=True, mode='changed', record=None, **bounds):
+    """Portable forwarding control over the actual listing/stat implementations."""
+    from attune_harness.windows_reads import ReadRoot
+    from windows_read_witness import ListingWitness
+    calls, records = [], []
+    refusal = OSError('synthetic original observation failure')
+    class API:
+        Basic = SimpleNamespace
+        def __init__(self):
+            self.calls, self.creations = [], [1] * 3 + ([1] * 3 if mode == 'stable' else [9] * 3)
+            self.info_calls, self.volume_result, self.child_result = 0, 1, 2
+            self.barrier = None
+        def volume_handle(self, anchor):
+            self.calls.append(('volume', anchor)); return self.volume_result
+        def child(self, parent, name, **kwargs):
+            self.calls.append(('child', parent, name, kwargs)); return self.child_result
+        def info(self, handle, kind, cls):
+            self.calls.append(('info', handle, kind, cls)); self.info_calls += 1
+            if (mode == 'first_stat' and self.info_calls == 1) or (mode == 'second_stat' and self.info_calls == 4):
+                raise refusal
+            return SimpleNamespace(CreationTime=self.creations.pop(0), LastAccessTime=1,
+                                   LastWriteTime=2, ChangeTime=3, FileAttributes=16)
+        def metadata(self, handle, parent_identity=None):
+            self.calls.append(('metadata', handle, parent_identity)); basic = self.info(handle, self.Basic, 0)
+            return {'attributes': basic.FileAttributes, 'kind': 'directory',
+                    'nested': {'value': basic.CreationTime}}, 12, True
+        def iter_names(self, handle):
+            self.calls.append(('iter_names', handle))
+            if self.barrier is not None: self.barrier.wait(timeout=5)
+            if mode == 'enumeration': raise refusal
+            return ('leaf',)
+    class Reader:
+        def __init__(self, api): self._api, self.result, self.error, self.first, self.stats = api, None, None, None, 0
+        def _stat(self, handle, *args, **kwargs):
+            result = ReadRoot._stat(self, handle, *args, **kwargs); self.stats += 1
+            if self.stats == 1: self.first = result
+            elif mode == 'mutate_before_return': self.first.entry['nested']['value'] = 2
+            return result
+        def _listing(self, handle):
+            try:
+                self.result = ReadRoot._listing(self, handle)
+                return self.result
+            except Exception as error:
+                self.error = error
+                raise
+    recorder = record if record is not None else lambda key, value: records.append((key, value))
+    observer = ListingWitness(monkeypatch, recorder, Reader, API, **bounds) if observed else None
+    api = API(); parent = api.volume_handle('C:\\'); handle = api.child(parent, 'fixture', writable=False)
+    return SimpleNamespace(observer=observer, root=Reader(api), handle=handle, records=records,
+                           error=refusal, api_type=API, reader_type=Reader)
+
+
+@pytest.mark.parametrize('mode', ['stable', 'changed'])
+def test_listing_witness_preserves_original_call_map_return_and_exception(monkeypatch, mode):
+    baseline = listing_control(monkeypatch, observed=False, mode=mode)
+    actual = listing_control(monkeypatch, mode=mode)
+    if mode == 'stable':
+        expected = baseline.root._listing(baseline.handle)
+        result = actual.root._listing(actual.handle)
+        assert result is actual.root.result and result == expected and actual.records == []
+    else:
+        with pytest.raises(ValueError, match='Source directory changed'):
+            baseline.root._listing(baseline.handle)
+        with pytest.raises(ValueError, match='Source directory changed') as caught:
+            actual.root._listing(actual.handle)
+        assert caught.value is actual.root.error
+        record = json.loads(actual.records[0][1])
+        assert record['path'] == 'C:\\fixture' and record['complete_pair']
+        assert [x['times']['creation'] for x in record['states']] == [1, 9]
+    assert actual.root._api.calls == baseline.root._api.calls
+    assert [x[0] for x in actual.root._api.calls] == [
+        'volume', 'child', 'info', 'metadata', 'info', 'info', 'iter_names',
+        'info', 'metadata', 'info', 'info']
+    assert actual.observer.frames() == []
+
+
+@pytest.mark.parametrize('mode,count', [('first_stat', 0), ('enumeration', 1), ('second_stat', 1)])
+def test_listing_witness_marks_incomplete_original_observations(monkeypatch, mode, count):
+    baseline = listing_control(monkeypatch, observed=False, mode=mode)
+    actual = listing_control(monkeypatch, mode=mode)
+    with pytest.raises(OSError) as first: baseline.root._listing(baseline.handle)
+    with pytest.raises(OSError) as caught: actual.root._listing(actual.handle)
+    assert first.value is baseline.error and caught.value is actual.error
+    assert actual.root._api.calls == baseline.root._api.calls
+    record = json.loads(actual.records[0][1])
+    assert not record['complete_pair'] and len(record['states']) == count
+    assert record['error_type'] == 'OSError' and actual.observer.frames() == []
+
+
+def test_listing_witness_copies_nested_states_at_the_original_return(monkeypatch):
+    actual = listing_control(monkeypatch, mode='mutate_before_return')
+    with pytest.raises(ValueError): actual.root._listing(actual.handle)
+    record = json.loads(actual.records[0][1])
+    assert actual.root.first.entry['nested']['value'] == 2
+    assert [x['entry']['nested']['value'] for x in record['states']] == [1, 9]
+
+
+def test_listing_witness_sink_failure_does_not_replace_original_refusal(monkeypatch):
+    def broken(*args): raise RuntimeError('synthetic diagnostic sink failure')
+    actual = listing_control(monkeypatch, record=broken)
+    with pytest.raises(ValueError, match='Source directory changed') as caught:
+        actual.root._listing(actual.handle)
+    assert caught.value is actual.root.error
+    assert actual.observer.diagnostic_errors == ['RuntimeError'] and actual.observer.frames() == []
+
+
+def test_listing_witness_isolates_interleaved_same_handle_readers(monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    actual = listing_control(monkeypatch)
+    second_api = actual.api_type(); second_api.creations = [10] * 3 + [90] * 3
+    parent = second_api.volume_handle('D:\\'); second_handle = second_api.child(parent, 'other', writable=False)
+    second = actual.reader_type(second_api)
+    barrier = Barrier(2); actual.root._api.barrier = second_api.barrier = barrier
+    def call(reader, handle):
+        try: reader._listing(handle)
+        except ValueError as error: return error
+        raise AssertionError('Original changed directory was not refused')
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        values = list(pool.map(lambda pair: call(*pair), [(actual.root, actual.handle), (second, second_handle)]))
+    assert values == [actual.root.error, second.error]
+    records = [json.loads(value) for _, value in actual.records]
+    assert len({x['thread'] for x in records}) == len({x['invocation'] for x in records}) == 2
+    assert {x['path']: [s['times']['creation'] for s in x['states']] for x in records} == {
+        'C:\\fixture': [1, 9], 'D:\\other': [10, 90]}
+
+
+def test_listing_witness_bounds_records_and_relabels_reused_handles(monkeypatch):
+    actual = listing_control(monkeypatch, max_records=2)
+    api = actual.root._api
+    for n in range(300):
+        api.volume_result = n + 10; api.volume_handle('X:' + str(n))
+    assert len(actual.observer.labels) <= 256
+    api.volume_result = 1; api.child_result = 2
+    api.volume_handle('Z:\\'); api.child(1, 'fresh', writable=False)
+    for _ in range(3):
+        api.creations = [1] * 3 + [9] * 3
+        with pytest.raises(ValueError): actual.root._listing(actual.handle)
+    assert len(actual.records) == 2 and actual.observer.truncated
+    assert all(json.loads(value)['path'] == 'Z:\\fresh' for _, value in actual.records)
+
+
+def test_listing_witness_explicitly_refuses_missing_owner_without_changing_default(monkeypatch):
+    from windows_read_witness import ListingWitness
+    from test_windows_read_witness_diagnostics import Root, API
+    with pytest.raises(ValueError, match='original listing owner'):
+        ListingWitness(monkeypatch, lambda *args: None, Root, API)
+
+
+def test_listing_witness_default_plugin_path_performs_no_diagnostic_setup(monkeypatch):
+    plugin = load('harness_qualification_stacks')
+    def forbidden(*args): raise AssertionError('Default path performed diagnostic setup')
+    monkeypatch.setattr(plugin, '_listing_witness_types', forbidden)
+    config = SimpleNamespace()
+    plugin._configure_listing_witness(config)
+    plugin._close_listing_witness(config)
+    assert not hasattr(config, '_harness_listing_witness')
+
+
+@pytest.mark.parametrize('installed', [False, True])
+def test_listing_option_cannot_enable_ordinary_or_posix_qualification(tmp_path, monkeypatch, installed):
+    qualifier = load('qualify_platform')
+    monkeypatch.setattr(qualifier, 'platform', SimpleNamespace(system=lambda: 'Linux'))
+    def forbidden(): raise AssertionError('Unsupported diagnostics reached installed import')
+    monkeypatch.setattr(qualifier, 'installed_source', forbidden)
+    with pytest.raises(ValueError, match='Windows instrumented'):
+        qualifier.qualify(tmp_path / 'uncreated', coverage_instrumented=True,
+                          installed_coverage_partitions=installed, windows_listing_witness=tmp_path / 'diagnostics')
+
+
+def test_listing_observer_missing_label_and_nested_invocation_do_not_cross_pair(monkeypatch):
+    actual = listing_control(monkeypatch)
+    actual.observer.labels.clear()
+    original_iter = actual.root._api.iter_names
+    nested = False
+    def interleaved(handle):
+        nonlocal nested
+        if not nested:
+            nested = True
+            # A separate reader with the same API/handle must have its own frame.
+            other = actual.reader_type(actual.root._api)
+            try: other._listing(handle)
+            except ValueError: pass
+        return original_iter(handle)
+    actual.root._api.iter_names = interleaved
+    actual.root._api.creations = [1] * 3 + [2] * 3 + [3] * 3 + [4] * 3
+    with pytest.raises(ValueError): actual.root._listing(actual.handle)
+    records = [json.loads(value) for _, value in actual.records]
+    assert len(records) == 2 and len({x['invocation'] for x in records}) == 2
+    assert all(x['path'] == '<unknown>' and x['complete_pair'] for x in records)
+    assert [x['times']['creation'] for x in records[-1]['states']] == [1, 4]
+    assert actual.observer.frames() == []
+
+
+@pytest.mark.parametrize('failure', ['copy', 'json', 'byte_limit'])
+def test_listing_diagnostic_representation_failure_is_secondary(monkeypatch, failure):
+    actual = listing_control(monkeypatch, **({'max_bytes': 1} if failure == 'byte_limit' else {}))
+    if failure == 'copy':
+        class Broken:
+            def __deepcopy__(self, memo): raise RuntimeError('synthetic copy failure')
+        original_metadata = actual.root._api.metadata
+        def metadata(handle, *args):
+            entry, size, times = original_metadata(handle, *args)
+            entry['opaque'] = Broken()
+            return entry, size, times
+        actual.root._api.metadata = metadata
+    elif failure == 'json':
+        original_metadata = actual.root._api.metadata
+        def metadata(handle, *args):
+            entry, size, times = original_metadata(handle, *args)
+            entry['opaque'] = object()
+            return entry, size, times
+        actual.root._api.metadata = metadata
+    with pytest.raises(ValueError, match='Source directory changed') as caught:
+        actual.root._listing(actual.handle)
+    assert caught.value is actual.root.error and actual.observer.frames() == []
+    if failure == 'byte_limit':
+        assert actual.records == [] and actual.observer.truncated
+    elif failure == 'copy':
+        record = json.loads(actual.records[0][1])
+        assert record['copy_errors'] == ['RuntimeError', 'RuntimeError'] and not record['complete_pair']
+    else:
+        assert actual.records == [] and actual.observer.diagnostic_errors == ['TypeError']
+
+
+def test_explicit_listing_plugin_uses_preopened_sink_and_same_original_guard(tmp_path, monkeypatch):
+    plugin = load('harness_qualification_stacks')
+    measurement = load('measure_coverage')
+    actual = listing_control(monkeypatch, observed=False)
+    sink = tmp_path / 'precreated.jsonl'; sink.touch()
+    context_path = tmp_path / 'context.json'
+    context_path.write_text(json.dumps({'workers': [{'listing_witness': str(sink)}], 'context_token': 'synthetic'}))
+    options = {'--harness-installed-context': str(context_path), '--harness-shard-index': 0}
+    config = SimpleNamespace(option=SimpleNamespace(harness_windows_listing_witness=str(sink)),
+                             getoption=options.__getitem__)
+    monkeypatch.setattr(plugin, 'os', SimpleNamespace(name='nt'))  # explicit portable adapter, not native Windows
+    monkeypatch.setattr(plugin, '_listing_witness_types', lambda: (actual.reader_type, actual.api_type))
+    monkeypatch.setitem(sys.modules, 'measure_coverage', measurement)
+    plugin._configure_listing_witness(config)
+    patch, witness, output = config._harness_listing_witness
+    assert output.fd is not None and sink.read_bytes() == b''
+    with pytest.raises(ValueError, match='Source directory changed') as caught:
+        actual.root._listing(actual.handle)
+    assert caught.value is actual.root.error
+    calls = list(actual.root._api.calls)
+    plugin._close_listing_witness(config)
+    assert calls == actual.root._api.calls and output.fd is None
+    rows = [json.loads(line) for line in sink.read_text().splitlines()]
+    assert [row['event'] for row in rows] == ['windows_listing_refusal', 'windows_listing_summary']
+    assert rows[0]['observation']['complete_pair'] and rows[-1]['diagnostic_error_types'] == []
+
+
+def test_listing_sink_setup_failure_does_not_replace_original_software_outcome(tmp_path, monkeypatch):
+    plugin = load('harness_qualification_stacks')
+    actual = listing_control(monkeypatch, observed=False)
+    sink = tmp_path / 'missing.jsonl'
+    context_path = tmp_path / 'context.json'
+    context_path.write_text(json.dumps({'workers': [{'listing_witness': str(sink)}], 'context_token': 'synthetic'}))
+    options = {'--harness-installed-context': str(context_path), '--harness-shard-index': 0}
+    config = SimpleNamespace(option=SimpleNamespace(harness_windows_listing_witness=str(sink)), getoption=options.__getitem__)
+    monkeypatch.setattr(plugin, 'os', SimpleNamespace(name='nt'))
+    monkeypatch.setattr(plugin, '_listing_witness_types', lambda: (actual.reader_type, actual.api_type))
+    plugin._configure_listing_witness(config)
+    with pytest.raises(ValueError, match='Source directory changed') as caught:
+        actual.root._listing(actual.handle)
+    assert caught.value is actual.root.error and not sink.exists()
+    plugin._close_listing_witness(config)
+    assert not sink.exists()
+
+
+def configured_listing_sink(tmp_path, monkeypatch):
+    plugin, measurement = load('harness_qualification_stacks'), load('measure_coverage')
+    actual = listing_control(monkeypatch, observed=False)
+    path = tmp_path / 'listing.jsonl'; path.touch()
+    context = tmp_path / 'context.json'
+    context.write_text(json.dumps({'workers': [{'listing_witness': str(path)}], 'context_token': 'synthetic'}))
+    options = {'--harness-installed-context': str(context), '--harness-shard-index': 0}
+    config = SimpleNamespace(option=SimpleNamespace(harness_windows_listing_witness=str(path)), getoption=options.__getitem__)
+    monkeypatch.setattr(plugin, 'os', SimpleNamespace(name='nt'))
+    monkeypatch.setattr(plugin, '_listing_witness_types', lambda: (actual.reader_type, actual.api_type))
+    monkeypatch.setitem(sys.modules, 'measure_coverage', measurement)
+    plugin._configure_listing_witness(config)
+    return plugin, measurement, actual, path, config
+
+
+@pytest.mark.parametrize('count', [63, 64, 65])
+def test_listing_summary_is_reserved_at_refusal_limit(tmp_path, monkeypatch, count):
+    plugin, measurement, actual, path, config = configured_listing_sink(tmp_path, monkeypatch)
+    for _ in range(count):
+        actual.root._api.creations = [1] * 3 + [9] * 3
+        with pytest.raises(ValueError): actual.root._listing(actual.handle)
+    plugin._close_listing_witness(config)
+    rows = [json.loads(row) for row in path.read_text().splitlines()]
+    summary = rows[-1]
+    assert len(rows) == min(count, 64) + 1
+    assert summary['event'] == 'windows_listing_summary'
+    assert summary['truncated'] == (count > 64)
+    assert summary['delivery_complete'] == (count <= 64)
+    assert summary['sink_errors'] == summary['sink_dropped_records'] == summary['sink_short_writes'] == 0
+    assert path.stat().st_size <= 1024 * 1024
+
+
+@pytest.mark.parametrize('fault', ['write_error', 'short_write'])
+def test_listing_summary_retains_sink_delivery_failure_and_partial_prefix(tmp_path, monkeypatch, fault):
+    plugin, measurement, actual, path, config = configured_listing_sink(tmp_path, monkeypatch)
+    original = measurement.os.write
+    def failed(fd, raw):
+        if fault == 'write_error': raise OSError('synthetic sink refusal')
+        return original(fd, raw[:8])
+    with monkeypatch.context() as patch:
+        patch.setattr(measurement.os, 'write', failed)
+        with pytest.raises(ValueError) as caught: actual.root._listing(actual.handle)
+        assert caught.value is actual.root.error
+    prefix = path.read_bytes()
+    plugin._close_listing_witness(config)
+    raw = path.read_bytes(); summary = json.loads(raw.splitlines()[-1])
+    assert raw.startswith(prefix)
+    if fault == 'short_write': assert len(prefix) == 8
+    else: assert prefix == b''
+    assert summary['event'] == 'windows_listing_summary' and not summary['delivery_complete']
+    assert summary['truncated'] and summary['sink_errors'] > 0 and summary['sink_dropped_records'] == 1
+    assert summary['sink_short_writes'] == int(fault == 'short_write')
+    assert len(raw) <= 1024 * 1024
+
+
+def test_listing_summary_preserves_one_mib_limit_even_when_payload_byte_budget_is_full(tmp_path, monkeypatch):
+    plugin, measurement, actual, path, config = configured_listing_sink(tmp_path, monkeypatch)
+    patch, witness, sink = config._harness_listing_witness
+    for _ in range(64): sink.emit('synthetic_large_record', payload='x' * 64000)
+    plugin._close_listing_witness(config)
+    raw = path.read_bytes(); summary = json.loads(raw.splitlines()[-1])
+    assert len(raw) <= 1024 * 1024 and summary['event'] == 'windows_listing_summary'
+    assert not summary['delivery_complete'] and summary['sink_dropped_records'] > 0
+
+
+def test_listing_summary_is_incomplete_when_an_original_invocation_remains_active(tmp_path, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    plugin, measurement, actual, path, config = configured_listing_sink(tmp_path, monkeypatch)
+    entered, release = Event(), Event()
+    original = actual.root._api.iter_names
+    def blocked(handle):
+        entered.set()
+        assert release.wait(5), 'synthetic observer control was not released'
+        return original(handle)
+    actual.root._api.iter_names = blocked
+    def call():
+        try: actual.root._listing(actual.handle)
+        except ValueError as error: return error
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(call)
+        try:
+            assert entered.wait(5), 'original listing did not enter'
+            plugin._close_listing_witness(config)
+            summary = json.loads(path.read_bytes().splitlines()[-1])
+            assert summary['active_invocations'] == 1 and summary['truncated'] and not summary['delivery_complete']
+        finally:
+            release.set()
+        assert future.result(timeout=5) is actual.root.error
+
+
+@pytest.mark.parametrize('fault', ['emit_call', 'field_factory'])
+def test_listing_summary_reports_outer_diagnostic_boundary_failure(tmp_path, monkeypatch, fault):
+    plugin, measurement, actual, path, config = configured_listing_sink(tmp_path, monkeypatch)
+    patch, witness, sink = config._harness_listing_witness
+    def broken(*args, **kwargs): raise OSError('synthetic outer diagnostic failure')
+    if fault == 'emit_call':
+        with monkeypatch.context() as fault_patch:
+            fault_patch.setattr(sink, 'emit', broken)
+            with pytest.raises(ValueError) as caught: actual.root._listing(actual.handle)
+            assert caught.value is actual.root.error
+    else:
+        assert measurement._diagnostic_call(sink, 'emit', event='synthetic', details=broken) is None
+    plugin._close_listing_witness(config)
+    summary = json.loads(path.read_bytes().splitlines()[-1])
+    assert not summary['delivery_complete'] and summary['truncated']
+    assert summary['sink_errors'] > 0 and summary['sink_dropped_records'] == 1

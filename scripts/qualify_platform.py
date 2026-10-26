@@ -214,7 +214,7 @@ def validate_installed_parent_receipt(receipt, context, *, successful):
         pids.add(worker['pid'])
         dispatched = _clock_number(worker.get('dispatched_monotonic'), 'worker dispatch')
         remaining = _clock_number(worker.get('remaining_at_dispatch_seconds'), 'dispatch remaining time')
-        if (not previous_dispatch <= dispatched < deadline or not 0 < remaining <= budget
+        if (not previous_dispatch <= dispatched < deadline or not 0 < remaining <= deadline - start
                 or not math.isclose(remaining, deadline - dispatched, rel_tol=0, abs_tol=0.000001)):
             raise ValueError('Worker dispatch order or remaining budget is inconsistent')
         previous_dispatch = dispatched
@@ -441,7 +441,7 @@ def _reap_installed_child(owner, process, worker):
         worker['reaped_monotonic'] = time.monotonic()
 
 
-def run_installed_partitions(output, argv, budget, *, job_factory=None):
+def run_installed_partitions(output, argv, budget, *, job_factory=None, listing_witness=None):
     """Own two file-backed Windows children under one latched wall deadline."""
     if isinstance(budget, bool) or not math.isfinite(budget) or not 0 < budget <= 2520:
         raise ValueError('Installed partition budget must be in (0, 2520] seconds')
@@ -458,10 +458,16 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
         path.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     save()
     processes = []
+    diagnostic_directory = None
+    diagnostic_names = ('listing-witness-0.jsonl', 'listing-witness-1.jsonl')
+    diagnostics = None
     context = None
     code = 0
     try:
         identity = installed_partition_identity(deadline)
+        if listing_witness is not None:
+            diagnostics = runpy.run_path(str(ROOT / 'scripts/measure_coverage.py'))
+            diagnostic_directory = diagnostics['_prepare_diagnostic_directory'](listing_witness, output, diagnostic_names)
         temporary = Path(tempfile.mkdtemp(prefix='harness-installed-coverage-')).resolve()
         workers = []
         for index in range(2):
@@ -476,11 +482,18 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
                 or any(Path(worker['cwd']).is_relative_to(ROOT.resolve())
                        or Path(worker['temporary_root']).is_relative_to(ROOT.resolve()) for worker in workers)):
             raise ValueError('Installed children require distinct namespaces outside the checkout')
+        if diagnostic_directory is not None:
+            if (temporary.is_relative_to(diagnostic_directory) or diagnostic_directory.is_relative_to(temporary)):
+                raise ValueError('Diagnostic directory overlaps an installed fixture namespace')
+            for index, worker in enumerate(workers):
+                worker['listing_witness'] = str(diagnostic_directory / diagnostic_names[index])
         context = {'schema_version': 1, 'identity': identity, 'workers': workers,
                    'system': platform.system(), 'checkout': str(ROOT.resolve()),
                    'budget_seconds': budget,
                    'started_monotonic': started, 'deadline_monotonic': deadline,
                    'qualifier': str(Path(__file__).resolve())}
+        if diagnostic_directory is not None:
+            context['context_token'] = os.urandom(16).hex()
         validate_installed_context(context)
         context_path = output / 'partition-context.json'
         raw = (json.dumps(context, sort_keys=True, indent=2) + '\n').encode('utf-8')
@@ -495,6 +508,8 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
                                '--harness-shard-index=' + str(index), '--harness-shard-count=2',
                                '--harness-installed-context=' + str(context_path),
                                '--basetemp=' + worker['basetemp']]
+                if diagnostic_directory is not None:
+                    child_argv += ['--harness-windows-listing-witness=' + worker['listing_witness']]
                 environment = {**os.environ, 'HARNESS_QUALIFICATION_OUTPUT': str(folder),
                                'PYTHONPATH': str(ROOT / 'scripts')}
                 environment.update({name: worker['temporary_root'] for name in
@@ -546,6 +561,10 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
     except Exception as error:
         code = 124 if isinstance(error, (TimeoutError, subprocess.TimeoutExpired)) else code or 1
         receipt.update(failure=type(error).__name__, failure_detail=str(error), status='failed')
+    if diagnostic_directory is not None:
+        # ExitStack has closed/reaped launched workers, including failed siblings.
+        receipt['listing_diagnostic_files'] = diagnostics['_retain_diagnostics'](
+            diagnostic_directory, output, diagnostic_names, max_bytes=1024 * 1024)
     receipt.update(exit=code, status='passed' if code == 0 else 'failed',
                    finished_monotonic=time.monotonic())
     if receipt['finished_monotonic'] >= deadline:
@@ -564,12 +583,14 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None):
     return subprocess.CompletedProcess(argv, code)
 
 
-def qualify(output, *, coverage_instrumented=False, installed_coverage_partitions=False):
+def qualify(output, *, coverage_instrumented=False, installed_coverage_partitions=False, windows_listing_witness=None):
     if sys.flags.optimize or not __debug__:
         raise ValueError('Platform qualification requires unoptimized Python; run without -O or PYTHONOPTIMIZE')
     if installed_coverage_partitions and (not coverage_instrumented or platform.system() != 'Windows'
                                          or output.resolve().is_relative_to(ROOT.resolve())):
         raise ValueError('Installed partitions require Windows instrumented evidence outside the checkout')
+    if windows_listing_witness is not None and not installed_coverage_partitions:
+        raise ValueError('Listing diagnostics require Windows instrumented installed partitions')
     # Windows suite budgets include the measured native reader workload.
     # Individual operation deadlines stay unchanged.
     suite_timeout = 900
@@ -626,7 +647,8 @@ def qualify(output, *, coverage_instrumented=False, installed_coverage_partition
     receipt['test_timings'] = ('test-timings.jsonl; monotonic seconds since pytest configuration; '
                                'case and setup/call/teardown start/end events survive suite timeout')
     if installed_coverage_partitions:
-        run = run_installed_partitions(output, argv, suite_timeout)
+        options = {} if windows_listing_witness is None else {'listing_witness': windows_listing_witness}
+        run = run_installed_partitions(output, argv, suite_timeout, **options)
         receipt['execution_topology'] = 'two_supervised_installed_module_partitions'
         receipt['partition_supervisor'] = 'installed-suite.json'
         if run.returncode:
@@ -710,6 +732,9 @@ if __name__=='__main__':
                    help='Allow 2520 seconds on Windows, 900 elsewhere, for coverage instrumentation; never qualify this run')
     p.add_argument('--installed-coverage-partitions', action='store_true',
                    help='Two supervised installed partitions for Windows instrumented coverage only')
+    p.add_argument('--windows-listing-witness', type=Path,
+                   help='Opt-in listing samples in a fresh external diagnostic directory')
     args=p.parse_args()
     raise SystemExit(qualify(args.output.absolute(),coverage_instrumented=args.coverage_instrumented,
-                            installed_coverage_partitions=args.installed_coverage_partitions))
+                            installed_coverage_partitions=args.installed_coverage_partitions,
+                            windows_listing_witness=args.windows_listing_witness))
