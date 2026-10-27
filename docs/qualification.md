@@ -89,8 +89,8 @@ for the system temporary base.
 Supplemental Windows coverage uses two supervised whole-module partitions of
 the installed-wheel selection. The measurement script enables this mode
 explicitly; ordinary installed qualification, POSIX coverage and the source
-runner keep their existing modes. The workflow, dependencies, exclusions and
-operation limits remain unchanged.
+runner keep their existing modes. Dependencies, exclusions and operation limits
+remain unchanged.
 
 Both pytest children collect the same selection after the existing `-k` filter.
 Module-path hashing assigns each admitted case to one child while preserving
@@ -124,12 +124,27 @@ Native/Redis/R2 postchecks stay in the parent and run once after successful
 aggregation. The plugin-probe receipt is copied once from its admitted owning
 module's partition; missing or duplicate probe evidence fails aggregation.
 
+Windows measurement allocates a fresh `coverage-result-runtime` sibling outside
+the checkout and coverage evidence. A unique directory inside it holds both
+consumer working directories and separate fixture/pytest temporary trees. These
+paths are created before dispatch and recorded as actual runtime paths in the
+hashed context. Worker directory creation, context retention and verification
+remain inside the shared deadline; outer measurement setup keeps its existing
+ownership. Ordinary and POSIX temporary-directory placement stays unchanged.
+
 The `coverage-windows-latest` artifact retains `installed-suite.json`,
 `partition-context.json` and both `shard-*` diagnostic trees under
-`instrumented-platform/`. Failed or drifted aggregates cannot produce a
-successful coverage receipt. Earlier serial coverage artifacts remain
-historical evidence. Instrumented checks do not qualify native platform behavior,
-model quality or host acceptance; those requirements keep their separate gates.
+`instrumented-platform/`. A separate `coverage-consumers-windows-latest` artifact
+retains only the external `consumers/` tree, including hidden files and an
+identical context copy written before dispatch. Its `consumer-0/` and
+`consumer-1/` paths map to the context's actual working directories; artifact
+locations do not replace runtime paths. Fixture and bootstrap trees are excluded.
+Both uploads run after failures, within the existing job limit. Interrupted
+consumer evidence can be partial and does not establish process closure.
+Failed or drifted aggregates cannot produce a successful coverage receipt.
+Earlier artifacts remain historical evidence. Instrumented checks do not qualify
+native platform behavior, model quality or host acceptance; those requirements
+keep their separate gates.
 
 ### Optional boundary diagnostics
 

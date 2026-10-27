@@ -172,6 +172,42 @@ def validate_installed_context(context):
     if any(left.is_relative_to(right) or right.is_relative_to(left)
            for left in namespaces[0] for right in namespaces[1]):
         raise ValueError('Installed child namespaces overlap')
+    if 'namespace' in context:
+        validate_installed_namespace(context)
+
+
+def validate_installed_namespace(context, *, evidence_root=None, runtime_root=None):
+    """Bind real external paths to the retained consumer artifact mapping."""
+    flavor = PureWindowsPath if context.get('system') == 'Windows' else PurePosixPath
+    namespace = context.get('namespace')
+    if not isinstance(namespace, dict):
+        raise ValueError('Installed context lacks its external namespace mapping')
+    paths = {}
+    for field in ('runtime_root', 'evidence_root', 'consumer_artifact_root'):
+        value = namespace.get(field)
+        if not isinstance(value, str):
+            raise ValueError('Installed namespace mapping requires absolute canonical paths')
+        path = flavor(value)
+        if not path.is_absolute() or '..' in path.parts or str(path) != value:
+            raise ValueError('Installed namespace mapping requires absolute canonical paths')
+        paths[field] = path
+    runtime, evidence, consumers = (paths[key] for key in
+                                    ('runtime_root', 'evidence_root', 'consumer_artifact_root'))
+    checkout = flavor(context['checkout'])
+    if (runtime.is_relative_to(evidence) or evidence.is_relative_to(runtime)
+            or runtime.is_relative_to(checkout) or checkout.is_relative_to(runtime)
+            or consumers != runtime / 'consumers'
+            or (evidence_root is not None and evidence != flavor(str(evidence_root)))
+            or (runtime_root is not None and runtime.parent != flavor(str(runtime_root)))):
+        raise ValueError('Installed runtime overlaps evidence or differs from its owner')
+    if not isinstance(context.get('workers'), list) or len(context['workers']) != 2:
+        raise ValueError('External namespace requires two worker mappings')
+    for index, worker in enumerate(context['workers']):
+        expected = {'cwd': consumers / f'consumer-{index}',
+                    'temporary_root': runtime / f'{index}-temp',
+                    'basetemp': runtime / f'{index}-temp' / 'pytest'}
+        if any(worker.get(field) != str(path) for field, path in expected.items()):
+            raise ValueError('Installed worker differs from its external namespace mapping')
 
 
 def validate_installed_parent_receipt(receipt, context, *, successful):
@@ -367,6 +403,10 @@ def verify_installed_partitions(output, context, deadline, *, parent_receipt=Non
             or any(type(worker.get('returncode')) is not int or worker['returncode'] != 0
                    for worker in parent_receipt['workers'])):
         raise ValueError('Joined proof requires two actually closed successful workers')
+    if deadline is not None and 'namespace' in context:
+        retained_context = Path(context['namespace']['consumer_artifact_root']) / 'partition-context.json'
+        if retained_context.read_bytes() != raw_context:
+            raise ValueError('Retained consumer context differs from its original input bytes')
     collected, covered, outcomes = None, [], []
     child_pids = set()
     for index in range(2):
@@ -469,11 +509,14 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None, listing_
             diagnostics = runpy.run_path(str(ROOT / 'scripts/measure_coverage.py'))
             diagnostic_directory = diagnostics['_prepare_diagnostic_directory'](listing_witness, output, diagnostic_names)
         temporary = Path(tempfile.mkdtemp(prefix='harness-installed-coverage-')).resolve()
+        consumers = temporary / 'consumers'
+        consumers.mkdir()
         workers = []
         for index in range(2):
             folder = output / f'shard-{index}'
-            cwd = folder / 'consumer'
-            cwd.mkdir(parents=True)
+            folder.mkdir(parents=True)
+            cwd = consumers / f'consumer-{index}'
+            cwd.mkdir()
             temp = temporary / f'{index}-temp'
             temp.mkdir()
             workers.append({'cwd': str(cwd.resolve()), 'temporary_root': str(temp),
@@ -488,6 +531,8 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None, listing_
             for index, worker in enumerate(workers):
                 worker['listing_witness'] = str(diagnostic_directory / diagnostic_names[index])
         context = {'schema_version': 1, 'identity': identity, 'workers': workers,
+                   'namespace': {'runtime_root': str(temporary), 'evidence_root': str(output.resolve()),
+                                 'consumer_artifact_root': str(consumers)},
                    'system': platform.system(), 'checkout': str(ROOT.resolve()),
                    'budget_seconds': budget,
                    'started_monotonic': started, 'deadline_monotonic': deadline,
@@ -498,6 +543,7 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None, listing_
         context_path = output / 'partition-context.json'
         raw = (json.dumps(context, sort_keys=True, indent=2) + '\n').encode('utf-8')
         context_path.write_bytes(raw)
+        (consumers / 'partition-context.json').write_bytes(raw)
         context['context_sha256'] = hashlib.sha256(raw).hexdigest()
         with ExitStack() as stack:
             for index, worker in enumerate(workers):

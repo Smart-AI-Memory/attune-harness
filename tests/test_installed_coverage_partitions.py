@@ -626,3 +626,126 @@ def test_represented_interval_active_supervisor_accepts_same_coarse_clock(tmp_pa
     receipt = json.loads((output / 'installed-suite.json').read_text())
     assert receipt['finished_monotonic'] < receipt['deadline_monotonic']
     assert receipt['workers'][0]['remaining_at_dispatch_seconds'] == receipt['deadline_monotonic'] - start
+def external_namespace_context():
+    runtime = 'C:\\runtime\\harness-installed-coverage-synthetic'
+    workers = [{'cwd': runtime + f'\\consumers\\consumer-{i}',
+                'temporary_root': runtime + f'\\{i}-temp',
+                'basetemp': runtime + f'\\{i}-temp\\pytest'} for i in range(2)]
+    return {'schema_version': 1, 'system': 'Windows', 'checkout': 'C:\\checkout',
+            'started_monotonic': 10.0, 'deadline_monotonic': 40.0, 'budget_seconds': 30,
+            'workers': workers, 'namespace': {
+                'runtime_root': runtime, 'evidence_root': 'C:\\coverage-result\\instrumented-platform',
+                'consumer_artifact_root': runtime + '\\consumers'}}
+
+
+@pytest.mark.parametrize('damage', [
+    'runtime_in_evidence', 'evidence_in_runtime', 'runtime_in_checkout',
+    'cwd_in_evidence', 'temp_in_evidence', 'consumer_root_alias', 'worker_alias',
+    'noncanonical_runtime', 'foreign_runtime_parent', 'foreign_evidence'])
+def test_external_namespace_refuses_evidence_overlap_alias_and_wrong_owner(damage):
+    qualifier = load_qualifier()
+    context = external_namespace_context()
+    qualifier.validate_installed_context(context)
+    qualifier.validate_installed_namespace(
+        context, evidence_root='C:\\coverage-result\\instrumented-platform', runtime_root='C:\\runtime')
+    namespace = context['namespace']
+    if damage == 'runtime_in_evidence':
+        namespace['runtime_root'] = namespace['evidence_root'] + '\\nested'
+    elif damage == 'evidence_in_runtime':
+        namespace['evidence_root'] = namespace['runtime_root'] + '\\nested'
+    elif damage == 'runtime_in_checkout':
+        namespace['runtime_root'] = 'C:\\checkout\\runtime'
+    elif damage == 'cwd_in_evidence':
+        context['workers'][0]['cwd'] = namespace['evidence_root'] + '\\consumer'
+    elif damage == 'temp_in_evidence':
+        context['workers'][0]['temporary_root'] = namespace['evidence_root'] + '\\temp'
+        context['workers'][0]['basetemp'] = namespace['evidence_root'] + '\\temp\\pytest'
+    elif damage == 'consumer_root_alias':
+        namespace['consumer_artifact_root'] = namespace['runtime_root'] + '\\0-temp'
+    elif damage == 'worker_alias':
+        context['workers'][1]['cwd'] = context['workers'][0]['cwd']
+    elif damage == 'noncanonical_runtime':
+        namespace['runtime_root'] += '\\..\\foreign'
+    with pytest.raises(ValueError):
+        qualifier.validate_installed_namespace(
+            context,
+            evidence_root='C:\\foreign' if damage == 'foreign_evidence' else 'C:\\coverage-result\\instrumented-platform',
+            runtime_root='C:\\foreign' if damage == 'foreign_runtime_parent' else 'C:\\runtime')
+
+
+def test_external_consumers_keep_real_paths_and_identical_context_for_static_readback(
+        fixture_project, tmp_path, monkeypatch):
+    from tempfile import mkdtemp
+
+    external = tmp_path / 'measurement-runtime'
+    external.mkdir()
+    monkeypatch.setattr(fixture_project['qualifier'], 'tempfile', SimpleNamespace(
+        mkdtemp=lambda **kwargs: mkdtemp(dir=external, **kwargs)))
+    output = tmp_path / 'measurement'
+    output.mkdir()
+    folder = output / 'instrumented-platform'
+    result, identity = execute(fixture_project, folder, monkeypatch, budget=2520)
+    assert result.returncode == 0, (folder / 'installed-suite.json').read_text()
+    raw = (folder / 'partition-context.json').read_bytes()
+    context = json.loads(raw)
+    namespace = context['namespace']
+    runtime = Path(namespace['runtime_root'])
+    consumers = Path(namespace['consumer_artifact_root'])
+    assert consumers == runtime / 'consumers'
+    assert (consumers / 'partition-context.json').read_bytes() == raw
+    for index, worker in enumerate(context['workers']):
+        assert worker['cwd'] == str(consumers / f'consumer-{index}')
+        assert worker['temporary_root'] == str(runtime / f'{index}-temp')
+        for field in ('cwd', 'temporary_root', 'basetemp'):
+            path = Path(worker[field])
+            assert not path.is_relative_to(output) and not output.is_relative_to(path)
+        witness = json.loads((folder / f'shard-{index}/installed-identity.json').read_text())
+        assert witness['consumer_cwd'] == worker['cwd']
+        assert witness['temporary_root'] == worker['temporary_root']
+    spec = importlib.util.spec_from_file_location('external_namespace_measurement', ROOT / 'scripts/measure_coverage.py')
+    measurement = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(measurement)
+    assert measurement._validate_installed_aggregate(output, identity['measurement'], runtime.parent)
+    (consumers / 'partition-context.json').write_bytes(raw + b' ')
+    with pytest.raises(ValueError, match='context'):
+        measurement._validate_installed_aggregate(output, identity['measurement'], runtime.parent)
+
+
+def test_external_consumer_evidence_survives_failed_child_without_after_reap_copy(
+        fixture_project, tmp_path, monkeypatch):
+    launches = []
+    class Process:
+        pid = 70001
+        returncode = 1
+        def poll(self):
+            return self.returncode
+    class Owner:
+        def __enter__(self):
+            return self
+        def launch(self, argv, **kwargs):
+            process = Process()
+            process.pid += len(launches)
+            cwd = Path(kwargs['cwd'])
+            context_path = Path(next(arg.split('=', 1)[1] for arg in argv
+                                     if arg.startswith('--harness-installed-context=')))
+            retained = cwd.parent / 'partition-context.json'
+            assert retained.read_bytes() == context_path.read_bytes()
+            assert all(kwargs['environment'][key] == str(cwd.parent.parent / f'{len(launches)}-temp')
+                       for key in ('TMP', 'TEMP', 'TMPDIR', 'PYTEST_DEBUG_TEMPROOT', 'RUNNER_TEMP'))
+            (cwd / '.failure-witness').write_text('synthetic original child evidence')
+            launches.append(cwd)
+            return process
+        def launch_failure(self):
+            return None
+        def stop(self, process):
+            pass
+        def __exit__(self, *_args):
+            pass
+    output = tmp_path / 'failed-evidence'
+    result, _ = execute(fixture_project, output, monkeypatch, factory=Owner)
+    assert result.returncode == 1
+    assert len(launches) == 2
+    assert all((cwd / '.failure-witness').is_file() for cwd in launches)
+    assert all(not cwd.is_relative_to(output) and not output.is_relative_to(cwd) for cwd in launches)
+    assert (launches[0].parent / 'partition-context.json').read_bytes() == (
+        output / 'partition-context.json').read_bytes()

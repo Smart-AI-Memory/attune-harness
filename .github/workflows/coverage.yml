@@ -74,3 +74,10 @@ jobs:
             ${{ runner.temp }}/coverage-result/instrumented-platform/
           include-hidden-files: true
           if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always() && runner.os == 'Windows'
+        with:
+          name: coverage-consumers-${{ matrix.os }}
+          path: ${{ runner.temp }}/coverage-result-runtime/harness-installed-coverage-*/consumers/
+          include-hidden-files: true
+          if-no-files-found: error

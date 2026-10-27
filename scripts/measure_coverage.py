@@ -489,7 +489,20 @@ def _partitioned_full(suite):
     return suite == 'full' and platform.system() == 'Darwin'
 
 
-def _validate_installed_aggregate(output, frozen):
+def _prepare_installed_runtime(output):
+    """Keep Windows fixture and consumer writes outside measured evidence."""
+    candidate = output.with_name(output.name + '-runtime')
+    runtime = candidate.resolve()
+    evidence = output.resolve()
+    checkout = ROOT.resolve()
+    if (runtime.is_relative_to(evidence) or evidence.is_relative_to(runtime)
+            or runtime.is_relative_to(checkout) or checkout.is_relative_to(runtime)):
+        raise ValueError('Installed runtime must be outside evidence and checkout ancestry')
+    candidate.mkdir(exist_ok=False)
+    return runtime
+
+
+def _validate_installed_aggregate(output, frozen, runtime_root=None):
     """Read back the completed parent's proof without extending its test deadline."""
     folder = output / 'instrumented-platform'
     receipt = json.loads((folder / 'installed-suite.json').read_text(encoding='utf-8'))
@@ -500,6 +513,15 @@ def _validate_installed_aggregate(output, frozen):
     qualifier['validate_installed_parent_receipt'](receipt, context, successful=True)
     if context['budget_seconds'] != 2520 or context['identity']['measurement'] != frozen:
         raise ValueError('Installed aggregate differs from the measurement budget or inputs')
+    if runtime_root is not None:
+        runtime = Path(runtime_root).resolve()
+        evidence = output.resolve()
+        if runtime.is_relative_to(evidence) or evidence.is_relative_to(runtime):
+            raise ValueError('Installed runtime overlaps measured evidence ancestry')
+        qualifier['validate_installed_namespace'](context, evidence_root=folder, runtime_root=runtime_root)
+        copied_context = Path(context['namespace']['consumer_artifact_root']) / 'partition-context.json'
+        if copied_context.read_bytes() != raw:
+            raise ValueError('Retained consumer context differs from its original input bytes')
     # Active verification already finished under the serialized shared deadline.
     # This is static proof readback after the parent's once-only postchecks.
     accounting = qualifier['verify_installed_partitions'](folder, context, None, parent_receipt=receipt)
@@ -526,8 +548,10 @@ def measure(output, suite, *, windows_listing_witness=None, shutdown_boundary_di
     if hook.exists():
         raise ValueError('Measurement hook already exists; use a fresh virtualenv')
     output.mkdir(parents=True, exist_ok=False)
-    temporary = output / 'tmp'
-    temporary.mkdir()
+    installed_partitions = suite == 'platform' and platform.system() == 'Windows'
+    temporary = _prepare_installed_runtime(output) if installed_partitions else output / 'tmp'
+    if not installed_partitions:
+        temporary.mkdir()
     config = configuration(output, [installed.as_posix()])
     receipt = {**frozen, 'system': platform.system(), 'python': platform.python_version(),
                'suite': suite, 'aliases': [SOURCE.as_posix(), installed.as_posix()],
@@ -538,7 +562,6 @@ def measure(output, suite, *, windows_listing_witness=None, shutdown_boundary_di
     def save():
         manifest.write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     partitioned = _partitioned_full(suite)
-    installed_partitions = suite == 'platform' and platform.system() == 'Windows'
     if partitioned:
         receipt['execution_topology'] = 'two_supervised_module_partitions'
         receipt['shared_test_budget_seconds'] = 1500
@@ -546,6 +569,7 @@ def measure(output, suite, *, windows_listing_witness=None, shutdown_boundary_di
         receipt['partition_supervisor'] = 'instrumented-platform/source-suite.json'
     if installed_partitions:
         receipt['execution_topology'] = 'two_supervised_installed_module_partitions'
+        receipt['installed_runtime_root'] = str(temporary)
         receipt['shared_test_budget_seconds'] = 2520
         receipt['partition_evidence'] = [f'instrumented-platform/shard-{index}' for index in range(2)]
         receipt['partition_supervisor'] = 'instrumented-platform/installed-suite.json'
@@ -609,7 +633,7 @@ def measure(output, suite, *, windows_listing_witness=None, shutdown_boundary_di
         return receipt['test_exit'] or 1
     if installed_partitions:
         try:
-            receipt['partition_accounting'] = _validate_installed_aggregate(output, frozen)
+            receipt['partition_accounting'] = _validate_installed_aggregate(output, frozen, temporary)
         except (OSError, ValueError, TypeError, KeyError, RecursionError) as error:
             receipt.update(test_exit=1, aggregate_failure=type(error).__name__)
             save()

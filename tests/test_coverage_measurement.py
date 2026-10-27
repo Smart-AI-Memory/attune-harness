@@ -1231,3 +1231,106 @@ def test_parent_optional_cleanup_cannot_block_original_measurement_finalizer(tmp
         if fault == 'retention': assert receipt['shutdown_diagnostic_files'] == {'retention_error_type': 'OSError'}
     finally:
         for sink in opened: sink.close()
+@pytest.mark.parametrize('system,suite,code', [
+    ('Windows', 'platform', 0), ('Windows', 'platform', 1),
+    ('Linux', 'platform', 0), ('Darwin', 'platform', 0), ('Linux', 'full', 0)])
+def test_measurement_runtime_namespace_is_external_only_for_windows_partitions(
+        tmp_path, monkeypatch, system, suite, code):
+    import attune_harness
+
+    source, installed, site = tmp_path / 'checkout/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(
+        prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: system)
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    calls, verdicts = [], []
+    def launch(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return SimpleNamespace(returncode=code)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(run=launch, STDOUT=subprocess.STDOUT))
+    monkeypatch.setattr(measurement, '_validate_installed_aggregate', lambda *args: verdicts.append(args) or {})
+    monkeypatch.setattr(measurement, 'report', lambda *args: None)
+    output = tmp_path / 'coverage-result'
+    assert measurement.measure(output, suite) == code
+    receipt = json.loads((output / 'manifest.json').read_text())
+    external = system == 'Windows' and suite == 'platform'
+    expected = output.with_name(output.name + '-runtime') if external else output / 'tmp'
+    assert expected.is_dir()
+    assert all(calls[0][1]['env'][name] == str(expected) for name in ('TMP', 'TEMP', 'TMPDIR'))
+    assert ('installed_runtime_root' in receipt) is external
+    if external:
+        assert not (output / 'tmp').exists()
+        assert receipt['installed_runtime_root'] == str(expected)
+        assert not expected.is_relative_to(output) and not output.is_relative_to(expected)
+        if code == 0:
+            assert verdicts[0][2] == expected
+    else:
+        assert not output.with_name(output.name + '-runtime').exists()
+
+
+@pytest.mark.parametrize('existing', ['directory', 'file'])
+def test_installed_runtime_root_refuses_reused_namespace(tmp_path, monkeypatch, existing):
+    monkeypatch.setattr(measurement, 'ROOT', tmp_path / 'checkout')
+    output = tmp_path / 'coverage-result'
+    output.mkdir()
+    runtime = output.with_name(output.name + '-runtime')
+    if existing == 'directory':
+        runtime.mkdir()
+    else:
+        runtime.write_text('retained evidence')
+    with pytest.raises((ValueError, FileExistsError)):
+        measurement._prepare_installed_runtime(output)
+    assert runtime.exists()
+
+
+def test_installed_runtime_root_refuses_checkout_ancestry_before_creation(tmp_path, monkeypatch):
+    monkeypatch.setattr(measurement, 'ROOT', tmp_path)
+    output = tmp_path / 'coverage-result'
+    output.mkdir()
+    with pytest.raises(ValueError, match='outside'):
+        measurement._prepare_installed_runtime(output)
+    assert not output.with_name(output.name + '-runtime').exists()
+
+
+def test_windows_consumer_upload_preserves_primary_artifact_and_excludes_fixture_trees(tmp_path):
+    import yaml
+
+    workflow = yaml.safe_load((SCRIPT.parents[1] / '.github/workflows/coverage.yml').read_text())
+    uploads = [step for step in workflow['jobs']['measure']['steps']
+               if step.get('uses', '').startswith('actions/upload-artifact@')]
+    assert len(uploads) == 2
+    primary, consumers = uploads
+    assert primary['if'] == 'always()'
+    assert primary['with']['name'] == 'coverage-${{ matrix.os }}'
+    assert primary['with']['path'].splitlines() == [
+        '${{ runner.temp }}/coverage-result/.coverage*', '${{ runner.temp }}/coverage-result/*.json',
+        '${{ runner.temp }}/coverage-result/*.jsonl', '${{ runner.temp }}/coverage-result/*.ini',
+        '${{ runner.temp }}/coverage-result/*.txt', '${{ runner.temp }}/coverage-result/*.xml',
+        '${{ runner.temp }}/coverage-result/html/', '${{ runner.temp }}/coverage-result/instrumented-platform/']
+    assert consumers['uses'] == primary['uses']
+    assert consumers['if'] == "always() && runner.os == 'Windows'"
+    assert consumers['with'] == {
+        'name': 'coverage-consumers-${{ matrix.os }}',
+        'path': '${{ runner.temp }}/coverage-result-runtime/harness-installed-coverage-*/consumers/',
+        'include-hidden-files': True, 'if-no-files-found': 'error'}
+    namespace = tmp_path / 'coverage-result-runtime/harness-installed-coverage-synthetic'
+    expected = ['partition-context.json', 'consumer-0/.hidden', 'consumer-1/nested/retained.txt']
+    for relative in [*('consumers/' + name for name in expected), '0-temp/pytest/private', 'bootstrap/private']:
+        path = namespace / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('synthetic evidence')
+    pattern = consumers['with']['path'].replace('${{ runner.temp }}/', '')
+    matched = list(tmp_path.glob(pattern))
+    assert matched == [namespace / 'consumers']
+    retained = sorted(str(path.relative_to(matched[0])) for path in matched[0].rglob('*') if path.is_file())
+    assert retained == sorted(expected)
