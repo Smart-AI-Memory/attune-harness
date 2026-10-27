@@ -48,6 +48,8 @@ states the review scope, validation and remaining gates. Run
 - [Windows parity tasks](specs/windows-parity/tasks.md): Current component checkpoints and remaining acceptance, with the original task gates retained
 - [Portable user journey — draft proposal](specs/portable-user-journey/README.md): Forms/Harness planning; implementation awaits approval
 - [Portable journey evaluation](specs/portable-user-journey/evaluation.md): Verified reuse, correction and handoff gaps
+- [Human and AI performance evaluation](specs/portable-user-journey/performance-evaluation.md): Proposed real-workflow comparison; token use is a secondary cost
+- [Offline CSV workflow fixture](specs/portable-user-journey/csv-fixture.md): Deterministic preparation, correction and protected export checks
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
 - [Portable journey tasks](specs/portable-user-journey/tasks.md): Ordered work and verification gates; not yet authorized
 
