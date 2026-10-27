@@ -87,7 +87,9 @@ that the new human conditions are equivalent.
 
 Use a small disposable application checkout containing synthetic reports,
 pagination, active filters and private-note fields. No production data or remote
-effects. Implementing this fixture and instrumentation is separate work.
+effects. The [offline CSV fixture](csv-fixture.md) now exercises this contract
+with scripted proposals and synthetic acceptance. Human observation, equivalent
+participant task variants and live host/model integration remain separate work.
 
 Give the person this request:
 
@@ -227,7 +229,8 @@ Collection remains blocked until these prerequisites are complete:
 
 - A qualified installed candidate and observed chat/forms paths through the same
   owner, including correction and acceptance; no claim that T2–T4 already shipped.
-- A disposable CSV fixture, frozen oracles and instrumentation that observes
+- The offline CSV fixture is implemented with frozen oracles. Collection still
+  needs equivalent participant task variants and instrumentation that observes
   human effort without substituting synthetic answers.
 - Approved participants, consent/retention arrangements, primary margins,
   allocation/sample plan, stopping rules, configured model roles and budget.

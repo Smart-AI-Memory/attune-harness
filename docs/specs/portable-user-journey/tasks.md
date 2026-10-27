@@ -1,8 +1,16 @@
 # Ordered implementation tasks
 
-**Status: proposed, non-executable until spec approval.** Checkboxes denote future
-work, not current authorization. Planning documents are the only deliverable of
-this phase. See [decisions D1–D5](README.md) and [requirements R1–R7](design.md).
+**Status: T1–T5 remain proposed, non-executable until spec approval.** Their
+checkboxes denote future work, not current authorization. See
+[decisions D1–D5](README.md) and [requirements R1–R7](design.md).
+
+## Separately authorized fixture increment
+
+- [x] **F1 — Executable offline CSV fixture.** Patrick authorized this prerequisite
+  after the evaluation-plan update, with no live or paid trials. Implements
+  deterministic preparation, corrected scope, synthetic acceptance, real bounded
+  build effects and protected CSV checks. See the [fixture record](csv-fixture.md)
+  for verification and limits. This does not close T1 or authorize T2–T5.
 
 ## Sequence
 

@@ -3,6 +3,8 @@
 **Status: draft for approval; not authorized for implementation.** Planning and
 evaluation are authorized. This package does not add a release gate or change the
 stable-v1 roadmap. Approving it must identify the implementation tasks selected.
+The [offline CSV fixture increment](csv-fixture.md) was subsequently authorized
+separately; broader journey implementation and live collection remain unapproved.
 
 ## Outcome
 
