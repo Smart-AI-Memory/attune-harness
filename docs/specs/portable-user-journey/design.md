@@ -172,6 +172,14 @@ Record input, displayed decisions, actual response, correction revision, handoff
 evidence-opening steps, outcome and limitations. Keep private content out of
 public artifacts. Paid dispatch needs separate approval and a concrete budget.
 
+Use the [performance evaluation protocol](performance-evaluation.md) to compare
+human and AI outcomes before considering token costs. Hold the host constant for
+the initial chat-versus-forms comparison; qualify handoffs separately. Count
+correct authorized completion, active human effort, understanding, errors and
+correction propagation. Do not infer human benefit from simulated replies, or
+select a winner by token savings. A token increase is acceptable when a declared
+performance benefit meets its guardrails. Freeze the protocol before collection.
+
 Acceptance: each claimed host completes intake/correction/read-only handoff and
 evidence inspection; applicable execution paths retain their existing platform
 qualification. Unsupported capability cells stay explicitly unqualified. Record

@@ -86,6 +86,13 @@ assigned; maintainers own merges/releases under each repository's rules.
   each. This cycle is bounded coverage, not proof of all host/version pairs.
   Done when each host's capabilities, versions, observations and limits are
   recorded; failures remain failures and unobserved cells remain unqualified.
+  Comparative performance follows the [performance protocol](performance-evaluation.md):
+  first qualify the installed seam, then collect a separately authorized,
+  counterbalanced same-host pilot with real people. Freeze endpoints, margins,
+  sample/stopping rules, budget and missing-data handling before collection.
+  Report human and AI outcomes before token costs; separate host-cycle coverage
+  from comparative results. A walkthrough alone does not satisfy comparative
+  evidence, and a deterministic simulated user does not measure human effort.
   Risk: medium; external host availability. Dependencies: T2/T3/T4, installed
   artifacts, named observer, and separate approval for any paid calls. Estimate:
   one exploratory observation pass plus separately scoped fixes, if warranted.
