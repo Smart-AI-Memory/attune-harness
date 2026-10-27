@@ -1118,9 +1118,13 @@ def test_parent_diagnostic_failure_preserves_original_action_map_and_identity(tm
         def __init__(self, argv, **kwargs): self.args, self.pid, self.returncode = argv, 41, None; actions.append('launch')
         def __enter__(self): actions.append('enter'); return self
         def communicate(self, input=None, timeout=None):
-            actions.append('communicate'); return self._communicate(input, 10 + timeout, timeout)
+            actions.append('communicate')
+            endtime = None if timeout is None else 10 + timeout
+            return self._communicate(input, endtime, timeout)
         def _communicate(self, input, endtime, orig_timeout):
             actions.append('communicate_impl')
+            if self.returncode is not None:
+                return None, None
             if scenario != 'normal': raise original_error
             self.returncode = 0
             return None, None
