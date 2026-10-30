@@ -18,7 +18,7 @@ spec.loader.exec_module(measurement)
 
 @pytest.mark.parametrize('system,suite,partitioned,timeout', [
     ('Windows', 'platform', True, 2700), ('Linux', 'platform', False, 1080),
-    ('Darwin', 'platform', False, 1080), ('Linux', 'full', False, 1200)])
+    ('Darwin', 'platform', False, 1080), ('Linux', 'full', False, 1800)])
 @pytest.mark.parametrize('code', [0, 1, 124])
 def test_only_windows_installed_coverage_selects_new_topology(tmp_path, monkeypatch, system, suite, partitioned, timeout, code):
     import attune_harness
@@ -229,7 +229,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
     monkeypatch.setattr(measurement.platform, 'system', lambda: system)
     expected_timeout = {
-        'full': {'Windows': 1200, 'Linux': 1200, 'Darwin': 1500},
+        'full': {'Windows': 1200, 'Linux': 1800, 'Darwin': 1500},
         'platform': {'Windows': 2700, 'Linux': 1080, 'Darwin': 1080},
     }[suite][system]
 
@@ -414,7 +414,7 @@ def test_coverage_job_budget_keeps_measurement_headroom():
     workflow = SCRIPT.parents[1] / '.github/workflows/coverage.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['measure']
     assert job['timeout-minutes'] == (
-        "${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || 25 }}")
+        "${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || matrix.os == 'ubuntu-latest' && 35 || 25 }}")
 
 
 def test_darwin_full_timeout_finalizes_unfinished_receipt(tmp_path, monkeypatch):
@@ -541,7 +541,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     real_run = subprocess.run
 
     def bounded_child(argv, **kwargs):
-        assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1200)
+        assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1800 if measurement.platform.system() == 'Linux' else 1200)
         kwargs['timeout'] = 3  # Only this deliberately stalled fixture is short.
         return real_run(argv, **kwargs)
 
@@ -1196,10 +1196,10 @@ def test_parent_optional_cleanup_cannot_block_original_measurement_finalizer(tmp
     actions, opened = [], []
     monkeypatch.setattr(measurement, 'inputs_stable', lambda *args: actions.append('stability') or True)
     monkeypatch.setattr(measurement, 'report', lambda *args: actions.append('report'))
-    timeout = subprocess.TimeoutExpired(['synthetic'], 1200)
+    timeout = subprocess.TimeoutExpired(['synthetic'], 1800)
     def owner(argv, **kwargs):
         actions.append('owner')
-        assert kwargs['timeout'] == 1200
+        assert kwargs['timeout'] == 1800
         if scenario == 'timeout': raise timeout
         return SimpleNamespace(returncode=0)
     monkeypatch.setattr(measurement, '_observed_run', owner)

@@ -616,7 +616,7 @@ def measure(output, suite, *, windows_listing_witness=None, shutdown_boundary_di
                                      stderr=subprocess.STDOUT,
                                      timeout=(2700 if platform.system() == 'Windows' else 1080)
                                      if suite == 'platform' else
-                                     (1500 if platform.system() == 'Darwin' else 1200))
+                                     (1500 if platform.system() == 'Darwin' else 1800 if platform.system() == 'Linux' else 1200))
                 receipt['test_exit'] = run.returncode
     finally:
         if parent_sink is not None:

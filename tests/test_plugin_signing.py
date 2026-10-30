@@ -114,19 +114,64 @@ def run_gpg(home, *args):
     return result
 
 
-def launch_agent(home):
-    """One gpg-agent for a scratch home, started outside the tests' bounded calls.
+def _guard_msys_agent_sockets(home):
+    paths = [home.rstrip('/') + '/' + name for name in
+             ('S.gpg-agent', 'S.gpg-agent.extra', 'S.gpg-agent.browser', 'S.gpg-agent.ssh')]
+    oversized = [(path, len(path.encode('utf-8'))) for path in paths
+                 if len(path.encode('utf-8')) + 1 >= 108]
+    assert not oversized, ('GPG agent socket paths exceed MSYS limit', oversized)
 
-    Every gpg call here runs under process.invoke, whose Job Object on Windows
-    ends the agent that gpg autostarts with it, so each key generation and each
-    signing paid an agent start and the platform job ran past its budget
-    (D29.1's third finding). gpgconf launches the agent detached, with no pipe
-    it could inherit; close() kills it.
-    """
+
+def _agent_launch_output(streams, unavailable):
+    for index, label in enumerate(('stdout', 'stderr')):
+        try:
+            if len(streams) != 2:
+                detail = '[capture unavailable: ' + str(unavailable) + ']'
+            else:
+                streams[index].seek(0)
+                raw = streams[index].read(8193)
+                detail = raw[:8192].decode('utf-8', errors='replace')
+                if len(raw) > 8192:
+                    detail += '\n[truncated after 8192 bytes]'
+        except Exception as error:
+            detail = '[read unavailable: ' + type(error).__name__ + ']'
+        try:
+            print('gpgconf ' + label + ' snapshot:\n' + detail)
+        except Exception:
+            pass
+
+
+def launch_agent(home):
+    """Start the scratch agent once; retain bounded Windows/MSYS failure output."""
     if GPGCONF is None:
         return
-    launched = subprocess.run([GPGCONF, '--homedir', spelled(home), '--launch', 'gpg-agent'], cwd=home, check=False,
-                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    home_argument = spelled(home)
+    msys_windows = os.name == 'nt' and home_argument.startswith('/') and gpg_style() == 'posix'
+    streams, unavailable = [], None
+    if msys_windows:
+        _guard_msys_agent_sockets(home_argument)
+        try:
+            for _ in range(2):
+                streams.append(tempfile.TemporaryFile(mode='w+b', dir=home))
+        except Exception as error:
+            unavailable = type(error).__name__
+    try:
+        try:
+            launched = subprocess.run([GPGCONF, '--homedir', home_argument, '--launch', 'gpg-agent'], cwd=home, check=False,
+                                      stdin=subprocess.DEVNULL, stdout=streams[0] if len(streams) == 2 else subprocess.DEVNULL,
+                                      stderr=streams[1] if len(streams) == 2 else subprocess.DEVNULL, timeout=60)
+        except BaseException:
+            if msys_windows:
+                try: _agent_launch_output(streams, unavailable)
+                except Exception: pass
+            raise
+        if msys_windows and launched.returncode:
+            try: _agent_launch_output(streams, unavailable)
+            except Exception: pass
+    finally:
+        for stream in streams:
+            try: stream.close()
+            except Exception: pass
     assert launched.returncode == 0, ('GPG agent startup failed', GPG, GPGCONF, home, launched.returncode)
 
 
@@ -135,7 +180,7 @@ class Signer:
 
     def __init__(self, name, *, expire='never', at=None):
         # Short on purpose: the agent's socket path in the home has a length limit on macOS.
-        self.home = Path(tempfile.mkdtemp(prefix='hs-'))
+        self.home = Path(tempfile.mkdtemp(prefix='' if os.name == 'nt' else 'hs-'))
         os.chmod(self.home, 0o700)
         launch_agent(self.home)
         self.faked = ('--faked-system-time', at) if at else ()
@@ -1125,4 +1170,143 @@ def test_signer_agent_startup_gates_key_generation(monkeypatch, tmp_path, return
     assert len(keys) == (0 if returncode else 1)
     assert calls == [(['paired-gpgconf', '--homedir', str(home), '--launch', 'gpg-agent'],
                      {'cwd': home, 'check': False, 'stdin': subprocess.DEVNULL,
+                      'stdout': subprocess.DEVNULL, 'stderr': subprocess.DEVNULL, 'timeout': 60})]
+
+
+@pytest.mark.parametrize('home,accepted', [
+    ('/d/a/_temp/coverage-result-runtime/harness-installed-coverage-qzyq51_x/0-temp/hs-pgwrnlf2', False),
+    ('/d/a/_temp/coverage-result-runtime/harness-installed-coverage-qzyq51_x/0-temp/pgwrnlf2', True),
+    ('/' + 'a' * 85, True), ('/' + 'a' * 86, False),
+    ('/' + 'a' * 83 + 'é', True), ('/' + 'a' * 84 + 'é', False)])
+def test_msys_agent_socket_guard_counts_full_utf8_paths(home, accepted):
+    if accepted:
+        assert _guard_msys_agent_sockets(home) is None
+    else:
+        with pytest.raises(AssertionError, match='GPG agent socket paths exceed MSYS limit'):
+            _guard_msys_agent_sockets(home)
+
+
+@pytest.fixture
+def synthetic_msys_agent(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setitem(globals(), 'os', SimpleNamespace(name='nt', chmod=os.chmod))
+    monkeypatch.setitem(globals(), 'GPG', 'selected-gpg')
+    monkeypatch.setitem(globals(), 'GPGCONF', 'paired-gpgconf')
+    monkeypatch.setitem(globals(), 'spelled', lambda _path: '/d/fixture')
+    monkeypatch.setitem(globals(), 'STYLE', {'style': 'posix'})
+    return tmp_path
+
+
+@pytest.mark.parametrize('system,argument,guarded,rejected', [
+    ('posix', '/' + 'a' * 100, False, False), ('nt', 'C:/native-home', False, False),
+    ('nt', '/d/fixture', True, False), ('nt', '/' + 'a' * 87, True, True)])
+def test_agent_socket_guard_and_capture_apply_only_to_windows_msys(
+        synthetic_msys_agent, monkeypatch, system, argument, guarded, rejected):
+    from types import SimpleNamespace
+    monkeypatch.setitem(globals(), 'os', SimpleNamespace(name=system))
+    monkeypatch.setitem(globals(), 'spelled', lambda _path: argument)
+    checked, calls = [], []
+    guard = _guard_msys_agent_sockets
+    monkeypatch.setitem(globals(), '_guard_msys_agent_sockets', lambda path: checked.append(path) or guard(path))
+    monkeypatch.setattr(subprocess, 'run', lambda argv, **kw: calls.append(kw) or subprocess.CompletedProcess(argv, 0))
+    if rejected:
+        with pytest.raises(AssertionError, match='MSYS limit'): launch_agent(synthetic_msys_agent)
+    else:
+        assert launch_agent(synthetic_msys_agent) is None
+    assert checked == ([argument] if guarded else [])
+    assert len(calls) == (0 if rejected else 1)
+    if calls:
+        assert calls[0]['stdin'] == subprocess.DEVNULL and calls[0]['timeout'] == 60
+        assert calls[0]['cwd'] == synthetic_msys_agent and calls[0]['check'] is False
+        for label in ('stdout', 'stderr'):
+            assert (calls[0][label] != subprocess.DEVNULL) == guarded
+            assert calls[0][label] != subprocess.PIPE
+
+
+@pytest.mark.parametrize('system,prefix', [('nt', ''), ('posix', 'hs-')])
+def test_signer_keeps_tempfile_parent_and_shortens_only_windows_name(tmp_path, monkeypatch, system, prefix):
+    from types import SimpleNamespace
+    home = tmp_path / 'owned-home'; home.mkdir()
+    monkeypatch.setitem(globals(), 'os', SimpleNamespace(name=system, chmod=os.chmod))
+    calls = []
+    monkeypatch.setattr(tempfile, 'mkdtemp', lambda **kw: calls.append(kw) or str(home))
+    monkeypatch.setitem(globals(), 'launch_agent', lambda _home: None)
+    monkeypatch.setitem(globals(), 'run_gpg', lambda *a: ProcessResult((), 0, '[GNUPG:] KEY_CREATED B ABC\n', ''))
+    monkeypatch.setattr(Signer, '_export', lambda self: 'synthetic-public-key')
+    assert Signer('synthetic').home == home
+    assert calls == [{'prefix': prefix}]
+
+
+@pytest.mark.parametrize('outcome', ['zero', 'nonzero', 'timeout', 'interrupt', 'exit'])
+def test_agent_launch_retains_bounded_output_and_original_outcome(synthetic_msys_agent, monkeypatch, capsys, outcome):
+    errors = {'timeout': subprocess.TimeoutExpired(['paired-gpgconf'], 60),
+              'interrupt': KeyboardInterrupt(), 'exit': SystemExit(7)}
+    calls = []
+    def native(argv, **kw):
+        calls.append((argv, kw))
+        kw['stdout'].write(b'out-marker' + b'X' * 8192 + b'EXCESS_SENTINEL')
+        kw['stderr'].write(b'err-marker')
+        if outcome in errors: raise errors[outcome]
+        return subprocess.CompletedProcess(argv, 0 if outcome == 'zero' else 1)
+    monkeypatch.setattr(subprocess, 'run', native)
+    if outcome in errors:
+        with pytest.raises(type(errors[outcome])) as caught: launch_agent(synthetic_msys_agent)
+        assert caught.value is errors[outcome]
+    elif outcome == 'nonzero':
+        with pytest.raises(AssertionError, match='GPG agent startup failed'): launch_agent(synthetic_msys_agent)
+    else:
+        assert launch_agent(synthetic_msys_agent) is None
+    output = capsys.readouterr().out
+    assert len(calls) == 1
+    assert calls[0][0] == ['paired-gpgconf', '--homedir', '/d/fixture', '--launch', 'gpg-agent']
+    if outcome == 'zero': assert output == ''
+    else:
+        assert 'gpgconf stdout snapshot:\nout-marker' in output and 'err-marker' in output
+        assert '[truncated after 8192 bytes]' in output and 'EXCESS_SENTINEL' not in output
+    assert all(calls[0][1][label].closed for label in ('stdout', 'stderr'))
+
+
+@pytest.mark.parametrize('fault', ['open', 'read', 'close', 'emit'])
+def test_agent_capture_faults_cannot_replace_native_error(synthetic_msys_agent, monkeypatch, fault):
+    original = subprocess.TimeoutExpired(['paired-gpgconf'], 60)
+    factory = tempfile.TemporaryFile
+    class Capture:
+        def __init__(self, backing): self.backing = backing
+        def __getattr__(self, name): return getattr(self.backing, name)
+        def read(self, count):
+            if fault == 'read': raise OSError('synthetic diagnostic read')
+            return self.backing.read(count)
+        def close(self):
+            self.backing.close()
+            if fault == 'close': raise OSError('synthetic diagnostic close')
+    def capture(**kwargs):
+        if fault == 'open': raise OSError('synthetic diagnostic open')
+        return Capture(factory(**kwargs))
+    monkeypatch.setattr(tempfile, 'TemporaryFile', capture)
+    if fault == 'emit':
+        def broken_print(*_args, **_kwargs): raise OSError('synthetic diagnostic emit')
+        monkeypatch.setitem(globals(), 'print', broken_print)
+    calls = []
+    def native(*args, **kwargs):
+        calls.append((args, kwargs))
+        raise original
+    monkeypatch.setattr(subprocess, 'run', native)
+    with pytest.raises(subprocess.TimeoutExpired) as caught: launch_agent(synthetic_msys_agent)
+    assert caught.value is original and len(calls) == 1
+    if fault == 'open':
+        assert calls[0][1]['stdout'] == calls[0][1]['stderr'] == subprocess.DEVNULL
+
+
+@pytest.mark.parametrize('argument', ['//server/share/home', '//server/share/' + 'a' * 100])
+def test_native_unc_agent_home_keeps_original_launch_route(synthetic_msys_agent, monkeypatch, argument):
+    monkeypatch.setitem(globals(), 'STYLE', {'style': 'native'})
+    monkeypatch.setitem(globals(), 'spelled', lambda _home: argument)
+    monkeypatch.setitem(globals(), 'invoke', lambda *a, **kw: pytest.fail('cached style dispatched a probe'))
+    monkeypatch.setitem(globals(), '_guard_msys_agent_sockets', lambda _home: pytest.fail('native UNC reached MSYS guard'))
+    monkeypatch.setattr(tempfile, 'TemporaryFile', lambda **kw: pytest.fail('native UNC opened MSYS capture'))
+    calls = []
+    monkeypatch.setattr(subprocess, 'run', lambda argv, **kw: calls.append((argv, kw)) or subprocess.CompletedProcess(argv, 0))
+    assert launch_agent(synthetic_msys_agent) is None
+    assert calls == [(['paired-gpgconf', '--homedir', argument, '--launch', 'gpg-agent'],
+                     {'cwd': synthetic_msys_agent, 'check': False, 'stdin': subprocess.DEVNULL,
                       'stdout': subprocess.DEVNULL, 'stderr': subprocess.DEVNULL, 'timeout': 60})]
