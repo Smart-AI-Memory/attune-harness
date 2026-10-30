@@ -632,3 +632,47 @@ def test_review_summary_cannot_replace_journaled_participant_response(
     RunStore(repair, existing=True).save(record)
     with pytest.raises(ValueError):
         linked(journey)
+
+
+def test_fix_cli_completed_status_and_resume_do_not_redispatch(journey, capsys, monkeypatch):
+    work, root, _, _, _ = journey
+    directory = work / "repair"
+    protected = (root / "probe.py").read_bytes()
+    unrelated = (root / "unrelated.txt").read_bytes()
+
+    assert main(repair_args(journey)) == 0, capsys.readouterr().out
+    fixed = json.loads(capsys.readouterr().out)
+    assert fixed["status"] == "completed", fixed
+    assert fixed["execution"]["before_probe"]["passed"] is False
+    assert fixed["execution"]["after_probe"]["passed"] is True
+    integration = fixed["execution"]["integration"]
+    assert integration["acceptance_status"] == "verified_within_probe_scope"
+    assert (root / "app.py").read_text() == "def add(a,b):\n    return a+b\n"
+    assert (root / "probe.py").read_bytes() == protected
+    assert (root / "unrelated.txt").read_bytes() == unrelated
+    saved = read_task(directory)
+    assert saved["status"] == "completed"
+    assert saved["execution"]["integration"] == integration
+    record_bytes = (directory / "record.json").read_bytes()
+    calls = (work / "calls.jsonl").read_bytes()
+    assert [json.loads(line)["turn"]["role"] for line in calls.splitlines()] == [
+        "worker", "reviewer"
+    ]
+
+    def repeated_probe(*args, **kwargs):
+        pytest.fail("completed status/resume reran the protected probe")
+
+    monkeypatch.setattr("attune_harness.repair.run_probe", repeated_probe)
+    assert main(["status", str(directory)]) == 0
+    inspected = json.loads(capsys.readouterr().out)
+    assert inspected["status"] == "completed"
+    assert inspected["execution"]["integration"] == integration
+    assert main(["resume", str(directory)]) == 0
+    resumed = json.loads(capsys.readouterr().out)
+    assert resumed["status"] == "completed"
+    assert resumed["execution"]["integration"] == integration
+    assert (work / "calls.jsonl").read_bytes() == calls
+    assert (directory / "record.json").read_bytes() == record_bytes
+    assert (root / "app.py").read_text() == "def add(a,b):\n    return a+b\n"
+    assert (root / "probe.py").read_bytes() == protected
+    assert (root / "unrelated.txt").read_bytes() == unrelated

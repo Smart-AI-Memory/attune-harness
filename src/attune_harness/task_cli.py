@@ -300,7 +300,7 @@ def add_fix(sub):
     parser.add_argument('--goal')
     parser.add_argument('--project',type=Path)
     parser.add_argument('--config',type=Path)
-    parser.add_argument('--checkout',type=Path,help='Dedicated POSIX checkout; task state must be outside it')
+    parser.add_argument('--checkout',type=Path,help='Dedicated checkout; task state must be outside it')
     parser.add_argument('--scope',nargs='+',help='Explicit existing relative UTF-8 replacement paths')
     parser.add_argument('--probe',type=Path,help='Trusted frozen probe JSON (argv/cwd/environment/limits/oracles)')
     parser.add_argument('--worker')
