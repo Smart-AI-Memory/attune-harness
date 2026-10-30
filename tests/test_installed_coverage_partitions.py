@@ -145,6 +145,24 @@ def expected_identity(fixture):
     return json.loads(run.stdout)
 
 
+def _display_installed_partition_failure(output):
+    """Expose bounded existing child evidence without replacing its outcome."""
+    for relative in ('installed-suite.json', 'shard-0/stdout.txt', 'shard-0/stderr.txt',
+                     'shard-1/stdout.txt', 'shard-1/stderr.txt'):
+        try:
+            with (output / relative).open('rb') as stream:
+                raw = stream.read(8193)
+            detail = raw[:8192].decode('utf-8', errors='replace')
+            if len(raw) > 8192:
+                detail += '\n[truncated after 8192 bytes]'
+        except Exception as error:
+            detail = '[unavailable/read error: ' + type(error).__name__ + ']'
+        try:
+            print('Nested installed partition ' + relative + ':\n' + detail)
+        except Exception:
+            pass
+
+
 def execute(fixture, output, monkeypatch, *, budget=30, factory=None):
     qualifier = fixture['qualifier']
     identity = expected_identity(fixture)
@@ -154,6 +172,8 @@ def execute(fixture, output, monkeypatch, *, budget=30, factory=None):
     output.mkdir()
     run = qualifier.run_installed_partitions(output, fixture['command'], budget,
                                              job_factory=factory or native_job_factory())
+    if run.returncode != 0:
+        _display_installed_partition_failure(output)
     return run, identity
 
 
@@ -749,3 +769,65 @@ def test_external_consumer_evidence_survives_failed_child_without_after_reap_cop
     assert all(not cwd.is_relative_to(output) and not output.is_relative_to(cwd) for cwd in launches)
     assert (launches[0].parent / 'partition-context.json').read_bytes() == (
         output / 'partition-context.json').read_bytes()
+
+
+@pytest.mark.parametrize('returncode', [0, 2])
+def test_execute_failure_display_preserves_original_result_and_identity(
+        tmp_path, monkeypatch, capsys, returncode):
+    records = {'installed-suite.json': 'receipt-marker',
+               'shard-0/stdout.txt': 'zero-stdout-marker', 'shard-0/stderr.txt': 'zero-stderr-marker',
+               'shard-1/stdout.txt': 'one-stdout-marker', 'shard-1/stderr.txt': 'one-stderr-marker'}
+    original = subprocess.CompletedProcess(['synthetic-pytest'], returncode)
+    identity = {'synthetic': 'identity'}
+    def run_partitions(output, *_args, **_kwargs):
+        for relative, text in records.items():
+            path = output / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding='utf-8')
+        return original
+    qualifier = SimpleNamespace(ROOT=None, installed_partition_identity=None,
+                                os=SimpleNamespace(environ={}), run_installed_partitions=run_partitions)
+    fixture = dict(qualifier=qualifier, project=tmp_path, environment={}, command=original.args)
+    monkeypatch.setitem(globals(), 'expected_identity', lambda _fixture: identity)
+    if returncode == 0:
+        def forbidden_display(_output):
+            pytest.fail('Successful execution must not read failure records')
+        monkeypatch.setitem(globals(), '_display_installed_partition_failure', forbidden_display)
+    result, observed_identity = execute(fixture, tmp_path / 'evidence', monkeypatch, factory=object())
+    captured = capsys.readouterr().out
+    assert result is original and observed_identity is identity
+    if returncode == 0:
+        assert captured == ''
+    else:
+        for relative, text in records.items():
+            assert 'Nested installed partition ' + relative + ':\n' + text in captured
+
+
+def test_partition_failure_display_bounds_and_reports_missing_and_read_errors(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'installed-suite.json').write_text('receipt-marker', encoding='utf-8')
+    (tmp_path / 'shard-0').mkdir()
+    (tmp_path / 'shard-0/stdout.txt').write_bytes(b'A' * 8192 + b'EXCESS_SENTINEL')
+    original_open = Path.open
+    def open_record(path, *args, **kwargs):
+        if path == tmp_path / 'shard-1/stderr.txt':
+            raise OSError('synthetic read error')
+        return original_open(path, *args, **kwargs)
+    monkeypatch.setattr(Path, 'open', open_record)
+    _display_installed_partition_failure(tmp_path)
+    captured = capsys.readouterr().out
+    assert 'installed-suite.json:\nreceipt-marker' in captured
+    assert 'shard-0/stdout.txt:\n' + 'A' * 8192 + '\n[truncated after 8192 bytes]' in captured
+    assert 'EXCESS_SENTINEL' not in captured
+    assert 'shard-0/stderr.txt:\n[unavailable/read error: FileNotFoundError]' in captured
+    assert 'shard-1/stdout.txt:\n[unavailable/read error: FileNotFoundError]' in captured
+    assert 'shard-1/stderr.txt:\n[unavailable/read error: OSError]' in captured
+
+
+@pytest.mark.parametrize('error', [KeyboardInterrupt(), SystemExit(7)])
+def test_partition_failure_display_preserves_control_exceptions(tmp_path, monkeypatch, error):
+    def interrupted_open(*_args, **_kwargs):
+        raise error
+    monkeypatch.setattr(Path, 'open', interrupted_open)
+    with pytest.raises(type(error)) as caught:
+        _display_installed_partition_failure(tmp_path)
+    assert caught.value is error

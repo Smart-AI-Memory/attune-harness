@@ -42,8 +42,12 @@ from attune_harness.review_store import read_record
 from test_extensions import bundle  # noqa: F401  (fixture)
 from test_review import case, change, change_config  # noqa: F401  (fixture: case)
 
+def _gpg_companion(executable):
+    return None if executable is None else shutil.which(str(Path(executable).absolute().with_name('gpgconf')))
+
+
 GPG = shutil.which('gpg')
-GPGCONF = shutil.which('gpgconf')
+GPGCONF = _gpg_companion(GPG)
 PLUGIN_GRANTS = {'secrets': ['VOYAGE_API_KEY'], 'paths': ['corpus'], 'scratch': True, 'time': 120,
                  'output': {'result': 65_536, 'diagnostics': 8_192}}
 PLUGIN_DECLARES = {'imports': ['voyageai', 'lancedb'], 'network': ['api.voyageai.com'], 'reads': [],
@@ -121,8 +125,9 @@ def launch_agent(home):
     """
     if GPGCONF is None:
         return
-    subprocess.run([GPGCONF, '--homedir', spelled(home), '--launch', 'gpg-agent'], cwd=home, check=False,
-                   stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    launched = subprocess.run([GPGCONF, '--homedir', spelled(home), '--launch', 'gpg-agent'], cwd=home, check=False,
+                              stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+    assert launched.returncode == 0, ('GPG agent startup failed', GPG, GPGCONF, home, launched.returncode)
 
 
 class Signer:
@@ -1067,3 +1072,57 @@ def test_registration_grant_and_reserved_keys(tmp_path):
         ext.validate_bindings({'evidence': {'state_dir': 'x', 'artifact_digest': 'a' * 64, 'extra': 1}}, tmp_path)
     with pytest.raises(PermissionError, match='not in the accepted registry'):
         ext.invoke_tool(good, 'signers.search', QUERY, lambda *a: pytest.fail('the call ran'))
+
+
+@pytest.mark.parametrize('form,companion', [(None, None), ('absolute', None), ('absolute', 'paired-gpgconf'),
+                                           ('relative', 'paired-gpgconf'), ('basename', 'paired-gpgconf')])
+def test_signer_companion_uses_explicit_sibling(monkeypatch, tmp_path, form, companion):
+    monkeypatch.chdir(tmp_path)
+    selected = {None: None, 'absolute': str(tmp_path / 'GPG Tools' / 'gpg.exe'),
+                'relative': str(Path('GPG Tools') / 'gpg.exe'), 'basename': 'gpg.exe'}[form]
+    expected = str(tmp_path / 'gpgconf') if form == 'basename' else str(tmp_path / 'GPG Tools' / 'gpgconf')
+    calls = []
+    monkeypatch.setenv('PATH', str(tmp_path / 'unrelated-tools'))
+    monkeypatch.setattr(shutil, 'which', lambda command: calls.append(command) or companion)
+    assert _gpg_companion(selected) == companion
+    assert calls == ([expected] if selected is not None else [])
+    if companion is None:
+        monkeypatch.setitem(globals(), 'GPGCONF', None)
+        monkeypatch.setattr(subprocess, 'run', lambda *a, **kw: pytest.fail('optional startup dispatched'))
+        assert launch_agent(tmp_path) is None
+
+
+def test_signer_companion_ignores_unrelated_cwd_and_path(monkeypatch, tmp_path):
+    selected, unrelated = tmp_path / 'GPG Tools', tmp_path / 'unrelated-tools'
+    name = 'gpgconf.exe' if os.name == 'nt' else 'gpgconf'
+    for directory in (selected, unrelated):
+        directory.mkdir()
+        marker = directory / name
+        marker.write_text('synthetic lookup marker; never execute')
+        marker.chmod(0o700)
+    monkeypatch.chdir(unrelated)
+    monkeypatch.setenv('PATH', str(unrelated))
+    assert Path(_gpg_companion(str(selected / 'gpg.exe'))) == selected / name
+
+
+@pytest.mark.parametrize('returncode', [0, 2])
+def test_signer_agent_startup_gates_key_generation(monkeypatch, tmp_path, returncode):
+    home = tmp_path / 'synthetic-signer'
+    home.mkdir()
+    monkeypatch.setattr(tempfile, 'mkdtemp', lambda **kw: str(home))
+    monkeypatch.setitem(globals(), 'GPG', 'selected-gpg')
+    monkeypatch.setitem(globals(), 'GPGCONF', 'paired-gpgconf')
+    monkeypatch.setitem(globals(), 'spelled', str)
+    calls, keys = [], []
+    monkeypatch.setattr(subprocess, 'run', lambda argv, **kw: calls.append((argv, kw)) or subprocess.CompletedProcess(argv, returncode))
+    monkeypatch.setitem(globals(), 'run_gpg', lambda *a: keys.append(a) or ProcessResult((), 0, '[GNUPG:] KEY_CREATED B ABC\n', ''))
+    monkeypatch.setattr(Signer, '_export', lambda self: 'synthetic-public-key')
+    if returncode:
+        with pytest.raises(AssertionError, match='GPG agent startup failed'):
+            Signer('synthetic')
+    else:
+        assert Signer('synthetic').fingerprint == 'ABC'
+    assert len(keys) == (0 if returncode else 1)
+    assert calls == [(['paired-gpgconf', '--homedir', str(home), '--launch', 'gpg-agent'],
+                     {'cwd': home, 'check': False, 'stdin': subprocess.DEVNULL,
+                      'stdout': subprocess.DEVNULL, 'stderr': subprocess.DEVNULL, 'timeout': 60})]
