@@ -1,18 +1,18 @@
 # Documentation index
 
-Start with the current installation, workflow selector and 1.5.1 preparation
-walkthroughs. Versioned guides and release records describe their named version;
-designs and specifications retain their own approval and implementation status.
-The dated evidence below preserves results, receipts and research at their original
-source. Read those files for what was true on their date.
+Start with the published 1.5.1 installation or the clearly labeled 1.6.0
+preparation draft. Historical guides keep their original source, artifact and
+observation scope. Designs and specifications retain their approval status.
 
-Reviewed on October 22, 2026. The [1.5.1 readiness record](release-readiness-1.5.1.md)
-states the review scope, validation and remaining gates. Run
+Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Start here
 
-- [Four current 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Fresh candidate-wheel observations for intake, plan acceptance, offline research and saved-draft continuity; final release reconciliation remains open
+- [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
+- [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback
+
+- [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
 - [Move from Attune AI to Harness](migration.md): Current migration decisions, separate environments and Windows limits; historical 1.0.0 guidance retained
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation

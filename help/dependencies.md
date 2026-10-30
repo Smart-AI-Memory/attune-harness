@@ -1,8 +1,8 @@
 ## What the inspected base install supplies
 
 Current development source requires Python 3.12 or later. Published 1.5.1
-retains its Python 3.10 minimum and uses the dependency pins below. The release
-version for the new minimum remains open. You do not need to install attune-forms separately for the Harness forms
+retains its Python 3.10 minimum and uses the dependency pins below. The next release for that minimum is 1.6.0, currently unreleased. No 1.5.2
+release is planned. You do not need to install attune-forms separately for the Harness forms
 journey.
 
 | Package | Pinned version | Used for |
@@ -58,3 +58,17 @@ The [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/
 Published 1.5.1 uses release commit `ebb5b03b8a4398325df7ddabd28c08186451452e`. Read its [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/cli-guide.md) and [release record](/harness/help/release-1.5.1.json) for source, artifact and check identities. The [historical preparation record](/harness/help/preparation.json) retains its original candidate boundary. The older observations below are 1.5.0 evidence; they are not new 1.5.1 walkthrough results.
 
 Historical 1.5.0 sources: [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.
+
+## 1.6.0 preparation limits
+
+The source profile continues to pin redis-py 5.3.1. Live Redis+Search verification for the final 1.6.0 artifact remains incomplete; offline checks or a package pin do
+not establish a live service pass. Preserve existing service data and hooks.
+The optional generation reader consumes compatible existing state. It does not
+create a writer, publish generations or deliver automatic fresh-session recall.
+A new Redis projection writer and RedisVL adoption remain outside 1.6.0.
+
+Missing optional capabilities report an unavailable result. Read the feature and
+reason, select its documented supported path, and configure only the dependency
+or service needed for that task. Installing an extra does not configure a server
+or authorize provider calls. Unknown or untested behavior is not automatically
+classified unsupported.

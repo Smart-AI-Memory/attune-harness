@@ -1,15 +1,22 @@
 # Changelog
 
-## Unreleased
+## Unreleased — 1.6.0
 
 - Add the opt-in `command-env-v1` environment policy for command participants.
   Pass only named variables from the dispatching process, use temporary home
   and temp directories, and retain names-only policy audit metadata. Existing
   configurations without the policy retain full inheritance and show migration
-  notices. The prospective notice release is 1.5.2; removal is no earlier than
-  1.6.0. Before release, verify that 1.5.2 is the first shipped notice release.
+  notices. The selected first notice release is 1.6.0; removal is no earlier than
+  1.7.0. No 1.5.2 release is planned. The current runtime NOTICE and machine-readable
+  register still carry the superseded schedule and must be synchronized before
+  shipping; this documentation does not alter the emitted metadata.
   This change does not remove the legacy form or change the package version.
   See [Command participant environments](docs/command-environments.md).
+
+- Require Python 3.12 or later for the upcoming 1.6.0 release. Published 1.5.1
+  retains its original minimum.
+- Preserve unknown-effects shutdown recovery guidance, correct installed
+  collection-skip accounting and isolate per-worker pytest caches (#320).
 
 ## 1.5.1
 

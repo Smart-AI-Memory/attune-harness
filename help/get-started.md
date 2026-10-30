@@ -8,11 +8,11 @@ its own environment: Harness and
 Attune-AI pin different MCP SDK versions. Attune-AI is not required.
 
 1. Select Python 3.12 explicitly. On macOS or Linux, check `python3.12 --version`, then create an environment with `python3.12 -m venv .venv`. On Windows, check `py -3.12 --version`, then use `py -3.12 -m venv .venv` with the [Python launcher](https://docs.python.org/3.12/using/windows.html#python-launcher-for-windows). Install Python 3.12 first if that interpreter is unavailable.
-2. Activate it. On macOS or Linux, use `source .venv/bin/activate`. On Windows PowerShell, use `.venv\Scripts\Activate.ps1`.
-3. Run `python --version` and confirm `Python 3.12.x` before installing packages.
-4. Install the published release: `python -m pip install "attune-harness==1.5.1"`.
-5. Check the selected interpreter's installed version: `python -c "from importlib.metadata import version; print(version('attune-harness'))"`.
-6. Run the local demonstration: `python -m attune_harness`.
+2. Select the environment's Python directly. On macOS/Linux, use `.venv/bin/python`; on Windows PowerShell, use `.venv\Scripts\python.exe`. No activation-policy change is needed.
+3. Use that exact executable with `--version` and confirm `Python 3.12.x`.
+4. Use the same executable with `-m pip install "attune-harness==1.5.1"`.
+5. Use it with `-c "from importlib.metadata import version; print(version('attune-harness'))"` to check the installed version.
+6. Use it with `-m attune_harness` for the local demonstration.
 
 **Expected result:** The installed version is `1.5.1`. The demonstration prints a JSON
 receipt with a verified result. It uses a deterministic local worker and an
@@ -33,7 +33,7 @@ trainer fixture; sample answers are examples, not findings for your project.
 ## Prepare the release examples
 
 The planning and research examples use files from the repository, which are not
-included in the installed wheel. With the published environment active, put the inspected source
+included in the installed wheel. With the published interpreter selected, put the inspected source
 checkout in an unused directory:
 
 ```sh
@@ -56,3 +56,15 @@ optional providers or integrating with another host.
 Published 1.5.1 uses release commit `ebb5b03b8a4398325df7ddabd28c08186451452e`. Read its [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/cli-guide.md) and [release record](/harness/help/release-1.5.1.json) for source, artifact and check identities. The [historical preparation record](/harness/help/preparation.json) retains its original candidate boundary. The older observations below are 1.5.0 evidence; they are not new 1.5.1 walkthrough results.
 
 Historical 1.5.0 sources: [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.
+
+## Prepare for 1.6.0 separately
+
+Harness 1.6.0 is the next planned release after published 1.5.1 and requires
+Python 3.12 or later. It is not published by this Help update; there is no new
+1.6.0 Help route. Keep using the versioned 1.5.1 guide for the published package.
+For candidate work, use the release owner's exact artifact/source identity and a
+separate environment. Preserve your working runtime, registry, saved tasks,
+memory sources, writer and host hooks until the replacement is validated.
+
+The [source installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
+keeps published installation distinct from candidate preparation.
