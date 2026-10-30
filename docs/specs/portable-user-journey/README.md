@@ -3,6 +3,8 @@
 **Status: draft for approval; not authorized for implementation.** Planning and
 evaluation are authorized. This package does not add a release gate or change the
 stable-v1 roadmap. Approving it must identify the implementation tasks selected.
+The [offline CSV fixture increment](csv-fixture.md) was subsequently authorized
+separately; broader journey implementation and live collection remain unapproved.
 
 ## Outcome
 
@@ -23,6 +25,8 @@ Read in order:
 1. [Journey evaluation](evaluation.md): existing behavior, evidence and gaps.
 2. [Design and acceptance criteria](design.md): proposed contracts and boundaries.
 3. [Implementation tasks](tasks.md): sequence, owners, checks and approval gates.
+4. [Performance evaluation protocol](performance-evaluation.md): real human and
+   AI outcomes, a controlled Harness workflow, and secondary token costs.
 
 ## Agreed user requirements
 
@@ -36,6 +40,37 @@ Read in order:
 - Do not restart intake for a single correction. Material changes still need
   authority for the changed scope; a host change alone does not justify a gate.
 - After execution starts, explain the impact before modifying remaining work.
+- Prioritize human and AI performance over token reduction. Higher token use is
+  acceptable when it produces a meaningful measured benefit without violating
+  safety, authorization or the declared performance guardrails.
+
+## Evaluation update: October 27, 2026
+
+Patrick requested performance-first evaluation, with token use as a secondary
+cost. The [new protocol](performance-evaluation.md) operationalizes that priority;
+it does not authorize recruitment, model dispatch, spending or implementation.
+It adds a controlled same-host comparison before separate portability trials.
+The September review below remains historical evidence, not a fresh execution
+report. This update inspected Harness source
+`8b459b97a2b5dabe8c8f269fffbf47255b277d2c` and retains the Forms evidence at
+`4191c4e0c6bfe7ff21e4dd926f0ba8202775a9a7` (0.17.0).
+
+### Proposed workflow: owner refusals and input flow
+
+These are preparation requirements, not a claim that a runnable study fixture
+already exists. The fixture must demonstrate this chain before collection.
+
+| Step | Refusal source | Required input from the preceding step |
+| --- | --- | --- |
+| Prepare with `plan --request` | [`work_contract._capture`](../../../src/attune_harness/work_contract.py#L339) rejects invalid project/storage separation; request validators reject invalid assignments and scope | A dedicated bounded checkout, explicit registry, protected checks, and request/task files outside the effects checkout; no invented answers |
+| Open the forms condition | [`CompanionServer`](../../../src/attune_harness/gui.py#L99) refuses build mode and invalid task paths | The canonical existing task directory returned by preparation; editable intake only, never browser execution |
+| Persist the correction | [`revise_work`](../../../src/attune_harness/work_contract.py#L775) rejects stale checkpoints and unsupported corrections | Current owner checkpoint and corrected intent plus affected criteria/tasks; preserve prior revision and inspect the new draft |
+| Accept with `plan --accept` | [`work_cli._accept`](../../../src/attune_harness/work_cli.py#L471) rejects a different checkpoint; [`work_contract`](../../../src/attune_harness/work_contract.py#L587) rejects missing collector evidence or unresolved material intent | Fully resolved current scope and the required actual human decision; no automatic acceptance from a saved answer |
+| Execute with `build` | [`work_build.preflight`](../../../src/attune_harness/work_build.py#L105) rejects missing protected verification; [`build_work`](../../../src/attune_harness/work_build.py#L749) rejects review-tool registries, missing dispatch authority and unresolved operations | Accepted frozen effects/checks, qualified proposal-capable worker/reviewer, fresh inputs and separately authorized dispatch; never an `init` review registry substituted for a build registry |
+| Inspect with `status` | The [saved-task owner walk](../saved-request-journey/README.md#source-owner-walk) covers unsafe/invalid records; stale evidence cannot confer current authority | The same saved task and retained checks; read-only inspection, not `resume` or a manufactured success receipt |
+
+The command outline and collection blockers are in the protocol. Recheck these
+owners against the exact installed candidate before approving a collection run.
 
 ## Proposed delivery boundary
 
