@@ -173,6 +173,26 @@ You can also use the commands directly:
 For a hands-on example, choose a task in the [Help goals guide](https://smartaimemory.com/harness/help/goals/).
 Each procedure supplies its setup, steps and expected result.
 
+### Preview a task from the command line
+
+In a POSIX shell, use an existing Git project named `your-project` with an
+uncommitted change in `src/example.py`. Its `.venv/bin/python` interpreter must
+have pytest installed, and `attune-harness` must be available on your path.
+
+<!-- journey: first-run -->
+```sh
+cd your-project
+attune-harness init
+attune-harness test --project . --scope src/example.py --interpreter .venv/bin/python --task-dir ../test-task --format markdown
+attune-harness review --goal "Check README.md against project evidence" --intake-only
+```
+
+**Expected result:** **`init`** writes starter participant configuration.
+**`test`** previews the selected tests and saves the plan for your review;
+**`review --intake-only`** prepares the review intake. These commands do not
+run a model. This example's executable journey is checked on POSIX; it does not
+establish that the interpreter path works unchanged on Windows.
+
 ## Advanced planning for Spec-Driven Development
 
 Use a specification when the work needs more structure than a short request.
