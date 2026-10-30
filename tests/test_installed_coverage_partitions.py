@@ -831,3 +831,141 @@ def test_partition_failure_display_preserves_control_exceptions(tmp_path, monkey
     with pytest.raises(type(error)) as caught:
         _display_installed_partition_failure(tmp_path)
     assert caught.value is error
+
+
+@pytest.fixture
+def collection_skip_project(fixture_project):
+    fixture = fixture_project
+    modules = {'test_collection_importorskip.py':
+               'import pytest\npytest.importorskip("_harness_fixture_missing_dependency_921339b3")\n',
+               'test_collection_skip.py':
+               'import pytest\npytest.skip("synthetic module skip", allow_module_level=True)\n'}
+    for name, text in modules.items():
+        path = fixture['tests'] / name
+        path.write_text(text)
+        fixture['command'].append(str(path))
+    return fixture
+
+
+def test_collection_skips_are_retained_separately_from_executed_cases(collection_skip_project, tmp_path, monkeypatch):
+    fixture = collection_skip_project
+    output = tmp_path / 'collection-skips'
+    result, _ = execute(fixture, output, monkeypatch)
+    supervisor = json.loads((output / 'installed-suite.json').read_text())
+    assert [row['returncode'] for row in supervisor['workers']] == [0, 0]
+    assert result.returncode == 0, supervisor
+    accounting = supervisor['accounting']
+    assert accounting['admitted_cases'] == accounting['executed_cases'] == 3
+    assert sum(row['primary_cases'] for row in accounting['junit']) == 3
+    assert sum(row['subtests'] for row in accounting['junit']) == 2
+    assert [row['collection_skips'] for row in accounting['junit']] == [2, 2]
+    assert sum(row['skipped'] for row in accounting['junit']) == 6
+    inventories = []
+    for index in range(2):
+        folder = output / f'shard-{index}'
+        manifest = json.loads((folder / 'collection.json').read_text())
+        inventory = manifest['collection_reports']; inventories.append(inventory)
+        expected = {'tests/test_collection_importorskip.py', 'tests/test_collection_skip.py'}
+        assert {row['nodeid'] for row in inventory} == expected
+        terminal = json.loads((folder / 'terminal.json').read_text())
+        collectors = [row for row in terminal['reports'] if row['when'] == 'collect']
+        assert len(collectors) == 2 and all(row['outcome'] == 'skipped' and not row['subtest'] for row in collectors)
+        events = [json.loads(line) for line in (folder / 'test-timings.jsonl').read_text().splitlines()]
+        assert not any(row.get('nodeid') in expected for row in events)
+    assert inventories[0] == inventories[1]
+
+
+@pytest.fixture
+def completed_collection_evidence(collection_skip_project, tmp_path, monkeypatch):
+    output = tmp_path / 'valid-collection-evidence'
+    result, _ = execute(collection_skip_project, output, monkeypatch)
+    assert result.returncode == 0, (output / 'installed-suite.json').read_text()
+    context = json.loads((output / 'partition-context.json').read_text())
+    context['context_sha256'] = hashlib.sha256((output / 'partition-context.json').read_bytes()).hexdigest()
+    return output, context, collection_skip_project['qualifier']
+
+
+@pytest.mark.parametrize('damage', ['missing_inventory', 'duplicate_inventory', 'missing_terminal',
+    'duplicate_terminal', 'foreign_terminal', 'failed_collection', 'subtest_collection',
+    'wrong_phase_collection', 'missing_junit', 'duplicate_junit', 'different_child_inventory'])
+def test_collection_evidence_cannot_be_missing_duplicate_failed_or_foreign(completed_collection_evidence, damage):
+    import xml.etree.ElementTree as ET
+    output, context, qualifier = completed_collection_evidence
+    folder = output / 'shard-0'
+    manifest_path, terminal_path = folder / 'collection.json', folder / 'terminal.json'
+    manifest, terminal = json.loads(manifest_path.read_text()), json.loads(terminal_path.read_text())
+    report = next(row for row in terminal['reports'] if row['when'] == 'collect')
+    if damage == 'missing_inventory':
+        manifest.pop('collection_reports')
+    elif damage == 'duplicate_inventory':
+        manifest['collection_reports'].append(manifest['collection_reports'][0])
+        sibling = output / 'shard-1/collection.json'; other = json.loads(sibling.read_text())
+        other['collection_reports'] = manifest['collection_reports']; sibling.write_text(json.dumps(other))
+    elif damage == 'different_child_inventory':
+        manifest['collection_reports'].pop()
+    elif damage == 'missing_terminal':
+        terminal['reports'].remove(report)
+    elif damage == 'duplicate_terminal':
+        terminal['reports'].append(dict(report))
+    elif damage == 'foreign_terminal':
+        report['nodeid'] = 'tests/foreign_collection.py'
+    elif damage == 'failed_collection':
+        report.update(outcome='failed', category='error')
+    elif damage == 'subtest_collection':
+        report['subtest'] = True
+    elif damage == 'wrong_phase_collection':
+        report['when'] = 'setup'
+    else:
+        path = folder / 'tests.xml'; tree = ET.parse(path)
+        suite = next(s for s in tree.iter('testsuite') if any(
+            c.find('skipped') is not None and c.find('skipped').get('message') == 'collection skipped' for c in s))
+        case = next(c for c in suite if c.find('skipped') is not None
+                    and c.find('skipped').get('message') == 'collection skipped')
+        if damage == 'missing_junit': suite.remove(case)
+        else: suite.append(ET.fromstring(ET.tostring(case)))
+        tree.write(path)
+    manifest_path.write_text(json.dumps(manifest)); terminal_path.write_text(json.dumps(terminal))
+    with pytest.raises((ValueError, OSError)):
+        qualifier.verify_installed_partitions(output, context, None)
+
+
+def test_failed_collection_cannot_pass_as_an_unselected_module(fixture_project, tmp_path, monkeypatch):
+    path = fixture_project['tests'] / 'test_failed_collection.py'
+    path.write_text('raise RuntimeError("synthetic collection failure")\n')
+    fixture_project['command'].append(str(path))
+    output = tmp_path / 'failed-collection'
+    result, _ = execute(fixture_project, output, monkeypatch)
+    assert result.returncode != 0
+    terminals = [json.loads(path.read_text()) for path in output.glob('shard-*/terminal.json')]
+    assert any(row['when'] == 'collect' and row['outcome'] == 'failed'
+               for terminal in terminals for row in terminal['reports'])
+
+
+def test_installed_workers_keep_pytest_cache_outside_shared_checkout(fixture_project, tmp_path, monkeypatch):
+    fixture = fixture_project
+    (fixture['tests'] / 'conftest.py').write_text(
+        'import json, os\nfrom pathlib import Path\n'
+        'def pytest_collection_finish(session):\n'
+        ' config = session.config\n'
+        ' cache = config.getini("cache_dir")\n'
+        ' data = {"cache_dir": cache, "rootpath": str(config.rootpath),\n'
+        '         "effective": str((config.rootpath / cache).resolve()),\n'
+        '         "cacheprovider": config.pluginmanager.hasplugin("cacheprovider")}\n'
+        ' Path(os.environ["HARNESS_QUALIFICATION_OUTPUT"], "cache-placement.json").write_text(json.dumps(data))\n')
+    output = tmp_path / 'worker-cache-evidence'
+    result, _ = execute(fixture, output, monkeypatch)
+    supervisor = json.loads((output / 'installed-suite.json').read_text())
+    assert [worker['returncode'] for worker in supervisor['workers']] == [0, 0]
+    assert result.returncode == 0, supervisor
+    observed = []
+    for index, worker in enumerate(supervisor['workers']):
+        placement = json.loads((output / f'shard-{index}/cache-placement.json').read_text())
+        expected = Path(worker['temporary_root']) / 'pytest-cache'
+        assert placement['cache_dir'] == str(expected)
+        assert placement['effective'] == str(expected)
+        assert placement['cacheprovider'] is True
+        assert Path(placement['effective']).is_absolute()
+        assert not Path(placement['effective']).is_relative_to(fixture['project'])
+        assert worker['command'][-2:] == ['-o', 'cache_dir=' + str(expected)]
+        observed.append(placement['effective'])
+    assert len(set(observed)) == 2

@@ -95,12 +95,26 @@ def pytest_installed_collection(config, items):
         (selected if owner == index else deselected).append(item)
     manifest = {'schema_version': 1, 'shard': {'index': index, 'count': count},
                 'admission': 'post_pytest_selection', 'collected': collected,
-                'selected': [item.nodeid for item in selected]}
+                'selected': [item.nodeid for item in selected],
+                'collection_reports': config._harness_collection_reports}
     with (Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'collection.json').open('x', encoding='utf-8') as stream:
         json.dump(manifest, stream, ensure_ascii=True, allow_nan=False, indent=2)
         stream.write('\n')
     items[:] = selected
     config.hook.pytest_deselected(items=deselected)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_make_collect_report(collector):
+    result = yield
+    if collector.config.getoption('--harness-installed-context') is None:
+        return
+    report = result.get_result()
+    if not isinstance(report, pytest.CollectReport):
+        raise pytest.UsageError('Installed collection requires a CollectReport')
+    if not report.passed:
+        collector.config._harness_collection_reports.append(
+            {'nodeid': report.nodeid, 'when': report.when, 'outcome': report.outcome})
 
 
 @pytest.hookimpl(trylast=True)
@@ -237,6 +251,7 @@ def _close_listing_witness(config):
 
 @_shutdown_owner
 def pytest_configure(config):
+    config._harness_collection_reports = []
     config._harness_timing_epoch = _monotonic()
     config._harness_stack_log = (
         Path(os.environ['HARNESS_QUALIFICATION_OUTPUT']) / 'slow-stacks.txt').open('wb', buffering=0)

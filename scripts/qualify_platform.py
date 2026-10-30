@@ -260,19 +260,34 @@ def validate_installed_parent_receipt(receipt, context, *, successful):
                 raise ValueError('Worker reap is outside its dispatch/finish interval')
 
 
-def _installed_reports(terminal, selected):
+def _installed_reports(terminal, selected, collection=None):
     reports = terminal['reports']
     if (not isinstance(reports, list) or any(not isinstance(report, dict)
             or type(report.get('subtest')) is not bool for report in reports)):
         raise ValueError('Terminal outcome reports have an invalid shape')
-    main = [report for report in reports if not report['subtest']]
+    collection = [] if collection is None else collection
+    if (not isinstance(collection, list)
+            or any(not isinstance(report, dict) or not isinstance(report.get('nodeid'), str)
+                   or not report['nodeid'] or report.get('when') != 'collect'
+                   or report.get('outcome') != 'skipped' for report in collection)):
+        raise ValueError('Collection evidence is not a successful skipped-collector inventory')
+    collection_ids = [report['nodeid'] for report in collection]
+    if len(set(collection_ids)) != len(collection_ids) or set(collection_ids) & set(selected):
+        raise ValueError('Collection evidence is duplicated or overlaps executed admission')
+    collectors = [report for report in reports if report.get('when') == 'collect']
+    cases = [report for report in reports if report.get('when') != 'collect']
+    if (Counter((r.get('nodeid'), r.get('when'), r.get('outcome')) for r in collectors)
+            != Counter((r['nodeid'], r['when'], r['outcome']) for r in collection)
+            or any(r['subtest'] or r.get('category') != 'skipped' for r in collectors)):
+        raise ValueError('Terminal collection reports differ from collection evidence')
+    main = [report for report in cases if not report['subtest']]
     if (set(report['nodeid'] for report in main) != set(selected)
             or any(count != 1 for count in Counter((r['nodeid'], r['when']) for r in main).values())
             or any(report['nodeid'] not in selected or report['outcome'] not in ('passed', 'skipped')
-                   for report in reports)):
+                   for report in cases)):
         raise ValueError('Terminal reports do not account for successful selected cases')
     by_node = {node: [] for node in selected}
-    for report in reports:
+    for report in cases:
         by_node[report['nodeid']].append(report)
         if report['subtest']:
             categories = ('subtests passed',) if report['outcome'] == 'passed' else ('skipped', 'xfailed')
@@ -290,11 +305,11 @@ def _installed_reports(terminal, selected):
     return reports
 
 
-def _installed_junit(folder, selected, terminal):
+def _installed_junit(folder, selected, terminal, collection=None):
     """Retain serial pytest accounting, including setup/teardown skips and subtests."""
     from _pytest.junitxml import bin_xml_escape, mangle_test_address
 
-    reports = _installed_reports(terminal, selected)
+    reports = _installed_reports(terminal, selected, collection)
     subtests = [report for report in reports if report['subtest']]
     root = ET.parse(folder / 'tests.xml').getroot()
     suites = list(root.iter('testsuite'))
@@ -302,22 +317,29 @@ def _installed_junit(folder, selected, terminal):
     counts = {key: sum(int(s.get(key, '0')) for s in suites)
               for key in ('tests', 'failures', 'errors', 'skipped')}
     expected_names = []
-    for node in selected:
+    for node in [*selected, *(report['nodeid'] for report in collection or [])]:
         parts = mangle_test_address(node)
         expected_names.append((bin_xml_escape('.'.join(parts[:-1])), bin_xml_escape(parts[-1])))
     actual_names = [(case.get('classname'), case.get('name')) for case in cases]
+    collection_names = set(expected_names[len(selected):])
+    collection_case_error = any(
+        len(case.findall('skipped')) != 1
+        or case.find('skipped').get('message') != 'collection skipped'
+        for case in cases if (case.get('classname'), case.get('name')) in collection_names)
     skipped = sum(report['outcome'] == 'skipped' for report in reports)
     if (root.tag not in ('testsuites', 'testsuite') or not suites
             or Counter(actual_names) != Counter(expected_names)
+            or collection_case_error
             or any(int(s.get(key, '0')) < 0 for s in suites for key in counts)
             or counts != {'tests': len(reports), 'failures': 0, 'errors': 0, 'skipped': skipped}
             or sum(len(case.findall('skipped')) for case in cases) != skipped
             or any(element.tag in ('failure', 'error') for element in root.iter())):
         raise ValueError('Installed partition JUnit differs from terminal outcome accounting')
-    return {**counts, 'primary_cases': len(selected), 'subtests': len(subtests)}
+    return {**counts, 'primary_cases': len(selected), 'subtests': len(subtests),
+            'collection_skips': len(collection or [])}
 
 
-def _installed_lifecycle(events, selected, terminal, epoch, context):
+def _installed_lifecycle(events, selected, terminal, epoch, context, collection=None):
     """Reconcile relative journal time with its recorded epoch and exact report grammar."""
     if (isinstance(epoch, bool) or not isinstance(epoch, (float, int)) or not math.isfinite(epoch)
             or not context['started_monotonic'] <= epoch < context['deadline_monotonic']):
@@ -328,7 +350,7 @@ def _installed_lifecycle(events, selected, terminal, epoch, context):
             or times != sorted(times)
             or times[-1] > context['deadline_monotonic'] - epoch + 0.000001):
         raise ValueError('Journal clocks are invalid, unordered or beyond the shared deadline')
-    reports = _installed_reports(terminal, selected)
+    reports = _installed_reports(terminal, selected, collection)
     starts = [event['nodeid'] for event in events if event['event'] == 'case_start']
     ends = [event['nodeid'] for event in events if event['event'] == 'case_end']
     allowed = {'suite_start', 'suite_end', 'case_start', 'case_end', 'phase_start', 'phase_end',
@@ -407,7 +429,7 @@ def verify_installed_partitions(output, context, deadline, *, parent_receipt=Non
         retained_context = Path(context['namespace']['consumer_artifact_root']) / 'partition-context.json'
         if retained_context.read_bytes() != raw_context:
             raise ValueError('Retained consumer context differs from its original input bytes')
-    collected, covered, outcomes = None, [], []
+    collected, collection_reports, covered, outcomes = None, None, [], []
     child_pids = set()
     for index in range(2):
         if deadline is not None:
@@ -443,11 +465,17 @@ def verify_installed_partitions(output, context, deadline, *, parent_receipt=Non
         collected = admitted
         if selected != [node for node in admitted if _partition_owner(node) == index] or not selected:
             raise ValueError('Installed subset differs from deterministic whole-module ownership')
+        observed_collection = manifest.get('collection_reports', [])
+        if (not isinstance(observed_collection, list)
+                or (collection_reports is not None and observed_collection != collection_reports)):
+            raise ValueError('Complete collection reports differ between installed children')
+        collection_reports = observed_collection
         events = [json.loads(line) for line in (folder / 'test-timings.jsonl').read_text(encoding='utf-8').splitlines()]
-        _installed_lifecycle(events, selected, terminal, identity['timing_epoch_monotonic'], context)
+        _installed_lifecycle(events, selected, terminal, identity['timing_epoch_monotonic'], context,
+                             collection_reports)
         _installed_child_interval(parent_receipt['workers'][index], identity['timing_epoch_monotonic'],
                                   events[-1]['elapsed_seconds'])
-        outcomes.append(_installed_junit(folder, selected, terminal))
+        outcomes.append(_installed_junit(folder, selected, terminal, collection_reports))
         covered.extend(selected)
     if Counter(covered) != Counter(collected):
         raise ValueError('Installed partitions do not cover admission exactly once')
@@ -556,6 +584,7 @@ def run_installed_partitions(output, argv, budget, *, job_factory=None, listing_
                                '--basetemp=' + worker['basetemp']]
                 if diagnostic_directory is not None:
                     child_argv += ['--harness-windows-listing-witness=' + worker['listing_witness']]
+                child_argv += ['-o', 'cache_dir=' + str(Path(worker['temporary_root']) / 'pytest-cache')]
                 environment = {**os.environ, 'HARNESS_QUALIFICATION_OUTPUT': str(folder),
                                'PYTHONPATH': str(ROOT / 'scripts')}
                 environment.update({name: worker['temporary_root'] for name in
