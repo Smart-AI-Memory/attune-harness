@@ -420,7 +420,11 @@ def present_test_task(task: dict) -> dict:
     if task["status"] in ("running", "unresolved"):
         current = {
             "outcome": "interrupted",
-            "detail": "Execution may still be running or effects are unresolved. Inspect/cancel before a newly accepted task; resume will not repeat it.",
+            "detail": (
+                (execution["error"] + " " if execution.get("error") else "")
+                + "Execution may still be running or effects are unresolved. "
+                "Inspect before a newly accepted task; resume will not repeat it."
+            ),
         }
     if task["status"] == "cancelled" and any(
         event["phase"] == "dispatching"
@@ -434,7 +438,11 @@ def present_test_task(task: dict) -> dict:
         "failed": "Investigate the failure against the intended behavior; do not weaken assertions.",
         "no_tests": "Analyze the test gap, then propose tests with an explicit write boundary.",
         "blocked": "Inspect missing or stale evidence and the environment before a new accepted run.",
-        "interrupted": "Inspect the stopped or uncertain attempt before creating a new test task.",
+        "interrupted": (
+            "Inspect the saved task with attune-harness status TASK_DIR and its record.json. "
+            "Confirm process-tree shutdown and review external effects before any new "
+            "execution; do not retry automatically."
+        ),
     }.get(current["outcome"])
 
     def listed(paths):

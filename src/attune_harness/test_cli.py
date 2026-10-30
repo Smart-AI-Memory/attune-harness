@@ -127,12 +127,15 @@ def execute(args) -> int:
         )
         return exit_code(result)
     except Exception as exc:
+        from .process import ProcessShutdownError
+
+        shutdown_uncertain = isinstance(exc, ProcessShutdownError)
         print(
             json.dumps(
                 {
-                    "status": "blocked",
+                    "status": "unresolved" if shutdown_uncertain else "blocked",
                     "error": {"type": type(exc).__name__, "detail": str(exc)},
-                    "next_action": (
+                    "next_action": exc.next_action if shutdown_uncertain else (
                         "Correct the reported input and preview again; accept a saved preview "
                         "with --task-dir, --checkpoint and --accept"
                     ),
