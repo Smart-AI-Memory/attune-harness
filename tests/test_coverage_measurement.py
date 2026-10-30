@@ -1332,5 +1332,5 @@ def test_windows_consumer_upload_preserves_primary_artifact_and_excludes_fixture
     pattern = consumers['with']['path'].replace('${{ runner.temp }}/', '')
     matched = list(tmp_path.glob(pattern))
     assert matched == [namespace / 'consumers']
-    retained = sorted(str(path.relative_to(matched[0])) for path in matched[0].rglob('*') if path.is_file())
+    retained = sorted(path.relative_to(matched[0]).as_posix() for path in matched[0].rglob('*') if path.is_file())
     assert retained == sorted(expected)
