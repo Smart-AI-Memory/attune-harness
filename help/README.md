@@ -4,7 +4,7 @@ Harness owns the Help Center's Markdown, version manifest, static renderer and
 verification. The existing public URL remains
 <https://smartaimemory.com/harness/help/> until a separate website cutover.
 
-## Published 1.5.1 guidance and historical evidence
+## Current onboarding and historical evidence
 
 The goals guide is also canonical Harness content. Port its authored HTML, local
 worksheet data, styles, controls and historical 1.5.0 captures from the reviewed
@@ -19,10 +19,10 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Versioned guidance names published 1.5.1 and its immutable release source. The
-release record identifies the public artifacts and software-check boundaries.
-The existing Get started route stages 1.6.0 onboarding with a topic-specific
-preparation label; the site-wide manifest remains on published 1.5.1.
+Get started names published 1.6.0; its release record identifies the immutable
+software source, artifacts and check boundaries. The unchanged reference guides
+keep their published 1.5.1 identity. The manifest distinguishes the current
+published version from that historical reference version.
 Published 1.5.0 observations, captures and the preparation record keep their
 original identities. A metadata-only validation wheel remains candidate evidence;
 do not relabel it or an older result as a new published-artifact walkthrough.
@@ -95,20 +95,20 @@ The first PR supplies this self-contained site. A separate website PR will
 publish or route to the verified artifact and retire the old implementation
 after the replacement is available. A source PR does not deploy the Help Center.
 
-## Stage 1.6.0 documentation without replacing published guidance
+## Maintain 1.6.0 onboarding and historical guidance
 
-The selected next release is 1.6.0 with Python >=3.12. Stage onboarding at the
-existing `/harness/help/get-started/` route with that topic's version set to
-`1.6.0` and status set to `preparation`. Reuse the README's installation and local
-demonstration commands, reviewed source links and existing goal guides. Keep the
-global manifest on published 1.5.1 so unchanged topics retain their labels.
+Published 1.6.0 onboarding uses the existing `/harness/help/get-started/`
+route with an explicit topic version and published status. The global manifest
+reference remains 1.5.1 so unchanged guides and goal captures keep their original
+identities; `published_version` names the current 1.6.0 release. Each page states
+its version and status.
 
-Preserve `1-5-1.md`, `release-1.5.1.json`, historical records, goal source and
-assets under their existing identities. The local release preparation guide is
-`docs/release-preparation-1.6.0.md`. Staging the existing route does not create a
-versioned 1.6.0 Help route, publish a package or deploy a website. The renderer's
-1.5.1 record references remain separate from the new onboarding topic.
+Preserve `1-5-1.md`, `release-1.5.1.json`, historical preparation and verification
+records, goals source and assets byte-for-byte. Add current release evidence in
+`release-1.6.0.json`; do not overwrite older records. Maintained setup links may
+change, while the release record pins the actual source and distributions.
 
-Build with the existing renderer, validate internal links and provide local
-rendered-file previews for review. A preview is not a server or a new website
-deployment.
+The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
+validates and imports the static export. Refresh that import and its routing in
+a separate website PR bound to an exact merged Harness commit. A source PR or
+local preview does not deploy the Help Center.

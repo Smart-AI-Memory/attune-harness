@@ -2,26 +2,25 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on October 30, 2026.
+Updated on October 31, 2026.
 
 ## Installation
 
-This guide describes current source behavior for unreleased 1.6.0 preparation.
-Use published 1.5.1 until a final 1.6.0 artifact is available; compare installed
-`COMMAND --help` with this source guide. Historical walkthroughs retain their
-original version and runtime. See the [workflow guide](supported-journeys.md).
+This guide describes Harness 1.6.0. Compare installed `COMMAND --help` with
+this maintained source guide and the [release record](../help/release-1.6.0.json).
+Historical walkthroughs retain their original version and runtime. See the [workflow guide](supported-journeys.md).
 
 Install the published runtime in its own environment:
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.5.1'
+uv tool install --python 3.12 'attune-harness==1.6.0'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
 acceptance dependencies. Add Redis or Voyage when you need those integrations;
 `all` includes both and excludes experimental native memory. Current development
-source requires Python 3.12 or later. Published releases described here retain
-their original Python minimum; the next release is 1.6.0 and requires Python 3.12 or later. No 1.5.2 release is planned.
+source and published 1.6.0 require Python 3.12 or later. Historical releases
+retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and
 fixture commands, and separate host-plugin setup. The example below needs no
