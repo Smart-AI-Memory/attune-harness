@@ -94,6 +94,33 @@ substitute for that broader gate.
 
 ## Completion review
 
+### Early-exit correction: October 29, 2026
+
+Review of PR #321 found that `SystemExit(0)` during candidate import or export
+could terminate the oracle before it emitted results. The process exit code
+then caused a passing probe and completed receipt without any verified CSV.
+The correction handles `SystemExit` at both candidate boundaries. Import exits
+produce a failed verdict; export-call exits produce failed case results. Both
+return a nonzero oracle exit code. Interrupt handling and the general Harness
+runner remain unchanged; this is not a sandbox for hostile candidate code.
+
+Six regression cases cover import and call exits with codes `0`, `None` and `7`
+through the real build owner. They check the saved failed receipt, non-completed
+build, failed probe, structured error and absence of final verification. All six
+failed against the original oracle; all 31 fixture tests pass after the fix,
+including the existing known-good smoke cases. The same 31 tests pass through
+the Harness **`test`** workflow. These are offline software checks, not live or
+paid trials. Broader qualification remains a separate gate.
+
+The contract and user lenses refine J4: failed candidate execution must remain
+visible as failed evidence before human or AI performance can be evaluated.
+This closes the reproduced `SystemExit` gap, not the documented live-collection,
+host-integration or hostile-code limitations. No duplicate opportunity entry is
+needed. The first user-visible improvement is a failed receipt instead of false
+completion when the candidate exits early. This correction authorizes no trials.
+
+### Original fixture review
+
 The goal remains better human–AI work, with costs evaluated after performance.
 The user lens now has an executable correction and artifact check; R3's contract
 lens has stale-decision and obsolete-acceptance tests. The next-step lens sharpens
