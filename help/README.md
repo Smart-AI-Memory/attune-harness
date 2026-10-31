@@ -19,8 +19,10 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Current guidance names published 1.5.1 and its immutable release source. The
+Versioned guidance names published 1.5.1 and its immutable release source. The
 release record identifies the public artifacts and software-check boundaries.
+The existing Get started route stages 1.6.0 onboarding with a topic-specific
+preparation label; the site-wide manifest remains on published 1.5.1.
 Published 1.5.0 observations, captures and the preparation record keep their
 original identities. A metadata-only validation wheel remains candidate evidence;
 do not relabel it or an older result as a new published-artifact walkthrough.
@@ -75,6 +77,14 @@ dependency is added by this build dependency.
 
 ## Maintain the guides
 
+Fenced examples use the shared `code-copy.js` enhancement. Click **Copy** to
+copy a block's exact text; **Copied** appears after the clipboard write succeeds.
+If the browser refuses access, the text is selected and manual-copy instructions
+appear. Without JavaScript, examples remain readable and selectable. The script
+follows the goals guide's clipboard/fallback pattern without loading its worksheet
+controller. Keep controls outside code, preserve example wording and verify both
+success and failure before changing this behavior.
+
 Edit the registered Markdown or goal master and `manifest.json` together. Verify changed
 commands and labels against the named release, and record actual walkthrough
 results and limits. Check the built HTML's local routes and fragments. Keep
@@ -87,13 +97,17 @@ after the replacement is available. A source PR does not deploy the Help Center.
 
 ## Stage 1.6.0 documentation without replacing published guidance
 
-The selected next release is 1.6.0 with Python >=3.12. Keep this manifest, its
-14 registered pages, release-1.5.1.json and historical assets on their current
-identities until the release/website owners authorize a synchronized cutover.
-The local 1.6.0 preparation guide lives in docs/release-preparation-1.6.0.md;
-selected registered pages mark preparation advice separately. No nonexistent
-1.6.0 Help route or release URL is presented as deployed. The renderer still
-selects 1.5.1 records; documentation changes do not version that implementation.
+The selected next release is 1.6.0 with Python >=3.12. Stage onboarding at the
+existing `/harness/help/get-started/` route with that topic's version set to
+`1.6.0` and status set to `preparation`. Reuse the README's installation and local
+demonstration commands, reviewed source links and existing goal guides. Keep the
+global manifest on published 1.5.1 so unchanged topics retain their labels.
+
+Preserve `1-5-1.md`, `release-1.5.1.json`, historical records, goal source and
+assets under their existing identities. The local release preparation guide is
+`docs/release-preparation-1.6.0.md`. Staging the existing route does not create a
+versioned 1.6.0 Help route, publish a package or deploy a website. The renderer's
+1.5.1 record references remain separate from the new onboarding topic.
 
 Build with the existing renderer, validate internal links and provide local
 rendered-file previews for review. A preview is not a server or a new website

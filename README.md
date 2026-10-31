@@ -14,29 +14,34 @@ You can inspect what happened and use that record when you continue later.
 
 This README describes version 1.6.0. Check the
 [package index](https://pypi.org/project/attune-harness/) for publication status.
-Versioned source links resolve when the `v1.6.0` tag is available; the existing
-Help Center retains its published version labels.
+Source-guide links point to the reviewed 1.6.0 preparation revision. Each
+Help Center guide states its version and publication status.
 
-[Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Choose a task](#choose-your-first-task) · [Help Center](#help-center)
+- [**Goal-driven development**](#goal-driven-development): Start with the outcome
+  you want, then agree on the work and checks.
+- [**Spec-driven development**](#spec-driven-development): Develop and review
+  requirements before starting work that needs more structure.
+
+[Explore the benefits](#what-you-can-do) · [Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Help Center](#help-center)
 
 Updated on October 30, 2026.
 
 ## What changes in 1.6.0
 
-- **Keep work moving on Windows.** Use the supported build, repair and testing
-  workflows, with clearer saved recovery guidance when child-process shutdown
-  cannot be confirmed. Bounded retries for brief record-access denials remain
+- [**Keep work moving on Windows.**](#work-on-windows) Use the supported build,
+  repair and testing workflows, with clearer saved recovery guidance when
+  child-process shutdown cannot be confirmed. Bounded retries for brief record-access denials remain
   available; persistent errors are reported.
-- **Choose which credentials your commands receive.** Enable
-  [environment filtering](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/command-environments.md)
+- [**Choose which credentials your commands receive.**](#grant-one-command-the-credential-it-needs)
+  Enable [environment filtering](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/command-environments.md)
   for a command participant, then give it the API key it needs while leaving
   unrelated credentials out of its environment.
-- **See which memory snapshot supplied your results.** The new optional memory
-  reader includes snapshot and source identifiers with its results, helping you
-  trace the information it retrieved.
-- **Get from installation to your first result.** The guides explain how to set
-  up Harness, check that it works, and return to your previous setup if needed.
-  Older instructions are clearly labeled.
+- [**See which memory snapshot supplied your results.**](#keep-your-existing-memory-setup-working)
+  The new optional memory reader includes snapshot and source identifiers with
+  its results, helping you trace the information it retrieved.
+- [**Get from installation to your first result.**](#check-a-local-result) The
+  guides explain how to set up Harness, check that it works, and return to your
+  previous setup if needed. Older instructions are clearly labeled.
 
 <a id="plan-build-review-fix-and-test"></a>
 
@@ -44,14 +49,14 @@ Updated on October 30, 2026.
 
 | Your goal | How Harness helps |
 | --- | --- |
-| **Plan a change** | Develop the goal, affected files, tasks and checks before implementation. |
-| **Build from a plan** | Give configured agents the accepted tasks and inspect their work against the agreed checks. |
-| **Review a document** | Compare its claims with your criteria and supporting sources. |
-| **Repair existing files** | Check a proposed repair against a test fixed before the repair begins. |
-| **Test a code change** | Preview the selected tests, then inspect their output and results. |
-| **Continue saved work** | Read the saved decisions and results before choosing the next action. |
+| [**Plan a change**](https://smartaimemory.com/harness/help/goals/#feature-request) | Develop the goal, affected files, tasks and checks before implementation. |
+| [**Build from a plan**](https://smartaimemory.com/harness/help/goals/#reviewable-steps) | Give configured agents the accepted tasks and inspect their work against the agreed checks. |
+| [**Review a document**](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#task-oriented-evidence-review) | Compare its claims with your criteria and supporting sources. |
+| [**Repair existing files**](https://smartaimemory.com/harness/help/goals/#fix-problem) | Check a proposed repair against a test fixed before the repair begins. |
+| [**Test a code change**](https://smartaimemory.com/harness/help/goals/#check-change) | Preview the selected tests, then inspect their output and results. |
+| [**Continue saved work**](https://smartaimemory.com/harness/help/goals/#resume-work) | Read the saved decisions and results before choosing the next action. |
 
-Start with the [workflow guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/supported-journeys.md)
+Start with the [workflow guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/supported-journeys.md)
 to choose a procedure and see what it needs.
 
 ## Installation
@@ -77,7 +82,7 @@ adding its executable directory to your path. These examples explicitly select
 Python 3.12; Harness 1.6.0 requires Python 3.12 or later.
 
 The Python package and your assistant's integration are separate installations.
-The [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/installation.md)
+The [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/installation.md)
 covers pipx, virtual environments and selecting the same interpreter for module
 commands. Keep a working installation while evaluating a candidate.
 
@@ -117,8 +122,8 @@ and configured model access.
 
 ### Codex
 
-Follow the [Codex plugin guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/codex-plugin.md)
-to prepare and install the Harness workflow plugin. The [standalone skill guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md#codex-skill)
+Follow the [Codex plugin guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/codex-plugin.md)
+to prepare and install the Harness workflow plugin. The [standalone skill guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#codex-skill)
 provides another setup option.
 
 After setup, invoke `$attune-harness` and describe your goal.
@@ -132,19 +137,23 @@ Add the marketplace and install the plugin:
 /plugin install attune-harness@attune-harness
 ```
 
+These marketplace commands currently select the published 1.5.1 plugin. Check
+its source and version before using it with the 1.6.0 runtime.
+
 The plugin includes Harness workflows, cross-review, roundtable and smart-test
 instructions. It calls the separately installed `attune-harness` runtime.
 
 ### Other integrations and direct commands
 
-Use the [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md)
+Use the [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md)
 for command-based integrations, MCP setup, arguments and exit codes. Run
 `attune-harness COMMAND --help` for one command or `attune-harness --help-all`
 for the broader tool list.
 
 <a id="your-first-five-minutes"></a>
+<a id="choose-your-first-task"></a>
 
-## Choose your first task
+## Goal-driven development
 
 Start with a small goal in a project you know. For example, ask your assistant:
 
@@ -174,7 +183,8 @@ You can also use the commands directly:
 | **`status`** | Inspect saved progress and results. |
 | **`resume`** | Continue authorized remaining work. |
 
-For a hands-on example, choose a task in the [Help goals guide](https://smartaimemory.com/harness/help/goals/).
+For guided examples, [clarify your feature idea](https://smartaimemory.com/harness/help/goals/#feature-request)
+or [build in reviewable steps](https://smartaimemory.com/harness/help/goals/#reviewable-steps).
 Each procedure supplies its setup, steps and expected result.
 
 ### Preview a task from the command line
@@ -202,7 +212,9 @@ with their expected draft result. This example's executable journey is checked
 on POSIX; it does not establish that the interpreter path works unchanged on
 Windows.
 
-## Advanced planning for Spec-Driven Development
+<a id="advanced-planning-for-spec-driven-development"></a>
+
+## Spec-driven development
 
 Use a specification when the work needs more structure than a short request.
 Harness connects requirements to tasks, decisions and checks.
@@ -216,8 +228,12 @@ Harness connects requirements to tasks, decisions and checks.
 4. **Review and accept the scope.** Inspect the proposed work before starting
    the build. Use **`status`** to inspect saved decisions and progress.
 
-The [plan-and-build guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md#plan-and-build)
-explains the procedure. You can also [import a supported Markdown plan](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md#importing-a-plan-from-another-project)
+Follow [Create a spec with roundtable help](https://smartaimemory.com/harness/help/goals/#project-spec)
+for a worked example and review points. A reviewed spec still needs a supported,
+accepted plan before a build can start.
+
+The [plan-and-build guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#plan-and-build)
+explains the procedure. You can also [import a supported Markdown plan](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#importing-a-plan-from-another-project)
 from another project and review it before acceptance.
 
 <a id="150-scope-full-windows-parity-deferred"></a>
@@ -231,7 +247,7 @@ the route's other input checks still apply. If process shutdown is uncertain,
 inspect the saved record and original process effects before continuing; an
 error does not prove termination or rollback.
 
-Choose a workflow in the [Windows capability table](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/supported-journeys.md#windows-capabilities-and-reliability).
+Choose a workflow in the [Windows capability table](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/supported-journeys.md#windows-capabilities-and-reliability).
 It explains the local NTFS setup and the process, storage and recovery conditions
 that matter for each task. Check those requirements before relying on concurrent
 writes, interruption recovery or power-loss durability.
@@ -242,7 +258,7 @@ coverage passed in the `windows-latest` job. Windows 11 observations
 are a separate standard-user smoke on ARM hardware using x64 Python emulation;
 they do not qualify native ARM64 or all desktop and PowerShell workflows.
 
-The linked guides define supported workflows and remaining storage and recovery limits. The [Windows reliability reference](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/windows-reliability.md)
+The linked guides define supported workflows and remaining storage and recovery limits. The [Windows reliability reference](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/windows-reliability.md)
 provides the detailed requirements and evidence.
 
 <a id="what-the-install-carries"></a>
@@ -272,7 +288,7 @@ The [dependency guide](https://smartaimemory.com/harness/help/dependencies/)
 lists the exact pins, service requirements and optional provider setup.
 Installing an extra does not configure a service or authorize paid calls.
 The existing Redis paths passed bounded disposable-service checks during 1.6.0
-preparation. The [requirements and verification record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/redis-option-verification.md)
+preparation. The [requirements and verification record](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/redis-option-verification.md)
 identifies the tested development wheel, operations and limits. Use qualification
 evidence that identifies the exact wheel hash you install; a dependency pin or
 offline check alone does not establish a successful live service operation.
@@ -307,7 +323,7 @@ original configuration. Keep saved approvals and Redis data unchanged. Inspect o
 their original runtime first; reinstalling an older package does not undo file
 effects or prove that a newer saved task can safely resume in that version.
 
-The [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/migration.md)
+The [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/migration.md)
 covers command-environment grants, memory-reader selection and retained
 Attune AI setups. The v1 compatibility contract remains in effect.
 
@@ -323,7 +339,7 @@ Keep the writer and host hooks that maintain and deliver your existing memory.
 A new Redis projection writer and RedisVL adoption are outside 1.6.0. The new reader does not
 install a writer or arrange automatic recall in a fresh
 session. Saving a memory and making it available for session recall are separate
-steps. Follow the [memory guidance](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md#memory)
+steps. Follow the [memory guidance](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#memory)
 for the path you use.
 
 Harness succeeds the deprecated Attune AI and runs without an Attune AI
@@ -341,7 +357,7 @@ launcher running while using the form.
 
 Saving answers, approving a request and opening a saved form do not execute
 work. Browser build dispatch and execution resume are unavailable in this
-implementation; use the supported CLI workflow after inspecting its saved scope. Follow the [forms guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/supported-journeys.md#inspect-and-recover)
+implementation; use the supported CLI workflow after inspecting its saved scope. Follow the [forms guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/supported-journeys.md#inspect-and-recover)
 for setup and available controls.
 
 <a id="what-is-qualified-and-what-is-not"></a>
@@ -361,25 +377,28 @@ is not an operating-system sandbox.
 
 The [published 1.5.1 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
 identifies that version's source and distributions. Final 1.6.0 artifacts and
-release evidence remain a separate release gate. The [qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/qualification.md)
+release evidence remain a separate release gate. The [qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/qualification.md)
 explains what the software checks cover.
 
 <a id="links"></a>
 
 ## Help Center
 
-For the published package, start with [Get started with Harness 1.5.1](https://smartaimemory.com/harness/help/1-5-1/),
-then choose a task in the [goals guide](https://smartaimemory.com/harness/help/goals/).
-The guides explain setup, steps and expected results. Their published version
-and historical records remain unchanged during 1.6.0 preparation; no new
-1.6.0 Help route is claimed here.
+Start with [Get started with Harness 1.6.0](https://smartaimemory.com/harness/help/get-started/)
+to install Harness, check a local result and connect your assistant. Then choose
+your next outcome in the [goals guide](https://smartaimemory.com/harness/help/goals/).
+The updated start page is staged for this release; the live Help Center may
+retain its published guidance until the documentation update is deployed.
+
+The [published 1.5.1 guide](https://smartaimemory.com/harness/help/1-5-1/)
+remains available with its original installation instructions and evidence.
 
 The [documentation archive](https://smartaimemory.com/harness/help/archive/)
 keeps earlier guides, release records and screenshots under their original
 version labels. Use those labels to distinguish historical observations from
 current instructions.
 
-[Repository](https://github.com/Smart-AI-Memory/attune-harness) · [Issues](https://github.com/Smart-AI-Memory/attune-harness/issues) · [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md)
+[Repository](https://github.com/Smart-AI-Memory/attune-harness) · [Issues](https://github.com/Smart-AI-Memory/attune-harness/issues) · [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md)
 
 **Apache License 2.0.**
 

@@ -17,7 +17,7 @@
     },
     {
       "slug": "1-5-1",
-      "title": "Get started with Harness 1.5.1",
+      "title": "Harness 1.5.1 — published guide",
       "goal": "Install the published release, check a local result and choose your next workflow.",
       "kind": "task",
       "legacy_anchors": {
@@ -46,9 +46,18 @@
     },
     {
       "slug": "get-started",
-      "title": "Get started",
-      "goal": "Check your installation and see a local result before starting real work.",
-      "kind": "task"
+      "title": "Get started with Harness 1.6.0",
+      "goal": "Install Harness, verify a local result, connect your assistant and choose your first goal.",
+      "kind": "task",
+      "version": "1.6.0",
+      "status": "preparation",
+      "legacy_anchors": {
+        "set-up-an-isolated-environment": "install-harness-160",
+        "choose-the-next-outcome": "choose-goal-driven-development",
+        "prepare-the-release-examples": "sources-and-verification",
+        "sources-and-verification-limits": "sources-and-verification",
+        "prepare-for-160-separately": "install-harness-160"
+      }
     },
     {
       "slug": "start-and-continue",
@@ -127,7 +136,8 @@
   ],
   "overview_anchors": {
     "learning-title": "choose-a-task",
-    "start-with-the-current-release": "check-the-version-before-starting"
+    "start-with-the-current-release": "check-the-version-before-starting",
+    "prepare-for-160-separately": "check-the-version-before-starting"
   },
   "status": "published",
   "published_version": "1.5.1"

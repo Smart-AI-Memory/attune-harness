@@ -1,6 +1,7 @@
 """Exercise the static Help Center artifact and its failure boundaries."""
 
 import importlib.util
+from html import unescape
 import json
 from pathlib import Path
 import shutil
@@ -48,6 +49,7 @@ def test_all_current_routes_and_contents_links_work(
             else 'aria-label="On this page"'
         ) in text
         assert 'id="main-content" tabindex="-1"' in text
+        assert 'src="/harness/help/code-copy.js"' in text
         if page.parent.name == "goals":
             assert (
                 "Published guidance."
@@ -57,6 +59,12 @@ def test_all_current_routes_and_contents_links_work(
         elif page.parent.name == "1-5-1-preparation":
             assert "Harness 1.5.1 preparation before publication" in text
             assert "Archived guide:" in text
+        elif page.parent.name == "get-started":
+            assert (
+                "Guidance target: <strong>Harness 1.6.0</strong> preparation"
+                in text
+            )
+            assert "Get started with Harness 1.6.0" in text
         else:
             assert (
                 "published <strong>Harness 1.5.0</strong>"
@@ -70,7 +78,8 @@ def test_all_current_routes_and_contents_links_work(
         assert (
             '<meta name="robots" content="index,follow">'
             if status == "published"
-            and page.parent.name not in {"1-5-0", "1-5-1-preparation"}
+            and page.parent.name
+            not in {"1-5-0", "1-5-1-preparation", "get-started"}
             else '<meta name="robots" content="noindex,follow">'
         ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
@@ -89,6 +98,10 @@ def test_all_current_routes_and_contents_links_work(
         in (directory / "start-and-continue/index.html").read_text()
     )
     assert (directory / "verification.json").is_file()
+    assert (directory / "code-copy.js").read_bytes() == (
+        ROOT / "help/code-copy.js"
+    ).read_bytes()
+    assert record["sources"]["code-copy.js"]
     assert (directory / "preparation.json").read_bytes() == (
         ROOT / "help/preparation.json"
     ).read_bytes()
@@ -108,6 +121,39 @@ def test_all_current_routes_and_contents_links_work(
         'href="/harness/help/1-5-1-preparation/"'
         in (directory / "archive/index.html").read_text()
     )
+
+
+def test_160_start_is_prominent_without_relabeling_published_guides(tmp_path):
+    builder.build_site(tmp_path / "site")
+    root = tmp_path / "site/harness/help"
+    start = (root / "get-started/index.html").read_text()
+    assert '<h1>Get started with Harness 1.6.0</h1>' in start
+    assert '<meta name="robots" content="noindex,follow">' in start
+    assert "uv tool install --python 3.12 'attune-harness==1.6.0'" in unescape(
+        start
+    )
+    assert 'href="/harness/help/get-started/" aria-current="page"' in start
+    assert '<p class="help-eyebrow">Starter prompt</p>' in start
+    assert '<p data-copy-prompt>Use Harness to help me plan an update' in start
+    for path in root.rglob("index.html"):
+        text = path.read_text()
+        assert text.index(
+            'class="help-featured-nav" href="/harness/help/get-started/"'
+        ) < text.index('class="help-featured-nav" href="/harness/help/goals/"')
+    aliases = builder.PageLinks(start).ids
+    assert {
+        "set-up-an-isolated-environment",
+        "choose-the-next-outcome",
+        "prepare-the-release-examples",
+        "sources-and-verification-limits",
+        "prepare-for-160-separately",
+    }.issubset(aliases)
+    published = (root / "1-5-1/index.html").read_text()
+    assert '<h1>Harness 1.5.1 — published guide</h1>' in published
+    assert 'published <strong>Harness 1.5.1</strong>' in published
+    assert (root / "release-1.5.1.json").read_bytes() == (
+        ROOT / "help/release-1.5.1.json"
+    ).read_bytes()
 
 
 def test_goal_projection_preserves_navigation_controls_and_historical_evidence(
@@ -263,8 +309,10 @@ def test_manifest_path_escape_and_duplicate_routes_are_refused(tmp_path, slug):
 def test_nested_duplicate_and_fenced_headings_have_correct_anchors(tmp_path):
     content = tmp_path / "content"
     shutil.copytree(ROOT / "help", content)
-    (content / "get-started.md").write_text(
-        "## Same\n\n### Nested\n\n## Same\n\n```text\n## Fenced\n```\n"
+    source = content / "get-started.md"
+    source.write_text(
+        source.read_text()
+        + "\n\n## Same\n\n### Nested\n\n## Same\n\n```text\n## Fenced\n```\n"
     )
     builder.build_site(tmp_path / "site", content)
     text = (tmp_path / "site/harness/help/get-started/index.html").read_text()
