@@ -44,12 +44,12 @@ Updated on October 30, 2026.
 
 | Your goal | How Harness helps |
 | --- | --- |
-| Plan a change | Develop the goal, affected files, tasks and checks before implementation. |
-| Build from a plan | Give configured agents the accepted tasks and inspect their work against the agreed checks. |
-| Review a document | Compare its claims with your criteria and supporting sources. |
-| Repair existing files | Check a proposed repair against a test fixed before the repair begins. |
-| Test a code change | Preview the selected tests, then inspect their output and results. |
-| Continue saved work | Read the saved decisions and results before choosing the next action. |
+| **Plan a change** | Develop the goal, affected files, tasks and checks before implementation. |
+| **Build from a plan** | Give configured agents the accepted tasks and inspect their work against the agreed checks. |
+| **Review a document** | Compare its claims with your criteria and supporting sources. |
+| **Repair existing files** | Check a proposed repair against a test fixed before the repair begins. |
+| **Test a code change** | Preview the selected tests, then inspect their output and results. |
+| **Continue saved work** | Read the saved decisions and results before choosing the next action. |
 
 Start with the [workflow guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/supported-journeys.md)
 to choose a procedure and see what it needs.
