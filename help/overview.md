@@ -16,6 +16,19 @@ before changing an existing setup. Preserve memory sources and writer settings
 while validating the journeys you need. The [1.5.0 guide](1-5-0/) and its
 observations remain available as historical references.
 
+
+## Prepare for 1.6.0 separately
+
+Harness 1.6.0 is the next planned release after published 1.5.1 and requires
+Python 3.12 or later. It is not published by this Help update; there is no new
+1.6.0 Help route. Keep using the versioned 1.5.1 guide for the published package.
+For candidate work, use the release owner's exact artifact/source identity and a
+separate environment. Preserve your working runtime, registry, saved tasks,
+memory sources, writer and host hooks until the replacement is validated.
+
+The [source installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
+keeps published installation distinct from candidate preparation.
+
 ## Choose a task
 
 [TOPICS]

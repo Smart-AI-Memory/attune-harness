@@ -20,11 +20,15 @@ GitHub documents the [hosted runner labels and images][github-runners].
 The development branch requires Python 3.12 or later. This matrix targets its
 minimum supported interpreter without duplicate cells. Earlier Python 3.10
 receipts retain their historical artifact/runtime identities; they do not qualify
-this new minimum. Version 1.5.1 remains unchanged in source, and release/version
-selection is separate from this compatibility change.
+this new minimum. The next release is 1.6.0, not 1.5.2. Current development package metadata still
+says 1.5.1; it is not a final or newly published distribution. Published 1.5.1
+retains its original Python minimum and historical artifact identity.
 
-These hosted jobs provide Windows Server CI evidence. T8 also requires
-separate Windows 11 standard-user installed-wheel validation.
+These hosted jobs provide Windows Server CI evidence. The broader T8 desktop
+contract is separate. A historical Windows 11 standard-user smoke used x64 Python
+under ARM emulation; it does not qualify native ARM64 or all desktop/shell paths.
+The narrow 1.6.0 goal is usable documented workflows with explicit refusals; it
+does not claim complete Windows/POSIX parity.
 
 The jobs exercise timeout, cancellation, bounded output, descendant termination,
 lost acknowledgements, crash-released locks and explicit recovery. Windows uses
@@ -148,9 +152,11 @@ keep their separate gates.
 
 ### Optional boundary diagnostics
 
-The measurement and qualifier defaults leave these observers off. Enabling an
-observer in a hosted attempt requires a separate reviewed decision; the workflows
-do not add either option. Keep the existing dedicated measurement environment,
+Standalone measurement and qualifier calls leave these observers off unless
+requested. The current supplemental coverage workflow explicitly passes
+`--windows-listing-witness` on Windows and `--shutdown-boundary-diagnostics` on
+Linux; macOS receives neither flag. These workflow arguments are already enabled,
+not merely a future proposal. Keep the dedicated measurement environment,
 installed wheel, selectors and budgets.
 
 For Windows instrumented installed partitions, supply a fresh absolute directory
@@ -180,8 +186,9 @@ python scripts/measure_coverage.py --suite full --output /absolute/new-coverage 
 ```
 
 The parent observes its original `subprocess.run` launch, stdlib wait deadline,
-kill and reap boundaries. It keeps the 1,200-second timeout and its original
-scope. This opt-in requires the supported POSIX stdlib `_communicate` signature
+kill and reap boundaries. It keeps the current 1,800-second Linux full-suite child limit and its
+original scope. The Ubuntu hosted job allows 35 minutes, including setup and
+artifact upload; the extra five minutes is shared headroom, not more test time. This opt-in requires the supported POSIX stdlib `_communicate` signature
 and a single parent launcher; its scoped `Popen` substitution is restored after
 the call. Child markers identify the qualification plugin's configure,
 session-finish and unconfigure owner functions. The existing explicit coverage
@@ -292,3 +299,20 @@ native contract tests that do not depend on unpublished receipts.
 
 Configuration behavior: [official Codex reference](https://learn.chatgpt.com/docs/config-file/config-reference).
 CI structure: [GitHub matrix documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
+
+## Current preparation evidence
+
+PR #320's reviewed tree `1331daf9d2abb86e6629075017c8816afc8be62d` was merged as
+`d0849441c6420b73baa796cf80f7bdf3c1ed4fec` with identical content. Its completed
+PR-event cohort had 23 successful checks and one expected disabled preflight skip.
+Both Windows Server 2022/2025 installed-wheel and full-source jobs, separate `windows-latest` and
+`ubuntu-latest` supplemental coverage jobs, native-owner/SDK profiles, Qualification and CodeQL passed.
+See [PR #320](https://github.com/Smart-AI-Memory/attune-harness/pull/320) and its
+[Library run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/41059299183).
+
+The automatic main-event cohort is distinct and was still running at this draft's
+recorded handoff. PR-event success must not be presented as its completed result.
+Printed collected/executed counts include skips/subtests; do not call them an
+all-pass count. Completed job text and metadata do not independently establish
+raw CI wheel bytes, complete RECORD or every artifact member. Final 1.6.0 source,
+distributions and installed qualification remain separate release gates.

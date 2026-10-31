@@ -84,3 +84,17 @@ in their original versioned files under `docs/`.
 The first PR supplies this self-contained site. A separate website PR will
 publish or route to the verified artifact and retire the old implementation
 after the replacement is available. A source PR does not deploy the Help Center.
+
+## Stage 1.6.0 documentation without replacing published guidance
+
+The selected next release is 1.6.0 with Python >=3.12. Keep this manifest, its
+14 registered pages, release-1.5.1.json and historical assets on their current
+identities until the release/website owners authorize a synchronized cutover.
+The local 1.6.0 preparation guide lives in docs/release-preparation-1.6.0.md;
+selected registered pages mark preparation advice separately. No nonexistent
+1.6.0 Help route or release URL is presented as deployed. The renderer still
+selects 1.5.1 records; documentation changes do not version that implementation.
+
+Build with the existing renderer, validate internal links and provide local
+rendered-file previews for review. A preview is not a server or a new website
+deployment.

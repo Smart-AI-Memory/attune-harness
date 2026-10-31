@@ -57,6 +57,19 @@ Do not include private launcher links, credentials or project data.
 
 Voyage request retrieval requires a fresh canonical directory for durable receipts. Include `--session-dir SESSION_DIR` with `retrieve QUERY --request REQUEST.json --allow-provider`; replace both paths with the reviewed request and an unused session directory. This option retains evidence; provider execution still needs its separate authorization. A refusal before session creation is not a completed retrieval.
 
+## A process could not be stopped or reaped
+
+In the 1.6.0 preparation source, shutdown guidance retains the original cause and
+reports unknown effects. Preserve the saved task and process/file evidence.
+Inspect **`status`**, check whether the original process is still active and
+reconcile affected files before choosing a recovery action. Do not assume the
+error terminated descendants, rolled back changes or authorized another dispatch.
+
+Unsupported Windows volumes or paths are refused before use. Use the workflow's
+fixed local NTFS/dedicated-checkout profile; do not bypass an integrity guard or
+move authoritative records to clear an error. A reported unavailable feature
+names its reason; browser build dispatch/resume needs the supported CLI instead.
+
 ## Sources and verification limits
 
 Published 1.5.1 uses release commit `ebb5b03b8a4398325df7ddabd28c08186451452e`. Read its [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/docs/cli-guide.md) and [release record](/harness/help/release-1.5.1.json) for source, artifact and check identities. The [historical preparation record](/harness/help/preparation.json) retains its original candidate boundary. The older observations below are 1.5.0 evidence; they are not new 1.5.1 walkthrough results.
