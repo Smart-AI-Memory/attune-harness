@@ -62,6 +62,9 @@ configured participants and authorize paid calls separately.
 
 ## Choose goal-driven development
 
+Read [How people and AI work together](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#how-people-and-ai-work-together)
+to understand your decisions and the AI's role in carrying out accepted work.
+
 Start with a small outcome in a project you know. For example, ask your assistant:
 
 <div class="help-prompt">

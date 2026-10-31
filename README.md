@@ -21,6 +21,9 @@ Help Center guide states its version and publication status.
   you want, then agree on the work and checks.
 - [**Spec-driven development**](#spec-driven-development): Develop and review
   requirements before starting work that needs more structure.
+- [**How people and AI work together**](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#how-people-and-ai-work-together):
+  You direct the goal and decisions. The AI carries out accepted work and
+  produces evidence you can inspect.
 
 [Explore the benefits](#what-you-can-do) · [Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Help Center](#help-center)
 
