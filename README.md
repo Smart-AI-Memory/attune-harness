@@ -385,4 +385,4 @@ current instructions.
 
 Built by Patrick Roebuck, working with Codex and Claude.
 
-Contact: [patrick.roebuck@smartaimemory.com](mailto:patrick.roebuck@smartaimemory.com).
+Contact: [Patrick Roebuck](mailto:patrick.roebuck@smartaimemory.com).
