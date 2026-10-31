@@ -32,9 +32,8 @@ configurations without the policy still inherit the full parent environment.
 Environment filtering is not an operating-system sandbox.
 
 The selected notice schedule starts in 1.6.0, with removal no earlier than 1.7.0.
-Current emitted NOTICE and the machine-readable register still say 1.5.2/1.6.0;
-that source integration item must be corrected before release. This draft does
-not claim it has been repaired. See [command environments](command-environments.md).
+The emitted NOTICE and machine-readable register use that same schedule while
+retaining legacy inheritance. See [command environments](command-environments.md).
 
 ## Trace memory to its source
 

@@ -1,22 +1,32 @@
 # Changelog
 
-## Unreleased — 1.6.0
+## Unreleased
+
+## 1.6.0
+
+Requires Python 3.12 or later. Legacy command configurations remain accepted;
+the new environment policy is opt-in.
 
 - Add the opt-in `command-env-v1` environment policy for command participants.
   Pass only named variables from the dispatching process, use temporary home
   and temp directories, and retain names-only policy audit metadata. Existing
   configurations without the policy retain full inheritance and show migration
   notices. The selected first notice release is 1.6.0; removal is no earlier than
-  1.7.0. No 1.5.2 release is planned. The current runtime NOTICE and machine-readable
-  register still carry the superseded schedule and must be synchronized before
-  shipping; this documentation does not alter the emitted metadata.
-  This change does not remove the legacy form or change the package version.
+  1.7.0. The runtime NOTICE and machine-readable register use that schedule.
+  No 1.5.2 release is planned, and the legacy form remains accepted.
   See [Command participant environments](docs/command-environments.md).
 
 - Require Python 3.12 or later for the upcoming 1.6.0 release. Published 1.5.1
   retains its original minimum.
 - Preserve unknown-effects shutdown recovery guidance, correct installed
   collection-skip accounting and isolate per-worker pytest caches (#320).
+- Read explicitly selected `harness-v1` Redis generations with snapshot and
+  source traceability. Legacy recall remains the default; the new writer and
+  automatic session-start delivery remain outside this release (#311).
+- Document operation-specific Redis requirements and bounded disposable-service
+  verification, retaining each tested artifact's identity and limits (#323).
+- Update installation, migration, Windows workflow and Help guidance; restore
+  the checked first-run README example (#324).
 
 ## 1.5.1
 
