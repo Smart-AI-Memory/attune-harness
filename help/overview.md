@@ -6,28 +6,27 @@ build**, or choose planning, implementation, verification or saved work.
 
 ## Check the version before starting
 
-Harness 1.5.1 is published. [Install Harness 1.5.1](/harness/help/1-5-1/),
-check a local result, and choose a task. You can plan work, review evidence,
-and return to saved progress through the CLI and browser forms.
+[Get started with Harness 1.6.0](/harness/help/get-started/) to install the
+runtime, check a local result, connect your assistant and choose goal-driven or
+spec-driven development. The 1.6.0 guide is staged for the release; its installation
+section explains the publication requirement and candidate alternative.
+
+Harness 1.5.1 remains the published release. Its [installation guide](/harness/help/1-5-1/)
+and [release record](/harness/help/release-1.5.1.json) retain their original source,
+artifacts and limits. Other guides keep their stated versions while 1.6.0
+onboarding is prepared.
 
 Attune AI is deprecated. Use Harness for new work and read the
-[current migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
-before changing an existing setup. Preserve memory sources and writer settings
-while validating the journeys you need. The [1.5.0 guide](1-5-0/) and its
-observations remain available as historical references.
+[migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/migration.md)
+before changing an existing setup. Preserve working environments, memory sources
+and writer settings while validating the journeys you need.
 
+## Choose a development path
 
-## Prepare for 1.6.0 separately
-
-Harness 1.6.0 is the next planned release after published 1.5.1 and requires
-Python 3.12 or later. It is not published by this Help update; there is no new
-1.6.0 Help route. Keep using the versioned 1.5.1 guide for the published package.
-For candidate work, use the release owner's exact artifact/source identity and a
-separate environment. Preserve your working runtime, registry, saved tasks,
-memory sources, writer and host hooks until the replacement is validated.
-
-The [source installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
-keeps published installation distinct from candidate preparation.
+- [**Goal-driven development**](/harness/help/get-started/#choose-goal-driven-development):
+  Start with an outcome and agree on the scope and checks.
+- [**Spec-driven development**](/harness/help/get-started/#choose-spec-driven-development):
+  Develop and review requirements before accepting a supported plan.
 
 ## Choose a task
 

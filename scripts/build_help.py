@@ -219,6 +219,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
     manifest = json.loads((content / "manifest.json").read_text(encoding="utf-8"))
     topics = manifest["topics"]
     current_topics = [topic for topic in topics if not topic.get("archived")]
+    current_topics.sort(key=lambda topic: topic["slug"] != "get-started")
     slugs = [topic["slug"] for topic in topics]
     if len(slugs) != len(set(slugs)) or any(
         not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug) for slug in slugs
@@ -249,6 +250,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
         for t in topics
     )
     assets = {f"assets/{name}": content / "assets" / name for name in GOAL_ASSETS}
+    assets["code-copy.js"] = content / "code-copy.js"
     assets.update(
         {
             f"goals/{name}": content / "goals" / name
@@ -318,6 +320,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             + (' aria-current="page"' if t["slug"] == slug else "")
             + f'>{html.escape(t["title"])}</a></li>'
             for t in current_topics
+            if t["slug"] != "get-started"
         )
         version = topic.get("version", manifest["version"])
         published = topic.get("status", manifest["status"]) == "published"
@@ -353,6 +356,19 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 else "noindex,follow"
             ),
             navigation=navigation,
+            start_navigation="".join(
+                f'<a class="help-featured-nav" href="{HELP_ROOT}get-started/"'
+                + (' aria-current="page"' if slug == "get-started" else "")
+                + f'>{html.escape(t["title"])}'
+                + (
+                    " · Preparation"
+                    if t.get("status", manifest["status"]) != "published"
+                    else ""
+                )
+                + "</a>"
+                for t in current_topics
+                if t["slug"] == "get-started"
+            ),
             body=body,
             page_intro=(
                 ""
@@ -370,9 +386,12 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 else ""
             ),
             scripts=(
-                '<script type="module" src="/harness/help/goals/controls.js"></script>'
-                if is_goals
-                else ""
+                '<script type="module" src="/harness/help/code-copy.js"></script>'
+                + (
+                    '<script type="module" src="/harness/help/goals/controls.js"></script>'
+                    if is_goals
+                    else ""
+                )
             ),
             canonical=f'https://smartaimemory.com{HELP_ROOT}{slug + "/" if slug else ""}',
             breadcrumb=html.escape(title),

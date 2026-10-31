@@ -9,7 +9,8 @@ later; no 1.5.2 release is planned. These instructions announce no public artifa
 1. Read the local README and [draft release notes](release-notes-1.6.0.md).
 2. Check [installation](installation.md), [migration and rollback](migration.md),
    and the [workflow selector](supported-journeys.md) against the work you need.
-3. Have Patrick review the README before final source/version freeze.
+3. Record the README review against the selected source and package metadata
+   before final source/version freeze.
 
 The existing Help manifest and 14 registered pages remain published 1.5.1 guidance.
 Their history, screenshots and release record retain their version identities.
@@ -40,11 +41,12 @@ Windows evidence route; full POSIX parity is not claimed.
 
 ## Finish the release gates
 
-- Synchronize the stale runtime NOTICE and machine-readable deprecation register
-  to the selected 1.6.0 notice/earliest 1.7.0 removal schedule. Legacy behavior stays
-  accepted; no removal is implemented here.
-- Complete main-event CI review and Patrick's README review.
-- Select final 1.6.0 package/plugin metadata and freeze the exact source.
+- Confirm the runtime NOTICE and machine-readable deprecation register agree on
+  notice 1.6.0/earliest removal 1.7.0. Legacy behavior remains accepted.
+- Complete the README and affected-documentation review, then freeze the exact
+  source and 1.6.0 package/plugin metadata.
+- Review main-event CI for the final merged release SHA. Earlier PR or main
+  results do not qualify a later artifact.
 - Build and qualify the exact new artifacts, then perform the nonpublishing rehearsal.
 - Obtain the separate publication decision. Never reuse published 1.5.1; Patrick
   controls the PyPI gate.

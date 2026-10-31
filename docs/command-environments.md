@@ -102,9 +102,7 @@ The selected first notice release is **1.6.0**, with removal **no earlier than
 1.7.0**. There is no 1.5.2 release in the selected sequence. Legacy configurations
 remain accepted in this implementation; adding the policy is opt-in.
 
-**Release integration follow-up:** the current `NOTICE` constant and
-[documented machine-readable register](deprecations.json) still contain the
-superseded 1.5.2/1.6.0 schedule. The emitted warning therefore does not yet match
-this selected release plan. Synchronize the source constant and register through
-their authorized owner before release; editing prose alone does not repair them.
-Keep the original compatibility behavior and the at least one minor release rule.
+The runtime `NOTICE` constant and
+[machine-readable register](deprecations.json) use the same 1.6.0/1.7.0 schedule.
+This metadata correction preserves the original compatibility behavior and the
+at least one minor release rule.

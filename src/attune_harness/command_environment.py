@@ -16,7 +16,7 @@ _NAME = re.compile(r'[A-Za-z_][A-Za-z0-9_]{0,127}')
 NOTICE = {
     'surface': 'command participant configuration',
     'form': 'omitted environment policy (full parent inheritance)',
-    'since': '1.5.2', 'removal': '1.6.0',
+    'since': '1.6.0', 'removal': '1.7.0',
     'replacement': 'Configure environment with profile command-env-v1 and explicit passthrough names.',
 }
 LEGACY_MESSAGE = ('This command uses legacy full parent environment inheritance. '
