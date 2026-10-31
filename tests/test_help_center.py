@@ -61,7 +61,7 @@ def test_all_current_routes_and_contents_links_work(
             assert "Archived guide:" in text
         elif page.parent.name == "get-started":
             assert (
-                "Guidance target: <strong>Harness 1.6.0</strong> preparation"
+                "published <strong>Harness 1.6.0</strong>"
                 in text
             )
             assert "Get started with Harness 1.6.0" in text
@@ -77,9 +77,8 @@ def test_all_current_routes_and_contents_links_work(
             ) in text
         assert (
             '<meta name="robots" content="index,follow">'
-            if status == "published"
-            and page.parent.name
-            not in {"1-5-0", "1-5-1-preparation", "get-started"}
+            if (status == "published" or page.parent.name == "get-started")
+            and page.parent.name not in {"1-5-0", "1-5-1-preparation"}
             else '<meta name="robots" content="noindex,follow">'
         ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
@@ -128,7 +127,13 @@ def test_160_start_is_prominent_without_relabeling_published_guides(tmp_path):
     root = tmp_path / "site/harness/help"
     start = (root / "get-started/index.html").read_text()
     assert '<h1>Get started with Harness 1.6.0</h1>' in start
-    assert '<meta name="robots" content="noindex,follow">' in start
+    assert '<meta name="robots" content="index,follow">' in start
+    assert "Preparation" not in start
+    assert 'href="/harness/help/release-1.6.0.json"' in start
+    assert "Current release: Harness <strong>1.6.0</strong>" in start
+    assert (root / "release-1.6.0.json").read_bytes() == (
+        ROOT / "help/release-1.6.0.json"
+    ).read_bytes()
     assert "uv tool install --python 3.12 'attune-harness==1.6.0'" in unescape(
         start
     )

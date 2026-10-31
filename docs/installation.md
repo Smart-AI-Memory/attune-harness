@@ -1,15 +1,15 @@
 # Install Harness and get started
 
-Updated on October 30, 2026.
+Updated on October 31, 2026.
 
-**1.6.0 preparation — unreleased.** The next release requires Python 3.12 or
-later. Published 1.5.1 remains available with its original Python 3.10 minimum.
-Use Python 3.12 for the examples below. No 1.5.2 release is planned.
+**Harness 1.6.0 is published and requires Python 3.12 or later.** Version 1.5.1
+remains available with its original Python 3.10 minimum. Use Python 3.12 for
+the examples below.
 
 Start with the base package; Redis and Voyage are optional. Keep a working runtime
 and its saved records while checking a replacement. Read the [migration guide](migration.md)
-and [1.6.0 preparation guide](release-preparation-1.6.0.md). No 1.6.0 index
-package, tag, release URL or Help deployment is announced here.
+and the [1.6.0 release record](../help/release-1.6.0.json). The
+[preparation guide](release-preparation-1.6.0.md) retains its historical limits.
 
 ## Install the runtime
 
@@ -17,7 +17,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is n
 already available. Then explicitly select Python 3.12 when installing Harness:
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.5.1'
+uv tool install --python 3.12 'attune-harness==1.6.0'
 ```
 
 uv manages an isolated environment and exposes the `attune-harness` command;
@@ -33,7 +33,7 @@ uv tool list --show-paths
 attune-harness --help
 ```
 
-Expect `attune-harness v1.5.1` in the tool list and the command help with
+Expect `attune-harness v1.6.0` in the tool list and the command help with
 `init`, `plan`, `build`, `review`, `fix`, `test`, `status` and `resume`.
 If the command is not found, follow uv's reported executable-directory guidance
 or its tool guide before continuing.
@@ -46,8 +46,8 @@ Changing the tool version does not qualify migration of older saved work.
 
 You can also install the base package with
 [pipx](https://pipx.pypa.io/latest/reference/cli.html) with
-`pipx install --python python3.12 'attune-harness==1.5.1'`, or use
-`python -m pip install 'attune-harness==1.5.1'` in a dedicated Python 3.12
+`pipx install --python python3.12 'attune-harness==1.6.0'`, or use
+`python -m pip install 'attune-harness==1.6.0'` in a dedicated Python 3.12
 virtual environment. On Windows, select the full path to your Python 3.12
 executable for pipx's `--python` option.
 
@@ -77,7 +77,7 @@ $harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
 & $harnessPython -m attune_harness
 ```
 
-Expect Python `3.12.x`, package version `1.5.1`, then a JSON receipt with status `verified` for the
+Expect Python `3.12.x`, package version `1.6.0`, then a JSON receipt with status `verified` for the
 deterministic arithmetic example. If the listed environment is at a different
 path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
 Substitute that same interpreter for `python` in module and fixture commands
@@ -92,10 +92,10 @@ Select a profile when installing or deliberately updating your managed tool:
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.5.1'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.5.1'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.5.1'` |
-| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.5.1'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.6.0'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.6.0'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.6.0'` |
+| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.6.0'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
@@ -130,7 +130,7 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 ## Verify your installation
 
 Compare the selected version and interpreter with the checks above. The
-[published 1.5.1 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+[published 1.6.0 release record](../help/release-1.6.0.json)
 identifies its source and distributions. Use the [workflow guide](supported-journeys.md)
 to choose a task and check its requirements. Earlier observations remain in the
 [documentation archive](https://smartaimemory.com/harness/help/archive/).
@@ -139,11 +139,9 @@ to choose a task and check its requirements. Earlier observations remain in the
 
 ## Upgrade and keep a rollback path
 
-Inspect the current runtime and retain its environment. **After 1.6.0 is
-published**, check it in a separate environment before switching your host
-integration. The following index-install example is for use after publication;
-before then, use the exact reviewed local wheel described in the next section.
-Choose an unused path:
+Inspect the current runtime and retain its environment. Check 1.6.0 in a
+separate environment before switching your host integration. Choose an unused
+path for the published index installation:
 
 ```sh
 python3.12 -m venv .venv-harness-160
@@ -156,7 +154,7 @@ On Windows, use `py -3.12 -m venv .venv-harness-160` and
 `.venv-harness-160\Scripts\python.exe` for each Python command. Expect version
 `1.6.0` and a JSON receipt with a verified arithmetic result. Check the workflow
 you need before switching a working installation. A pinned `uv tool upgrade`
-respects its existing version pin; after publication, select 1.6.0 explicitly
+respects its existing version pin; select 1.6.0 explicitly
 when updating the managed tool.
 
 Keep the old runtime and its original participant registry for rollback.

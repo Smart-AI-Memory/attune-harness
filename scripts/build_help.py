@@ -235,6 +235,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             "verification.json",
             "preparation.json",
             "release-1.5.1.json",
+            "release-1.6.0.json",
         )
     ]
     pages = [
@@ -339,12 +340,13 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 f"Archived guide: these instructions describe {original}. "
                 "Keep their original evidence limits. "
                 '<a href="/harness/help/archive/">Browse the archive</a> or '
-                '<a href="/harness/help/1-5-1/">use current 1.5.1 guidance</a>.'
+                '<a href="/harness/help/get-started/">use current 1.6.0 guidance</a>.'
             )
         rendered[slug] = template.substitute(
             title=html.escape(title),
             goal=html.escape(goal),
             site_version=html.escape(manifest["version"]),
+            published_version=html.escape(manifest["published_version"]),
             site_notice=(
                 "Published release."
                 if manifest["status"] == "published"
@@ -411,6 +413,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 "verification.json",
                 "preparation.json",
                 "release-1.5.1.json",
+                "release-1.6.0.json",
             )
         },
     )
@@ -424,6 +427,9 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
     (root / "preparation.json").write_bytes((content / "preparation.json").read_bytes())
     (root / "release-1.5.1.json").write_bytes(
         (content / "release-1.5.1.json").read_bytes()
+    )
+    (root / "release-1.6.0.json").write_bytes(
+        (content / "release-1.6.0.json").read_bytes()
     )
     for name, source in assets.items():
         target = root / name

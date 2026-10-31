@@ -2,10 +2,9 @@
 
 Harness 1.6.0 requires Python 3.12 or later. Install
 [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed, then use
-its managed environment for the CLI. The package-index commands on this page
-require 1.6.0 to be published. For an unpublished candidate, use the release
-owner's exact qualified wheel in a separate environment and keep your working
-installation.
+its managed environment for the CLI. Version 1.6.0 is available on
+[PyPI](https://pypi.org/project/attune-harness/1.6.0/). Keep your working
+installation and saved records while checking a replacement.
 
 Run these commands in Bash on macOS/Linux or PowerShell on Windows.
 
@@ -21,7 +20,7 @@ and **`resume`**. If the command is unavailable, follow uv's instructions for
 adding its executable directory to your path.
 
 The Python runtime and your assistant's integration are separate installations.
-Attune AI is not required. The [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/installation.md)
+Attune AI is not required. The [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
 covers pipx, virtual environments and selecting the same interpreter for module
 commands.
 
@@ -40,20 +39,20 @@ This checks the demonstration and does not measure model quality.
 
 Use the same command in Windows PowerShell. No separate environment activation
 or PowerShell activation-policy change is needed. For an alternative setup that
-selects Python directly, follow the [interpreter instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/installation.md#select-python-for-module-and-fixture-examples).
+selects Python directly, follow the [interpreter instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#select-python-for-module-and-fixture-examples).
 
 ## Connect your assistant
 
 Connect the host you use for your project to the runtime you checked above:
 
-- **Codex:** Follow the reviewed [standalone skill instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#codex-skill)
-  or [source plugin guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/codex-plugin.md).
+- **Codex:** Follow the reviewed [standalone skill instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#codex-skill)
+  or [source plugin guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/codex-plugin.md).
   After setup, invoke `$attune-harness` and describe your goal.
-- **Claude Code:** Read the existing [plugin setup instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/README.md#claude-code).
-  The published marketplace remains pinned to 1.5.1. Installing the 1.6.0 Python
-  runtime does not update that plugin; verify the selected integration before
-  using it for 1.6.0 work.
-- **Other integrations or direct commands:** Use the reviewed [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md)
+- **Claude Code:** Read the existing [plugin setup instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/README.md#claude-code).
+  The marketplace selects the 1.6.0 skills pinned to the released source.
+  Installing the Python runtime does not update an existing host plugin;
+  refresh the marketplace and verify your selected plugin's version and source.
+- **Other integrations or direct commands:** Use the reviewed [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md)
   for participant configuration, MCP setup and command arguments. Run
   `attune-harness COMMAND --help` for the selected command.
 
@@ -62,7 +61,7 @@ configured participants and authorize paid calls separately.
 
 ## Choose goal-driven development
 
-Read [How people and AI work together](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#how-people-and-ai-work-together)
+Read [How people and AI work together](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#how-people-and-ai-work-together)
 to understand your decisions and the AI's role in carrying out accepted work.
 
 Start with a small outcome in a project you know. For example, ask your assistant:
@@ -90,15 +89,15 @@ wording; copying a prompt or preparing a draft does not dispatch a model,
 approve the spec or start implementation.
 
 A reviewed spec still needs a supported, accepted plan before a build can start.
-The [plan-and-build guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#plan-and-build)
+The [plan-and-build guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#plan-and-build)
 explains that procedure. If you already have a supported Markdown plan, follow
-the [plan import instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/cli-guide.md#importing-a-plan-from-another-project)
+the [plan import instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#importing-a-plan-from-another-project)
 and review the imported scope before acceptance.
 
 ## Keep a working setup
 
 Preserve your working runtime, registry, saved tasks, memory sources, writer and
-host hooks while validating a replacement. The [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/migration.md)
+host hooks while validating a replacement. The [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
 explains how to assess an existing setup.
 
 The [1.5.1 guide](/harness/help/1-5-1/) and [release record](/harness/help/release-1.5.1.json)
@@ -108,9 +107,14 @@ and their original limits.
 
 ## Sources and verification
 
-These instructions use the reviewed [1.6.0 preparation source](https://github.com/Smart-AI-Memory/attune-harness/tree/e56a09829583993b0ec747886b93cc807650308b).
-Source links identify that revision; they do not assert publication or new
-platform qualification. The linked workflow guides retain their stated 1.5.1
-identities and historical observations. Repository examples named by those
-walkthroughs are not included in the wheel; use each walkthrough's stated source
-and fixtures.
+The [1.6.0 release record](/harness/help/release-1.6.0.json) identifies the
+[released source](https://github.com/Smart-AI-Memory/attune-harness/tree/af2159516a67172cc8f2a1ff62213296b1b67112),
+wheel and source archive, hosted qualification and verified index installation.
+Setup links use maintained repository documentation; the release record retains
+the immutable software identity. Each linked historical walkthrough keeps its
+stated version, source and observation limits. Repository fixtures are not
+included in the wheel.
+
+Qualification checks do not establish model quality or consistent recall across
+fresh, resumed or delegated agents. The new writer and cross-agent recall
+experiments remain separate from this release.
