@@ -54,6 +54,20 @@ class FileObservation:
         return self.entry['size']
 
 
+class BatchObservation(dict):
+    """Private checkpoint over a live batch; captured bytes remain ordinary items."""
+
+    def __init__(self, items, verify, evidence):
+        super().__init__(items)
+        self._verify = verify
+        self.evidence = deepcopy(evidence)
+
+    def verify(self):
+        if self._verify is None:
+            raise ValueError('Source batch observation is closed')
+        self._verify()
+
+
 @dataclass(frozen=True)
 class _State:
     entry: dict
@@ -390,20 +404,30 @@ class ReadRoot:
 
     @contextmanager
     def observe(self, names=(), *, select=None, optional=(), max_files,
-                max_bytes, max_total_bytes):
+                max_bytes, max_total_bytes, required_dirs=(), descend=None,
+                checkpoint=False, max_present_files=None):
         """Bind discovery, bytes and optional absence through a consumer operation.
 
         select discovers files recursively, rejecting every reparse point while
         ignoring unselected regular files, including their hardlinks/streams.
         max_files counts selected/required files; optional root leaves count only
-        toward bytes. Complete namespaces and retained file/ancestor evidence are
+        toward bytes. max_present_files additionally bounds all present files,
+        including optional leaves. Complete retained namespace/ancestor evidence is
         checked before yielding and again after the consumer finishes using bytes.
+        Optional directory admission/pruning keeps explicit selectors bounded.
+        checkpoint returns a live private verification/evidence handle; defaults
+        preserve the existing mapping-only reader behavior.
         """
         if (type(max_files) is not int or max_files < 0
                 or type(max_bytes) is not int or not 0 <= max_bytes < 0xFFFFFFFF
                 or type(max_total_bytes) is not int or max_total_bytes < 0
                 or isinstance(names, (str, bytes))
                 or (select is not None and not callable(select))
+                or (descend is not None and not callable(descend))
+                or type(checkpoint) is not bool
+                or (max_present_files is not None and
+                    (type(max_present_files) is not int or max_present_files < 0))
+                or isinstance(required_dirs, (str, bytes))
                 or isinstance(optional, (str, bytes))):
             raise ValueError('Batch read requires independent file and byte bounds')
         requests = set()
@@ -420,8 +444,11 @@ class ReadRoot:
             if '/' in name or name in optional_names or name in requests:
                 raise ValueError('Optional sources require distinct root leaves')
             optional_names.add(name)
+        required_directories = set(required_dirs)
+        for name in required_directories:
+            relative(name)
         prefixes = set()
-        for name in requests:
+        for name in requests | required_directories:
             parts = name.split('/')
             for at in range(1, len(parts)):
                 prefixes.add('/'.join(parts[:at]))
@@ -430,7 +457,7 @@ class ReadRoot:
         with self._lock, _final_reads(), ExitStack() as handles:
             self._check_root()
             directories, bindings, selected, absent = {}, [], {}, set()
-            if requests or optional_names or select is not None:
+            if requests or required_directories or optional_names or select is not None:
                 directories[''] = (self._root, *self._listing(self._root))
 
             def admit(prefix, name, *, directory):
@@ -494,6 +521,10 @@ class ReadRoot:
                 self._check_root()
 
             try:
+                for name in sorted(required_directories):
+                    prefix = ''
+                    for part in name.split('/'):
+                        prefix = directory(prefix, part)
                 for name in sorted(requests):
                     required(name)
                 if select is not None:
@@ -508,7 +539,8 @@ class ReadRoot:
                             if kind == 'directory':
                                 if select(path):
                                     raise ValueError('Selected source must be a regular file')
-                                pending.append(directory(prefix, name))
+                                if descend is None or descend(path):
+                                    pending.append(directory(prefix, name))
                             elif select(path):
                                 if path not in requests and len(requests) >= max_files:
                                     raise SourceLimitExceeded('files', 'Corpus exceeds selected source file limit')
@@ -523,6 +555,8 @@ class ReadRoot:
                 verify()
                 raise
 
+            if max_present_files is not None and len(selected) > max_present_files:
+                raise SourceLimitExceeded('files', 'Batch exceeds all present source file limit')
             if any(not 0 <= state.size <= max_bytes for _, state in selected.values()):
                 raise SourceLimitExceeded('file', 'File exceeds source per-file byte budget')
             if sum(state.size for _, state in selected.values()) > max_total_bytes:
@@ -539,8 +573,21 @@ class ReadRoot:
                 result[name] = FileObservation(data, entry, deepcopy(before.times))
             result.update({name: None for name in absent})
             verify()
-            yield result
-            verify()
+            packet = None
+            if checkpoint:
+                evidence = {
+                    'ancestors': [deepcopy(state.entry) for _, _, state in self._bindings],
+                    'directories': {name: dict(entry=deepcopy(state.entry), times=deepcopy(state.times),
+                                               names=list(names))
+                                    for name, (_, state, names, _) in directories.items()},
+                }
+                packet = BatchObservation(result, verify, evidence)
+            try:
+                yield packet if packet is not None else result
+                verify()
+            finally:
+                if packet is not None:
+                    packet._verify = None
 
     def check_path(self, name):
         """Check a pointer's exact components without reading its content.
