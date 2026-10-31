@@ -24,8 +24,8 @@ saved tasks. Check the needed workflow before changing the runtime your host use
 Command environment filtering is opt-in. Without an `environment` policy, command
 participants retain full parent inheritance during the 1.6.0 notice window.
 The selected release schedule starts the notice in 1.6.0, with removal no earlier
-than 1.7.0. The current runtime and machine-readable register still emit the
-stale 1.5.2/1.6.0 schedule; source synchronization is required before release.
+than 1.7.0. The runtime NOTICE and machine-readable register use that same
+1.6.0/1.7.0 schedule.
 This implementation continues to accept legacy configurations. Add named-variable grants through the participant
 configuration's existing preparation and acceptance flow. Version 1.5.1 rejects
 the new `environment` field, so keep its original registry separately.
