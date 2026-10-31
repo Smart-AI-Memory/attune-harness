@@ -14,6 +14,7 @@ Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 
 - [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
+- [Redis option requirements and verification](redis-option-verification.md): Existing recall, scratch and saved-mirror requirements; bounded disposable-service evidence for 1.6.0 preparation and remaining limits
 - [Move from Attune AI to Harness](migration.md): Current migration decisions, separate environments and Windows limits; historical 1.0.0 guidance retained
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
 - [Historical first repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits

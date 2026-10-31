@@ -153,8 +153,11 @@ they can override those bounds.
 missing connection setting or index failure leaves an already committed save
 readable and reports pending work. Reindex retries current records and withdrawn
 record removals. Reads use files, so stale Redis entries cannot resurrect a
-withdrawn record. This feature has injected adapter tests; no live Redis service
-qualification is claimed.
+withdrawn record. Injected adapter tests cover failure boundaries. The
+[October 30 disposable-service verification](redis-option-verification.md) also
+checked real saved-record upsert, revision, withdrawal, pending indexing during an
+outage, and reindex with exact mirror readback after a clean restart. That bounded
+macOS check does not establish general live-service, crash or Windows qualification.
 
 ## Storage limits and supported profile
 

@@ -101,6 +101,10 @@ Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
 experimental native memory. For that separate profile and its platform limits,
 see the [CLI guide](cli-guide.md) and [qualification guide](qualification.md).
+The Redis profile installs the pinned Python client. Check the
+[operation-specific Redis requirements](cli-guide.md#redis-requirements): hydrated
+recall needs Search, Functions and existing indexed records; scratch and the saved
+mirror have different requirements.
 
 ## Connect the agent and open a first task
 
