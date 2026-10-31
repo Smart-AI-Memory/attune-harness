@@ -13,7 +13,7 @@ You can inspect what happened and use that record when you continue later.
 **Harness 1.6.0 · Python 3.12 or later**
 
 Version 1.6.0 is published on [PyPI](https://pypi.org/project/attune-harness/1.6.0/).
-The [release record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/help/release-1.6.0.json) identifies its source, artifacts and
+The [release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json) identifies its source, artifacts and
 verification limits. Source guides follow maintained repository documentation;
 each Help Center guide states its own version and publication status.
 
@@ -378,7 +378,7 @@ or its effects are uncertain, inspect the recovery guidance before trying it
 again. Trusted commands should run in a dedicated checkout; process supervision
 is not an operating-system sandbox.
 
-The [published 1.6.0 release record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/help/release-1.6.0.json) identifies its
+The [published 1.6.0 release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json) identifies its
 source, distributions and verification boundaries. The [qualification guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/qualification.md)
 explains what the software checks cover.
 
