@@ -50,7 +50,7 @@
       "goal": "Install Harness, verify a local result, connect your assistant and choose your first goal.",
       "kind": "task",
       "version": "1.6.0",
-      "status": "preparation",
+      "status": "published",
       "legacy_anchors": {
         "set-up-an-isolated-environment": "install-harness-160",
         "choose-the-next-outcome": "choose-goal-driven-development",
@@ -140,5 +140,5 @@
     "prepare-for-160-separately": "check-the-version-before-starting"
   },
   "status": "published",
-  "published_version": "1.5.1"
+  "published_version": "1.6.0"
 }

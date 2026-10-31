@@ -8,16 +8,16 @@ build**, or choose planning, implementation, verification or saved work.
 
 [Get started with Harness 1.6.0](/harness/help/get-started/) to install the
 runtime, check a local result, connect your assistant and choose goal-driven or
-spec-driven development. The 1.6.0 guide is staged for the release; its installation
-section explains the publication requirement and candidate alternative.
+spec-driven development. Its [release record](/harness/help/release-1.6.0.json)
+identifies the published artifacts and their verification limits.
 
-Harness 1.5.1 remains the published release. Its [installation guide](/harness/help/1-5-1/)
-and [release record](/harness/help/release-1.5.1.json) retain their original source,
-artifacts and limits. Other guides keep their stated versions while 1.6.0
-onboarding is prepared.
+The historical [1.5.1 installation guide](/harness/help/1-5-1/) and
+[release record](/harness/help/release-1.5.1.json) retain their original source,
+artifacts and limits. Other guides keep their stated versions; they are not
+relabeled as 1.6.0 observations.
 
 Attune AI is deprecated. Use Harness for new work and read the
-[migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/e56a09829583993b0ec747886b93cc807650308b/docs/migration.md)
+[migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
 before changing an existing setup. Preserve working environments, memory sources
 and writer settings while validating the journeys you need.
 

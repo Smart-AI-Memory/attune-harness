@@ -7,7 +7,7 @@
   },
   "metadata": {
     "description": "Attune Harness for Claude Code: plan, build, review, fix and test with checks fixed in advance and saved evidence.",
-    "version": "1.5.1"
+    "version": "1.6.0"
   },
   "plugins": [
     {
@@ -16,10 +16,10 @@
       "source": {
         "source": "github",
         "repo": "Smart-AI-Memory/attune-harness",
-        "ref": "v1.5.1",
-        "sha": "ebb5b03b8a4398325df7ddabd28c08186451452e"
+        "ref": "v1.6.0",
+        "sha": "af2159516a67172cc8f2a1ff62213296b1b67112"
       },
-      "version": "1.5.1",
+      "version": "1.6.0",
       "author": {
         "name": "Smart AI Memory",
         "email": "admin@smartaimemory.com"

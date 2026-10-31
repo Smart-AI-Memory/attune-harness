@@ -1,6 +1,6 @@
 # Move from Attune AI to Harness
 
-Updated on October 30, 2026, for unreleased Harness 1.6.0 preparation.
+Updated on October 31, 2026, for published Harness 1.6.0.
 
 Harness 1.6.0 requires Python 3.12 or later. Follow the
 [installation guide](installation.md) to select an isolated runtime and check a
@@ -15,9 +15,9 @@ observations.
 
 ## Upgrade to 1.6.0
 
-When published, install Harness 1.6.0 in a separate Python 3.12 environment.
-Before then, use only the exact local candidate identified by the release owner;
-published 1.5.1 remains available. No 1.5.2 release is planned. Keep the previous
+Install published Harness 1.6.0 in a separate Python 3.12 environment. The
+[release record](../help/release-1.6.0.json) identifies its source and artifacts;
+published 1.5.1 remains available for rollback. Keep the previous
 runtime, original participant registry, memory sources, writer/hook settings and
 saved tasks. Check the needed workflow before changing the runtime your host uses.
 

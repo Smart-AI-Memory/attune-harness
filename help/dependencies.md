@@ -1,8 +1,9 @@
 ## What the inspected base install supplies
 
-Current development source requires Python 3.12 or later. Published 1.5.1
-retains its Python 3.10 minimum and uses the dependency pins below. The next release for that minimum is 1.6.0, currently unreleased. No 1.5.2
-release is planned. You do not need to install attune-forms separately for the Harness forms
+[Get started with published 1.6.0](/harness/help/get-started/) for current
+installation guidance; it requires Python 3.12 or later. This reference retains
+its 1.5.1 dependency and walkthrough identities. Published 1.5.1 retains its
+Python 3.10 minimum. You do not need to install attune-forms separately for the Harness forms
 journey.
 
 | Package | Pinned version | Used for |
@@ -59,10 +60,15 @@ Published 1.5.1 uses release commit `ebb5b03b8a4398325df7ddabd28c08186451452e`. 
 
 Historical 1.5.0 sources: [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/CHANGELOG.md), [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md), [dependency metadata](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/pyproject.toml) and [1.5.0 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/release-notes-1.5.0.md). Published-release command checks and their limits are recorded in the [verification record](/harness/help/verification.json). Historical candidate observations retain their original artifact identity.
 
-## 1.6.0 preparation limits
+## 1.6.0 Redis requirements and limits
 
-The source profile continues to pin redis-py 5.3.1. Live Redis+Search verification for the final 1.6.0 artifact remains incomplete; offline checks or a package pin do
-not establish a live service pass. Preserve existing service data and hooks.
+Published 1.6.0 pins redis-py 5.3.1. The retained disposable-service check used
+Redis 7.4.7 with Search 2.10.20 on macOS arm64 and Python 3.12.2. All 77
+assertions passed against the exact published wheel, including unavailable-service
+behavior and clean-restart persistence. Read the
+[1.6.0 release record](/harness/help/release-1.6.0.json) for the artifact and
+check boundaries. This does not qualify a Windows Redis service, TLS/ACL success,
+abrupt-crash recovery or automatic session recall. Preserve service data and hooks.
 The optional generation reader consumes compatible existing state. It does not
 create a writer, publish generations or deliver automatic fresh-session recall.
 A new Redis projection writer and RedisVL adoption remain outside 1.6.0.
