@@ -146,9 +146,8 @@ def bind_request(admission, raw):
     with _ISSUANCE_LOCK:
         issued = _issued(admission)
         observed = hashlib.sha256(raw.encode()).hexdigest()
-        if issued['wire_digest'] not in (None, observed):
+        if issued['wire_digest'] != observed:
             raise ValueError('API request differs from the owner-bound request')
-        issued['wire_digest'] = observed
 
 
 def claim(admission, model, raw):
@@ -157,8 +156,19 @@ def claim(admission, model, raw):
         issued = _issued(admission, model)
         if issued['used']:
             raise ValueError('Funding admission was already consumed')
+        if issued['store']._lease_token is not issued['lease']:
+            raise ValueError('Funding admission no longer has its owner lease')
         if issued['wire_digest'] != hashlib.sha256(raw.encode()).hexdigest():
             raise ValueError('API request differs from the owner-bound request')
+        saved = _read_owner(issued['store'], issued['projection'])
+        event = next((item for item in saved['events']
+                      if item['event_id'] == issued['event']['event_id']), None)
+        receipt = {**issued['receipt'], 'dispatch_outcome': 'unknown'}
+        if (saved.get('status') != 'running' or event is None
+                or event['phase'] != 'dispatching' or event['state'] != 'pending'
+                or any(event.get(key) != value for key, value in issued['event'].items())
+                or event.get('funding') != receipt):
+            raise ValueError('API request requires its persisted owner dispatch boundary')
         issued['used'] = True
         admission.used = True
         return dict(issued['environment'])
@@ -171,15 +181,82 @@ def release(admission):
         admission.environment = {}
 
 
-def admit(cursor, event, config, participant, attempt_id, *, allow_api_spend=False):
+def _owner_store(cursor):
+    from .review_store import RunStore
+    from .task_policies import TaskExecutionStore
+    from .work_runtime import PlanningStore
+    from .work_build import BuildStore
+    store = cursor.store
+    projections = {TaskExecutionStore: 'execution', PlanningStore: 'planning', BuildStore: 'build'}
+    if type(store) is RunStore:
+        base, projection = store, None
+    elif type(store) in projections and type(store.store) is RunStore:
+        base, projection = store.store, projections[type(store)]
+    else:
+        raise ValueError('Funding admission requires a supported persisted owner')
+    if base._lease_token is None:
+        raise ValueError('Funding admission requires an active owner lease')
+    return base, projection, base._lease_token
+
+
+def _read_owner(store, projection):
+    from .review_store import read_record
+    saved = read_record(store.directory)
+    if projection is not None:
+        from .task_contract import read_task
+        saved = read_task(store.directory)[projection]
+    elif saved.get('profile') == 'model-consultation-v1':
+        from .consultation import load
+        saved = load(store.directory)
+    elif saved.get('operation') == 'review':
+        from .recovery import load_recovery
+        saved = load_recovery(store, saved['checkpoint_digest'])
+    else:
+        raise ValueError('Funding admission has no supported owner contract')
+    return saved
+
+
+def _validate_persisted_owner(cursor, store, projection):
+    from .review_store import PersistenceError
+    from .review_contract import digest
+    saved = _read_owner(store, projection)
+    if saved.get('status') != 'running' or digest(saved) != digest(cursor.record):
+        raise PersistenceError('Funding admission differs from its persisted owner')
+
+
+def _owner_request(record, event, config, participant, attempt_id, turn):
+    from .review_contract import digest
+    if not isinstance(turn, dict) or digest(turn) != event.get('request_digest'):
+        raise ValueError('Funding request differs from its owner event')
+    if event['kind'] == 'consultation_turn':
+        from .consultation import model_attempt
+        if turn['participant'] != participant or turn['attempt_id'] != attempt_id:
+            raise ValueError('Funding request differs from its owner assignment')
+        return model_attempt(config, turn).request()
+    if event['kind'] == 'participant_turn':
+        from .review_participants import model_attempt
+        if (turn['participant_id'] != participant or turn['turn_id'] != attempt_id
+                or any(event.get(key) != turn[key]
+                       for key in ('participant_id', 'attempt_id', 'turn_id'))):
+            raise ValueError('Funding request differs from its owner assignment')
+        request = {'schema_version': 1, 'request_digest': digest(turn), 'turn': turn}
+        return model_attempt(config, request, record.get('profile') or 'harness-review-v1').request()
+    raise ValueError('Funding admission requires a model operation')
+
+
+def admit(cursor, event, config, participant, attempt_id, *, turn, allow_api_spend=False):
     """Save the owner's admission before its prepared event can dispatch."""
     from .review_contract import digest
     from .recovery import RecoveryCursor
     if type(cursor) is not RecoveryCursor or cursor.events.get(event['operation_key']) is not event:
         raise ValueError('Funding admission requires the owning recovery cursor')
+    store, projection, lease = _owner_store(cursor)
+    if event['phase'] != 'prepared' or event['state'] != 'pending':
+        raise ValueError('Funding admission requires a prepared owner operation')
     if type(allow_api_spend) is not bool:
         raise ValueError('API spending authority must be a boolean')
     validate(config['adapter'], config['funding'])
+    raw = _owner_request(cursor.record, event, config, participant, attempt_id, turn)
     report = inspect(config['adapter'], config['funding']) if config['adapter'] != 'openai' else {
         'requested': 'api', 'observed': 'unknown', 'state': 'unknown',
         'basis': 'api_authority_required', 'cli_version': None}
@@ -202,13 +279,21 @@ def admit(cursor, event, config, participant, attempt_id, *, allow_api_spend=Fal
         history.append(copy.deepcopy(event['funding']))
     event['funding'] = receipt
     cursor.store.save(cursor.record)
+    _validate_persisted_owner(cursor, store, projection)
     if report['state'] != 'matched':
         raise FundingRefused(receipt)
     admission = _Admission(environment, receipt, config.get('model') or config['identity']['model'])
     admission.durable = True
     with _ISSUANCE_LOCK:
+        import hashlib
         _ISSUED[admission] = {'model': admission.model, 'receipt': copy.deepcopy(receipt),
-                              'environment': dict(environment), 'used': False, 'wire_digest': None}
+                              'environment': dict(environment), 'used': False,
+                              'wire_digest': hashlib.sha256(raw.encode()).hexdigest(),
+                              'store': store, 'lease': lease, 'projection': projection,
+                              'event': {key: copy.deepcopy(value) for key, value in event.items()
+                                        if key in ('event_id', 'operation_key', 'kind', 'effect_class',
+                                                   'attempts', 'request_digest', 'participant_id',
+                                                   'attempt_id', 'turn_id')}}
     return admission
 
 

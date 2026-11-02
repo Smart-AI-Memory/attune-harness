@@ -42,8 +42,13 @@ def _redact(value, key, depth=0):
     if isinstance(value, list):
         return [_redact(item, key, depth + 1) for item in value]
     if isinstance(value, dict):
-        return {name.replace(key, '[redacted]'): _redact(item, key, depth + 1)
-                for name, item in value.items()}
+        clean = {}
+        for name, item in value.items():
+            selected = _redact(name, key, depth + 1)
+            if selected in clean:
+                raise ValueError('API redaction would create duplicate fields')
+            clean[selected] = _redact(item, key, depth + 1)
+        return clean
     return value
 
 

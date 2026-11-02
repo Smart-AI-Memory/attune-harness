@@ -197,18 +197,8 @@ def native_answer_schema(snapshot):
                         'line': {'type': 'integer'}, 'detail': {'type': 'string'}}}}}}
 
 
-def dispatch(config, turn, cwd, cancel, *, admission=None):
-    """Existing JSON/native process boundary; preserve diagnostics on failed turns."""
-    if admission is not None and config['adapter'] != 'openai':
-        raise ValueError('Funding configuration changed before dispatch')
-    if config['adapter'] == 'openai':
-        from .participant_funding import _Admission, validate_evidence
-        if not isinstance(admission, _Admission) or not admission.durable:
-            raise ValueError('OpenAI execution requires the owner\'s persisted admission')
-        validate_evidence(admission.receipt, config=config, participant=turn['participant'],
-                          attempt_id=turn['attempt_id'], request_digest=digest(turn))
-    else:
-        require_admission({'participant': config})
+def model_attempt(config, turn):
+    """Build the complete owner request for both admission and dispatch."""
     if ('native_response_profile' in turn
             and turn['native_response_profile'] != NATIVE_RESPONSE_PROFILE):
         raise ValueError('Unsupported native consultation response profile')
@@ -222,7 +212,25 @@ def dispatch(config, turn, cwd, cancel, *, admission=None):
         + reply_instruction +
         'Each evidence item has path, one-based line, detail. Verdict is approve, request_changes, '
         'recommend, disagree or uncertain. No answer grants authority.',))
-    attempt = Attempt(task, turn['attempt_id'], turn['contract_digest'], turn['participant'], 'reviewer', PROFILE)
+    return Attempt(task, turn['attempt_id'], turn['contract_digest'], turn['participant'], 'reviewer', PROFILE)
+
+
+def dispatch(config, turn, cwd, cancel, *, admission=None):
+    """Existing JSON/native process boundary; preserve diagnostics on failed turns."""
+    if admission is not None and config['adapter'] != 'openai':
+        raise ValueError('Funding configuration changed before dispatch')
+    if config['adapter'] == 'openai':
+        from .participant_funding import validate_evidence
+        if admission is None:
+            raise ValueError('OpenAI execution requires the owner\'s persisted admission')
+        validate_evidence(admission.receipt, config=config, participant=turn['participant'],
+                          attempt_id=turn['attempt_id'], request_digest=digest(turn))
+    else:
+        require_admission({'participant': config})
+    attempt = model_attempt(config, turn)
+    task = attempt.task
+    structured = (turn.get('native_response_profile') == NATIVE_RESPONSE_PROFILE
+                  and config['adapter'] in ('claude', 'codex'))
     if admission is not None:
         from .participant_funding import bind_request
         bind_request(admission, attempt.request())
@@ -436,6 +444,7 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, allow_
                                 from .participant_funding import admit
                                 funding_admissions[turn['attempt_id']] = admit(
                                     cursor, event, participant, name, turn['attempt_id'],
+                                    turn=turn,
                                     allow_api_spend=allow_api_spend)
                         replayed, event = cursor.begin(f'{round_number}:{name}', 'consultation_turn',
                             **({'admission': admission} if admission is not None else {}),

@@ -341,6 +341,8 @@ def validate_events(record, *, kinds=('preflight_verification', 'initial_retriev
             previous = reconciliation.get("previous") if isinstance(reconciliation, dict) else None
             if not isinstance(previous, dict):
                 raise ValueError("Invalid operation reconciliation history")
+            from .participant_funding import validate_owned_event
+            validate_owned_event(record, previous)
             has_previous_origin = "runtime_origin" in previous
             previous_origin = previous.get("runtime_origin")
             if policy is None:

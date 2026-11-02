@@ -86,6 +86,14 @@ authority. Receipts bind configuration, participant, turn and attempt number.
 Model replies cannot construct admission or control metadata. Host evidence steps
 use no model admission. A failed admission write cannot activate the exchange.
 
+Admission requires the real owner's active writer lease and a validated saved
+contract. Shared pure request builders bind the complete model request, including
+task constraints, before dispatch. At the single-use claim, the adapter reads the
+saved owner again and requires the same pending, dispatching event and matched
+funding evidence. Public capability fields, arbitrary stores and later request
+binding cannot create spending authority. This is a library boundary, not a
+sandbox against Python code that can replace private internals.
+
 Process output is bounded and stripped from saved direct-API process diagnostics;
 only validated answer, response identity, normalized usage and allowlisted failure
 evidence survive. Credential echoes are redacted before parsing or error creation.

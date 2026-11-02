@@ -230,6 +230,7 @@ def dispatch_assignment(cursor, key, turn, config, exchange, outcome, *, allow_a
             if not isinstance(exchange, ReviewExchange):
                 raise FeatureUnavailable('Explicit funding requires the shared owned exchange')
             exchange._funding_admission = admit(cursor, event, config, participant_id, turn['turn_id'],
+                                                turn=turn,
                                                 allow_api_spend=allow_api_spend)
     def dispatch():
         try:
