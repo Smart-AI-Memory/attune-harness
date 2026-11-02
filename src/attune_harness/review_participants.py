@@ -7,6 +7,7 @@ from pathlib import Path
 from . import Task
 from .adapters import Attempt, JsonParticipant
 from .native import NativeExchange
+from .participant_funding import require_admission
 from .process import invoke
 from .command_environment import invocation as command_environment
 from .review_contract import bounded_text, canonical, digest, fields, parse_json, versioned
@@ -95,6 +96,7 @@ class ReviewExchange:
     """One selected transport, never a fallback. Each call is a fresh invocation."""
 
     def __init__(self, configuration: dict, cwd: Path, *, profile='harness-review-v1', protected_roots=()):
+        require_admission({'participant': configuration})
         if profile not in ('harness-review-v1', 'feature-planning-v1', 'feature-build-v1'):
             raise ValueError('Unsupported participant operation profile')
         self.configuration = configuration
@@ -104,6 +106,7 @@ class ReviewExchange:
         self.protected_roots = tuple(protected_roots)
 
     def __call__(self, raw: str) -> str:
+        require_admission({'participant': self.configuration})
         request = parse_json(raw, 524_288)
         turn = request['turn']
         config = self.configuration

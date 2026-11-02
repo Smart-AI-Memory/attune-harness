@@ -10,6 +10,7 @@ from threading import Event, Lock
 from . import Output, _text
 from .adapters import _unique_object
 from .process import ProcessResult, invoke
+from .participant_funding import UNSET, require_admission
 
 TEXT_SCHEMA = {
     "type": "object", "properties": {"text": {"type": "string"}},
@@ -161,9 +162,12 @@ class NativeExchange:
         model: str | None = None, reasoning_effort: str | None = None, timeout: float = 60,
         skills_context_tokens: int | None = None,
         isolate_user_config: bool = False,
+        funding=UNSET,
         max_output_bytes: int = 1_048_576, cancel: Event | None = None,
         runner=invoke,
     ) -> None:
+        if funding is not UNSET:
+            require_admission({'participant': {'adapter': provider, 'funding': funding}})
         if provider not in ("claude", "codex"):
             raise ValueError("provider must be claude or codex")
         if type(isolate_user_config) is not bool or (isolate_user_config and provider != 'codex'):

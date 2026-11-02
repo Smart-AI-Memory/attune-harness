@@ -78,6 +78,10 @@ def validate_registry(value: dict, path: Path, *, minimum_participants: int = 2)
         if adapter in ('claude', 'codex'):
             keys |= {'model', 'timeout'}
             bounded_text(item.get('model'), 'model', 200)
+        if 'funding' in item:
+            from .participant_funding import validate as validate_funding
+            validate_funding(adapter, item['funding'])
+            keys.add('funding')
         if adapter == 'codex' and 'reasoning_effort' in item:
             from .native import validate_reasoning_effort
             keys.add('reasoning_effort')

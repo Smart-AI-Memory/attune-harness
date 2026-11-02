@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .features import FeatureUnavailable, read_text, report
+from .participant_funding import require_admission
 from .retrieval import retrieve_sources
 from .verification import verify_document
 from .review_contract import accept_request, bounded_text, canonical, digest, fields, load_registry
@@ -51,6 +52,7 @@ def prepare_review(request_path: Path, config_path: Path) -> dict:
 
 
 def authorize_external(selected, allow_external):
+    require_admission(selected)
     if not allow_external and any(item['adapter'] != 'deterministic' for item in selected.values()):
         raise FeatureUnavailable('External participant execution requires --allow-external; review the selected models, commands and call budgets first')
 

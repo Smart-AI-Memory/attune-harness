@@ -8,6 +8,7 @@ from pathlib import Path
 from .consultation import configuration
 from .command_environment import absolute_executable
 from .process import invoke
+from .participant_funding import require_admission
 from .review_contract import parse_json
 
 
@@ -64,6 +65,7 @@ def preflight(config):
     operation = 'source-review' if isinstance(config, dict) and isinstance(
         config.get('participants'), dict) and len(config['participants']) == 1 else 'roundtable'
     configuration(config, operation)
+    require_admission(config['participants'])
     reports = {}
     for name, seat in config['participants'].items():
         adapter = seat['adapter']

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Accept optional native participant funding configuration for Claude/Codex
+  subscriptions and Codex API use. Preserve legacy configurations. Explicitly
+  funded participants currently refuse execution before provider dispatch until
+  invocation-level route enforcement is qualified; configuration support alone
+  does not enable a funding route or authorize API spending.
+
 ## 1.6.0
 
 Requires Python 3.12 or later. Legacy command configurations remain accepted;
