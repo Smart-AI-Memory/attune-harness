@@ -83,6 +83,11 @@ stays prepared, records `not_started` and needs no uncertain-call reconciliation
 Timeouts or lost results after launch remain uncertain under the existing
 recovery rules. Missing usage never triggers an automatic retry.
 
+Recovered API reply files are refused before reading or saving their contents:
+the original credential-redaction context is not retained after an uncertain
+attempt. Keep that uncertain record or cancel it explicitly. Any new work needs
+new acceptance and spending authority. Legacy recovered-reply behavior is unchanged.
+
 The flag authorizes calls within the accepted operation budgets. It is not a
 dollar-limit engine and does not authorize spending outside the operator's
 allocation. Each request uses the official Responses endpoint, disables response

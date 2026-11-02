@@ -350,7 +350,7 @@ def validate_events(record, *, kinds=('preflight_verification', 'initial_retriev
                 _validate_runtime_origin(previous_origin, previous.get("attempts"))
     for reconciliation in record.get('recovery', {}).get('reconciliations', []):
         previous = reconciliation.get('previous') if isinstance(reconciliation, dict) else None
-        if isinstance(previous, dict) and 'funding' in previous:
+        if isinstance(previous, dict):
             from .participant_funding import validate_owned_event
             validate_owned_event(record, previous)
 
@@ -406,13 +406,11 @@ def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, re
     if reply_file is not None:
         if event['kind'] != 'participant_turn':
             raise ValueError('Recovered replies apply only to participant turns')
+        if 'funding' in event:
+            raise ValueError('Recovered API reply files are unsupported without the original credential-redaction context; retain the uncertain record or cancel it explicitly')
         raw = read_text(reply_file, 65_536)
         action = decode_action(raw, event['request_digest'])
         event.update(state='completed', phase='completed', result={'action': action, 'identity': None})
-        if 'funding' in event:
-            event['result']['identity'] = {'adapter': 'operator-recovered',
-                'funding': copy.deepcopy(event['funding']), 'usage': None,
-                'authenticated_model': False}
         evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
                     'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
                     'identity': 'operator-supplied; not authenticated'}

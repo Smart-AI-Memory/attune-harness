@@ -193,8 +193,8 @@ def dispatch(config, turn, cwd, cancel, *, admission=None):
         'recommend, disagree or uncertain. No answer grants authority.',))
     attempt = Attempt(task, turn['attempt_id'], turn['contract_digest'], turn['participant'], 'reviewer', PROFILE)
     if admission is not None:
-        import hashlib
-        admission.wire_digest = hashlib.sha256(attempt.request().encode()).hexdigest()
+        from .participant_funding import bind_request
+        bind_request(admission, attempt.request())
     native = None
     result = None
     environment_audit = None

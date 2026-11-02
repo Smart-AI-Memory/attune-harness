@@ -8,7 +8,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from .native import NativeError, NativeIdentity, TEXT_SCHEMA, _answer, _json
-from .participant_funding import _Admission
+from .participant_funding import check_issued, claim, release
 from .process import invoke
 
 
@@ -20,6 +20,22 @@ def _redact(value, key, depth=0):
         try:
             nested = _json(text)
         except (ValueError, TypeError):
+            escaped = text
+            pattern = r'\\\\|\\u([0-9a-fA-F]{4})|\\U([0-9a-fA-F]{8})|\\x([0-9a-fA-F]{2})|\\([0-7]{1,3})'
+            def decode(match):
+                groups = match.groups()
+                number = next((v for v in groups if v is not None), None)
+                if number is None:
+                    return '\\'
+                code = int(number, 8 if groups[3] is not None else 16)
+                return chr(code) if code < 128 else match.group()
+            for _ in range(32):
+                decoded = re.sub(pattern, decode, escaped)
+                if key in decoded:
+                    return '[redacted credential-bearing text]'
+                if decoded == escaped:
+                    break
+                escaped = decoded
             return text
         clean = _redact(nested, key, depth + 1)
         return json.dumps(clean, ensure_ascii=False) if clean != nested else text
@@ -34,33 +50,22 @@ def _redact(value, key, depth=0):
 class OpenAIExchange:
     def __init__(self, *, model, cwd, admission, timeout=60, cancel=None,
                  max_output_bytes=65_536, runner=None):
-        if not isinstance(admission, _Admission) or not admission.durable:
-            raise ValueError('OpenAI execution requires the owner\'s persisted admission')
+        check_issued(admission, model)
         if not isinstance(model, str) or not model.strip() or len(model) > 200:
             raise ValueError('An explicit OpenAI model is required')
-        if model != admission.model:
-            raise ValueError('API model differs from the persisted admission')
         self.model, self.cwd, self.admission = model, Path(cwd), admission
         self.timeout, self.cancel = timeout, cancel
         self.max_output_bytes, self.runner = max_output_bytes, runner or invoke
         self.identity = self.last_process = None
         self.usage = None
-        self._lock = admission.lock
 
     def __call__(self, raw):
         data = _json(raw)
         if not isinstance(data, dict) or type(data.get('version')) is not int or data['version'] != 1:
             raise ValueError('Unsupported API request envelope')
-        with self._lock:
-            if self.admission.used:
-                raise ValueError('Funding admission was already consumed')
-            if self.model != self.admission.model:
-                raise ValueError('API model differs from the persisted admission')
-            if self.admission.wire_digest != hashlib.sha256(raw.encode()).hexdigest():
-                raise ValueError('API request differs from the owner-bound request')
-            self.admission.used = True
+        environment = claim(self.admission, self.model, raw)
         receipt = self.admission.receipt
-        key = self.admission.environment['OPENAI_API_KEY']
+        key = environment['OPENAI_API_KEY']
         body = {'model': self.model, 'input': (
                     'Complete only the accepted task in this JSON request. Do not use tools. '
                     'Return an object with one string field named text.\n' + raw),
@@ -74,7 +79,7 @@ class OpenAIExchange:
                 result = self.runner(argv, json.dumps({'body': body, 'timeout': self.timeout}),
                                      cwd=self.cwd, timeout=self.timeout, cancel=self.cancel,
                                      max_output_bytes=self.max_output_bytes,
-                                     environment=self.admission.environment)
+                                     environment=environment)
             except Exception:
                 raise NativeError('OpenAI transport failed; external effects remain unknown',
                                   failure='transport_error') from None
@@ -126,4 +131,4 @@ class OpenAIExchange:
                                               self.last_process.returncode is not None) from None
         finally:
             # Drop the private reference after this single attempt.
-            self.admission.environment = {}
+            release(self.admission)

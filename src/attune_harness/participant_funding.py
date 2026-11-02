@@ -3,11 +3,14 @@
 import re
 import os
 import copy
-from threading import Lock
+from threading import RLock
+from weakref import WeakKeyDictionary
 
 from .features import FeatureUnavailable
 
 UNSET = object()
+_ISSUED = WeakKeyDictionary()
+_ISSUANCE_LOCK = RLock()
 
 
 def validate(adapter, policy):
@@ -118,12 +121,62 @@ class _Admission:
         self.used = False
         self.model = model
         self.wire_digest = None
-        self.lock = Lock()
+
+
+def _issued(admission, model=None):
+    if type(admission) is not _Admission or admission not in _ISSUED:
+        raise ValueError('OpenAI execution requires the owner\'s persisted admission')
+    issued = _ISSUED[admission]
+    receipt = admission.receipt
+    if (model is not None and model != issued['model']) or not isinstance(receipt, dict) or (
+            set(receipt) != set(issued['receipt'])) or any(
+            receipt[key] != value for key, value in issued['receipt'].items()
+            if key != 'dispatch_outcome'):
+        raise ValueError('API invocation differs from its owner admission')
+    return issued
+
+
+def check_issued(admission, model):
+    with _ISSUANCE_LOCK:
+        _issued(admission, model)
+
+
+def bind_request(admission, raw):
+    import hashlib
+    with _ISSUANCE_LOCK:
+        issued = _issued(admission)
+        observed = hashlib.sha256(raw.encode()).hexdigest()
+        if issued['wire_digest'] not in (None, observed):
+            raise ValueError('API request differs from the owner-bound request')
+        issued['wire_digest'] = observed
+
+
+def claim(admission, model, raw):
+    import hashlib
+    with _ISSUANCE_LOCK:
+        issued = _issued(admission, model)
+        if issued['used']:
+            raise ValueError('Funding admission was already consumed')
+        if issued['wire_digest'] != hashlib.sha256(raw.encode()).hexdigest():
+            raise ValueError('API request differs from the owner-bound request')
+        issued['used'] = True
+        admission.used = True
+        return dict(issued['environment'])
+
+
+def release(admission):
+    with _ISSUANCE_LOCK:
+        if admission in _ISSUED:
+            _ISSUED[admission]['environment'] = {}
+        admission.environment = {}
 
 
 def admit(cursor, event, config, participant, attempt_id, *, allow_api_spend=False):
     """Save the owner's admission before its prepared event can dispatch."""
     from .review_contract import digest
+    from .recovery import RecoveryCursor
+    if type(cursor) is not RecoveryCursor or cursor.events.get(event['operation_key']) is not event:
+        raise ValueError('Funding admission requires the owning recovery cursor')
     if type(allow_api_spend) is not bool:
         raise ValueError('API spending authority must be a boolean')
     validate(config['adapter'], config['funding'])
@@ -153,6 +206,9 @@ def admit(cursor, event, config, participant, attempt_id, *, allow_api_spend=Fal
         raise FundingRefused(receipt)
     admission = _Admission(environment, receipt, config.get('model') or config['identity']['model'])
     admission.durable = True
+    with _ISSUANCE_LOCK:
+        _ISSUED[admission] = {'model': admission.model, 'receipt': copy.deepcopy(receipt),
+                              'environment': dict(environment), 'used': False, 'wire_digest': None}
     return admission
 
 
@@ -236,10 +292,10 @@ def validate_event(event, config, participant, attempt_id):
 def validate_owned_event(record, event):
     from .review_contract import digest
     config = None
-    if event['kind'] == 'participant_turn' and 'registry' in record:
+    if event.get('kind') == 'participant_turn' and 'registry' in record:
         participant, attempt = event.get('participant_id'), event.get('turn_id')
         config = record['registry']['participants'].get(participant)
-    elif event['kind'] == 'consultation_turn' and 'contract' in record:
+    elif event.get('kind') == 'consultation_turn' and 'contract' in record:
         participant = event['operation_key'].partition(':')[2]
         config = record['contract']['configuration']['participants'].get(participant)
         attempt = digest([record['contract_digest'], event['operation_key']])

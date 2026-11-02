@@ -204,8 +204,8 @@ class ReviewExchange:
         attempt = Attempt(task, turn['turn_id'], turn['requirement_revision'],
                           turn['participant_id'], role, self.profile)
         if adapter == 'openai':
-            import hashlib
-            self._funding_admission.wire_digest = hashlib.sha256(attempt.request().encode()).hexdigest()
+            from .participant_funding import bind_request
+            bind_request(self._funding_admission, attempt.request())
         try:
             text = JsonParticipant(attempt, exchange).run(task).text
             if planning or building:
