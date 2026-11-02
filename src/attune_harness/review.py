@@ -10,7 +10,7 @@ from .verification import verify_document
 from .review_contract import accept_request, bounded_text, canonical, digest, fields, load_registry
 from .review_participants import PROTOCOL, ReviewExchange, decode_action
 from .review_store import PersistenceError, RunStore
-from .recovery import engine_profile, RecoveryCursor, ReviewPaused, UnresolvedOperation, snapshot_sources, stable_id
+from .recovery import engine_profile, RecoveryCursor, ReviewPaused, UnresolvedOperation, snapshot_sources, stable_id, validate_max_operations
 
 
 def prepare_review(request_path: Path, config_path: Path) -> dict:
@@ -57,6 +57,7 @@ def authorize_external(selected, allow_external):
 
 def review(request_path: Path, config_path: Path, run_directory: Path, *,
            allow_external: bool = False, allow_provider: bool = False, max_operations=None, exchange_factory=ReviewExchange) -> dict:
+    validate_max_operations(max_operations)
     prepared = prepare_review(request_path, config_path)
     accepted, registry, answers = (prepared[name] for name in ('accepted', 'registry', 'answers'))
     authorize_external({role: registry['participants'][answers[role]] for role in ('lead', 'reviewer')}, allow_external)
