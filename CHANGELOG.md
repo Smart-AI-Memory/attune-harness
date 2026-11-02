@@ -7,6 +7,9 @@
   funded participants currently refuse execution before provider dispatch until
   invocation-level route enforcement is qualified; configuration support alone
   does not enable a funding route or authorize API spending.
+- Return a structured unsupported funding report and exit 2 from consultation
+  **`check`** for explicitly funded seats. Skip their unqualified authentication
+  probes; inspection remains advisory and starts no model call.
 
 ## 1.6.0
 

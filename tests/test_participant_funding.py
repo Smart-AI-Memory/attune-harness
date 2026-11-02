@@ -2,11 +2,13 @@
 # qualify: platform
 
 import copy
+import json
 from threading import Event
 
 import pytest
 
 from attune_harness import consultation, consultation_preflight
+from attune_harness.cli import main
 from attune_harness.features import FeatureUnavailable
 from attune_harness.native import NativeExchange
 from attune_harness.participant_funding import validate
@@ -99,12 +101,48 @@ def test_claude_api_is_outside_the_selected_scope():
 
 
 @pytest.mark.parametrize('adapter,policy', POLICIES)
-def test_preflight_refuses_before_any_version_or_status_probe(monkeypatch, adapter, policy):
+def test_preflight_reports_unsupported_before_any_version_or_status_probe(monkeypatch, adapter, policy):
     def forbidden(*args, **kwargs):
         pytest.fail('unqualified funding reached a CLI probe')
     monkeypatch.setattr(consultation_preflight, '_probe', forbidden)
-    with pytest.raises(FeatureUnavailable, match='not admitted'):
-        consultation_preflight.preflight(configuration(adapter, policy))
+    result = consultation_preflight.preflight(configuration(adapter, policy))['peer']
+    assert result['funding'] == {
+        'requested': policy['mode'], 'observed': 'unknown', 'state': 'unsupported',
+        'basis': 'unqualified_invocation', 'cli_version': None}
+    assert result['state'] in ('unknown', 'missing_binary')
+    assert 'Execution remains refused' in result['fix']
+
+
+@pytest.mark.parametrize('operation', ['source-review', 'roundtable'])
+@pytest.mark.parametrize('adapter,policy', POLICIES)
+def test_funded_check_is_inspection_only_and_exits_two(
+        tmp_path, monkeypatch, capsys, operation, adapter, policy):
+    config = configuration(adapter, policy)
+    if operation == 'roundtable':
+        other = copy.deepcopy(config['participants']['peer'])
+        other['identity']['model'] = 'other-explicit-fixture'
+        config['participants']['other'] = other
+    path = tmp_path / 'configuration.json'
+    path.write_text(json.dumps(config), encoding='utf-8')
+    original = path.read_bytes()
+    monkeypatch.setenv('OPENAI_API_KEY', 'secret-sentinel')
+    monkeypatch.setattr(consultation_preflight.shutil, 'which', lambda _: '/inert/native')
+    def forbidden(*args, **kwargs):
+        pytest.fail('unsupported funding inspection crossed a process or run boundary')
+    monkeypatch.setattr(consultation_preflight, '_probe', forbidden)
+    monkeypatch.setattr(consultation, 'prepare', forbidden)
+    monkeypatch.setattr(consultation, 'run', forbidden)
+    assert main([operation, 'check', '--config', str(path)]) == 2
+    output = capsys.readouterr().out
+    result = json.loads(output)
+    assert result['status'] == 'checked' and result['authority'] == 'inspection_only'
+    assert result['model_calls'] == 0 and 'secret-sentinel' not in output
+    for seat in result['participants'].values():
+        assert seat['state'] == 'unknown' and seat['version'] is None
+        assert seat['funding'] == {
+            'requested': policy['mode'], 'observed': 'unknown', 'state': 'unsupported',
+            'basis': 'unqualified_invocation', 'cli_version': None}
+    assert path.read_bytes() == original and list(tmp_path.iterdir()) == [path]
 
 
 @pytest.mark.parametrize('adapter,policy', POLICIES)

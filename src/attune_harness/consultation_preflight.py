@@ -8,7 +8,7 @@ from pathlib import Path
 from .consultation import configuration
 from .command_environment import absolute_executable
 from .process import invoke
-from .participant_funding import require_admission
+from .participant_funding import inspect as inspect_funding
 from .review_contract import parse_json
 
 
@@ -65,7 +65,6 @@ def preflight(config):
     operation = 'source-review' if isinstance(config, dict) and isinstance(
         config.get('participants'), dict) and len(config['participants']) == 1 else 'roundtable'
     configuration(config, operation)
-    require_admission(config['participants'])
     reports = {}
     for name, seat in config['participants'].items():
         adapter = seat['adapter']
@@ -78,6 +77,13 @@ def preflight(config):
             binary = shutil.which(executable)
         report = {'state': 'unknown', 'binary': binary, 'version': None, 'fix': ''}
         reports[name] = report
+        if 'funding' in seat:
+            report['funding'] = inspect_funding(adapter, seat['funding'])
+            report['fix'] = ('This route has no qualified invocation-level funding enforcement. '
+                             'Execution remains refused; inspection grants no execution authority.')
+            if binary is None:
+                report['state'] = 'missing_binary'
+            continue
         if binary is None:
             fix = ('Configure an existing absolute executable and rerun check.'
                    if adapter == 'command' and 'environment' in seat else

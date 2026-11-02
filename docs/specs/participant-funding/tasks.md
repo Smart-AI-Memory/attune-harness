@@ -65,6 +65,13 @@ make existing acceptance stale through the existing owners. Applies approved D1.
 
 ## T3: bind preflight, dispatch and API authorization
 
+Continuation: R2 inspection now returns a structured unsupported funding report
+in the existing checked envelope and exits 2 without probing explicitly funded
+seats. The focused funding/preflight/compatibility run passed 167 tests. This
+inspection change has not yet received full-suite, wheel or independent review.
+T3 activation and T4–T5 remain open. The [proposed T3 decision](t3-decision.md)
+describes the scope revision needed for a functional API route; it is unapproved.
+
 Activation prerequisite remains open: T1 did not establish a nonmutating
 invocation-level subscription binding or a safe complete effective-policy
 inspection for the conditional Codex API route. Do not replace that evidence with

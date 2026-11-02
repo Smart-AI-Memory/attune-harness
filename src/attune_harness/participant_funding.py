@@ -26,6 +26,14 @@ def validate(adapter, policy):
     return policy
 
 
+def inspect(adapter, policy):
+    """Report the qualified support boundary without probing auth or credentials."""
+    validate(adapter, policy)
+    return {'requested': policy['mode'], 'observed': 'unknown',
+            'state': 'unsupported', 'basis': 'unqualified_invocation',
+            'cli_version': None}
+
+
 def require_admission(selected):
     """Prevent accepted policy from silently falling through to inherited auth.
 

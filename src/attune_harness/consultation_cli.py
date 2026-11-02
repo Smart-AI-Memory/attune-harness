@@ -73,6 +73,7 @@ def execute(args):
                               'participants': participants, 'authority': 'inspection_only',
                               'model_calls': 0}, seats), indent=2, allow_nan=False))
             return 2 if any(seat['state'] in ('not_signed_in', 'missing_binary')
+                            or ('funding' in seat and seat['funding']['state'] != 'matched')
                             for seat in participants.values()) else 0
         elif args.consultation_action == 'prepare':
             config = parse_json(read_text(args.config, 131072))
