@@ -122,11 +122,19 @@ def test_real_pinned_client_url_precedence_and_preserved_connection_options(monk
 
 
 @pytest.mark.parametrize("operation", ["digest", "related"])
-def test_excessively_nested_json_refuses_cleanly(operation):
+def test_parser_recursion_error_is_reported_as_unavailable(monkeypatch, operation):
     mem, fake = memory()
-    depth = 2000  # Exceeds Python 3.12's C JSON parser nesting guard.
-    raw = '{"child":' * depth + '0' + '}' * depth
+    raw = '{"id":"n1"}'
+    failure = RecursionError("parser nesting exhausted")
+    seen = []
+    def exhausted(value, limit):
+        seen.append((value, limit))
+        raise failure
+    monkeypatch.setattr(memory_redis, "parse_json", exhausted)
     fake._function = lambda *args: [raw]
     call = mem.digest if operation == "digest" else lambda: mem.related("n1")
-    with pytest.raises(memory_redis.MemoryRedisUnavailable, match="malformed .* record"):
+    with pytest.raises(memory_redis.MemoryRedisUnavailable, match=f"malformed {operation} record") as caught:
         call()
+    assert seen == [(raw, memory_redis.REPLY_LIMIT)]
+    assert "check the hydrated records" in str(caught.value)
+    assert caught.value.__cause__ is failure
