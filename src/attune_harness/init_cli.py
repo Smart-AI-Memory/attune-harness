@@ -115,7 +115,8 @@ def add_command(sub):
     parser.add_argument('--rounds', type=int, choices=(1, 2),
                         help='With --for roundtable: one or two rounds (default: 1)')
     parser.add_argument('--timeout', type=float,
-                        help='With --for roundtable: timeout per seat, 1..300 seconds (default: 120)')
+                        help='With --for roundtable: timeout per seat (default: 120 seconds; '
+                             'Claude/Codex: 1..600, other adapters: 1..300)')
     parser.add_argument('--author', help='With --for roundtable: author identity from this seat '
                         '(default: the first selected seat)')
     parser.add_argument('--effort', dest='seat_efforts', action='append', metavar='SEAT=EFFORT',
