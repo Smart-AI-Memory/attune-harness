@@ -13,6 +13,13 @@ The optional `password_env` supplies a password when the URL has none. Use
 `rediss://` for a service that you have configured for TLS; TLS was not exercised
 in the check below. Keep connection details out of committed configuration.
 
+For legacy connections, remove `socket_timeout`, `socket_connect_timeout`,
+`decode_responses`, `encoding` and `encoding_errors` from URL query parameters.
+Harness owns these settings and refuses overrides. Database and TLS query options
+remain supported. Legacy retry and health-check options retain their existing
+behavior; socket waits do not establish a total-operation deadline. Native
+hydration connections retain their stricter database-only query contract.
+
 Legacy recall requires Redis Functions, Search hash indexes and the existing
 `attune:memory:*` projection, configured search index (default `idx:attune_memory`)
 and `attune_memory` function library. The library supplies `recall_digest` and
