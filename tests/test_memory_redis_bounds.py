@@ -138,3 +138,55 @@ def test_parser_recursion_error_is_reported_as_unavailable(monkeypatch, operatio
     assert seen == [(raw, memory_redis.REPLY_LIMIT)]
     assert "check the hydrated records" in str(caught.value)
     assert caught.value.__cause__ is failure
+
+
+@pytest.mark.parametrize("character", ["x", "é"])
+def test_cli_legacy_json_honors_exact_packet_boundary(tmp_path, capsys, monkeypatch, character):
+    from attune_harness.memory_cli import main
+
+    mem, fake = memory()
+    fields = fake.hashes[PREFIX + "node:n1"]
+    fields["description"] = ""
+    room = memory_redis.REPLY_LIMIT - len(canonical(mem.node("n1")).encode("utf-8"))
+    unit = len(canonical(character).encode("utf-8")) - 2
+    fields["description"] = character * (room // unit) + "x" * (room % unit)
+    expected = mem.node("n1")
+    config = tmp_path / "memory.json"
+    config.write_text(json.dumps({"redis": SETTINGS}), encoding="utf-8")
+    monkeypatch.setattr(memory_redis, "connect", lambda *args, **kwargs: mem)
+    args = ["--config", str(config), "redis", "node", "n1"]
+
+    assert main(args) == 0
+    output = capsys.readouterr().out
+    assert output.endswith("\n")
+    document = output[:-1]  # The final newline frames the JSON document.
+    assert len(document.encode("utf-8")) == memory_redis.REPLY_LIMIT
+    assert json.loads(document) == expected
+    assert document == canonical(expected)
+
+    fields["description"] += "x"
+    assert main(args) == 2
+    refused = json.loads(capsys.readouterr().out)
+    assert refused["status"] == "unavailable" and "items" not in refused
+    assert "1 MiB packet bound" in refused["detail"]
+
+
+@pytest.mark.parametrize("route", ["native-redis", "saved"])
+def test_other_memory_cli_output_format_is_preserved(tmp_path, capsys, monkeypatch, route):
+    from attune_harness import memory_saved_cli
+    from attune_harness.memory_cli import main
+
+    packet = {"status": "ok", "authority": {"backend": "redis"}, "items": [{"name": "é"}]}
+    config = tmp_path / "memory.json"
+    config.write_text("{}", encoding="utf-8")
+    if route == "native-redis":
+        packet["authority"]["projection"] = "harness-v1"
+        monkeypatch.setattr(memory_redis, "read", lambda *args, **kwargs: packet)
+        args = ["redis", "node", "n1"]
+    else:
+        monkeypatch.setattr(memory_saved_cli, "run", lambda args: packet)
+        scope = tmp_path / "scope.json"
+        scope.write_text('{"kind":"global"}', encoding="utf-8")
+        args = ["saved", "list", "--scope", str(scope)]
+    assert main(["--config", str(config), *args]) == 0
+    assert capsys.readouterr().out == json.dumps(packet, ensure_ascii=True, allow_nan=False) + "\n"

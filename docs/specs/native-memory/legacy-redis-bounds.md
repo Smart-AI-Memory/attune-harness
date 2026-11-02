@@ -44,3 +44,18 @@ nonempty value. URL decoding options replaced host defaults. Database 2 and
   would remove existing TLS configuration without an approved compatibility case.
 - Keep transport allocation and total-operation supervision separate: neither is
   established by packet accounting or existing socket timeout arguments.
+
+## CLI output consistency
+
+A later end-to-end probe found an accepted 1,048,576-byte canonical node packet
+printed as 1,048,613 JSON bytes because the CLI inserted spaces, plus one newline.
+The CLI must emit the same canonical representation for legacy Redis packets.
+The trailing newline is record framing outside the JSON packet. Native-generation
+presentation and validation, other memory routes and failure envelopes retain
+their existing behavior. Tightening the shared packet-size helper to count
+default-spaced JSON was rejected because it changes inherited native acceptance.
+
+Captured-output tests must prove exact-boundary JSON bytes, identical parsed
+content, one-byte overflow refusal and preserved native/non-Redis formatting.
+This closes the approved serialized-packet outcome; a library-only size check
+does not establish that the CLI honors it.
