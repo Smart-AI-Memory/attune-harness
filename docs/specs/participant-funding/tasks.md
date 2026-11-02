@@ -1,7 +1,8 @@
 # Implement participant funding after approval
 
 **Status: specification and D1–D3 approved on November 2, 2026; T1 discovery and
-T2 software verification complete. Independent source review and T3–T5 remain open.
+T2 software verification complete. The API-first revision is approved. T3/T4
+candidate implementation and T5 verification are in progress; final review remains open.
 Live provider calls remain subject to separately authorized spending scope.**
 November 2, 2026. Requirements and the complete review are in the
 [specification](README.md). Patrick directed execution to start with T1.
@@ -65,16 +66,17 @@ make existing acceptance stale through the existing owners. Applies approved D1.
 
 ## T3: bind preflight, dispatch and API authorization
 
-Continuation: R2 inspection now returns a structured unsupported funding report
-in the existing checked envelope and exits 2 without probing explicitly funded
-seats. The focused funding/preflight/compatibility run passed 167 tests. This
-inspection change has not yet received full-suite, wheel or independent review.
-T3 activation and T4–T5 remain open. The [proposed T3 decision](t3-decision.md)
-describes the scope revision needed for a functional API route; it is unapproved.
+The [API-first revision](t3-decision.md) is approved. The candidate adds a separately
+selected OpenAI API adapter, fresh spending flags, owner-bound admission before
+dispatch, refusal history, normalized usage and readable views. Targeted tests
+exercise actual consultation, assessment, planning and build owners with inert
+requests. Final full-suite, installed-wheel, hosted platform and source-review
+evidence remains to be recorded. This is not a claim of live account access.
 
-Activation prerequisite remains open: T1 did not establish a nonmutating
+Native activation prerequisite remains open: T1 did not establish a nonmutating
 invocation-level subscription binding or a safe complete effective-policy
-inspection for the conditional Codex API route. Do not replace that evidence with
+inspection for the conditional Codex API route. The approved revision uses a
+direct API adapter instead; it does not relax this native limit. Do not replace that evidence with
 a paid success trial or enable a validated policy through inherited auth.
 
 Scope: `consultation_preflight`, `native`, both shared native callers and their

@@ -27,6 +27,8 @@ def add_commands(sub):
         run.add_argument('--accept', required=True)
         run.add_argument('--allow-external', action='store_true')
         run.add_argument('--allow-native', action='store_true')
+        run.add_argument('--allow-api-spend', action='store_true',
+                         help='Authorize explicit API-funded calls for this execution only')
         run.add_argument('--max-operations', type=int)
         status = verbs.add_parser('status', help='Inspect retained evidence without dispatch')
         status.add_argument('run_dir', type=Path)
@@ -86,7 +88,8 @@ def execute(args):
             seats = selected_configurations(current)
             if args.consultation_action == 'run':
                 result = consultation.run(args.run_dir, args.accept, allow_external=args.allow_external,
-                                          allow_native=args.allow_native, max_operations=args.max_operations)
+                                          allow_native=args.allow_native, allow_api_spend=args.allow_api_spend,
+                                          max_operations=args.max_operations)
             elif args.consultation_action == 'abandon':
                 result = consultation.abandon(args.run_dir, args.checkpoint)
             elif args.consultation_action == 'reconcile':

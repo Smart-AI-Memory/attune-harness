@@ -68,6 +68,11 @@ def preflight(config):
     reports = {}
     for name, seat in config['participants'].items():
         adapter = seat['adapter']
+        if adapter == 'openai':
+            reports[name] = {'state': 'unknown', 'binary': None, 'version': None,
+                             'funding': inspect_funding(adapter, seat['funding']),
+                             'fix': 'Local route check only; server authentication, model access and balance remain unknown.'}
+            continue
         executable = seat['command'][0] if adapter == 'command' else (
             'agy' if adapter == 'antigravity' else adapter)
         if adapter == 'command' and 'environment' in seat:

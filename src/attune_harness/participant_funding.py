@@ -1,6 +1,9 @@
 """Explicit funding configuration; admission stays closed until qualified."""
 
 import re
+import os
+import copy
+from threading import Lock
 
 from .features import FeatureUnavailable
 
@@ -9,7 +12,7 @@ UNSET = object()
 
 def validate(adapter, policy):
     """Validate names only. Never read credentials or infer a legacy policy."""
-    if adapter not in ('claude', 'codex'):
+    if adapter not in ('claude', 'codex', 'openai'):
         raise ValueError('Funding is supported only for native Claude or Codex participants')
     if not isinstance(policy, dict) or policy.get('mode') not in ('subscription', 'api'):
         raise ValueError('Funding requires subscription or api mode')
@@ -18,31 +21,231 @@ def validate(adapter, policy):
     if set(policy) != expected:
         raise ValueError('Funding fields differ from the selected mode')
     if mode == 'api':
-        if adapter != 'codex':
+        if adapter not in ('codex', 'openai'):
             raise ValueError('Explicit API funding is supported only for Codex')
         name = policy['credential_env']
         if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}', name):
             raise ValueError('API funding requires a portable credential environment variable name')
+    if adapter == 'openai' and mode != 'api':
+        raise ValueError('The OpenAI adapter requires explicit API funding')
     return policy
 
 
 def inspect(adapter, policy):
     """Report the qualified support boundary without probing auth or credentials."""
     validate(adapter, policy)
+    if adapter == 'openai':
+        try:
+            _environment(policy)
+        except ValueError:
+            return {'requested': 'api', 'observed': 'unknown', 'state': 'missing_credential',
+                    'basis': 'missing_credential', 'cli_version': None}
+        return {'requested': 'api', 'observed': 'api', 'state': 'matched',
+                'basis': 'scoped_api_request', 'cli_version': None}
     return {'requested': policy['mode'], 'observed': 'unknown',
             'state': 'unsupported', 'basis': 'unqualified_invocation',
             'cli_version': None}
 
 
-def require_admission(selected):
+def require_admission(selected, allow_api_spend=False):
     """Prevent accepted policy from silently falling through to inherited auth.
 
     T1 did not qualify invocation-level selection. T2 accepts the configuration
     for inspection/binding only; no caller can authorize an unqualified route.
     """
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     for item in selected.values():
+        if item['adapter'] == 'openai' and 'funding' not in item:
+            raise ValueError('The OpenAI adapter requires explicit API funding')
         if 'funding' in item:
             validate(item['adapter'], item['funding'])
+            if item['adapter'] == 'openai':
+                # Actual spending is checked per pending model turn, after the
+                # owner has a prepared event in which to retain a refusal.
+                continue
             raise FeatureUnavailable(
                 'Explicit participant funding is not admitted: invocation-level route '
                 'enforcement is unqualified. No provider call was started.')
+
+
+def model_key(provider, model):
+    """Compare transport-independent identity without rewriting configuration."""
+    return ('openai' if provider in ('codex', 'openai') else provider, model)
+
+
+def distinct_api_models(configurations):
+    """A new API transport cannot create reviewer independence by itself."""
+    values = list(configurations)
+    if any(c['adapter'] == 'openai' for c in values):
+        keys = [model_key(c['adapter'], c.get('model')) for c in values if c.get('model')]
+        if len(keys) != len(set(keys)):
+            raise ValueError('OpenAI and Codex review seats require distinct configured models')
+
+
+def _environment(policy, source=None):
+    source = os.environ if source is None else source
+    name = policy['credential_env']
+    if os.name == 'nt':
+        names = [key for key in source if key.casefold() == name.casefold()]
+        if len(names) != 1:
+            raise ValueError('Selected API credential is unavailable or ambiguous')
+        name = names[0]
+    value = source.get(name)
+    if not isinstance(value, str) or re.fullmatch(r'[A-Za-z0-9_-]{20,8192}', value) is None:
+        raise ValueError('Selected API credential is missing or invalid')
+    # The worker needs no shell, native provider settings, proxy or SDK defaults.
+    environment = {key: source[key] for key in ('SystemRoot', 'WINDIR', 'TEMP', 'TMP') if key in source}
+    environment['OPENAI_API_KEY'] = value
+    return environment
+
+
+class FundingRefused(FeatureUnavailable):
+    def __init__(self, evidence):
+        detail = ('Explicit API funding requires --allow-api-spend for this execution (api_authority_required)'
+                  if evidence['basis'] == 'api_authority_required' else
+                  'Funding admission refused: ' + evidence['basis'])
+        super().__init__(detail + '. No provider call was started.')
+        self.funding = copy.deepcopy(evidence)
+
+
+class _Admission:
+    """Ephemeral capability; credentials and authority are never serialized."""
+    def __init__(self, environment, receipt, model=None):
+        self.environment = environment
+        self.receipt = receipt
+        self.durable = False
+        self.used = False
+        self.model = model
+        self.wire_digest = None
+        self.lock = Lock()
+
+
+def admit(cursor, event, config, participant, attempt_id, *, allow_api_spend=False):
+    """Save the owner's admission before its prepared event can dispatch."""
+    from .review_contract import digest
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
+    validate(config['adapter'], config['funding'])
+    report = inspect(config['adapter'], config['funding']) if config['adapter'] != 'openai' else {
+        'requested': 'api', 'observed': 'unknown', 'state': 'unknown',
+        'basis': 'api_authority_required', 'cli_version': None}
+    environment = None
+    if config['adapter'] == 'openai' and allow_api_spend is True:
+        try:
+            environment = _environment(config['funding'])
+            report.update(observed='api', state='matched', basis='scoped_api_request')
+        except ValueError:
+            report.update(state='missing_credential', basis='missing_credential')
+    receipt = {'profile': 'participant-funding-v1', **report,
+               'api_authorized': allow_api_spend is True, 'dispatch_outcome': 'not_started',
+               'participant_id': participant, 'configuration_digest': digest(config),
+               'attempt_id': attempt_id, 'attempt': event['attempts'],
+               'request_digest': event['request_digest']}
+    if 'funding' in event:
+        history = event.setdefault('funding_history', [])
+        if len(history) >= 16:
+            raise FeatureUnavailable('Funding admission history is full; retain this run and prepare new work')
+        history.append(copy.deepcopy(event['funding']))
+    event['funding'] = receipt
+    cursor.store.save(cursor.record)
+    if report['state'] != 'matched':
+        raise FundingRefused(receipt)
+    admission = _Admission(environment, receipt, config.get('model') or config['identity']['model'])
+    admission.durable = True
+    return admission
+
+
+def validate_evidence(value, *, config=None, participant=None, attempt_id=None,
+                      attempt=None, request_digest=None):
+    """Validate only optional new evidence; legacy records acquire no claims."""
+    from .review_contract import digest, fields
+    fields(value, ('profile', 'requested', 'observed', 'state', 'basis', 'cli_version',
+                   'api_authorized', 'dispatch_outcome', 'participant_id',
+                   'configuration_digest', 'attempt_id', 'attempt', 'request_digest'))
+    if (value['profile'] != 'participant-funding-v1'
+            or value['requested'] not in ('api', 'subscription')
+            or value['observed'] not in ('api', 'subscription', 'unknown')
+            or value['state'] not in ('matched', 'missing_credential', 'unsupported', 'unknown')
+            or value['basis'] not in ('scoped_api_request', 'missing_credential',
+                                     'api_authority_required', 'unqualified_invocation')
+            or value['cli_version'] is not None or type(value['api_authorized']) is not bool
+            or value['dispatch_outcome'] not in ('not_started', 'started', 'completed', 'unknown')
+            or type(value['attempt']) is not int or not 1 <= value['attempt'] <= 2
+            or any(not isinstance(value[k], str) or not 1 <= len(value[k]) <= 200
+                   for k in ('participant_id', 'attempt_id'))
+            or any(not isinstance(value[k], str) or not re.fullmatch('[0-9a-f]{64}', value[k])
+                   for k in ('configuration_digest', 'request_digest'))):
+        raise ValueError('Invalid funding evidence')
+    if value['state'] == 'matched' and (value['requested'] != 'api' or value['observed'] != 'api'
+            or value['basis'] != 'scoped_api_request' or not value['api_authorized']):
+        raise ValueError('Invalid matched funding evidence')
+    if value['state'] != 'matched' and value['dispatch_outcome'] != 'not_started':
+        raise ValueError('Refused funding cannot claim dispatch')
+    if value['state'] == 'missing_credential' and (value['requested'] != 'api'
+            or value['observed'] != 'unknown' or value['basis'] != 'missing_credential'
+            or not value['api_authorized']):
+        raise ValueError('Invalid missing-credential evidence')
+    if value['state'] == 'unknown' and (value['requested'] != 'api'
+            or value['observed'] != 'unknown' or value['basis'] != 'api_authority_required'
+            or value['api_authorized']):
+        raise ValueError('Invalid API-authority evidence')
+    if value['state'] == 'unsupported' and (value['observed'] != 'unknown'
+            or value['basis'] != 'unqualified_invocation'):
+        raise ValueError('Invalid unsupported funding evidence')
+    expected = {'participant_id': participant, 'attempt_id': attempt_id, 'attempt': attempt,
+                'request_digest': request_digest}
+    if config is not None:
+        expected.update(configuration_digest=digest(config), requested=config['funding']['mode'])
+    if any(value[key] != selected for key, selected in expected.items() if selected is not None):
+        raise ValueError('Funding evidence differs from the accepted participant or attempt')
+    return value
+
+
+def validate_event(event, config, participant, attempt_id):
+    """Bind optional funding and usage to the owner's reconstructed operation."""
+    result = event.get('result') or {}
+    identity = (result.get('identity') or {}) if isinstance(result, dict) else {}
+    if not isinstance(identity, dict):
+        if config.get('adapter') == 'openai':
+            raise ValueError('Invalid funded participant identity')
+        identity = {}
+    host_step = identity.get('adapter') == 'host-evidence'
+    if 'funding' not in config and ('funding' in identity or 'usage' in identity):
+        raise ValueError('Legacy identity invented funding or usage evidence')
+    expected = {'config': config, 'participant': participant, 'attempt_id': attempt_id,
+                'request_digest': event.get('request_digest')}
+    if 'funding' in event:
+        if 'funding' not in config:
+            raise ValueError('Legacy operation invented funding evidence')
+        validate_evidence(event['funding'], attempt=event['attempts'], **expected)
+        if event['phase'] == 'prepared' and event['funding']['dispatch_outcome'] != 'not_started':
+            raise ValueError('Prepared funding cannot claim a dispatch')
+        for previous in event.get('funding_history', []):
+            validate_evidence(previous, **expected)
+    elif config.get('adapter') == 'openai' and event['phase'] != 'prepared' and not host_step:
+        raise ValueError('API operation omitted funding admission')
+    if config.get('adapter') == 'openai' and event['phase'] == 'completed' and not host_step:
+        if identity.get('funding') != event.get('funding'):
+            raise ValueError('Result funding differs from its admission')
+        from .funding_usage import validate
+        if identity.get('usage') is not None:
+            validate(identity['usage'])
+
+
+def validate_owned_event(record, event):
+    from .review_contract import digest
+    config = None
+    if event['kind'] == 'participant_turn' and 'registry' in record:
+        participant, attempt = event.get('participant_id'), event.get('turn_id')
+        config = record['registry']['participants'].get(participant)
+    elif event['kind'] == 'consultation_turn' and 'contract' in record:
+        participant = event['operation_key'].partition(':')[2]
+        config = record['contract']['configuration']['participants'].get(participant)
+        attempt = digest([record['contract_digest'], event['operation_key']])
+    else:
+        return
+    if config is not None:
+        validate_event(event, config, participant, attempt)
+    elif 'funding' in event:
+        raise ValueError('Unknown funded participant')

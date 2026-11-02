@@ -108,7 +108,7 @@ def reconcile_turn(record, store, checkpoint, round_number, participant, *, retr
                 raise ValueError('Selected turn is not in the stopped round')
     previous = copy.deepcopy(event)
     event.update(state='pending', phase='prepared', attempts=2)
-    for name in ('result', 'error', 'effects', 'runtime_origin'):
+    for name in ('result', 'error', 'effects', 'runtime_origin', 'funding', 'funding_history'):
         event.pop(name, None)
     record['answers'] = [answer for answer in record['answers']
                          if (answer['round'], answer['participant']) != (round_number, participant)]

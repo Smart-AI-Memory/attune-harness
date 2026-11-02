@@ -96,7 +96,8 @@ class ReviewExchange:
     """One selected transport, never a fallback. Each call is a fresh invocation."""
 
     def __init__(self, configuration: dict, cwd: Path, *, profile='harness-review-v1', protected_roots=()):
-        require_admission({'participant': configuration})
+        if configuration['adapter'] != 'openai':
+            require_admission({'participant': configuration})
         if profile not in ('harness-review-v1', 'feature-planning-v1', 'feature-build-v1'):
             raise ValueError('Unsupported participant operation profile')
         self.configuration = configuration
@@ -104,9 +105,18 @@ class ReviewExchange:
         self.profile = profile
         self.last_identity = None
         self.protected_roots = tuple(protected_roots)
+        self._funding_admission = None
+        self._funding_configuration = digest(configuration) if 'funding' in configuration else None
+
+    def is_host_step(self, raw):
+        return (self.configuration.get('review_mode') == 'evidence'
+                and evidence_step(parse_json(raw, 524_288)) is not None)
 
     def __call__(self, raw: str) -> str:
-        require_admission({'participant': self.configuration})
+        if self._funding_configuration is not None and digest(self.configuration) != self._funding_configuration:
+            raise ValueError('Funding configuration changed before dispatch')
+        if self.configuration['adapter'] != 'openai':
+            require_admission({'participant': self.configuration})
         request = parse_json(raw, 524_288)
         turn = request['turn']
         config = self.configuration
@@ -173,15 +183,29 @@ class ReviewExchange:
             task = Task(turn['task_id'], raw, (
                 'Inside the required outer text string, encode the following JSON action response. ' + turn.get('protocol', PROTOCOL),
             ))
-        exchange = NativeExchange(adapter, cwd=self.cwd, model=config['model'],
+        if adapter == 'openai':
+            from .openai_exchange import OpenAIExchange
+            from .participant_funding import validate_evidence
+            if self._funding_admission is None:
+                raise ValueError('OpenAI execution requires the owner\'s persisted admission')
+            validate_evidence(self._funding_admission.receipt, config=config,
+                              participant=turn['participant_id'], attempt_id=turn['turn_id'],
+                              request_digest=digest(turn))
+            exchange = OpenAIExchange(model=config['model'], cwd=self.cwd,
+                                      admission=self._funding_admission, timeout=config['timeout'])
+        else:
+            exchange = NativeExchange(adapter, cwd=self.cwd, model=config['model'],
                                   reasoning_effort=config.get('reasoning_effort'), timeout=config['timeout'],
                                   **({'isolate_user_config': True} if building and adapter == 'codex' else {}),
-                                  **({'skills_context_tokens': config['skills_context_tokens']}
-                                     if 'skills_context_tokens' in config else {}))
+                                      **({'skills_context_tokens': config['skills_context_tokens']}
+                                         if 'skills_context_tokens' in config else {}))
         role = ({'planner': 'lead', 'critic': 'reviewer'}[turn['role']] if planning else
                 'lead' if turn['role'] == 'assessor' else turn['role'])
         attempt = Attempt(task, turn['turn_id'], turn['requirement_revision'],
                           turn['participant_id'], role, self.profile)
+        if adapter == 'openai':
+            import hashlib
+            self._funding_admission.wire_digest = hashlib.sha256(attempt.request().encode()).hexdigest()
         try:
             text = JsonParticipant(attempt, exchange).run(task).text
             if planning or building:
@@ -197,6 +221,10 @@ class ReviewExchange:
                 'adapter': adapter, 'requested_model': config['model'],
                 'reported': asdict(exchange.identity) if exchange.identity else None,
             }
+            if adapter == 'openai':
+                import copy
+                self.last_identity['funding'] = copy.deepcopy(self._funding_admission.receipt)
+                self.last_identity['usage'] = exchange.usage
             if planning or building:
                 self.last_identity.update(profile=self.profile, declared_role=turn['role'], transport_role=role)
             if building and adapter == 'codex':

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add an explicitly selected OpenAI API adapter with per-call, persisted funding
+  admission and fresh `--allow-api-spend` authority. Retain usage with unknown
+  billing, redact credential echoes, and preserve legacy/default envelopes.
+  Direct API configuration never replaces an existing native participant.
 - Accept optional native participant funding configuration for Claude/Codex
   subscriptions and Codex API use. Preserve legacy configurations. Explicitly
   funded participants currently refuse execution before provider dispatch until

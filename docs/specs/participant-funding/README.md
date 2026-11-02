@@ -6,6 +6,11 @@ November 2, 2026. Source baseline: `069b9f010cabcefa076ec292b4a287c49a85d219`
 (local `origin/main`, Harness 1.6.0). This specification is the complete review
 document. [Implementation tasks](tasks.md) divide the work after approval.
 
+The [API-first revision](t3-decision.md), approved November 2, 2026, adds a
+separately selected `openai` adapter for direct API requests. It supersedes the
+direct-client exclusion below for that adapter only. Explicit native funding
+remains refused until qualified; no existing entry changes transport.
+
 [T1 support matrix](t1-support-matrix.md) records the inspected versions, offline
 witnesses and remaining invocation-enforcement limits. Ordinary subscription
 access and a strictly enforced funding route are separate claims.
@@ -73,6 +78,7 @@ configuration formats. Keep their versions and existing required fields.
 | `claude` | `{"mode":"subscription"}` | Use native Claude account subscription authentication |
 | `codex` | `{"mode":"subscription"}` | Use native ChatGPT account authentication |
 | `codex` | `{"mode":"api","credential_env":"OPENAI_API_KEY"}` | Read the named environment variable at dispatch; pass its value only to the Codex child as `CODEX_API_KEY` |
+| `openai` | `{"mode":"api","credential_env":"OPENAI_API_KEY"}` | Use the approved direct API adapter with a private selected credential; no native login or transport fallback |
 
 `credential_env` is required for API mode. Accept only a portable environment
 variable name, never a literal credential, file path or shell expression. Resolve
@@ -87,8 +93,9 @@ The full funding object participates in existing configuration/request/contract
 digests. A change of mode or credential-variable name requires the owner's
 existing revision and acceptance path. It cannot edit an accepted run in place.
 
-Configuration examples below are accepted by the T2 candidate's validators;
-explicitly funded execution remains refused pending T3 qualification. Preserve
+The API-first revision requires explicit API funding on `openai` entries.
+Native explicit policies remain refused under D3; the direct adapter is qualified
+separately. Configuration examples below preserve the original native forms. Preserve
 all other fields in the user's existing participant entries:
 
 ```json
@@ -140,7 +147,7 @@ check is advisory and never authorizes a later dispatch.
 
 ## R3: verify and bind every native dispatch
 
-Before each native model invocation, including resumed and reviewer turns:
+Before each explicitly funded model invocation, including resumed and reviewer turns:
 
 1. Validate the accepted configuration and existing call/effects authority.
 2. Snapshot the relevant environment into a private per-invocation object.

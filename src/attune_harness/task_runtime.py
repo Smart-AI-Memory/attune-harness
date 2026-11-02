@@ -2,20 +2,23 @@
 
 import hashlib
 from .features import FeatureUnavailable, read_text
+from .participant_funding import FundingRefused
 from .review_contract import bounded_text, canonical, digest, fields
 from .review_participants import PROTOCOL, ReviewExchange, decode_action, protect_command_scope
 from .review_store import PersistenceError
 from .recovery import RecoveryCursor, ReviewPaused, UnresolvedOperation, snapshot_sources, stable_id
 
 
-def execute_assessment(record, store, prepared, *, allow_external=False, allow_provider=False, max_operations=None, exchange_factory=ReviewExchange, services=None, policy=None):
+def execute_assessment(record, store, prepared, *, allow_external=False, allow_provider=False,
+                       allow_api_spend=False, max_operations=None, exchange_factory=ReviewExchange, services=None, policy=None):
     retrieve_sources, verify_document, authorize_external = services
     answers, paths, originals = (prepared[name] for name in ('answers', 'paths', 'originals'))
     document, context, corpus = (paths[name] for name in ('document', 'context', 'corpus'))
     assignments = record['recovery']['assignments']
     selected = {role: record['registry']['participants'][assignment['participant_id']]
                 for role, assignment in assignments.items()}
-    authorize_external(selected, allow_external)
+    authorize_external(selected, allow_external,
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     cursor = RecoveryCursor(record, store, max_operations)
     record['status'] = 'running'
     record['external_execution_enabled'] = allow_external
@@ -101,7 +104,7 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
                 if policy:
                     policy.prepare_turn(turn)
                 response = dispatch_assignment(cursor, f'{attempt_id}:turn:{index}', turn,
-                                               config, exchange, outcome)
+                                               config, exchange, outcome, allow_api_spend=allow_api_spend)
                 stable_inputs()
                 extension_catalog()
                 action = response['action']
@@ -187,7 +190,7 @@ def guarded_execution(record, store, call):
         raise  # No more dispatch or optimistic record overwrite after a write failure.
     except BaseException as exc:
         from .voyage_provider import PaidStageUnresolved
-        record['status'] = ('paused' if isinstance(exc, ReviewPaused) else
+        record['status'] = ('paused' if isinstance(exc, (ReviewPaused, FundingRefused)) else
                             'unresolved' if isinstance(exc, (UnresolvedOperation, PaidStageUnresolved)) else
                             'unavailable' if isinstance(exc, FeatureUnavailable) else
                             'failed' if isinstance(exc, Exception) else 'unresolved')
@@ -212,13 +215,22 @@ def perform_probe(cursor, plan, key, *, expected=None):
                           effect_class='unknown', plan_digest=digest(plan), artifact_digest=digest(expected))
 
 
-def dispatch_assignment(cursor, key, turn, config, exchange, outcome):
+def dispatch_assignment(cursor, key, turn, config, exchange, outcome, *, allow_api_spend=False):
     """Single transport/correlation boundary for legacy, assessment and repair."""
     participant_id, attempt_id = turn['participant_id'], turn['attempt_id']
     request_digest = digest(turn)
     wire = canonical({'schema_version': 1, 'request_digest': request_digest, 'turn': turn})
     if len(wire.encode('utf-8')) > 524_288:
         raise ValueError('Participant request exceeds 512 KiB')
+    admission = None
+    if 'funding' in config and not (
+            isinstance(exchange, ReviewExchange) and exchange.is_host_step(wire)):
+        def admission(event):
+            from .participant_funding import admit
+            if not isinstance(exchange, ReviewExchange):
+                raise FeatureUnavailable('Explicit funding requires the shared owned exchange')
+            exchange._funding_admission = admit(cursor, event, config, participant_id, turn['turn_id'],
+                                                allow_api_spend=allow_api_spend)
     def dispatch():
         try:
             raw = exchange(wire)
@@ -227,6 +239,7 @@ def dispatch_assignment(cursor, key, turn, config, exchange, outcome):
         finally:
             outcome['last_identity'] = getattr(exchange, 'last_identity', None)
     response = cursor.perform(key, 'participant_turn', dispatch,
+                       **({'admission': admission} if admission is not None else {}),
                        effect_class='read_only' if config['adapter'] == 'deterministic' and type(exchange) is ReviewExchange else 'unknown',
                        participant_id=participant_id,
                        attempt_id=attempt_id, turn_id=turn['turn_id'], request_digest=request_digest)

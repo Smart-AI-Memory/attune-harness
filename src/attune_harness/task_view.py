@@ -61,6 +61,8 @@ def inspect(directory, *, continuation=None):
     for name in ("freshness_error", "readiness_error", "run_error", "deprecations"):
         if name in status:
             view[name] = copy.deepcopy(status[name])
+    if status.get('funding'):
+        view['funding'] = copy.deepcopy(status['funding'])
     _check_size(view)
     return view
 
@@ -72,6 +74,9 @@ def _check_size(view):
 
 def _sections(view):
     """One content outline for both renderers; values remain literal text."""
+    if view.get('funding'):
+        from .funding_output import lines
+        yield 'Funding and usage', [('Evidence', line) for line in lines(view['funding'])]
     yield "Snapshot identity", [
         ("Project", view["project_root"]), ("Task", view["task_id"]),
         ("Revision", view["revision"]), ("Checkpoint", view["checkpoint_digest"]),

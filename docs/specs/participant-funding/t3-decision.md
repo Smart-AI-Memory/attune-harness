@@ -1,7 +1,8 @@
 # Decide how to enable a qualified funding route
 
-**Status: proposed scope revision; Patrick has not approved it.** November 2,
-2026. The approved [specification](README.md) and D1–D3 remain authoritative.
+**Status: API-first revision approved by Patrick on November 2, 2026.**
+Patrick selected “Approve API-first revision” and then chose to reuse the existing
+API key. The [specification](README.md), this revision and D1–D3 govern the work.
 
 ## Why T3 needs a decision
 
@@ -67,5 +68,27 @@ run passed 167 tests. This does not qualify a live funding route. Full source,
 wheel and platform results from T2 predate this inspection change; this
 continuation has not rerun them or obtained a new independent source review.
 
-**Decision requested:** approve the API-first revision, or retain the native-only
-scope and its unsupported-route limits. This proposal authorizes no action.
+## Implementation boundary
+
+Use a supervised stdlib Python child for the direct HTTPS request, reusing the
+existing process supervisor. Its private environment contains only selected OS
+startup variables and the selected API credential. The worker fixes the official
+Responses endpoint, disables proxies and redirects, uses no SDK ambient defaults,
+and makes one bounded request with no retry. The body requests the existing outer
+text schema, has no tools, disables response storage and bounds output tokens.
+It does not add a configurable endpoint or replace a native transport silently.
+
+The owner prepares each journal event, resolves a private admission, persists its
+names-only evidence, then marks dispatching and permits the exchange. Refusal
+stays prepared, launches nothing and consumes no completed-call slot. Replay of a
+completed event needs no fresh admission; pending/resumed calls require fresh
+authority. Receipts bind configuration, participant, turn and attempt number.
+Model replies cannot construct admission or control metadata. Host evidence steps
+use no model admission. A failed admission write cannot activate the exchange.
+
+Process output is bounded and stripped from saved direct-API process diagnostics;
+only validated answer, response identity, normalized usage and allowlisted failure
+evidence survive. Credential echoes are redacted before parsing or error creation.
+Malformed replies remain invalid even when usage is present. Existing owner
+schemas validate optional funding evidence on reload, including prior attempts.
+Full-suite and installed-wheel checks follow focused failure and replay tests.

@@ -84,13 +84,16 @@ def prepare_task(task):
 
 
 def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_factory=ReviewExchange,
-                 allow_external=False, allow_native=False):
+                 allow_external=False, allow_native=False, allow_api_spend=False):
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     if read_task(directory).get('task_profile') == 'feature-work-v1':
         from .work_runtime import plan_work, build_work
         work = read_task(directory)
         execute = build_work if work['status'] == 'accepted' and work['request'].get('effects') else plan_work
         return execute(directory, checkpoint=checkpoint, max_operations=max_operations, exchange_factory=exchange_factory,
-                       allow_external=allow_external, allow_native=allow_native)
+                       allow_external=allow_external, allow_native=allow_native,
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     if read_task(directory).get('task_profile') == 'pytest-change-v1':
         from .test_change import execute_test_task
         return execute_test_task(directory, checkpoint=checkpoint, max_operations=max_operations)
@@ -113,9 +116,11 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
         bound = task['bindings']['assessment']['assignments']
         selected = {role: assignment['configuration'] for role, assignment in bound.items()}
         grants = task['acceptance']['permissions']
-        authorize_external(selected, grants['external'])
+        authorize_external(selected, grants['external'],
+                           **({'allow_api_spend': True} if allow_api_spend else {}))
         if 'repair' in request:
-            return execute_repair(task, store, max_operations=max_operations, exchange_factory=exchange_factory)
+            return execute_repair(task, store, max_operations=max_operations, exchange_factory=exchange_factory,
+                                  **({'allow_api_spend': True} if allow_api_spend else {}))
         # One preflight, retrieval, final verification, and one call per assignment.
         if request['budgets']['max_operations'] < 3 + len(bound):
             raise ValueError('Accepted operation budget cannot complete the assessment plan')
@@ -137,7 +142,8 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
         execute_assessment(task['execution'], TaskExecutionStore(store, task), prepared,
             allow_external=grants['external'], allow_provider=grants['provider'],
             max_operations=max_operations, exchange_factory=exchange_factory,
-            services=(retrieve_sources, verify_document, authorize_external), policy=AssessmentPolicy(task))
+            services=(retrieve_sources, verify_document, authorize_external), policy=AssessmentPolicy(task),
+            **({'allow_api_spend': True} if allow_api_spend else {}))
         return task
 
 
@@ -246,7 +252,9 @@ def control_task(directory, action, *, checkpoint=None, **kwargs):
         return task
 
 
-def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewExchange):
+def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewExchange, allow_api_spend=False):
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     from .repair import apply_patch, decode_patch, expected_snapshot, assert_snapshot
     from .recovery import RecoveryCursor, prepare_continuation, stable_id
     from .task_runtime import guarded_execution, perform_probe, dispatch_assignment
@@ -271,7 +279,8 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
     run = task['execution']
     assignments = run['recovery']['assignments']
     selected = {role:request['registry']['participants'][a['participant_id']] for role,a in assignments.items()}
-    authorize_external(selected,task['acceptance']['permissions']['external'])
+    authorize_external(selected,task['acceptance']['permissions']['external'],
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     prepare_continuation(run,store)
     adapter = TaskExecutionStore(store,task)
     cursor = RecoveryCursor(run,adapter,max_operations)
@@ -291,7 +300,8 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
               'protocol':PROTOCOL+' '+protocol,'repair':payload}
         response=dispatch_assignment(cursor,a['attempt_id']+':turn:0',turn,config,
                                      protect_command_scope(exchange_factory(config,Path(scope['root'])),
-                                                           store.directory, request['project_root']),outcome)
+                                                           store.directory, request['project_root']),outcome,
+                                     **({'allow_api_spend': True} if allow_api_spend else {}))
         AssessmentPolicy(task).validate_action(response['action'])
         check_fresh(task)
         outcome.update(status='completed',text=response['action']['text'])

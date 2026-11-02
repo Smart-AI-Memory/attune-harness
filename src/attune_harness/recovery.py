@@ -162,8 +162,8 @@ class RecoveryCursor:
             raise ValueError("Dispatch origin capture requires its saved policy marker")
         self.dispatch_origin = callback
 
-    def perform(self, key, kind, call, *, effect_class, **details):
-        replayed, value = self.begin(key, kind, effect_class=effect_class, **details)
+    def perform(self, key, kind, call, *, effect_class, admission=None, **details):
+        replayed, value = self.begin(key, kind, effect_class=effect_class, admission=admission, **details)
         if replayed:
             return value
         try:
@@ -176,7 +176,7 @@ class RecoveryCursor:
             raise ReviewPaused('Operation budget reached at a saved checkpoint')
         return result
 
-    def begin(self, key, kind, *, effect_class, **details):
+    def begin(self, key, kind, *, effect_class, admission=None, prepare_only=False, **details):
         """Return (True, saved result) to replay, or (False, event) once its dispatch is durable.
 
         A replayed result must not be passed to ``finish``. ``begin`` and ``finish``
@@ -198,12 +198,20 @@ class RecoveryCursor:
             self.events[key] = event
             self.record['events'].append(event)
             self.store.save(self.record)
+        if admission is not None:
+            admission(event)
+        if prepare_only:
+            return False, event
+        if 'funding' in event and event['funding']['state'] != 'matched':
+            raise ValueError('Funding admission must match before dispatch')
         if self.dispatch_origin is not None:
             origin = copy.deepcopy(self.dispatch_origin())
             origin["attempt"] = event["attempts"]
             _validate_runtime_origin(origin, event["attempts"])
             event["runtime_origin"] = origin
         event['phase'] = 'dispatching'
+        if 'funding' in event:
+            event['funding']['dispatch_outcome'] = 'unknown'
         self.store.save(self.record)  # No call until the dispatch boundary is durable.
         return False, event
 
@@ -234,6 +242,16 @@ class RecoveryCursor:
             event['native_refusal'] = copy.deepcopy(exc.refusal)
 
     def finish(self, event, result):
+        if 'funding' in event:
+            from .participant_funding import validate_evidence
+            validate_evidence(event['funding'], attempt=event['attempts'],
+                              request_digest=event.get('request_digest'))
+            identity = result.get('identity') if isinstance(result, dict) else None
+            if not isinstance(identity, dict) or identity.get('funding') != event['funding']:
+                raise ValueError('Result funding differs from its admission')
+            if identity.get('usage') is not None:
+                from .funding_usage import validate
+                validate(identity['usage'])
         event.update(state='completed', phase='completed', result=copy.deepcopy(result))
         self.store.save(self.record)
         self.completed += 1
@@ -286,6 +304,19 @@ def validate_events(record, *, kinds=('preflight_verification', 'initial_retriev
             ('prepared', 'pending'), ('dispatching', 'pending'), ('dispatching', 'failed'), ('completed', 'completed'),
         ):
             raise ValueError('Invalid saved operation state')
+        if 'funding' in event:
+            from .participant_funding import validate_evidence
+            validate_evidence(event['funding'], attempt=event['attempts'],
+                              request_digest=event.get('request_digest'))
+            history = event.get('funding_history', [])
+            if not isinstance(history, list) or len(history) > 16:
+                raise ValueError('Invalid funding admission history')
+            for previous in history:
+                validate_evidence(previous, request_digest=event.get('request_digest'))
+        elif 'funding_history' in event:
+            raise ValueError('Funding history requires current evidence')
+        from .participant_funding import validate_owned_event
+        validate_owned_event(record, event)
         has_origin = "runtime_origin" in event
         origin = event.get("runtime_origin")
         if policy is None:
@@ -317,6 +348,11 @@ def validate_events(record, *, kinds=('preflight_verification', 'initial_retriev
                 raise ValueError("Prior dispatched attempt omitted its runtime origin")
             else:
                 _validate_runtime_origin(previous_origin, previous.get("attempts"))
+    for reconciliation in record.get('recovery', {}).get('reconciliations', []):
+        previous = reconciliation.get('previous') if isinstance(reconciliation, dict) else None
+        if isinstance(previous, dict) and 'funding' in previous:
+            from .participant_funding import validate_owned_event
+            validate_owned_event(record, previous)
 
 
 
@@ -326,7 +362,10 @@ def ensure_active(record):
 
 
 def resume_review(directory: Path, request: Path, config: Path, checkpoint: str, *,
-                  allow_external=False, allow_provider=False, max_operations=None, exchange_factory=ReviewExchange):
+                  allow_external=False, allow_provider=False, allow_api_spend=False,
+                  max_operations=None, exchange_factory=ReviewExchange):
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     from .review import prepare_review, execute_review
     store = RunStore(directory, existing=True)
     with store.lease():
@@ -342,7 +381,8 @@ def resume_review(directory: Path, request: Path, config: Path, checkpoint: str,
         if 'retrieval' not in record['registry']:
             require_feature('attune-rag', 'attune_rag', RAG_VERSION, 'review')
         return execute_review(record, store, prepared, allow_external=allow_external,
-                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory)
+                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory,
+                              **({'allow_api_spend': True} if allow_api_spend else {}))
 
 
 def reconcile_review(directory: Path, checkpoint: str, event_id: str, *,
@@ -369,6 +409,10 @@ def reconcile_record(record, store, checkpoint, event_id, *, reply_file=None, re
         raw = read_text(reply_file, 65_536)
         action = decode_action(raw, event['request_digest'])
         event.update(state='completed', phase='completed', result={'action': action, 'identity': None})
+        if 'funding' in event:
+            event['result']['identity'] = {'adapter': 'operator-recovered',
+                'funding': copy.deepcopy(event['funding']), 'usage': None,
+                'authenticated_model': False}
         evidence = {'kind': 'recovered_reply', 'path': str(reply_file.resolve()),
                     'sha256': hashlib.sha256(raw.encode('utf-8')).hexdigest(), 'raw': raw,
                     'identity': 'operator-supplied; not authenticated'}
