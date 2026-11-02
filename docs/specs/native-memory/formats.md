@@ -90,7 +90,10 @@ The fixed prefix is `attune:memory:`. Redis Stack supplies:
 Bare curated ids and family-qualified pointer ids round-trip through `node`.
 `related` supports curated and file ids, refusing lesson or rule ids. Query
 text is at most 512 characters, result limits at most 100, replies at most
-1 MiB. `serve` defaults to eight digest nodes, 4,000 characters and 240 per
+1 MiB of canonical JSON encoded as UTF-8, including authority, metadata and
+nested items. Oversized replies refuse whole. Packet assembly is bounded; the
+Redis client may already have allocated a larger raw reply. See the
+[legacy bounds design](legacy-redis-bounds.md). `serve` defaults to eight digest nodes, 4,000 characters and 240 per
 line. Redis packets are untrusted evidence; reissue a read instead of passing
 them to `memory refresh`. Missing config is `disabled`; missing dependencies,
 an unreachable server, index or function library are `unavailable`, without

@@ -105,3 +105,42 @@ the user's concrete budget and permission. No fallback or automatic retry.
 Tests must exercise these refusals and the complete command journey before
 claiming software support. Installed-wheel qualification, independent different-
 model review and observed live host journeys remain separate evidence gates.
+
+## Structured native answers and longer calls — November 2, 2026
+
+The native boundary currently constrains only an outer `text` string. The model
+must write a second JSON document inside it. A retained Codex response completed
+its turn with six readable findings but omitted the inner array/object endings;
+the host correctly refused it. Zero-call probes against the unchanged source
+reproduced that parse failure, rejected a direct review object with
+`native answer must contain exactly text`, and refused a 600-second native seat.
+These are interface observations, not model-quality or timeout-cause findings.
+
+New preparations with Claude or Codex seats bind
+`native_response_profile: consultation-answer-v1` into the accepted contract.
+Only marked Claude/Codex turns request a direct object containing `verdict`,
+`summary` and `evidence`. The provider receives that object's JSON schema; the
+host serializes the decoded object into the existing correlated v1 text envelope.
+The existing answer owner still checks fields, byte bounds, verdict and frozen
+citation paths/lines. Provider structure is not trusted as semantic validation.
+
+An absent marker selects the original prompt and wire format. Old contracts,
+turn digests and completed/uncertain journals are not rewritten. Unknown marker
+values refuse before dispatch. Command and Antigravity seats retain their
+existing wire format and prompts. Native exchange's default remains `text` for
+other workflows. Claude/Codex consultation timeouts may be 1–600 seconds;
+other adapters retain 1–300 seconds. The default remains 120 seconds, and output,
+call, retry, cancellation and join-grace limits do not change.
+
+Required cases: direct objects through both native decoders; malformed JSON,
+duplicate fields, wrong shapes/verdicts and out-of-scope citations; marked
+prepare/run/pause/replay with no repeated calls; absent-marker legacy resume;
+unknown marker refusal; 600-second forwarding and 601/nonfinite/boolean refusal;
+unchanged command/Antigravity behavior; timeout/cancellation with retained raw
+evidence and no automatic retry. Installed-wheel checks precede the separately
+approved two-seat live round.
+
+Rejected alternatives: silently completing malformed JSON changes model evidence;
+changing old contracts invalidates accepted authority; a timeout increase alone
+does not fix malformed answers; bypassing supervision loses the existing durable
+call boundary. None is part of this change.

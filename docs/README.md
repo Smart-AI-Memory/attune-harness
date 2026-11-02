@@ -316,6 +316,7 @@ defines the approved Harness-owned writer; implementation is in progress.
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/native-memory/hydration-generation-reader.md](specs/native-memory/hydration-generation-reader.md) | Hydration generation reader | 2026-10-25 |
+| [specs/native-memory/legacy-redis-bounds.md](specs/native-memory/legacy-redis-bounds.md) | Legacy Redis reply and connection bounds | 2026-11-02 |
 | [specs/native-memory/hydration-writer/README.md](specs/native-memory/hydration-writer/README.md) | Draft addendum, prior decisions and source-backed command/refusal walk | 2026-10-24 |
 | [specs/native-memory/hydration-writer/requirements.md](specs/native-memory/hydration-writer/requirements.md) | Proposed preservation, authority, publication and installed-host acceptance requirements | 2026-10-24 |
 | [specs/native-memory/hydration-writer/design.md](specs/native-memory/hydration-writer/design.md) | Proposed source mapping, opt-in generation reads, conditional publication and rollback | 2026-10-24 |

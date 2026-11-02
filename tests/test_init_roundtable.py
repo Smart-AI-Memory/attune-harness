@@ -75,7 +75,7 @@ def test_missing_model_names_exact_flag_and_writes_nothing(tmp_path, capsys):
     (['--model', 'codex='], '--model'),
     (['--author', 'absent'], '--author'),
     (['--timeout', '0'], 'timeout'),
-    (['--timeout', '301'], 'timeout'),
+    (['--timeout', '601'], 'timeout'),
     (['--timeout', 'nan'], 'timeout'),
     (['--question', ''], 'question'),
     (['--question', 'x' * 8193], 'question'),

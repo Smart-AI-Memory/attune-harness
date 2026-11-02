@@ -144,10 +144,15 @@ def _validate_runtime_origin(value, attempt):
         raise ValueError("Duplicate saved dispatch owner module")
 
 
+def validate_max_operations(max_operations):
+    """Validate the pause limit before a caller allocates fresh run state."""
+    if max_operations is not None and (type(max_operations) is not int or not 1 <= max_operations <= 100):
+        raise ValueError('max_operations must be an integer in 1..100')
+
+
 class RecoveryCursor:
     def __init__(self, record, store, max_operations=None, *, dispatch_origin=None):
-        if max_operations is not None and (type(max_operations) is not int or not 1 <= max_operations <= 100):
-            raise ValueError('max_operations must be an integer in 1..100')
+        validate_max_operations(max_operations)
         self.record, self.store, self.limit = record, store, max_operations
         self.dispatch_origin = dispatch_origin
         if dispatch_origin is not None and not _has_capture_policy(record):
