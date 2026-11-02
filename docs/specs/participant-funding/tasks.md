@@ -1,7 +1,7 @@
 # Implement participant funding after approval
 
-**Status: specification and D1–D3 approved on November 2, 2026; T1 discovery
-complete, T2 candidate in verification.
+**Status: specification and D1–D3 approved on November 2, 2026; T1 discovery and
+T2 software verification complete. Independent source review and T3–T5 remain open.
 Live provider calls remain subject to separately authorized spending scope.**
 November 2, 2026. Requirements and the complete review are in the
 [specification](README.md). Patrick directed execution to start with T1.
@@ -36,15 +36,23 @@ forms, bind them into existing contracts, and retain omitted legacy fields.
 Selected explicit funding refuses before probes, dispatch journaling or native
 execution until T3 admission is qualified. Direct callers receive the same
 refusal. Forty-one focused cases pass, including actual review-form, task and
-work freshness checks for funding-only changes. Broader verification is in progress.
+work freshness checks for funding-only changes.
 
 The built candidate wheel passes the local installed-platform qualifier: no
 failed/error test cases, successful plugin bootstrap, and the accepted
 plan/build/review journey. All 112 installed Python modules match candidate
-source bytes. The full source-suite rerun uses short canonical temporary paths;
-earlier failed/interrupted setup runs remain preserved. The unrelated expanded
+source bytes. The full source suite passes in two disjoint partitions: all 6,182
+collected cases are accounted for. The installed run reports 3,421 passed, 201
+skipped and two passing subtests. Both used the normal CI dependency profile;
+the source runner used short canonical temporary paths and active output stayed
+outside the checkout. Earlier failed/interrupted setup runs remain preserved.
+The unrelated expanded
 native-SDK argument failure also reproduces on unchanged main `069b9f0`.
 Windows/Linux CI and different-model merge review are not claimed.
+
+The source changes are in signed commit `cc8651431217fe78a61dbc35dff1a8f6f649346f`
+on [draft PR #331](https://github.com/Smart-AI-Memory/attune-harness/pull/331).
+Later changes to these status notes do not change the tested source or wheel.
 
 Scope: a shared validator used by `review_contract.validate_registry` and
 `consultation.configuration`, supporting R1 and R6. Add fragments and complete
