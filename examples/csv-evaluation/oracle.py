@@ -34,8 +34,9 @@ def evaluate(candidate, fixture, scope):
             actual = list(csv.reader(io.StringIO(text, newline=""), strict=True))
             checks["headers"] = bool(actual) and actual[0] == headers
             checks["rows_order_and_values"] = actual == expected
-        except Exception as exc:
+        except (Exception, SystemExit) as exc:
             # Candidate failure is a failed case, never a missing/omitted result.
+            # Even sys.exit(0) must not terminate the oracle with a passing code.
             error = type(exc).__name__
         results.append({"case": case["id"], "checks": checks,
                         "passed": all(checks.values()), "error": error})
@@ -53,7 +54,8 @@ def main():
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         result = evaluate(module.export_csv, fixture, sys.argv[1])
-    except Exception as exc:
+    except (Exception, SystemExit) as exc:
+        # Import-time exits are candidate failures, including successful exits.
         result = {"schema_version": 1, "passed": False, "error": type(exc).__name__}
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result["passed"] else 1

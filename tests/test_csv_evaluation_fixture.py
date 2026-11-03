@@ -190,6 +190,44 @@ def test_failed_proposal_stays_failed_in_owner_and_receipt(tmp_path, monkeypatch
     assert (root / "receipt.json").is_file()
 
 
+@pytest.mark.parametrize("phase", ["import", "call"])
+@pytest.mark.parametrize("exit_code", [0, None, 7])
+def test_candidate_exit_stays_failed_in_owner_and_receipt(tmp_path, monkeypatch, phase, exit_code):
+    source = f"raise SystemExit({exit_code!r})\n"
+    if phase == "call":
+        source = "def export_csv(rows, **kwargs):\n    " + source
+
+    class ExitingProposal(fixture.ScriptedProposal):
+        def __call__(self, raw):
+            response = json.loads(super().__call__(raw))
+            payload = json.loads(response["action"]["text"])
+            if "files" in payload:
+                payload["files"][0]["text"] = source
+                response["action"]["text"] = json.dumps(payload)
+            return json.dumps(response)
+
+    monkeypatch.setattr(fixture, "ScriptedProposal", ExitingProposal)
+    root = tmp_path.resolve() / "trial"
+    receipt = fixture.smoke(root)
+    assert receipt["passed"] is False
+    assert json.loads((root / "receipt.json").read_text(encoding="utf-8")) == receipt
+    record = read_task(root / "task")
+    assert record["build"]["status"] != "completed"
+    probes = [e["result"] for e in record["build"]["events"] if e["kind"] == "acceptance_probe"]
+    assert len(probes) == 1  # A failed task check must not reach final verification.
+    probe = probes[0]
+    assert probe["passed"] is False and probe["returncode"] == 1
+    assert probe["failure"] == "nonzero_exit"  # Not a timeout or dispatch error.
+    verdict = json.loads(probe["stdout"])
+    assert verdict["passed"] is False
+    if phase == "import":
+        assert verdict["error"] == "SystemExit"
+    else:
+        assert len(verdict["cases"]) == 6
+        assert all(not case["passed"] and case["error"] == "SystemExit"
+                   for case in verdict["cases"])
+
+
 def test_refuses_existing_relative_linked_or_unknown_destinations(tmp_path):
     existing = tmp_path.resolve() / "existing"
     existing.mkdir()
