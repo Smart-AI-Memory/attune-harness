@@ -159,7 +159,8 @@ def execute_intake(args):
         result = present_task(directory, bypass=args.bypass_intake_cache)
         if result['status'] == 'accepted' and not args.intake_only:
             from .task_policies import execute_task
-            result = execute_task(directory, max_operations=args.pause_after)
+            result = execute_task(directory, max_operations=args.pause_after,
+                                  **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}))
         result = annotate(result, selected_configurations(result))
         print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
         return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
@@ -196,6 +197,8 @@ def add_controls(sub):
             parser.add_argument('--max-operations', type=int)
             parser.add_argument('--allow-external', action='store_true', help='Explicit feature-work command dispatch')
             parser.add_argument('--allow-native', action='store_true', help='Separate feature-work native trial authorization')
+            parser.add_argument('--allow-api-spend', action='store_true',
+                                help='Authorize configured API participant spending for this invocation only')
         elif name == 'reconcile-task':
             parser.add_argument('--event', required=True)
             parser.add_argument('--stop-observation', type=Path, help='Attributed JSON stop observation for a legacy Codex timeout; requires --retry-native')
@@ -255,7 +258,8 @@ def execute_control(args):
             result = (inspect_run(args.task_dir) if read_record(args.task_dir).get('operation') == 'review'
                       else inspect_task(args.task_dir))
         elif args.command == 'resume':
-            result = execute_task(args.task_dir, checkpoint=args.checkpoint, max_operations=args.max_operations)
+            result = execute_task(args.task_dir, checkpoint=args.checkpoint, max_operations=args.max_operations,
+                                  **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}))
         else:
             options = {'reconcile-task': lambda: {'event_id':args.event,'reply_file':args.reply,'retry_read_only':args.retry_read_only,'retry_refused':args.retry_refused,'observe_file':args.observe_file,'retry_before':args.retry_before},
                        'transfer-task': lambda: {'participant_id':args.assessor,'reason':args.reason},
@@ -316,6 +320,8 @@ def add_fix(sub):
     parser.add_argument('--accept',action='store_true')
     parser.add_argument('--intake-only',action='store_true')
     parser.add_argument('--allow-external',action='store_true')
+    parser.add_argument('--allow-api-spend', action='store_true',
+                        help='Authorize configured API participant spending for this invocation only')
     parser.add_argument('--pause-after',type=int)
     parser.add_argument('--bypass-intake-cache',action='store_true')
     parser.add_argument('--clear-intake-cache',action='store_true')

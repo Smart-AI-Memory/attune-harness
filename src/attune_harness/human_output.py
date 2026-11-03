@@ -46,6 +46,10 @@ def markdown(envelope: dict) -> str:
         lines += ['', notice]
     if isinstance(error, dict) and error.get('detail'):
         lines += ['', f'**Refused ({_literal(error.get("type", "error"))}):** {_literal(error["detail"])}']
+    from .funding_output import summaries, lines as funding_lines
+    funding = funding_lines(envelope.get('funding') or summaries(envelope))
+    if funding:
+        lines += ['', '**Funding and usage:**', '', *[_literal(line) for line in funding]]
     record = envelope.get('record_path') or envelope.get('task_directory')
     if record:
         lines += ['', f'**Saved record:** {_literal(record)}']

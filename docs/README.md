@@ -9,6 +9,12 @@ Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 
 ## Start here
 
+- [Participant funding specification](specs/participant-funding/README.md): Approved scope: explicit Claude/Codex subscription and Codex API funding, checks, receipts and spending authority
+- [Participant funding implementation tasks](specs/participant-funding/tasks.md): Approved implementation order and current qualification boundaries
+- [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
+- [Participant funding API-first revision](specs/participant-funding/t3-decision.md): Approved direct API adapter and retained native-route limits
+- [Choose participant funding](participant-funding.md): Candidate configuration, spending authority, receipts and unsupported routes
+
 - [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
 - [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback
 

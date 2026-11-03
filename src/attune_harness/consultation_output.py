@@ -55,6 +55,10 @@ def evidence_view(record):
             'authority': 'inspection_only'}
     if view['status'] == 'running':
         view = {**view, 'status': 'unresolved', 'persisted_status': 'running'}
+    from .funding_output import summaries
+    funding = summaries(record)
+    if funding:
+        view['funding'] = funding
     return annotate(view, selected_configurations(record))
 
 
@@ -66,6 +70,10 @@ def markdown(envelope, *, view, retained=None):
     output = [f'## {_text(operation)}: {_text(view)}', '',
               f'**Status:** {_text(envelope.get("status", "unknown"))}', '',
               'Retained model claims and this view grant no execution authority.']
+    from .funding_output import summaries, lines
+    funding = lines(summaries(record))
+    if funding:
+        output += ['', '**Funding and usage:**', '', *[_text(line) for line in funding]]
     for notice in notice_texts(envelope):
         output += ['', _text(notice)]
     for name in ('contract_digest', 'checkpoint_digest', 'snapshot_digest'):

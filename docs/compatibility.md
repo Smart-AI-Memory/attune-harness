@@ -98,6 +98,12 @@ prints the same envelope for people, with the exit code the JSON path returns;
 the envelope itself is unchanged. `review` and `fix` refuse Markdown when they
 would prompt on a terminal.
 
+Executing/resuming verbs additionally accept optional `--allow-api-spend`, default
+false, for explicitly selected API participants. It is invocation-only and does
+not extend saved permission maps. Optional funding/usage evidence appears only
+for new explicit policies; omitted-funding records retain their legacy meaning.
+See [Choose participant funding](participant-funding.md).
+
 `status` additionally accepts optional `--format json|markdown|html`. Default
 and explicit JSON preserve the existing envelope. For `feature-work-v1`,
 Markdown/HTML are bounded, read-only return-to-work snapshots, with no live

@@ -10,11 +10,11 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 76 rows:
+row pins, in 78 rows:
 
-- **success** (61 rows): the verb did its work offline on a small fixture;
+- **success** (62 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.
-- **refusal** (12 rows): an offline refusal on purpose. `build` before the work
+- **refusal** (13 rows): an offline refusal on purpose. `build` before the work
   is accepted; `init` over an existing registry, which it leaves unchanged;
   `fix` given only a goal, and `test` given no scope, each naming a next action; `index build` without `--allow-provider`; `index update`,
   `index inspect` and `retrieval-task` naming a generation that was never
@@ -62,6 +62,8 @@ or to rule exempt.
 
 | Case | Path | Exit | `schema_version` | `status` | Top-level keys |
 |---|---|---|---|---|---|
+| `funding-check-api` | success | 0 | 1 | `checked` | `authority` `model_calls` `operation` `participants` `schema_version` `status` |
+| `funding-run-no-spend` | refusal | 2 | 1 | `refused` | `error` `operation` `schema_version` `status` |
 | `demo` | success | 0 | - | `verified` | `check` `error` `output` `participant_id` `status` `task` |
 | `review-form` | success | 0 | 1 | `ready` | `definition` `form_revision` `markdown` `operation` `request_id` `schema_version` `status` `submission` |
 | `review-legacy` | success | 0 | 1 | `completed` | `accepted` `artifacts` `checkpoint_digest` `document_outcome` `events` `external_execution_enabled` `initial_retrieval` `operation` `participants` `preflight_verification` `record_path` `recovery` `registry` `request_id` `requirement_revision` `retrieval_outcome` `run_id` `schema_version` `status` `verification` `verification_scope` |

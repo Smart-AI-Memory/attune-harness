@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Add an explicitly selected OpenAI API adapter with per-call, persisted funding
+  admission and fresh `--allow-api-spend` authority. Retain usage with unknown
+  billing, redact credential echoes, and preserve legacy/default envelopes.
+  Direct API configuration never replaces an existing native participant.
+- Accept optional native participant funding configuration for Claude/Codex
+  subscriptions and Codex API use. Preserve legacy configurations. Explicitly
+  funded participants currently refuse execution before provider dispatch until
+  invocation-level route enforcement is qualified; configuration support alone
+  does not enable a funding route or authorize API spending.
+- Return a structured unsupported funding report and exit 2 from consultation
+  **`check`** for explicitly funded seats. Skip their unqualified authentication
+  probes; inspection remains advisory and starts no model call.
+
 ## 1.6.0
 
 Requires Python 3.12 or later. Legacy command configurations remain accepted;

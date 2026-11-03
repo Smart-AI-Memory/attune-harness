@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .features import FeatureUnavailable, read_text, report
+from .participant_funding import require_admission
 from .retrieval import retrieve_sources
 from .verification import verify_document
 from .review_contract import accept_request, bounded_text, canonical, digest, fields, load_registry
@@ -50,17 +51,22 @@ def prepare_review(request_path: Path, config_path: Path) -> dict:
             'requirement_revision': revision}
 
 
-def authorize_external(selected, allow_external):
+def authorize_external(selected, allow_external, allow_api_spend=False):
+    require_admission(selected, allow_api_spend)
     if not allow_external and any(item['adapter'] != 'deterministic' for item in selected.values()):
         raise FeatureUnavailable('External participant execution requires --allow-external; review the selected models, commands and call budgets first')
 
 
 def review(request_path: Path, config_path: Path, run_directory: Path, *,
-           allow_external: bool = False, allow_provider: bool = False, max_operations=None, exchange_factory=ReviewExchange) -> dict:
+           allow_external: bool = False, allow_provider: bool = False, allow_api_spend: bool = False,
+           max_operations=None, exchange_factory=ReviewExchange) -> dict:
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     validate_max_operations(max_operations)
     prepared = prepare_review(request_path, config_path)
     accepted, registry, answers = (prepared[name] for name in ('accepted', 'registry', 'answers'))
-    authorize_external({role: registry['participants'][answers[role]] for role in ('lead', 'reviewer')}, allow_external)
+    authorize_external({role: registry['participants'][answers[role]] for role in ('lead', 'reviewer')}, allow_external,
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     store = RunStore(run_directory)
     run_id = str(uuid4())
     record = report('review', 'running', run_id=run_id, requirement_revision=prepared['requirement_revision'],
@@ -74,13 +80,17 @@ def review(request_path: Path, config_path: Path, run_directory: Path, *,
                               'transfers': [], 'reconciliations': []})
     with store.lease():
         return execute_review(record, store, prepared, allow_external=allow_external,
-                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory)
+                              allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory,
+                              **({'allow_api_spend': True} if allow_api_spend else {}))
 
 
-def execute_review(record, store, prepared, *, allow_external=False, allow_provider=False,
+def execute_review(record, store, prepared, *, allow_external=False, allow_provider=False, allow_api_spend=False,
                    max_operations=None, exchange_factory=ReviewExchange):
     """Legacy schema adapter; operation ownership lives in the shared runtime."""
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     from .task_runtime import execute_assessment
     return execute_assessment(record, store, prepared, allow_external=allow_external,
         allow_provider=allow_provider, max_operations=max_operations, exchange_factory=exchange_factory,
-        services=(retrieve_sources, verify_document, authorize_external))
+        services=(retrieve_sources, verify_document, authorize_external),
+        **({'allow_api_spend': True} if allow_api_spend else {}))

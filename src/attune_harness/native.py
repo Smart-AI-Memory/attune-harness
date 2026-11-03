@@ -11,6 +11,7 @@ from threading import Event, Lock
 from . import Output, _text
 from .adapters import _unique_object
 from .process import ProcessResult, invoke
+from .participant_funding import UNSET, require_admission
 
 TEXT_SCHEMA = {
     "type": "object", "properties": {"text": {"type": "string"}},
@@ -168,10 +169,13 @@ class NativeExchange:
         model: str | None = None, reasoning_effort: str | None = None, timeout: float = 60,
         skills_context_tokens: int | None = None,
         isolate_user_config: bool = False,
+        funding=UNSET,
         response_schema: dict | None = None,
         max_output_bytes: int = 1_048_576, cancel: Event | None = None,
         runner=invoke,
     ) -> None:
+        if funding is not UNSET:
+            require_admission({'participant': {'adapter': provider, 'funding': funding}})
         if provider not in ("claude", "codex"):
             raise ValueError("provider must be claude or codex")
         if response_schema is not None and (not isinstance(response_schema, dict)
