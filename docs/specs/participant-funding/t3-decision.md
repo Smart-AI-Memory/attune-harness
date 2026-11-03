@@ -94,6 +94,14 @@ funding evidence. Public capability fields, arbitrary stores and later request
 binding cannot create spending authority. This is a library boundary, not a
 sandbox against Python code that can replace private internals.
 
+Before issuance, pending turns are reconstructed from the accepted owner and
+completed host operations, including review history, transfer context and repair
+evidence. Saved inspection validates receipt bindings and retained history without
+reopening source files or granting authority. Legacy review records retain source
+hashes rather than complete original request text; their receipts are consistency
+evidence, not authenticated copies of the original wire request. Pending execution
+always checks the current accepted inputs again.
+
 Process output is bounded and stripped from saved direct-API process diagnostics;
 only validated answer, response identity, normalized usage and allowlisted failure
 evidence survive. Credential echoes are redacted before parsing or error creation.

@@ -224,17 +224,24 @@ def _validate_persisted_owner(cursor, store, projection):
         raise PersistenceError('Funding admission differs from its persisted owner')
 
 
-def _owner_request(record, event, config, participant, attempt_id, turn):
+def _owner_request(cursor, event, config, participant, attempt_id, turn):
     from .review_contract import digest
+    record = cursor.record
     if not isinstance(turn, dict) or digest(turn) != event.get('request_digest'):
         raise ValueError('Funding request differs from its owner event')
     if event['kind'] == 'consultation_turn':
-        from .consultation import model_attempt
-        if turn['participant'] != participant or turn['attempt_id'] != attempt_id:
+        from .consultation import model_attempt, owned_turn
+        expected = owned_turn(record, event['operation_key'])
+        if (turn != expected or config != record['contract']['configuration']['participants'][participant]
+                or turn['participant'] != participant or turn['attempt_id'] != attempt_id):
             raise ValueError('Funding request differs from its owner assignment')
         return model_attempt(config, turn).request()
     if event['kind'] == 'participant_turn':
         from .review_participants import model_attempt
+        if record.get('profile') not in ('feature-planning-v1', 'feature-build-v1'):
+            from .task_runtime import funding_turn
+            if turn != funding_turn(cursor, event):
+                raise ValueError('Funding request differs from accepted owner inputs')
         if (turn['participant_id'] != participant or turn['turn_id'] != attempt_id
                 or any(event.get(key) != turn[key]
                        for key in ('participant_id', 'attempt_id', 'turn_id'))):
@@ -256,7 +263,7 @@ def admit(cursor, event, config, participant, attempt_id, *, turn, allow_api_spe
     if type(allow_api_spend) is not bool:
         raise ValueError('API spending authority must be a boolean')
     validate(config['adapter'], config['funding'])
-    raw = _owner_request(cursor.record, event, config, participant, attempt_id, turn)
+    raw = _owner_request(cursor, event, config, participant, attempt_id, turn)
     report = inspect(config['adapter'], config['funding']) if config['adapter'] != 'openai' else {
         'requested': 'api', 'observed': 'unknown', 'state': 'unknown',
         'basis': 'api_authority_required', 'cli_version': None}
@@ -384,6 +391,10 @@ def validate_owned_event(record, event):
         participant = event['operation_key'].partition(':')[2]
         config = record['contract']['configuration']['participants'].get(participant)
         attempt = digest([record['contract_digest'], event['operation_key']])
+        if config is not None and 'funding' in config:
+            from .consultation import owned_turn
+            if event.get('request_digest') != digest(owned_turn(record, event['operation_key'])):
+                raise ValueError('Funding request differs from its accepted consultation')
     else:
         return
     if config is not None:

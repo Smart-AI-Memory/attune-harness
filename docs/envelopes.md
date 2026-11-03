@@ -10,7 +10,7 @@ deliberate diff; the test fails exactly the case whose id names the verb, and
 
 Only key names, `schema_version` and `status` are pinned, never values such as
 timestamps, digests or request ids. The **path** column says which envelope a
-row pins, in 76 rows:
+row pins, in 78 rows:
 
 - **success** (62 rows): the verb did its work offline on a small fixture;
   a paused, cancelled or draft record is a success of its control verb.

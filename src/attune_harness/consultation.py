@@ -308,6 +308,30 @@ def _saved_answers(record):
             if events.get(f'{number}:{name}', {}).get('state') == 'completed']
 
 
+def owned_turn(record, key):
+    """Reconstruct a consultation request only from its accepted owner state."""
+    config = record['contract']['configuration']
+    number, separator, name = key.partition(':')
+    if (not separator or not number.isdecimal() or str(int(number)) != number
+            or not 0 <= int(number) < config['rounds'] or name not in config['participants']):
+        raise ValueError('Unknown consultation assignment')
+    round_number = int(number)
+    answers = [answer for answer in _saved_answers(record) if answer['round'] < round_number]
+    if (len(answers) != round_number * len(config['participants'])
+            or any(answer['status'] != 'completed' for answer in answers)):
+        raise ValueError('Consultation requires completed prior rounds')
+    prior = [{field: answer[field] for field in ('round', 'participant', 'answer', 'identity')}
+             for answer in answers]
+    turn = {'attempt_id': digest([record['contract_digest'], key]),
+            'contract_digest': record['contract_digest'], 'participant': name,
+            'round': round_number, 'question': config['question'],
+            'snapshot': record['contract']['snapshot'], 'previous_rounds': prior}
+    if ('native_response_profile' in record['contract']
+            and config['participants'][name]['adapter'] in ('claude', 'codex')):
+        turn['native_response_profile'] = record['contract']['native_response_profile']
+    return turn
+
+
 def _round_batch(cursor, admitted, dispatcher, directory, cancel, funding_admissions=None):
     """Workers own only calls; the caller owns every journal mutation.
 
@@ -388,8 +412,6 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, allow_
         answers = []
         try:
             for round_number in range(config['rounds']):
-                prior = [{key: a[key] for key in ('round', 'participant', 'answer', 'identity')}
-                         for a in answers if a['round'] < round_number]
                 pending = []
                 for name, participant in config['participants'].items():
                     if cancel.is_set():
@@ -398,13 +420,7 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, allow_
                         store.save(record)
                         return record
                     key = f'{round_number}:{name}'
-                    turn = {'attempt_id': digest([record['contract_digest'], key]),
-                            'contract_digest': record['contract_digest'], 'participant': name,
-                            'round': round_number, 'question': config['question'],
-                            'snapshot': record['contract']['snapshot'], 'previous_rounds': prior}
-                    if ('native_response_profile' in record['contract']
-                            and participant['adapter'] in ('claude', 'codex')):
-                        turn['native_response_profile'] = record['contract']['native_response_profile']
+                    turn = owned_turn(record, key)
                     event = cursor.events.get(key)
                     # Refuse every unresolved/mismatched sibling before launching any seat.
                     if event is not None:
