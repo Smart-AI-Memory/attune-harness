@@ -904,6 +904,7 @@ def plan_work(
                 ), store.directory)
                 response = dispatch_assignment(
                     cursor, turn["turn_id"], turn, config, exchange, outcome,
+                    allow_external=allow_external,
                     **({'allow_api_spend': True} if allow_api_spend else {}),
                 )
                 check_work_fresh(record)

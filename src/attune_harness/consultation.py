@@ -460,7 +460,7 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, allow_
                                 from .participant_funding import admit
                                 funding_admissions[turn['attempt_id']] = admit(
                                     cursor, event, participant, name, turn['attempt_id'],
-                                    turn=turn,
+                                    turn=turn, allow_external=allow_external,
                                     allow_api_spend=allow_api_spend)
                         replayed, event = cursor.begin(f'{round_number}:{name}', 'consultation_turn',
                             **({'admission': admission} if admission is not None else {}),

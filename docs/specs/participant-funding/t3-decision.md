@@ -102,6 +102,11 @@ hashes rather than complete original request text; their receipts are consistenc
 evidence, not authenticated copies of the original wire request. Pending execution
 always checks the current accepted inputs again.
 
+The low-level admission helper also requires explicit external execution
+authority. API-spending approval alone cannot substitute for that grant. Shared
+executing owners pass their current external authority through to admission;
+accepted task permissions retain their existing owner semantics.
+
 Process output is bounded and stripped from saved direct-API process diagnostics;
 only validated answer, response identity, normalized usage and allowlisted failure
 evidence survive. Credential echoes are redacted before parsing or error creation.

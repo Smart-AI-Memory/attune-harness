@@ -283,7 +283,8 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
                 turn = assessment_turn(record, prepared, role, index, config, history,
                                        outcome['tool_calls'], contributions, policy)
                 response = dispatch_assignment(cursor, f'{attempt_id}:turn:{index}', turn,
-                                               config, exchange, outcome, allow_api_spend=allow_api_spend)
+                                               config, exchange, outcome, allow_api_spend=allow_api_spend,
+                                               allow_external=allow_external)
                 stable_inputs()
                 extension_catalog()
                 action = response['action']
@@ -382,7 +383,8 @@ def perform_probe(cursor, plan, key, *, expected=None):
                           effect_class='unknown', plan_digest=digest(plan), artifact_digest=digest(expected))
 
 
-def dispatch_assignment(cursor, key, turn, config, exchange, outcome, *, allow_api_spend=False):
+def dispatch_assignment(cursor, key, turn, config, exchange, outcome, *,
+                        allow_api_spend=False, allow_external=False):
     """Single transport/correlation boundary for legacy, assessment and repair."""
     participant_id, attempt_id = turn['participant_id'], turn['attempt_id']
     request_digest = digest(turn)
@@ -397,7 +399,7 @@ def dispatch_assignment(cursor, key, turn, config, exchange, outcome, *, allow_a
             if not isinstance(exchange, ReviewExchange):
                 raise FeatureUnavailable('Explicit funding requires the shared owned exchange')
             exchange._funding_admission = admit(cursor, event, config, participant_id, turn['turn_id'],
-                                                turn=turn,
+                                                turn=turn, allow_external=allow_external,
                                                 allow_api_spend=allow_api_spend)
     def dispatch():
         try:

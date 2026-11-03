@@ -49,7 +49,7 @@ def issue_capability(cursor, config, turn, *, dispatching=True, compare=True):
 
     def authorize(event):
         issued.append(admit(cursor, event, config, 'reviewer', turn['attempt_id'],
-                            turn=turn, allow_api_spend=True))
+                            turn=turn, allow_api_spend=True, allow_external=True))
 
     cursor.begin('0:reviewer', 'consultation_turn', admission=authorize,
                  prepare_only=True, effect_class='unknown', request_digest=digest(turn))
@@ -254,6 +254,22 @@ def test_prepared_admission_cannot_claim_before_the_durable_dispatch_boundary(tm
     assert calls == []
 
 
+@pytest.mark.parametrize('external', ['omitted', False, None, 1, 'yes'])
+def test_api_spending_does_not_substitute_for_explicit_external_authority(tmp_path, api, external):
+    from attune_harness.features import FeatureUnavailable
+
+    with consultation_owner(tmp_path) as (cursor, config, turn):
+        _, event = cursor.begin('0:reviewer', 'consultation_turn', prepare_only=True,
+                                effect_class='unknown', request_digest=digest(turn))
+        before = cursor.store.path.read_bytes()
+        with pytest.raises(FeatureUnavailable, match='external execution authority'):
+            admit(cursor, event, config, 'reviewer', turn['attempt_id'], turn=turn,
+                  allow_api_spend=True,
+                  **({} if external == 'omitted' else {'allow_external': external}))
+        assert cursor.store.path.read_bytes() == before and 'funding' not in event
+    assert api.calls == []
+
+
 def test_admission_refuses_an_altered_question_even_with_a_matching_caller_event_digest(tmp_path, api):
     with consultation_owner(tmp_path) as (cursor, config, turn):
         _, event = cursor.begin('0:reviewer', 'consultation_turn', prepare_only=True,
@@ -264,7 +280,7 @@ def test_admission_refuses_an_altered_question_even_with_a_matching_caller_event
         event['request_digest'] = digest(changed)
         with pytest.raises(ValueError, match='owner assignment'):
             admit(cursor, event, config, 'reviewer', turn['attempt_id'],
-                  turn=changed, allow_api_spend=True)
+                  turn=changed, allow_api_spend=True, allow_external=True)
         assert cursor.store.path.read_bytes() == before
     assert api.calls == []
 

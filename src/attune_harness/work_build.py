@@ -857,6 +857,7 @@ def build_work(
             ), store.directory, request['project_root'])
             response = dispatch_assignment(
                 cursor, t["turn_id"], t, configs[role], exchange, outcome,
+                allow_external=allow_external,
                 **({'allow_api_spend': True} if allow_api_spend else {}),
             )
             fresh()

@@ -142,7 +142,8 @@ def test_altered_real_owner_turn_refuses_before_admission(case, api, owner, fiel
         cursor = RecoveryCursor(run, adapter)
         with pytest.raises(ValueError, match='accepted owner inputs'):
             task_runtime.dispatch_assignment(cursor, assignment['attempt_id'] + ':turn:0', turn,
-                config, ReviewExchange(config, prepared['paths']['corpus']), {}, allow_api_spend=True)
+                config, ReviewExchange(config, prepared['paths']['corpus']), {}, allow_api_spend=True,
+                allow_external=True)
         event = run['events'][-1]
         assert event['phase'] == 'prepared' and 'funding' not in event
         assert api.calls == []

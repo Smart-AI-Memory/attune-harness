@@ -357,6 +357,7 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
         response=dispatch_assignment(cursor,a['attempt_id']+':turn:0',turn,config,
                                      protect_command_scope(exchange_factory(config,Path(scope['root'])),
                                                            store.directory, request['project_root']),outcome,
+                                     allow_external=task['acceptance']['permissions']['external'],
                                      **({'allow_api_spend': True} if allow_api_spend else {}))
         AssessmentPolicy(task).validate_action(response['action'])
         check_fresh(task)

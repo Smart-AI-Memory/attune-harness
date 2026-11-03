@@ -251,7 +251,8 @@ def _owner_request(cursor, event, config, participant, attempt_id, turn):
     raise ValueError('Funding admission requires a model operation')
 
 
-def admit(cursor, event, config, participant, attempt_id, *, turn, allow_api_spend=False):
+def admit(cursor, event, config, participant, attempt_id, *, turn,
+          allow_api_spend=False, allow_external=False):
     """Save the owner's admission before its prepared event can dispatch."""
     from .review_contract import digest
     from .recovery import RecoveryCursor
@@ -262,6 +263,8 @@ def admit(cursor, event, config, participant, attempt_id, *, turn, allow_api_spe
         raise ValueError('Funding admission requires a prepared owner operation')
     if type(allow_api_spend) is not bool:
         raise ValueError('API spending authority must be a boolean')
+    if type(allow_external) is not bool or not allow_external:
+        raise FeatureUnavailable('Explicit API funding also requires external execution authority')
     validate(config['adapter'], config['funding'])
     raw = _owner_request(cursor, event, config, participant, attempt_id, turn)
     report = inspect(config['adapter'], config['funding']) if config['adapter'] != 'openai' else {
