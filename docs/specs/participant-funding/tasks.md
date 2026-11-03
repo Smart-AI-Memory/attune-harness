@@ -1,8 +1,9 @@
 # Implement participant funding after approval
 
-**Status: specification and D1–D3 approved on November 2, 2026; T1 discovery and
-T2 software verification complete. The API-first revision is approved. T3/T4
-candidate implementation and T5 verification are in progress; final review remains open.
+**Status: T1–T5 candidate implemented under the approved API-first revision.
+Different-model review covers source through `3ea4952`. Local source and installed
+verification are complete; current hosted checks and merge status are recorded in
+[PR #331](https://github.com/Smart-AI-Memory/attune-harness/pull/331).
 Live provider calls remain subject to separately authorized spending scope.**
 November 2, 2026. Requirements and the complete review are in the
 [specification](README.md). Patrick directed execution to start with T1.
@@ -66,12 +67,12 @@ make existing acceptance stale through the existing owners. Applies approved D1.
 
 ## T3: bind preflight, dispatch and API authorization
 
-The [API-first revision](t3-decision.md) is approved. The candidate adds a separately
-selected OpenAI API adapter, fresh spending flags, owner-bound admission before
-dispatch, refusal history, normalized usage and readable views. Targeted tests
-exercise actual consultation, assessment, planning and build owners with inert
-requests. Final full-suite, installed-wheel, hosted platform and source-review
-evidence remains to be recorded. This is not a claim of live account access.
+Implemented and reviewed under the [API-first revision](t3-decision.md): a
+separately selected OpenAI API adapter, fresh API and external authority at
+admission, accepted-owner request reconstruction, single-use dispatch and refusal
+history. The central focused run passed 569 checks, including actual consultation,
+assessment, repair, planning and build owners with inert requests. Native legacy
+request bytes and construction order remain covered. This is not live account access.
 
 Native activation prerequisite remains open: T1 did not establish a nonmutating
 invocation-level subscription binding or a safe complete effective-policy
@@ -95,6 +96,12 @@ additions with a changelog entry. Depends on T1 and T2; applies approved D2–D3
 
 ## T4: retain and present funding and usage
 
+Implemented: versioned funding and normalized usage stay with the existing owner.
+Readers validate current and retained attempts, host evidence policy, accepted
+query and tool history. Credential echoes are removed before retention; uncertain
+API reply files refuse without reading their contents. Billing and balance stay
+unknown. Legacy records gain no invented funding claims.
+
 Scope: normalized allowlisted native usage metadata, identity/result evidence,
 owner validation and existing JSON/readable views. Reuse existing journals;
 extend their size/schema checks deliberately. Bind evidence to the correct turn
@@ -106,6 +113,23 @@ views; admission-write failure starts no process; malformed usage never becomes
 zero cost; old records render without invented funding data. Depends on T3.
 
 ## T5: verify the installed journey and document limits
+
+The candidate wheel passes local installed qualification: 3,887 tests passed,
+201 skipped and two subtests passed, followed by plugin bootstrap and the accepted
+plan/build/review journey. All 123 Python files across Harness and the bundled
+Voyage plugin match source. The funding journey runs 13 actual CLI invocations
+and eight inert request intercepts across both caller paths, with zero provider calls.
+
+The complete source collection accounts for 6,648 case identities using the
+unchanged partition verifier. One original aggregate failed after successful
+pytest completion because its supervisor raised a permission error. Its failed
+receipt remains unchanged. Repeating only that partition succeeded; the other
+successful partition was retained byte-for-byte with provenance hashes. This is
+a composite of successful attempts, not a new successful concurrent run.
+No assertion, skip or supervisor exit rule was weakened. The source commit is
+`3ea49521e0c03afeb037f862c3b1424bf7ab2592`; later documentation changes do not
+change the qualified source or wheel. Current-head hosted results, including
+Windows, are recorded in PR #331 rather than inferred from local macOS checks.
 
 Scope: extend the existing installed CLI journeys through consultation and
 registry workflows using inert native witnesses. Cover new and resumed turns,
