@@ -422,7 +422,8 @@ def failed_owned_api(case, api, owner):
 
 @pytest.mark.parametrize('mutation', ['no_evidence_policy', 'final_as_host', 'wrong_adapter',
                                      'usage_on_host', 'wrong_action', 'wrong_arguments',
-                                     'final_as_scheduled_host'])
+                                     'final_as_scheduled_host', 'wrong_query', 'tool_query',
+                                     'wrong_attempt', 'unexpected_result_field', 'unknown_owner'])
 def test_saved_api_host_exemption_requires_the_accepted_evidence_policy(case, api, mutation):
     review = importlib.import_module('attune_harness.review')
     evidence = mutation != 'no_evidence_policy'
@@ -445,8 +446,23 @@ def test_saved_api_host_exemption_requires_the_accepted_evidence_policy(case, ap
             event['result']['identity']['usage'] = None
         elif mutation == 'wrong_action':
             event['result']['action']['name'] = 'unaccepted-tool'
-        else:
+        elif mutation == 'wrong_arguments':
             event['result']['action']['arguments']['k'] = 99
+        elif mutation == 'wrong_query':
+            event['result']['action']['arguments']['query'] = 'Unaccepted alternate query'
+        elif mutation == 'tool_query':
+            tool = next(e for e in record['events'] if e['operation_key'] ==
+                        event['operation_key'].replace(':turn:', ':tool:'))
+            tool['action']['arguments']['query'] = 'Unaccepted alternate query'
+        elif mutation == 'wrong_attempt':
+            from attune_harness.recovery import stable_id
+            event['attempt_id'] = 'unaccepted-assignment'
+            event['turn_id'] = stable_id(event['attempt_id'], '0')
+            event['operation_key'] = event['attempt_id'] + ':turn:0'
+        elif mutation == 'unexpected_result_field':
+            event['result']['unaccepted'] = True
+        else:
+            del record['accepted']
     store = RunStore(case[2], existing=True)
     with store.lease():
         store.save(record)
@@ -459,6 +475,23 @@ def read_owned(directory, record, owner):
     if owner == 'review':
         return load_recovery(RunStore(directory, existing=True), record['checkpoint_digest'])
     return read_task(directory)
+
+
+def test_funded_host_history_remains_readable_after_a_lead_transfer(case, api):
+    from attune_harness.recovery import transfer_lead
+    review = importlib.import_module('attune_harness.review')
+    successor = registry_participant(evidence=True)
+    successor['model'] = 'fixture-transferred-api-model'
+    change_config(case, lambda value: value['participants'].update(
+        alpha=registry_participant(evidence=True), gamma=successor))
+    paused = review.review(*case, allow_external=True, allow_api_spend=True, max_operations=3)
+    assert paused['status'] == 'paused' and api.calls == []
+    moved = transfer_lead(case[2], paused['checkpoint_digest'], 'gamma', 'Synthetic accepted transfer')
+    completed = resume_review(case[2], case[0], case[1], moved['checkpoint_digest'],
+                              allow_external=True, allow_api_spend=True)
+    assert completed['status'] == 'completed', completed.get('error')
+    saved = load_recovery(RunStore(case[2], existing=True), completed['checkpoint_digest'])
+    assert saved['status'] == 'completed' and len(api.calls) == 1
 
 
 @pytest.mark.parametrize('owner', ['review', 'assessment'])

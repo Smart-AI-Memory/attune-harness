@@ -432,5 +432,37 @@ def validate_owned_event(record, event):
                 and isinstance(identity, dict) and identity.get('adapter') == 'host-evidence'):
             raise ValueError('Invalid API host evidence owner')
         validate_event(event, config, participant, attempt)
+        if (config['adapter'] == 'openai' and isinstance(identity, dict)
+                and identity.get('adapter') == 'host-evidence'):
+            _validate_host_context(record, event)
     elif 'funding' in event:
         raise ValueError('Unknown funded participant')
+
+
+def _validate_host_context(record, event):
+    """Compare the full host result with retained accepted inputs and tools."""
+    from .recovery import stable_id
+    from .review_participants import host_action
+    from .task_runtime import _funding_assignments
+    assignments = _funding_assignments(record)
+    allowed = {(a['participant_id'], a['attempt_id']) for a in assignments.values()}
+    allowed.update((t['from'], t['prior_attempt_id']) for t in record['recovery']['transfers'])
+    pair = event.get('participant_id'), event.get('attempt_id')
+    if pair not in allowed or (event['phase'], event['state']) != ('completed', 'completed'):
+        raise ValueError('Invalid API host evidence assignment')
+    indices = [index for index in (0, 1)
+               if event['turn_id'] == stable_id(event['attempt_id'], str(index))]
+    if len(indices) != 1:
+        raise ValueError('Invalid API host evidence assignment')
+    index = indices[0]
+    expected = host_action(record['accepted']['submission']['answers']['query'], index)
+    result = event['result']
+    if set(result) != {'identity', 'action'} or result['action'] != expected:
+        raise ValueError('Invalid API host evidence accepted action')
+    key = f"{event['attempt_id']}:tool:{index}"
+    following = [e for e in record['events'] if e.get('operation_key') == key]
+    if following and (len(following) != 1 or following[0].get('kind') != 'tool'
+                      or following[0].get('action') != expected
+                      or any(following[0].get(k) != event.get(k)
+                             for k in ('participant_id', 'attempt_id'))):
+        raise ValueError('Invalid API host evidence tool history')

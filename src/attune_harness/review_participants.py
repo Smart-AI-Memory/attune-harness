@@ -35,6 +35,15 @@ EVIDENCE_REVIEW = (
 )
 
 
+def host_action(query, index):
+    """The accepted evidence policy's two host actions, without execution."""
+    if index == 0:
+        return {'kind': 'tool', 'name': 'retrieve', 'arguments': {'query': query, 'k': 3}}
+    if index == 1:
+        return {'kind': 'tool', 'name': 'verify', 'arguments': {}}
+    raise ValueError('Unknown host evidence action')
+
+
 def evidence_step(request):
     """Validate and schedule the accepted evidence policy without a model call."""
     fields(request, ('schema_version', 'request_digest', 'turn'))
@@ -51,9 +60,7 @@ def evidence_step(request):
     if turn['remaining_tool_calls'] < remaining or turn['remaining_turns'] < remaining + 1:
         raise ValueError('Insufficient accepted budget for native evidence review')
     if remaining:
-        name = tools[len(history)]
-        return {'kind': 'tool', 'name': name, 'arguments': (
-            {'query': turn['query'], 'k': 3} if name == 'retrieve' else {})}
+        return host_action(turn['query'] if not history else None, len(history))
     return None
 
 
