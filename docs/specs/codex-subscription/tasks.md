@@ -73,8 +73,10 @@ do not rewrite existing saved configs or v1 receipts.
 Add the mandatory subscription policy and opaque profile reference. Bind and
 persist route evidence under the real owner/lease before issuing a one-use
 capability; claim at the actual dispatch boundary. Cover consultation and
-registry callers, planning/build role contracts, all nine entrypoints and each
-resume path. Preserve whole-batch admission before inference. Extend each native
+registry callers, planning/build role contracts, the README's model-dispatching
+entrypoints and each resume path. Keep the separate deterministic **`test`**
+path free of model dispatch and funding admission. Preserve whole-batch admission
+before inference. Extend each native
 classification explicitly; do not invent flags absent from that command.
 
 Done when: A1–A4 and A6 pass, including polluted environment/config, disconnected
