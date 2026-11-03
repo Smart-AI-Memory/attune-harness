@@ -3,6 +3,9 @@
 
 import copy
 import json
+import os
+from pathlib import Path
+import tempfile
 from threading import Event
 
 import pytest
@@ -30,6 +33,16 @@ POLICIES = [
     ('codex', {'mode': 'subscription'}),
     ('codex', {'mode': 'api', 'credential_env': 'OPENAI_API_KEY'}),
 ]
+
+
+@pytest.fixture
+def consultation_scratch(tmp_path):
+    """Keep real Windows snapshot ancestors outside pytest's crowded case root."""
+    if os.name != 'nt':
+        yield tmp_path.resolve()
+        return
+    with tempfile.TemporaryDirectory(prefix='harness-funding-', dir=os.environ.get('RUNNER_TEMP') or None) as directory:
+        yield Path(directory).resolve(strict=True)
 
 
 def configuration(adapter, policy):
@@ -146,11 +159,11 @@ def test_funded_check_is_inspection_only_and_exits_two(
 
 
 @pytest.mark.parametrize('adapter,policy', POLICIES)
-def test_owner_refuses_before_journal_dispatch(tmp_path, adapter, policy):
-    root = tmp_path.resolve() / 'repo'
+def test_owner_refuses_before_journal_dispatch(consultation_scratch, adapter, policy):
+    root = consultation_scratch / 'repo'
     root.mkdir()
     (root / 'sample.py').write_text('x = 1\n', encoding='utf-8')
-    directory = tmp_path.resolve() / 'run'
+    directory = consultation_scratch / 'run'
     record = consultation.prepare('source-review', root, ['sample.py'],
                                   configuration(adapter, policy), directory)
     before = (directory / 'record.json').read_bytes()
@@ -192,11 +205,11 @@ def test_only_selected_participants_block_dispatch():
 
 @pytest.mark.parametrize('policy', [
     {'mode': 'subscription'}, {'mode': 'api', 'credential_env': 'OTHER_API_KEY'}])
-def test_funding_changes_require_new_contract_acceptance(tmp_path, policy):
-    root = tmp_path.resolve() / 'repo'
+def test_funding_changes_require_new_contract_acceptance(consultation_scratch, policy):
+    root = consultation_scratch / 'repo'
     root.mkdir()
     (root / 'sample.py').write_text('x = 1\n', encoding='utf-8')
-    directory = tmp_path.resolve() / 'run'
+    directory = consultation_scratch / 'run'
     record = consultation.prepare('source-review', root, ['sample.py'],
         configuration('codex', {'mode': 'api', 'credential_env': 'OPENAI_API_KEY'}), directory)
     record['contract']['configuration']['participants']['peer']['funding'] = policy
