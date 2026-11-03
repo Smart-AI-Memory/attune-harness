@@ -84,7 +84,10 @@ stays prepared, launches nothing and consumes no completed-call slot. Replay of 
 completed event needs no fresh admission; pending/resumed calls require fresh
 authority. Receipts bind configuration, participant, turn and attempt number.
 Model replies cannot construct admission or control metadata. Host evidence steps
-use no model admission. A failed admission write cannot activate the exchange.
+use no model admission. Their saved exemption requires the accepted evidence
+policy, the scheduled host turn, and a matching tool-only result with no model
+usage or funding evidence. A label alone cannot exempt an API operation.
+A failed admission write cannot activate the exchange.
 
 Admission requires the real owner's active writer lease and a validated saved
 contract. Shared pure request builders bind the complete model request, including

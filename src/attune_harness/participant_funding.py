@@ -362,6 +362,31 @@ def validate_event(event, config, participant, attempt_id):
             raise ValueError('Invalid funded participant identity')
         identity = {}
     host_step = identity.get('adapter') == 'host-evidence'
+    if host_step and config.get('adapter') == 'openai':
+        action = result.get('action')
+        if (config.get('review_mode') != 'evidence'
+                or set(identity) != {'adapter', 'native_adapter', 'model'}
+                or identity['native_adapter'] != 'openai' or identity['model'] is not None
+                or 'funding' in event or 'funding_history' in event
+                or not isinstance(action, dict)
+                or set(action) != {'kind', 'name', 'arguments'}
+                or action['kind'] != 'tool' or action['name'] not in ('retrieve', 'verify')
+                or not isinstance(action['arguments'], dict)):
+            raise ValueError('Invalid API host evidence step')
+        arguments = action['arguments']
+        from .recovery import stable_id
+        index = '0' if action['name'] == 'retrieve' else '1'
+        if (event.get('kind') != 'participant_turn'
+                or not isinstance(event.get('attempt_id'), str)
+                or event.get('turn_id') != stable_id(event.get('attempt_id'), index)
+                or event.get('operation_key') != f"{event.get('attempt_id')}:turn:{index}"):
+            raise ValueError('Invalid API host evidence assignment')
+        if ((action['name'] == 'verify' and arguments != {})
+                or (action['name'] == 'retrieve' and (
+                    set(arguments) != {'query', 'k'} or type(arguments['k']) is not int
+                    or arguments['k'] != 3 or not isinstance(arguments['query'], str)
+                    or not arguments['query'].strip()))):
+            raise ValueError('Invalid API host evidence action')
     if 'funding' not in config and ('funding' in identity or 'usage' in identity):
         raise ValueError('Legacy identity invented funding or usage evidence')
     expected = {'config': config, 'participant': participant, 'attempt_id': attempt_id,
@@ -401,6 +426,11 @@ def validate_owned_event(record, event):
     else:
         return
     if config is not None:
+        result = event.get('result') or {}
+        identity = (result.get('identity') or {}) if isinstance(result, dict) else {}
+        if (config['adapter'] == 'openai' and 'accepted' not in record
+                and isinstance(identity, dict) and identity.get('adapter') == 'host-evidence'):
+            raise ValueError('Invalid API host evidence owner')
         validate_event(event, config, participant, attempt)
     elif 'funding' in event:
         raise ValueError('Unknown funded participant')

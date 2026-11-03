@@ -420,6 +420,41 @@ def failed_owned_api(case, api, owner):
     return record, run, event
 
 
+@pytest.mark.parametrize('mutation', ['no_evidence_policy', 'final_as_host', 'wrong_adapter',
+                                     'usage_on_host', 'wrong_action', 'wrong_arguments',
+                                     'final_as_scheduled_host'])
+def test_saved_api_host_exemption_requires_the_accepted_evidence_policy(case, api, mutation):
+    review = importlib.import_module('attune_harness.review')
+    evidence = mutation != 'no_evidence_policy'
+    change_config(case, lambda value: value['participants'].update(
+        alpha=registry_participant(evidence=evidence)))
+    record = review.review(*case, allow_external=True, allow_api_spend=True)
+    assert record['status'] == 'completed' and len(api.calls) == 1
+    event = next(e for e in record['events'] if 'funding' in e)
+    if mutation in ('no_evidence_policy', 'final_as_host', 'final_as_scheduled_host'):
+        del event['funding']
+        event['result']['identity'] = {'adapter': 'host-evidence', 'native_adapter': 'openai', 'model': None}
+        if mutation == 'final_as_scheduled_host':
+            event['result']['action'] = {'kind': 'tool', 'name': 'verify', 'arguments': {}}
+    else:
+        event = next(e for e in record['events']
+                     if e.get('result', {}).get('identity', {}).get('adapter') == 'host-evidence')
+        if mutation == 'wrong_adapter':
+            event['result']['identity']['native_adapter'] = 'codex'
+        elif mutation == 'usage_on_host':
+            event['result']['identity']['usage'] = None
+        elif mutation == 'wrong_action':
+            event['result']['action']['name'] = 'unaccepted-tool'
+        else:
+            event['result']['action']['arguments']['k'] = 99
+    store = RunStore(case[2], existing=True)
+    with store.lease():
+        store.save(record)
+    with pytest.raises(ValueError, match='Invalid API host evidence'):
+        load_recovery(store, record['checkpoint_digest'])
+    assert len(api.calls) == 1
+
+
 def read_owned(directory, record, owner):
     if owner == 'review':
         return load_recovery(RunStore(directory, existing=True), record['checkpoint_digest'])
