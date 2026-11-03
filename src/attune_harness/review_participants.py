@@ -99,13 +99,9 @@ def protect_command_scope(exchange, *roots):
     return exchange
 
 
-def model_attempt(config, request, profile):
-    """Build the complete owner request for both admission and dispatch."""
-    fields(request, ('schema_version', 'request_digest', 'turn'))
-    versioned(request)
+def _model_task(config, request, profile, *, raw=None):
+    """Share prompt construction while preserving legacy raw objectives."""
     turn = request['turn']
-    if request['request_digest'] != digest(turn):
-        raise ValueError('Review turn digest mismatch')
     planning, building = profile == 'feature-planning-v1', profile == 'feature-build-v1'
     if turn.get('operation_profile', 'harness-review-v1') != profile:
         raise ValueError('Participant operation profile mismatch')
@@ -122,13 +118,27 @@ def model_attempt(config, request, profile):
         from .grounded_review import project
         task = Task(turn['task_id'], canonical(project(turn)), (EVIDENCE_REVIEW,))
     else:
-        task = Task(turn['task_id'], canonical(request), (
+        task = Task(turn['task_id'], raw if raw is not None else canonical(request), (
             'Inside the required outer text string, encode the following JSON action response. ' + turn.get('protocol', PROTOCOL),
         ))
-    role = ({'planner': 'lead', 'critic': 'reviewer'}[turn['role']] if planning else
+    return task
+
+
+def _attempt(task, turn, profile):
+    role = ({'planner': 'lead', 'critic': 'reviewer'}[turn['role']] if profile == 'feature-planning-v1' else
             'lead' if turn['role'] == 'assessor' else turn['role'])
     return Attempt(task, turn['turn_id'], turn['requirement_revision'],
                    turn['participant_id'], role, profile)
+
+
+def model_attempt(config, request, profile):
+    """Build the complete API owner request for both admission and dispatch."""
+    if config['adapter'] == 'openai':
+        fields(request, ('schema_version', 'request_digest', 'turn'))
+        versioned(request)
+        if request['request_digest'] != digest(request['turn']):
+            raise ValueError('Review turn digest mismatch')
+    return _attempt(_model_task(config, request, profile), request['turn'], profile)
 
 
 class ReviewExchange:
@@ -209,9 +219,9 @@ class ReviewExchange:
             if action is not None:
                 self.last_identity = {'adapter': 'host-evidence', 'native_adapter': adapter, 'model': None}
                 return evidence_response(request, action)
-        attempt = model_attempt(config, request, self.profile)
-        task, role = attempt.task, attempt.role
         if adapter == 'openai':
+            attempt = model_attempt(config, request, self.profile)
+            task, role = attempt.task, attempt.role
             from .openai_exchange import OpenAIExchange
             from .participant_funding import validate_evidence
             if self._funding_admission is None:
@@ -222,11 +232,14 @@ class ReviewExchange:
             exchange = OpenAIExchange(model=config['model'], cwd=self.cwd,
                                       admission=self._funding_admission, timeout=config['timeout'])
         else:
+            task = _model_task(config, request, self.profile, raw=raw)
             exchange = NativeExchange(adapter, cwd=self.cwd, model=config['model'],
                                   reasoning_effort=config.get('reasoning_effort'), timeout=config['timeout'],
                                   **({'isolate_user_config': True} if building and adapter == 'codex' else {}),
                                       **({'skills_context_tokens': config['skills_context_tokens']}
                                          if 'skills_context_tokens' in config else {}))
+            attempt = _attempt(task, turn, self.profile)
+            role = attempt.role
         if adapter == 'openai':
             from .participant_funding import bind_request
             bind_request(self._funding_admission, attempt.request())
