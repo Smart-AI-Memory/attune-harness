@@ -1,6 +1,6 @@
 # Harness 1.7.0 readiness record
 
-Status: **release preparation, unpublished**. This record accompanies a draft
+Status: **release preparation, unpublished**. This record is prepared for a draft
 release PR. Merge, exact-main qualification, rehearsal dispatch, publication,
 tagging, GitHub release, marketplace updates and website delivery remain
 separate gates. See the [release notes](release-notes-1.7.0.md) and
@@ -41,9 +41,38 @@ artifact identities are recorded in the release PR as they complete. A pending
 or skipped check is not a pass. No paid provider request, account sign-in,
 Keychain mutation or production Redis mutation is included.
 
+Reviewed source: `1fe75ad6f0c1292e69dbe5b3df93a36a8378fad3`. Later review and
+evidence edits are documentation-only; the PR records their commit identities.
+Local results below use macOS arm64 / CPython 3.12.2 and fresh environments.
+
+| Check | Actual result |
+| --- | --- |
+| Focused release/funding/environment checks | 355 passed, no skips; one existing Authlib deprecation warning |
+| Complete source suite, explicit optional dependencies installed | 6,723 passed, 232 skipped, seven additional passing subtests; zero failures/errors |
+| Standard `voyage,redis` installed-wheel qualification | Passed: 4,134 passed, 216 skipped, two additional passing subtests; post-suite memory/R2 and all ten plugin-probe steps passed; zero model calls |
+| `voyage,redis,plan-oauth` installed-wheel qualification | Passed: 4,146 passed, 204 skipped, two additional passing subtests; post-suite memory/R2 and all ten plugin-probe steps passed; zero model calls |
+| Additional installed OAuth/profile/worker checks | 112 passed, no skips; real local signing keys and inert transports, no provider calls |
+| Broader installed profile also including `memory-native` | Failed qualification: 4,165 selected tests passed, 185 skipped and two passing subtests; the provider-SDK absence guard then failed. Post-suite R2/memory checks were not completed |
+| Distribution, static and installation checks | Wheel/sdist build, strict Twine checks, dependency consistency, Ruff 0.14.4, documentation links/index and local static Help build passed. All 130 runtime files matched source, wheel and installed profiles |
+| Minimal and normal installed CLI checks | Fresh no-dependency core and standard `all` checks passed; installed plan/accept/build/review/status completed with zero model calls |
+| Independent review | Configured GPT-6.1 Sol approved the exact source, no findings; 81 focused archive tests and bounded schedule/expiry/inheritance mutation controls passed. Separate documentation review's two wording findings were corrected in docs-only `f0199b5` and its delta approved |
+
+An initial core-only check was invoked against the optional-dependency
+environment and correctly rejected its installed SDK/base dependencies. The
+fresh no-dependency core check is the applicable passing result; the original
+failed invocation is retained. No assertion, timeout or skip was relaxed.
+
+Skips retain native Windows/local-NTFS, private tokenizer/experiment artifact,
+frozen historical-runtime, optional browser and live-service limits. Source
+success on macOS and these offline funding checks do not establish those
+missing observations or a new hosted Windows qualification.
+
 The normal hosted qualification installs `voyage,redis`; it omits `plan-oauth`
 and `memory-native`. A separate fresh noneditable wheel environment selects
-those extras explicitly. Plan execution remains limited to macOS arm64 /
+`voyage,redis,plan-oauth` explicitly. A broader profile including `memory-native`
+passed its selected tests but failed the existing post-check's provider-SDK
+absence guard; that receipt remains failed and the assertion is unchanged.
+Plan execution remains limited to macOS arm64 /
 CPython 3.12.2. Its offline keys, grants and request witnesses do not establish
 live consent, account/model entitlement, native Keychain interoperability,
 quota, billing or model quality. Full Windows behavior requires the candidate's

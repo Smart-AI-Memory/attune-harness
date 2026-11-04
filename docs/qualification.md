@@ -55,10 +55,17 @@ the aggregate check.
 Default hosted source and installed jobs select `voyage,redis`. They omit
 `plan-oauth` and `memory-native`; a default green result does not exercise every
 optional authentication or SDK check. For 1.7.0, qualify the built wheel in a
-separate fresh environment with the explicitly selected extras and the same
-five dependency constraints used by CI. Run `pip check`, the relevant offline
+separate fresh environment with `voyage,redis,plan-oauth` and the same five
+dependency constraints used by CI. Run `pip check`, the relevant offline
 funding/profile/OIDC tests and `scripts/qualify_platform.py` against that
 noneditable install. Keep its receipt separate from default qualification.
+
+The platform qualifier's post-suite installed check requires provider SDKs to
+be absent. A profile that also installs `memory-native` therefore fails that
+guard even when its pytest selection passes. Preserve that failure; do not
+remove or bypass the absence assertion to call the combined profile qualified.
+SDK-specific checks and a future dedicated native-memory qualification remain
+separate from the supported plan-OAuth profile.
 
 The plan runtime admits only macOS arm64 / CPython 3.12.2 with the pinned
 dependencies. Other platform jobs can test refusals and inert witnesses; they

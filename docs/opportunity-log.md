@@ -1,5 +1,47 @@
 # Engineering opportunity log
 
+## Release preparation review — November 4, 2026
+
+O-07 — **next** lens. The broader goal is a release whose installation and
+qualification claims match the artifact and profile a user selects. At reviewed
+source `1fe75ad`, the normal installed wheel passed 4,134 tests with 216 skips,
+its post-suite R2/memory checks and all ten plugin-probe steps. The complete
+source suite passed 6,723 tests with 232 skips. A broader installed profile with
+`memory-native` passed 4,165 selected tests with 185 skips but failed the
+unchanged provider-SDK absence assertion in `scripts/check_installed.py` before
+post-suite memory/R2 checks. This is a failed qualification, not a passed
+profile. A fresh `voyage,redis,plan-oauth` profile passed 4,146 tests with 204 skips,
+two additional passing subtests and the complete post-suite checks. Another
+112 installed OAuth/profile/worker checks passed with no skips. The
+[readiness record](release-readiness-1.7.0.md) preserves each profile separately.
+
+Candidate follow-up: define a bounded native-memory SDK qualification profile
+that states its intended dependencies and post-check contract while preserving
+the default provider-SDK absence guard. Done when the same built wheel has a
+complete, source-bound receipt for that intended profile, including failures,
+skips and post-suite checks. Effort: a scoped script/test change requiring its
+own review; no implementation follows from this entry.
+
+O-04/O-09/O-16 — **R6** lens. The 1.7.0 source guides now distinguish a prepared
+version from the published 1.6.0 package, separate plan/API funding from refused
+native funding, and retain existing hydration writers and hooks. Independent
+documentation review found two examples of claims outrunning their source:
+generalized funding-refusal wording and an index label that promoted historical
+draft notes into published scope. Both were corrected in docs-only `f0199b5`;
+the old release records were preserved. The [readiness record](release-readiness-1.7.0.md)
+keeps Help/tutorial/deck owner reconciliation explicit. Candidate follow-up:
+reconcile those actual projections before claiming 1.7.0 documentation readiness,
+retaining their tested artifacts and the missing independent-user observations.
+Done when each affected derivative has a source-bound disposition and semantic
+walkthrough result. Effort: owner review of the affected procedures, without
+relabeling old observations.
+
+The user encounters O-07 first when selecting a candidate runtime and optional
+profile; real plan-account eligibility, native Keychain behavior, quota and
+billing remain unestablished. Existing hydration and provider qualification
+work retains its own scope. This note authorizes no implementation, spending,
+account operation, merge, workflow dispatch, publication or deployment.
+
 ## Selected journey follow-through — November 4, 2026
 
 O-04/O-09/O-16 — **R6** lens. The broader goal is a user who can direct a small
