@@ -1,5 +1,41 @@
 # Engineering opportunity log
 
+## Selected journey follow-through — November 4, 2026
+
+O-04/O-09/O-16 — **R6** lens. The broader goal is a user who can direct a small
+change, accept its scope and inspect the result. At `f7506ff`, the README names
+published 1.6.0 while the workflow selector calls it unreleased and the plan/build
+entrance points to a historical preparation walkthrough. This bounded candidate
+aligns those entrances with the [published release record](../help/release-1.6.0.json)
+and the [first plan/build procedure](cli-guide.md#complete-your-first-plan-and-build),
+including the distinction between request preparation, checkpoint acceptance
+and execution permission. Historical documents retain their original status.
+
+The documented local starter completed against the published wheel from
+`af2159516a67172cc8f2a1ff62213296b1b67112` and a separate `f7506ff` source-built
+wheel. It used a command worker, a mechanical reviewer and protected arithmetic
+tests, with zero model calls. Wrong-checkpoint refusal, separate execution
+permission, saved-boundary resume and completed replay were exercised; this is
+software evidence, not an independent-user observation or model-quality claim.
+The [starter checks](../tests/test_cold_start_journey.py) and
+[build boundary checks](../tests/test_work_build.py) retain the reproducible
+controls. Independent documentation review also found ambiguous correction
+wording: editing an input request after preview does not update saved scope.
+The procedure now directs checkpoint-bound corrections and fresh inspection.
+
+Candidate follow-up: complete one real
+[pause-and-return journey](cli-guide.md#pause-and-return-to-work) using the
+existing note and briefing, including a changed requirement. Done when the
+returning user can recover the goal, stopping point, evidence, uncertainty and
+authorized next action, with actual help needed recorded. The starter's saved
+progress is useful evidence for the mechanics; it does not supply conversation
+context that was never captured. Effort: a bounded observation using existing
+controls, with any correction separately scoped.
+
+The first user-facing improvement is the direct first-plan procedure. This entry
+updates the evidence for existing opportunities; it authorizes no follow-on
+implementation, paid trial, publication or merge.
+
 ## Current review — October 22, 2026
 
 Reconciled against `main` at `0f2711b4c88ee4f231f61d71cd70a0c840be6357`.

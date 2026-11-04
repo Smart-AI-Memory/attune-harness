@@ -27,7 +27,7 @@ each Help Center guide states its own version and publication status.
 
 [Explore the benefits](#what-you-can-do) · [Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Help Center](#help-center)
 
-Updated on October 31, 2026.
+Updated on November 4, 2026.
 
 ## What changes in 1.6.0
 
@@ -189,6 +189,12 @@ You can also use the commands directly:
 For guided examples, [clarify your feature idea](https://smartaimemory.com/harness/help/goals/#feature-request)
 or [build in reviewable steps](https://smartaimemory.com/harness/help/goals/#reviewable-steps).
 Each procedure supplies its setup, steps and expected result.
+
+For a complete local example, follow
+[your first plan and build](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#complete-your-first-plan-and-build).
+Prepare a small calculator change, inspect the scope and checks, accept the
+current plan, then start the build separately and read its saved evidence.
+The example uses local command participants and makes no model calls.
 
 ### Preview a task from the command line
 
