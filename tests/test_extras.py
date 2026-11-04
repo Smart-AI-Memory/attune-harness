@@ -29,9 +29,16 @@ def test_the_retired_extras_are_gone():
     retired = {"tokens", "verify", "rag", "review", "mcp"}
     found = extras()
     assert not retired & set(found)
-    assert set(found) == {"voyage", "memory-native", "redis", "all"}
+    assert set(found) == {"voyage", "memory-native", "plan-oauth", "redis", "all"}
     # Any spelling of a declaration: a multi-line list or a quoted key escapes extras().
     block = PYPROJECT.read_text(encoding="utf-8").split("[project.optional-dependencies]", 1)[1].split("\n[", 1)[0]
     for line in block.splitlines():
         name = line.split("=", 1)[0].strip().strip('"')
         assert name not in retired, line
+
+
+def test_plan_oauth_is_pinned_and_requires_explicit_install():
+    found = extras()
+    assert found['plan-oauth'] == ['Authlib==1.9.3', 'joserfc==1.8.0',
+                                  'cryptography==50.0.2', 'certifi==2026.10.23']
+    assert 'plan-oauth' not in found['all'][0]

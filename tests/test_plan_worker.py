@@ -3,6 +3,8 @@
 Draft against S3 2026-11-04. Adapt only to a documented, qualified SSE profile;
 never add production endpoint, CA, or test-token overrides to make these pass.
 """
+# qualify: platform
+
 import copy
 import hashlib
 import io
