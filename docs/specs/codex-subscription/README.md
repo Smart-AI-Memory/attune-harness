@@ -1,32 +1,49 @@
 # Codex subscription support alongside API credits
 
-**Status: Draft for Patrick's review. Not approved for implementation.**
-Written November 3, 2026 against main
-`03e29647a02073089fb33ea8df45b75be65383ba`. This planning pass changes
-documentation only. No account connection, native authentication probe or model
-call has qualified the proposed route.
+**Status: Direct OAuth design revision authorized; Keychain/funding contracts approved.
+Documentation only. No implementation or live qualification is authorized.**
+
+Original source baseline: `03e29647a02073089fb33ea8df45b75be65383ba`.
+The command-walk corrections merged in #333 are retained. On November 3, 2026,
+Patrick approved the app-owned OAuth/Keychain lifecycle and S1. He subsequently
+approved this direct OAuth design revision, retained the funding and Keychain
+contracts, kept Claude feasibility separate, required advance notice before
+API credits are needed, and explicitly said “No code changes yet.”
+
+The [original S1 report](s1-qualification.md) remains unchanged: its app-server
+candidate did not establish the single-inference boundary. This revision
+replaces the proposed transport; it does not turn S1 into a pass. The new
+[direct OAuth design](direct-oauth-design.md) has documentation/source support
+only. Software, account/model eligibility and live route qualification remain
+outstanding.
 
 ## Outcome and recommendation
 
-Allow a participant to explicitly use a ChatGPT plan through Codex while another
-participant explicitly uses the existing OpenAI API adapter. Preserve the
-accepted task, funding, spending, independence and recovery boundaries.
+Allow one participant to use a user-authorized ChatGPT plan OAuth grant while
+another explicitly uses API credits. Preserve accepted tasks, funding choice,
+spending authority, model independence, Keychain custody and recovery boundaries.
 
-Recommend a new **`codex-app-server`** adapter supplied with a user-consented
-Sign in with ChatGPT plan OAuth grant. OpenAI documents this integration for
-local/open-source applications. It gives this design a separate credential and
-provider route to enforce, rather than inferring funding from shared Codex login
-state. The documentation establishes a candidate, not a qualified Harness
-implementation. [Official app-server integration](https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server)
+Use a new explicit **`openai-plan`** adapter that sends one supervised HTTPS
+Responses request for each admitted model turn. OpenAI documents the direct
+plan-token route. The planned worker has no Codex process, native tool executor,
+automatic follow-up, retry or redirect. That makes the inference-request boundary
+host-owned and independently testable.
+[Official models and inference guidance](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
 
-This is an explicit scope extension: Harness would own a small sign-in/profile
-lifecycle. The [approved funding spec](../participant-funding/README.md#approved-decisions)
-excluded credential management. Approval of this draft must resolve D1 below;
-it must not silently reinterpret that exclusion.
+The goal originated with Codex subscription use. This mechanism uses ChatGPT
+plan authorization directly; it does not establish identical native Codex CLI
+allowance or every model's entitlement. “Subscription” retains its funding-route
+meaning. Account-specific proof is a later live qualification gate.
 
-The separate [Claude feasibility check](claude-feasibility.md) ends with an
-evidence-backed verdict. Claude implementation does not enter this scope, and a
-negative or unknown Claude verdict does not block Codex implementation.
+Patrick approved the app-owned OAuth/Keychain extension to the
+[earlier funding scope](../participant-funding/README.md#approved-decisions).
+This revision retains that lifecycle. It supersedes only the proposed app-server
+transport and its required Codex binary/protocol qualification. The existing
+API-key adapter and legacy native routes retain their behavior.
+
+The separate [Claude feasibility check](claude-feasibility.md) remains unstarted.
+Its verdict and authentication mechanism are independent; neither this design
+nor any future plan grant activates a Claude route.
 
 ## Baseline and scope
 
@@ -38,17 +55,17 @@ behavior. These are separate cases in
 
 | Include in the next implementation | Keep outside this implementation |
 | --- | --- |
-| Local macOS arm64, one pinned Codex binary/protocol and a qualified configuration profile | Other operating systems/architectures, unattended upgrades, hosted or commercial deployment qualification |
+| Local macOS arm64, one qualified Python/HTTPS worker and request profile | Other platforms, unqualified HTTP libraries/profiles, hosted or commercial deployment qualification |
 | Explicit subscription adapter plus existing direct API adapter in the same accepted workflow | Automatic routing, quota-based switching, API fallback, balance polling or a billing ledger |
 | App-owned plan OAuth profiles in macOS Keychain, explicit connect/inspect/disconnect | Reading or copying native auth caches, changing shared logins, importing pasted tokens, plaintext credential fallback |
-| Model replies through both shared participant caller paths and their executing/resume owners | Native Codex tools, shell, MCP servers, apps, subagents, arbitrary user config or a second agent workspace |
+| One streamed text inference per admitted turn through both shared caller paths | Codex app-server/CLI execution, native tools, shell, MCP, apps, subagents or automatic model follow-ups |
 | Existing Harness-owned retrieval, verification and proposal/application gates | Giving Codex direct filesystem or tool authority through this transport |
 | A separate Claude feasibility report | A Claude adapter, Claude OAuth intermediary or a Claude API integration |
 
 The initial release qualifies software behavior and an exact execution route.
 It does not qualify model quality, every account/model entitlement, or every
-platform. S1 must confirm that the proposed local distribution meets current
-provider conditions before implementation proceeds.
+platform. The revised software qualification must confirm that the proposed local distribution
+meets current provider conditions and enforces the direct-request contract.
 
 ## Funding and authority contract
 
@@ -63,12 +80,15 @@ provider conditions before implementation proceeds.
    gate, not a dollar ceiling.
 4. A saved subscription choice authorizes neither sign-in nor task execution.
    Connecting a profile authorizes neither a model call nor API spending. Retain
-   acceptance and external/native authority where the existing owner exposes
-   them; extend consultation's native-seat classification to this new adapter.
+   acceptance and external authority. This adapter launches no native provider
+   CLI; native authority remains required for actual native seats and applicable
+   owner-specific gates. An OAuth grant gives no filesystem/tool authority.
 5. Check all participants' static funding and authority requirements before any
    sibling model dispatch. Resolve and admit every member of the selected batch
    before sending task content to any member. A missing API grant must not
    consume subscription quota through a partially dispatched batch.
+   Completed turns replay without new admission, profile refresh or spending
+   authority; fresh checks apply to pending model work.
 6. Refuse unknown, revoked, unavailable, unqualified or mismatched profiles/routes,
    and expired grants that cannot be refreshed within authorized execution
    limits. Return an actionable refusal; do not offer an automatic
@@ -97,8 +117,8 @@ Do not use aliases such as `default` or silently select a model.
   "author": {"provider": "codex", "model": "AUTHOR_MODEL"},
   "participants": {
     "subscription": {
-      "adapter": "codex-app-server",
-      "identity": {"provider": "codex", "model": "SUBSCRIPTION_MODEL"},
+      "adapter": "openai-plan",
+      "identity": {"provider": "openai", "model": "SUBSCRIPTION_MODEL"},
       "timeout": 120,
       "funding": {"mode": "subscription", "profile_id": "PROFILE_ID"}
     },
@@ -113,8 +133,9 @@ Do not use aliases such as `default` or silently select a model.
 }
 ```
 
-Map `codex-app-server` explicitly to consultation identity provider `codex`.
-Normalize all three OpenAI transports to the same provider/model comparison.
+Map `openai-plan` explicitly to consultation identity provider `openai`.
+Normalize `openai-plan`, `openai` and native `codex` to the same provider/model
+comparison. Adapter choice cannot create a different reviewer identity.
 The same model on subscription and API routes is not independent. Preserve
 source-review's distinction from its author and roundtable's distinct seats.
 Extend the existing
@@ -173,119 +194,97 @@ against arbitrary code running as the same operating-system user.
 
 ## Runtime and admission
 
-### Qualified runtime profile
+### Qualified direct-request profile
 
-S1 must pin the Codex binary/version/hash, upstream source revision, generated
-protocol schema, model/effort support, OS/architecture and effective configuration.
-The historical funding T1 binary is not automatically qualified for this route.
-Unknown versions or changed profiles refuse until separately qualified.
-Resolve the executable by the qualified absolute path and verify its identity
-again before launch; a different `PATH` entry cannot select another binary.
+The [direct OAuth design](direct-oauth-design.md) supplies the complete wire,
+stream, admission and failure contracts. Pin the installed worker/wheel source,
+Python/HTTPS/TLS/SSE behavior, platform and selected model/effort/profile.
+A Codex CLI binary or app-server schema is no longer a prerequisite.
 
-Create a fresh supervised app-server process and thread for each pending model
-turn. Use a private per-invocation `CODEX_HOME` and empty working directory
-outside the checkout; never copy user config, plugins or login state. Leave
-`HOME` intact. Supply an allowlisted startup environment plus only the admitted
-plan access token under an adapter-owned variable. Exclude API keys, proxy and
-provider overrides, credential helpers, refresh tokens and unrelated host data.
+Run one isolated standard-library worker per pending model turn under the
+existing one-shot [process supervisor](../../../src/attune_harness/process.py#L60-L93).
+Its private environment contains startup necessities and only the selected plan
+access token. Exclude API keys, refresh/ID tokens, proxy/endpoint/organization
+overrides and SDK defaults; read no native configuration or auth/cache.
 
-Fix the official SIWC Responses provider/endpoint, token environment reference,
-HTTP/SSE transport, `store:false`, `stream:true` and
-`requires_openai_auth=false` configuration. Inspect the
-effective configuration and managed requirements, including thread-resolved
-configuration, rather than trusting launch flags. An `account/read` result from
-Codex's separate login machinery is not funding proof. Protocol operations must
-be allowlisted; no login/logout/config-write RPC is part of task execution.
-[App-server protocol](https://learn.chatgpt.com/docs/app-server)
+The worker sends at most one `POST https://api.openai.com/v1/responses` with
+verified TLS, `store:false`, `stream:true` and text input containing the complete
+accepted context. It never retries, follows redirects, reconnects, lists models,
+continues by response ID, executes provider tools or launches Codex.
+[Official inference guidance](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
 
-Disable native tools, shell, apps, MCP, subagents, automatic compaction/model
-follow-ups and inference retries for the qualified profile. S1 must establish
-how the pinned implementation enforces this, including startup behavior. If it
-cannot prove model-free initialization and one host-authorized logical inference
-per turn with bounded transport attempts, stop with an unsupported result.
-Reject unexpected tool/approval requests without executing them.
+The initial body allowlist is `model`, `instructions`, `input`, `store`,
+`stream` and explicitly configured/qualified `reasoning.effort`. Omit provider
+tools and unsupported fields. Validate the completed text reply locally instead
+of silently importing the API adapter's token-cap/structured-output request.
+This is one client inference request, not a server token or dollar cap.
+[Preview requirements](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
 
-Existing Harness tool proposals remain data: the host can validate and execute
-an accepted `retrieve` or `verify` action under existing owners. A model-reply-only
-transport does not remove those host contracts or give the app-server native
-tool authority.
+Harness-owned `retrieve`/`verify` proposals retain their accepted host contracts.
+No model receives direct file/tool authority. Each subsequent pending Harness
+turn uses reconstructed history, remaining budgets and a fresh admission.
 
 ### Dispatch sequence
 
-1. Under the real run lease, validate accepted config, complete reconstructed
-   request, pending operation, role, budgets and current external/native/API
-   grants for the whole selected batch. Resolve each profile locally.
-2. Refresh a valid plan grant if necessary only within authorized execution;
-   serialize refresh and revalidate the unchanged identity/registration. Launch
-   the isolated child and inspect only model-free initialization/configuration
-   metadata. No task text, model inference or shared-login mutation is allowed
-   before admission. Treat these startup effects explicitly in recovery.
-3. Persist a names-only admission binding the owner/lease, accepted configuration,
-   reconstructed request digest, participant/attempt, profile identity, exact
-   model/effort, runtime qualification and private session/thread. A failed save
-   prevents task-bearing RPCs. Use a new in-memory, one-use capability tied to
-   that live owner; never deserialize an admission from a receipt.
-4. Recheck the saved pending-to-dispatching boundary and live profile/session,
-   then claim once immediately before `turn/start` sends task content. Reject
-   forged, swapped, stale, cross-owner or replayed capabilities. Reuse the
-   [existing admission pattern](../../../src/attune_harness/participant_funding.py#L153-L174)
-   and [persist-before-issue boundary](../../../src/attune_harness/participant_funding.py#L254-L307),
-   extended with subscription-specific bindings.
-5. Validate RPC IDs, thread/turn IDs, framing, model identity and the expected
-   reply schema. Only the matching successful terminal turn can complete the
-   operation. Failed/interrupted/incomplete responses are not successes.
-6. Stop the child and descendants and retain cleanup evidence on every path.
-   Host history reconstructs subsequent authorized turns; no invisible native
-   thread reuse or automatic replay after an unknown outcome.
+1. Under the real run lease, validate accepted request/config, pending operation,
+   role/budget and fresh authority. Check all static funding requirements before
+   any sibling inference, including the API seat's explicit spending grant.
+2. Resolve the immutable profile. Refresh an existing grant only before inference,
+   within the execution deadline and serialized rotation; revalidate identity/
+   client/scopes and credential generation. Missing consent cannot open a login
+   flow during execution.
+3. Reconstruct/freeze the exact bounded wire body. Persist a names-only admission
+   binding owner/lease, accepted config, complete request digest, participant/
+   attempt, profile/generation, model/effort and worker/endpoint/body profile.
+   Failed persistence prevents worker dispatch.
+4. Claim a private one-use capability at the live pending-to-dispatching boundary,
+   rechecking the same owner/request/profile/generation. Reject forged, stale,
+   swapped or replayed capabilities. A receipt is not authority. Preserve
+   [the claim discipline](../../../src/attune_harness/participant_funding.py#L153-L174)
+   and [persist-before-issue boundary](../../../src/attune_harness/participant_funding.py#L254-L307).
+5. Execute the one POST and consume bounded SSE internally. Only a matching
+   `response.completed` with completed status, exact model, supported text output
+   and a valid Harness reply can complete the operation. Partial deltas cannot.
+6. Stop/reap the worker and descendants, scrub secret-bearing diagnostics and
+   release the capability. Later authorized turns reconstruct host-owned history;
+   no hidden remote conversation or native session is reused.
 
-The existing
-[process invocation](../../../src/attune_harness/process.py#L60-L93) is one-shot.
-S3 must add a bounded duplex supervisor, retaining its timeout, output and
-descendant-cleanup disciplines without changing existing `invoke` behavior.
-Apply one monotonic deadline across startup, inference and cleanup, a combined
-1,048,576-byte stdout/stderr cap, bounded individual RPC frames and timeout
-`1..300` seconds. Check cancellation before dispatch and throughout supervision.
-Retain consultation's separate 65,536-byte answer budget and each registry
-owner's existing reply limits; the larger transport capture cap does not raise
-the accepted answer budget.
+### Bounds, recovery and evidence
 
-The SIWC preview does not support `max_output_tokens`; do not silently reuse or
-weaken the direct API request contract. This adapter promises bounded host time,
-bytes and authorized attempts, not a server token or dollar ceiling. If the
-pinned runtime cannot enforce this profile, it remains unsupported.
-[Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
+Use one accepted `1..300`-second monotonic deadline across resolution/refresh,
+startup, network and cleanup; sub-operations use remaining time. Refuse a wire
+body over 1,048,576 UTF-8 bytes before I/O. Bound HTTP stream capture and combined
+process output to 1,048,576 bytes each, one SSE frame to 262,144 bytes and JSON
+nesting to 32. Preserve consultation's 65,536-byte answer cap and every other
+owner's existing reply limit.
 
-### Recovery and evidence
+The endpoint/method are fixed, with zero retries and redirects. Failures cannot
+change model, effort, grant or funding. A plan OAuth call does not acquire
+API-spending authority merely because both transports use the public API host.
+API seats retain fresh **`--allow-api-spend`** authorization.
 
-Before any task-bearing write, a proved refusal is `not_started`. Once such a
-write begins, timeout, cancellation, auth failure, lost replies or process death
-may leave model effects uncertain. Preserve the existing unresolved-operation
-gate; never relabel uncertainty as a free retry. Stop descendants and require the
-owner's supported evidence-based recovery and fresh authority before continuation.
-If that owner cannot reconcile the unknown effect, retain the blocked handoff or
-explicit abandonment; do not invent a successful recovery. The current
-[consultation retry owner](../../../src/attune_harness/consultation_recovery.py#L86-L113)
-refuses unknown effects and does not accept a generic subscription error as
-proof of a safe retry. Do not
-automatically reconnect, resume a native thread, switch profiles or switch to API.
+A proved pre-write refusal may be `not_started`. Once the inference request
+write begins, retain possible external effects on HTTP/auth/quota failure,
+timeout, cancellation, malformed/incomplete streams or lost replies. Never
+refresh-and-retry after 401/429, replay, reconnect or infer free usage from an
+error. Use only supported evidence-based owner recovery; otherwise retain the
+blocked handoff or explicit abandonment. The
+[current consultation retry owner](../../../src/attune_harness/consultation_recovery.py#L86-L113)
+does not accept a generic subscription error as safe-retry proof.
 
-Add a versioned subscription admission/receipt variant, without extending an
-exact v1 object with unknown fields. Keep old receipt readers and legacy output
-compatible. Retain requested/observed route, match/refusal, allowlisted basis,
-opaque profile ID, runtime qualification ID, owner/request binding, dispatch and
-cleanup outcome. Credential values and raw provider diagnostics are excluded.
-
-Report validated final token usage when available; missing or contradictory
-usage is `unknown`. Do not sum cumulative notifications or count cached tokens
-twice. Billed dollars and remaining subscription/API balances stay `unknown`
-unless independently evidenced; software receipts are not billing records.
+Use a subscription-specific versioned receipt without adding unknown fields to
+v1 objects. Keep route/basis, opaque profile/qualification IDs, owner/request
+binding, request-start/terminal/cleanup outcomes and validated final usage.
+Exclude secrets, raw account identifiers and raw provider diagnostics. Missing
+or contradictory usage, billed dollars and remaining balances stay unknown.
 
 ## Command journey and refusal walk
 
 This is a **source/design walk, not an executed subscription journey**. Existing
 owner references are pinned by the baseline above. Rows labeled *new* are
-required implementation contracts with no current `raise`. The new configuration
-must remain refused until those contracts and S1 qualification exist.
+required implementation contracts with no current `raise`. The revised configuration
+must remain refused until the direct OAuth contracts and software qualification
+exist. The original app-server S1 report is not qualification of this new path.
 
 Use a canonical project path with one explicit, regular UTF-8 source file, at
 most 32 files and 131,072 total captured bytes. Keep config and run state outside
@@ -299,9 +298,9 @@ nonempty question. Do not place credentials in either file.
 | 3. **`roundtable check --config /outside/seats.json`** | [Configuration raises](../../../src/attune_harness/consultation.py#L36-L87): strict fields, schema, roster, names, provider/model independence, rounds and timeout; [check](../../../src/attune_harness/consultation_cli.py#L67-L78) reports unavailable routes. New adapter/profile validation must be added. | Use the full example with real distinct models, qualified profile, `rounds:1` and timeout 120. Check stays local/advisory with zero model calls; it cannot promise future entitlement. |
 | 4. **`roundtable prepare --project /project --path sample.py --config /outside/seats.json --run-dir /outside/run`** | [Prepare raises](../../../src/attune_harness/consultation.py#L91-L111): operation and run location; [snapshot raises](../../../src/attune_harness/consultation_snapshot.py#L20-L153): canonical root, explicit eligible paths, file/count/byte bounds; [store](../../../src/attune_harness/review_store.py#L61-L73) refuses an unsafe/reused run location | Supply a canonical existing project, selected bounded regular file and fresh external run directory with an existing writable parent. Preparation freezes config/source and returns the exact `contract_digest`; it does not connect or refresh. |
 | 5. **`roundtable status /outside/run`** | [Saved-record validation](../../../src/attune_harness/consultation.py#L118-L160) refuses malformed/stale bindings | Inspect step 4's saved contract, snapshot, budgets and digest. This command never dispatches or refreshes a profile. |
-| 6. Negative check: **`roundtable run /outside/run --accept DIGEST --allow-external --allow-native`** | [Per-turn funding refusal](../../../src/attune_harness/participant_funding.py#L254-L294) rejects the API seat without fresh API authority; new adapter classification must preserve this before any sibling inference | Use the exact digest but omit API permission deliberately. Expect a funding refusal, a saved paused/prepared boundary and zero task-bearing model dispatches across both seats. |
-| 7. **`roundtable run /outside/run --accept DIGEST --allow-external --allow-native --allow-api-spend --max-operations 1`** | [Run raises](../../../src/attune_harness/consultation.py#L390-L433): stale acceptance, missing authority, terminal/unresolved state, operation mismatch/budget; [admission](../../../src/attune_harness/participant_funding.py#L254-L307): owner/request/lease mismatch. New subscription proof can still refuse. | After real operator authorization, use the unchanged prepared digest, both explicit funding policies, step 1's still-valid profile, available API credential and two pending turns. [Funding-refusal handling](../../../src/attune_harness/consultation.py#L511-L522) leaves step 6 paused without a dispatching event. The [batch limit](../../../src/attune_harness/consultation.py#L445-L453) admits one turn; require its successful completed answer and `status:paused`, leaving the second turn pending. A failed or uncertain turn stops this walk. |
-| 8. Inspect with **`roundtable status /outside/run`**, then resume with **`roundtable run /outside/run --accept DIGEST --allow-external --allow-native --allow-api-spend`** | Same acceptance/authority gates; [saved-record raises](../../../src/attune_harness/consultation.py#L118-L144) reject malformed bindings, and [batch owner](../../../src/attune_harness/consultation.py#L425-L481) rejects mismatched/unresolved operations | Step 7 supplies one completed turn and one pending turn. Preserve the contract and original directory. Re-supply all required grants and issue fresh funding admission only for the pending turn; the completed result replays without dispatch. Omit the per-invocation limit so this successful one-round run reaches `completed`. Never resume a terminal run or treat uncertain effects as pending work. |
+| 6. Negative check: **`roundtable run /outside/run --accept DIGEST --allow-external`** | [Per-turn funding refusal](../../../src/attune_harness/participant_funding.py#L254-L294) rejects the API seat without fresh API authority; new adapter classification must preserve this before any sibling inference | Use the exact digest but omit API permission deliberately. Expect a funding refusal, a saved paused/prepared boundary and zero task-bearing model dispatches across both seats. |
+| 7. **`roundtable run /outside/run --accept DIGEST --allow-external --allow-api-spend --max-operations 1`** | [Run raises](../../../src/attune_harness/consultation.py#L390-L433): stale acceptance, missing authority, terminal/unresolved state, operation mismatch/budget; [admission](../../../src/attune_harness/participant_funding.py#L254-L307): owner/request/lease mismatch. New subscription proof can still refuse. | After real operator authorization, use the unchanged prepared digest, both explicit funding policies, step 1's still-valid profile, available API credential and two pending turns. [Funding-refusal handling](../../../src/attune_harness/consultation.py#L511-L522) leaves step 6 paused without a dispatching event. The [batch limit](../../../src/attune_harness/consultation.py#L445-L453) admits one turn; require its successful completed answer and `status:paused`, leaving the second turn pending. A failed or uncertain turn stops this walk. |
+| 8. Inspect with **`roundtable status /outside/run`**, then resume with **`roundtable run /outside/run --accept DIGEST --allow-external --allow-api-spend`** | Same acceptance/authority gates; [saved-record raises](../../../src/attune_harness/consultation.py#L118-L144) reject malformed bindings, and [batch owner](../../../src/attune_harness/consultation.py#L425-L481) rejects mismatched/unresolved operations | Step 7 supplies one completed turn and one pending turn. Preserve the contract and original directory. Re-supply all required grants and issue fresh funding admission only for the pending turn; the completed result replays without dispatch. Omit the per-invocation limit so this successful one-round run reaches `completed`. Never resume a terminal run or treat uncertain effects as pending work. |
 | 9. **`roundtable evidence /outside/run`**, then **`roundtable status /outside/run`** | Saved-record/evidence validation; [CLI handlers](../../../src/attune_harness/consultation_cli.py#L63-L115) do not grant execution authority | Read saved turn/route/cleanup evidence from the same run. No provider/account/balance request, profile refresh or model call. |
 | 10. *New*, when desired: **`funding disconnect --profile-id PROFILE_ID`** | New owner refuses unknown/invalid profile and disables future admission; report unconfirmed remote revocation | Use the same app-owned ID, coordinate active children, clear only its credential record. Later runs explicitly refuse this profile. |
 
@@ -316,7 +315,7 @@ command in these tables with `attune-harness`; paths and digests are placeholder
 | --- | --- | --- |
 | S1. **`source-review check --config /outside/source-seat.json`** | [Configuration raises](../../../src/attune_harness/consultation.py#L36-L87) reject a two-seat roster, multiple rounds, same author/reviewer model, invalid question/adapter/funding/timeout. New adapter/profile validation remains required. | Derive a separate one-seat file from the proposed configuration; retain only the explicitly selected reviewer and author, with a bounded question and timeout 120. Current code refuses the new adapter; check grants no execution permission. |
 | S2. **`source-review prepare --project /project --path sample.py --config /outside/source-seat.json --run-dir /outside/source-run`** | [Prepare raises](../../../src/attune_harness/consultation.py#L91-L111), [snapshot raises](../../../src/attune_harness/consultation_snapshot.py#L20-L153) and [store raises](../../../src/attune_harness/review_store.py#L61-L114) reject noncanonical/unsafe/oversized source or overlapping/reused state. | Reuse the bounded regular source from roundtable step 4 and S1's valid one-seat config, with a fresh external directory and writable parent. Save the returned contract digest `SOURCE_DIGEST`; source/config are frozen in this owner. |
-| S3. **`source-review status /outside/source-run`**, then **`source-review run /outside/source-run --accept SOURCE_DIGEST --allow-external --allow-native`** | [Record raises](../../../src/attune_harness/consultation.py#L118-L144) reject copied/malformed bindings; [run raises](../../../src/attune_harness/consultation.py#L390-L433) reject stale acceptance, missing authority, terminal or unresolved state; new subscription admission can refuse. | Inspect S2's original prepared record, then explicitly authorize its one pending review turn using the exact digest and still-valid profile. This subscription-only example has no API seat. A valid completed reply finishes the run; failure or uncertainty stops it. No per-invocation pause limit is needed. |
+| S3. **`source-review status /outside/source-run`**, then **`source-review run /outside/source-run --accept SOURCE_DIGEST --allow-external`** | [Record raises](../../../src/attune_harness/consultation.py#L118-L144) reject copied/malformed bindings; [run raises](../../../src/attune_harness/consultation.py#L390-L433) reject stale acceptance, missing authority, terminal or unresolved state; new subscription admission can refuse. | Inspect S2's original prepared record, then explicitly authorize its one pending review turn using the exact digest and still-valid profile. This subscription-only example has no API seat. A valid completed reply finishes the run; failure or uncertainty stops it. No per-invocation pause limit is needed. |
 | S4. **`source-review evidence /outside/source-run`**, then **`source-review status /outside/source-run`** | Same saved-record validation and [operation-match raise](../../../src/attune_harness/consultation_cli.py#L85-L86). | Read S3's retained answer, funding and cleanup evidence from the same owner using the matching command. Inspection neither dispatches nor refreshes. |
 
 ### Existing command coverage
@@ -345,7 +344,7 @@ Use the legacy positional-request path deliberately; **`resume-review`** continu
 that schema, whereas the newer **`review --goal ...`** task path continues with
 **`resume`**. The parser refuses mixing the two forms
 ([mode raises](../../../src/attune_harness/task_cli.py#L98-L104)). Commands below
-are current parser shapes; accepting `codex-app-server` remains new S4 work.
+are current parser shapes; accepting `openai-plan` remains new S4 work.
 
 | Step and command | What its owner refuses | How preceding steps produce and preserve valid input |
 | --- | --- | --- |
@@ -389,7 +388,7 @@ explicitly authored
 registry with `schema_version:1` and a `participants` map containing distinct
 `lead` and `reviewer` models, `tools:[]`, `max_turns:3`, `max_tool_calls:2`,
 `timeout:120`, no `review_mode`, and qualified explicit adapters/funding. New
-`codex-app-server` registry support/classification remains an S4 contract, not
+`openai-plan` registry support/classification remains an S4 contract, not
 current behavior; current registry validation refuses that adapter. Do not use an
 `init` review profile as a build participant configuration.
 
@@ -398,12 +397,12 @@ current behavior; current registry validation refuses that adapter. Do not use a
 | P1. Before freezing, copy the explicit registry into the dedicated clone: **`cp /outside/work-seats.json /build-project/participants.json`** | [Registry loader](../../../src/attune_harness/task_contract.py#L30-L34) and [registry validator](../../../src/attune_harness/review_contract.py#L52-L125) reject invalid/unsupported fields, adapters, assignments and budgets. [Planning](../../../src/attune_harness/work_runtime.py#L854-L889) and [build](../../../src/attune_harness/work_build.py#L740-L760) reject missing roles, tools/review policies and missing authority. | Prepare and validate the explicit external registry first; use a fresh clone without a preexisting `participants.json`. The local byte-identical copy exists before the snapshot. The external original is the later `--config`; leave both unchanged. No profile credential belongs in either file. |
 | P2. **`init --for plan --goal "Repair sample behavior" --project /build-project --scope sample.py --interpreter /qualified/python --tests tests/test_sample.py --task-dir /outside/work`** | [Starter raises](../../../src/attune_harness/init_cli.py#L327-L367): missing goal/scope/interpreter/tests, existing task/request, oversized request; [freeze raises](../../../src/attune_harness/work_effects.py#L243-L259): overlapping state and checkout or linked/non-Git checkout; [manifest](../../../src/attune_harness/work_effects.py#L72-L142): missing/overlapping/protected paths and [build preflight](../../../src/attune_harness/work_build.py#L95-L128): task/probe/role/budget mismatch. | P1 supplies the two named participants before freeze. Existing regular `sample.py` and test file have distinct roles and no missing parent; the test and interpreter are frozen as protected `change` and `final` probes. `init` creates a nonempty goal, acceptance criterion, planner/worker/reviewer assignments, one `change` task, default budgets, and frozen effects, then writes `/outside/work.work.json` **after** the freeze, outside the checkout ([construction](../../../src/attune_harness/init_cli.py#L275-L313), [write order](../../../src/attune_harness/init_cli.py#L348-L371)). No model call or scope acceptance occurs. |
 | P3. **`plan --request /outside/work.work.json --project /build-project --config /outside/work-seats.json --task-dir /outside/work`** | [CLI raises](../../../src/attune_harness/work_cli.py#L546-L622): missing project/config, old checkpoint, unsupported request fields; [capture raises](../../../src/attune_harness/work_contract.py#L340-L365): noncanonical/missing project, overlapping state, nonregular or symlink evidence; [effects-binding raises](../../../src/attune_harness/work_effects.py#L348-L371): out-of-scope or mismatching preimages. | P2's generated request uses only supported fields and binds the unchanged source/probes. The explicit external config matches the local copy P2 used. A fresh external task directory is created; inspect its `draft`, missing questions and exact checkpoint `C0`. Do not edit the effect checkout, registry, probes or interpreter after the freeze. |
-| P4. **`plan --task-dir /outside/work --run --checkpoint C0 --allow-external --allow-native --allow-api-spend`** | [Planning raises](../../../src/attune_harness/work_runtime.py#L792-L889): nondraft/stale checkpoint, changed evidence, changed resumed authority, missing planner, duplicate planner/critic, insufficient budget, unsupported required control, missing external/native/API authority, or tools/review policy. [Funding admission](../../../src/attune_harness/participant_funding.py#L254-L294) separately rejects stale owner/lease/request/funding. | P3 produces the current unaccepted draft with a complete nonempty intent and configured planner; P2's starter uses no critic, unresolved questions or required planning controls. The explicit no-tool registry satisfies role policy. Only separately authorized dispatch supplies these grants; API funding also needs the explicit credential, and the new subscription route must pass fresh admission. A valid bounded planner reply must complete the planning journal; inspect the returned checkpoint `C1`. Refusal or uncertainty ends this path; it is not a valid staged proposal. |
+| P4. **`plan --task-dir /outside/work --run --checkpoint C0 --allow-external --allow-api-spend`** | [Planning raises](../../../src/attune_harness/work_runtime.py#L792-L889): nondraft/stale checkpoint, changed evidence, changed resumed authority, missing planner, duplicate planner/critic, insufficient budget, unsupported required control, missing external/native/API authority, or tools/review policy. [Funding admission](../../../src/attune_harness/participant_funding.py#L254-L294) separately rejects stale owner/lease/request/funding. | P3 produces the current unaccepted draft with a complete nonempty intent and configured planner; P2's starter uses no critic, unresolved questions or required planning controls. The explicit no-tool registry satisfies role policy. Only separately authorized dispatch supplies these grants; API funding also needs the explicit credential, and the new subscription route must pass fresh admission. A valid bounded planner reply must complete the planning journal; inspect the returned checkpoint `C1`. Refusal or uncertainty ends this path; it is not a valid staged proposal. |
 | P5. **`plan --task-dir /outside/work --stage --checkpoint C1`** | [Staging raises](../../../src/attune_harness/work_runtime.py#L945-L982): stale checkpoint, incomplete proposal, stale evidence; proposal/task validation and [revision gates](../../../src/attune_harness/work_contract.py#L775-L847) also apply. | Use P4's completed, validated proposal only if it preserves this bounded example's `change` task ID, `sample.py` output, protected-probe mapping, acceptance coverage and empty unresolved choices. Staging retains a new **unaccepted** revision outside the checkout; inspect its exact current checkpoint `C2`. If the proposal changes the frozen task/probe shape or scope, stop and revise/freeze a compatible request through the supported workflow rather than passing that contradiction to build. |
 | P6. **`plan --task-dir /outside/work --accept --checkpoint C2`** | [CLI acceptance raises](../../../src/attune_harness/work_cli.py#L475-L505): stale checkpoint, blocked Spec execution gate or no grant; [complete draft](../../../src/attune_harness/work_accept.py#L394-L399), [acceptance binding](../../../src/attune_harness/work_contract.py#L548-L598) and [fresh draft](../../../src/attune_harness/work_contract.py#L730-L743) refuse incomplete/material intent, missing planner, unsupported controls, stale/foreign receipt, changed evidence or replay. | P5 supplies a fresh complete draft with the original nonempty goal, explicit acceptance and compatible effects; the real operator reviews that exact scope and the owning Spec collector records its decision. Only a successful accepted record supplies build authority. Copy the resulting current checkpoint `A`; P6 grants no paid/native dispatch. |
-| P7. **`build /outside/work --checkpoint A --allow-external --allow-native --allow-api-spend --max-operations 1`** | [Effect owner raises](../../../src/attune_harness/work_runtime.py#L306-L319): wrong checkpoint/status, missing effects, changed registry; [build preflight](../../../src/attune_harness/work_build.py#L95-L128): incompatible tasks/outputs/probes/roles/budgets; [build raises](../../../src/attune_harness/work_build.py#L725-L817): unsupported policy/platform, missing authority, changed resumed authority, stale source or unresolved dispatch. | P6's accepted current checkpoint and P2's unchanged manifest/protected probes/config satisfy ownership and preflight. The one-task starter needs five durable operations (worker reply, one file write, task probe, final probe, final review); its default budget is 100 ([defaults](../../../src/attune_harness/task_contract.py#L18)). P5 must preserve that exact shape. Fresh real dispatch grants and both funding checks remain required. `--max-operations 1` stops after the successful worker reply, leaving the file effect and checks pending, so a later authorized **`resume`** has actual remaining work. No unresolved operation is treated as replayable. |
+| P7. **`build /outside/work --checkpoint A --allow-external --allow-api-spend --max-operations 1`** | [Effect owner raises](../../../src/attune_harness/work_runtime.py#L306-L319): wrong checkpoint/status, missing effects, changed registry; [build preflight](../../../src/attune_harness/work_build.py#L95-L128): incompatible tasks/outputs/probes/roles/budgets; [build raises](../../../src/attune_harness/work_build.py#L725-L817): unsupported policy/platform, missing authority, changed resumed authority, stale source or unresolved dispatch. | P6's accepted current checkpoint and P2's unchanged manifest/protected probes/config satisfy ownership and preflight. The one-task starter needs five durable operations (worker reply, one file write, task probe, final probe, final review); its default budget is 100 ([defaults](../../../src/attune_harness/task_contract.py#L18)). P5 must preserve that exact shape. Fresh real dispatch grants and both funding checks remain required. `--max-operations 1` stops after the successful worker reply, leaving the file effect and checks pending, so a later authorized **`resume`** has actual remaining work. No unresolved operation is treated as replayable. |
 | P8. **`status /outside/work`** | [Saved feature-work validation](../../../src/attune_harness/work_contract.py#L601-L697) rejects copied/foreign ownership, malformed status/bindings and inconsistent journals; [build freshness](../../../src/attune_harness/work_build.py#L293-L312) rejects changed config/interpreter. | Read the same retained owner and its paused build journal from P7; no model call or credential refresh. Use its current checkpoint and existing recovery rules before any continuation. |
-| P9. **`resume /outside/work --checkpoint BUILD_CHECKPOINT --allow-external --allow-native --allow-api-spend`**, then **`status /outside/work`** | [Feature-work routing](../../../src/attune_harness/task_cli.py#L249-L255) selects the work owner; [accepted-owner raises](../../../src/attune_harness/work_runtime.py#L306-L319), [build gates](../../../src/attune_harness/work_build.py#L725-L817) and [cursor raises](../../../src/attune_harness/recovery.py#L191-L211) reject stale bindings, changed grants, inputs or unresolved dispatch. | P8 supplies the paused build checkpoint. Preserve its accepted manifest and registry, and re-supply the same external/native grants plus fresh API authority. The completed worker reply replays without a call; remaining file effects and immutable probes execute through their host owners, and the pending reviewer needs fresh funding admission. Require the final probes and artifact-bound review to pass; failure stops the build. |
+| P9. **`resume /outside/work --checkpoint BUILD_CHECKPOINT --allow-external --allow-api-spend`**, then **`status /outside/work`** | [Feature-work routing](../../../src/attune_harness/task_cli.py#L249-L255) selects the work owner; [accepted-owner raises](../../../src/attune_harness/work_runtime.py#L306-L319), [build gates](../../../src/attune_harness/work_build.py#L725-L817) and [cursor raises](../../../src/attune_harness/recovery.py#L191-L211) reject stale bindings, changed grants, inputs or unresolved dispatch. | P8 supplies the paused build checkpoint. Preserve its accepted manifest and registry, and re-supply the same external/native grants plus fresh API authority. The completed worker reply replays without a call; remaining file effects and immutable probes execute through their host owners, and the pending reviewer needs fresh funding admission. Require the final probes and artifact-bound review to pass; failure stops the build. |
 
 The successful P4/P5 proposal is a conditional source path, not an assumption that
 an arbitrary model response preserves task IDs. If the goal is to exercise build
@@ -445,11 +444,11 @@ implementation adds or moves refusals.
 
 | ID | Required evidence |
 | --- | --- |
-| A1: explicit route | Exact adapter/funding/profile/model selection; isolated child; effective provider/thread config evidence; polluted parent/native cache/helper/proxy/managed settings cannot redirect it. Unsupported configuration refuses before task content. |
+| A1: explicit route | Exact adapter/funding/profile/model selection; isolated worker; fixed verified HTTPS endpoint/body; polluted API/native/proxy/SDK environment cannot redirect it. Unsupported configuration refuses before request I/O. |
 | A2: no silent fallback | Auth expiry/revocation, entitlement or quota refusal, unavailable Keychain/binary and unsupported version all stop the selected route. No API attempt, shared-login mutation or model substitution follows. |
 | A3: authority and ownership | Every entrypoint, fresh resume grants, forged/stale/swapped/replayed admissions, profile replacement, invalid lease/request and failed receipt persistence are tested. Missing API authority prevents sibling inference. |
 | A4: isolation and concurrency | Parallel API/subscription seats and two plan profiles cannot exchange secrets, environment or identity. Refresh races are serialized, parent/shared native state remains unchanged, disconnect prevents new dispatch. |
-| A5: bounded lifecycle | Fake duplex server covers malformed/oversized frames, partial writes, stderr floods, wrong RPC/thread/turn/model, unexpected tools, hangs, cancellation, child descendants and cleanup failures. Post-write uncertainty never becomes automatic retry. |
+| A5: bounded lifecycle | Inert HTTPS/SSE fixtures cover zero/one POST, redirects, 401/429/5xx, partial writes, slow/oversized frames, stderr floods, wrong response/model, unexpected provider tools, incomplete/conflicting terminal events, cancellation and cleanup. No failure causes another request; uncertainty never becomes automatic retry. |
 | A6: compatibility | Existing omitted funding, native explicit refusal, API adapter, receipt versions and all command contracts retain their behavior. Same model over different transports fails independence checks. |
 | A7: user journey | Installed-wheel local walkthrough of both shared callers and all nine named command surfaces, including the dispatch-free test path; refusal walk updated to implementation raises. No provider call is hidden in prepare/check/status/evidence/inspect. |
 | A8: truthful qualification | Source/software receipts are separate from an explicitly authorized minimal live plan/API mixed run. Record exact artifact/platform/models, granted route and observed response; missing live evidence keeps that combination unqualified. No claim of billing or model quality follows. |
@@ -463,25 +462,34 @@ present a bounded qualification plan and obtain the applicable authority first.
 
 ## Implementation order and stopping points
 
-[Tasks S1–S6](tasks.md) move from route qualification to profiles, transport,
-owner integration, offline verification and separately gated live qualification.
-S1 is a hard feasibility gate: stop before implementing auth/runtime if the
-pinned app-server cannot enforce the proposed restrictions. Retain an honest
-unsupported verdict and bring the smallest concrete alternative to Patrick.
+[Original S1](s1-qualification.md) ended at the app-server inference-bound gate
+and stays unchanged. Patrick authorized this direct OAuth design revision (D4);
+it replaces that mechanism while retaining the required request boundary.
 
-[C1](claude-feasibility.md) is independent and read-only at first. It may finish
-with insufficient evidence. Its report must never activate a Claude route.
+[Revised tasks](tasks.md) retain S2 profiles, replace S3's duplex server with a
+one-shot HTTPS/SSE worker, and preserve S4 owner integration, S5 offline/
+installed-wheel checks and S6 separately authorized live qualification.
+The corrected command walks and separate dispatch-free test path remain.
 
-## Decisions for Patrick
+This is a design-only pass. Implementation, profile connection and live
+account/model qualification have not started. Positive software evidence must
+establish the single-request boundary and revised refusal walk before support.
+[C1](claude-feasibility.md) remains separate and unstarted; its verdict cannot
+activate a route.
 
-All choices below are **recommended, not yet approved**. No implementation starts
-from this document alone.
+## Decisions and authorization
 
-| ID | Recommended decision | Tradeoff and alternative |
+| ID | Recorded decision | Boundary |
 | --- | --- | --- |
-| D1 | Approve the official plan-OAuth approach, explicit `codex-app-server` adapter and app-owned Keychain profile lifecycle, conditional on S1 | Adds authentication responsibility beyond the previous scope. If that is undesirable, keep subscriptions unsupported and investigate a provider-supported native enforcement mechanism; shared-login status alone cannot substitute. This route must satisfy the intended ChatGPT plan usage, not assume identical native CLI quota accounting. |
-| D2 | Limit first qualification to local macOS arm64, one pinned runtime/profile, model replies only and both shared callers | Delivers a bounded mixed-funding journey. More platforms, native tools and broader account/model coverage need later qualification. If S1 disproves feasibility, return a decision rather than expand scope. |
-| D3 | Keep Claude as feasibility-only and separate live/account/spending approval from software implementation | Allows Codex to progress without treating Claude uncertainty as support. A later live plan or API experiment needs explicit scope and limits; approval of this spec alone grants none. |
+| D1 | Approved: app-owned plan OAuth profiles in macOS Keychain | Preserve consent, protected atomic storage/refresh, immutable identity, disconnect/revoke and no native cache copying. |
+| D2 | Retained initial scope: local macOS arm64, one qualified request/runtime profile, model replies through both shared callers | D4 replaces the Codex binary/protocol pin with a Python/HTTPS/SSE worker pin. Other platforms, native tools and hosted/commercial deployment remain outside scope. |
+| D3 | Confirmed: Claude feasibility stays separate; notify Patrick before API credits are needed | No account/model experiment or API spending is authorized by this design pass. |
+| D4 | Approved November 3, 2026: direct OAuth design revision, retaining Keychain and funding contracts | Proposed adapter `openai-plan`; no implementation or live qualification is approved. The old app-server S1 result stays unqualified. |
+
+No additional provider/model is selected by this document. Later qualification
+needs explicit account/model choices and applicable usage authority. Patrick's
+“No code changes yet” instruction governs this pass; revised tasks do not grant
+permission to implement.
 
 Review [evidence and unresolved assumptions](evidence.md) alongside these
 decisions. The complete contract is this README; the companion files provide
