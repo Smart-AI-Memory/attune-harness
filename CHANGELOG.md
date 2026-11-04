@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add the explicit `openai-plan` subscription adapter alongside API funding,
+  app-owned OAuth/Keychain profiles, and a bounded one-request HTTPS/SSE worker.
+  Profile inspection stays local; live account/model qualification remains
+  separately gated. API seats still require fresh spending authority.
+
 - Add an explicitly selected OpenAI API adapter with per-call, persisted funding
   admission and fresh `--allow-api-spend` authority. Retain usage with unknown
   billing, redact credential echoes, and preserve legacy/default envelopes.

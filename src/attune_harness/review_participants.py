@@ -133,7 +133,7 @@ def _attempt(task, turn, profile):
 
 def model_attempt(config, request, profile):
     """Build the complete API owner request for both admission and dispatch."""
-    if config['adapter'] == 'openai':
+    if config['adapter'] in ('openai', 'openai-plan'):
         fields(request, ('schema_version', 'request_digest', 'turn'))
         versioned(request)
         if request['request_digest'] != digest(request['turn']):
@@ -145,7 +145,7 @@ class ReviewExchange:
     """One selected transport, never a fallback. Each call is a fresh invocation."""
 
     def __init__(self, configuration: dict, cwd: Path, *, profile='harness-review-v1', protected_roots=()):
-        if configuration['adapter'] != 'openai':
+        if configuration['adapter'] not in ('openai', 'openai-plan'):
             require_admission({'participant': configuration})
         if profile not in ('harness-review-v1', 'feature-planning-v1', 'feature-build-v1'):
             raise ValueError('Unsupported participant operation profile')
@@ -164,7 +164,7 @@ class ReviewExchange:
     def __call__(self, raw: str) -> str:
         if self._funding_configuration is not None and digest(self.configuration) != self._funding_configuration:
             raise ValueError('Funding configuration changed before dispatch')
-        if self.configuration['adapter'] != 'openai':
+        if self.configuration['adapter'] not in ('openai', 'openai-plan'):
             require_admission({'participant': self.configuration})
         request = parse_json(raw, 524_288)
         turn = request['turn']
@@ -219,17 +219,18 @@ class ReviewExchange:
             if action is not None:
                 self.last_identity = {'adapter': 'host-evidence', 'native_adapter': adapter, 'model': None}
                 return evidence_response(request, action)
-        if adapter == 'openai':
+        if adapter in ('openai', 'openai-plan'):
             attempt = model_attempt(config, request, self.profile)
             task, role = attempt.task, attempt.role
             from .openai_exchange import OpenAIExchange
+            from .plan_exchange import PlanExchange
             from .participant_funding import validate_evidence
             if self._funding_admission is None:
                 raise ValueError('OpenAI execution requires the owner\'s persisted admission')
             validate_evidence(self._funding_admission.receipt, config=config,
                               participant=turn['participant_id'], attempt_id=turn['turn_id'],
                               request_digest=digest(turn))
-            exchange = OpenAIExchange(model=config['model'], cwd=self.cwd,
+            exchange = (PlanExchange if adapter == 'openai-plan' else OpenAIExchange)(model=config['model'], cwd=self.cwd,
                                       admission=self._funding_admission, timeout=config['timeout'])
         else:
             task = _model_task(config, request, self.profile, raw=raw)
@@ -240,7 +241,7 @@ class ReviewExchange:
                                          if 'skills_context_tokens' in config else {}))
             attempt = _attempt(task, turn, self.profile)
             role = attempt.role
-        if adapter == 'openai':
+        if adapter in ('openai', 'openai-plan'):
             from .participant_funding import bind_request
             bind_request(self._funding_admission, attempt.request())
         try:
@@ -258,7 +259,7 @@ class ReviewExchange:
                 'adapter': adapter, 'requested_model': config['model'],
                 'reported': asdict(exchange.identity) if exchange.identity else None,
             }
-            if adapter == 'openai':
+            if adapter in ('openai', 'openai-plan'):
                 import copy
                 self.last_identity['funding'] = copy.deepcopy(self._funding_admission.receipt)
                 self.last_identity['usage'] = exchange.usage

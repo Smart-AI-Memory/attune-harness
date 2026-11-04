@@ -15,12 +15,13 @@ _ISSUANCE_LOCK = RLock()
 
 def validate(adapter, policy):
     """Validate names only. Never read credentials or infer a legacy policy."""
-    if adapter not in ('claude', 'codex', 'openai'):
+    if adapter not in ('claude', 'codex', 'openai', 'openai-plan'):
         raise ValueError('Funding is supported only for native Claude or Codex participants')
     if not isinstance(policy, dict) or policy.get('mode') not in ('subscription', 'api'):
         raise ValueError('Funding requires subscription or api mode')
     mode = policy['mode']
-    expected = {'mode', 'credential_env'} if mode == 'api' else {'mode'}
+    expected = ({'mode', 'profile_id'} if adapter == 'openai-plan' else
+                {'mode', 'credential_env'} if mode == 'api' else {'mode'})
     if set(policy) != expected:
         raise ValueError('Funding fields differ from the selected mode')
     if mode == 'api':
@@ -29,6 +30,11 @@ def validate(adapter, policy):
         name = policy['credential_env']
         if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}', name):
             raise ValueError('API funding requires a portable credential environment variable name')
+    if adapter == 'openai-plan':
+        from .plan_profiles import profile_id
+        if mode != 'subscription':
+            raise ValueError('The plan adapter requires subscription funding')
+        profile_id(policy['profile_id'])
     if adapter == 'openai' and mode != 'api':
         raise ValueError('The OpenAI adapter requires explicit API funding')
     return policy
@@ -37,6 +43,11 @@ def validate(adapter, policy):
 def inspect(adapter, policy):
     """Report the qualified support boundary without probing auth or credentials."""
     validate(adapter, policy)
+    if adapter == 'openai-plan':
+        from .plan_profiles import store
+        local = store().inspect(policy['profile_id'])
+        return {'requested': 'subscription', 'observed': 'unknown', 'state': 'unknown',
+                'basis': local['state'], 'cli_version': None, 'profile_id': policy['profile_id']}
     if adapter == 'openai':
         try:
             _environment(policy)
@@ -59,11 +70,11 @@ def require_admission(selected, allow_api_spend=False):
     if type(allow_api_spend) is not bool:
         raise ValueError('API spending authority must be a boolean')
     for item in selected.values():
-        if item['adapter'] == 'openai' and 'funding' not in item:
+        if item['adapter'] in ('openai', 'openai-plan') and 'funding' not in item:
             raise ValueError('The OpenAI adapter requires explicit API funding')
         if 'funding' in item:
             validate(item['adapter'], item['funding'])
-            if item['adapter'] == 'openai':
+            if item['adapter'] in ('openai', 'openai-plan'):
                 # Actual spending is checked per pending model turn, after the
                 # owner has a prepared event in which to retain a refusal.
                 continue
@@ -74,13 +85,13 @@ def require_admission(selected, allow_api_spend=False):
 
 def model_key(provider, model):
     """Compare transport-independent identity without rewriting configuration."""
-    return ('openai' if provider in ('codex', 'openai') else provider, model)
+    return ('openai' if provider in ('codex', 'openai', 'openai-plan') else provider, model)
 
 
 def distinct_api_models(configurations):
     """A new API transport cannot create reviewer independence by itself."""
     values = list(configurations)
-    if any(c['adapter'] == 'openai' for c in values):
+    if any(c['adapter'] in ('openai', 'openai-plan') for c in values):
         keys = [model_key(c['adapter'], c.get('model')) for c in values if c.get('model')]
         if len(keys) != len(set(keys)):
             raise ValueError('OpenAI and Codex review seats require distinct configured models')
@@ -110,6 +121,12 @@ class FundingRefused(FeatureUnavailable):
                   'Funding admission refused: ' + evidence['basis'])
         super().__init__(detail + '. No provider call was started.')
         self.funding = copy.deepcopy(evidence)
+
+
+class FundingPrecheckRefused(FundingRefused):
+    def __init__(self, basis):
+        FeatureUnavailable.__init__(self, 'Pending mixed funding refused: ' + basis + '. No provider call was started.')
+        self.funding = None  # No fabricated per-turn receipt before its request exists.
 
 
 class _Admission:
@@ -169,15 +186,31 @@ def claim(admission, model, raw):
                 or any(event.get(key) != value for key, value in issued['event'].items())
                 or event.get('funding') != receipt):
             raise ValueError('API request requires its persisted owner dispatch boundary')
+        if issued.get('plan'):
+            from .plan_funding import context, verify_runtime
+            selected = context(issued)
+            with selected['store'].claim(selected['profile_id'], selected['generation'], selected['deadline']):
+                verify_runtime(selected)
+                issued['used'] = True
+                admission.used = True
+                return dict(issued['environment'])
         issued['used'] = True
         admission.used = True
         return dict(issued['environment'])
+
+
+def plan_context(admission):
+    from .plan_funding import context
+    with _ISSUANCE_LOCK:
+        return context(_issued(admission))
 
 
 def release(admission):
     with _ISSUANCE_LOCK:
         if admission in _ISSUED:
             _ISSUED[admission]['environment'] = {}
+            if _ISSUED[admission].get('plan'):
+                _ISSUED[admission]['used'] = True
         admission.environment = {}
 
 
@@ -267,7 +300,7 @@ def admit(cursor, event, config, participant, attempt_id, *, turn,
         raise FeatureUnavailable('Explicit API funding also requires external execution authority')
     validate(config['adapter'], config['funding'])
     raw = _owner_request(cursor, event, config, participant, attempt_id, turn)
-    report = inspect(config['adapter'], config['funding']) if config['adapter'] != 'openai' else {
+    report = inspect(config['adapter'], config['funding']) if config['adapter'] not in ('openai', 'openai-plan') else {
         'requested': 'api', 'observed': 'unknown', 'state': 'unknown',
         'basis': 'api_authority_required', 'cli_version': None}
     environment = None
@@ -277,7 +310,11 @@ def admit(cursor, event, config, participant, attempt_id, *, turn,
             report.update(observed='api', state='matched', basis='scoped_api_request')
         except ValueError:
             report.update(state='missing_credential', basis='missing_credential')
-    receipt = {'profile': 'participant-funding-v1', **report,
+    plan = None
+    if config['adapter'] == 'openai-plan':
+        from .plan_funding import prepare
+        report, environment, plan = prepare(config, raw)
+    receipt = {'profile': ('participant-funding-v2' if config['adapter'] == 'openai-plan' else 'participant-funding-v1'), **report,
                'api_authorized': allow_api_spend is True, 'dispatch_outcome': 'not_started',
                'participant_id': participant, 'configuration_digest': digest(config),
                'attempt_id': attempt_id, 'attempt': event['attempts'],
@@ -297,7 +334,7 @@ def admit(cursor, event, config, participant, attempt_id, *, turn,
     with _ISSUANCE_LOCK:
         import hashlib
         _ISSUED[admission] = {'model': admission.model, 'receipt': copy.deepcopy(receipt),
-                              'environment': dict(environment), 'used': False,
+                              'environment': dict(environment), 'used': False, 'plan': plan,
                               'wire_digest': hashlib.sha256(raw.encode()).hexdigest(),
                               'store': store, 'lease': lease, 'projection': projection,
                               'event': {key: copy.deepcopy(value) for key, value in event.items()
@@ -311,6 +348,12 @@ def validate_evidence(value, *, config=None, participant=None, attempt_id=None,
                       attempt=None, request_digest=None):
     """Validate only optional new evidence; legacy records acquire no claims."""
     from .review_contract import digest, fields
+    if isinstance(value, dict) and value.get('profile') == 'participant-funding-v2':
+        from .plan_funding import validate as validate_plan
+        return validate_plan(value, config=config, participant=participant, attempt_id=attempt_id,
+                             attempt=attempt, request_digest=request_digest)
+    if config is not None and config['adapter'] == 'openai-plan':
+        raise ValueError('Plan adapter requires v2 funding evidence')
     fields(value, ('profile', 'requested', 'observed', 'state', 'basis', 'cli_version',
                    'api_authorized', 'dispatch_outcome', 'participant_id',
                    'configuration_digest', 'attempt_id', 'attempt', 'request_digest'))
@@ -358,15 +401,15 @@ def validate_event(event, config, participant, attempt_id):
     result = event.get('result') or {}
     identity = (result.get('identity') or {}) if isinstance(result, dict) else {}
     if not isinstance(identity, dict):
-        if config.get('adapter') == 'openai':
+        if config.get('adapter') in ('openai', 'openai-plan'):
             raise ValueError('Invalid funded participant identity')
         identity = {}
     host_step = identity.get('adapter') == 'host-evidence'
-    if host_step and config.get('adapter') == 'openai':
+    if host_step and config.get('adapter') in ('openai', 'openai-plan'):
         action = result.get('action')
         if (config.get('review_mode') != 'evidence'
                 or set(identity) != {'adapter', 'native_adapter', 'model'}
-                or identity['native_adapter'] != 'openai' or identity['model'] is not None
+                or identity['native_adapter'] != config['adapter'] or identity['model'] is not None
                 or 'funding' in event or 'funding_history' in event
                 or not isinstance(action, dict)
                 or set(action) != {'kind', 'name', 'arguments'}
@@ -399,9 +442,9 @@ def validate_event(event, config, participant, attempt_id):
             raise ValueError('Prepared funding cannot claim a dispatch')
         for previous in event.get('funding_history', []):
             validate_evidence(previous, **expected)
-    elif config.get('adapter') == 'openai' and event['phase'] != 'prepared' and not host_step:
+    elif config.get('adapter') in ('openai', 'openai-plan') and event['phase'] != 'prepared' and not host_step:
         raise ValueError('API operation omitted funding admission')
-    if config.get('adapter') == 'openai' and event['phase'] == 'completed' and not host_step:
+    if config.get('adapter') in ('openai', 'openai-plan') and event['phase'] == 'completed' and not host_step:
         if identity.get('funding') != event.get('funding'):
             raise ValueError('Result funding differs from its admission')
         from .funding_usage import validate
@@ -428,11 +471,11 @@ def validate_owned_event(record, event):
     if config is not None:
         result = event.get('result') or {}
         identity = (result.get('identity') or {}) if isinstance(result, dict) else {}
-        if (config['adapter'] == 'openai' and 'accepted' not in record
+        if (config['adapter'] in ('openai', 'openai-plan') and 'accepted' not in record
                 and isinstance(identity, dict) and identity.get('adapter') == 'host-evidence'):
             raise ValueError('Invalid API host evidence owner')
         validate_event(event, config, participant, attempt)
-        if (config['adapter'] == 'openai' and isinstance(identity, dict)
+        if (config['adapter'] in ('openai', 'openai-plan') and isinstance(identity, dict)
                 and identity.get('adapter') == 'host-evidence'):
             _validate_host_context(record, event)
     elif 'funding' in event:

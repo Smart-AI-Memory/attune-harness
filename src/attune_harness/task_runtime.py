@@ -259,6 +259,9 @@ def execute_assessment(record, store, prepared, *, allow_external=False, allow_p
         return catalog(bindings, enabled=True)
 
     def plan_steps():
+        from .plan_funding import precheck_pending, pending_assignments
+        precheck_pending(pending_assignments(selected, assignments, record['events']),
+                         allow_api_spend, selected=selected)
         extension_catalog()
         # Reject missing dependencies or invalid context before any participant call.
         record['preflight_verification'] = cursor.perform('preflight', 'preflight_verification', verify, effect_class='unknown')

@@ -64,6 +64,7 @@ program's one option is `--help-all`. Workspace MCP accepts `--workspace`,
 | `code-config` | - | - | `--index-dir` `--repo` |
 | `extension` | disable discover enable inspect install remove replace | - | - |
 | `fix` | - | - | - |
+| `funding` | connect disconnect inspect | - | - |
 | `github-checks` | - | `input` | `--repository` `--revision` |
 | `index` | build inspect plan update | - | - |
 | `init` | - | - | - |

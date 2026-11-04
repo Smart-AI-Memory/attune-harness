@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "purpose": "account-free controller dependency inputs v2",
+  "supersedes_controller_route": {
+    "source": "experiments/platform/windows_saved_store_component_route_v1.py",
+    "sha256": "2020c0aa0ce28f53ccafdb684d04982e8cb4ccef9de98475a61b7215a7aa3141"
+  },
+  "fixed_component_manifest": {
+    "source": "experiments/platform/windows_saved_store_source_manifest_v4.json",
+    "sha256": "6b33976fcc9e7c1bcf276f82c9d4e0ad1d795008a74fb3c4343d86a7573c430a",
+    "bytes": 54462
+  },
+  "locks": {
+    "requirements-workflow.lock": {
+      "source": "requirements-workflow.lock",
+      "sha256": "60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad",
+      "bytes": 451
+    },
+    "requirements-voyage.lock": {
+      "source": "requirements-voyage.lock",
+      "sha256": "ec50266e00bb2bf673973b7d051da9bb962d0713904c6f7258c416a5b1dc63da",
+      "bytes": 1476
+    },
+    "requirements-mcp.lock": {
+      "source": "requirements-mcp.lock",
+      "sha256": "87071ba2a0d0c033a4059b44ee9b816076c6e8d87407b59b8f0a35f6fd871211",
+      "bytes": 705
+    },
+    "requirements-tokens.lock": {
+      "source": "requirements-tokens.lock",
+      "sha256": "6351570c2dabef01106388ab7291bab9f52866f6bdbec1eb36f036929b39472d",
+      "bytes": 255
+    },
+    "requirements-redis.lock": {
+      "source": "requirements-redis.lock",
+      "sha256": "84f43680576915e1e8716902d85acc6b2ae63a4451eb55f5eaddabbf9806c09c",
+      "bytes": 225
+    }
+  },
+  "account_fixture_authorized": false,
+  "provider_calls_authorized": false
+}

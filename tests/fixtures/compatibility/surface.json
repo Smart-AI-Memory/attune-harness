@@ -662,6 +662,93 @@
    "positionals": [],
    "required_options": []
   },
+  "funding": {
+   "arguments": [],
+   "one_of": [],
+   "options": [],
+   "positionals": [],
+   "required_options": [],
+   "subcommands": {
+    "connect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "name",
+       "option_strings": [
+        "--name"
+       ]
+      },
+      {
+       "choices": null,
+       "default": 180,
+       "name": "timeout",
+       "option_strings": [
+        "--timeout"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--name",
+      "--timeout"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--name"
+     ]
+    },
+    "disconnect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "profile_id",
+       "option_strings": [
+        "--profile-id"
+       ]
+      },
+      {
+       "choices": null,
+       "default": 60,
+       "name": "timeout",
+       "option_strings": [
+        "--timeout"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--profile-id",
+      "--timeout"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--profile-id"
+     ]
+    },
+    "inspect": {
+     "arguments": [
+      {
+       "choices": null,
+       "default": null,
+       "name": "profile_id",
+       "option_strings": [
+        "--profile-id"
+       ]
+      }
+     ],
+     "one_of": [],
+     "options": [
+      "--profile-id"
+     ],
+     "positionals": [],
+     "required_options": [
+      "--profile-id"
+     ]
+    }
+   }
+  },
   "github-checks": {
    "arguments": [
     {

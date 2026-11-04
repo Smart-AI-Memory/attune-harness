@@ -1,7 +1,9 @@
 # Direct plan OAuth transport design
 
-**Status: Design revision authorized November 3, 2026. Documentation only;
-implementation and live qualification have not started.**
+**Status: S2–S4 implemented and reviewed. S5's versioned controller successor was
+approved and implemented November 4, 2026. [PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336)
+records current software qualification and its verdict. S6 remains gated.**
+See [software evidence](evidence.md).
 
 This design replaces the proposed Codex app-server transport after its
 [S1 stop-gate result](s1-qualification.md). Patrick approved the direct OAuth
@@ -9,9 +11,13 @@ design revision while retaining Keychain/funding contracts, keeping Claude
 feasibility separate, requiring notice before API credits are needed and saying
 “No code changes yet.” Original receipts and the original S1 report stay intact.
 
+The later implementation approval supersedes the earlier documentation-only
+boundary for S2–S5. No live sign-in, account/model qualification or API-credit
+spending is included.
+
 ## Contract and scope
 
-The proposed adapter is **`openai-plan`**, with mandatory funding exactly
+The implemented adapter is **`openai-plan`**, with mandatory funding exactly
 `{"mode":"subscription","profile_id":"<opaque-local-id>"}`. Consultation
 identity provider is `openai`; registry entries retain their existing explicit
 `model` and role/tool budgets. Normalize this adapter, native `codex` and API-key
@@ -146,8 +152,8 @@ also demonstrates bounded one-shot supervision, not subscription qualification.
    inference request and issues no reusable authorization.
 4. Issue a private one-use capability and recheck/claim it at the same live
    pending-to-dispatching boundary. Reuse the existing
-   [owner/request claim discipline](../../../src/attune_harness/participant_funding.py#L153-L174)
-   and [persist-before-issue pattern](../../../src/attune_harness/participant_funding.py#L254-L307).
+   [owner/request claim discipline](../../../src/attune_harness/participant_funding.py#L170-L199)
+   and [persist-before-issue pattern](../../../src/attune_harness/participant_funding.py#L287-L344).
    Do not deserialize saved receipts into capabilities or accept a fake cursor.
 5. Supply the access token only to the admitted child in an adapter-owned
    environment variable. Child stdin contains the bounded request/control
@@ -239,7 +245,7 @@ API fallback request for that seat.
 
 ## Required software qualification
 
-Implementation remains unstarted. Before any live qualification, S2–S5 must
+Before any live qualification, S2–S5 must
 produce artifact-bound evidence for the following:
 
 - Profile lifecycle with OAuth/Keychain doubles: scope/identity/callback refusal,
