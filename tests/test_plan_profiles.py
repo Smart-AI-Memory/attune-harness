@@ -300,6 +300,7 @@ def test_connect_uses_injectable_browser_and_fresh_nonce_without_network(monkeyp
         captured.update(state=args['state'][0], nonce=args['nonce'][0])
         return True
     client = oauth_mod.OAuthClient(transport=lambda *args: response(id_token='fresh-id'))
+    monkeypatch.setattr(client, 'preflight', lambda: None)  # OAuth flow double; real validators are tested separately.
     def validate(token, client_id, deadline, *, nonce, access_token):
         assert token == 'fresh-id' and nonce == captured['nonce']
         return 'person'
@@ -427,3 +428,37 @@ def test_interrupted_refresh_is_visible_to_inspection(tmp_path):
     oauth.refresh=failed
     with pytest.raises(FeatureUnavailable): obj.resolve(PID,time.monotonic()+2)
     assert obj.inspect(PID)['state']=='refresh_pending'
+
+
+@pytest.mark.parametrize('missing', ['Authlib', 'joserfc', 'cryptography', 'certifi'])
+def test_missing_dependency_refuses_before_listener_browser_or_exchange(monkeypatch, missing):
+    calls = []
+    def require(distribution, *args):
+        calls.append(distribution)
+        if distribution == missing: raise FeatureUnavailable('inert missing dependency')
+        return type('Dependency', (), {'where': staticmethod(lambda: '/inert/ca.pem')})
+    monkeypatch.setattr(oauth_mod, 'require_feature', require)
+    if missing == 'certifi':
+        # The production import check still runs; skip only when this optional
+        # dependency is absent from a base-install test environment.
+        pytest.importorskip('authlib')
+    client = oauth_mod.OAuthClient(transport=lambda *a: pytest.fail('code exchange before preflight'))
+    monkeypatch.setattr(oauth_mod, 'ThreadingHTTPServer', lambda *a: pytest.fail('listener before preflight'))
+    with pytest.raises(FeatureUnavailable):
+        client.connect('urn:uuid:host', None, time.monotonic()+1,
+                       browser=lambda *a: pytest.fail('browser before preflight'))
+    assert missing in calls
+
+
+def test_expired_deadline_refuses_before_any_helper_or_listener(monkeypatch):
+    import subprocess
+    from attune_harness.plan_keychain import Keychain
+    monkeypatch.setattr(subprocess, 'Popen', lambda *a, **k: pytest.fail('expired helper launched'))
+    monkeypatch.setattr(oauth_mod, 'ThreadingHTTPServer', lambda *a, **k: pytest.fail('expired listener opened'))
+    client = oauth_mod.OAuthClient()
+    monkeypatch.setattr(client, 'preflight', lambda: None)
+    expired = time.monotonic()-1
+    for action in (lambda: Keychain().get(PID, expired),
+                   lambda: oauth_mod.open_browser('https://inert.invalid', expired),
+                   lambda: client.connect('urn:uuid:host', None, expired)):
+        with pytest.raises(FeatureUnavailable): action()

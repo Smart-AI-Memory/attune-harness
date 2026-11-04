@@ -123,6 +123,7 @@ class Keychain:
         import subprocess
         import sys
         from .plan_oauth import remaining
+        remaining(deadline)
         payload = json.dumps({'operation': operation, 'profile_id': profile_id,
                               'record': record}, allow_nan=False).encode()
         if len(payload) > 262144:

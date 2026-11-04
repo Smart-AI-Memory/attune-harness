@@ -248,6 +248,7 @@ def test_plan_build_real_owner_pause_resume(work, plan, phase, monkeypatch, caps
     assert run()[phase]['status'] == 'completed' and len(plan.runner.calls) == calls
 
 
+@pytest.mark.skipif(__import__('os').name != 'posix', reason='POSIX frozen repair fixture')
 def test_fix_real_effects_and_resume(effect_case, plan):
     config = {'schema_version': 1, 'participants': {n: participant('inert-'+n) for n in ('worker', 'reviewer')}}
     directory = prepare_repair(effect_case, config=config)
@@ -326,6 +327,7 @@ def test_mixed_feature_owners_precheck_before_plan(work, plan, phase):
     assert not plan.runner.calls and plan.profiles.resolutions == 0
 
 
+@pytest.mark.skipif(__import__('os').name != 'posix', reason='POSIX frozen repair fixture')
 def test_mixed_repair_prechecks_pending_reviewer(effect_case, plan):
     config = {'schema_version': 1, 'participants': {'worker': participant(), 'reviewer': {
         'adapter': 'openai', 'model': 'inert-api-model', 'timeout': 10, 'tools': [],

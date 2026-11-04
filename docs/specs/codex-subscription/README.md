@@ -157,6 +157,12 @@ unsupported values refuse rather than downgrade.
 
 ## Profile lifecycle
 
+Use macOS arm64 and CPython 3.12.2 in an isolated environment. Install the
+reviewed candidate wheel with its explicit feature extra, for example
+**`python -m pip install '/absolute/path/attune_harness-1.6.0-py3-none-any.whl[plan-oauth]'`**.
+Use the actual reviewed wheel path; this does not claim a published release.
+Connection checks the pinned validators and CA dependency before opening consent.
+
 The candidate provides three explicit profile commands:
 
 | Command | Implemented owner contract |

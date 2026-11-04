@@ -70,6 +70,7 @@ def open_browser(url, deadline):
     import signal
     import subprocess
     import sys
+    remaining(deadline)
     payload = url.encode()
     if len(payload) > 131072: raise FeatureUnavailable('Plan consent URL limit')
     child = subprocess.Popen((sys.executable, '-I', '-S',
@@ -95,6 +96,17 @@ def open_browser(url, deadline):
 class OAuthClient:
     def __init__(self, transport=request):
         self.transport = transport
+
+    def preflight(self):
+        """Refuse missing validators before consent can create a registration."""
+        require_feature('Authlib', 'authlib', '1.9.3', 'plan-oauth')
+        require_feature('joserfc', 'joserfc', '1.8.0', 'plan-oauth')
+        require_feature('cryptography', 'cryptography', '50.0.2', 'plan-oauth')
+        from authlib.jose import JsonWebToken
+        from authlib.oidc.core import CodeIDToken
+        if not callable(JsonWebToken) or not callable(CodeIDToken):
+            raise FeatureUnavailable('Plan identity validators are unavailable')
+        tls_bundle()
 
     def discovery(self, deadline):
         value = self.transport(ISSUER + '/.well-known/openid-configuration', deadline)
@@ -184,6 +196,8 @@ class OAuthClient:
         return True
 
     def connect(self, host_id, previous, deadline, browser=None):
+        self.preflight()
+        remaining(deadline)
         state, nonce, verifier = (secrets.token_urlsafe(48) for _ in range(3))
         challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
         outcome = []

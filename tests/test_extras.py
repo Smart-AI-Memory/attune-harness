@@ -39,6 +39,8 @@ def test_the_retired_extras_are_gone():
 
 def test_plan_oauth_is_pinned_and_requires_explicit_install():
     found = extras()
-    assert found['plan-oauth'] == ['Authlib==1.9.3', 'joserfc==1.8.0',
-                                  'cryptography==50.0.2', 'certifi==2026.10.23']
+    assert found['plan-oauth'] == ['Authlib==1.9.3', 'joserfc==1.8.0']
+    base = PYPROJECT.read_text(encoding='utf-8').split('[project.optional-dependencies]', 1)[0]
+    assert '"certifi==2026.10.23"' in base
+    assert '"cryptography==50.0.2"' in base
     assert 'plan-oauth' not in found['all'][0]
