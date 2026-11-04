@@ -1,143 +1,145 @@
-# Codex subscription implementation tasks
+# Subscription OAuth implementation tasks
 
-**Status: S1 complete with a stop-gate result; subscription support remains
-unqualified. App-owned OAuth/Keychain lifecycle approved. S2–S6 and separate C1
-remain unstarted.** November 3, 2026.
+**Status: Direct OAuth design revision authorized; documentation only. S2–S6
+implementation and live qualification remain unstarted.** November 3, 2026.
 
-The [README](README.md) owns scope, requirements, refusal walk and acceptance
-criteria. These tasks do not grant account access, model selection, spending,
-workflow dispatch, publication or merge authority. Use ordinary reviewed PRs;
-do not carry the prior named PR's merge delegation forward.
+The [README](README.md) owns the funding/authority contract and corrected command
+walks. The [direct OAuth design](direct-oauth-design.md) owns the revised worker/
+request/stream contract. Patrick retained Keychain and funding contracts, kept
+Claude separate, required notice before API credits are needed and expressly
+said “No code changes yet.” These tasks do not grant implementation, account,
+model/spending, merge, release or workflow authority.
 
-## S1 — Qualify the proposed mechanism
+## S1 — Original app-server qualification: completed with a stop gate
 
-Result: [not qualified for the required single-inference boundary](s1-qualification.md).
-The report retains positive software evidence and remaining gaps separately.
+The [retained S1 report](s1-qualification.md) records the candidate binary/source/
+schema and model-free observations. It did not establish the required single-
+inference boundary. Do not rerun, relabel or edit that evidence to qualify the
+direct worker.
 
-Authorization: Patrick directed S1 to start on November 3, 2026, after approving
-the app-owned OAuth/Keychain lifecycle. Retain the D2 initial profile. No live
-account/model call; notify Patrick before any API credits are needed.
+Patrick subsequently authorized the direct OAuth design revision (D4). That
+revision replaces the proposed mechanism, preserves the one-client-request
+boundary and leaves direct software/live qualification outstanding. This design
+pass does not authorize S2 or a provider request.
 
-Inspect official documentation and the exact candidate Codex binary's source,
-help and generated protocol schema using bounded model-free witnesses. Record
-version, executable path/hash, upstream source SHA, schema hash, OS/architecture
-and the configuration needed for the SIWC provider. Verify private `CODEX_HOME`,
-configuration/managed-policy precedence, thread overrides, environment handling,
-entitlement reporting limits, startup behavior and lifecycle APIs.
+## S2 — Add the approved app-owned profile lifecycle
 
-Prove that initialization is model-free, task content is withheld until admission,
-native tools/apps/MCP/subagents and automatic compaction/model follow-ups are
-disabled, and inference/transport attempts have a finite enforced bound. Verify
-whether the intended local use and plan accounting meet the documented conditions.
-Do not infer native CLI quota equivalence from an OAuth token or model catalog.
+Dependencies: explicit authorization to implement the revised design. D1's
+OAuth/Keychain lifecycle approval is already recorded; do not ask for it again.
 
-Done when: a source-cited runtime profile and inert witness receipts support every
-restriction in the README, or an explicit unsupported/unknown verdict identifies
-the first failed requirement. Negative evidence is a finished S1 handoff. It is
-not permission to relax requirements, choose another provider or start a paid
-trial. Return any required scope change to Patrick before S2 or S3.
+Implement the proposed **`funding connect`**, **`funding inspect`** and
+**`funding disconnect`** contracts using maintained pinned OAuth/OIDC validation
+and protected macOS Keychain storage. Bind immutable identity/client/scopes to
+each opaque profile, serialize rotating refresh and atomically replace tokens.
+Keep metadata outside checkout/run stores. Refuse pasted credentials, unsafe
+storage, missing scopes and account replacement.
 
-## S2 — Add the app-owned profile lifecycle
+Disconnect atomically excludes new claims and invalidates unused capabilities.
+Coordinate cancellation of already claimed work and report possible effects;
+remote revoke failure must not re-enable local dispatch. Inspection stays local
+and never refreshes or contacts a provider.
 
-Dependencies: successful S1, approved D1. Own the proposed **`funding connect`**,
-**`funding inspect`** and **`funding disconnect`** contracts.
+Done when: OAuth/Keychain doubles prove state/nonce/callback/signature/issuer/
+audience/expiry/scope refusals, identity switches, atomic refresh/crash behavior,
+concurrent owners/deadlock avoidance, missing storage and partial revocation.
+Outputs pass redaction checks. No live sign-in or credential access is required
+for the software tests.
 
-Implement public-client OAuth/OIDC with a maintained pinned validation library,
-loopback callback validation and protected Keychain storage. Make account/client
-registration immutable per profile. Serialize refresh and atomically replace
-rotating credentials. Separate private metadata from secrets; reject pasted keys,
-tokens, unsafe storage and account replacement. Disconnect invalidates admissions
-and prevents new dispatch even if remote revoke cannot be confirmed.
+## S3 — Add the single-request HTTPS/SSE worker
 
-Done when: OAuth/Keychain doubles cover cancellation, replayed callbacks, invalid
-state/nonce/issuer/audience/signature/expiry, missing granted scopes, identity
-switch, refresh races/crashes, missing Keychain and partial revocation. Inspection
-is network-free. All errors and outputs pass secret-redaction checks. No real
-login or native credential access is required to complete these software tests.
+Dependencies: code authorization and the S2 profile interface. Preserve the
+existing API-key adapter, its wire body and existing one-shot process API.
 
-## S3 — Add the bounded app-server transport
+Implement the **`openai-plan`** exchange and isolated standard-library worker.
+Freeze the host-reconstructed request before admission; allow only the qualified
+plan body, fixed verified HTTPS endpoint, one POST and bounded SSE parsing.
+Use private child environment/token handling and the existing supervisor. No
+native CLI, duplex RPC, SDK defaults, redirects, retries, tool executor,
+catalog/status call, remote conversation continuation or repair inference.
 
-Dependencies: successful S1; S2 profile interface available. Preserve the existing
-one-shot process API and native/direct API adapters.
-
-Implement a supervised duplex session using the pinned schema. Use private
-per-turn config/cwd and a startup environment allowlist. Permit only qualified
-initialization, config inspection, thread creation, one admitted turn and
-termination operations. Enforce deadlines, framing/output bounds, request and
-response identity, unexpected request refusal and descendant cleanup.
-
-Done when: fake-server tests exercise every A5 failure and verify zero task text
-before final admission, no native tool execution, no automatic reconnect/replay,
-no child access to API/refresh credentials and no mutation of shared native state.
-Any impossible profile restriction returns to S1 as unsupported, not a workaround.
+Done when: request-counting inert fixtures prove zero POST before accepted
+admission and at most one afterward, including 3xx/401/429/5xx, timeout, partial
+write/stream, malformed text and unsolicited provider tool outputs. Verify TLS/
+host/path behavior, proxy/environment exclusion, final event/model/ID/text
+validation, framing/byte/deadline bounds, cancellation and descendant cleanup.
+Missing/failed completion never becomes success or automatic retry. No actual
+model call is needed. Record exact worker/interpreter/request qualification.
 
 ## S4 — Integrate funding and both shared callers
 
-Dependencies: S2 and S3. Extend strict configuration and model identity mapping;
-do not rewrite existing saved configs or v1 receipts.
+Dependencies: S2 and S3. Extend strict configuration and normalized model identity.
+The new adapter requires the unchanged subscription profile reference; API-key
+`openai` remains API-only. Legacy omitted funding and native explicit refusals
+remain compatible. No config, accepted request or v1 receipt is silently migrated.
 
-Add the mandatory subscription policy and opaque profile reference. Bind and
-persist route evidence under the real owner/lease before issuing a one-use
-capability; claim at the actual dispatch boundary. Cover consultation and
-registry callers, planning/build role contracts, the README's model-dispatching
-entrypoints and each resume path. Keep the separate deterministic **`test`**
-path free of model dispatch and funding admission. Preserve whole-batch admission
-before inference. Extend each native
-classification explicitly; do not invent flags absent from that command.
+Bind and persist names-only admission under the real owner/lease before issuing
+a private one-use capability; recheck and claim against the exact complete
+request, model, profile/generation and worker profile. Never deserialize a
+receipt into authority. API funding still requires fresh spending permission.
 
-Done when: A1–A4 and A6 pass, including polluted environment/config, disconnected
-or replaced profile, failure to persist, stale/forged/cross-owner/replayed
-capability, same-model independence, missing API grant with a subscription
-sibling, cancellation, resumed uncertainty and concurrent refresh. API-only
-behavior and inherited native behavior remain compatible. Read back the new
-receipts; no credential values or raw account identity may appear.
+Cover consultation, registry, planning/build role/tool contracts and each
+model-dispatching/resume owner in the corrected README walks. This transport
+does not become a native CLI seat; preserve actual native-seat and owner-specific
+authority. Keep the separate deterministic **`test`** path dispatch-free.
+Preserve all-member admission before selected sibling inference.
 
-## S5 — Verify the installed software and user journey
+Done when: A1–A4 and A6 pass for stale/forged/cross-owner/swapped/replayed claims,
+profile rotation/replacement/disconnect, failed persistence, polluted API/native/
+proxy settings, same-model independence, concurrent profiles and missing API
+authority with a plan sibling. Completed work never re-dispatches on resume;
+pending work requires fresh grants and admissions. Receipts remain secret-free.
+
+## S5 — Verify installed software and corrected user journeys
 
 Dependencies: S4. This is software qualification, not a live funding verdict.
 
-Run focused tests and the full suite. Build/install the wheel in a fresh
-environment, then run the platform qualifier against it. Walk the README's
-journey and all registry owners against inert fixtures; replace proposed owner
-contracts with implementation `raise` citations. Include a clean no-API-grant
-mixed-seat refusal and an uncertain-dispatch recovery case. Keep the public
-support table conditional until live route evidence exists.
+Run focused tests, the full suite, wheel build and installed-wheel platform
+qualification. Walk both shared callers and all nine named command surfaces
+with inert fixtures, including the dispatch-free test path. Preserve #333's
+ordered input-producing walks: source-review, positional review/resume-review,
+task-oriented review/resume, plan/build, test/resume and fix/resume.
 
-Done when: reproducible artifact-bound receipts pass A1–A7, no hidden provider
-call occurs in local inspection/preparation, and independent review covers the
-current source changes. Retain failures honestly; do not edit old evidence to
-match new code. Windows/other-platform checks cannot establish subscription
-support outside the approved initial profile.
+Replace proposed-owner contracts with real implementation refusal citations.
+Verify a paused run actually has pending work before resume, missing API grant
+causes zero sibling inference, inspection is network-free and uncertain effects
+remain a real stop. No local check/prepare/status/evidence/inspect operation
+implicitly connects, refreshes or probes entitlement.
 
-## S6 — Separately authorize and qualify a minimal live route
+Done when: artifact-bound A1–A7 evidence passes and recorded independent review
+covers current source changes. Retain every failure honestly. Other platforms
+and untested Python/request/model profiles stay unsupported. The old app-server
+receipts and successful direct software tests cannot supply missing live proof.
 
-Dependencies: S5, explicit approval for the account connection, selected models,
-scope and limits of live qualification. No such approval is granted here.
+## S6 — Separately authorize minimal live route qualification
 
-Present the exact candidate wheel/runtime/profile and a bounded plan: one small
-subscription turn, one deliberately mixed API/subscription journey and relevant
-failure evidence already obtained offline. State expected API spend, call/attempt
-bounds, subscription quota use and what happens on uncertain output. Request
-only the still-missing authority; reuse an already authorized credential choice
-when it remains applicable. Never expose a secret in the plan.
+Dependencies: S5 and explicit authority for the chosen account connection,
+models, bounded live scope and usage. No such authority is granted by this
+design revision. Notify Patrick before any API credits are needed; do not carry
+a historical allowance forward.
 
-Done when: the approved live sample supports A8 or a refusal/blocker is retained.
-Compare parent/shared login state before/after without reading or copying secrets.
-Record observed route, response and usage limits; do not invent charges, remaining
-balances or model-quality conclusions. Read back evidence and complete the normal
-review/merge handoff. Release and merge remain separately gated.
+Present the candidate wheel/worker/request profile, one small plan turn and a
+minimal mixed API/plan journey. State call/attempt limits, expected API spend,
+plan quota use, missing billing evidence and the stop on uncertain results.
+Reuse an already applicable credential choice rather than requesting a new
+API key unnecessarily. The plan grant is distinct from the API-key credential.
 
-## C1 — Claude feasibility, independent of S1–S6
+Done when: an approved sample supports A8, or an honest refusal/blocker remains.
+Record exact model/effort/platform/artifact and observed route/terminal/cleanup/
+usage. Verify the intended account's model and plan permission; do not infer
+native Codex quota equivalence, charges, balances or model quality. No automatic
+fallback follows a limit. Merge and release remain separately gated.
 
-Follow [the separate check](claude-feasibility.md). Start with docs/source/help
-and inert witnesses only after authorization to execute that check. It may run
-independently of Codex tasks. Its verdict never enables Claude dispatch or
-inherits Codex OAuth custody. A supported implementation requires its own spec.
+## C1 — Claude feasibility, independent
+
+The [separate Claude check](claude-feasibility.md) remains unstarted. It begins
+with docs/source/help and inert witnesses only when its execution is authorized.
+Its verdict never enables Claude dispatch or inherits OpenAI OAuth custody.
+Negative/unknown Claude findings do not block a qualified direct plan route.
+A supported Claude implementation requires a separate proposal and authority.
 
 ## Completion discipline
 
-At meaningful handoffs, re-anchor on usable explicit mixed funding, inspect the
-actual evidence, update the relevant refusal walk and retain any unsupported
-result. Completion review is part of done, not authority to implement additional
-opportunities. Finish each task with a current-head reviewable result and the
-smallest concrete decision if a gate cannot be met.
+At meaningful handoffs, inspect evidence against usable explicit mixed funding,
+update source-bound refusal walks and preserve unsupported results. Completion
+review is part of done; it grants no additional implementation, spending or
+scope. A concrete gated handoff is preferable to silently weakening the contract.
