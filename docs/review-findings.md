@@ -34,6 +34,7 @@ exact" when the review confirmed a carried module changed nothing.
 
 | PR | Change | Verdict | B/S/N | Classes | What the author had missed |
 |---|---|---|---|---|---|
+| #331 | Explicit participant funding; configured GPT-6.1 Terra, source through `3ea4952` | request changes, then approve | 3/1/0 initially | layer, input, test, claim, carry | Fabricated admission, encoded credential echoes, recovered reply retention and missing prior funding. Later deltas bind real owners/leases, complete accepted requests and external authority, and host evidence to accepted query/tool history. A full-suite legacy construction-order/raw-text regression was also corrected and re-reviewed. Final delta: 295 passed, 1 existing skip, no actionable findings; full-suite, wheel, hosted and live evidence remain separate. |
 | #29 | Remove the two Attune AI bridge modules | approve | 0/0/n | | Recorded in the pull request |
 | #31 | Say what happened when an input is over its limit | approve | 0/0/n | | Recorded in the pull request |
 | #33 | Carry path validation, Windows check reworked | request changes | 0/2/0 | platform | The Windows bypass the brief's preface names |

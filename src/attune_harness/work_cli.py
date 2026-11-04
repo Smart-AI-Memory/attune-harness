@@ -124,6 +124,11 @@ def _dispatch_options(parser):
         help="Separate authorization for configured native model calls",
     )
     parser.add_argument(
+        "--allow-api-spend",
+        action="store_true",
+        help="Authorize configured API participant spending for this invocation only",
+    )
+    parser.add_argument(
         "--max-operations",
         type=int,
         help="Pause after this many new durable operations",
@@ -189,6 +194,10 @@ def present(directory, *, inspect_only=False, _record=None):
     from .execution_evidence import work_execution_evidence
 
     result["execution_evidence"] = work_execution_evidence(record)
+    from .funding_output import summaries
+    funding = summaries(record)
+    if funding:
+        result['funding'] = funding
     if "error" in run:
         result["run_error"] = run["error"]
     result["summary"], result["blocking"], result["next_action"] = _guidance(
@@ -531,6 +540,7 @@ def execute(args):
                 allow_external=args.allow_external,
                 allow_native=args.allow_native,
                 max_operations=args.max_operations,
+                **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}),
             )
         else:
             if args.review_dispositions is not None and not args.stage:
@@ -546,6 +556,7 @@ def execute(args):
             if not args.run and (
                 args.allow_external
                 or args.allow_native
+                or getattr(args, 'allow_api_spend', False)
                 or args.max_operations is not None
             ):
                 raise ValueError("Dispatch options require an explicit --run")
@@ -622,6 +633,7 @@ def execute(args):
                     allow_external=args.allow_external,
                     allow_native=args.allow_native,
                     max_operations=args.max_operations,
+                    **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}),
                 )
             elif args.stage or args.accept or args.revise or args.reimport:
                 if not args.checkpoint:
@@ -731,6 +743,7 @@ def execute_control(args):
                 max_operations=args.max_operations,
                 allow_external=args.allow_external,
                 allow_native=args.allow_native,
+                **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}),
             )
         elif args.command == "reconcile-task":
             if args.reply or args.retry_read_only or args.retry_refused:

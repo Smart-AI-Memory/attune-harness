@@ -310,6 +310,10 @@ def _validate_request(request):
         if any(v > request["budgets"][k] for k, v in selected_budget.items()):
             raise ValueError("Assignment budget exceeds the work budget")
     _texts(request["inputs"], "input paths")
+    from .participant_funding import distinct_api_models
+    for left, right in (('planner', 'critic'), ('worker', 'reviewer')):
+        distinct_api_models(registry['participants'][a['participant']]
+                            for a in request['assignments'] if a['role'] in (left, right))
     paths = list(request["inputs"])
     if request["artifact"] is not None:
         _path(request["artifact"])

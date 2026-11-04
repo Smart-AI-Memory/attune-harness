@@ -4,6 +4,19 @@
 Baseline and scope are in the [overview](README.md). This evaluation distinguishes
 source/test inspection from executed qualification. No model calls were made.
 
+## Evaluation priority
+
+The October 27 update prioritizes correct authorized outcomes, human performance
+and AI performance. Token use is a secondary cost, not the success criterion.
+More tokens can be worthwhile if people make fewer mistakes or spend less active
+time, or if the AI produces more correct, scope-faithful work. Improvement must
+be observed and weighed against declared guardrails; it is not assumed from
+using a form. Safety and authorization are not tradeable benefits.
+
+The [performance evaluation protocol](performance-evaluation.md) defines the
+measures, controlled conditions, real Harness example, evidence and decision
+rules. The inspection findings below retain their original historical scope.
+
 ## What exists
 
 | Journey stage | Primary evidence | Assessment |
@@ -77,7 +90,7 @@ question was submitted to Claude, Codex or Antigravity during this review.
 | J1 / user | Host-specific routing and portable fallback need an explicit shared contract | High; source/probe supported; live behavior unmeasured | Design R1/R2, tasks T1/T2 |
 | J2 / contract | Correction storage exists; assistants still need consistent orchestration and impact explanations | High; source/test inspection supported | R3/R4/R5, T1/T3 |
 | J3 / user | Evidence is retained but not yet presented as the agreed outcome-level one-action summary | High; presentation source supported; usefulness unmeasured | R6, T4 |
-| J4 / evidence | Cross-host continuity and human benefit cannot be inferred from parser tests | High; qualification gap, not a demonstrated host failure | R7, T5 |
+| J4 / evidence | Cross-host continuity and human/AI performance cannot be inferred from parser tests or token counts | High; qualification gap, not a demonstrated host failure | R7, T5 and the [performance protocol](performance-evaluation.md) |
 
 The smallest useful implementation slice is T4's evidence summary using existing
 records. The more consequential risk is J2: a correction represented differently
@@ -86,5 +99,7 @@ in prose, stored scope and execution. T1 therefore locks that contract down firs
 Forms' recorded outcome pilot completed 72 simulated units successfully but could
 not rank conditions by success; human effort/abandonment were unmeasured. See its
 [results](https://github.com/Smart-AI-Memory/attune-forms/blob/4191c4e0c6bfe7ff21e4dd926f0ba8202775a9a7/docs/specs/outcome-experiment/outcome-pilot-v0.2-results.md).
-This plan proposes exploratory actual-host observation, not a claim of comparative
-superiority or a new paid benchmark. Findings authorize nothing beyond planning.
+The new protocol proposes exploratory actual-human comparison followed, if
+warranted, by a separately preregistered confirmatory study. Neither is a claim
+of comparative superiority or authorization for a paid benchmark. Earlier
+campaigns and their scoring remain unchanged; new measures require new evidence.

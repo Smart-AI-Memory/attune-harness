@@ -12,6 +12,22 @@ from pathlib import Path
 from threading import Event
 
 
+class ProcessShutdownError(OSError):
+    """Shutdown is unconfirmed; this is not an input or safe-retry refusal."""
+
+    next_action = (
+        "Inspect the saved task with attune-harness status TASK_DIR and its record.json. "
+        "Confirm process-tree shutdown and review external effects before any new "
+        "execution; do not retry automatically."
+    )
+
+    def __init__(self, error):
+        super().__init__(
+            "Windows process-tree shutdown is unconfirmed after a stop or wait failure; "
+            f"external effects are unknown. {type(error).__name__}: {error}"
+        )
+
+
 @dataclass(frozen=True)
 class ProcessResult:
     argv: tuple[str, ...]
@@ -109,7 +125,10 @@ def invoke(
         finally:
             # Also stop descendants left behind by an exited parent.
             if job is not None:
-                job.stop(process)
+                try:
+                    job.stop(process)
+                except (OSError, subprocess.TimeoutExpired) as error:
+                    raise ProcessShutdownError(error) from error
             else:
                 _kill_group(process)
         if job is not None:

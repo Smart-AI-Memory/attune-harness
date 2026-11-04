@@ -153,32 +153,42 @@ they can override those bounds.
 missing connection setting or index failure leaves an already committed save
 readable and reports pending work. Reindex retries current records and withdrawn
 record removals. Reads use files, so stale Redis entries cannot resurrect a
-withdrawn record. This feature has injected adapter tests; no live Redis service
-qualification is claimed.
+withdrawn record. Injected adapter tests cover failure boundaries. The
+[October 30 disposable-service verification](redis-option-verification.md) also
+checked real saved-record upsert, revision, withdrawal, pending indexing during an
+outage, and reindex with exact mirror readback after a clean restart. That bounded
+macOS check does not establish general live-service, crash or Windows qualification.
 
 ## Storage limits and supported profile
 
-The profile paragraph below describes released **1.4.0**. Unreleased `main`
-now includes a fixed-local NTFS saved-store implementation checkpoint, merged
-as [PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275). Current
-finite native witnesses pass, while full saved-store acceptance, the historical
-eight-writer busy-failure cause, and final Windows parity remain open. See the
-[1.5.1 preparation readiness](release-readiness-1.5.1.md). This does not change
-the released 1.4.0 platform boundary or qualify WSL, every Windows configuration,
-or physical-power-loss behavior.
+The current implementation includes local POSIX and native Windows backends.
+Windows storage requires fixed local NTFS. Configure an absolute drive-letter
+path. Network shares, removable volumes and unsafe path aliases are refused.
+See the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability)
+for the current workflow limits.
 
-### Released 1.4.0 profile
+Windows concurrent-write and power-loss durability validation remains incomplete.
+Full saved-store acceptance and the cause of the historical eight-writer busy
+failure remain open in the [Windows checkpoint](specs/windows-parity/tasks.md).
+Keep an independent copy of important data. WSL has not been qualified as an
+alternative. The implementation does not establish reliability for every Windows
+configuration; the [reliability reference](windows-reliability.md) records the
+remaining requirements.
 
-The initial storage profile is local POSIX filesystems with advisory locks and
-atomic replacement. Windows refuses before creating the store; this is not a
-Windows storage qualification. Native Windows support remains an open release
-requirement, including concurrent writes, crash/retry recovery and safe path
-handling. WSL has not been qualified as an alternative. A store is private to its configured root. Do not
-manually edit its versioned state or lock files. Unsafe symlink/hardlink targets,
-malformed state and unsupported versions are refused.
+A store is private to its configured root. Do not manually edit its versioned
+state or lock files. Unsafe symlink/hardlink targets, malformed state and
+unsupported versions are refused.
 
 Limits are UTF-8 bytes: title 1 KiB, content 64 KiB, each source field 2 KiB,
 next action 8 KiB, request 128 KiB, total state 8 MiB. Lock acquisition waits at
 most two seconds. History and retry evidence count toward the state limit;
 withdrawal retains them and is not erasure. No automatic extraction, scheduling,
 background hooks or migration of existing memories is performed.
+
+### Historical 1.4.0 profile
+
+Release 1.4.0 supported local POSIX filesystems with advisory locks and atomic
+replacement. Its Windows path refused before creating the store. The later
+fixed-local NTFS implementation, merged in
+[PR #275](https://github.com/Smart-AI-Memory/attune-harness/pull/275), does not
+change that historical release boundary or establish full Windows parity.

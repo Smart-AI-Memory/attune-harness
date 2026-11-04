@@ -53,6 +53,9 @@ def validate_answers(answers, plan, registry, *, complete=False, repair=False):
             raise ValueError(f'Unknown {name} identity')
     if answers.get('assessor') is not None and answers.get('assessor') == answers.get('reviewer'):
         raise ValueError('Independent review requires distinct participant identities')
+    from .participant_funding import distinct_api_models
+    distinct_api_models(registry['participants'][answers[role]] for role in ('assessor', 'reviewer')
+                        if answers.get(role) in registry['participants'])
 
 
 def profile_defaults(path, project_root, plan, registry):
@@ -500,8 +503,9 @@ def validate_repair_request(request):
     if any(c.get('review_mode') == 'evidence' for c in selected):
         raise ValueError('Repair requires action transport; native evidence-review mode is assessment-only')
     if value['review'] == 'required' and len(selected) == 2:
+        from .participant_funding import model_key
         left,right = selected
-        if left.get('model') and (left['adapter'],left['model']) == (right['adapter'],right.get('model')):
+        if left.get('model') and model_key(left['adapter'],left['model']) == model_key(right['adapter'],right.get('model')):
             raise ValueError('Required repair review needs a different configured native model')
     if 'source_assessment' in value:
         from .task_handoff import validate_assessment_handoff

@@ -6,15 +6,27 @@ build**, or choose planning, implementation, verification or saved work.
 
 ## Check the version before starting
 
-Harness 1.5.1 is published. [Install Harness 1.5.1](/harness/help/1-5-1/),
-check a local result, and choose a task. You can plan work, review evidence,
-and return to saved progress through the CLI and browser forms.
+[Get started with Harness 1.6.0](/harness/help/get-started/) to install the
+runtime, check a local result, connect your assistant and choose goal-driven or
+spec-driven development. Its [release record](/harness/help/release-1.6.0.json)
+identifies the published artifacts and their verification limits.
+
+The historical [1.5.1 installation guide](/harness/help/1-5-1/) and
+[release record](/harness/help/release-1.5.1.json) retain their original source,
+artifacts and limits. Other guides keep their stated versions; they are not
+relabeled as 1.6.0 observations.
 
 Attune AI is deprecated. Use Harness for new work and read the
-[current migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
-before changing an existing setup. Preserve memory sources and writer settings
-while validating the journeys you need. The [1.5.0 guide](1-5-0/) and its
-observations remain available as historical references.
+[migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
+before changing an existing setup. Preserve working environments, memory sources
+and writer settings while validating the journeys you need.
+
+## Choose a development path
+
+- [**Goal-driven development**](/harness/help/get-started/#choose-goal-driven-development):
+  Start with an outcome and agree on the scope and checks.
+- [**Spec-driven development**](/harness/help/get-started/#choose-spec-driven-development):
+  Develop and review requirements before accepting a supported plan.
 
 ## Choose a task
 

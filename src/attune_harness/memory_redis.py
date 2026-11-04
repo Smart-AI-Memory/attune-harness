@@ -42,10 +42,10 @@ from __future__ import annotations
 
 import os
 import re
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from .features import FeatureUnavailable, require_feature
-from .review_contract import parse_json
+from .review_contract import canonical, parse_json
 
 REDIS_VERSION = "5.3.1"
 PREFIX = "attune:memory:"
@@ -152,8 +152,18 @@ def open_client(settings, *, client_factory=None, timeout=2.0, exclusive=False):
     """
     library = require_feature("redis", "redis", REDIS_VERSION, "redis")
     url = resolve_url(settings)
+    # redis-py gives query arguments precedence over constructor options.
+    protected = {"socket_timeout", "socket_connect_timeout", "decode_responses",
+                 "encoding", "encoding_errors"}
+    if any(name in protected for name, _ in parse_qsl(urlsplit(url).query, keep_blank_values=True)):
+        raise MemoryRedisUnavailable(
+            "Redis URL cannot override Harness timeouts or decoding; remove socket_timeout, "
+            "socket_connect_timeout, decode_responses, encoding and encoding_errors query options"
+        )
     options = {
         "decode_responses": True,
+        "encoding": "utf-8",
+        "encoding_errors": "strict",
         "socket_connect_timeout": min(timeout, 1.0),
         "socket_timeout": timeout,
     }
@@ -234,15 +244,25 @@ class RedisMemory:
     def _decode(self, what, text):
         try:
             value = parse_json(text if isinstance(text, str) else str(text), REPLY_LIMIT)
-        except ValueError as error:
-            raise MemoryRedisUnavailable(f"Redis memory returned a malformed {what} record: {error}") from error
+        except (ValueError, RecursionError) as error:
+            raise MemoryRedisUnavailable(
+                f"Redis memory returned a malformed {what} record; check the hydrated records: {error}"
+            ) from error
         if not isinstance(value, dict):
             raise MemoryRedisUnavailable(f"Redis memory returned a malformed {what} record")
         # HMGET gives Lua false for a missing field, which cjson encodes as false.
         return {key: (None if item is False else item) for key, item in value.items()}
 
+    def _append_item(self, items, item, size):
+        # The raw redis-py reply is already allocated. Account before retaining
+        # each decoded item to bound packet assembly, not the transport.
+        size += _reply_size(item) + bool(items)
+        _check_reply_size(size)
+        items.append(item)
+        return size
+
     def _packet(self, operation, status, items, **extra):
-        return {
+        packet = {
             "schema_version": 1,
             "operation": f"memory_redis_{operation}",
             "status": status,
@@ -256,6 +276,8 @@ class RedisMemory:
             "items": items,
             "guidance": GUIDANCE,
         }
+        _check_reply_size(_reply_size(packet))
+        return packet
 
     def hydrated_at(self):
         value = self._call("reading the hydration stamp", self.client.get, f"{self.prefix}hydrated_at")
@@ -301,11 +323,11 @@ class RedisMemory:
         """The curated nodes the hydration's own function scores highest, with edges."""
         limit = _bounded(limit, "limit")
         raw = self._call("recall_digest", self.client.execute_command, "FCALL_RO", "recall_digest", 0, str(limit))
-        items = []
+        items, size = [], 2  # JSON array brackets
         for entry in (raw or ())[:limit]:  # the row count is the server's choice; hold it to what was asked
             record = self._decode("digest", entry)
             record["edges"] = [self._decode("edge", edge) for edge in record.get("edges") or ()]
-            items.append(record)
+            size = self._append_item(items, record, size)
         return self._packet("digest", "ok" if items else "no_results", items, limit=limit)
 
     def related(self, ident):
@@ -322,7 +344,9 @@ class RedisMemory:
             )
         argument = bare if family == "node" else f"{family}:{bare}"
         raw = self._call("recall_related", self.client.execute_command, "FCALL_RO", "recall_related", 0, argument)
-        items = [self._decode("related", entry) for entry in raw or ()]
+        items, size = [], 2
+        for entry in raw or ():
+            size = self._append_item(items, self._decode("related", entry), size)
         return self._packet("related", "ok" if items else "no_results", items, id=argument)
 
     def node(self, ident):
@@ -358,7 +382,7 @@ class RedisMemory:
             "RETURN", len(POINTER_FIELDS), *POINTER_FIELDS,
             "LIMIT", 0, k, "DIALECT", 2,
         )
-        items = []
+        items, size = [], 2
         total = _total(reply)
         if isinstance(reply, (list, tuple)):
             for position in range(1, len(reply) - 1, 2):
@@ -371,9 +395,24 @@ class RedisMemory:
                 fields = dict(zip(values[0::2], values[1::2])) if isinstance(values, (list, tuple)) else {}
                 item = {"id": bare if family == "node" else f"{family}:{bare}", "family": family}
                 item.update({name: fields[name] for name in POINTER_FIELDS if name in fields})
-                items.append(item)
+                size = self._append_item(items, item, size)
         return self._packet("search", "ok" if items else "no_results", items,
                             query=query, layer=layer, k=k, total=total)
+
+
+def _reply_size(value):
+    try:
+        return len(canonical(value).encode("utf-8"))
+    except (ValueError, TypeError, RecursionError, UnicodeError) as error:
+        raise MemoryRedisUnavailable("Redis memory reply is malformed; check the hydrated records") from error
+
+
+def _check_reply_size(size):
+    if size > REPLY_LIMIT:
+        raise MemoryRedisUnavailable(
+            "Redis memory reply exceeds the 1 MiB packet bound; request fewer results "
+            "or shorten the hydrated records"
+        )
 
 
 def _total(reply):

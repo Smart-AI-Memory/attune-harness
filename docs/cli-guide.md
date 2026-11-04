@@ -2,27 +2,25 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on October 22, 2026.
+Updated on October 31, 2026.
 
 ## Installation
 
-This guide describes the 1.5.0 commands, with planned 1.5.1 changes labeled below.
-Version 1.5.1 is [in preparation](release-notes-1.5.1.md); the installation
-command selects published 1.5.0. Install Harness in its own environment.
-Use the [workflow guide](supported-journeys.md) to check capabilities and
-reliability requirements.
+This guide describes Harness 1.6.0. Compare installed `COMMAND --help` with
+this maintained source guide and the [release record](../help/release-1.6.0.json).
+Historical walkthroughs retain their original version and runtime. See the [workflow guide](supported-journeys.md).
 
-Start with a managed base installation:
+Install the published runtime in its own environment:
 
 ```sh
-uv tool install 'attune-harness==1.5.0'
+uv tool install --python 3.12 'attune-harness==1.6.0'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
 acceptance dependencies. Add Redis or Voyage when you need those integrations;
 `all` includes both and excludes experimental native memory. Current development
-source requires Python 3.12 or later. Published releases described here retain
-their original Python minimum; the release version for this change remains open.
+source and published 1.6.0 require Python 3.12 or later. Historical releases
+retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and
 fixture commands, and separate host-plugin setup. The example below needs no
@@ -827,8 +825,25 @@ installed attune-ai distribution supplied it. Harness reads the
 attune-ai. Native reads use POSIX descriptors. On Windows, retained handles
 enforce the [local NTFS profile](supported-journeys.md#windows-capabilities-and-reliability).
 The `redis`, `scratch` and `reader` keys are set aside before the roots
-contract is validated, so one file serves every memory verb. The other two
-sections need only Harness.
+contract is validated, so one file serves every memory verb. These implementations
+do not require attune-ai. Redis-selected operations still require their configured
+service and state.
+
+### Redis requirements
+
+The `redis` extra installs the pinned Python client, not a Redis service or a
+hydrated corpus. Choose the requirements for the operation you use:
+
+| Operation | Required service and state | What Redis provides |
+| --- | --- | --- |
+| `memory redis`, `memory serve` | Compatible Redis with Search and Functions, plus an existing hydrated index and function library | Read-only keyword recall, related records and bounded digest text |
+| Redis-backed `memory scratch` | Reachable Redis with key/value, TTL and transaction operations; explicit namespace | Shared working state; no Search or hydration required |
+| Optional `memory saved` Redis mirror | Reachable Redis for writes/removals; separate `saved.redis` configuration | Rebuildable copy; file records and file-based search remain authoritative |
+
+Keep your existing hydration writer and settings. Installing the client does not
+create the recall index or install its functions. See the
+[real-service verification and limits](redis-option-verification.md) for tested
+versions, configuration requirements and the boundary of the pre-1.6.0 evidence.
 
 **`redis`**, with the `redis` extra, reads the Redis Stack keyspace a hydration
 keeps warm, read-only: `memory redis status`, `digest [--limit N]`,
@@ -940,12 +955,21 @@ exit 2, each with a `detail`; `uncertain` (a scratch stash whose effect
 cannot be known) exits 2 with what is known. A Redis that cannot be reached
 is reported; it is never replaced by the file store at runtime.
 
+Redis persistence, eviction and backup settings determine survival of Redis-held
+working state. A clean restart check does not establish crash or power-loss
+durability. Unconditional scratch writes can overwrite conditional writes; all
+competing writers must use `--expected-version` for the conditional-write contract.
+
 Qualification: every platform job installs the extra and, with no server,
 confirms the reads and a Redis scratch report unreachable, `serve` exits 0
 with its one stderr line, the file scratch round-trips, and nothing is
 written when Redis is refused; the release gate
 does the same with the extra absent. The path against a hydrated server runs
 only where `ATTUNE_TEST_REDIS_URL` is set.
+The [October 30 disposable-service check](redis-option-verification.md) separately
+exercised installed-wheel reads and serving, scratch, saved mirroring and selected
+failure/recovery cases. It does not establish fresh-agent delivery or Windows
+live-service qualification.
 
 ## AI tools, integrations and existing scripts
 

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "headers": ["id", "title", "status"],
+  "rows": [
+    {"id": "r1", "title": "First", "status": "active", "private_notes": "PRIVATE-r1"},
+    {"id": "r2", "title": "Hidden by filter", "status": "inactive", "private_notes": "PRIVATE-r2"},
+    {"id": "r3", "title": "Comma, here", "status": "active", "private_notes": "PRIVATE-r3"},
+    {"id": "r4", "title": "A \"quoted\" report", "status": "active", "private_notes": "PRIVATE-r4"},
+    {"id": "r5", "title": "Café\n第二行", "status": "active", "private_notes": "PRIVATE-r5"},
+    {"id": "r6", "title": "Last active", "status": "active", "private_notes": "PRIVATE-r6"},
+    {"id": "r7", "title": "Other inactive", "status": "inactive", "private_notes": "PRIVATE-r7"}
+  ],
+  "cases": [
+    {"id": "corrected-page", "status": "active", "page": 2, "page_size": 2, "current_page": ["r4", "r5"], "all_matching": ["r1", "r3", "r4", "r5", "r6"]},
+    {"id": "first-page", "status": "active", "page": 1, "page_size": 2, "current_page": ["r1", "r3"], "all_matching": ["r1", "r3", "r4", "r5", "r6"]},
+    {"id": "partial-page", "status": "active", "page": 3, "page_size": 2, "current_page": ["r6"], "all_matching": ["r1", "r3", "r4", "r5", "r6"]},
+    {"id": "empty-page", "status": "active", "page": 4, "page_size": 2, "current_page": [], "all_matching": ["r1", "r3", "r4", "r5", "r6"]},
+    {"id": "other-filter", "status": "inactive", "page": 1, "page_size": 2, "current_page": ["r2", "r7"], "all_matching": ["r2", "r7"]},
+    {"id": "empty-results", "status": "missing", "page": 1, "page_size": 2, "current_page": [], "all_matching": []}
+  ]
+}
