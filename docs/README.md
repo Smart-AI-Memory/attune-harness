@@ -1,10 +1,11 @@
 # Documentation index
 
-Start with the published 1.5.1 installation or the clearly labeled 1.6.0
-preparation draft. Historical guides keep their original source, artifact and
-observation scope. Designs and specifications retain their approval status.
+Start with the [1.7.0 release preparation](release-readiness-1.7.0.md) and
+[installation guide](installation.md). Version 1.7.0 is not published by this
+change; published 1.6.0 remains available. Historical guides keep their original
+source, artifact and observation scope. Designs and specifications retain their approval status.
 
-Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
+Updated on November 4, 2026 for 1.7.0 preparation. Run
 `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Start here
@@ -14,15 +15,17 @@ Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 - [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
 - [Participant funding API-first revision](specs/participant-funding/t3-decision.md): Approved direct API adapter and retained native-route limits
 - [Choose participant funding](participant-funding.md): Candidate configuration, spending authority, receipts and unsupported routes
-- [Subscription OAuth specification](specs/codex-subscription/README.md): Authorized direct OAuth design revision with approved Keychain/funding contracts; implementation remains unstarted
-- [Subscription OAuth tasks](specs/codex-subscription/tasks.md): Revised profile, direct worker and qualification sequence; no implementation authority
+- [Subscription OAuth specification](specs/codex-subscription/README.md): Approved direct OAuth/Keychain contract; S2–S5 software implementation is recorded, with live qualification separate
+- [Subscription OAuth tasks](specs/codex-subscription/tasks.md): Profile, direct worker and qualification sequence; retain task-specific approval and evidence limits
 - [Claude subscription feasibility](specs/codex-subscription/claude-feasibility.md): Separate proposed check with no Claude implementation or live-call authority
 - [Subscription planning evidence](specs/codex-subscription/evidence.md): Current source, official documentation, alternatives and unresolved qualification assumptions
 - [Codex subscription S1 qualification](specs/codex-subscription/s1-qualification.md): Pinned runtime, model-free witnesses and the inference-bound stop gate; support remains unqualified
-- [Direct plan OAuth design](specs/codex-subscription/direct-oauth-design.md): Single-request HTTPS/SSE contract, admission, bounds and verification; documentation only
+- [Direct plan OAuth design](specs/codex-subscription/direct-oauth-design.md): Implemented single-request HTTPS/SSE contract; live account/provider qualification remains separate
 
-- [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
-- [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback
+- [Harness 1.7.0 release notes](release-notes-1.7.0.md): Prepared changes, extended legacy-environment window, funding limits and hydration groundwork
+- [Harness 1.7.0 readiness record](release-readiness-1.7.0.md): Source/artifact identity, candidate checks, documentation dispositions and remaining gates
+- [Historical Harness 1.6.0 preparation](release-preparation-1.6.0.md): Retained preparation evidence and original source/artifact limits
+- [Harness 1.6.0 release notes](release-notes-1.6.0.md): Published release scope and retained qualification limits
 
 - [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup

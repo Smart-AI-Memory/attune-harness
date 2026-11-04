@@ -21,16 +21,18 @@ Published Harness 1.6.0 and current development source require Python 3.12 or
 later. This matrix targets the minimum supported interpreter without duplicate
 cells. The [published release record](../help/release-1.6.0.json) binds 1.6.0 to
 source `af2159516a67172cc8f2a1ff62213296b1b67112` and its exact artifacts and
-qualification runs. Current `main` includes later changes even while its package
-metadata says `1.6.0`; that version alone does not identify the published wheel or
-qualify a later source tree. Earlier Python 3.10 receipts and published 1.5.1
+qualification runs. The current candidate's metadata is `1.7.0`; it is unpublished
+and needs its own source, artifact and exact-main qualification. The
+[1.7.0 readiness record](release-readiness-1.7.0.md) separates those results from
+earlier evidence. A version alone does not identify or qualify a wheel.
+Earlier Python 3.10 receipts and published 1.5.1
 retain their original artifact/runtime identities and Python minimum.
 
 These hosted jobs provide Windows Server CI evidence. The broader T8 desktop
 contract is separate. A historical Windows 11 standard-user smoke used x64 Python
 under ARM emulation; it does not qualify native ARM64 or all desktop/shell paths.
-The narrow 1.6.0 goal is usable documented workflows with explicit refusals; it
-does not claim complete Windows/POSIX parity.
+The 1.7.0 candidate retains explicit workflow refusals and the existing Windows
+limits; it does not claim complete Windows/POSIX parity.
 
 The jobs exercise timeout, cancellation, bounded output, descendant termination,
 lost acknowledgements, crash-released locks and explicit recovery. Windows uses
@@ -47,6 +49,29 @@ correctness lint, installed-wheel jobs, full-suite jobs and documentation links
 pass. A documentation-only pull request can skip the platform matrix; lint and
 links must still pass. A failed, cancelled, skipped or missing lint result fails
 the aggregate check.
+
+## Optional funding qualification
+
+Default hosted source and installed jobs select `voyage,redis`. They omit
+`plan-oauth` and `memory-native`; a default green result does not exercise every
+optional authentication or SDK check. For 1.7.0, qualify the built wheel in a
+separate fresh environment with the explicitly selected extras and the same
+five dependency constraints used by CI. Run `pip check`, the relevant offline
+funding/profile/OIDC tests and `scripts/qualify_platform.py` against that
+noneditable install. Keep its receipt separate from default qualification.
+
+The plan runtime admits only macOS arm64 / CPython 3.12.2 with the pinned
+dependencies. Other platform jobs can test refusals and inert witnesses; they
+do not qualify plan execution there. Local keys, synthetic grants and inert
+HTTPS/SSE tests qualify software behavior. Real account consent, Keychain
+interoperability, account/model eligibility, quota, billing and model quality
+remain separate, unestablished live qualifications. See
+[participant funding](participant-funding.md) and the retained
+[subscription software evidence](specs/codex-subscription/evidence.md).
+
+Hydration source-capture, secret-check and ledger tests cover internal
+groundwork. They do not establish a complete writer, live Redis publication,
+cleanup or fresh-host automatic delivery.
 
 ## Correctness lint
 

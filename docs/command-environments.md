@@ -1,9 +1,9 @@
 # Command participant environments
 
-**Availability: unreleased.** This policy is not available in the published
-1.5.1 package, whose configuration validators reject the `environment` field.
-Use it only with a candidate that includes this change until a notice release
-ships. The prospective release schedule below does not announce publication.
+**Availability:** The opt-in policy shipped in 1.6.0 and is retained in prepared,
+unpublished 1.7.0. The published 1.5.1 package rejects the `environment` field;
+keep its original registry when retaining that runtime for rollback. Version
+1.7.0 keeps legacy inheritance and explicitly postpones removal to 1.8.0.
 
 Add `environment` to a trusted `command` participant configuration to opt in to
 `command-env-v1`. The policy applies to consultation, review, assessment, repair,
@@ -98,11 +98,11 @@ Python dispatch emits `CommandEnvironmentDeprecationWarning`. Add the finite
 policy and explicit names, validate the absolute executable, then prepare or
 revise and accept the configuration through its existing owner.
 
-The selected first notice release is **1.6.0**, with removal **no earlier than
-1.7.0**. There is no 1.5.2 release in the selected sequence. Legacy configurations
-remain accepted in this implementation; adding the policy is opt-in.
+The first notice release remains **1.6.0**. Removal is explicitly postponed
+from **1.7.0** to **1.8.0**. Legacy configurations retain full parent inheritance
+in 1.7.0; adding the policy is opt-in.
 
 The runtime `NOTICE` constant and
-[machine-readable register](deprecations.json) use the same 1.6.0/1.7.0 schedule.
-This metadata correction preserves the original compatibility behavior and the
-at least one minor release rule.
+[machine-readable register](deprecations.json) use the same 1.6.0/1.8.0 schedule.
+The postponement preserves compatibility behavior and the at least one minor
+release rule; it does not remove the expiry guard or rewrite older release records.

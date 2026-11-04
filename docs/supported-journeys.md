@@ -1,6 +1,6 @@
 # Choose a Harness workflow
 
-Updated on November 4, 2026.
+Updated on November 4, 2026, for prepared, unpublished Harness 1.7.0.
 
 Start a small feature idea with [Complete your first plan and build](cli-guide.md#complete-your-first-plan-and-build).
 Follow the goal through scope review, acceptance, separately authorized execution
@@ -8,13 +8,17 @@ and result inspection. If you need to install Harness first, use the
 [installation guide](installation.md). For other goals, choose a workflow below
 or use the [Help goals guide](https://smartaimemory.com/harness/help/goals/).
 
-Harness 1.6.0 is published and requires Python 3.12 or later. Its
+The 1.7.0 candidate requires Python 3.12 or later. Use a reviewed local wheel
+before publication; index-installation examples for 1.7.0 apply only after
+publication. See the [candidate release notes](release-notes-1.7.0.md).
+Harness 1.6.0 remains published. Its
 [release record](../help/release-1.6.0.json) identifies the source, artifacts and
-verification limits. This maintained guide can include later development changes;
-compare your installed command help with the procedure before execution. Later
-changes on `main` are not part of the published 1.6.0 artifact.
+verification limits. Compare your installed command help with the procedure
+before execution; 1.7.0 changes are not part of the published 1.6.0 artifact.
 Earlier [1.5.1 preparation walkthroughs](tutorials-1.5.1.md#choose-a-walkthrough)
-remain historical examples with their original source and runtime.
+remain historical examples with their original source and runtime. Existing
+Help and tutorial derivatives retain 1.6.0 or historical guidance; separate
+owner updates and publication remain pending.
 
 ## Work
 
@@ -25,11 +29,16 @@ remain historical examples with their original source and runtime.
 | Repair existing files | [Scoped repair](cli-guide.md#scoped-repair): `fix` | Check the proposed repair against a protected test. The repair profile excludes file creation, deletion, renames and linked Git worktrees. |
 | Check a code change | [Captured testing](cli-guide.md#test-this-change): `test` | Preview the tests, approve the plan, then inspect the results. Tests run in a captured copy using your selected Python environment. |
 | Consult configured models | [Model consultation](model-consultation.md): `roundtable`, `source-review` | Gather independent responses. Setup does not call a model; execution needs the configured participants and permission for any paid calls. |
+| Select API or plan funding | [Participant funding](participant-funding.md): explicit `openai` or `openai-plan` configuration | The API route needs fresh spending authority. The separate plan route requires an app-owned profile, the explicit `plan-oauth` extra and macOS arm64 / CPython 3.12.2. Native explicit funding remains refused; live account eligibility, quota and billing are unqualified. |
 | Bring in an existing plan | [Plan import](journeys/r4-legacy-spec-state.md): `plan --import-plan` | Inspect the imported plan before accepting it. Importing a plan does not authorize execution. |
 
 Use trusted workers, commands and tests; a captured copy is not a security
 sandbox. For Windows build, repair and testing, read the
 [process reliability limits](#windows-capabilities-and-reliability) before running.
+Legacy command participants retain full parent environment inheritance in 1.7.0.
+The first notice remains 1.6.0; removal is explicitly postponed from 1.7.0 to
+1.8.0. See [command environments](command-environments.md) before opting in to
+the finite environment policy.
 
 ## Inspect and recover
 
@@ -43,8 +52,8 @@ sandbox. For Windows build, repair and testing, read the
 
 ## Memory
 
-Harness 1.6.0 supports file-based memory and optional Redis-backed memory. You can
-read memory files, save memories and keep local working notes without Redis.
+The 1.7.0 candidate retains file-based memory and optional Redis-backed memory.
+You can read memory files, save memories and keep local working notes without Redis.
 The Redis integration adds access to an existing Redis memory index and shared
 temporary working notes; it requires the `redis` extra and a configured service.
 The [published release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.6.0)
@@ -52,13 +61,19 @@ records 77 installed-wheel assertions and two live source regressions on macOS
 arm64 with Redis 7.4.7, Search 2.10.20 and redis-py 5.3.1, including clean-restart
 saved-mirror/AOF confirmation. These checks do not qualify a new writer, automatic
 agent delivery, successful TLS/ACL setup, Windows service installation,
-crash/power-loss behavior or model quality. A new Redis projection writer and
-RedisVL adoption remain outside 1.6.0.
+crash/power-loss behavior or model quality. They qualify the recorded 1.6.0
+artifact, not the new 1.7.0 candidate.
 
-For long-term Redis memory, 1.6.0 includes readers for existing data. Keep the
-separate writer and startup hooks that prepare and deliver that memory. The new
+For long-term Redis memory, Harness includes readers for existing data. Keep the
+separate writer and startup hooks that prepare and deliver that memory. The
 generation reader is optional; installing it does not create or update the index
 or arrange automatic recall in a fresh session.
+
+Version 1.7.0 adds internal source-capture, complete-record secret-check and
+generation-payload accounting primitives. This is hydration groundwork: there
+is no supported **`memory hydrate`** command, generation publication/cleanup or
+packaged hydration hook. Automatic fresh-session delivery and RedisVL adoption
+remain unfinished.
 
 | What you want to do | Where to start | What you need to know |
 | --- | --- | --- |
@@ -105,6 +120,7 @@ it does not establish native ARM64 parity or all PowerShell workflows.
 Use these references when you need to inspect the checks or reliability criteria:
 
 - [Published 1.6.0 release record](../help/release-1.6.0.json): source and artifact identities, installed checks and verification limits.
+- [1.7.0 readiness record](release-readiness-1.7.0.md): candidate checks, documentation disposition and remaining release gates; unpublished.
 - [Historical 1.6.0 preparation](release-preparation-1.6.0.md): original prepublication evidence and gates, preserved under their original status.
 - [Documentation archive](https://smartaimemory.com/harness/help/archive/): earlier versioned guides and observations.
 - [Platform qualification](qualification.md): CI matrix and installed-wheel procedures.

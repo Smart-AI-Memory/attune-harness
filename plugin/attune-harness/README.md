@@ -1,7 +1,10 @@
-# Harness host plugin candidate
+# Harness 1.7.0 host plugin preparation
 
-Shared skills and MCP configuration for Claude Code and Codex. This is an
-unpublished development candidate for M1/M2, not part of PyPI 0.6.0.
+Shared skills and MCP configuration for Claude Code and Codex. These manifests
+prepare version 1.7.0 alongside the Python package. The live Claude marketplace
+remains pinned to published 1.6.0 until a separate post-publication update.
+The independent `plugins/attune-harness` Codex package retains its own 0.1.0
+version. These plugin files are separate from the Python wheel.
 
 The MCP process launches `attune-harness mcp-serve --workspace` from the host
 project working directory. Put the tested candidate environment's `bin` (or

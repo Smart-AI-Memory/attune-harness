@@ -6,23 +6,28 @@ Updated on November 4, 2026.
 
 ## Installation
 
-Published Harness 1.6.0 is the installation baseline. This maintained source
-guide can also describe later, unreleased changes on `main`; the package version
-alone does not identify those changes. Compare installed `COMMAND --help` with
+This source guide prepares Harness 1.7.0, which is not published by this change.
+Read the [release notes](release-notes-1.7.0.md) and
+[readiness record](release-readiness-1.7.0.md). Published Harness 1.6.0 remains
+the installation baseline until publication. Compare installed `COMMAND --help` with
 the [published source guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md)
 and the [release record](../help/release-1.6.0.json).
 Historical walkthroughs retain their original version and runtime. See the [workflow guide](supported-journeys.md).
 
-Install the published runtime in its own environment:
+After 1.7.0 publication, install it in its own environment. Before publication,
+use the [reviewed local-wheel procedure](installation.md#select-a-candidate-without-replacing-a-working-runtime).
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.6.0'
+uv tool install --python 3.12 'attune-harness==1.7.0'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
 acceptance dependencies. Add Redis or Voyage when you need those integrations;
-`all` includes both and excludes experimental native memory. Current development
-source and published 1.6.0 require Python 3.12 or later. Historical releases
+`all` includes both and excludes `plan-oauth` and experimental native memory.
+The separate [participant funding guide](participant-funding.md) describes
+explicit OpenAI API funding and the `openai-plan` software profile, its exact
+runtime limits and outstanding live qualification. Current 1.7.0 source and
+published 1.6.0 require Python 3.12 or later. Historical releases
 retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and

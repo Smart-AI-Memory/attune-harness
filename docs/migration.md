@@ -1,8 +1,9 @@
 # Move from Attune AI to Harness
 
-Updated on October 31, 2026, for published Harness 1.6.0.
+Updated on November 4, 2026, for prepared, unpublished Harness 1.7.0.
 
-Harness 1.6.0 requires Python 3.12 or later. Follow the
+Harness 1.7.0 requires Python 3.12 or later. Published 1.6.0 remains available.
+Follow the
 [installation guide](installation.md) to select an isolated runtime and check a
 local result.
 
@@ -12,27 +13,43 @@ guide](migration-from-attune-ai.md) retains its original September 27 scope and
 observations.
 
 <a id="candidate-160-migration"></a>
+<a id="candidate-170-migration"></a>
+<a id="upgrade-to-160"></a>
 
-## Upgrade to 1.6.0
+## Prepare to upgrade to 1.7.0
 
-Install published Harness 1.6.0 in a separate Python 3.12 environment. The
-[release record](../help/release-1.6.0.json) identifies its source and artifacts;
-published 1.5.1 remains available for rollback. Keep the previous
+Before publication, install the exact reviewed 1.7.0 local wheel in a separate
+Python 3.12 environment using the [candidate installation procedure](installation.md#select-a-candidate-without-replacing-a-working-runtime).
+The 1.7.0 index-installation examples apply only after publication. The
+[1.6.0 release record](../help/release-1.6.0.json) identifies that older release's
+source and artifacts; published 1.5.1 remains available with its original
+Python 3.10 minimum. Keep the previous
 runtime, original participant registry, memory sources, writer/hook settings and
 saved tasks. Check the needed workflow before changing the runtime your host uses.
 
 Command environment filtering is opt-in. Without an `environment` policy, command
-participants retain full parent inheritance during the 1.6.0 notice window.
-The selected release schedule starts the notice in 1.6.0, with removal no earlier
-than 1.7.0. The runtime NOTICE and machine-readable register use that same
-1.6.0/1.7.0 schedule.
-This implementation continues to accept legacy configurations. Add named-variable grants through the participant
+participants retain full parent inheritance in 1.7.0. The first notice release
+remains 1.6.0; removal is explicitly postponed from 1.7.0 to 1.8.0. The runtime
+NOTICE and machine-readable register use the same 1.6.0/1.8.0 schedule.
+Add named-variable grants through the participant
 configuration's existing preparation and acceptance flow. Version 1.5.1 rejects
 the new `environment` field, so keep its original registry separately.
 
 The generation reader requires explicit selection and compatible existing state.
-Keep your hydration writer and host hooks. A new Redis projection writer and RedisVL adoption remain excluded. This version does not supply a writer,
-generation publication/cleanup or automatic fresh-session delivery.
+Keep your hydration writer and host hooks. Version 1.7.0 adds internal source
+capture, complete-record secret checks and payload-accounting primitives as
+hydration groundwork. It supplies no supported **`memory hydrate`** command,
+generation publication/cleanup or automatic fresh-session delivery. RedisVL
+adoption remains excluded.
+
+Existing participants keep their transport and authentication. The new explicit
+**`openai`** API route needs fresh `--allow-api-spend` authority; the separate
+**`openai-plan`** route uses an app-owned OAuth/Keychain profile, the explicit
+`plan-oauth` extra and macOS arm64 / CPython 3.12.2. `all` excludes `plan-oauth`.
+Explicit native Codex/Claude subscription funding and native Codex API funding
+remain refused. Neither new direct route has established live account
+eligibility, model access, quota or billing qualification. See
+[participant funding](participant-funding.md) before changing a configuration.
 
 To roll back, select the previous runtime and its original registry and reader
 configuration. Keep saved approval records, Redis keys and memory source files
@@ -74,7 +91,7 @@ replacement has been validated in your environment.
 
 ## Check the current Windows profile
 
-Harness 1.6.0 includes native Windows components for captured testing,
+The 1.7.0 candidate retains native Windows components for captured testing,
 file-memory reads, saved storage and experimental native-memory transport.
 Windows file-memory reads use the supported local NTFS path profile. Read the
 [current Windows capabilities and limits](supported-journeys.md#windows-capabilities-and-reliability)
@@ -98,8 +115,12 @@ location. Exercise the needed interruption and recovery path without editing
 saved approval or execution evidence. Retain the original environment as a
 fallback until the replacement meets your requirements.
 
-Read the [1.6.0 preparation guide](release-preparation-1.6.0.md)
-for current evidence and final release gates. The [published 1.5.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
+Read the [1.7.0 readiness record](release-readiness-1.7.0.md)
+for candidate evidence and remaining release gates. Existing Help and tutorials
+remain 1.6.0 or historical guidance; separate owner updates and publication
+remain pending. The [historical 1.6.0 preparation guide](release-preparation-1.6.0.md)
+retains its original preparation limits. The
+[published 1.5.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
 retains its original artifacts and Python minimum. The [documentation archive](https://smartaimemory.com/harness/help/archive/)
 retains older guides and preparation observations. The
 [original migration ruling](specs/release-1.0/addendum-2026-09-23.md#d26-the-deprecation-is-a-notice)
