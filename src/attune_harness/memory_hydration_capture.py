@@ -211,6 +211,9 @@ def capture_sources(config, sources, *, check_budget=lambda: None):
     mappings = validate_sources(original_sources, {root['id'] for root in reader.config['roots']})
     mappings = sorted((_normalized(source) for source in mappings),
                       key=lambda source: tuple(source[key] for key in ('root_id', 'layer', 'corpus', 'path')))
+    identities = [(s['root_id'], s['layer'], s['corpus'], s['path']) for s in mappings]
+    if len(set(identities)) != len(identities):
+        raise ValueError('Duplicate hydration source mapping')
     roots = {root['id']: root for root in reader.config['roots']}
     for source in mappings:
         if roots[source['root_id']]['tier'] not in ('personal', 'curated'):

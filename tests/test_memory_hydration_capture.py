@@ -72,6 +72,50 @@ def test_distinct_root_ids_are_not_collapsed_by_path_or_content(tmp_path):
         assert snapshot['entries'][('a', 'a.md')]['data'] == snapshot['entries'][('b', 'a.md')]['data']
 
 
+@pytest.mark.parametrize('layer,first,second', [
+    ('file', '.', './'),
+    ('file', 'notes', './notes'),
+    ('file', 'notes', 'notes/.'),
+    ('file', 'notes/nested', 'notes//nested'),
+    ('file', 'notes/nested', r'notes\.\nested'),
+    ('lesson', 'notes/a.md', 'notes/./a.md'),
+    ('lesson', 'notes/a.md', r'notes\.\a.md'),
+])
+def test_normalized_duplicate_selectors_refuse_before_source_observation(
+        tmp_path, monkeypatch, layer, first, second):
+    root = tmp_path / 'source'
+    root.mkdir()
+    config = config_for(('r', root))
+    sources = sources_for(('r', layer, 'demo', first), ('r', layer, 'demo', second))
+    original = deepcopy(sources)
+
+    def unopened(self, rid):
+        pytest.fail('A duplicate normalized selector reached source observation')
+
+    monkeypatch.setattr(NativeReader, '_root', unopened)
+    with pytest.raises(ValueError, match='Duplicate hydration source mapping'):
+        with capture.capture_sources(config, sources):
+            pytest.fail('A duplicate normalized selector yielded a snapshot')
+    assert sources == original
+
+
+@pytest.mark.parametrize('difference', ['root_id', 'layer', 'corpus'])
+def test_normalized_selectors_preserve_distinct_mapping_identities(tmp_path, difference):
+    root = tmp_path / 'source'
+    put(root, 'a.md', b'same')
+    config = config_for(('r', root), ('s', root))
+    sources = sources_for(('r', 'file', 'demo', '.'), ('r', 'file', 'demo', './'))
+    sources['sources'][1][difference] = dict(root_id='s', layer='rule', corpus='other')[difference]
+    original = deepcopy(sources)
+    with capture.capture_sources(config, sources) as snapshot:
+        assert len(snapshot['sources']) == 2
+        assert [source['path'] for source in snapshot['sources']] == ['', '']
+        assert snapshot['inventories'] == [['a.md'], ['a.md']]
+        assert snapshot['files'] == (2 if difference == 'root_id' else 1)
+        assert snapshot['bytes'] == (8 if difference == 'root_id' else 4)
+    assert sources == original
+
+
 @pytest.mark.parametrize('layer,path', [('file', 'missing'), ('rule', 'missing'), ('lesson', 'missing.md')])
 def test_missing_required_selection_does_not_become_empty(tmp_path, layer, path):
     root = tmp_path / 'source'; root.mkdir()
