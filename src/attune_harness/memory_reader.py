@@ -226,21 +226,7 @@ class NativeReader:
 
     def _item(self, root, locator, text, version, kind, metadata):
         guard(text, metadata)  # the adapter guards before it reads the labels
-        labels = metadata
-        if root["tier"] != "raw":
-            body = text[1:] if text.startswith("\ufeff") else text
-            body = body.replace("\r\n", "\n").replace("\r", "\n")
-            if re.match(r"^---[ \t]*\n", body):
-                parts = re.split(r"(?m)^---[ \t]*$", body, maxsplit=2)
-                if len(parts) != 3:
-                    raise ValueError("Unterminated source security metadata")
-                loaded = _frontmatter(parts[1])
-                if loaded is not None and not isinstance(loaded, dict):
-                    raise ValueError("Source security metadata must be an object")
-                labels = loaded or {}
-        for key in ("owner", "scope", "classification"):
-            if key in labels and labels[key] != root[key]:
-                raise ValueError("Source security metadata conflicts with root authority")
+        source_labels(root, text, metadata)
         first = next(iter(locator.values()))
         return dict(id=f"{root['id']}:{first}", locator={"root_id": root["id"], **locator}, version=version,
                     authority=self.binding, text=text, kind=kind, metadata=deepcopy(metadata),
@@ -595,6 +581,30 @@ def _rank_documents(snapshot, query, k):
                                                 author_class=AUTHOR_CURATED,
                                                 text=str(entry.get("excerpt") or entry.get("summary") or ""))
     return ordered
+
+
+def source_labels(root, text, metadata):
+    """Validate source authority using the reader's existing optional YAML parser.
+
+    Content exposure policy belongs to the caller. The native reader still
+    applies its unchanged guard first; the writer applies its secret-only gate.
+    """
+    labels = metadata
+    if root["tier"] != "raw":
+        body = text[1:] if text.startswith("\ufeff") else text
+        body = body.replace("\r\n", "\n").replace("\r", "\n")
+        if re.match(r"^---[ \t]*\n", body):
+            parts = re.split(r"(?m)^---[ \t]*$", body, maxsplit=2)
+            if len(parts) != 3:
+                raise ValueError("Unterminated source security metadata")
+            loaded = _frontmatter(parts[1])
+            if loaded is not None and not isinstance(loaded, dict):
+                raise ValueError("Source security metadata must be an object")
+            labels = loaded or {}
+    for key in ("owner", "scope", "classification"):
+        if key in labels and labels[key] != root[key]:
+            raise ValueError("Source security metadata conflicts with root authority")
+    return labels
 
 
 def _frontmatter(block):
