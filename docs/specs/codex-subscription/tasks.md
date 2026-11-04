@@ -1,7 +1,8 @@
 # Subscription OAuth implementation tasks
 
-**Status: S2–S4 implemented and independently reviewed November 4, 2026.
-S5 installed-wheel checks pass; a frozen Windows input gate blocks completion.
+**Status: S2–S4 implemented and independently reviewed. S5's approved successor
+input/caller update is implemented; [PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336)
+owns the current software qualification results and S5 verdict.
 S6 and Claude C1 remain separate and unstarted.**
 
 The [README](README.md) owns the funding/authority contract and corrected command
@@ -99,15 +100,19 @@ pending work requires fresh grants and admissions. Receipts remain secret-free.
 
 ## S5 — Verify installed software and corrected user journeys
 
-Status: blocked. Focused checks pass (334). Installed-wheel qualification passes
+Retained checkpoint at `68bf611`: focused checks pass (334). Installed-wheel qualification passes
 (4,038 passed, 201 skipped, two additional subtests passed; zero model calls).
 The complete source run reports 6,607 passed, one failed, 224 skipped and seven
 additional subtests passed. The one failure enforces the Windows experiment
 workflow's historical dependency hashes. The candidate deliberately updates
 three shared dependency constraints; the frozen experiment callers also pin
 those inputs. Preserve historical artifacts. A prospective successor input/
-caller set and its active workflow integration need a separate scope decision,
-independent review and fresh checks. See [evidence](evidence.md).
+caller set and its active workflow integration needed a separate scope decision.
+Patrick approved that continuation on November 4, 2026. The versioned successor
+retains the fixed component, old proof/caller files and source/wheel/cleanup
+checks, with fresh input bindings and an account-free caller. Independent
+review and new focused/full/wheel/native CI evidence belong to the current PR
+candidate. See [evidence](evidence.md).
 
 Dependencies: S4. This is software qualification, not a live funding verdict.
 

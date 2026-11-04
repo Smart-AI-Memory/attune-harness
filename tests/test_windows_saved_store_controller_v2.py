@@ -67,7 +67,7 @@ def test_successor_changes_controller_inputs_and_keeps_fixed_component():
     assert len(inputs['locks']) == 5 and len(new.PROTOCOL) == 12
     for name, row in inputs['locks'].items():
         assert row == new.PROTOCOL[name]
-        raw = (ROOT / row['source']).read_bytes()
+        raw = canonical_bytes(ROOT / row['source'])
         assert len(raw) == row['bytes'] and hashlib.sha256(raw).hexdigest() == row['sha256']
     for name, row in old.PROTOCOL.items():
         if name not in inputs['locks']:
@@ -82,7 +82,7 @@ def test_actual_successor_protocol_admits_exact_inputs_or_refuses_before_output(
     repo.mkdir()
     for row in route.PROTOCOL.values():
         path = repo / row['source']; path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes((ROOT / row['source']).read_bytes())
+        path.write_bytes(canonical_bytes(ROOT / row['source']))
     if damage:
         (repo / 'requirements-mcp.lock').write_bytes(b'changed\n')
         with pytest.raises(ValueError): route.stage_protocol(repo, target, projector)
@@ -107,7 +107,7 @@ def test_preflight_keeps_capture_startup_and_refusal_contracts():
     assert '-ExecuteApprovedFixture' not in new and '-ExecuteReviewedGuiLease' not in new
 
 
-def test_new_caller_refuses_account_mode_and_closes_the_complete_pinned_set():
+def test_new_caller_refuses_account_mode_and_closes_the_complete_pinned_set(tmp_path):
     text = (CURRENT / 'pre_fixture.ps1').read_text()
     guard = "if (-not $PreFixtureOnly) { throw 'This controller version is account-free only.' }"
     assert text.index(guard) < text.index('[Security.Principal.WindowsIdentity]::GetCurrent()')
@@ -119,8 +119,14 @@ def test_new_caller_refuses_account_mode_and_closes_the_complete_pinned_set():
         assert hashlib.sha256(canonical_bytes(ROOT / name)).hexdigest() == digest
     assert text.count(f'$sourceLeases.Count -eq {gate.ENTRY_COUNT}') == 1
     assert text.count(f'$caller.sources_verified_count -ne {gate.ENTRY_COUNT}') == 1
+    # This negative shape check needs qualified raw controls, not a potentially
+    # CRLF-rendered Windows checkout of the historical gate.
+    control = tmp_path / gate.BASE_PATH
+    control.parent.mkdir(parents=True)
+    with zipfile.ZipFile(ARCHIVE) as archive:
+        control.write_bytes(archive.read(gate.BASE_PATH))
     with pytest.raises(ValueError, match='entry_finite'):
-        gate.admit(ROOT, ROOT / 'unused-test-output', {}, '0' * 64)
+        gate.admit(tmp_path, tmp_path / 'unused-test-output', {}, '0' * 64)
 
 
 @pytest.mark.parametrize('workflow', WORKFLOWS, ids=['build', 'pre-fixture'])

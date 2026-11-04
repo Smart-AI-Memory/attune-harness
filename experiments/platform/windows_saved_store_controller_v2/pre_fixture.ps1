@@ -100,7 +100,7 @@ $pinsJson = @'
   "experiments/platform/windows_saved_store_controller_v2/route.py": "3bd4c6eb79b395f9660dc82ae1ab3734fd6bcd44239911ba5084d27a8b0170d5",
   "experiments/platform/windows_saved_store_controller_v2/entry.py": "10faaf2b76c6f9180691248c0e20053210df4b828e2ad927e070b4a0a8861027",
   "experiments/platform/windows_saved_store_controller_v2/preflight.ps1": "fb61a075166c22616d9f85acfc362e2b57dd765e29cd318ef1c42d5e217f1cdf",
-  "tests/test_windows_saved_store_controller_v2.py": "6f16b15775f9918c204b59a9a900c6f602402910ec242f3a224244ffb5090da3",
+  "tests/test_windows_saved_store_controller_v2.py": "a35ef8f9ff59f2f6214b005deb5eb6c03f80acdbacc3dbcda7e4af006fdeba3f",
   "tests/fixtures/windows_saved_store_controller_v2.zip": "da481265cf79a5ba4c05f370bc861309b16fd51bb0145aab48ca2646cae94f07",
   "experiments/platform/windows_saved_store_component_account_tail_v2.ps1": "d6ca9401a6435acf93bf8996755b8873863e541d65d6b0d42099d1d9ec4d3a96"
 }

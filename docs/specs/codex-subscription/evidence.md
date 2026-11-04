@@ -1,8 +1,10 @@
 # Subscription software evidence and remaining qualification
 
-**Status: S2–S4 implemented and independently reviewed. S5 installed-wheel checks
-pass; a frozen Windows input gate blocks the full source suite. S6 and Claude C1
-remain separate and unstarted.** November 4, 2026.
+**Status: S2–S4 implemented and independently reviewed. S5's versioned Windows
+controller successor was approved and implemented November 4, 2026. Current
+qualification receipts and the S5 verdict are recorded in
+[PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336).
+S6 and Claude C1 remain separate and unstarted.**
 
 The [README](README.md) owns the funding contract and ordered refusal walks.
 The [direct design](direct-oauth-design.md) owns request/stream bounds. Patrick
@@ -10,7 +12,7 @@ approved S2–S5 implementation after the earlier documentation-only revision.
 No live sign-in, Keychain operation, provider inference or API-credit spend is
 included in this software milestone.
 
-## Candidate and review
+## Retained source candidate and review
 
 Implementation base: `ce52b9d3b4a1f1c65c339a05cb8f10b869431a86`.
 Signed source candidate: `68bf6111c48a5e38eaa0c2594ced23130479a587`.
@@ -53,8 +55,9 @@ nonblocking Authlib deprecation warning remains under its exact 1.9.3 pin.
 | Noneditable installed-wheel platform qualification | **Passed:** 4,038 passed, 201 skipped; two additional subtests passed. Platform receipt reports `checks_passed`, zero model calls, successful R2 owner journey, memory checks and all ten plugin-probe steps. |
 | Correctness lint and documentation link checker | Passed. |
 
-These are macOS arm64 / CPython 3.12.2 software results. The source-suite failure
-is unresolved and S5 remains blocked. Native Windows results belong to hosted
+These are retained macOS arm64 / CPython 3.12.2 results for `68bf611`.
+The source-suite failure led to the separately approved continuation below;
+this older receipt remains failed. Native Windows results belong to hosted
 CI; no local skip supplies Windows evidence. The subscription route remains
 outside Windows support even if general compatibility checks pass.
 
@@ -66,7 +69,7 @@ files; dependency consistency checks pass. Full source checks also select the
 optional native SDK for its inert witnesses. Installed qualification selects
 `all,plan-oauth` and preserves its deliberate provider-SDK exclusion.
 
-## Retained failures and corrected setup
+## Retained failures and corrected setup before the successor approval
 
 Earlier receipts stay failed/interrupted. A copied test fixture referenced the
 wrong imported name; the package-extra compatibility expectation also needed the
@@ -114,6 +117,42 @@ lock pins, so changing only the workflow maps would not repair the entire
 journey. The proposed follow-up needs a reviewed successor input/caller set,
 unchanged account/permission/cleanup gates and new account-free CI evidence;
 it must not relabel historical results or invoke an account fixture.
+
+## Approved controller successor
+
+The versioned [controller input set](../../../experiments/platform/windows_saved_store_controller_v2/inputs.json)
+defines the current five controller dependency constraints. It retains the
+original fixed-component source/wheel manifest, adapter, helper, proof and
+versioned callers. Its definition grants no account or provider authority.
+
+| Boundary | Implemented successor and preserved checks |
+| --- | --- |
+| Protocol staging | [Route](../../../experiments/platform/windows_saved_store_controller_v2/route.py) stages twelve exact files: the original fixed-component protocol, current controller constraints and the new input definition. Unknown/changed inputs refuse before output; there is no runtime line-ending normalization. |
+| Build and startup | [Preflight](../../../experiments/platform/windows_saved_store_controller_v2/preflight.ps1) consumes the exact twelve-file report, preserves source116/wheel119/installed118 checks, unchanged capture/startup code, private ACLs, source pins, one held wheel and bounded cleanup. |
+| Pre-fixture boundary | [Caller](../../../experiments/platform/windows_saved_store_controller_v2/pre_fixture.ps1) requires account-free mode before native operations. Its [data-only entry](../../../experiments/platform/windows_saved_store_controller_v2/entry.py) preserves historical file/source/wheel validation and binds all 56 current caller inputs. Every held source and wheel lease must close; no account fixture is invoked. |
+| Normal CI | The two active account-free workflows materialize exact current Git blobs through finite maps of 54 and 57 files. They retain the Windows 2022/2025 and Python 3.10/3.12 cells, event/origin checks, first-attempt gates and disabled account-execution workflows. |
+| Historical separation | The [new control archive](../../../tests/fixtures/windows_saved_store_controller_v2.zip) retains the two previous workflow definitions and original caller/manifest bytes. Existing versioned sources, fixtures, receipts and wheels remain unchanged. Old observations do not transfer to the successor. |
+
+[Successor controls](../../../tests/test_windows_saved_store_controller_v2.py)
+exercise the actual extracted Git bootstrap against valid, changed-blob and
+wrong-event fixtures. They connect the staging cardinality to the next caller,
+check historical separation and preserve the changed-lock negative. Unit fixture
+preparation handles permitted Windows checkout rendering; runtime admission
+still requires exact pinned raw bytes. Review found and closed the initial
+eleven-versus-twelve caller mismatch and Windows fixture-rendering gaps.
+
+Saved Windows results on `7d0174f` also exposed two subscription-test setup
+failures. Five large stream inputs now have bounded explicit parameter IDs,
+avoiding Windows' environment-entry limit without reducing any payload. New
+consultation fixtures use a separate retained temporary namespace so pytest's
+more-than-2048 sibling directories do not trip the unchanged native directory
+bound. Neither repair changes production code, assertions or supported platforms.
+
+The current application/package/constraint bytes remain those reviewed at
+`68bf611`. Controller implementation commit `988db85` adds the prospective set
+and test repairs. Fresh full-source and installed qualification bind the built
+wheel; final candidate identities, results, skipped scopes and independent
+delta review are recorded in PR #336. No earlier failed result is relabeled.
 
 ## Official protocol sources
 

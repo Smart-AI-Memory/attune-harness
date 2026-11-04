@@ -1,9 +1,10 @@
 # Codex subscription support alongside API credits
 
-**Status: S2–S4 implemented and reviewed November 4, 2026. S5 installed-wheel
-checks pass; the full source suite is blocked by frozen Windows experiment
-inputs. S6 live qualification requires separate approval. Claude C1 stays
-separate and unstarted.** See [software evidence](evidence.md).
+**Status: S2–S4 implemented and reviewed. S5's versioned Windows input successor
+was approved and implemented November 4, 2026. Current software qualification
+results and the S5 verdict are recorded in [PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336).
+S6 live qualification requires separate approval. Claude C1 stays separate and
+unstarted.** See [software evidence](evidence.md).
 
 Original source baseline: `03e29647a02073089fb33ea8df45b75be65383ba`.
 The command-walk corrections merged in #333 are retained. On November 3, 2026,
@@ -501,10 +502,11 @@ one-shot HTTPS/SSE worker, and preserve S4 owner integration, S5 offline/
 installed-wheel checks and S6 separately authorized live qualification.
 The corrected command walks and separate dispatch-free test path remain.
 
-S2–S4 implementation and inert request/journey controls are complete. S5's
-installed qualification passes; the full source suite retains one frozen-input
-consistency failure. A separately scoped prospective Windows experiment update
-is needed before S5 can complete. Keep the candidate draft at that gate.
+S2–S4 implementation and inert request/journey controls are complete. Patrick
+approved S5's prospective Windows controller input/caller update after the
+retained frozen-input failure. The successor preserves the historical component
+and proof sources. Current full-suite, installed-wheel and account-free CI
+verdicts are recorded in PR #336; old failures remain evidence of their old heads.
 No live profile connection or account/model qualification has run.
 [C1](claude-feasibility.md) remains separate and unstarted; its verdict cannot
 activate a route.
@@ -518,6 +520,7 @@ activate a route.
 | D3 | Confirmed: Claude feasibility stays separate; notify Patrick before API credits are needed | No account/model experiment or API spending is authorized by this design pass. |
 | D4 | Approved November 3, 2026: direct OAuth design revision, retaining Keychain and funding contracts | Proposed adapter `openai-plan`; no implementation or live qualification is approved. The old app-server S1 result stays unqualified. |
 | D5 | Approved November 4, 2026: implement S2–S5 continuously | Supersedes the earlier documentation-only limit for S2–S5. Keep Claude C1 separate, notify before API credits, and leave S6 live qualification for separate approval. No merge or release authority. |
+| D6 | Approved November 4, 2026: version the Windows controller inputs/callers and update the two account-free workflows to finish S5 | Preserve historical evidence and every existing refusal/cleanup gate. Fix PR #336's failed tests, obtain independent review and collect fresh software qualification. No account fixture, live qualification, API spending, manual workflow action, merge or release authority. |
 
 No live provider/model is selected by this document. S6 needs explicit
 account/model choices and applicable usage authority. D5 authorizes S2–S5

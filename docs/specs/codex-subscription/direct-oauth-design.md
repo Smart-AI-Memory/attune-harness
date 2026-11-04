@@ -1,8 +1,9 @@
 # Direct plan OAuth transport design
 
-**Status: S2–S4 implemented and reviewed November 4, 2026. S5 installed-wheel
-checks pass; frozen Windows experiment inputs block the full source suite.
-S6 remains gated.** See [software evidence](evidence.md).
+**Status: S2–S4 implemented and reviewed. S5's versioned controller successor was
+approved and implemented November 4, 2026. [PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336)
+records current software qualification and its verdict. S6 remains gated.**
+See [software evidence](evidence.md).
 
 This design replaces the proposed Codex app-server transport after its
 [S1 stop-gate result](s1-qualification.md). Patrick approved the direct OAuth
