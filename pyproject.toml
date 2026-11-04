@@ -45,6 +45,7 @@ Repository = "https://github.com/Smart-AI-Memory/attune-harness"
 Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
+plan-oauth = ["Authlib==1.9.3", "joserfc==1.8.0", "cryptography==50.0.2", "certifi==2026.10.23"]
 # tokens, verify, rag, review and mcp moved into the base in 0.4.0 and stayed
 # as empty extras until 0.6.0, when the first freeze cycle removed them as the
 # README had promised for 1.0 (D27.6).

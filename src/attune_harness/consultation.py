@@ -48,19 +48,20 @@ def configuration(value, operation):
         if not isinstance(name, str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}', name):
             raise ValueError('Invalid participant name')
         adapter = item.get('adapter') if isinstance(item, dict) else None
-        if adapter not in ('claude', 'codex', 'openai', 'antigravity', 'command'):
+        if adapter not in ('claude', 'codex', 'openai', 'openai-plan', 'antigravity', 'command'):
             raise ValueError('Configure claude, codex, antigravity or command explicitly; no fallback')
         fields(item, ('adapter', 'identity', 'timeout', *(['command'] if adapter == 'command' else []),
                       *(['funding'] if 'funding' in item else []),
                       *(['environment'] if adapter == 'command' and 'environment' in item else []),
                       *(['effort'] if adapter == 'antigravity' else []),
-                      *(['reasoning_effort'] if adapter == 'codex' and 'reasoning_effort' in item else [])))
+                      *(['reasoning_effort'] if adapter in ('codex', 'openai-plan') and 'reasoning_effort' in item else [])))
         if 'funding' in item:
             validate_funding(adapter, item['funding'])
-        elif adapter == 'openai':
+        elif adapter in ('openai', 'openai-plan'):
             raise ValueError('The OpenAI adapter requires explicit API funding')
         pair = identity(item['identity'])
-        provider = 'google-antigravity' if adapter == 'antigravity' else adapter
+        provider = ('google-antigravity' if adapter == 'antigravity' else
+                    'openai' if adapter == 'openai-plan' else adapter)
         if adapter != 'command' and pair[0] != provider:
             raise ValueError('Native provider must match the selected adapter')
         if adapter == 'antigravity' and item['effort'] not in ('low', 'medium', 'high', 'max'):
@@ -217,9 +218,9 @@ def model_attempt(config, turn):
 
 def dispatch(config, turn, cwd, cancel, *, admission=None):
     """Existing JSON/native process boundary; preserve diagnostics on failed turns."""
-    if admission is not None and config['adapter'] != 'openai':
+    if admission is not None and config['adapter'] not in ('openai', 'openai-plan'):
         raise ValueError('Funding configuration changed before dispatch')
-    if config['adapter'] == 'openai':
+    if config['adapter'] in ('openai', 'openai-plan'):
         from .participant_funding import validate_evidence
         if admission is None:
             raise ValueError('OpenAI execution requires the owner\'s persisted admission')
@@ -250,9 +251,10 @@ def dispatch(config, turn, cwd, cancel, *, admission=None):
                 raise NativeError(f'Command failed: {result.failure}', failure=result.failure,
                                   process_stopped=result.returncode is not None)
             return result.stdout
-    elif config['adapter'] == 'openai':
+    elif config['adapter'] in ('openai', 'openai-plan'):
         from .openai_exchange import OpenAIExchange
-        native = OpenAIExchange(model=config['identity']['model'], cwd=cwd, admission=admission,
+        from .plan_exchange import PlanExchange
+        native = (PlanExchange if config['adapter'] == 'openai-plan' else OpenAIExchange)(model=config['identity']['model'], cwd=cwd, admission=admission,
                                 timeout=config['timeout'], max_output_bytes=65536, cancel=cancel)
         exchange = native
     elif config['adapter'] == 'antigravity':
@@ -450,6 +452,8 @@ def run(directory, accepted, *, allow_external=False, allow_native=False, allow_
                         count = min(count, 1)
                     if not count:
                         raise ReviewPaused('Operation budget reached at a saved checkpoint')
+                    from .plan_funding import precheck_pending
+                    precheck_pending({n: p for n, p, _ in pending[:count]}, allow_api_spend)
                     admitted = []
                     funding_admissions = {}
                     funded_batch = any('funding' in p for _, p, _ in pending[:count])

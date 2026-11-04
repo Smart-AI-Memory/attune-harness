@@ -900,6 +900,12 @@ def build_work(
             return True
 
         def steps():
+            from .plan_funding import precheck_pending, completed_model
+            keys = {'worker': [s['id'] for s in request['tasks']], 'reviewer': ['final']}
+            pending = {role: config for role, config in configs.items() if any(
+                not completed_model(cursor.events.get(stable_id(request['task_id'],
+                    str(request['revision']), PROFILE, role, step_id))) for step_id in keys[role])}
+            precheck_pending(pending, allow_api_spend, selected=configs)
             run["advisory"] = work_effects.run_controls(
                 request, cursor, ensure_current=fresh
             )

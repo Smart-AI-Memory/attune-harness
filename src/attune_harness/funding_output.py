@@ -10,7 +10,7 @@ def summaries(record):
     def visit(value):
         if isinstance(value, dict):
             funding = value.get('funding')
-            if isinstance(funding, dict) and funding.get('profile') == 'participant-funding-v1':
+            if isinstance(funding, dict) and funding.get('profile') in ('participant-funding-v1', 'participant-funding-v2'):
                 usage = value.get('usage')
                 identity = (value.get('result') or {}).get('identity') or {}
                 usage = usage or identity.get('usage')

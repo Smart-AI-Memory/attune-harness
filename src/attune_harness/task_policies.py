@@ -365,6 +365,9 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
         adapter.save(run)
         return response['action']['text']
     def steps():
+        from .plan_funding import precheck_pending, pending_assignments
+        precheck_pending(pending_assignments(selected, assignments, run['events']),
+                         allow_api_spend, selected=selected)
         before=perform_probe(cursor,scope,'probe:before',expected=scope['before'])
         run['before_probe']=before
         if before['passed'] or before['failure'] != 'nonzero_exit' or not isinstance(before['returncode'], int) or before['returncode'] <= 0:

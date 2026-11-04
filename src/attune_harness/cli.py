@@ -32,6 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     add_voyage(sub)
     from .memory_cli import add_commands as add_memory
     add_memory(sub)
+    from .funding_cli import add_commands as add_funding
+    add_funding(sub)
     for name, description in (
         ('triage-check', 'Suggest a bounded response to a trusted check event; never dispatch'),
         ('repair-economics', 'Account for all repair attempts and quality before cost ranking'),
@@ -102,6 +104,9 @@ def dispatch(args, parser) -> int:
     import sys
     from .review_cli import execute
     from .task_cli import execute_control
+    if args.command == 'funding':
+        from .funding_cli import execute as execute_funding
+        return execute_funding(args)
     if args.command == 'spec':
         from .spec_cli import execute as execute_spec
         return execute_spec(args)

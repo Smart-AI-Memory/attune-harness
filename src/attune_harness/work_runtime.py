@@ -887,6 +887,11 @@ def plan_work(
                     raise ValueError(
                         "Planning profile does not grant review tools or evidence policy"
                     )
+            from .plan_funding import precheck_pending, completed_model
+            pending = {a['role']: configurations[a['role']] for a in selected
+                       if not completed_model(cursor.events.get(stable_id(
+                           _bindings(request)['assignments'][a['role']]['assignment_id'], PLANNING_PROFILE)))}
+            precheck_pending(pending, allow_api_spend, selected=configurations)
             for assignment in selected:
                 check_work_fresh(record)
                 role, config = assignment["role"], configurations[assignment["role"]]

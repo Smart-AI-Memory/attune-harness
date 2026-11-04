@@ -1,14 +1,15 @@
 # Subscription OAuth implementation tasks
 
-**Status: Direct OAuth design revision authorized; documentation only. S2–S6
-implementation and live qualification remain unstarted.** November 3, 2026.
+**Status: S2–S5 implementation approved November 4, 2026; software verification
+in progress. S6 and Claude C1 remain separate and unstarted.**
 
 The [README](README.md) owns the funding/authority contract and corrected command
 walks. The [direct OAuth design](direct-oauth-design.md) owns the revised worker/
 request/stream contract. Patrick retained Keychain and funding contracts, kept
 Claude separate, required notice before API credits are needed and expressly
-said “No code changes yet.” These tasks do not grant implementation, account,
-model/spending, merge, release or workflow authority.
+said “No code changes yet.” The later S2–S5 approval grants implementation and inert software checks only.
+It grants no account/model experiment, API spending, merge, release or manual
+workflow authority.
 
 ## S1 — Original app-server qualification: completed with a stop gate
 
@@ -19,8 +20,8 @@ direct worker.
 
 Patrick subsequently authorized the direct OAuth design revision (D4). That
 revision replaces the proposed mechanism, preserves the one-client-request
-boundary and leaves direct software/live qualification outstanding. This design
-pass does not authorize S2 or a provider request.
+boundary and leaves direct software/live qualification outstanding. The later D5 approval authorizes S2–S5 software work; it does not authorize a
+provider request.
 
 ## S2 — Add the approved app-owned profile lifecycle
 
