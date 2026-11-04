@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 import sys
 import subprocess
+import sysconfig
 from types import SimpleNamespace
 
 import pytest
@@ -95,6 +96,37 @@ def validate_child_argv(value, requested, runtime):
                 config[key.strip()] = setting.strip()
         assert Path(config['home']) == base.parent
         expected[0] = str(base)
+    elif (os.name == 'posix' and sys.platform == 'darwin'
+            and sys.implementation.name == 'cpython' and sys.version_info[:3] == (3, 12, 2)
+            and sys.prefix != sys.base_prefix and sysconfig.get_config_var('WITH_NEXT_FRAMEWORK') == 1):
+        # CPython v3.12.2 Mac/Tools/pythonw.c replaces argv[0] with the bundle
+        # interpreter. Bind that path to parent startup/config/files, never to
+        # the child's reported argv; every other argument remains exact.
+        assert sysconfig.get_config_var('PYTHONFRAMEWORK') == 'Python'
+        root = sysconfig.get_config_var('PYTHONFRAMEWORKINSTALLDIR')
+        assert isinstance(root, str) and Path(root).is_absolute()
+        assert Path(root).name == 'Python.framework'
+        prefix = Path(sys.base_prefix)
+        assert prefix == Path(root) / 'Versions' / '3.12'
+        base = Path(sys._base_executable)
+        assert base == prefix / 'bin' / 'python3.12'
+        assert sysconfig.get_config_var('BINDIR') == str(base.parent)
+        launcher = Path(requested[0])
+        assert launcher == Path(sys.executable) == Path(sys.prefix) / 'bin' / 'python'
+        assert launcher.is_symlink() and launcher.resolve(strict=True) == base
+        library = prefix / 'Python'
+        bundle = prefix / 'Resources' / 'Python.app' / 'Contents' / 'MacOS' / 'Python'
+        assert all(path.is_file() and not path.is_symlink() for path in (base, library, bundle))
+        assert sys.orig_argv[0] == str(bundle)
+        config = {}
+        for line in (Path(sys.prefix) / 'pyvenv.cfg').read_text(encoding='utf-8').splitlines():
+            if '=' in line:
+                key, setting = line.split('=', 1)
+                config[key.strip()] = setting.strip()
+        assert config.get('home') == str(base.parent)
+        assert config.get('version') == '3.12.2' and config.get('executable') == str(base)
+        assert config.get('include-system-site-packages') == 'false'
+        expected[0] = str(bundle)
     assert value['interpreter_argv'] == expected
 
 

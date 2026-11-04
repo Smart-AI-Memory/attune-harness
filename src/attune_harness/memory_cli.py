@@ -8,7 +8,7 @@ import sys
 
 from .features import FeatureUnavailable, read_text
 from .memory_redis import SERVE_CHARS, SERVE_LIMIT
-from .review_contract import parse_json
+from .review_contract import canonical, parse_json
 
 
 # The layers the hydration writes; test_memory_redis asserts this equals memory_redis.LAYERS.
@@ -229,7 +229,13 @@ def execute(args):
         result = dict(status='unavailable', detail=str(error), error=type(error).__name__)
     except Exception as error:
         result = dict(status='failed', error=type(error).__name__, detail=str(error))
-    print(json.dumps(result, ensure_ascii=True, allow_nan=False))
+    authority = result.get('authority')
+    legacy_redis_packet = (args.memory_operation == 'redis'
+                           and isinstance(authority, dict)
+                           and authority.get('backend') == 'redis'
+                           and 'projection' not in authority)
+    print(canonical(result) if legacy_redis_packet
+          else json.dumps(result, ensure_ascii=True, allow_nan=False))
     return 2 if result.get('status') in (
         'disabled', 'unavailable', 'failed', 'partial', 'uncertain', 'quarantined',
         'unresolved_reasoning', 'await_evidence', 'await_decision', 'stale',

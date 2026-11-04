@@ -143,8 +143,10 @@ First-round seats dispatch concurrently; second-round seats stay sequential and
 receive only the complete preceding round. The host retains
 every verdict and disagreement; the chair decides what action to take.
 
-Each turn has a configured timeout of 1–300 seconds and 64 KiB process output
-limit. A parallel first-round batch waits at most the largest admitted seat timeout
+Claude and Codex turns have a configured timeout of 1–600 seconds; command and
+Antigravity turns retain the 1–300-second range. The initializer's default stays
+120 seconds. Each turn retains its 64 KiB process output limit.
+A parallel first-round batch waits at most the largest admitted seat timeout
 plus two seconds of join grace, excluding local preparation/persistence overhead.
 Round two adds its sequential seat timeouts. A dispatcher that does not return
 within the bound leaves an unresolved dispatch; it is never treated as stopped.
@@ -163,6 +165,19 @@ can pass a cancellation `Event` to the shared `run` API. A supervised cancellati
 is retained as cancelled with unknown effects; abandonment preserves the previous
 status. Read `status` explicitly: exit zero also covers prepared, paused and
 cancelled states.
+
+Newly prepared Claude/Codex consultations bind
+`native_response_profile: consultation-answer-v1` into the accepted contract.
+The CLI receives a schema for a direct `verdict`, `summary`, `evidence` object.
+Harness validates the response and frozen citation scope; it does not repair
+malformed answers or retry them automatically. Other native workflows, command
+seats and Antigravity retain their existing response format.
+
+Saved consultations without that marker retain the original JSON-inside-text
+format and request digests. A new timeout or response profile requires a fresh
+prepared and accepted contract; do not edit a failed run to obtain either.
+See the [response-boundary design](design-model-consultation.md#structured-native-answers-and-longer-calls--november-2-2026)
+for compatibility and regression cases.
 
 ## Partial rounds and explicit refused-turn recovery
 

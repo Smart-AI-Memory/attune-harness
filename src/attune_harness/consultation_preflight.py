@@ -8,6 +8,7 @@ from pathlib import Path
 from .consultation import configuration
 from .command_environment import absolute_executable
 from .process import invoke
+from .participant_funding import inspect as inspect_funding
 from .review_contract import parse_json
 
 
@@ -67,6 +68,11 @@ def preflight(config):
     reports = {}
     for name, seat in config['participants'].items():
         adapter = seat['adapter']
+        if adapter == 'openai':
+            reports[name] = {'state': 'unknown', 'binary': None, 'version': None,
+                             'funding': inspect_funding(adapter, seat['funding']),
+                             'fix': 'Local route check only; server authentication, model access and balance remain unknown.'}
+            continue
         executable = seat['command'][0] if adapter == 'command' else (
             'agy' if adapter == 'antigravity' else adapter)
         if adapter == 'command' and 'environment' in seat:
@@ -76,6 +82,13 @@ def preflight(config):
             binary = shutil.which(executable)
         report = {'state': 'unknown', 'binary': binary, 'version': None, 'fix': ''}
         reports[name] = report
+        if 'funding' in seat:
+            report['funding'] = inspect_funding(adapter, seat['funding'])
+            report['fix'] = ('This route has no qualified invocation-level funding enforcement. '
+                             'Execution remains refused; inspection grants no execution authority.')
+            if binary is None:
+                report['state'] = 'missing_binary'
+            continue
         if binary is None:
             fix = ('Configure an existing absolute executable and rerun check.'
                    if adapter == 'command' and 'environment' in seat else

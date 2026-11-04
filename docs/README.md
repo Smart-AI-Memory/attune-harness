@@ -1,19 +1,30 @@
 # Documentation index
 
-Start with the current installation, workflow selector and 1.5.1 preparation
-walkthroughs. Versioned guides and release records describe their named version;
-designs and specifications retain their own approval and implementation status.
-The dated evidence below preserves results, receipts and research at their original
-source. Read those files for what was true on their date.
+Start with the published 1.5.1 installation or the clearly labeled 1.6.0
+preparation draft. Historical guides keep their original source, artifact and
+observation scope. Designs and specifications retain their approval status.
 
-Reviewed on October 22, 2026. The [1.5.1 readiness record](release-readiness-1.5.1.md)
-states the review scope, validation and remaining gates. Run
+Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Start here
 
-- [Four current 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Fresh candidate-wheel observations for intake, plan acceptance, offline research and saved-draft continuity; final release reconciliation remains open
+- [Participant funding specification](specs/participant-funding/README.md): Approved scope: explicit Claude/Codex subscription and Codex API funding, checks, receipts and spending authority
+- [Participant funding implementation tasks](specs/participant-funding/tasks.md): Approved implementation order and current qualification boundaries
+- [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
+- [Participant funding API-first revision](specs/participant-funding/t3-decision.md): Approved direct API adapter and retained native-route limits
+- [Choose participant funding](participant-funding.md): Candidate configuration, spending authority, receipts and unsupported routes
+- [Codex subscription specification](specs/codex-subscription/README.md): Unapproved proposal for explicit plan funding alongside the existing API adapter; decisions and source-bound journey
+- [Codex subscription tasks](specs/codex-subscription/tasks.md): Proposed qualification, profile, transport and integration sequence; no implementation authority
+- [Claude subscription feasibility](specs/codex-subscription/claude-feasibility.md): Separate proposed check with no Claude implementation or live-call authority
+- [Subscription planning evidence](specs/codex-subscription/evidence.md): Current source, official documentation, alternatives and unresolved qualification assumptions
+
+- [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
+- [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback
+
+- [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
+- [Redis option requirements and verification](redis-option-verification.md): Existing recall, scratch and saved-mirror requirements; bounded disposable-service evidence for 1.6.0 preparation and remaining limits
 - [Move from Attune AI to Harness](migration.md): Current migration decisions, separate environments and Windows limits; historical 1.0.0 guidance retained
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
 - [Historical first repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
@@ -309,6 +320,7 @@ defines the approved Harness-owned writer; implementation is in progress.
 | File | Title | Dated |
 | --- | --- | --- |
 | [specs/native-memory/hydration-generation-reader.md](specs/native-memory/hydration-generation-reader.md) | Hydration generation reader | 2026-10-25 |
+| [specs/native-memory/legacy-redis-bounds.md](specs/native-memory/legacy-redis-bounds.md) | Legacy Redis reply and connection bounds | 2026-11-02 |
 | [specs/native-memory/hydration-writer/README.md](specs/native-memory/hydration-writer/README.md) | Draft addendum, prior decisions and source-backed command/refusal walk | 2026-10-24 |
 | [specs/native-memory/hydration-writer/requirements.md](specs/native-memory/hydration-writer/requirements.md) | Proposed preservation, authority, publication and installed-host acceptance requirements | 2026-10-24 |
 | [specs/native-memory/hydration-writer/design.md](specs/native-memory/hydration-writer/design.md) | Proposed source mapping, opt-in generation reads, conditional publication and rollback | 2026-10-24 |

@@ -677,6 +677,8 @@ def validate_planning(run: dict, request: dict) -> None:
         ):
             raise ValueError("Saved planning operation does not bind the assignment")
         config = request["registry"]["participants"][turn["participant_id"]]
+        from .participant_funding import validate_event
+        validate_event(event, config, turn['participant_id'], turn['turn_id'])
         allowed_effects = (
             ("unknown", "read_only")
             if config["adapter"] == "deterministic"
@@ -782,11 +784,13 @@ def plan_work(
     checkpoint=None,
     allow_external=False,
     allow_native=False,
+    allow_api_spend=False,
     max_operations=None,
     exchange_factory=ReviewExchange,
 ) -> dict:
     """Plan a draft using explicit dispatch permissions; never accept or build it."""
-    if type(allow_external) is not bool or type(allow_native) is not bool:
+    if (type(allow_external) is not bool or type(allow_native) is not bool
+            or type(allow_api_spend) is not bool):
         raise ValueError("Dispatch permissions must be booleans")
     started = time.monotonic()
     store = RunStore(safe_storage(directory), existing=True)
@@ -870,7 +874,8 @@ def plan_work(
                 a["role"]: request["registry"]["participants"][a["participant"]]
                 for a in selected
             }
-            authorize_external(configurations, allow_external)
+            authorize_external(configurations, allow_external,
+                               **({'allow_api_spend': True} if allow_api_spend else {}))
             if not allow_native and any(
                 c["adapter"] in ("claude", "codex") for c in configurations.values()
             ):
@@ -898,7 +903,9 @@ def plan_work(
                     config, Path(request["project_root"]), profile=PLANNING_PROFILE
                 ), store.directory)
                 response = dispatch_assignment(
-                    cursor, turn["turn_id"], turn, config, exchange, outcome
+                    cursor, turn["turn_id"], turn, config, exchange, outcome,
+                    allow_external=allow_external,
+                    **({'allow_api_spend': True} if allow_api_spend else {}),
                 )
                 check_work_fresh(record)
                 proposal = _decode(

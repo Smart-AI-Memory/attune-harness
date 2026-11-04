@@ -428,6 +428,9 @@ def validate_build(run, request):
     def participant(role, step):
         t = turn(request, run, role, step, events[:index])
         if index < len(events):
+            from .participant_funding import validate_event
+            validate_event(events[index], request['registry']['participants'][t['participant_id']],
+                           t['participant_id'], t['turn_id'])
             allowed = (
                 ("unknown", "read_only")
                 if request["registry"]["participants"][t["participant_id"]]["adapter"]
@@ -712,13 +715,15 @@ def build_work(
     checkpoint=None,
     allow_external=False,
     allow_native=False,
+    allow_api_spend=False,
     max_operations=None,
     exchange_factory=ReviewExchange,
 ):
     from .work_contract import check_work_fresh
     from .work_runtime import _effect_owner
 
-    if type(allow_external) is not bool or type(allow_native) is not bool:
+    if (type(allow_external) is not bool or type(allow_native) is not bool
+            or type(allow_api_spend) is not bool):
         raise ValueError("Dispatch permissions must be booleans")
     store = RunStore(safe_storage(directory), existing=True)
     with store.lease():
@@ -747,7 +752,8 @@ def build_work(
                 f"command participants; see 'Plan and build' in the CLI guide"
             )
             raise error
-        authorize_external(configs, allow_external)
+        authorize_external(configs, allow_external,
+                           **({'allow_api_spend': True} if allow_api_spend else {}))
         if not allow_native and any(
             c["adapter"] in ("claude", "codex") for c in configs.values()
         ):
@@ -850,7 +856,9 @@ def build_work(
                 configs[role], Path(plan["root"]), profile=PROFILE
             ), store.directory, request['project_root'])
             response = dispatch_assignment(
-                cursor, t["turn_id"], t, configs[role], exchange, outcome
+                cursor, t["turn_id"], t, configs[role], exchange, outcome,
+                allow_external=allow_external,
+                **({'allow_api_spend': True} if allow_api_spend else {}),
             )
             fresh()
             payload = decode(

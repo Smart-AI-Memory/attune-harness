@@ -98,7 +98,11 @@ Python dispatch emits `CommandEnvironmentDeprecationWarning`. Add the finite
 policy and explicit names, validate the absolute executable, then prepare or
 revise and accept the configuration through its existing owner.
 
-The prospective notice release is **1.5.2**, with removal **no earlier than
-1.6.0**. The release gate must confirm the first actual notice release matches
-that schedule before shipping. This implementation does not remove the legacy
-form, change the package version or authorize a release.
+The selected first notice release is **1.6.0**, with removal **no earlier than
+1.7.0**. There is no 1.5.2 release in the selected sequence. Legacy configurations
+remain accepted in this implementation; adding the policy is opt-in.
+
+The runtime `NOTICE` constant and
+[machine-readable register](deprecations.json) use the same 1.6.0/1.7.0 schedule.
+This metadata correction preserves the original compatibility behavior and the
+at least one minor release rule.

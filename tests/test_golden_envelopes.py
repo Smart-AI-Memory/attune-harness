@@ -49,6 +49,10 @@ FORTY = "a" * 40
 # deliberate diff; the 1.0 changelog points at docs/envelopes.md, which lists the same rows.
 # fmt: off
 ENVELOPES = (
+    ('funding-check-api', 'success', 0, 1, 'checked',
+     ('authority', 'model_calls', 'operation', 'participants', 'schema_version', 'status')),
+    ('funding-run-no-spend', 'refusal', 2, 1, 'refused',
+     ('error', 'operation', 'schema_version', 'status')),
     ('demo', 'success', 0, None, 'verified',
      ('check', 'error', 'output', 'participant_id', 'status', 'task')),
     ('review-form', 'success', 0, 1, 'ready',
@@ -1184,6 +1188,34 @@ def _(w):
 
 
 # Memory: native reads, offline proposal jobs, Redis double and file scratch.
+
+
+def funding_config():
+    return {'schema_version': 1, 'question': 'Inspect this inert fixture', 'rounds': 1,
+            'author': {'provider': 'codex', 'model': 'fixture-author'},
+            'participants': {'peer': {'adapter': 'openai', 'timeout': 10,
+                'identity': {'provider': 'openai', 'model': 'fixture-api'},
+                'funding': {'mode': 'api', 'credential_env': 'FUNDING_GOLDEN_KEY'}}}}
+
+
+@scenario('funding-check-api')
+def _(w):
+    w.monkeypatch.setenv('FUNDING_GOLDEN_KEY', 'synthetic_fixture_key_0123456789')
+    return w.run(['source-review', 'check', '--config',
+                  write_json(w.tmp / 'funding-config.json', funding_config())])
+
+
+@scenario('funding-run-no-spend')
+def _(w):
+    config = write_json(w.tmp / 'funding-config.json', funding_config())
+    project = w.tmp / 'funding-source'
+    project.mkdir()
+    (project / 'sample.py').write_text('x = 1\n', encoding='utf-8')
+    directory = w.tmp / 'funding-run'
+    _, record = w.run(['source-review', 'prepare', '--project', project,
+        '--path', 'sample.py', '--config', config, '--run-dir', directory])
+    return w.run(['source-review', 'run', directory, '--accept', record['contract_digest'],
+                  '--allow-external'])
 
 
 @scenario("memory-capabilities", POSIX_ONLY)

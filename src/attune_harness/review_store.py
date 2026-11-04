@@ -69,6 +69,7 @@ class RunStore:
         else:
             self.directory.mkdir()  # Exclusive creation of new runs.
         self.path = self.directory / 'record.json'
+        self._lease_token = None
 
     @contextmanager
     def lease(self, *, retry_seconds: float | None = None):
@@ -97,6 +98,7 @@ class RunStore:
             fd = open_lock(lock)
         else:
             fd = os.open(lock, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+        token = None
         try:
             deadline = time.monotonic() + retry_seconds
             while True:
@@ -111,8 +113,12 @@ class RunStore:
                     if time.monotonic() >= deadline:
                         raise PersistenceError('Run is busy; another owner holds the writer lock') from exc
                     time.sleep(0.005)
+            token = object()
+            self._lease_token = token
             yield
         finally:
+            if token is not None and self._lease_token is token:
+                self._lease_token = None
             os.close(fd)
 
     def save(self, record: dict) -> None:

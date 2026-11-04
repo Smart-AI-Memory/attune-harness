@@ -16,6 +16,82 @@ measurement = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(measurement)
 
 
+@pytest.mark.parametrize('system,suite,partitioned,timeout', [
+    ('Windows', 'platform', True, 2700), ('Linux', 'platform', False, 1080),
+    ('Darwin', 'platform', False, 1080), ('Linux', 'full', False, 1800)])
+@pytest.mark.parametrize('code', [0, 1, 124])
+def test_only_windows_installed_coverage_selects_new_topology(tmp_path, monkeypatch, system, suite, partitioned, timeout, code):
+    import attune_harness
+    source, installed, site = tmp_path / 'project/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: system)
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    calls, validation, reports = [], [], []
+    def child(argv, **kwargs):
+        calls.append(argv)
+        assert kwargs['timeout'] == timeout
+        assert ('--installed-coverage-partitions' in argv) is partitioned
+        return SimpleNamespace(returncode=code)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(run=child, STDOUT=subprocess.STDOUT))
+    monkeypatch.setattr(measurement, '_validate_installed_aggregate', lambda *args: validation.append(args) or {'control': True})
+    monkeypatch.setattr(measurement, 'report', lambda *args: reports.append(args))
+    output = tmp_path / 'evidence'
+    assert measurement.measure(output, suite) == code
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['test_exit'] == code and receipt['input_drift'] is False
+    assert len(calls) == 1 and len(validation) == int(partitioned and code == 0)
+    assert len(reports) == int(not partitioned or code == 0)
+    assert not (site / 'harness_measure_coverage.pth').exists()
+    if partitioned:
+        assert receipt['shared_test_budget_seconds'] == 2520
+        assert receipt['execution_topology'] == 'two_supervised_installed_module_partitions'
+
+
+def test_missing_installed_aggregate_is_durably_failed_before_coverage_report(tmp_path, monkeypatch):
+    import attune_harness
+    source, installed, site = tmp_path / 'project/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Windows')
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
+        run=lambda *args, **kwargs: SimpleNamespace(returncode=0), STDOUT=subprocess.STDOUT))
+    def forbidden(*args):
+        raise AssertionError('Missing aggregate reached coverage reporting')
+    monkeypatch.setattr(measurement, 'report', forbidden)
+    output = tmp_path / 'evidence'
+    assert measurement.measure(output, 'platform') == 1
+    receipt = json.loads((output / 'manifest.json').read_text())
+    assert receipt['test_exit'] == 1 and receipt['aggregate_failure'] == 'FileNotFoundError'
+    with pytest.raises(ValueError, match='failed'):
+        measurement.compatible([receipt], frozen)
+
+
+@pytest.mark.parametrize('deadline', [True, float('nan'), float('inf')])
+def test_installed_identity_deadline_rejects_nonfinite_or_boolean_values(deadline):
+    with pytest.raises(ValueError, match='finite'):
+        measurement.identity(deadline=deadline)
+
+
 @pytest.mark.parametrize('field', ['revision', 'sources', 'input_hashes',
                                    'coverage_version', 'pytest_version', 'test_exit', 'input_drift'])
 def test_incompatible_or_failed_run_cannot_be_combined(field):
@@ -153,7 +229,7 @@ def test_successful_child_with_postrun_input_drift_retains_incompatible_receipt(
     monkeypatch.setattr(measurement, 'report', lambda *_: None)
     monkeypatch.setattr(measurement.platform, 'system', lambda: system)
     expected_timeout = {
-        'full': {'Windows': 1200, 'Linux': 1200, 'Darwin': 1500},
+        'full': {'Windows': 1200, 'Linux': 1800, 'Darwin': 1500},
         'platform': {'Windows': 2700, 'Linux': 1080, 'Darwin': 1080},
     }[suite][system]
 
@@ -338,7 +414,7 @@ def test_coverage_job_budget_keeps_measurement_headroom():
     workflow = SCRIPT.parents[1] / '.github/workflows/coverage.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['measure']
     assert job['timeout-minutes'] == (
-        "${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || 25 }}")
+        "${{ matrix.os == 'windows-latest' && 50 || matrix.os == 'macos-latest' && 30 || matrix.os == 'ubuntu-latest' && 35 || 25 }}")
 
 
 def test_darwin_full_timeout_finalizes_unfinished_receipt(tmp_path, monkeypatch):
@@ -465,7 +541,7 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
     real_run = subprocess.run
 
     def bounded_child(argv, **kwargs):
-        assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1200)
+        assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1800 if measurement.platform.system() == 'Linux' else 1200)
         kwargs['timeout'] = 3  # Only this deliberately stalled fixture is short.
         return real_run(argv, **kwargs)
 
@@ -740,3 +816,521 @@ def test_timeout():
         assert 'private diagnostic detail' not in json.dumps(timings)
     else:
         assert snapshots == []
+
+
+def test_diagnostic_options_refuse_wrong_profiles_before_runtime_or_output(tmp_path, monkeypatch):
+    output = tmp_path / 'uncreated'
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Darwin')
+    for options, message in [({'windows_listing_witness': tmp_path / 'listing'}, 'Windows'),
+                             ({'shutdown_boundary_diagnostics': tmp_path / 'shutdown'}, 'Linux')]:
+        with pytest.raises(ValueError, match=message):
+            measurement.measure(output, 'full', **options)
+    assert not output.exists()
+
+
+def test_default_startup_hook_bytes_are_preserved(tmp_path):
+    config = tmp_path / 'coverage.ini'
+    code = ('import atexit, coverage\n'
+            'if coverage.Coverage.current() is None:\n'
+            f'    collector = coverage.Coverage(config_file={str(config)!r})\n'
+            '    collector.start()\n'
+            '    atexit.register(collector.save)\n')
+    assert measurement.startup_hook(config) == f'import builtins; exec({code!r})\n'
+    assert measurement.startup_hook(config, None) == measurement.startup_hook(config)
+
+
+@pytest.mark.parametrize('owner', [True, False])
+def test_enabled_hook_preserves_existing_save_registration_position(tmp_path, monkeypatch, owner):
+    import atexit
+    import importlib.util
+    events = []
+    original_save = lambda: events.append('actual_save')
+    wrapper = lambda: original_save()
+    class Collector:
+        save = staticmethod(original_save)
+        def __init__(self, **kwargs):
+            events.append('construct')
+            atexit.register(self._atexit)
+        @staticmethod
+        def current(): return None
+        def _atexit(self): pass
+        def start(self): events.append('start')
+    configured = []
+    helper = SimpleNamespace(_configure_child_diagnostics=lambda c: configured.append(c),
+                             _wrap_coverage_save=lambda save: wrapper if save is original_save else pytest.fail('different bound save'))
+    spec = SimpleNamespace(name='harness_coverage_diagnostics', loader=SimpleNamespace(exec_module=lambda m: None))
+    monkeypatch.setitem(sys.modules, 'coverage', SimpleNamespace(Coverage=Collector))
+    monkeypatch.setattr(atexit, 'register', lambda callback: events.append(callback))
+    monkeypatch.setattr(importlib.util, 'spec_from_file_location', lambda *args: spec)
+    monkeypatch.setattr(importlib.util, 'module_from_spec', lambda spec: helper)
+    monkeypatch.setitem(sys.modules, 'harness_coverage_diagnostics', None)
+    context = {'parent_pid': os.getppid() if owner else -1, 'child_sink': str(tmp_path / 'child'), 'token': 'fixture'}
+    exec(measurement.startup_hook(tmp_path / 'coverage.ini', context), {})
+    assert events[0] == 'construct' and events[1].__name__ == '_atexit' and events[2] == 'start'
+    assert len(events) == 4 and events[3] is (wrapper if owner else original_save)
+    assert configured == ([context] if owner else [])
+
+
+def test_hook_helper_failure_falls_back_to_same_save(tmp_path, monkeypatch):
+    import atexit
+    import importlib.util
+    saved = []
+    class Collector:
+        @staticmethod
+        def current(): return None
+        def __init__(self, **kwargs): pass
+        def start(self): pass
+        def save(self): pass
+    monkeypatch.setitem(sys.modules, 'coverage', SimpleNamespace(Coverage=Collector))
+    monkeypatch.setattr(atexit, 'register', saved.append)
+    def failed(*args): raise OSError('diagnostic-only loader failure')
+    monkeypatch.setattr(importlib.util, 'spec_from_file_location', failed)
+    exec(measurement.startup_hook(tmp_path / 'coverage.ini', {'parent_pid': os.getppid()}), {})
+    assert len(saved) == 1 and saved[0].__func__ is Collector.save
+
+
+@pytest.mark.parametrize('raises', [False, True])
+def test_save_observer_forwards_same_call_return_and_exception(tmp_path, monkeypatch, raises):
+    target = tmp_path / 'child.jsonl'; target.touch()
+    measurement._configure_child_diagnostics({'parent_pid': os.getppid(), 'child_sink': str(target), 'token': 'synthetic'})
+    calls = []
+    result, error = object(), ValueError('original save failure')
+    def save(*args, **kwargs):
+        calls.append((args, kwargs))
+        if raises: raise error
+        return result
+    wrapped = measurement._wrap_coverage_save(save)
+    if raises:
+        with pytest.raises(ValueError) as caught: wrapped('original', flush=True)
+        assert caught.value is error
+    else:
+        assert wrapped('original', flush=True) is result
+    assert calls == [(('original',), {'flush': True})]
+    events = [json.loads(row)['event'] for row in target.read_text().splitlines()]
+    assert events == ['coverage_explicit_save_enter', 'coverage_explicit_save_error' if raises else 'coverage_explicit_save_return']
+    monkeypatch.setattr(measurement, '_child_diagnostic_context', None)
+    monkeypatch.setattr(measurement, '_child_diagnostic_sink', None)
+
+
+def test_sink_is_bounded_secondary_and_rechecks_fork_ownership(tmp_path, monkeypatch):
+    target = tmp_path / 'sink.jsonl'; target.touch()
+    sink = measurement._DiagnosticSink(target, 'synthetic', 'child', max_rows=2)
+    sink.emit('one'); sink.emit('two'); sink.emit('three')
+    assert sink.rows == 2
+    raw = target.read_bytes()
+    monkeypatch.setattr(measurement.os, 'getpid', lambda: sink.creator_pid + 1)
+    sink.emit('fork_child')
+    assert target.read_bytes() == raw
+    monkeypatch.undo()
+    sink.close()
+    absent = tmp_path / 'missing'
+    broken = measurement._DiagnosticSink(absent, 'synthetic', 'child')
+    broken.emit('absent')
+    assert broken.errors == 1 and not absent.exists()
+
+
+def test_cached_child_sink_rechecks_parent_and_creator_pid(tmp_path, monkeypatch):
+    target = tmp_path / 'child.jsonl'; target.touch()
+    measurement._configure_child_diagnostics({'parent_pid': os.getppid(), 'child_sink': str(target), 'token': 'synthetic'})
+    sink = measurement._child_sink()
+    assert sink is not None
+    with monkeypatch.context() as patch:
+        patch.setattr(measurement.os, 'getppid', lambda: -1)
+        assert measurement._child_sink() is None
+        measurement._child_diagnostic_event('wrong_parent')
+    with monkeypatch.context() as patch:
+        patch.setattr(measurement.os, 'getpid', lambda: sink.creator_pid + 1)
+        assert measurement._child_sink() is None
+        sink.emit('fork_direct')
+    sink.close()
+    assert target.read_bytes() == b''
+    monkeypatch.setattr(measurement, '_child_diagnostic_context', None)
+    monkeypatch.setattr(measurement, '_child_diagnostic_sink', None)
+
+
+@pytest.mark.parametrize('relative', ['output/nested', 'output', '.', 'project/diagnostics'])
+def test_diagnostic_directory_cannot_be_in_fixture_or_checkout_chain(tmp_path, monkeypatch, relative):
+    root, output = tmp_path / 'project', tmp_path / 'output'
+    root.mkdir(); output.mkdir()
+    monkeypatch.setattr(measurement, 'ROOT', root)
+    with pytest.raises(ValueError, match='separate'):
+        measurement._prepare_diagnostic_directory(tmp_path / relative, output, ('child.jsonl',))
+
+
+def test_diagnostic_retention_copies_only_selected_bounded_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(measurement, 'ROOT', tmp_path / 'project')
+    output = tmp_path / 'output'; output.mkdir()
+    directory = measurement._prepare_diagnostic_directory(tmp_path / 'diagnostic', output, ('child.jsonl', 'large.jsonl'))
+    (directory / 'child.jsonl').write_bytes(b'fixed\n')
+    (directory / 'large.jsonl').write_bytes(b'x' * 33)
+    (directory / 'unselected').write_text('not retained')
+    result = measurement._retain_diagnostics(directory, output, ('child.jsonl', 'large.jsonl'), max_bytes=32)
+    assert (output / 'child.jsonl').read_bytes() == b'fixed\n'
+    assert result['large.jsonl'] == {'error_type': 'ValueError'}
+    assert not (output / 'large.jsonl').exists() and not (output / 'unselected').exists()
+
+
+@pytest.mark.parametrize('timed_out', [False, True])
+def test_parent_observer_forwards_original_run_timeout_and_exception(tmp_path, monkeypatch, timed_out):
+    events = []
+    sink = SimpleNamespace(emit=lambda event, **fields: events.append((event, fields)))
+    error = subprocess.TimeoutExpired(['synthetic'], 1200)
+    class Process:
+        def __init__(self, *args, **kwargs): self.pid, self.returncode = 42, None
+        def __enter__(self): return self
+        def __exit__(self, *args): self.returncode = -9 if timed_out else 0
+        def _communicate(self, input, endtime, orig_timeout):
+            if timed_out: raise error
+            self.returncode = 0
+            return (None, None)
+        def communicate(self, input=None, timeout=None): return self._communicate(input, 1234.5, timeout)
+        def kill(self): self.returncode = -9
+        def wait(self, timeout=None): return self.returncode
+    original_run = measurement.subprocess.run
+    original_popen = Process
+    monkeypatch.setattr(measurement.subprocess, 'Popen', original_popen)
+    def run(argv, **kwargs):
+        assert kwargs == {'timeout': 1200}
+        with measurement.subprocess.Popen(argv) as child:
+            try: child.communicate(timeout=kwargs['timeout'])
+            except subprocess.TimeoutExpired:
+                child.kill(); child.wait()
+                raise
+        return SimpleNamespace(returncode=child.returncode)
+    monkeypatch.setattr(measurement.subprocess, 'run', run)
+    if timed_out:
+        with pytest.raises(subprocess.TimeoutExpired) as caught:
+            measurement._observed_run(['synthetic'], sink=sink, timeout=1200)
+        assert caught.value is error
+    else:
+        assert measurement._observed_run(['synthetic'], sink=sink, timeout=1200).returncode == 0
+    assert measurement.subprocess.Popen is original_popen and measurement.subprocess.run is run
+    assert ('parent_stdlib_deadline', {'deadline_monotonic': 1234.5, 'timeout_seconds': 1200}) in events
+    assert events[-1][0] == ('parent_run_error' if timed_out else 'parent_run_return')
+
+
+@pytest.mark.parametrize('hook,keyword', [('pytest_configure', 'config'), ('pytest_unconfigure', 'config'), ('pytest_sessionfinish', 'session')])
+def test_shutdown_owner_preserves_keyword_calls(tmp_path, monkeypatch, hook, keyword):
+    plugin_spec = importlib.util.spec_from_file_location('owner_keyword_control', SCRIPT.with_name('harness_qualification_stacks.py'))
+    plugin = importlib.util.module_from_spec(plugin_spec); plugin_spec.loader.exec_module(plugin)
+    path = tmp_path / 'child.jsonl'; path.touch()
+    measurement._configure_child_diagnostics({'parent_pid': os.getppid(), 'child_sink': str(path), 'token': 'synthetic'})
+    monkeypatch.setitem(sys.modules, 'harness_coverage_diagnostics', measurement)
+    value, seen = object(), []
+    def owner(**kwargs): seen.append(kwargs); return value
+    owner.__name__ = hook
+    config = SimpleNamespace(_harness_timing_epoch=1)
+    subject = SimpleNamespace(config=config) if keyword == 'session' else config
+    assert plugin._shutdown_owner(owner)(**{keyword: subject}) is value
+    assert seen == [{keyword: subject}]
+    measurement._child_diagnostic_sink.close()
+    monkeypatch.setattr(measurement, '_child_diagnostic_context', None)
+    monkeypatch.setattr(measurement, '_child_diagnostic_sink', None)
+
+
+@pytest.mark.parametrize('fault', ['lookup', 'clock', 'emit'])
+@pytest.mark.parametrize('raises', [False, True])
+def test_shutdown_observation_failure_never_replaces_original_owner(tmp_path, monkeypatch, fault, raises):
+    spec = importlib.util.spec_from_file_location('owner_failure_control', SCRIPT.with_name('harness_qualification_stacks.py'))
+    plugin = importlib.util.module_from_spec(spec); spec.loader.exec_module(plugin)
+    def broken(*args, **kwargs): raise OSError('synthetic observer failure')
+    helper = SimpleNamespace(_child_sink=lambda: object(), _diagnostic_clock_ns=lambda: 10,
+                             _child_diagnostic_event=lambda *args, **kwargs: None)
+    setattr(helper, {'lookup': '_child_sink', 'clock': '_diagnostic_clock_ns', 'emit': '_child_diagnostic_event'}[fault], broken)
+    monkeypatch.setitem(sys.modules, 'harness_coverage_diagnostics', helper)
+    original_error, original_result, seen = ValueError('original owner refusal'), object(), []
+    def owner(config):
+        seen.append(config)
+        if raises: raise original_error
+        return original_result
+    owner.__name__ = 'pytest_configure'
+    config = SimpleNamespace()
+    wrapped = plugin._shutdown_owner(owner)
+    if raises:
+        with pytest.raises(ValueError) as caught: wrapped(config)
+        assert caught.value is original_error
+    else:
+        assert wrapped(config) is original_result
+    assert seen == [config]
+
+
+@pytest.mark.parametrize('refuses', [False, True])
+def test_save_cleanup_diagnostic_lookup_cannot_replace_original_outcome(tmp_path, monkeypatch, refuses):
+    target = tmp_path / 'child.jsonl'; target.touch()
+    measurement._configure_child_diagnostics({'parent_pid': os.getppid(), 'child_sink': str(target), 'token': 'synthetic'})
+    sink = measurement._child_sink()
+    result, original_error, calls = object(), ValueError('original save refusal'), []
+    def broken(): raise OSError('diagnostic cleanup lookup failed')
+    def save():
+        calls.append('save')
+        monkeypatch.setattr(measurement, '_child_sink', broken)
+        if refuses: raise original_error
+        return result
+    wrapped = measurement._wrap_coverage_save(save)
+    try:
+        if refuses:
+            with pytest.raises(ValueError) as caught: wrapped()
+            assert caught.value is original_error
+        else:
+            assert wrapped() is result
+        assert calls == ['save']
+    finally:
+        sink.close()
+        monkeypatch.setattr(measurement, '_child_diagnostic_context', None)
+        monkeypatch.setattr(measurement, '_child_diagnostic_sink', None)
+
+
+@pytest.mark.parametrize('refuses', [False, True])
+def test_save_cleanup_diagnostic_close_cannot_replace_original_outcome(tmp_path, monkeypatch, refuses):
+    target = tmp_path / 'child.jsonl'; target.touch()
+    measurement._configure_child_diagnostics({'parent_pid': os.getppid(), 'child_sink': str(target), 'token': 'synthetic'})
+    sink = measurement._child_sink(); original_close = sink.close
+    result, original_error, calls = object(), ValueError('original save refusal'), []
+    def broken(): raise OSError('diagnostic close failed')
+    monkeypatch.setattr(sink, 'close', broken)
+    def save():
+        calls.append('save')
+        if refuses: raise original_error
+        return result
+    wrapped = measurement._wrap_coverage_save(save)
+    try:
+        if refuses:
+            with pytest.raises(ValueError) as caught: wrapped()
+            assert caught.value is original_error
+        else:
+            assert wrapped() is result
+        assert calls == ['save']
+    finally:
+        original_close()
+        monkeypatch.setattr(measurement, '_child_diagnostic_context', None)
+        monkeypatch.setattr(measurement, '_child_diagnostic_sink', None)
+
+
+@pytest.mark.parametrize('event,scenario', [('parent_launch_return', 'normal'), ('parent_kill_enter', 'timeout'),
+    ('parent_context_exit_enter', 'owner_error'), ('parent_run_return', 'normal'), ('parent_communicate_error', 'timeout')])
+@pytest.mark.parametrize('fault', ['lookup', 'call'])
+def test_parent_diagnostic_failure_preserves_original_action_map_and_identity(tmp_path, monkeypatch, event, scenario, fault):
+    import threading
+    real_run = measurement.subprocess.run
+    original_error = subprocess.TimeoutExpired(['synthetic'], 1200) if scenario == 'timeout' else ValueError('original owner refusal')
+    actions, captured, observations = [], {}, []
+    class Owner:
+        def __init__(self, argv, **kwargs): self.args, self.pid, self.returncode = argv, 41, None; actions.append('launch')
+        def __enter__(self): actions.append('enter'); return self
+        def communicate(self, input=None, timeout=None):
+            actions.append('communicate')
+            endtime = None if timeout is None else 10 + timeout
+            return self._communicate(input, endtime, timeout)
+        def _communicate(self, input, endtime, orig_timeout):
+            actions.append('communicate_impl')
+            if self.returncode is not None:
+                return None, None
+            if scenario != 'normal': raise original_error
+            self.returncode = 0
+            return None, None
+        def poll(self): actions.append('poll'); return self.returncode
+        def kill(self): actions.append('kill'); self.returncode = -9
+        def wait(self, timeout=None): actions.append('wait'); return self.returncode
+        def __exit__(self, *args): actions.append('exit'); self.wait()
+    class Sink:
+        def __getattribute__(self, key):
+            if key == 'emit' and fault == 'lookup': raise OSError('diagnostic attribute failure')
+            return object.__getattribute__(self, key)
+        def emit(self, label, **fields):
+            observations.append(label)
+            if fault == 'call' and label == event: raise OSError('diagnostic event failure')
+    monkeypatch.setattr(measurement.subprocess, 'Popen', Owner)
+    try:
+        baseline = real_run(['synthetic'], timeout=1200)
+    except BaseException as error:
+        assert error is original_error
+    baseline_actions = list(actions); actions.clear()
+    def original_spy(*args, **kwargs):
+        try: returned = real_run(*args, **kwargs)
+        except BaseException as error:
+            captured['error'] = error
+            raise
+        captured['result'] = returned
+        return returned
+    monkeypatch.setattr(measurement.subprocess, 'run', original_spy)
+    monkeypatch.setattr(measurement, '_diagnostic_run_lock', threading.Lock())
+    if scenario != 'normal':
+        with pytest.raises(type(original_error)) as caught:
+            measurement._observed_run(['synthetic'], sink=Sink(), timeout=1200)
+        assert caught.value is original_error and captured['error'] is original_error
+    else:
+        result = measurement._observed_run(['synthetic'], sink=Sink(), timeout=1200)
+        assert result is captured['result'] and result.returncode == baseline.returncode
+    assert actions == baseline_actions
+    assert measurement.subprocess.Popen is Owner and measurement.subprocess.run is original_spy
+    assert not measurement._diagnostic_run_lock.locked()
+
+
+def test_parent_diagnostic_field_construction_is_inside_best_effort_boundary(monkeypatch):
+    called = []
+    def broken_fields(): raise OSError('synthetic optional field lookup failed')
+    sink = SimpleNamespace(emit=lambda *args, **kwargs: called.append((args, kwargs)))
+    assert measurement._diagnostic_call(sink, 'emit', event='synthetic', details=broken_fields) is None
+    assert called == []
+    original = KeyboardInterrupt('original interruption')
+    def interrupted(*args, **kwargs): raise original
+    with pytest.raises(KeyboardInterrupt) as caught:
+        measurement._diagnostic_call(SimpleNamespace(emit=interrupted), 'emit', event='synthetic')
+    assert caught.value is original
+
+
+@pytest.mark.parametrize('scenario', ['normal', 'timeout'])
+@pytest.mark.parametrize('fault', ['close_lookup', 'close_call', 'retention'])
+def test_parent_optional_cleanup_cannot_block_original_measurement_finalizer(tmp_path, monkeypatch, scenario, fault):
+    import attune_harness
+    source, installed, site = tmp_path / 'project/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site): folder.mkdir(parents=True)
+    for folder in (source, installed): (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1]); monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: 'Linux')
+    frozen = {'revision': 'synthetic', 'sources': measurement.hashes(source)}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    actions, opened = [], []
+    monkeypatch.setattr(measurement, 'inputs_stable', lambda *args: actions.append('stability') or True)
+    monkeypatch.setattr(measurement, 'report', lambda *args: actions.append('report'))
+    timeout = subprocess.TimeoutExpired(['synthetic'], 1800)
+    def owner(argv, **kwargs):
+        actions.append('owner')
+        assert kwargs['timeout'] == 1800
+        if scenario == 'timeout': raise timeout
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(measurement, '_observed_run', owner)
+    original = measurement._DiagnosticSink
+    class Sink:
+        def __init__(self, *args, **kwargs): self.backing = original(*args, **kwargs); opened.append(self.backing)
+        def __getattribute__(self, name):
+            if name == 'close' and fault == 'close_lookup': raise OSError('diagnostic close lookup')
+            return object.__getattribute__(self, name)
+        def close(self):
+            if fault == 'close_call': raise OSError('diagnostic close call')
+            self.backing.close()
+    monkeypatch.setattr(measurement, '_DiagnosticSink', Sink)
+    if fault == 'retention':
+        def broken(*args, **kwargs): raise OSError('diagnostic retention failed')
+        monkeypatch.setattr(measurement, '_retain_diagnostics', broken)
+    output = tmp_path / 'output'
+    try:
+        if scenario == 'timeout':
+            with pytest.raises(subprocess.TimeoutExpired) as caught:
+                measurement.measure(output, 'full', shutdown_boundary_diagnostics=tmp_path / 'external')
+            assert caught.value is timeout
+        else:
+            assert measurement.measure(output, 'full', shutdown_boundary_diagnostics=tmp_path / 'external') == 0
+        assert not (site / 'harness_measure_coverage.pth').exists()
+        receipt = json.loads((output / 'manifest.json').read_text())
+        assert receipt['input_drift'] is False and receipt['test_exit'] == (None if scenario == 'timeout' else 0)
+        assert actions == (['owner', 'stability'] if scenario == 'timeout' else ['owner', 'stability', 'report'])
+        if fault == 'retention': assert receipt['shutdown_diagnostic_files'] == {'retention_error_type': 'OSError'}
+    finally:
+        for sink in opened: sink.close()
+@pytest.mark.parametrize('system,suite,code', [
+    ('Windows', 'platform', 0), ('Windows', 'platform', 1),
+    ('Linux', 'platform', 0), ('Darwin', 'platform', 0), ('Linux', 'full', 0)])
+def test_measurement_runtime_namespace_is_external_only_for_windows_partitions(
+        tmp_path, monkeypatch, system, suite, code):
+    import attune_harness
+
+    source, installed, site = tmp_path / 'checkout/src/attune_harness', tmp_path / 'installed', tmp_path / 'site'
+    for folder in (source, installed, site):
+        folder.mkdir(parents=True)
+    for folder in (source, installed):
+        (folder / '__init__.py').write_text('VALUE = 1\n')
+    monkeypatch.setattr(attune_harness, '__file__', str(installed / '__init__.py'))
+    monkeypatch.setattr(measurement, 'ROOT', source.parents[1])
+    monkeypatch.setattr(measurement, 'SOURCE', source)
+    monkeypatch.setattr(measurement, 'sys', SimpleNamespace(
+        prefix='dedicated', base_prefix='base', executable=sys.executable))
+    monkeypatch.setattr(measurement, 'sysconfig', SimpleNamespace(get_path=lambda _: str(site)))
+    monkeypatch.setattr(measurement.platform, 'system', lambda: system)
+    frozen = {'revision': 'c' * 40, 'sources': measurement.hashes(source), 'input_hashes': {},
+              'coverage_version': measurement.VERSION, 'pytest_version': '9.1.1'}
+    monkeypatch.setattr(measurement, 'identity', lambda: frozen)
+    calls, verdicts = [], []
+    def launch(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return SimpleNamespace(returncode=code)
+    monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(run=launch, STDOUT=subprocess.STDOUT))
+    monkeypatch.setattr(measurement, '_validate_installed_aggregate', lambda *args: verdicts.append(args) or {})
+    monkeypatch.setattr(measurement, 'report', lambda *args: None)
+    output = tmp_path / 'coverage-result'
+    assert measurement.measure(output, suite) == code
+    receipt = json.loads((output / 'manifest.json').read_text())
+    external = system == 'Windows' and suite == 'platform'
+    expected = output.with_name(output.name + '-runtime') if external else output / 'tmp'
+    assert expected.is_dir()
+    assert all(calls[0][1]['env'][name] == str(expected) for name in ('TMP', 'TEMP', 'TMPDIR'))
+    assert ('installed_runtime_root' in receipt) is external
+    if external:
+        assert not (output / 'tmp').exists()
+        assert receipt['installed_runtime_root'] == str(expected)
+        assert not expected.is_relative_to(output) and not output.is_relative_to(expected)
+        if code == 0:
+            assert verdicts[0][2] == expected
+    else:
+        assert not output.with_name(output.name + '-runtime').exists()
+
+
+@pytest.mark.parametrize('existing', ['directory', 'file'])
+def test_installed_runtime_root_refuses_reused_namespace(tmp_path, monkeypatch, existing):
+    monkeypatch.setattr(measurement, 'ROOT', tmp_path / 'checkout')
+    output = tmp_path / 'coverage-result'
+    output.mkdir()
+    runtime = output.with_name(output.name + '-runtime')
+    if existing == 'directory':
+        runtime.mkdir()
+    else:
+        runtime.write_text('retained evidence')
+    with pytest.raises((ValueError, FileExistsError)):
+        measurement._prepare_installed_runtime(output)
+    assert runtime.exists()
+
+
+def test_installed_runtime_root_refuses_checkout_ancestry_before_creation(tmp_path, monkeypatch):
+    monkeypatch.setattr(measurement, 'ROOT', tmp_path)
+    output = tmp_path / 'coverage-result'
+    output.mkdir()
+    with pytest.raises(ValueError, match='outside'):
+        measurement._prepare_installed_runtime(output)
+    assert not output.with_name(output.name + '-runtime').exists()
+
+
+def test_windows_consumer_upload_preserves_primary_artifact_and_excludes_fixture_trees(tmp_path):
+    import yaml
+
+    workflow = yaml.safe_load((SCRIPT.parents[1] / '.github/workflows/coverage.yml').read_text())
+    uploads = [step for step in workflow['jobs']['measure']['steps']
+               if step.get('uses', '').startswith('actions/upload-artifact@')]
+    assert len(uploads) == 2
+    primary, consumers = uploads
+    assert primary['if'] == 'always()'
+    assert primary['with']['name'] == 'coverage-${{ matrix.os }}'
+    assert primary['with']['path'].splitlines() == [
+        '${{ runner.temp }}/coverage-result/.coverage*', '${{ runner.temp }}/coverage-result/*.json',
+        '${{ runner.temp }}/coverage-result/*.jsonl', '${{ runner.temp }}/coverage-result/*.ini',
+        '${{ runner.temp }}/coverage-result/*.txt', '${{ runner.temp }}/coverage-result/*.xml',
+        '${{ runner.temp }}/coverage-result/html/', '${{ runner.temp }}/coverage-result/instrumented-platform/']
+    assert consumers['uses'] == primary['uses']
+    assert consumers['if'] == "always() && runner.os == 'Windows'"
+    assert consumers['with'] == {
+        'name': 'coverage-consumers-${{ matrix.os }}',
+        'path': '${{ runner.temp }}/coverage-result-runtime/harness-installed-coverage-*/consumers/',
+        'include-hidden-files': True, 'if-no-files-found': 'error'}
+    namespace = tmp_path / 'coverage-result-runtime/harness-installed-coverage-synthetic'
+    expected = ['partition-context.json', 'consumer-0/.hidden', 'consumer-1/nested/retained.txt']
+    for relative in [*('consumers/' + name for name in expected), '0-temp/pytest/private', 'bootstrap/private']:
+        path = namespace / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('synthetic evidence')
+    pattern = consumers['with']['path'].replace('${{ runner.temp }}/', '')
+    matched = list(tmp_path.glob(pattern))
+    assert matched == [namespace / 'consumers']
+    retained = sorted(path.relative_to(matched[0]).as_posix() for path in matched[0].rglob('*') if path.is_file())
+    assert retained == sorted(expected)

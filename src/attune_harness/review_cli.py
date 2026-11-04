@@ -25,6 +25,8 @@ def add_commands(sub):
                          help='Explicitly enable configured commands/native models, which may use credentials and incur costs')
     command.add_argument('--max-operations', type=int, help='Pause after this many newly completed operations (1–100)')
     command.add_argument('--allow-provider', action='store_true', help='Authorize accepted Voyage retrieval uploads/calls')
+    command.add_argument('--allow-api-spend', action='store_true',
+                         help='Authorize configured API participant spending for this invocation only')
     from .task_cli import add_arguments
     add_arguments(command)
     inspect = sub.add_parser('inspect-review', help='Read a saved review without resuming or invoking participants')
@@ -37,6 +39,8 @@ def add_commands(sub):
     resume.add_argument('--allow-external', action='store_true')
     resume.add_argument('--max-operations', type=int)
     resume.add_argument('--allow-provider', action='store_true')
+    resume.add_argument('--allow-api-spend', action='store_true',
+                        help='Authorize configured API participant spending for this invocation only')
     reconcile = sub.add_parser('reconcile-review', help='Attach a recovered reply or authorize one known read-only retry')
     reconcile.add_argument('run_dir', type=Path)
     reconcile.add_argument('--checkpoint', required=True)
@@ -66,7 +70,8 @@ def execute(args) -> int:
         elif args.command == 'resume-review':
             from .recovery import resume_review
             result = resume_review(args.run_dir, args.request, args.config, args.checkpoint,
-                                   allow_external=args.allow_external, allow_provider=args.allow_provider, max_operations=args.max_operations)
+                                   allow_external=args.allow_external, allow_provider=args.allow_provider, max_operations=args.max_operations,
+                                   **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}))
         elif args.command == 'reconcile-review':
             from .recovery import reconcile_review
             result = reconcile_review(args.run_dir, args.checkpoint, args.event,
@@ -81,7 +86,8 @@ def execute(args) -> int:
         else:
             from .review import review
             result = review(args.request, args.config, args.run_dir, allow_external=args.allow_external,
-                            allow_provider=args.allow_provider, max_operations=args.max_operations)
+                            allow_provider=args.allow_provider, max_operations=args.max_operations,
+                            **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}))
     except FeatureUnavailable as exc:
         result = report(args.command, 'unavailable', error={'type': type(exc).__name__, 'detail': str(exc)})
     except Exception as exc:

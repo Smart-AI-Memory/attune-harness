@@ -84,13 +84,16 @@ def prepare_task(task):
 
 
 def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_factory=ReviewExchange,
-                 allow_external=False, allow_native=False):
+                 allow_external=False, allow_native=False, allow_api_spend=False):
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
     if read_task(directory).get('task_profile') == 'feature-work-v1':
         from .work_runtime import plan_work, build_work
         work = read_task(directory)
         execute = build_work if work['status'] == 'accepted' and work['request'].get('effects') else plan_work
         return execute(directory, checkpoint=checkpoint, max_operations=max_operations, exchange_factory=exchange_factory,
-                       allow_external=allow_external, allow_native=allow_native)
+                       allow_external=allow_external, allow_native=allow_native,
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     if read_task(directory).get('task_profile') == 'pytest-change-v1':
         from .test_change import execute_test_task
         return execute_test_task(directory, checkpoint=checkpoint, max_operations=max_operations)
@@ -113,9 +116,11 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
         bound = task['bindings']['assessment']['assignments']
         selected = {role: assignment['configuration'] for role, assignment in bound.items()}
         grants = task['acceptance']['permissions']
-        authorize_external(selected, grants['external'])
+        authorize_external(selected, grants['external'],
+                           **({'allow_api_spend': True} if allow_api_spend else {}))
         if 'repair' in request:
-            return execute_repair(task, store, max_operations=max_operations, exchange_factory=exchange_factory)
+            return execute_repair(task, store, max_operations=max_operations, exchange_factory=exchange_factory,
+                                  **({'allow_api_spend': True} if allow_api_spend else {}))
         # One preflight, retrieval, final verification, and one call per assignment.
         if request['budgets']['max_operations'] < 3 + len(bound):
             raise ValueError('Accepted operation budget cannot complete the assessment plan')
@@ -137,7 +142,8 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
         execute_assessment(task['execution'], TaskExecutionStore(store, task), prepared,
             allow_external=grants['external'], allow_provider=grants['provider'],
             max_operations=max_operations, exchange_factory=exchange_factory,
-            services=(retrieve_sources, verify_document, authorize_external), policy=AssessmentPolicy(task))
+            services=(retrieve_sources, verify_document, authorize_external), policy=AssessmentPolicy(task),
+            **({'allow_api_spend': True} if allow_api_spend else {}))
         return task
 
 
@@ -246,12 +252,76 @@ def control_task(directory, action, *, checkpoint=None, **kwargs):
         return task
 
 
-def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewExchange):
-    from .repair import apply_patch, decode_patch, expected_snapshot, assert_snapshot
-    from .recovery import RecoveryCursor, prepare_continuation, stable_id
-    from .task_runtime import guarded_execution, perform_probe, dispatch_assignment
+REPAIR_WORKER_PROTOCOL = (
+    'Return a final action whose text is JSON {"schema_version":1,"replacements":[{"path":"accepted relative path",'
+    '"before_sha256":"accepted hash","text":"complete replacement"}]}. Do not change the probe or claim acceptance.')
+REPAIR_REVIEW_PROTOCOL = (
+    'Review the final diff and probe independently. Return a final action whose text is JSON with schema_version 1, '
+    'artifact_digest, probe_digest copied from evidence, verdict (approve/reject/uncertain), and findings (list of strings). '
+    'Findings are blocking defects or material uncertainty only: any finding blocks acceptance. '
+    'If you approve with no blocking issue, return verdict "approve" and findings []. '
+    'Do not put positive summaries or nonblocking scope disclosures in findings. '
+    'Evaluate the supplied host probe receipts within their stated scope; independent review does not require rerunning the probe. '
+    'Use reject or uncertain when the evidence does not support acceptance, and explain the blocking issue in findings. Do not copy another participant verdict.')
+
+
+def repair_turn(task, run, role, prior):
+    """Build a repair request from accepted scope and completed host operations."""
+    from .repair import decode_patch, expected_snapshot
+    from .task_runtime import completed_operation
+    from .review_contract import canonical
     from .review_participants import PROTOCOL
-    from .review_contract import canonical, fields, parse_json, versioned
+    from .recovery import stable_id
+    request = task['request']
+    scope = request['repair']['scope']
+    before = completed_operation(prior, 'probe:before', 'acceptance_probe')['result']
+    if (before['passed'] or before['failure'] != 'nonzero_exit'
+            or not isinstance(before['returncode'], int) or before['returncode'] <= 0):
+        raise ValueError('Repair requires an observed failing baseline probe, not an already passing or unresolved probe')
+    if role == 'assessor':
+        payload = {'before_files': scope['inputs'],
+                   'before_hashes': {name: scope['before'][name]['sha256'] for name in scope['allowed']},
+                   'probe': scope['probe'], 'baseline_result': before}
+        protocol = REPAIR_WORKER_PROTOCOL
+    elif role == 'reviewer' and request['repair']['review'] != 'none':
+        worker_id = run['recovery']['assignments']['assessor']['attempt_id']
+        worker = completed_operation(prior, worker_id + ':turn:0', 'participant_turn')
+        expected = repair_turn(task, run, 'assessor', prior)
+        if worker.get('request_digest') != digest(expected):
+            raise ValueError('Repair proposal differs from accepted worker request')
+        action = worker['result']['action']
+        AssessmentPolicy(task).validate_action(action)
+        proposal = decode_patch(action['text'], scope)
+        after = completed_operation(prior, 'probe:after', 'acceptance_probe')['result']
+        if not after['passed']:
+            raise ValueError('Final immutable acceptance probe did not pass')
+        expected = expected_snapshot(scope, prior)
+        if after['artifact_digest'] != digest(expected) or after['plan_digest'] != digest(scope):
+            raise ValueError('Repair review differs from the final artifact/probe')
+        payload = {'artifact_digest': digest(expected), 'probe_digest': digest(after),
+                   'changes': [{'path': item['path'], 'before': scope['inputs'][item['path']],
+                                'after': item['text']} for item in proposal['replacements']],
+                   'before_probe': before, 'after_probe': after}
+        protocol = REPAIR_REVIEW_PROTOCOL
+    else:
+        raise ValueError('Unsupported repair assignment')
+    assignment = run['recovery']['assignments'][role]
+    return copy.deepcopy({'task_id': request['task_id'], 'attempt_id': assignment['attempt_id'],
+        'turn_id': stable_id(assignment['attempt_id'], '0'), 'requirement_revision': digest(request),
+        'participant_id': assignment['participant_id'], 'role': 'worker' if role == 'assessor' else 'reviewer',
+        'objective': request['answers']['goal'] + '\nAcceptance criteria: ' + request['answers']['criteria'],
+        'query': '', 'document': {'path': scope['root'], 'text': canonical(payload)},
+        'initial_retrieval': None, 'history': [], 'tools': [], 'remaining_tool_calls': 0,
+        'remaining_turns': 1, 'protocol': PROTOCOL + ' ' + protocol, 'repair': payload})
+
+
+def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewExchange, allow_api_spend=False):
+    if type(allow_api_spend) is not bool:
+        raise ValueError('API spending authority must be a boolean')
+    from .repair import apply_patch, decode_patch, expected_snapshot, assert_snapshot
+    from .recovery import RecoveryCursor, prepare_continuation
+    from .task_runtime import guarded_execution, perform_probe, dispatch_assignment
+    from .review_contract import fields, parse_json, versioned
     from .review import authorize_external
     request = task['request']
     repair = request['repair']
@@ -271,27 +341,24 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
     run = task['execution']
     assignments = run['recovery']['assignments']
     selected = {role:request['registry']['participants'][a['participant_id']] for role,a in assignments.items()}
-    authorize_external(selected,task['acceptance']['permissions']['external'])
+    authorize_external(selected,task['acceptance']['permissions']['external'],
+                       **({'allow_api_spend': True} if allow_api_spend else {}))
     prepare_continuation(run,store)
     adapter = TaskExecutionStore(store,task)
     cursor = RecoveryCursor(run,adapter,max_operations)
     run['status']='running';run.pop('error',None)
     adapter.save(run)
-    def assignment(role, payload, protocol):
+    def assignment(role):
         check_fresh(task)
         a=assignments[role];config=selected[role]
         outcome={'participant_id':a['participant_id'],'attempt_id':a['attempt_id'],'adapter':config['adapter'],'status':'running','tool_calls':0}
         run['participants'][role]=outcome
-        turn={'task_id':request['task_id'],'attempt_id':a['attempt_id'],'turn_id':stable_id(a['attempt_id'],'0'),
-              'requirement_revision':digest(request),'participant_id':a['participant_id'],
-              'role':'worker' if role=='assessor' else 'reviewer',
-              'objective':request['answers']['goal']+'\nAcceptance criteria: '+request['answers']['criteria'],
-              'query':'','document':{'path':scope['root'],'text':canonical(payload)},
-              'initial_retrieval':None,'history':[],'tools':[],'remaining_tool_calls':0,'remaining_turns':1,
-              'protocol':PROTOCOL+' '+protocol,'repair':payload}
+        turn=repair_turn(task, run, role, run['events'])
         response=dispatch_assignment(cursor,a['attempt_id']+':turn:0',turn,config,
                                      protect_command_scope(exchange_factory(config,Path(scope['root'])),
-                                                           store.directory, request['project_root']),outcome)
+                                                           store.directory, request['project_root']),outcome,
+                                     allow_external=task['acceptance']['permissions']['external'],
+                                     **({'allow_api_spend': True} if allow_api_spend else {}))
         AssessmentPolicy(task).validate_action(response['action'])
         check_fresh(task)
         outcome.update(status='completed',text=response['action']['text'])
@@ -302,9 +369,7 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
         run['before_probe']=before
         if before['passed'] or before['failure'] != 'nonzero_exit' or not isinstance(before['returncode'], int) or before['returncode'] <= 0:
             raise ValueError('Repair requires an observed failing baseline probe, not an already passing or unresolved probe')
-        raw=assignment('assessor',{'before_files':scope['inputs'],'before_hashes':{n:scope['before'][n]['sha256'] for n in scope['allowed']},
-            'probe':scope['probe'],'baseline_result':before},
-            'Return a final action whose text is JSON {"schema_version":1,"replacements":[{"path":"accepted relative path","before_sha256":"accepted hash","text":"complete replacement"}]}. Do not change the probe or claim acceptance.')
+        raw=assignment('assessor')
         proposal=decode_patch(raw,scope)
         run['patch']=proposal
         run['replacements']=apply_patch(scope,proposal,cursor)
@@ -316,15 +381,7 @@ def execute_repair(task, store, *, max_operations=None, exchange_factory=ReviewE
         artifact=digest(expected)
         review_result=None
         if repair['review']!='none':
-            text=assignment('reviewer',{'artifact_digest':artifact,'probe_digest':digest(after),
-                'changes':[{'path':i['path'],'before':scope['inputs'][i['path']],'after':i['text']} for i in proposal['replacements']],
-                'before_probe':before,'after_probe':after},
-                'Review the final diff and probe independently. Return a final action whose text is JSON with schema_version 1, artifact_digest, probe_digest copied from evidence, verdict (approve/reject/uncertain), and findings (list of strings). '
-                'Findings are blocking defects or material uncertainty only: any finding blocks acceptance. '
-                'If you approve with no blocking issue, return verdict "approve" and findings []. '
-                'Do not put positive summaries or nonblocking scope disclosures in findings. '
-                'Evaluate the supplied host probe receipts within their stated scope; independent review does not require rerunning the probe. '
-                'Use reject or uncertain when the evidence does not support acceptance, and explain the blocking issue in findings. Do not copy another participant verdict.')
+            text=assignment('reviewer')
             review_result=parse_json(text)
             fields(review_result,('schema_version','artifact_digest','probe_digest','verdict','findings'));versioned(review_result)
             if (review_result['artifact_digest']!=artifact or review_result['probe_digest']!=digest(after) or

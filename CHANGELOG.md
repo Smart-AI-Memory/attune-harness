@@ -2,14 +2,44 @@
 
 ## Unreleased
 
+- Add an explicitly selected OpenAI API adapter with per-call, persisted funding
+  admission and fresh `--allow-api-spend` authority. Retain usage with unknown
+  billing, redact credential echoes, and preserve legacy/default envelopes.
+  Direct API configuration never replaces an existing native participant.
+- Accept optional native participant funding configuration for Claude/Codex
+  subscriptions and Codex API use. Preserve legacy configurations. Explicitly
+  funded participants currently refuse execution before provider dispatch until
+  invocation-level route enforcement is qualified; configuration support alone
+  does not enable a funding route or authorize API spending.
+- Return a structured unsupported funding report and exit 2 from consultation
+  **`check`** for explicitly funded seats. Skip their unqualified authentication
+  probes; inspection remains advisory and starts no model call.
+
+## 1.6.0
+
+Requires Python 3.12 or later. Legacy command configurations remain accepted;
+the new environment policy is opt-in.
+
 - Add the opt-in `command-env-v1` environment policy for command participants.
   Pass only named variables from the dispatching process, use temporary home
   and temp directories, and retain names-only policy audit metadata. Existing
   configurations without the policy retain full inheritance and show migration
-  notices. The prospective notice release is 1.5.2; removal is no earlier than
-  1.6.0. Before release, verify that 1.5.2 is the first shipped notice release.
-  This change does not remove the legacy form or change the package version.
+  notices. The selected first notice release is 1.6.0; removal is no earlier than
+  1.7.0. The runtime NOTICE and machine-readable register use that schedule.
+  No 1.5.2 release is planned, and the legacy form remains accepted.
   See [Command participant environments](docs/command-environments.md).
+
+- Require Python 3.12 or later for the upcoming 1.6.0 release. Published 1.5.1
+  retains its original minimum.
+- Preserve unknown-effects shutdown recovery guidance, correct installed
+  collection-skip accounting and isolate per-worker pytest caches (#320).
+- Read explicitly selected `harness-v1` Redis generations with snapshot and
+  source traceability. Legacy recall remains the default; the new writer and
+  automatic session-start delivery remain outside this release (#311).
+- Document operation-specific Redis requirements and bounded disposable-service
+  verification, retaining each tested artifact's identity and limits (#323).
+- Update installation, migration, Windows workflow and Help guidance; restore
+  the checked first-run README example (#324).
 
 ## 1.5.1
 

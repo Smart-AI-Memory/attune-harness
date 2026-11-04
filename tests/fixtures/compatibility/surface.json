@@ -20,6 +20,14 @@
     {
      "choices": null,
      "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
      "name": "allow_external",
      "option_strings": [
       "--allow-external"
@@ -69,6 +77,7 @@
    ],
    "one_of": [],
    "options": [
+    "--allow-api-spend",
     "--allow-external",
     "--allow-native",
     "--checkpoint",
@@ -452,6 +461,14 @@
     {
      "choices": null,
      "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
      "name": "allow_external",
      "option_strings": [
       "--allow-external"
@@ -620,6 +637,7 @@
    "one_of": [],
    "options": [
     "--accept",
+    "--allow-api-spend",
     "--allow-external",
     "--bypass-intake-cache",
     "--checkout",
@@ -1898,6 +1916,14 @@
     {
      "choices": null,
      "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
      "name": "allow_external",
      "option_strings": [
       "--allow-external"
@@ -2054,6 +2080,7 @@
    "one_of": [],
    "options": [
     "--accept",
+    "--allow-api-spend",
     "--allow-external",
     "--allow-native",
     "--allow-outside-project",
@@ -2289,6 +2316,14 @@
     {
      "choices": null,
      "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
      "name": "allow_external",
      "option_strings": [
       "--allow-external"
@@ -2338,6 +2373,7 @@
    ],
    "one_of": [],
    "options": [
+    "--allow-api-spend",
     "--allow-external",
     "--allow-native",
     "--checkpoint",
@@ -2354,6 +2390,14 @@
   },
   "resume-review": {
    "arguments": [
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
+     ]
+    },
     {
      "choices": null,
      "default": false,
@@ -2411,6 +2455,7 @@
    ],
    "one_of": [],
    "options": [
+    "--allow-api-spend",
     "--allow-external",
     "--allow-provider",
     "--checkpoint",
@@ -2584,6 +2629,14 @@
      "name": "accept",
      "option_strings": [
       "--accept"
+     ]
+    },
+    {
+     "choices": null,
+     "default": false,
+     "name": "allow_api_spend",
+     "option_strings": [
+      "--allow-api-spend"
      ]
     },
     {
@@ -2794,6 +2847,7 @@
    "one_of": [],
    "options": [
     "--accept",
+    "--allow-api-spend",
     "--allow-external",
     "--allow-provider",
     "--assessor",
@@ -3163,6 +3217,14 @@
       {
        "choices": null,
        "default": false,
+       "name": "allow_api_spend",
+       "option_strings": [
+        "--allow-api-spend"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
        "name": "allow_external",
        "option_strings": [
         "--allow-external"
@@ -3194,6 +3256,7 @@
      "one_of": [],
      "options": [
       "--accept",
+      "--allow-api-spend",
       "--allow-external",
       "--allow-native",
       "--max-operations"
@@ -3557,6 +3620,14 @@
       {
        "choices": null,
        "default": false,
+       "name": "allow_api_spend",
+       "option_strings": [
+        "--allow-api-spend"
+       ]
+      },
+      {
+       "choices": null,
+       "default": false,
        "name": "allow_external",
        "option_strings": [
         "--allow-external"
@@ -3588,6 +3659,7 @@
      "one_of": [],
      "options": [
       "--accept",
+      "--allow-api-spend",
       "--allow-external",
       "--allow-native",
       "--max-operations"
