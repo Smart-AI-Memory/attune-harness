@@ -1,7 +1,12 @@
 # Evidence and unresolved assumptions
 
-**Status: Planning evidence only. Proposed runtime and Claude check are
-unqualified.** Reviewed November 3, 2026.
+**Status: S1 completed with a stop-gate result. Runtime support remains
+unqualified; the separate Claude check is unstarted.** Reviewed November 3, 2026.
+
+See [S1 qualification](s1-qualification.md) for the installed binary/source/schema
+pins, four successful model-free commands, retained initial failed witness,
+source comparison and the execution-bound decision before S2. The planning
+observations below remain distinct from that later evidence.
 
 ## Repository baseline
 

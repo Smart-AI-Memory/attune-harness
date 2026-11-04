@@ -18,6 +18,7 @@ Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 - [Codex subscription tasks](specs/codex-subscription/tasks.md): Proposed qualification, profile, transport and integration sequence; no implementation authority
 - [Claude subscription feasibility](specs/codex-subscription/claude-feasibility.md): Separate proposed check with no Claude implementation or live-call authority
 - [Subscription planning evidence](specs/codex-subscription/evidence.md): Current source, official documentation, alternatives and unresolved qualification assumptions
+- [Codex subscription S1 qualification](specs/codex-subscription/s1-qualification.md): Pinned runtime, model-free witnesses and the inference-bound stop gate; support remains unqualified
 
 - [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
 - [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback

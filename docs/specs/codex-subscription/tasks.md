@@ -1,7 +1,8 @@
 # Codex subscription implementation tasks
 
-**Status: Draft, not executable until Patrick approves the specification and
-its decisions. No implementation has started.** November 3, 2026.
+**Status: S1 complete with a stop-gate result; subscription support remains
+unqualified. App-owned OAuth/Keychain lifecycle approved. S2–S6 and separate C1
+remain unstarted.** November 3, 2026.
 
 The [README](README.md) owns scope, requirements, refusal walk and acceptance
 criteria. These tasks do not grant account access, model selection, spending,
@@ -10,7 +11,12 @@ do not carry the prior named PR's merge delegation forward.
 
 ## S1 — Qualify the proposed mechanism
 
-Dependencies: spec approval, including D1 and D2. No live account/model call.
+Result: [not qualified for the required single-inference boundary](s1-qualification.md).
+The report retains positive software evidence and remaining gaps separately.
+
+Authorization: Patrick directed S1 to start on November 3, 2026, after approving
+the app-owned OAuth/Keychain lifecycle. Retain the D2 initial profile. No live
+account/model call; notify Patrick before any API credits are needed.
 
 Inspect official documentation and the exact candidate Codex binary's source,
 help and generated protocol schema using bounded model-free witnesses. Record

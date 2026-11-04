@@ -1,10 +1,17 @@
 # Codex subscription support alongside API credits
 
-**Status: Draft for Patrick's review. Not approved for implementation.**
+**Status: App-owned OAuth/Keychain lifecycle approved; S1 qualification authorized.**
 Written November 3, 2026 against main
 `03e29647a02073089fb33ea8df45b75be65383ba`. This planning pass changes
-documentation only. No account connection, native authentication probe or model
-call has qualified the proposed route.
+documentation only. On November 3, 2026, Patrick approved the app-owned
+OAuth/Keychain lifecycle and directed the spec update and start of S1, with
+Claude feasibility separate and advance notice before any API credits are needed.
+Runtime support remains unqualified. No account connection, native authentication
+probe or model call has qualified the proposed route.
+
+S1 result: **not qualified for the required single-inference boundary**. The
+[qualification report](s1-qualification.md) records the pinned candidate,
+model-free witnesses, source findings and the decision needed before S2.
 
 ## Outcome and recommendation
 
@@ -21,8 +28,8 @@ implementation. [Official app-server integration](https://developers.openai.com/
 
 This is an explicit scope extension: Harness would own a small sign-in/profile
 lifecycle. The [approved funding spec](../participant-funding/README.md#approved-decisions)
-excluded credential management. Approval of this draft must resolve D1 below;
-it must not silently reinterpret that exclusion.
+excluded credential management. Patrick explicitly approved this extension on
+November 3, 2026 (D1 below); it does not reinterpret the earlier scope.
 
 The separate [Claude feasibility check](claude-feasibility.md) ends with an
 evidence-backed verdict. Claude implementation does not enter this scope, and a
@@ -474,14 +481,20 @@ with insufficient evidence. Its report must never activate a Claude route.
 
 ## Decisions for Patrick
 
-All choices below are **recommended, not yet approved**. No implementation starts
-from this document alone.
+Patrick approved D1 and directed S1 to start on November 3, 2026. S1 retains
+the bounded initial profile in D2. Claude remains a separate feasibility track;
+no live/account/model qualification or API spend is authorized by this approval.
+S2–S6 remain unstarted and depend on the S1 result and their stated gates.
 
 | ID | Recommended decision | Tradeoff and alternative |
 | --- | --- | --- |
-| D1 | Approve the official plan-OAuth approach, explicit `codex-app-server` adapter and app-owned Keychain profile lifecycle, conditional on S1 | Adds authentication responsibility beyond the previous scope. If that is undesirable, keep subscriptions unsupported and investigate a provider-supported native enforcement mechanism; shared-login status alone cannot substitute. This route must satisfy the intended ChatGPT plan usage, not assume identical native CLI quota accounting. |
-| D2 | Limit first qualification to local macOS arm64, one pinned runtime/profile, model replies only and both shared callers | Delivers a bounded mixed-funding journey. More platforms, native tools and broader account/model coverage need later qualification. If S1 disproves feasibility, return a decision rather than expand scope. |
-| D3 | Keep Claude as feasibility-only and separate live/account/spending approval from software implementation | Allows Codex to progress without treating Claude uncertainty as support. A later live plan or API experiment needs explicit scope and limits; approval of this spec alone grants none. |
+| D1 | Approved: app-owned plan OAuth/Keychain lifecycle; app-server remains conditional on S1 | Adds authentication responsibility beyond the previous scope. Shared-login status alone cannot substitute. The route must satisfy intended ChatGPT plan usage; native CLI quota equivalence is unproved. |
+| D2 | Applied to authorized S1: local macOS arm64, one pinned runtime/profile, model replies only and both shared callers | More platforms, native tools and broader account/model coverage need later qualification. S1 did not clear the execution bound; see its report before expanding scope. |
+| D3 | Confirmed: keep Claude feasibility separate; notify Patrick before any API credits are needed | Claude uncertainty does not imply support or delay a qualified Codex path. Live account/model experiments retain separate scope and authority. |
+
+Approval record: D1 is approved; D2 defines the authorized S1 qualification
+scope; D3's separation and advance-notice boundary are confirmed. Approval does
+not resolve the technical assumptions or qualify an account/model combination.
 
 Review [evidence and unresolved assumptions](evidence.md) alongside these
 decisions. The complete contract is this README; the companion files provide
