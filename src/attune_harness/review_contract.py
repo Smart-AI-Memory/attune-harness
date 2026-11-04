@@ -72,19 +72,19 @@ def validate_registry(value: dict, path: Path, *, minimum_participants: int = 2)
         if not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}', name) or not isinstance(item, dict):
             raise ValueError('Invalid participant identity or configuration')
         adapter = item.get('adapter')
-        if adapter not in ('deterministic', 'claude', 'codex', 'openai', 'command'):
+        if adapter not in ('deterministic', 'claude', 'codex', 'openai', 'openai-plan', 'command'):
             raise FeatureUnavailable(f'Unsupported adapter for {name}: {adapter}')
         keys = {'adapter', 'tools', 'max_turns', 'max_tool_calls'}
-        if adapter in ('claude', 'codex', 'openai'):
+        if adapter in ('claude', 'codex', 'openai', 'openai-plan'):
             keys |= {'model', 'timeout'}
             bounded_text(item.get('model'), 'model', 200)
         if 'funding' in item:
             from .participant_funding import validate as validate_funding
             validate_funding(adapter, item['funding'])
             keys.add('funding')
-        elif adapter == 'openai':
+        elif adapter in ('openai', 'openai-plan'):
             raise ValueError('The OpenAI adapter requires explicit API funding')
-        if adapter == 'codex' and 'reasoning_effort' in item:
+        if adapter in ('codex', 'openai-plan') and 'reasoning_effort' in item:
             from .native import validate_reasoning_effort
             keys.add('reasoning_effort')
             validate_reasoning_effort(item['reasoning_effort'])
@@ -92,7 +92,7 @@ def validate_registry(value: dict, path: Path, *, minimum_participants: int = 2)
             from .native import validate_skills_context_tokens
             keys.add('skills_context_tokens')
             validate_skills_context_tokens(item['skills_context_tokens'])
-        if adapter in ('claude', 'codex', 'openai') and 'review_mode' in item:
+        if adapter in ('claude', 'codex', 'openai', 'openai-plan') and 'review_mode' in item:
             keys.add('review_mode')
             if item['review_mode'] != 'evidence':
                 raise ValueError('Native review_mode must be evidence')

@@ -68,7 +68,7 @@ def preflight(config):
     reports = {}
     for name, seat in config['participants'].items():
         adapter = seat['adapter']
-        if adapter == 'openai':
+        if adapter in ('openai', 'openai-plan'):
             reports[name] = {'state': 'unknown', 'binary': None, 'version': None,
                              'funding': inspect_funding(adapter, seat['funding']),
                              'fix': 'Local route check only; server authentication, model access and balance remain unknown.'}

@@ -1,89 +1,186 @@
-# Evidence and unresolved assumptions
+# Subscription software evidence and remaining qualification
 
-**Status: Direct OAuth design revision authorized; documentation/source evidence
-only. No direct-worker implementation or live qualification.** November 3, 2026.
+**Status: S2–S4 implemented and independently reviewed. S5's versioned Windows
+controller successor was approved and implemented November 4, 2026. Current
+qualification receipts and the S5 verdict are recorded in
+[PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336).
+S6 and Claude C1 remain separate and unstarted.**
 
-The [README](README.md) contains the active funding/authority contract and
-corrected command walks; the [direct design](direct-oauth-design.md) specifies
-the new transport. The [original app-server S1 report](s1-qualification.md) stays
-unchanged and unqualified for its single-inference gate. A different mechanism
-does not turn historical evidence into a pass.
+The [README](README.md) owns the funding contract and ordered refusal walks.
+The [direct design](direct-oauth-design.md) owns request/stream bounds. Patrick
+approved S2–S5 implementation after the earlier documentation-only revision.
+No live sign-in, Keychain operation, provider inference or API-credit spend is
+included in this software milestone.
 
-## Verified repository basis
+## Retained source candidate and review
 
-Source baseline: `03e29647a02073089fb33ea8df45b75be65383ba`. The S1 follow-up
-was integrated on main `65b90234792c61db8e539567930443aee91ceff0`; the relevant
-funding/consultation/registry/process sources were unchanged. This design pass
-began at `9ebad0988de5e4e99142473381af6793e2227781`.
+Implementation base: `ce52b9d3b4a1f1c65c339a05cb8f10b869431a86`.
+Signed source candidate: `68bf6111c48a5e38eaa0c2594ced23130479a587`.
+The earlier test-only follow-up `9b314a4` added the approved optional extra to
+package tests and included inert stream controls in installed qualification.
+The final source delta refuses missing validation dependencies before consent
+and expired deadlines before helper launch. It also aligns existing shared
+HTTP/MCP dependencies and CI constraints with the approved security pins.
+[PR #336](https://github.com/Smart-AI-Memory/attune-harness/pull/336)
+retains the current review and CI handoff.
 
-| Observed source | Implication |
+Independent review configured as GPT-6 Astra approved S2–S4 source after four
+repaired findings: pending mixed authority, malformed stream events, repeated
+revocation disposition and pending-refresh inspection. It then approved the
+shared atomic-file replacement delta, consent/deadline guards and dependency
+alignment. Exact hash comparison covers all 21 changed source files and the
+final package/constraint bytes. No runtime model attestation is claimed.
+Review reports and exact source hashes are retained locally; the PR records the
+reviewer, verdict, findings and source identity. Later source changes require a
+delta review.
+
+## Exercised software boundaries
+
+| Boundary | Controls and owner | Limit |
+| --- | --- | --- |
+| Protected lifecycle | [Profile controls](../../../tests/test_plan_profiles.py) exercise per-profile locking, atomic successor recovery, uncertain refresh, concurrent disconnect, missing storage, unchanged identity/scopes and honest revocation. [OIDC controls](../../../tests/test_plan_oidc.py) validate real signatures and issuer/audience/expiry/nonce against local keys. | Keychain, browser and auth transport use doubles; no real account or native credential store was exercised. |
+| One request | [Worker controls](../../../tests/test_plan_worker.py) count zero/one requests, fixed host/path, verified TLS, no retry/redirect, bounded frames/JSON, event/item/text correlation and failed/incomplete/conflicting completion. | Inert HTTPS/SSE does not establish live provider compatibility, model permission or a server token/dollar cap. |
+| Real owner authority | [Funding controls](../../../tests/test_plan_funding.py) cover genuine leases/journals, private one-use claims, rotation/disconnect, stale request/runtime, pending mixed authority, replay and distinct concurrent plan profiles. | A v2 receipt is evidence, never deserializable authority or a billing receipt. API-only v1 behavior remains separate. |
+| Installed user journey | [CLI walks](../../../tests/test_plan_journeys.py) and funding controls exercise source review, roundtable, positional/task review and resume, plan/build, fix/resume and the separate test path. Completed events replay; missing API authority stops selected siblings. | Test responses are synthetic. No local check/prepare/status/evidence/profile inspection grants entitlement or dispatches a provider. |
+| Compatibility | Package/CLI controls retain legacy funding behavior and retired-extra refusals, add exact optional dependency pins and preserve the API worker/body bytes. | The plan runtime remains limited to macOS arm64 / CPython 3.12.2 with the pinned optional dependencies. |
+
+Final focused standard-environment preflight: **334 passed**, including
+subscription/package/atomic/CLI, plugin-signing and partition controls. One
+nonblocking Authlib deprecation warning remains under its exact 1.9.3 pin.
+
+| Final check on source candidate `68bf611` | Actual result |
 | --- | --- |
-| [Funding validation/refusal](../../../src/attune_harness/participant_funding.py#L16-L72) accepts only existing adapter/policy fields and refuses native explicit routes | `openai-plan` and `profile_id` remain proposed. They must not fall through to native or API-key auth. |
-| [Model identity](../../../src/attune_harness/participant_funding.py#L75-L87) and [consultation configuration](../../../src/attune_harness/consultation.py#L36-L87) | Add explicit plan-to-OpenAI identity mapping; the same model across transports cannot create independence. |
-| [One-use claim](../../../src/attune_harness/participant_funding.py#L153-L174) and [real-owner admission](../../../src/attune_harness/participant_funding.py#L254-L307) | Preserve reconstructed request, live owner/lease, persistence and private capability checks; extend with plan profile/generation and wire-profile binding. |
-| [Batch admission](../../../src/attune_harness/consultation.py#L435-L481) and [single-use participant attempt](../../../src/attune_harness/adapters.py#L84-L104) | Preserve admission before sibling inference and no implicit re-dispatch of the same attempt. |
-| [Registry schema](../../../src/attune_harness/review_contract.py#L54-L124) and [exchange roles](../../../src/attune_harness/review_participants.py#L169-L255) | Extend the direct adapter explicitly, retaining host review/planning/build tool and role contracts. |
-| [One-shot process supervision](../../../src/attune_harness/process.py#L60-L93) | A supervised single-request worker fits this interface; the duplex app-server primitive is no longer proposed. |
-| [Current API wire body](../../../src/attune_harness/openai_exchange.py#L71-L87) and [worker](../../../src/attune_harness/openai_worker.py#L1-L43) | API-key requests use a different body/response transport. Reuse compatible helpers only; preserve API semantics and use a separate plan wire profile. |
-| [Native build authority](../../../src/attune_harness/work_build.py#L754-L761) | The new HTTP adapter is not a native CLI seat. Preserve grants for actual native seats and all other existing owner gates. |
+| Focused subscription/integration preflight | 334 passed; no skips or failures. |
+| Complete source suite, two supervised partitions | **Failed:** 6,607 passed, one failed, 224 skipped; seven additional subtests passed. The sole failure is `test_new_workflow_has_four_safe_cells_and_current_controller_origins`, which enforces the historical Windows experiment input map. Neither partition was omitted. |
+| Noneditable installed-wheel platform qualification | **Passed:** 4,038 passed, 201 skipped; two additional subtests passed. Platform receipt reports `checks_passed`, zero model calls, successful R2 owner journey, memory checks and all ten plugin-probe steps. |
+| Correctness lint and documentation link checker | Passed. |
 
-## Official sources, checked for this revision
+These are retained macOS arm64 / CPython 3.12.2 results for `68bf611`.
+The source-suite failure led to the separately approved continuation below;
+this older receipt remains failed. Native Windows results belong to hosted
+CI; no local skip supplies Windows evidence. The subscription route remains
+outside Windows support even if general compatibility checks pass.
 
-These sources describe a candidate protocol, not this account's entitlement or
-an implemented/qualified Harness worker. Recheck changing preview conditions
-during implementation and before live qualification.
+Built wheel SHA-256:
+`0af91234ae210fc3075d998cbbaf21c494898424c337a601133c90720ab69969`.
+All **134** Harness/plugin payload files match source candidate `68bf611`.
+Both fresh environments use a noneditable wheel and all five CI constraint
+files; dependency consistency checks pass. Full source checks also select the
+optional native SDK for its inert witnesses. Installed qualification selects
+`all,plan-oauth` and preserves its deliberate provider-SDK exclusion.
 
-| Source | Relevant fact |
+## Retained failures and corrected setup before the successor approval
+
+Earlier receipts stay failed/interrupted. A copied test fixture referenced the
+wrong imported name; the package-extra compatibility expectation also needed the
+new explicitly approved extra. The full-suite atomic-write guard found a direct
+replacement in the metadata writer; production now uses the shared file owner.
+No retired-extra, persistence, deadline or assertion guard was disabled.
+
+The restricted runner denied local process operations. An active environment
+inside a directory scanned for untracked coverage inputs triggered its symlink
+refusal. Final checks use clean owned checkouts and external environments.
+
+The expanded installed run under a `uv`-created environment failed 13 native-SDK
+witnesses because its `pyvenv.cfg` has `version_info`, while this qualified
+macOS Framework profile requires the standard `version` and `executable` keys.
+The same failure was reproduced on unchanged main. A fresh standard-library
+virtual environment satisfies the unchanged witness; all focused preflight
+checks pass. The failed environment and evidence were preserved. These checks
+are unrelated to Claude subscription feasibility and contain no model calls.
+
+A later source run failed with macOS socket paths under the default long
+temporary root and an editable-install import in a nested environment. The
+final setup uses a short external temporary root and an installed wheel without
+altering either guard. An expanded installed run passed pytest but failed the
+intentional post-check excluding provider SDKs; the final installed environment
+omits those SDKs. Earlier failures remain failed for their original setup.
+
+Head `9b314a4` CI exposed shared dependency drift: the existing plugin pin policy
+also read exact pins introduced by the optional extra, while CI installed older
+certifi/cryptography constraints. Candidate `68bf611` pins those already-shared
+base dependencies and aligns the three constraints; the plugin resolver and
+its security checks remain unchanged.
+
+The two frozen Windows experiment workflows now refuse the changed
+`requirements-mcp.lock` hash before their account fixtures or software checks.
+Their maps expect `50f956aff914ee8ca2e85e00e3cc35aa56fff07213b659d962d7c9d91be94735`;
+the reviewed candidate has
+`87071ba2a0d0c033a4059b44ee9b816076c6e8d87407b59b8f0a35f6fd871211`.
+The token/Voyage locks in those maps also differ. Retained diagnostic artifacts
+confirm that no account fixture ran. These failures are a PR blocker, not
+subscription or Windows qualification. Historical manifests, workflows and
+receipts are unchanged; a prospective Windows experiment update needs a
+separate scoped decision. The source suite independently reproduces that same
+pin mismatch. The route, preflight and pre-fixture caller also retain the old
+lock pins, so changing only the workflow maps would not repair the entire
+journey. The proposed follow-up needs a reviewed successor input/caller set,
+unchanged account/permission/cleanup gates and new account-free CI evidence;
+it must not relabel historical results or invoke an account fixture.
+
+## Approved controller successor
+
+The versioned [controller input set](../../../experiments/platform/windows_saved_store_controller_v2/inputs.json)
+defines the current five controller dependency constraints. It retains the
+original fixed-component source/wheel manifest, adapter, helper, proof and
+versioned callers. Its definition grants no account or provider authority.
+
+| Boundary | Implemented successor and preserved checks |
 | --- | --- |
-| [Models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) | Documents direct plan bearer-token Responses requests, streaming completion and explicit account-specific model discovery. Terminal completion is required; usage-limit failure may arrive after streaming starts. |
-| [Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations) | Requires input array, `store:false` and `stream:true`; excludes `max_output_tokens` and several normal Responses controls. A plan body cannot copy the API-key body unchanged. |
-| [Sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) | The approved profile owner validates identity and actual granted plan permission; successful identity sign-in alone is insufficient. |
-| [Profiles and sessions](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions) | Approved storage/refresh/revocation obligations remain part of the profile owner. This revision does not move refresh/ID tokens into workers. |
-| [Local/open-source token sharing](https://developers.openai.com/siwc/token-sharing-open-source) | Applicability and eligible plan access require verification; hosted/commercial qualification remains outside initial scope. |
-| [Errors and recovery](https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery) | Authentication, consent, entitlement and stream errors require explicit handling. This worker's stricter one-attempt contract never silently refreshes/retries or changes funding. |
+| Protocol staging | [Route](../../../experiments/platform/windows_saved_store_controller_v2/route.py) stages twelve exact files: the original fixed-component protocol, current controller constraints and the new input definition. Unknown/changed inputs refuse before output; there is no runtime line-ending normalization. |
+| Build and startup | [Preflight](../../../experiments/platform/windows_saved_store_controller_v2/preflight.ps1) consumes the exact twelve-file report, preserves source116/wheel119/installed118 checks, unchanged capture/startup code, private ACLs, source pins, one held wheel and bounded cleanup. |
+| Pre-fixture boundary | [Caller](../../../experiments/platform/windows_saved_store_controller_v2/pre_fixture.ps1) requires account-free mode before native operations. Its [data-only entry](../../../experiments/platform/windows_saved_store_controller_v2/entry.py) preserves historical file/source/wheel validation and binds all 56 current caller inputs. Every held source and wheel lease must close; no account fixture is invoked. |
+| Normal CI | The two active account-free workflows materialize exact current Git blobs through finite maps of 54 and 57 files. They retain the Windows 2022/2025 and Python 3.10/3.12 cells, event/origin checks, first-attempt gates and disabled account-execution workflows. |
+| Historical separation | The [new control archive](../../../tests/fixtures/windows_saved_store_controller_v2.zip) retains the two previous workflow definitions and original caller/manifest bytes. Existing versioned sources, fixtures, receipts and wheels remain unchanged. Old observations do not transfer to the successor. |
 
-Claude sources and provider conditions stay in the [separate feasibility
-document](claude-feasibility.md). C1 remains unstarted.
+[Successor controls](../../../tests/test_windows_saved_store_controller_v2.py)
+exercise the actual extracted Git bootstrap against valid, changed-blob and
+wrong-event fixtures. They connect the staging cardinality to the next caller,
+check historical separation and preserve the changed-lock negative. Unit fixture
+preparation handles permitted Windows checkout rendering; runtime admission
+still requires exact pinned raw bytes. Review found and closed the initial
+eleven-versus-twelve caller mismatch and Windows fixture-rendering gaps.
 
-## Assumptions still requiring evidence
+Saved Windows results on `7d0174f` also exposed two subscription-test setup
+failures. Five large stream inputs now have bounded explicit parameter IDs,
+avoiding Windows' environment-entry limit without reducing any payload. New
+consultation fixtures use a separate retained temporary namespace so pytest's
+more-than-2048 sibling directories do not trip the unchanged native directory
+bound. Neither repair changes production code, assertions or supported platforms.
 
-1. **Direct-worker enforcement:** the implemented/pinned worker must prove one
-   POST, verified fixed TLS host/path and no retries, redirects, tools, probes
-   or SDK/ambient defaults. A proposed architecture is not a software receipt.
-2. **Bounded streaming:** time, wire/answer bytes, frame/JSON limits, matching
-   completion/model/text and cancellation/cleanup must be exercised with inert
-   fixtures. They do not create a server output-token/dollar ceiling.
-3. **Account/model eligibility:** the chosen account's grant and explicit model/
-   effort must work for the intended plan route. Native Codex allowance
-   equivalence remains unproved; no catalog or login label establishes it.
-4. **Credential lifecycle:** OAuth/OIDC validation, Keychain custody, atomic
-   rotating refresh, concurrency and revocation must satisfy the already
-   approved contract. Approval has resolved the scope decision, not proved the
-   implementation.
-5. **Usage:** normalize validated final counts without summing cumulative events;
-   unavailable/contradictory data, dollars and balances remain unknown.
-6. **Claude:** only its separate future check can establish a candidate mechanism.
-   This OpenAI design supplies no Claude credential or route qualification.
+The current application/package/constraint bytes remain those reviewed at
+`68bf611`. Controller implementation commit `988db85` adds the prospective set
+and test repairs. Fresh full-source and installed qualification bind the built
+wheel; final candidate identities, results, skipped scopes and independent
+delta review are recorded in PR #336. No earlier failed result is relabeled.
 
-S2–S5 own software evidence for 1, 2, 4 and software aspects of 5. S6 needs
-separate explicit account/model/usage authority for 3 and live route evidence.
-C1 owns 6. Patrick's no-code instruction keeps all implementation unstarted.
+## Official protocol sources
 
-## Alternatives and supersession
+Public official documentation was rechecked on November 4, 2026. It establishes
+the protocol contract, not this account's eligibility.
 
-| Mechanism | Current disposition |
+| Source | Applied fact |
 | --- | --- |
-| Direct plan OAuth Responses transport | Authorized design revision; explicit `openai-plan` adapter proposed. Software and live evidence remain missing. |
-| Codex app-server with a plan grant | Original S1 stopped at its single-inference gate. No new binary, duplex worker or relaxed request bound is proposed. Preserve its report and receipts. |
-| Shared native login/status with stripped API variable | Remains unqualified for explicit funding; inherited legacy use is not a guarantee. |
-| Copied native OAuth cache or pasted tokens | Rejected; approved app-owned consent and Keychain profiles remain required. |
-| One authentication mechanism for OpenAI and Claude | Rejected. Share the funding/admission contract; keep mechanisms, credentials and qualification separate. |
-| Automatic API fallback or changing models after refusal | Rejected. New funding/configuration needs deliberate acceptance and applicable authority. |
+| [Sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) | Validate the issued client, identity signature/claims, fresh nonce and actual returned plan scopes. Identity sign-in alone is insufficient. |
+| [Accounts and sessions](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions) | Retain verified subject with the issued client registration; the same client preserves its workspace binding. Reauthorization still validates the newly issued ID token. Serialize refresh and retain honest revocation outcomes. |
+| [Models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) | Plan bearer-token inference requires a final successful response. Usage limits may fail after streaming begins. |
+| [Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations) | The plan body uses an input array, `store:false` and `stream:true`; it cannot copy API output-token and schema controls. |
+| [Errors and recovery](https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery) | Auth, entitlement and stream failures need explicit handling. This implementation keeps a stricter one-attempt contract with no hidden refresh, retry, model change or funding fallback. |
 
-## Evidence boundary
+## Separate live and historical boundaries
 
-This revision read source and official documentation and changed Markdown only.
-It did not run a provider worker, native login/status/account command, OAuth flow,
-Keychain operation or inference request. No API credit was needed or spent.
-It does not rerun or supersede the original S1 receipts. Passing document checks
-does not qualify the direct route, a platform, an account or model quality.
+S6 still needs explicit account/model/effort/usage approval for real consent,
+Keychain interoperability, a bounded plan turn and a minimal mixed plan/API run.
+Notify Patrick before any API credits are needed. Live account/model permission,
+actual quota and billing, native Codex allowance equivalence and model quality
+remain unqualified. Software success supplies none of these verdicts.
+
+The [original app-server S1 report](s1-qualification.md) and receipts are unchanged.
+Its SHA-256 remains
+`4bc4405cc48d9a12152c97a705e816d6006f23e03e17a62a34a9bf5a2fae5801`.
+The direct worker does not turn that earlier single-inference stop gate into a
+pass. Frozen campaigns, wheels and environments remain records.
+
+[Claude C1](claude-feasibility.md) remains unstarted. The shared funding contract
+does not share credentials, auth mechanisms or qualification between providers.
+No merge, release, settings change or new experiment is authorized here.

@@ -37,6 +37,10 @@ dependencies = [
     "mcp==2.2.0",
     "tiktoken==0.12.0",
     "packaging==26.3",
+    # Shared with existing HTTP dependencies; keep the plugin pin coherent even
+    # when the optional plan adapter is not installed. This adds no provider SDK.
+    "certifi==2026.10.23",
+    "cryptography==50.0.2",
 ]
 
 [project.urls]
@@ -45,6 +49,7 @@ Repository = "https://github.com/Smart-AI-Memory/attune-harness"
 Issues = "https://github.com/Smart-AI-Memory/attune-harness/issues"
 
 [project.optional-dependencies]
+plan-oauth = ["Authlib==1.9.3", "joserfc==1.8.0"]
 # tokens, verify, rag, review and mcp moved into the base in 0.4.0 and stayed
 # as empty extras until 0.6.0, when the first freeze cycle removed them as the
 # README had promised for 1.0 (D27.6).
@@ -54,7 +59,7 @@ voyage = ["voyageai==0.5.0", "lancedb==0.38.0", "pyarrow==25.0.1", "jsonschema==
 memory-native = ["anthropic==1.6.0", "httpx2==2.13.0"]
 redis = ["redis==5.3.1"]
 # Every qualified extra in one word. Self-referential, so the pins live in one
-# place; memory-native stays out because it is experimental.
+# place; memory-native and plan-oauth stay out pending their live qualification.
 all = ["attune-harness[redis,voyage]"]
 
 [project.scripts]
