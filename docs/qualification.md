@@ -17,12 +17,14 @@ GitHub documents the [hosted runner labels and images][github-runners].
 | `full-suite` | `ubuntu-latest` | 3.12 | Every test from the source tree |
 | `full-suite` | Windows Server 2022 (`windows-2022`) and 2025 (`windows-2025`) | 3.12 | Every test from the source tree |
 
-The development branch requires Python 3.12 or later. This matrix targets its
-minimum supported interpreter without duplicate cells. Earlier Python 3.10
-receipts retain their historical artifact/runtime identities; they do not qualify
-this new minimum. The next release is 1.6.0, not 1.5.2. Current development package metadata still
-says 1.5.1; it is not a final or newly published distribution. Published 1.5.1
-retains its original Python minimum and historical artifact identity.
+Published Harness 1.6.0 and current development source require Python 3.12 or
+later. This matrix targets the minimum supported interpreter without duplicate
+cells. The [published release record](../help/release-1.6.0.json) binds 1.6.0 to
+source `af2159516a67172cc8f2a1ff62213296b1b67112` and its exact artifacts and
+qualification runs. Current `main` includes later changes even while its package
+metadata says `1.6.0`; that version alone does not identify the published wheel or
+qualify a later source tree. Earlier Python 3.10 receipts and published 1.5.1
+retain their original artifact/runtime identities and Python minimum.
 
 These hosted jobs provide Windows Server CI evidence. The broader T8 desktop
 contract is separate. A historical Windows 11 standard-user smoke used x64 Python
@@ -300,7 +302,14 @@ native contract tests that do not depend on unpublished receipts.
 Configuration behavior: [official Codex reference](https://learn.chatgpt.com/docs/config-file/config-reference).
 CI structure: [GitHub matrix documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations).
 
-## Current preparation evidence
+<a id="current-preparation-evidence"></a>
+
+## Historical preparation evidence
+
+The following records the prepublication PR #320 handoff. For final published
+1.6.0 artifacts and completed release qualification, use the
+[published release record](../help/release-1.6.0.json). The original pending gates
+below describe that historical handoff, not the current publication status.
 
 PR #320's reviewed tree `1331daf9d2abb86e6629075017c8816afc8be62d` was merged as
 `d0849441c6420b73baa796cf80f7bdf3c1ed4fec` with identical content. Its completed

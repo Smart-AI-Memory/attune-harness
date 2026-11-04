@@ -2,12 +2,15 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on October 31, 2026.
+Updated on November 4, 2026.
 
 ## Installation
 
-This guide describes Harness 1.6.0. Compare installed `COMMAND --help` with
-this maintained source guide and the [release record](../help/release-1.6.0.json).
+Published Harness 1.6.0 is the installation baseline. This maintained source
+guide can also describe later, unreleased changes on `main`; the package version
+alone does not identify those changes. Compare installed `COMMAND --help` with
+the [published source guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md)
+and the [release record](../help/release-1.6.0.json).
 Historical walkthroughs retain their original version and runtime. See the [workflow guide](supported-journeys.md).
 
 Install the published runtime in its own environment:
@@ -183,46 +186,124 @@ refusal's `next_action` names `init`.
 
 ## Plan and build
 
-For a guided plan-acceptance example, choose a
-[preparation walkthrough](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
-and use its stated source and fixtures.
+Start with [your first plan and build](#complete-your-first-plan-and-build)
+below. For historical observations, the
+[preparation walkthroughs](tutorials-1.5.0-candidate.md#choose-a-walkthrough)
+retain their original source and fixtures.
 
-The planning and build commands take a Git checkout from a named file to an
-accepted plan with a finished build. `init --for plan` writes the work request, with
-its effects manifest frozen, beside the task directory (`starter-plan.work.json`
+### Complete your first plan and build
+
+Start with a small goal and agree on the affected files, constraints and checks.
+For your own feature, ask your assistant to prepare that contract and identify
+participants that can do the work. Inspect the draft before accepting it;
+acceptance records scope, and a separate build action starts execution.
+
+To try those steps without a model call, use the local calculator example below.
+
+Before you begin:
+
+- Use one [selected runtime](installation.md#select-python-for-module-and-fixture-examples)
+  containing Harness and pytest. Activate it so both `attune-harness` and `python`
+  use that environment.
+- Obtain the example registry from the source checkout that matches your runtime.
+  For published 1.6.0, use tag `v1.6.0`. The examples are source files and are not
+  included in the installed wheel.
+- Use a dedicated, committed Git checkout at `/path/to/repo`. Keep the new task
+  directory `~/harness-tasks/starter-plan` and its request outside it. Neither
+  output should already exist.
+- In that scratch checkout, prepare the following two files and commit them.
+  The existing addition function is deliberately wrong; the protected test
+  defines the intended result.
+
+`calc.py`:
+
+```python
+def add(a, b):
+    return a - b
+```
+
+`tests/test_calc.py`:
+
+```python
+from calc import add
+
+
+def test_add():
+    assert add(2, 2) == 4
+```
+
+**`init --for plan`** writes the work request, with its effects manifest frozen,
+beside the task directory (`starter-plan.work.json`
 for `--task-dir ~/harness-tasks/starter-plan`), outside the checkout the
 manifest freezes. The example command participants in
 `examples/starter/participants.json` make the change: `lead` applies one
 declared replacement (`calc.py`, `a - b` to `a + b`) and `reviewer` approves
 without judging. They are example code, carried inline as `python -c` with a
 readable copy in `examples/starter/worker.py`, so they need `python` on PATH.
-`examples/` is in the repository, not the installed package: run any block
-that names it from a checkout of this repository, with a virtual
-environment activated so that `python` is on PATH on every platform
-(`source .venv/bin/activate`, or `.venv\Scripts\activate` on Windows).
-Use your own participants for real work: the participants `init` writes are
-for review and cannot build.
-This journey and the `fix` one below run in CI as printed.
+Replace `/path/to/examples/starter/participants.json` below with that registry's
+absolute path. Use the protected test to check the arithmetic. Use your own
+participants for real work: the default demo participants that **`init`** writes are for review and
+cannot build. On Windows, also check the
+[supported effects profile](supported-journeys.md#windows-capabilities-and-reliability).
+
+Run one command at a time. Stop after the preview to inspect it, then copy its
+current `checkpoint_digest` into `<preview-checkpoint>`. The final two commands
+are separate execution and inspection steps.
 
 <!-- journey: plan-starter -->
 ```sh
+# 1. Prepare the request.
 attune-harness init --for plan --goal "Repair addition" \
   --project /path/to/repo --scope calc.py \
   --interpreter /path/to/venv/bin/python --tests tests/test_calc.py \
   --task-dir ~/harness-tasks/starter-plan
+# 2. Preview and inspect the draft.
 attune-harness plan --request ~/harness-tasks/starter-plan.work.json --project /path/to/repo \
   --config /path/to/examples/starter/participants.json \
   --task-dir ~/harness-tasks/starter-plan
+# 3. Accept the current checkpoint after review.
 attune-harness plan --task-dir ~/harness-tasks/starter-plan --accept \
   --checkpoint <preview-checkpoint>
+# 4. Start the configured local commands separately.
 attune-harness build ~/harness-tasks/starter-plan --allow-external
+# 5. Inspect the saved result.
 attune-harness status ~/harness-tasks/starter-plan
 ```
 
 The starter request carries the goal, the scope and the named tests as its
-acceptance evidence; add context and constraints by revising it before you
-accept. Writing the request accepts nothing: the preview and `--accept` are
-still separate steps.
+acceptance evidence. Add context and constraints to that file before the first
+**`plan --request`**. After preview, editing the input file does not change the
+saved draft: use **`plan --revise`** with a JSON corrections file and the displayed
+checkpoint to update the [work contract](specs/plan-build/work-contract.md), then
+inspect and accept the new draft and checkpoint. Writing a request accepts nothing;
+preview and `--accept` remain separate steps.
+
+| Step | Expected result | What to inspect before continuing |
+| --- | --- | --- |
+| Prepare with **`init --for plan`** | `created`; request path returned | Read the returned `.work.json` and participant registry for goal, file scope, assignments, budgets and protected test. The frozen request lives outside the effects checkout. |
+| Preview with **`plan --request`** | `draft`; current checkpoint returned | Intent, ordered work, checks, unresolved questions and current checkpoint. Use `status TASK --format markdown` for a readable view. |
+| Accept with **`plan --accept`** | `accepted`; acceptance receipt retained | Acceptance applies to this checkpoint. Changed requirements need a revised draft and acceptance. |
+| Start with **`build`** | `completed` when the work and checks finish | `--allow-external` permits the configured local command subprocesses in this example. It is a separate execution decision; it grants no paid-model permission. |
+| Inspect with **`status`** | Saved status and evidence | Confirm completion, file changes, protected check results and any blocking finding. A successful inspection exit alone does not establish successful work. |
+
+Read the saved result without dispatching more work:
+
+```sh
+attune-harness status ~/harness-tasks/starter-plan --format markdown
+```
+
+Inspect the change to `calc.py` in the dedicated checkout as well as the saved
+test evidence. Keep the returned task directory so you can find the result
+again. This journey and the **`fix`** starter below run in CI as printed.
+
+If work pauses, inspect **`status`** before using **`resume`** within the existing
+execution authority. A completed attempt reuses saved evidence; an uncertain
+operation needs the [recovery procedure](recovery-workflow.md). If source, tests
+or configuration changed after capture, resolve the reported mismatch before
+continuing. Do not reuse an old checkpoint or start a replacement task to bypass
+an unresolved operation.
+
+### Prepare your own work request
 
 An agent can author a work request from the user's goal. The request records
 `intent` (goal, context, exact file scope, constraints, acceptance criteria and
@@ -246,8 +327,10 @@ attune-harness status ~/harness-tasks/my-work
 attune-harness resume ~/harness-tasks/my-work --allow-external
 ```
 
-These commands are not a copy-and-paste example yet: `work.json` must carry a
-frozen effects manifest, which no command writes. The offline plan, accept,
+This advanced block requires a prepared `work.json` with a frozen effects
+manifest. For the bounded single-file starter above, **`init --for plan`** writes
+that request and manifest. More complex requests follow the linked contract.
+The offline plan, accept,
 build, review and status journey in `scripts/check_installed.py` (`FREEZE` and
 `journey_checks`) builds one and runs in every platform job.
 
