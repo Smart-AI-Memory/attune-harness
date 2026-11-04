@@ -14,10 +14,12 @@ Reviewed on October 30, 2026 for the local 1.6.0 documentation draft. Run
 - [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
 - [Participant funding API-first revision](specs/participant-funding/t3-decision.md): Approved direct API adapter and retained native-route limits
 - [Choose participant funding](participant-funding.md): Candidate configuration, spending authority, receipts and unsupported routes
-- [Codex subscription specification](specs/codex-subscription/README.md): Unapproved proposal for explicit plan funding alongside the existing API adapter; decisions and source-bound journey
-- [Codex subscription tasks](specs/codex-subscription/tasks.md): Proposed qualification, profile, transport and integration sequence; no implementation authority
+- [Subscription OAuth specification](specs/codex-subscription/README.md): Authorized direct OAuth design revision with approved Keychain/funding contracts; implementation remains unstarted
+- [Subscription OAuth tasks](specs/codex-subscription/tasks.md): Revised profile, direct worker and qualification sequence; no implementation authority
 - [Claude subscription feasibility](specs/codex-subscription/claude-feasibility.md): Separate proposed check with no Claude implementation or live-call authority
 - [Subscription planning evidence](specs/codex-subscription/evidence.md): Current source, official documentation, alternatives and unresolved qualification assumptions
+- [Codex subscription S1 qualification](specs/codex-subscription/s1-qualification.md): Pinned runtime, model-free witnesses and the inference-bound stop gate; support remains unqualified
+- [Direct plan OAuth design](specs/codex-subscription/direct-oauth-design.md): Single-request HTTPS/SSE contract, admission, bounds and verification; documentation only
 
 - [Prepare for Harness 1.6.0](release-preparation-1.6.0.md): Unreleased version, source/evidence bindings and final release gates
 - [Harness 1.6.0 draft release notes](release-notes-1.6.0.md): Changes, supported workflow limits, migration and rollback
