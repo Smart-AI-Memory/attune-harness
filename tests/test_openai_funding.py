@@ -5,6 +5,8 @@ import copy
 import importlib
 import json
 import os
+from pathlib import Path
+import tempfile
 from threading import Barrier
 
 import pytest
@@ -25,6 +27,14 @@ from test_task_contract import draft, response
 KEY_NAME = 'HARNESS_TEST_OPENAI_FUNDING_KEY'
 KEY = 'synthetic_test_key_0123456789abcdefghijk'
 MODEL = 'fixture-explicit-model-one'
+
+
+@pytest.fixture
+def tmp_path(tmp_path):
+    """Keep Windows funding fixtures outside pytest's crowded suite directory."""
+    if os.name == 'nt':
+        return Path(tempfile.mkdtemp(prefix='funding-', dir=tmp_path.parent.parent)).resolve()
+    return tmp_path
 
 
 def seat(model=MODEL, credential=KEY_NAME):
