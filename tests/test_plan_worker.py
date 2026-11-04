@@ -203,7 +203,7 @@ def test_invalid_or_conflicting_stream_fails_after_one_post(transport, mutation)
     b'data: \xff\n\n',
     b'data: ' + b'x' * 262_145 + b'\n\n',
     b':x\n\n' * 350_000,
-])
+], ids=['duplicate-key', 'json-depth', 'invalid-utf8', 'frame-limit', 'stream-limit'])
 def test_malformed_or_over_limit_stream_fails_once(transport, bad):
     fake = FakeHTTPS(FakeResponse(bad))
     with pytest.raises(Exception): worker.perform(transport[0], TOKEN, connection_factory=fake.factory)

@@ -11,7 +11,7 @@ from attune_harness.cli import main
 from attune_harness.review_contract import canonical
 from attune_harness.review_store import read_record
 from attune_harness.task_contract import read_task
-from test_plan_funding import plan, seat, participant, prepare_consultation
+from test_plan_funding import plan, seat, participant, prepare_consultation, tmp_path
 from test_review import case, change_config
 from test_task_repair_effects import effect_case
 from test_task_repair import proposal

@@ -4,6 +4,9 @@
 import copy
 import importlib
 import json
+import os
+from pathlib import Path
+import tempfile
 from contextlib import contextmanager
 from types import SimpleNamespace
 
@@ -96,6 +99,17 @@ class PlanRunner:
         else:
             text = 'The frozen source supports only this inert fixture claim; no live review occurred.'
         return ProcessResult(tuple(argv), 0, canonical(provider_response(body['model'], text)), '')
+
+
+@pytest.fixture
+def tmp_path(tmp_path):
+    """Retain Windows snapshots outside pytest's crowded per-suite directory."""
+    if os.name == 'nt':
+        # Native admission checks every ancestor's bounded listing. A complete
+        # suite creates over 2048 sibling test directories under pytest-N.
+        # Keep our namespace beside pytest-N, retaining files for diagnostics.
+        return Path(tempfile.mkdtemp(prefix='plan-', dir=tmp_path.parent.parent)).resolve()
+    return tmp_path
 
 
 @pytest.fixture

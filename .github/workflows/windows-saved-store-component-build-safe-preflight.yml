@@ -1,3 +1,4 @@
+# Controller inputs v2; prior workflow bytes are retained in the v2 fixture archive.
 name: Saved-store fixed-component build preflight
 
 # Fixed K/current C, zero accounts/GUI/storage. Green checks do not pass D3.
@@ -31,6 +32,15 @@ on:
       - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
       - 'experiments/platform/windows_saved_store_source_manifest_v4.json'
       - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_controller_v2/.gitattributes'
+      - 'experiments/platform/windows_saved_store_controller_v2/inputs.json'
+      - 'experiments/platform/windows_saved_store_controller_v2/route.py'
+      - 'experiments/platform/windows_saved_store_controller_v2/entry.py'
+      - 'experiments/platform/windows_saved_store_controller_v2/preflight.ps1'
+      - 'experiments/platform/windows_saved_store_controller_v2/pre_fixture.ps1'
+      - 'tests/test_windows_saved_store_controller_v2.py'
+      - 'tests/fixtures/windows_saved_store_controller_v2.zip'
+      - 'experiments/platform/windows_saved_store_component_account_tail_v2.ps1'
       - 'requirements-mcp.lock'
       - 'requirements-redis.lock'
       - 'requirements-tokens.lock'
@@ -80,6 +90,15 @@ on:
       - 'experiments/platform/windows_saved_store_source_manifest_v3.json'
       - 'experiments/platform/windows_saved_store_source_manifest_v4.json'
       - 'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1'
+      - 'experiments/platform/windows_saved_store_controller_v2/.gitattributes'
+      - 'experiments/platform/windows_saved_store_controller_v2/inputs.json'
+      - 'experiments/platform/windows_saved_store_controller_v2/route.py'
+      - 'experiments/platform/windows_saved_store_controller_v2/entry.py'
+      - 'experiments/platform/windows_saved_store_controller_v2/preflight.ps1'
+      - 'experiments/platform/windows_saved_store_controller_v2/pre_fixture.ps1'
+      - 'tests/test_windows_saved_store_controller_v2.py'
+      - 'tests/fixtures/windows_saved_store_controller_v2.zip'
+      - 'experiments/platform/windows_saved_store_component_account_tail_v2.ps1'
       - 'requirements-mcp.lock'
       - 'requirements-redis.lock'
       - 'requirements-tokens.lock'
@@ -159,10 +178,10 @@ jobs:
             'experiments/platform/windows_saved_store_source_manifest_v3.json' = 'fcf8365fc00aeade30d8bdfa4c4f3e0f5ea869aabb1fbc1ce80466c3b999ae5a'
             'experiments/platform/windows_saved_store_source_manifest_v4.json' = '6b33976fcc9e7c1bcf276f82c9d4e0ad1d795008a74fb3c4343d86a7573c430a'
             'experiments/platform/windows_saved_store_standard_user_gui_proposal_v3b3.ps1' = '696879df5b141def393235708f3a2baf0e8c9bb1cdb24d125082b53bc81a5804'
-            'requirements-mcp.lock' = '50f956aff914ee8ca2e85e00e3cc35aa56fff07213b659d962d7c9d91be94735'
+            'requirements-mcp.lock' = '87071ba2a0d0c033a4059b44ee9b816076c6e8d87407b59b8f0a35f6fd871211'
             'requirements-redis.lock' = '84f43680576915e1e8716902d85acc6b2ae63a4451eb55f5eaddabbf9806c09c'
-            'requirements-tokens.lock' = '32fbeb94891432d45936d39b98513550e87405a278c3aaaabb714aa38c20de53'
-            'requirements-voyage.lock' = '6a2f18db82d16ec3e8c8da55b282a3f7627b9ae025fb7cb11d14b6f7b512e441'
+            'requirements-tokens.lock' = '6351570c2dabef01106388ab7291bab9f52866f6bdbec1eb36f036929b39472d'
+            'requirements-voyage.lock' = 'ec50266e00bb2bf673973b7d051da9bb962d0713904c6f7258c416a5b1dc63da'
             'requirements-workflow.lock' = '60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad'
             'tests/.gitattributes' = '69778c577642ecd3fe7b8c329dff6948d7ccb7fd8afde301711b12e63ccdbf8d'
             'tests/fixtures/windows_saved_store_component_v1/inputs-bde.zip' = 'c0c4ec0f8c274ec0782bc19844bf7a5cbdb600c4cb678ea70e3ad8773d703fe4'
@@ -178,6 +197,15 @@ jobs:
             'tests/test_windows_saved_store_component_route.py' = 'd1b29998038ab737290d6cff6dbe91904ca85c26afa6eecb68068d54f02b0481'
             'tests/test_windows_saved_store_profile_workflow.py' = '2cb8ed514264f95901b3f913cdb2f985e795db1bc19d22aa9826ba5e55f3c278'
             'tests/test_windows_saved_store_wheel_profiles.py' = '4dcbe314d4180b0c0e9832d433e828a90d39fbeec65818fb588d838c75876b1f'
+            'experiments/platform/windows_saved_store_controller_v2/.gitattributes' = '705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da'
+            'experiments/platform/windows_saved_store_controller_v2/inputs.json' = 'bde8f6184d407e2bc84e90d9e8e6932c0c59803dde34f9bef8ce52ed23a91496'
+            'experiments/platform/windows_saved_store_controller_v2/route.py' = '3bd4c6eb79b395f9660dc82ae1ab3734fd6bcd44239911ba5084d27a8b0170d5'
+            'experiments/platform/windows_saved_store_controller_v2/entry.py' = '10faaf2b76c6f9180691248c0e20053210df4b828e2ad927e070b4a0a8861027'
+            'experiments/platform/windows_saved_store_controller_v2/preflight.ps1' = 'fb61a075166c22616d9f85acfc362e2b57dd765e29cd318ef1c42d5e217f1cdf'
+            'experiments/platform/windows_saved_store_controller_v2/pre_fixture.ps1' = '82b2a0a3ac6fe33d0519692e01dfe802faf2afdbeb05908dffe6084798c68b60'
+            'tests/test_windows_saved_store_controller_v2.py' = '6f16b15775f9918c204b59a9a900c6f602402910ec242f3a224244ffb5090da3'
+            'tests/fixtures/windows_saved_store_controller_v2.zip' = 'da481265cf79a5ba4c05f370bc861309b16fd51bb0145aab48ca2646cae94f07'
+            'experiments/platform/windows_saved_store_component_account_tail_v2.ps1' = 'd6ca9401a6435acf93bf8996755b8873863e541d65d6b0d42099d1d9ec4d3a96'
           }
           $materialize = @'
           import hashlib,json,os,re,stat,subprocess,sys
@@ -258,8 +286,8 @@ jobs:
                   finally:checkpoint(row)
           
           repo=Path(sys.argv[1]);expected=json.loads(sys.argv[2])
-          if (not isinstance(expected,dict) or len(expected)!=45
-                  or len({name.casefold() for name in expected})!=45):raise ValueError('finite_C_map_refused')
+          if (not isinstance(expected,dict) or len(expected)!=54
+                  or len({name.casefold() for name in expected})!=54):raise ValueError('finite_C_map_refused')
           output=Path(os.environ['RUNNER_TEMP'])/'saved-store-component-bootstrap.json'
           if output.exists() or output.is_symlink() or not output.is_absolute():raise ValueError('fresh_bootstrap_report_required')
           report={'status':'started','rows':[],'actual_checkout':None,'failure_type':None,'account_fixture_invoked':False,'accounts_or_credentials_created':False,'t2_d3_gate':'unpassed','production_port_allowed':False}
@@ -302,7 +330,7 @@ jobs:
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
         run: |
-          & $env:T2_SAFE_CONTROLLER -I -B -m pytest -q -p no:cacheprovider --noconftest -c "$env:RUNNER_TEMP/saved-store-build-safe-pytest.ini" --junitxml="$env:RUNNER_TEMP/saved-store-component-pure.xml" tests/test_windows_saved_store_account_inputs_v2.py tests/test_windows_saved_store_build_projection.py tests/test_windows_saved_store_build_preflight.py tests/test_windows_saved_store_wheel_profiles.py tests/test_windows_saved_store_profile_workflow.py tests/test_windows_saved_store_component_adapter.py tests/test_windows_saved_store_component_route.py 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/saved-store-component-pure.txt"
+          & $env:T2_SAFE_CONTROLLER -I -B -m pytest -q -p no:cacheprovider --noconftest -c "$env:RUNNER_TEMP/saved-store-build-safe-pytest.ini" --junitxml="$env:RUNNER_TEMP/saved-store-component-pure.xml" tests/test_windows_saved_store_account_inputs_v2.py tests/test_windows_saved_store_build_projection.py tests/test_windows_saved_store_build_preflight.py tests/test_windows_saved_store_wheel_profiles.py tests/test_windows_saved_store_profile_workflow.py tests/test_windows_saved_store_component_adapter.py tests/test_windows_saved_store_component_route.py tests/test_windows_saved_store_controller_v2.py 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP/saved-store-component-pure.txt"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Observe fixed component cold build and equivalent module startup only
         shell: pwsh
@@ -313,7 +341,7 @@ jobs:
           T2_EVENT_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $script = (Resolve-Path experiments/platform/windows_saved_store_build_preflight_v3.ps1).Path
+          $script = (Resolve-Path experiments/platform/windows_saved_store_controller_v2/preflight.ps1).Path
           $repo = (Get-Location).Path
           $launch = [ordered]@{ status = 'launch_started'; exit_code = $null; failure_type = $null; failure_line = $null; accounts_or_credentials_created = $false; t2_d3_gate = 'unpassed'; production_port_allowed = $false }
           $launchPath = "$env:RUNNER_TEMP/saved-store-component-launch.json"
