@@ -25,7 +25,7 @@ Updated on November 4, 2026 for 1.7.0 preparation. Run
 - [Harness 1.7.0 release notes](release-notes-1.7.0.md): Prepared changes, extended legacy-environment window, funding limits and hydration groundwork
 - [Harness 1.7.0 readiness record](release-readiness-1.7.0.md): Source/artifact identity, candidate checks, documentation dispositions and remaining gates
 - [Historical Harness 1.6.0 preparation](release-preparation-1.6.0.md): Retained preparation evidence and original source/artifact limits
-- [Harness 1.6.0 release notes](release-notes-1.6.0.md): Published release scope and retained qualification limits
+- [Historical Harness 1.6.0 draft notes](release-notes-1.6.0.md): Preparation scope and retained qualification limits; published facts are in the release record
 
 - [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup

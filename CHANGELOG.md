@@ -30,11 +30,11 @@ and [readiness record](docs/release-readiness-1.7.0.md).
   Direct API configuration never replaces an existing native participant.
 - Accept optional native participant funding configuration for Claude/Codex
   subscriptions and Codex API use. Preserve legacy configurations. Explicitly
-  funded participants currently refuse execution before provider dispatch until
+  funded native Claude/Codex participants currently refuse execution before provider dispatch until
   invocation-level route enforcement is qualified; configuration support alone
   does not enable a funding route or authorize API spending.
 - Return a structured unsupported funding report and exit 2 from consultation
-  **`check`** for explicitly funded seats. Skip their unqualified authentication
+  **`check`** for explicitly funded native Claude/Codex seats. Skip their unqualified authentication
   probes; inspection remains advisory and starts no model call.
 
 ## 1.6.0
