@@ -1,8 +1,9 @@
 # Codex subscription support alongside API credits
 
-**Status: S2–S5 implementation approved November 4, 2026; software verification
-in progress. S6 live qualification requires separate approval. Claude C1 stays
-separate and unstarted.**
+**Status: S2–S4 implemented and reviewed November 4, 2026. S5 installed-wheel
+checks pass; the full source suite is blocked by frozen Windows experiment
+inputs. S6 live qualification requires separate approval. Claude C1 stays
+separate and unstarted.** See [software evidence](evidence.md).
 
 Original source baseline: `03e29647a02073089fb33ea8df45b75be65383ba`.
 The command-walk corrections merged in #333 are retained. On November 3, 2026,
@@ -29,7 +30,7 @@ spending authority, model independence, Keychain custody and recovery boundaries
 
 Use a new explicit **`openai-plan`** adapter that sends one supervised HTTPS
 Responses request for each admitted model turn. OpenAI documents the direct
-plan-token route. The planned worker has no Codex process, native tool executor,
+plan-token route. The worker has no Codex process, native tool executor,
 automatic follow-up, retry or redirect. That makes the inference-request boundary
 host-owned and independently testable.
 [Official models and inference guidance](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
@@ -57,14 +58,14 @@ explicit **`openai`** adapter. Explicit funding on native **`codex`** and
 behavior. These are separate cases in
 [the current funding owner](../../../src/attune_harness/participant_funding.py#L16-L83).
 
-| Include in the next implementation | Keep outside this implementation |
+| Included in this implementation | Kept outside this implementation |
 | --- | --- |
 | Local macOS arm64, one qualified Python/HTTPS worker and request profile | Other platforms, unqualified HTTP libraries/profiles, hosted or commercial deployment qualification |
 | Explicit subscription adapter plus existing direct API adapter in the same accepted workflow | Automatic routing, quota-based switching, API fallback, balance polling or a billing ledger |
 | App-owned plan OAuth profiles in macOS Keychain, explicit connect/inspect/disconnect | Reading or copying native auth caches, changing shared logins, importing pasted tokens, plaintext credential fallback |
 | One streamed text inference per admitted turn through both shared caller paths | Codex app-server/CLI execution, native tools, shell, MCP, apps, subagents or automatic model follow-ups |
 | Existing Harness-owned retrieval, verification and proposal/application gates | Giving Codex direct filesystem or tool authority through this transport |
-| A separate Claude feasibility report | A Claude adapter, Claude OAuth intermediary or a Claude API integration |
+| A separately gated Claude feasibility check | A Claude adapter, Claude OAuth intermediary or a Claude API integration |
 
 The initial release qualifies software behavior and an exact execution route.
 It does not qualify model quality, every account/model entitlement, or every
@@ -218,7 +219,7 @@ contains the actual refusals exercised by the inert software controls.
 | Profile connection and identity | [`connect`](../../../src/attune_harness/plan_profiles.py#L202-L256) |
 | Local metadata inspection | [`inspect`](../../../src/attune_harness/plan_profiles.py#L190-L200) |
 | Disable and revoke | [`disconnect`](../../../src/attune_harness/plan_profiles.py#L308-L341) |
-| OIDC signature and grant validation | [`credentials`](../../../src/attune_harness/plan_oauth.py#L135-L170) |
+| OIDC signature and grant validation | [`validate_identity` and `credentials`](../../../src/attune_harness/plan_oauth.py#L117-L182) |
 | Complete request admission | [`admit`](../../../src/attune_harness/participant_funding.py#L287-L344) |
 | One-use owner claim | [`claim`](../../../src/attune_harness/participant_funding.py#L170-L199) |
 | Selected pending mixed authority | [`precheck_pending`](../../../src/attune_harness/plan_funding.py#L91-L104) |
@@ -312,11 +313,10 @@ or contradictory usage, billed dollars and remaining balances stay unknown.
 
 ## Command journey and refusal walk
 
-This is a **source/design walk, not an executed subscription journey**. Existing
-owner references are pinned by the baseline above. Rows labeled *new* are
-required implementation contracts with no current `raise`. The revised configuration
-must remain refused until the direct OAuth contracts and software qualification
-exist. The original app-server S1 report is not qualification of this new path.
+These walks describe the implemented owners and their refusal conditions.
+The [software controls](evidence.md) execute the journeys with inert profile and
+transport fixtures. They do not establish a live subscription journey. The
+original app-server S1 report supplies no qualification of this new path.
 
 Use a canonical project path with one explicit, regular UTF-8 source file, at
 most 32 files and 131,072 total captured bytes. Keep config and run state outside
@@ -359,15 +359,15 @@ execution owners: today's **`test`** uses deterministic pytest, with
 [its continuation](../../../src/attune_harness/task_policies.py#L97-L99) branches
 before assessment dispatch. Keep it free of funding admission and model calls.
 
-The following ordered walks extend existing contracts. They do not authorize
-execution or make the proposed adapter valid today. Reuse the qualified profile
+The following ordered walks extend existing contracts. They grant no live-call
+authority. Reuse the qualified profile
 from roundtable steps 1–2; authoritative config/profile/response/state files stay
 outside captured source. The plan starter's byte-identical local registry copy
 is created before its effects freeze. Each registry schema differs from the
 consultation schema: use
 its explicit role/tool/budget fields rather than copying `seats.json`. All
-subscription validation, admission and native classification below remain new
-S4 work. Existing per-command flags remain the authority surface; there is no
+subscription validation, admission and native classification below are implemented
+by S4. Existing per-command flags remain the authority surface; there is no
 universal **`--allow-native`** flag. API authority is fresh per executing invocation.
 
 ### Evidence review and review continuation
@@ -501,8 +501,10 @@ one-shot HTTPS/SSE worker, and preserve S4 owner integration, S5 offline/
 installed-wheel checks and S6 separately authorized live qualification.
 The corrected command walks and separate dispatch-free test path remain.
 
-S2–S5 implementation is approved. Software verification must establish the
-single-request boundary and revised refusal walk before the candidate is ready.
+S2–S4 implementation and inert request/journey controls are complete. S5's
+installed qualification passes; the full source suite retains one frozen-input
+consistency failure. A separately scoped prospective Windows experiment update
+is needed before S5 can complete. Keep the candidate draft at that gate.
 No live profile connection or account/model qualification has run.
 [C1](claude-feasibility.md) remains separate and unstarted; its verdict cannot
 activate a route.

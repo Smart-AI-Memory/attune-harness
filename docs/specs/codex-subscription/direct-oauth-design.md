@@ -1,7 +1,8 @@
 # Direct plan OAuth transport design
 
-**Status: Design revision approved November 3, 2026; S2–S5 implementation
-approved November 4, 2026. Software verification is in progress. S6 remains gated.**
+**Status: S2–S4 implemented and reviewed November 4, 2026. S5 installed-wheel
+checks pass; frozen Windows experiment inputs block the full source suite.
+S6 remains gated.** See [software evidence](evidence.md).
 
 This design replaces the proposed Codex app-server transport after its
 [S1 stop-gate result](s1-qualification.md). Patrick approved the direct OAuth
@@ -15,7 +16,7 @@ spending is included.
 
 ## Contract and scope
 
-The proposed adapter is **`openai-plan`**, with mandatory funding exactly
+The implemented adapter is **`openai-plan`**, with mandatory funding exactly
 `{"mode":"subscription","profile_id":"<opaque-local-id>"}`. Consultation
 identity provider is `openai`; registry entries retain their existing explicit
 `model` and role/tool budgets. Normalize this adapter, native `codex` and API-key

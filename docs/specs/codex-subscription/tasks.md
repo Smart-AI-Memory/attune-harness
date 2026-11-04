@@ -1,7 +1,8 @@
 # Subscription OAuth implementation tasks
 
-**Status: S2–S5 implementation approved November 4, 2026; software verification
-in progress. S6 and Claude C1 remain separate and unstarted.**
+**Status: S2–S4 implemented and independently reviewed November 4, 2026.
+S5 installed-wheel checks pass; a frozen Windows input gate blocks completion.
+S6 and Claude C1 remain separate and unstarted.**
 
 The [README](README.md) owns the funding/authority contract and corrected command
 walks. The [direct OAuth design](direct-oauth-design.md) owns the revised worker/
@@ -24,6 +25,8 @@ boundary and leaves direct software/live qualification outstanding. The later D5
 provider request.
 
 ## S2 — Add the approved app-owned profile lifecycle
+
+Status: implemented and independently reviewed; inert lifecycle controls pass.
 
 Dependencies: explicit authorization to implement the revised design. D1's
 OAuth/Keychain lifecycle approval is already recorded; do not ask for it again.
@@ -48,6 +51,8 @@ for the software tests.
 
 ## S3 — Add the single-request HTTPS/SSE worker
 
+Status: implemented and independently reviewed; inert transport controls pass.
+
 Dependencies: code authorization and the S2 profile interface. Preserve the
 existing API-key adapter, its wire body and existing one-shot process API.
 
@@ -67,6 +72,8 @@ Missing/failed completion never becomes success or automatic retry. No actual
 model call is needed. Record exact worker/interpreter/request qualification.
 
 ## S4 — Integrate funding and both shared callers
+
+Status: implemented and independently reviewed; owner and CLI controls pass.
 
 Dependencies: S2 and S3. Extend strict configuration and normalized model identity.
 The new adapter requires the unchanged subscription profile reference; API-key
@@ -91,6 +98,16 @@ authority with a plan sibling. Completed work never re-dispatches on resume;
 pending work requires fresh grants and admissions. Receipts remain secret-free.
 
 ## S5 — Verify installed software and corrected user journeys
+
+Status: blocked. Focused checks pass (334). Installed-wheel qualification passes
+(4,038 passed, 201 skipped, two additional subtests passed; zero model calls).
+The complete source run reports 6,607 passed, one failed, 224 skipped and seven
+additional subtests passed. The one failure enforces the Windows experiment
+workflow's historical dependency hashes. The candidate deliberately updates
+three shared dependency constraints; the frozen experiment callers also pin
+those inputs. Preserve historical artifacts. A prospective successor input/
+caller set and its active workflow integration need a separate scope decision,
+independent review and fresh checks. See [evidence](evidence.md).
 
 Dependencies: S4. This is software qualification, not a live funding verdict.
 
