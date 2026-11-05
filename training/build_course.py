@@ -1,6 +1,7 @@
 """Project the six maintained lesson JSON files into local HTML and presenter text."""
 
 import argparse
+import hashlib
 from html import escape
 import json
 from pathlib import Path
@@ -63,19 +64,30 @@ def project():
         outputs[COURSE / slug / "presenter.md"] = '\n'.join(notes).rstrip() + '\n'
     cards = ['<h1>Harness in practice</h1>',
              '<p>Learn to direct a useful reporting project, inspect its results and choose the next step.</p>',
+             '<section class="starting-paths" aria-labelledby="starting-paths-title">',
+             '<h2 id="starting-paths-title">Choose how to start</h2>',
+             '<div class="development-path-grid">',
+             '<a class="development-path" href="development-paths.html#goal-driven">'
+             '<h3>Goal-driven development</h3>'
+             '<p>Start with a clear result. Define its scope and checks before building.</p>'
+             '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
+             '<a class="development-path" href="development-paths.html#spec-driven">'
+             '<h3>Spec-driven development</h3>'
+             '<p>Develop requirements, dependencies and acceptance examples before implementation.</p>'
+             '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
+             '</div><p class="path-comparison"><a href="development-paths.html">'
+             'Compare the paths and their review points</a></p></section>',
              '<p>Harness 1.7.0 preparation · November 5, 2026. Use the separate reviewed-wheel setup before command practice.</p>',
              '<p><a href="setup.html">Get ready for the course</a> · <a href="assets/current-checks.json">Current software checks</a></p>',
-             '<h2>Choose how to start</h2>',
-             '<p>Use <a href="development-paths.html#goal-driven">goal-driven development</a> '
-             'for a bounded result, or <a href="development-paths.html#spec-driven">spec-driven development</a> '
-             'when requirements and dependencies need more structure. '
-             '<a href="development-paths.html">Compare the paths and their review points</a>.</p>',
              '<h2>Follow the learning path</h2>', '<ol>']
     for slug, lesson in zip(SLUGS, lessons):
         cards.append(f'<li><h2><a href="{slug}/">{escape(lesson["title"])}</a></h2><p>{escape(lesson["subtitle"])}</p></li>')
     cards += ['</ol>', '<p>Reading progress and notes stay in your browser. Lesson controls do not run commands or approve Harness work.</p>',
               '<p><a href="../archive/">Historical documents</a></p>']
-    outputs[COURSE / "index.html"] = page('Harness in practice', '\n'.join(cards), 'assets/styles.css', None)
+    style_revision = hashlib.sha256((COURSE / "assets/styles.css").read_bytes()).hexdigest()[:12]
+    outputs[COURSE / "index.html"] = page(
+        'Harness in practice', '\n'.join(cards), f'assets/styles.css?v={style_revision}', None,
+    )
     outputs[ROOT / "archive/index.html"] = page(
         'Historical training documents',
         '<h1>Historical training documents</h1>'
