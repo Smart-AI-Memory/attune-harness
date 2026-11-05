@@ -145,10 +145,6 @@ jobs:
       DISTRIBUTIONS_DIGEST: ${{ needs.build.outputs.distributions_digest }}
       RELEASE_EVIDENCE_ID: ${{ needs.build.outputs.release_evidence_id }}
       RELEASE_EVIDENCE_DIGEST: ${{ needs.build.outputs.release_evidence_digest }}
-      WINDOWS_RELEASE_DIST: ${{ runner.temp }}/release-windows-distributions
-      WINDOWS_RELEASE_BUILD_EVIDENCE: ${{ runner.temp }}/release-windows-build-evidence
-      WINDOWS_RELEASE_EVIDENCE: ${{ runner.temp }}/release-windows-evidence
-      WINDOWS_RELEASE_NATIVE_OUTPUT: ${{ runner.temp }}/release-windows-evidence/native
     steps:
       - name: Preserve canonical Git bytes before checkout
         shell: bash
@@ -160,6 +156,21 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Initialize owned release evidence paths
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          paths = {
+              'WINDOWS_RELEASE_DIST': 'release-windows-distributions',
+              'WINDOWS_RELEASE_BUILD_EVIDENCE': 'release-windows-build-evidence',
+              'WINDOWS_RELEASE_EVIDENCE': 'release-windows-evidence',
+              'WINDOWS_RELEASE_NATIVE_OUTPUT': 'release-windows-evidence/native',
+          }
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as environment:
+              for name, relative in paths.items():
+                  environment.write(f'{name}={root / relative}\n')
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.build.outputs.distributions_id }}

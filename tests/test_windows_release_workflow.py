@@ -1,6 +1,10 @@
 """Keep publication behind same-run exact-artifact Windows consumers."""
 
+import os
 from pathlib import Path
+import re
+import subprocess
+import sys
 
 import yaml
 
@@ -47,3 +51,28 @@ def test_consumer_uses_same_run_artifact_ids_and_lf_checkout():
     assert set(uploads) == {"distributions", "release-evidence"}
     assert jobs["build"]["outputs"]["distributions_id"] == "${{ steps.distributions.outputs.artifact-id }}"
     assert jobs["build"]["outputs"]["release_evidence_id"] == "${{ steps.release-evidence.outputs.artifact-id }}"
+
+
+def test_runtime_paths_initialize_before_consumption_without_job_runner_context(tmp_path):
+    jobs = workflow()["jobs"]
+    for job in jobs.values():
+        assert all(not re.search(r"\$\{\{\s*runner\.", str(value))
+                   for value in job.get("env", {}).values())
+    steps = jobs["windows-release-wheel"]["steps"]
+    initializer = next(i for i, step in enumerate(steps)
+                       if step.get("name") == "Initialize owned release evidence paths")
+    first_download = next(i for i, step in enumerate(steps)
+                          if step.get("uses", "").startswith("actions/download-artifact@"))
+    assert initializer < first_download
+    assert steps[initializer]["shell"] == "python"
+    temporary = tmp_path / "runner temp Å"
+    github_env = tmp_path / "github-env"
+    subprocess.run([sys.executable, "-I", "-c", steps[initializer]["run"]], check=True,
+                   env={**os.environ, "RUNNER_TEMP": str(temporary), "GITHUB_ENV": str(github_env)})
+    actual = dict(line.split("=", 1) for line in github_env.read_text(encoding="utf-8").splitlines())
+    assert actual == {
+        "WINDOWS_RELEASE_DIST": str(temporary / "release-windows-distributions"),
+        "WINDOWS_RELEASE_BUILD_EVIDENCE": str(temporary / "release-windows-build-evidence"),
+        "WINDOWS_RELEASE_EVIDENCE": str(temporary / "release-windows-evidence"),
+        "WINDOWS_RELEASE_NATIVE_OUTPUT": str(temporary / "release-windows-evidence/native"),
+    }
