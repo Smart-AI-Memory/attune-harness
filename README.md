@@ -10,17 +10,19 @@ what needs your review and uses Harness to carry out the steps you authorize.
 Harness keeps a **receipt**: the output, check results and any errors from a run.
 You can inspect what happened and use that record when you continue later.
 
-**Harness 1.7.0 preparation · Python 3.12 or later**
+**Harness 1.7.0 · Python 3.12 or later**
 
-Version 1.7.0 is being prepared; it is not published by this change. Read the
+Read the 1.7.0
 [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/release-notes-1.7.0.md)
 and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/release-readiness-1.7.0.md).
 The `v1.7.0` documentation links become available after the release tag is
 published. Before then, use these files in the reviewed release checkout.
-Published [1.6.0](https://pypi.org/project/attune-harness/1.6.0/) remains the
-installation baseline; its [release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json)
+Before 1.7.0 publication, use published
+[1.6.0](https://pypi.org/project/attune-harness/1.6.0/) for index installations.
+Its [release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json)
 retains its source, artifacts and verification limits. Each Help Center guide
-states its own version and publication status.
+states its own version and publication status. A prepared checkout or passing
+qualification does not establish package publication.
 
 - [**Goal-driven development**](#goal-driven-development): Start with the outcome
   you want, then agree on the work and checks.
