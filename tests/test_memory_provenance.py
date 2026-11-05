@@ -3,9 +3,8 @@
 
 import json
 import os
-import time
-from datetime import date, timedelta
-from pathlib import Path
+from datetime import date, datetime, timedelta
+from functools import partial
 
 import pytest
 
@@ -75,30 +74,37 @@ def test_tiers_and_labels():
     assert format_status_annotation("user", "invalidated", 0) == "⟨suspect · user · verification voided by edit⟩"
 
 
-def test_staleness_follows_the_age_basis(tmp_path):
+@pytest.mark.parametrize("today", [date(2026, 11, 4), date(2026, 3, 9)])
+def test_staleness_follows_the_age_basis(tmp_path, today):
     root = tmp_path
     doc = root / "policy.md"
     body = "\nAurora policy body.\n"
     doc.write_text("---\nname: policy\ndescription: Aurora policy\nmetadata:\n  type: project\n---" + body, encoding="utf-8")
-    today = date.today()
-    # No verified: ages from mtime, which is now.
-    assert staleness(doc, root) == {"unverified_days": 0, "staleness": "⟨verified today⟩", "status": "⟨settled · project · 0d unverified⟩"}
-    old = time.time() - 61 * 86400
+    # The contract counts local calendar dates, including across DST changes.
+    inspect_staleness = partial(staleness, today=today)
+
+    def local_noon(day):
+        return datetime.combine(day, datetime.min.time()).replace(hour=12).timestamp()
+
+    os.utime(doc, (local_noon(today), local_noon(today)))
+    # No verified: ages from mtime on the injected reference date.
+    assert inspect_staleness(doc, root) == {"unverified_days": 0, "staleness": "⟨verified today⟩", "status": "⟨settled · project · 0d unverified⟩"}
+    old = local_noon(today - timedelta(days=61))
     os.utime(doc, (old, old))
-    assert staleness(doc, root)["status"] == "⟨suspect · project · 61d unverified⟩ — verify against the repo before acting"
+    assert inspect_staleness(doc, root)["status"] == "⟨suspect · project · 61d unverified⟩ — verify against the repo before acting"
     # verified: with no verdict stands unbound.
     verified_on = (today - timedelta(days=3)).isoformat()
     doc.write_text(f"---\nname: policy\ndescription: Aurora policy\nmetadata:\n  type: project\nverified: {verified_on}\n---" + body, encoding="utf-8")
     os.utime(doc, (old, old))
-    assert staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago, unbound⟩"
+    assert inspect_staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago, unbound⟩"
     # A keep verdict whose digest matches binds it; a stale digest voids it; a wrong verdict tombstones.
     digest = canonical_digest("Aurora policy", body)
     (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="keep", digest=digest, who="p", at="t")) + "\n")
-    assert staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago⟩"
+    assert inspect_staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago⟩"
     (root / ".verdicts.jsonl").write_text("not json\n" + json.dumps(dict(stem="policy", verdict="keep", digest="0" * 64, who="p", at="t")) + "\n")
-    assert staleness(doc, root)["status"] == "⟨suspect · project · verification voided by edit⟩ — verify against the repo before acting"
+    assert inspect_staleness(doc, root)["status"] == "⟨suspect · project · verification voided by edit⟩ — verify against the repo before acting"
     (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="wrong", digest=digest, who="p", at="t")) + "\n")
-    out = staleness(doc, root)
+    out = inspect_staleness(doc, root)
     assert out["status"].startswith("⟨suspect · project · judged WRONG") and out["unverified_days"] == 61
     (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="maybe", digest=digest, who="p", at="t")) + "\n")
     assert latest_verdicts(root) == {}
@@ -109,25 +115,24 @@ def test_staleness_follows_the_age_basis(tmp_path):
     # A tombstone applies whether or not the file carries verified: (the audit checks it first).
     doc.write_text("---\nname: policy\ndescription: Aurora policy\nmetadata:\n  type: project\n---" + body, encoding="utf-8")
     (root / ".verdicts.jsonl").write_text(json.dumps(dict(stem="policy", verdict="wrong", digest=digest, who="p", at="t")) + "\n")
-    assert staleness(doc, root)["status"] == "⟨suspect · project · judged WRONG — kept as tombstone⟩ — verify against the repo before acting"
+    assert inspect_staleness(doc, root)["status"] == "⟨suspect · project · judged WRONG — kept as tombstone⟩ — verify against the repo before acting"
     # A quoted verified: date binds like an unquoted one.
     (root / ".verdicts.jsonl").unlink()
     doc.write_text(f'---\nname: policy\ndescription: "Aurora policy"\nmetadata:\n  type: "project"\nverified: "{verified_on}"\n---' + body, encoding="utf-8")
-    assert staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago, unbound⟩"
+    assert inspect_staleness(doc, root)["status"] == "⟨settled · project · verified 3d ago, unbound⟩"
     # A passed-in verdict map is used instead of reading the sidecar.
-    assert staleness(doc, root, verdicts={"policy": dict(verdict="keep", digest=canonical_digest("Aurora policy", body))})["status"] == "⟨settled · project · verified 3d ago⟩"
+    assert inspect_staleness(doc, root, verdicts={"policy": dict(verdict="keep", digest=canonical_digest("Aurora policy", body))})["status"] == "⟨settled · project · verified 3d ago⟩"
     # A future mtime is zero days; a missing file gets no keys, as PersonalMemory adds none.
-    future = time.time() + 5 * 86400
+    future = local_noon(today + timedelta(days=5))
     doc.write_text("no frontmatter", encoding="utf-8")
     os.utime(doc, (future, future))
-    assert staleness(doc, root)["unverified_days"] == 0
-    assert staleness(root / "absent.md", root) is None
-    assert staleness(root, root) is None  # a directory
+    assert inspect_staleness(doc, root)["unverified_days"] == 0
+    assert inspect_staleness(root / "absent.md", root) is None
+    assert inspect_staleness(root, root) is None  # a directory
     # The mtime date is local, as the audit compares it with a local today (the Anchorage trap upstream).
-    import datetime as dt
-    midnight = dt.datetime.combine(date.today(), dt.time.min).timestamp()
+    midnight = datetime.combine(today, datetime.min.time()).timestamp()
     doc.write_text("no frontmatter", encoding="utf-8")
     os.utime(doc, (midnight - 1, midnight - 1))
-    assert staleness(doc, root, today=date.today())["unverified_days"] == 1
+    assert inspect_staleness(doc, root, today=today)["unverified_days"] == 1
     os.utime(doc, (midnight + 1, midnight + 1))
-    assert staleness(doc, root, today=date.today())["unverified_days"] == 0
+    assert inspect_staleness(doc, root, today=today)["unverified_days"] == 0
