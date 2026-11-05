@@ -16,6 +16,11 @@ The historical [1.5.1 installation guide](/harness/help/1-5-1/) and
 artifacts and limits. Other guides keep their stated versions; they are not
 relabeled as 1.6.0 observations.
 
+For a separate unpublished checkpoint, review the
+[1.7.0 preparation walkthroughs](/harness/help/1-7-0-preparation/). Their recorded
+wheel and software checks do not replace published onboarding or historical
+observations.
+
 Attune AI is deprecated. Use Harness for new work and read the
 [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
 before changing an existing setup. Preserve working environments, memory sources

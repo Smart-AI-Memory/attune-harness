@@ -36,10 +36,10 @@ def test_all_current_routes_and_contents_links_work(
     assert record["version"] == "1.5.1"
     assert record["status"] == status
     assert record["published_version"] == published_version
-    assert record["pages"] == 14
+    assert record["pages"] == 15
     directory = tmp_path / "site/harness/help"
     files = list(directory.rglob("index.html"))
-    assert len(files) == 14
+    assert len(files) == 15
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
@@ -59,6 +59,9 @@ def test_all_current_routes_and_contents_links_work(
         elif page.parent.name == "1-5-1-preparation":
             assert "Harness 1.5.1 preparation before publication" in text
             assert "Archived guide:" in text
+        elif page.parent.name == "1-7-0-preparation":
+            assert "Guidance target: <strong>Harness 1.7.0</strong> preparation" in text
+            assert "Unpublished; use published" in text
         elif page.parent.name == "get-started":
             assert (
                 "published <strong>Harness 1.6.0</strong>"
@@ -78,7 +81,7 @@ def test_all_current_routes_and_contents_links_work(
         assert (
             '<meta name="robots" content="index,follow">'
             if (status == "published" or page.parent.name == "get-started")
-            and page.parent.name not in {"1-5-0", "1-5-1-preparation"}
+            and page.parent.name not in {"1-5-0", "1-5-1-preparation", "1-7-0-preparation"}
             else '<meta name="robots" content="noindex,follow">'
         ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
@@ -128,7 +131,15 @@ def test_160_start_is_prominent_without_relabeling_published_guides(tmp_path):
     start = (root / "get-started/index.html").read_text()
     assert '<h1>Get started with Harness 1.6.0</h1>' in start
     assert '<meta name="robots" content="index,follow">' in start
-    assert "Preparation" not in start
+    assert (
+        '<p class="help-version-note">These instructions describe published '
+        "<strong>Harness 1.6.0</strong>. Check each walkthrough's verification limits.</p>"
+        in start
+    )
+    assert "Current release: Harness <strong>1.7.0</strong>" not in start
+    assert 'id="review-170-preparation-separately"' in start
+    assert "Harness 1.7.0 is prepared but unpublished." in start
+    assert "An index install" in start and "of 1.7.0 waits for publication." in start
     assert 'href="/harness/help/release-1.6.0.json"' in start
     assert "Current release: Harness <strong>1.6.0</strong>" in start
     assert (root / "release-1.6.0.json").read_bytes() == (

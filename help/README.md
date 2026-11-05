@@ -20,8 +20,12 @@ The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
 Get started names published 1.6.0; its release record identifies the immutable
-software source, artifacts and check boundaries. The unchanged reference guides
-keep their published 1.5.1 identity. The manifest distinguishes the current
+software source, artifacts and check boundaries. The reference guides
+keep their published 1.5.1 identity. Their prerequisite links select the explicit
+1.5.1 practice setup in Get started, which activates that release in an isolated
+environment and defines its immutable example checkout as `R`. The separate
+1.7.0 preparation links do not promote those historical observations to new
+acceptance evidence. The manifest distinguishes the current
 published version from that historical reference version.
 Published 1.5.0 observations, captures and the preparation record keep their
 original identities. A metadata-only validation wheel remains candidate evidence;
@@ -112,3 +116,14 @@ The existing website importer in `attune-ai/website/scripts/harness-help-export.
 validates and imports the static export. Refresh that import and its routing in
 a separate website PR bound to an exact merged Harness commit. A source PR or
 local preview does not deploy the Help Center.
+
+
+## Review 1.7.0 preparation locally
+
+`1-7-0-preparation.md` is a separate registered preparation topic. Its software
+checkpoint is main `9ece` and rehearsal 41961339343, not a published 1.7.0 package.
+Keep `published_version` at 1.6.0 and the historical reference version at 1.5.1.
+The new page must render as preparation with `noindex,follow`; it must not
+replace current published onboarding, release JSON, historical pages or decks.
+Record new walkthrough outcomes separately and qualify the final changed source
+and built artifacts. Local source/build checks grant no website activation.
