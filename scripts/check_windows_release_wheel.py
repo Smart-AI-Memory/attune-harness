@@ -90,7 +90,8 @@ def verify(args):
         members = {}
         for info in infos:
             name = info.filename
-            if (name in members or info.is_dir() or '\\' in name or PurePosixPath(name).is_absolute()
+            if (info.orig_filename != name or name in members or info.is_dir()
+                    or '\\' in name or PurePosixPath(name).is_absolute()
                     or '..' in PurePosixPath(name).parts or info.external_attr >> 16 & 0o170000 == 0o120000):
                 raise ValueError('Unexpected wheel member')
             members[name] = archive.read(info)

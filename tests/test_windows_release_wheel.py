@@ -81,7 +81,12 @@ def candidate(tmp_path, monkeypatch):
         wheel = dist / 'attune_harness-1.7.0-py3-none-any.whl'
         with zipfile.ZipFile(wheel, 'w') as archive:
             for name, raw in members.items():
-                archive.writestr(name, raw)
+                info = zipfile.ZipInfo(name)
+                # Preserve adversarial headers instead of host separator cleanup.
+                info.filename = name
+                archive.writestr(info, raw)
+        with zipfile.ZipFile(wheel) as archive:
+            assert {info.orig_filename for info in archive.infolist()} == set(members)
         (dist / 'attune_harness-1.7.0.tar.gz').write_bytes(b'synthetic sdist; not extracted or installed\n')
         files = {p.name: {'sha256': digest(p.read_bytes()), 'size': p.stat().st_size} for p in dist.iterdir()}
         (evidence / 'SHA256SUMS').write_text(''.join(v['sha256'] + '  dist/' + k + '\n' for k, v in sorted(files.items())))
@@ -151,9 +156,28 @@ def test_crlf_normalized_wheel_is_not_called_the_canonical_artifact(candidate):
         candidate.module.verify(candidate.args)
 
 
-@pytest.mark.parametrize('name', ['../escape.py', '/absolute.py', 'attune_harness\\escape.py'])
+@pytest.mark.parametrize('name', ['../escape.py', '/absolute.py', 'attune_harness\\escape.py',
+                                  'attune_harness/nul\x00escape.py'])
 def test_unsafe_member_inventory_is_refused(candidate, name):
     candidate.write(payloads={**candidate.source, name: b'invalid\n'})
+    with pytest.raises(ValueError, match='Unexpected wheel member'):
+        candidate.module.verify(candidate.args)
+
+
+@pytest.mark.parametrize('name', ['attune_harness\\escape.py', 'attune_harness/nul\x00escape.py'])
+def test_reader_name_normalization_is_refused(candidate, monkeypatch, name):
+    candidate.write(payloads={**candidate.source, name: b'invalid\n'})
+    original = zipfile.ZipInfo.__init__
+
+    def windows_name(self, *args, **kwargs):
+        original(self, *args, **kwargs)
+        self.filename = self.filename.replace('\\', '/')
+
+    # Exercise Windows reader normalization on every host, plus actual NUL cleanup.
+    monkeypatch.setattr(zipfile.ZipInfo, '__init__', windows_name)
+    with zipfile.ZipFile(candidate.wheel) as archive:
+        info = next(info for info in archive.infolist() if info.orig_filename == name)
+        assert info.filename != info.orig_filename
     with pytest.raises(ValueError, match='Unexpected wheel member'):
         candidate.module.verify(candidate.args)
 
