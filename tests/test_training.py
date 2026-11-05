@@ -38,6 +38,9 @@ def test_course_projection_and_static_reading_routes():
     for path, expected in builder.project().items():
         assert path.read_text(encoding="utf-8") == expected, path
     storage = set()
+    overview = (COURSE / "index.html").read_text()
+    assert 'href="development-paths.html#goal-driven"' in overview
+    assert 'href="development-paths.html#spec-driven"' in overview
     for slug in builder.SLUGS:
         lesson = json.loads((COURSE / slug / "lesson.json").read_text(encoding="utf-8"))
         assert lesson["storageKey"] not in storage
@@ -45,6 +48,8 @@ def test_course_projection_and_static_reading_routes():
         assert lesson["courseRoutes"][lesson["coursePosition"] - 1] == f"../{slug}/"
         assert "1.5.1" not in json.dumps(lesson)
         assert lesson.get("sections")
+        if slug in {"01-define", "02-build"}:
+            assert "../development-paths.html" in "".join(s["html"] for s in lesson["sections"])
         assert any(section.get("check") for section in lesson["sections"])
         assert 'href="read.html"' in (COURSE / slug / "index.html").read_text()
         reading = (COURSE / slug / "read.html").read_text()

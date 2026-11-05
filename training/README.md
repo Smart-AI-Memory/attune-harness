@@ -4,6 +4,10 @@ Open the [current course](1.7.0-preparation/index.html): **Harness in practice**
 Six lessons follow one reporting project from a useful goal through a checked
 result, saved work, review, a local handoff and a proposed improvement.
 
+[Choose how to start](1.7.0-preparation/development-paths.html) compares
+goal-driven and spec-driven development, with examples and the review points
+both paths share. It is linked from the overview and the first two lessons.
+
 The course targets **1.7.0 preparation**, which is unpublished. Its
 [setup page](1.7.0-preparation/setup.html) selects a separate noneditable wheel
 environment. The lessons use fresh offline checks; they start no model calls.

@@ -32,6 +32,7 @@
     "machine_evidence": "training/1.7.0-preparation/assets/current-checks.json",
     "offline_practice": "training/1.7.0-preparation/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
+    "development_paths": "training/1.7.0-preparation/development-paths.html",
     "website_delivery": "A separate website integration must import the reviewed course and verify its routes; this source change does not deploy it."
   },
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
