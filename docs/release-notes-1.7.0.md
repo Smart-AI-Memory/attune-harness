@@ -73,7 +73,10 @@ Redis or Voyage only for the integration you intend to use. Follow the
 [installation guide](installation.md) and keep the previous environment,
 participant registry, saved work and memory setup intact.
 
-The Claude marketplace and deployed Help Center remain on 1.6.0 until separately
-authorized updates. This preparation does not create a tag, publish packages,
-deploy documentation or update the live marketplace. Older release and tutorial
+The Claude marketplace remains pinned to 1.6.0 until separately
+authorized updates. Source Help onboarding targets 1.6.0; the live Help
+deployment was not verified. Review the separate 1.7.0 preparation walkthroughs
+and website-import gates before describing them as delivered guidance. This
+preparation does not create a tag, publish packages, deploy documentation or
+update the live marketplace. Older release and tutorial
 records retain their original version labels and evidence.

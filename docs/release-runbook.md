@@ -101,6 +101,13 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    environment, so it cannot upload anything. A change to that workflow's
    own action pins or steps is exercised nowhere else, so a rehearsal is
    owed after any such change, before the next `publish=true`.
+   The Windows Server 2022/2025 consumers install the same Ubuntu-built,
+   checksum-verified wheel from that run. Each runs the standard `voyage,redis`
+   installed qualifier and the separate offline `memory-native` SDK profile in
+   fresh environments. Both Windows cells must succeed before either publishing
+   job can proceed. `publish=false` exercises these consumers without entering
+   a publishing environment or uploading to a package index. Read their actual
+   artifact identities and results; configuration alone does not qualify a wheel.
 5. **Publish.** Dispatch again with `publish=true`:
 
    ```bash

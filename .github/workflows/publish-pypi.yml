@@ -36,6 +36,11 @@ jobs:
     permissions:
       contents: read
       actions: read
+    outputs:
+      distributions_id: ${{ steps.distributions.outputs.artifact-id }}
+      distributions_digest: ${{ steps.distributions.outputs.artifact-digest }}
+      release_evidence_id: ${{ steps.release-evidence.outputs.artifact-id }}
+      release_evidence_digest: ${{ steps.release-evidence.outputs.artifact-digest }}
     env:
       RELEASE_SHA: ${{ inputs.release_sha }}
       RELEASE_VERSION: ${{ inputs.version }}
@@ -98,25 +103,184 @@ jobs:
           python scripts/check_installed.py --python "$RUNNER_TEMP/release-with-deps/bin/python" --mode all --report "$RUNNER_TEMP/release-evidence/with-deps.json"
           python -c 'import json,sys; j=json.load(open(sys.argv[1]))["journey"]; assert j["forms_installed"] is True and j["plan"]=="draft" and j["accept"]=="accepted" and j["build"]=="completed" and j["controls_run"]==["control:baseline"] and j["review"]=="completed" and j["status"]=="completed" and j["adapters"]==["command","deterministic"] and j["model_calls"]==0, j' "$RUNNER_TEMP/release-evidence/with-deps.json"
           sha256sum dist/* > "$RUNNER_TEMP/release-evidence/SHA256SUMS"
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          files = {p.name: {'sha256': hashlib.sha256(p.read_bytes()).hexdigest(), 'size': p.stat().st_size} for p in pathlib.Path('dist').iterdir()}
+          manifest = {'schema_version': 1, 'repository': os.environ['GITHUB_REPOSITORY'], 'workflow_run_id': int(os.environ['GITHUB_RUN_ID']), 'workflow_run_attempt': int(os.environ['GITHUB_RUN_ATTEMPT']), 'commit': os.environ['RELEASE_SHA'], 'version': os.environ['RELEASE_VERSION'], 'target': os.environ['RELEASE_TARGET'], 'files': files}
+          (pathlib.Path(os.environ['RUNNER_TEMP']) / 'release-evidence/windows-consumer-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          PY
           if [[ "$RELEASE_TARGET" == testpypi ]]; then
             python scripts/check_testpypi_rehearsal.py manifest --dist dist --output "$RUNNER_TEMP/release-evidence/artifact-manifest.json"
             python scripts/check_testpypi_rehearsal.py verify-local --manifest "$RUNNER_TEMP/release-evidence/artifact-manifest.json" --dist dist
           fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: distributions
         with:
           name: distributions
           path: dist/
           if-no-files-found: error
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: release-evidence
         if: always()
         with:
           name: release-evidence
           path: ${{ runner.temp }}/release-evidence/
           if-no-files-found: warn
 
+  windows-release-wheel:
+    name: Release wheel / ${{ matrix.os }} / Python 3.12
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    env:
+      PYTHONUTF8: '1'
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_TARGET: ${{ inputs.target }}
+      DISTRIBUTIONS_ID: ${{ needs.build.outputs.distributions_id }}
+      DISTRIBUTIONS_DIGEST: ${{ needs.build.outputs.distributions_digest }}
+      RELEASE_EVIDENCE_ID: ${{ needs.build.outputs.release_evidence_id }}
+      RELEASE_EVIDENCE_DIGEST: ${{ needs.build.outputs.release_evidence_digest }}
+    steps:
+      - name: Preserve canonical Git bytes before checkout
+        shell: bash
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Initialize owned release evidence paths
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          paths = {
+              'WINDOWS_RELEASE_DIST': 'release-windows-distributions',
+              'WINDOWS_RELEASE_BUILD_EVIDENCE': 'release-windows-build-evidence',
+              'WINDOWS_RELEASE_EVIDENCE': 'release-windows-evidence',
+              'WINDOWS_RELEASE_NATIVE_OUTPUT': 'release-windows-evidence/native',
+          }
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as environment:
+              for name, relative in paths.items():
+                  environment.write(f'{name}={root / relative}\n')
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.distributions_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: ${{ env.WINDOWS_RELEASE_DIST }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.release_evidence_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: ${{ env.WINDOWS_RELEASE_BUILD_EVIDENCE }}
+      - name: Verify same-run distributions and canonical source before installation
+        shell: bash
+        run: python -I scripts/check_windows_release_wheel.py --dist "$WINDOWS_RELEASE_DIST" --evidence "$WINDOWS_RELEASE_BUILD_EVIDENCE" --output "$WINDOWS_RELEASE_EVIDENCE/archive.json"
+      - name: Create fresh supported-profile environment
+        shell: pwsh
+        run: |
+          $profileRoot = Join-Path $env:RUNNER_TEMP 'release-windows-base'
+          python -m venv $profileRoot
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$profileRoot/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install the verified wheel with normal qualification dependencies
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os, pathlib, subprocess, sys
+          wheel = pathlib.Path(os.environ['WINDOWS_RELEASE_DIST']) / ('attune_harness-' + os.environ['RELEASE_VERSION'] + '-py3-none-any.whl')
+          subprocess.run([sys.executable, '-m', 'pip', '--isolated', '--disable-pip-version-check', 'install', '--no-cache-dir', '--index-url', 'https://pypi.org/simple/', '-c', 'requirements-workflow.lock', '-c', 'requirements-voyage.lock', '-c', 'requirements-mcp.lock', '-c', 'requirements-tokens.lock', '-c', 'requirements-redis.lock', 'pytest==9.1.1', 'attune-harness[voyage,redis] @ ' + wheel.resolve().as_uri()], check=True)
+          PY
+          python -m pip check
+          python -m pip list --format=json > "$WINDOWS_RELEASE_EVIDENCE/base-dependencies.json"
+          python -I scripts/check_windows_release_wheel.py --installed --dist "$WINDOWS_RELEASE_DIST" --evidence "$WINDOWS_RELEASE_BUILD_EVIDENCE" --output "$WINDOWS_RELEASE_EVIDENCE/base-before.json"
+      - name: Retain the unchanged native Windows startup diagnostic
+        shell: pwsh
+        run: |
+          $diagnosticExit = 1
+          try {
+            python -I experiments/platform/diagnose_windows_environment.py
+            $diagnosticExit = $LASTEXITCODE
+          } finally {
+            $source = Join-Path $env:GITHUB_WORKSPACE 'windows-environment-diagnostic'
+            if (Test-Path $source) {
+              Move-Item -LiteralPath $source -Destination (Join-Path $env:WINDOWS_RELEASE_EVIDENCE 'startup-diagnostic') -ErrorAction Stop
+            }
+          }
+          exit $diagnosticExit
+      - name: Qualify this installed release wheel without instrumentation
+        shell: bash
+        run: python -I scripts/qualify_platform.py --output "$WINDOWS_RELEASE_EVIDENCE/base"
+      - name: Require the existing negative environment guard witness
+        shell: bash
+        run: |
+          python -I experiments/platform/check_windows_environment_guard.py --output "$WINDOWS_RELEASE_EVIDENCE/base/environment-guard"
+          python -I scripts/check_windows_release_wheel.py --installed --dist "$WINDOWS_RELEASE_DIST" --evidence "$WINDOWS_RELEASE_BUILD_EVIDENCE" --output "$WINDOWS_RELEASE_EVIDENCE/base-after.json"
+      # Separate SDK component profile: preserve the base qualifier's absence guard.
+      - name: Create fresh optional native SDK environment
+        shell: pwsh
+        run: |
+          $profileRoot = Join-Path $env:RUNNER_TEMP 'release-windows-native'
+          python -m venv $profileRoot
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Resolve-Path "$profileRoot/Scripts").Path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Install the same verified wheel with only the native SDK extra
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os, pathlib, subprocess, sys
+          wheel = pathlib.Path(os.environ['WINDOWS_RELEASE_DIST']) / ('attune_harness-' + os.environ['RELEASE_VERSION'] + '-py3-none-any.whl')
+          subprocess.run([sys.executable, '-m', 'pip', '--isolated', '--disable-pip-version-check', 'install', '--no-cache-dir', '--index-url', 'https://pypi.org/simple/', '-c', 'requirements-workflow.lock', '-c', 'requirements-mcp.lock', '-c', 'requirements-tokens.lock', '-c', 'requirements-voyage.lock', '-c', 'requirements-redis.lock', 'pytest==9.1.1', 'attune-harness[memory-native] @ ' + wheel.resolve().as_uri()], check=True)
+          PY
+          python -m pip check
+          python -m pip list --format=json > "$WINDOWS_RELEASE_EVIDENCE/native-dependencies.json"
+          python -I scripts/check_windows_release_wheel.py --installed --dist "$WINDOWS_RELEASE_DIST" --evidence "$WINDOWS_RELEASE_BUILD_EVIDENCE" --output "$WINDOWS_RELEASE_EVIDENCE/native-before.json"
+      - name: Retain the installed native SDK runtime identity
+        shell: bash
+        run: |
+          python -I - "$WINDOWS_RELEASE_NATIVE_OUTPUT" <<'PY'
+          import sys
+          import hashlib,json,pathlib,platform,runpy; check=runpy.run_path('scripts/qualify_platform.py'); source=check['installed_source'](); from attune_harness.memory_native import runtime_identity; out=pathlib.Path(sys.argv[1]); out.mkdir(); (out/'runtime.json').write_text(json.dumps({'installed_source':str(source),'system':platform.system(),'machine':platform.machine(),'runtime':runtime_identity(),'memory_native_sha256':hashlib.sha256((source/'memory_native.py').read_bytes()).hexdigest()},sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Exercise the existing offline native SDK component selection
+        timeout-minutes: 15
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+          HARNESS_REQUIRE_NATIVE_SDK: '1'
+          HARNESS_NATIVE_MEMORY_OUTPUT: ${{ env.WINDOWS_RELEASE_NATIVE_OUTPUT }}/children
+        run: python -I -m pytest -vv -o pythonpath= -p no:cacheprovider --junitxml="$WINDOWS_RELEASE_NATIVE_OUTPUT/tests.xml" tests/test_memory_native_sdk.py tests/test_memory_native_boundaries.py
+      - name: Require all existing offline native SDK witnesses
+        shell: bash
+        run: |
+          python -I - "$WINDOWS_RELEASE_NATIVE_OUTPUT" <<'PY'
+          import sys
+          import json,pathlib,xml.etree.ElementTree as E; out=pathlib.Path(sys.argv[1]); suites=E.parse(out/'tests.xml').getroot().findall('testsuite'); assert suites and sum(int(s.get('tests','0')) for s in suites)==94 and all(int(s.get(k,'0'))==0 for s in suites for k in ('failures','errors','skipped')); witnesses=[json.loads(p.read_bytes()) for p in (out/'children').glob('*.json')]; assert len(witnesses)==13; assert sum(w['offline_sdk_requests'] for w in witnesses)==12; assert all(w['external_network_attempts']==w['live_provider_model_calls']==w['home_lookups']==0 and len(w['network_guard_checks'])==4 and len(w['interpreter_argv'])==len(w['supervisor_requested_argv'])==5 for w in witnesses); control=json.loads((out/'children/controls/process-exit.json').read_bytes()); assert control['before_gate']['terminated'] is False and control['after_gate']['terminated'] is True and control['reference_closed'] is True and control['marker']=='escaped'; exits=[w for w in witnesses if w.get('descendant_spawned')]; assert len(exits)==1 and exits[0]['descendant_exit_observation']['terminated'] is True; assert exits[0]['descendant_marker_pid']==exits[0]['descendant_reference']['pid']==exits[0]['descendant_exit_observation']['pid']; assert control['marker_pid']==control['before_gate']['pid']==control['after_gate']['pid']; methods=('retained-process-handle',) if json.loads((out/'runtime.json').read_bytes())['system']=='Windows' else ('os-process-identity','pidfd'); assert exits[0]['descendant_exit_observation']['method'] in methods; (out/'summary.json').write_text(json.dumps({'status':'offline_software_checks_passed','child_witnesses':len(witnesses),'offline_sdk_requests':sum(w['offline_sdk_requests'] for w in witnesses),'live_provider_model_calls':0,'external_network_attempts':0,'live_model_quality':'not_qualified'},sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          PY
+          python -I scripts/check_windows_release_wheel.py --installed --dist "$WINDOWS_RELEASE_DIST" --evidence "$WINDOWS_RELEASE_BUILD_EVIDENCE" --output "$WINDOWS_RELEASE_EVIDENCE/native-after.json"
+      - name: Keep exact release-wheel Windows evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-wheel-${{ matrix.os }}-3.12
+          path: ${{ env.WINDOWS_RELEASE_EVIDENCE }}/
+          include-hidden-files: true
+          if-no-files-found: error
+
   publish:
     if: inputs.publish && inputs.target == 'pypi'
-    needs: build
+    needs: [build, windows-release-wheel]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: pypi
@@ -131,7 +295,7 @@ jobs:
 
   publish_testpypi:
     if: inputs.publish && inputs.target == 'testpypi'
-    needs: build
+    needs: [build, windows-release-wheel]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: testpypi

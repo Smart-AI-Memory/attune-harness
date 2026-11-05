@@ -50,6 +50,26 @@ pass. A documentation-only pull request can skip the platform matrix; lint and
 links must still pass. A failed, cancelled, skipped or missing lint result fails
 the aggregate check.
 
+## Exact release-wheel consumers
+
+The [release workflow](../.github/workflows/publish-pypi.yml) also downloads its
+Ubuntu build's immutable distributions and evidence into Windows Server 2022
+and 2025 consumers. These jobs verify the run, attempt, release SHA, version,
+checksums, wheel RECORD and canonical Git payloads before installation. They
+preserve LF checkout bytes and install that same wheel; the ordinary platform
+matrix instead builds a wheel on each runner.
+
+Each release consumer uses separate fresh environments for the standard
+`voyage,redis` installed qualification and the existing offline `memory-native`
+SDK checks. The base profile's provider-SDK absence guard remains unchanged.
+Both consumers must pass before a publishing job can proceed. A configured job
+or local guard test does not establish a Windows observation; retain the exact
+run and installed-artifact receipts when it executes.
+
+Functional qualification does not recover missing historical coverage traces.
+Keep malformed or incomplete tracing receipts and their unmeasured scope
+explicit; do not infer complete coverage from passing native Windows checks.
+
 ## Optional funding qualification
 
 Default hosted source and installed jobs select `voyage,redis`. They omit
@@ -64,8 +84,13 @@ The platform qualifier's post-suite installed check requires provider SDKs to
 be absent. A profile that also installs `memory-native` therefore fails that
 guard even when its pytest selection passes. Preserve that failure; do not
 remove or bypass the absence assertion to call the combined profile qualified.
-SDK-specific checks and a future dedicated native-memory qualification remain
-separate from the supported plan-OAuth profile.
+The separate [native memory offline SDK workflow](../.github/workflows/native-memory-offline.yml)
+uses an installed `memory-native` wheel and requires 94 passing SDK/boundary
+checks and complete child witnesses with zero external network or live model
+calls. Its hosted matrix covers Ubuntu and Windows Server 2022/2025 with
+Python 3.12. Results apply to the recorded source, installed artifact and runtime.
+The combined optional profile and live-provider/model acceptance remain
+unqualified; keep this evidence separate from plan-OAuth qualification.
 
 The plan runtime admits only macOS arm64 / CPython 3.12.2 with the pinned
 dependencies. Other platform jobs can test refusals and inert witnesses; they

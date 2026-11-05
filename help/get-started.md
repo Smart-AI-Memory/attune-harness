@@ -105,6 +105,64 @@ retain that release's installation procedure, source and artifact identities.
 The [documentation archive](/harness/help/archive/) keeps older walkthroughs
 and their original limits.
 
+## Prepare the 1.5.1 practice examples
+
+The [Start and continue](/harness/help/start-and-continue/),
+[Plan and accept](/harness/help/plan-and-accept/),
+[Research](/harness/help/research/) and
+[Save and resume](/harness/help/save-and-resume/) practice guides retain their
+published 1.5.1 commands and historical observations. Use this separate setup
+for those guides. The managed 1.6.0 installation above does not activate a
+1.5.1 Python environment or supply the example checkout.
+
+Open a fresh POSIX shell on macOS or Linux and choose an unused working directory.
+On macOS, use a canonical path under `/private/tmp` rather than the `/tmp` symlink.
+Run:
+
+```sh
+PRACTICE="$PWD/harness-1.5.1-practice"
+mkdir "$PRACTICE"
+cd "$PRACTICE"
+python3.12 -m venv .venv
+. .venv/bin/activate
+python -m pip install 'attune-harness==1.5.1'
+git clone --no-checkout https://github.com/Smart-AI-Memory/attune-harness.git release-source
+R="$(cd release-source && pwd -P)"
+git -C "$R" checkout --detach ebb5b03b8a4398325df7ddabd28c08186451452e
+python -c "from importlib.metadata import version; assert version('attune-harness') == '1.5.1'; print(version('attune-harness'))"
+python -m attune_harness
+```
+
+**Expected result:** Version `1.5.1`, a verified local demonstration receipt, and
+`R` naming the absolute source checkout for that same release. Keep this shell
+open for the practice guide. Its task directories belong beside `release-source`,
+outside the checkout. The examples are source files, not wheel contents.
+
+These are POSIX practice instructions, not a new Windows shell qualification.
+The [1.5.1 release record](/harness/help/release-1.5.1.json) retains its exact
+artifact identities and original evidence. Use another shell for the managed
+1.6.0 CLI above, or run `deactivate` when finished with the practice environment.
+
+## Review 1.7.0 preparation separately
+
+Harness 1.7.0 is prepared but unpublished. Review the separate
+[1.7.0 preparation walkthroughs](/harness/help/1-7-0-preparation/) before
+choosing that exact practice wheel. Use the
+[1.7.0 installation guidance](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
+for a local reviewed wheel, and inspect the
+[readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.7.0.md)
+and [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-notes-1.7.0.md)
+for exact software evidence and remaining publication gates. An index install
+of 1.7.0 waits for publication. The 1.5.1 practice setup above remains a separate
+historical route; its observations are not 1.7.0 acceptance evidence.
+
+The legacy command environment remains available in 1.7.0, with removal no
+earlier than 1.8.0. API and plan funding have offline software evidence;
+real account/model eligibility, native Keychain interoperability, quota and
+billing remain unestablished. Hydration capture and ledger work is groundwork;
+keep existing writers and host hooks. Source preparation does not deploy Help
+or replace delivered tutorial decks.
+
 ## Sources and verification
 
 The [1.6.0 release record](/harness/help/release-1.6.0.json) identifies the

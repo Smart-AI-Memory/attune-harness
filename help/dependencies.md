@@ -1,5 +1,10 @@
 ## What the inspected base install supplies
 
+For a separately recorded unpublished wheel, use the
+[1.7.0 preparation walkthroughs](/harness/help/1-7-0-preparation/). Keep its
+environment and software evidence separate from the historical reference below.
+
+
 [Get started with published 1.6.0](/harness/help/get-started/) for current
 installation guidance; it requires Python 3.12 or later. This reference retains
 its 1.5.1 dependency and walkthrough identities. Published 1.5.1 retains its
