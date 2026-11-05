@@ -330,6 +330,11 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             if published
             else f'Guidance target: <strong>Harness {html.escape(version)}</strong> preparation. Unpublished; use published {html.escape(manifest["published_version"])} until release.'
         )
+        if not slug:
+            notice = (
+                f'Current published setup: <strong>Harness {html.escape(manifest["published_version"])}</strong>. '
+                "Preparation guidance and historical records are labeled separately."
+            )
         if topic.get("archived"):
             original = (
                 f"published <strong>Harness {html.escape(version)}</strong>"
@@ -375,11 +380,11 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
             page_intro=(
                 ""
                 if is_goals
-                else f'<nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">{html.escape(title)}</span></nav><p class="help-eyebrow">Attune Harness · {html.escape(version)}</p><h1>{html.escape(title)}</h1><p class="help-lead">{html.escape(goal)}</p><p class="help-version-note">{notice}</p>'
+                else f'<nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">{html.escape(title)}</span></nav><p class="help-eyebrow">Attune Harness{(" · " + html.escape(version)) if slug else ""}</p><h1>{html.escape(title)}</h1><p class="help-lead">{html.escape(goal)}</p><p class="help-version-note">{notice}</p>'
             ),
             contents=(
                 ""
-                if is_goals
+                if is_goals or not slug
                 else f'<nav class="help-contents" aria-label="On this page"><h2>On this page</h2>{renderer.toc}</nav>'
             ),
             head=(

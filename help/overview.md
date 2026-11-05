@@ -1,13 +1,10 @@
-## Harness in practice
-
-Follow six guided reporting lessons to define a useful result, build a report,
-return to saved work, review the evidence, prepare a local handoff and improve
-the tool for your needs.
-
-**Harness 1.7.0 preparation.** The package is unpublished. The course identifies
-its current source and local checks separately from published onboarding.
-
-[**Start the guided course**](/harness/learn/).
+<section class="help-card help-course" aria-labelledby="harness-in-practice">
+<p class="help-eyebrow">Guided learning · Harness 1.7.0 preparation</p>
+<h2 id="harness-in-practice">Harness in practice</h2>
+<p>Follow six guided reporting lessons: define a useful result, build a report, return to saved work, review the evidence, prepare a local handoff and improve the tool.</p>
+<p>The course is a draft for the unpublished Harness 1.7.0 package. Its source and local checks are separate from published onboarding.</p>
+<p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/">Start the guided course</a></p>
+</section>
 
 ## Choose what you want to accomplish
 
@@ -21,11 +18,6 @@ build**, or choose planning, implementation, verification or saved work.
 runtime, check a local result, connect your assistant and choose goal-driven or
 spec-driven development. Its [release record](/harness/help/release-1.6.0.json)
 identifies the published artifacts and their verification limits.
-
-The historical [1.5.1 installation guide](/harness/help/1-5-1/) and
-[release record](/harness/help/release-1.5.1.json) retain their original source,
-artifacts and limits. Other guides keep their stated versions; they are not
-relabeled as 1.6.0 observations.
 
 For a separate unpublished checkpoint, review the
 [1.7.0 preparation walkthroughs](/harness/help/1-7-0-preparation/). Their recorded
@@ -59,3 +51,8 @@ Historical 1.3.0 and candidate walkthroughs remain in the Harness repository
 with their original source and artifact records. Harness owns and builds this
 Help Center; its [1.5.1 release record](/harness/help/release-1.5.1.json)
 distinguishes software checks from walkthrough and platform acceptance.
+
+## Historical documents
+
+[Browse the historical archive](/harness/help/archive/) for superseded
+installation guides and original release and preparation records.
