@@ -1,5 +1,40 @@
 # Engineering opportunity log
 
+## Training and discovery review — November 5, 2026
+
+O-04/O-09/O-16/O-36 — **R6** lens. The broader goal is a user who can find the
+right instruction, direct a useful task and inspect its result. Source
+`5159e7a79fbdb84d2982937716043b142534e6e9` contains current preparation Help,
+while browser inspection of the public Help landing on November 5 still shows
+1.5.1 and no training-course route. The recovered reporting lesson existed as a
+local HTML artifact, outside the maintained documentation tree. Retained plans
+identify an earlier first-task lesson, but its HTML/package was not recovered.
+A working preview or an old source pointer did not make those lessons findable
+from the website.
+
+The [maintained training source](../training/README.md) now contains six lessons,
+interactive and static reading views, presenter scripts, a checked download and
+an offline 1.7.0 practice. Fresh installed-wheel work completed both protected
+77-case probes with seven protected files unchanged. Independent review found
+that static reading invited notes it could not save; the projection now removes
+editable fields and states that limit. A table-format finding was also corrected.
+Current lessons and superseded historical documents have separate entry points.
+This evidence establishes local software behavior, not newcomer comprehension,
+model quality, a published release or website delivery.
+
+Candidate follow-up: use the [content map](content-map.json) to import one
+reviewed Help/training export into the website. Keep task names in primary
+navigation, static text available to readers and agents, and superseded material
+in a secondary archive. Done when the live routes, source hashes, downloads and
+current/archive navigation match the selected export, with an actual
+website-to-lesson journey retained. Effort: a separate website integration PR;
+deployment and release gates retain their existing authority.
+
+The user encounters O-04 first when following the website's Help link. The
+remaining gap is delivery and discoverability, rather than another set of
+version-named pages. This entry authorizes no implementation outside the
+accepted task, model call, merge, publication or deployment.
+
 ## Release preparation review — November 4, 2026
 
 O-07 — **next** lens. The broader goal is a release whose installation and
