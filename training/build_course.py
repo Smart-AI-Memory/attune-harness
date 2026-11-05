@@ -109,7 +109,9 @@ def project():
 
 
 def page(title, content, stylesheet, course):
-    navigation = f'<p><a href="{course}">Course overview</a></p>' if course else ''
+    navigation = '<p><a href="https://smartaimemory.com/harness/help/">Help Center</a></p>'
+    if course:
+        navigation += f'<p><a href="{course}">Course overview</a></p>'
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width,initial-scale=1">'
             '<meta name="robots" content="noindex,follow">'

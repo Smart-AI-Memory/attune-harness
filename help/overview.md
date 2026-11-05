@@ -1,3 +1,14 @@
+## Harness in practice
+
+Follow six guided reporting lessons to define a useful result, build a report,
+return to saved work, review the evidence, prepare a local handoff and improve
+the tool for your needs.
+
+**Harness 1.7.0 preparation.** The package is unpublished. The course identifies
+its current source and local checks separately from published onboarding.
+
+[**Start the guided course**](/harness/learn/).
+
 ## Choose what you want to accomplish
 
 [Browse all goals](/harness/help/goals/) for prompts, instructions and review

@@ -22,7 +22,7 @@
     "observation_limit": "Browser inspection of the public Help landing, not deployment-source verification."
   },
   "training": {
-    "publication_status": "local draft; Harness 1.7.0 preparation",
+    "publication_status": "draft course; Harness 1.7.0 preparation (package unpublished)",
     "content": "training/1.7.0-preparation/*/lesson.json",
     "shared_shell": "training/lesson-template.html",
     "shared_interactions": "training/1.7.0-preparation/assets/app.js",
@@ -33,7 +33,7 @@
     "offline_practice": "training/1.7.0-preparation/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
     "development_paths": "training/1.7.0-preparation/development-paths.html",
-    "website_delivery": "A separate website integration must import the reviewed course and verify its routes; this source change does not deploy it."
+    "website_delivery": "Website integration is in preparation; source changes and local previews do not establish production deployment."
   },
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
   "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."
