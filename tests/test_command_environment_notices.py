@@ -100,3 +100,5 @@ def test_registered_notice_matches_runtime_constant():
     from pathlib import Path
     register = json.loads((Path(__file__).parents[1]/'docs/deprecations.json').read_text())
     assert ce.NOTICE in register
+    assert ce.NOTICE['since'] == '1.6.0'
+    assert ce.NOTICE['removal'] == '1.8.0'

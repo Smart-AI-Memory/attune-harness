@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.7.0
+
+Prepared for release; publication and exact-main qualification remain separate
+gates. Requires Python 3.12 or later. See the [release notes](docs/release-notes-1.7.0.md)
+and [readiness record](docs/release-readiness-1.7.0.md).
+
+- Retain legacy command participants' full parent environment inheritance.
+  Explicitly postpone its earliest removal from 1.7.0 to 1.8.0; the first notice
+  remains 1.6.0. Keep runtime notices, the active register and migration guidance
+  aligned without weakening the overdue-deprecation guard.
+- Add internal hydration-writer primitives for authorized source capture,
+  complete-record secret checks and generation-payload accounting (#318).
+  Hydration commands, Redis generation publication/cleanup and automatic
+  fresh-session delivery remain unfinished; keep existing writers and host hooks.
+- Clarify the first plan/build procedure and its separate scope acceptance,
+  execution permission, checkpoint corrections and result inspection (#337).
+
 - Add the explicit `openai-plan` subscription adapter alongside API funding,
   app-owned OAuth/Keychain profiles, and a bounded one-request HTTPS/SSE worker.
   Profile inspection stays local; live account/model qualification remains
@@ -13,11 +30,11 @@
   Direct API configuration never replaces an existing native participant.
 - Accept optional native participant funding configuration for Claude/Codex
   subscriptions and Codex API use. Preserve legacy configurations. Explicitly
-  funded participants currently refuse execution before provider dispatch until
+  funded native Claude/Codex participants currently refuse execution before provider dispatch until
   invocation-level route enforcement is qualified; configuration support alone
   does not enable a funding route or authorize API spending.
 - Return a structured unsupported funding report and exit 2 from consultation
-  **`check`** for explicitly funded seats. Skip their unqualified authentication
+  **`check`** for explicitly funded native Claude/Codex seats. Skip their unqualified authentication
   probes; inspection remains advisory and starts no model call.
 
 ## 1.6.0
