@@ -146,11 +146,10 @@ Add the marketplace and install the plugin:
 /plugin install attune-harness@attune-harness
 ```
 
-The marketplace still selects version 1.6.0, pinned to the released source at
-`af2159516a67172cc8f2a1ff62213296b1b67112`. Existing installations need a
+The marketplace selects version 1.7.0, pinned to the released source at
+`5159e7a79fbdb84d2982937716043b142534e6e9`. Existing installations need a
 marketplace refresh and plugin update; verify the selected version and source.
-The Python runtime and host plugin are separate installations. The marketplace
-will move to 1.7.0 only through its separate post-publication update.
+The Python runtime and host plugin are separate installations.
 
 The plugin includes Harness workflows, cross-review, roundtable and smart-test
 instructions. It calls the separately installed `attune-harness` runtime.
