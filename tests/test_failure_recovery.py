@@ -141,8 +141,8 @@ def source_app(tmp_path, source=solutions.GOOD, extra=solutions.SUPPLEMENTAL):
     app = (tmp_path / "app").resolve()
     (app / "src").mkdir(parents=True)
     (app / "tests/generated").mkdir(parents=True)
-    (app / "src/report.py").write_text(source, encoding="utf-8")
-    (app / "tests/generated/test_report_extra.py").write_text(extra, encoding="utf-8")
+    (app / "src/report.py").write_text(source, encoding="utf-8", newline="")
+    (app / "tests/generated/test_report_extra.py").write_text(extra, encoding="utf-8", newline="")
     return app
 
 
@@ -189,7 +189,7 @@ def test_supplemental_cannot_qualify_wrong_final_source(tmp_path):
 
 def test_oracle_rejects_replacement_of_executed_copy(tmp_path):
     source = solutions.GOOD + '\noriginal_export = export_csv\ndef export_csv(*args, **kwargs):\n'
-    source += '    from pathlib import Path\n    Path(__file__).write_text(' + repr(solutions.GOOD) + ', encoding="utf-8")\n'
+    source += '    from pathlib import Path\n    Path(__file__).write_text(' + repr(solutions.GOOD) + ', encoding="utf-8", newline="")\n'
     source += '    return original_export(*args, **kwargs)\n'
     app = source_app(tmp_path, source)
     output = (tmp_path / "oracle").resolve()
