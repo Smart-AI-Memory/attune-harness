@@ -129,10 +129,12 @@ implementation-level `raise` citations are unavailable for this host.
 
 ## Verification and remaining gate
 
-Patrick approved D1–D6 and selected T1 after reviewing this draft. This spec
-records source inspection only; it does not record completed implementation.
-T1/T2 must exercise concrete adapter commands and
-injection triggers; unsupported cells cannot be silently replaced by mocks.
+Patrick approved D1–D6 and selected T1 after reviewing this draft. The
+[offline T1 controls](../../../experiments/failure_recovery/README.md) implement
+the fixture, real Harness command owners, independent verdict and bounded
+evidence collection. Their receipts qualify software controls only. T2 must
+exercise concrete live adapter commands and injection triggers; unsupported
+cells cannot be silently replaced by mocks.
 Live work additionally waits for exact runtime/profile eligibility, approved
 models/funding, a spending ceiling and the frozen campaign manifest.
 
