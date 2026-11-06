@@ -13,7 +13,7 @@ import sys
 from attune_harness import work_effects
 from attune_harness.work_contract import SIGNALS, create_work
 
-from . import bounds, oracle, solutions
+from . import bounds, oracle, recorder, solutions
 
 HERE = Path(__file__).resolve().parent
 OUTPUTS = ["src/report.py", "tests/generated/test_report_extra.py"]
@@ -94,6 +94,7 @@ def prepare_packet(root):
                 "scope": OUTPUTS, "protected": PROTECTED, "test_inventory": INVENTORY, "expected_initial_red": RED,
                 "controls": {name: {"proposal_mode": mode, "expected_outcome": outcome} for name, (mode, outcome) in CONTROLS.items()},
                 "owner": owner_identity(),
+                "observer_recovery": recorder.recovery_policy(),
                 "writable_metadata": [], "unobserved_metadata": [".git/**"],
                 "metadata_policy": "Git internals are outside observation; no product-output authority is added",
                 "challenge_exposure": "not_exposed: T1 freezes attachments but does not qualify live role delivery",
@@ -114,6 +115,8 @@ def verify_packet(root):
         raise ValueError("Frozen scope or metadata policy changed")
     if protocol["controls"] != {name: {"proposal_mode": mode, "expected_outcome": outcome} for name, (mode, outcome) in CONTROLS.items()}:
         raise ValueError("Frozen control inventory changed")
+    if protocol.get("observer_recovery") != recorder.recovery_policy() or list(recorder.RECOVERY_PATHS) != OUTPUTS:
+        raise ValueError("Frozen observer recovery policy changed")
     if protocol["owner"] != owner_identity():
         raise ValueError("Offline owner identity changed; use a new packet")
     if {p.name: bounds.sha(bounds.read_bytes(p)) for p in (root / "frozen").iterdir()} != protocol["frozen_sha256"]:
@@ -192,6 +195,6 @@ def _prepare_trial(root, mode):
                           "checks": ["Original visible feature tests pass"]}],
                "inputs": ["src/report.py", "tests/test_report.py", "data/rows.json"], "artifact": None,
                "budget": BUDGET, "controls": [control], "effects": effects}
-    bounds.write_json(root / "request.json", request)
+    bounds.write_json(root / "request.json", request, maximum=bounds.MAX_EVIDENCE)
     record = create_work(app, app / "participants.json", directory=state, **request)
     return root, record

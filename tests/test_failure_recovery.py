@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import socket
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -42,15 +43,45 @@ def qualified(tmp_path_factory):
         if not row["qualified"]:
             name = row["control"]
             errors[name] = bounds.read_json(output / (name + "-collection-error.json"))
+            record = output / name / "task/record.json"
+            if record.exists():
+                build = bounds.read_json(record, bounds.MAX_RETAINED_FILE).get("build", {})
+                errors[name]["owner"] = {key: build.get(key) for key in ("status", "error")}
+            observation = output / name / "observation/report.json"
+            if observation.exists():
+                report = bounds.read_json(observation)
+                errors[name]["observation"] = {key: report.get(key) for key in ("gaps", "exhausted", "finished", "samples", "event_count")}
             verdict = output / name / "verdict.json"
             if verdict.exists():
                 errors[name]["verdict"] = bounds.read_json(verdict)
-    assert result["passed"], errors
+            else:
+                process = output / name / "initial-tests/pytest-process.json"
+                if process.exists():
+                    errors[name]["initial_process"] = bounds.read_json(process)
+                    for field in ("stdout", "stderr"):
+                        path = process.with_name("pytest-" + field + ".txt")
+                        errors[name]["initial_" + field] = bounds.read_bytes(path).decode("utf-8", errors="replace")[-1500:]
+    assert result["passed"], json.dumps(errors, ensure_ascii=False, indent=2)
     return output
 
 
 def evidence(packet, control):
     return bounds.read_json(packet / control / "evidence.json", bounds.MAX_EVIDENCE)
+
+
+def test_failed_fixture_reporting_keeps_nested_evidence(tmp_path, monkeypatch):
+    """Reporting calibration only; this synthetic refusal is not product behavior."""
+    marker = "end-" + bounds.sha(str(tmp_path).encode())
+    def failed(output):
+        output.mkdir()
+        (output / "valid").mkdir()
+        bounds.write_json(output / "valid-collection-error.json", {"error": "ValueError", "detail": "Synthetic refusal"})
+        bounds.write_json(output / "valid/verdict.json", {"outcome": "unresolved", "nested": "x" * 2000 + marker + "z" * 2000})
+        return {"passed": False, "controls": [{"control": "valid", "qualified": False}]}
+    monkeypatch.setattr(run, "run_all", failed)
+    with pytest.raises(AssertionError) as caught:
+        qualified.__wrapped__(SimpleNamespace(mktemp=lambda _: tmp_path))
+    assert marker in str(caught.getrepr(style="short"))
 
 
 @pytest.mark.parametrize("control", run.CONTROLS)
@@ -345,3 +376,23 @@ def test_frozen_case_mutation_requires_a_new_packet(tmp_path):
     (packet / "frozen/oracle-cases.json").write_text(json.dumps([]), encoding="utf-8")
     with pytest.raises(ValueError, match="task/oracle/attachments"):
         fixture.verify_packet(packet)
+
+
+def test_real_request_preserves_a_large_bounded_effect_manifest(tmp_path, monkeypatch):
+    freeze = fixture.work_effects.freeze
+    def larger(root, *args, **kwargs):
+        plan = freeze(root, *args, **kwargs)
+        for batch in range(8):
+            if len(bounds.encoded(plan)) > bounds.MAX_FILE:
+                return plan
+            for index in range(32):
+                name = "budget-" + str(batch * 32 + index).zfill(3) + "-" + "x" * 64
+                (root / ".git" / name).write_bytes(b"x")
+            plan = freeze(root, *args, **kwargs)
+        pytest.fail("Fixture did not reach the large-manifest control")
+    monkeypatch.setattr(fixture.work_effects, "freeze", larger)
+    root, record = fixture.prepare_trial((tmp_path / "trial").resolve())
+    raw = bounds.read_bytes(root / "request.json", bounds.MAX_EVIDENCE)
+    assert bounds.MAX_FILE < len(raw) <= bounds.MAX_EVIDENCE
+    assert bounds.read_json(root / "request.json", bounds.MAX_EVIDENCE)["effects"] == record["request"]["effects"]
+    assert (root / "task/record.json").is_file()

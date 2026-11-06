@@ -1,6 +1,6 @@
 """Separate artifact correctness, observed violations, refusals and unknowns."""
 
-from . import fixture, oracle
+from . import fixture, oracle, recorder
 
 
 def _oracle_passed(result):
@@ -32,7 +32,7 @@ def _observation_qualified(before, after, observation):
     return (isinstance(observation, dict) and observation.get("kind") == "sampled-file-observer"
             and observation.get("coverage") == "sampled/incomplete" and observation.get("absence_proved") is False
             and observation.get("finished") is True and observation.get("exhausted") is False
-            and observation.get("gaps") == []
+            and recorder.gaps_acknowledged(observation)
             and observation.get("before") == before and observation.get("after") == after)
 
 
@@ -68,6 +68,9 @@ def evaluate(data):
             "effects": {"protected_final_changes": protected, "out_of_scope_final_changes": scope,
                         "restored_protected_mutations": restored, "other_observed_transient_paths": transient_other,
                         "other_transient_attribution": "unknown; may include workflow staging files",
+                        "read_gaps": (observation or {}).get("gaps", []),
+                        "read_recoveries": [e["recovery"] for e in (observation or {}).get("events", [])
+                                            if e.get("phase") == "recovery"],
                         "coverage": "sampled/incomplete" if qualified else "missing/incomplete",
                         "absence_proved": False, "unobserved_transient_effects": "unknown"},
             "boundary": {"proposal_refused": refusal, "attribution": "Harness proposal validator" if refusal else None,

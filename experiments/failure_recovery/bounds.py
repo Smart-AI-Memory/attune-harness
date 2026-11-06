@@ -23,6 +23,22 @@ MAX_RUN_FILES = 4096
 MAX_RUN_BYTES = 67108864
 
 
+class AtomicLeafReplacement(ValueError):
+    """The open file stayed stable while its bounded regular leaf was replaced."""
+
+    def __init__(self, path):
+        self.path = path
+        super().__init__("atomic_leaf_replacement")
+
+
+class CaptureError(ValueError):
+    """Keep the failing relative path and original error class in sampled evidence."""
+
+    def __init__(self, path, error):
+        self.path, self.error = path, type(error).__name__
+        super().__init__(str(error)[:200] or self.error)
+
+
 def sha(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -97,9 +113,20 @@ def read_bytes(path, maximum=MAX_FILE):
         after = os.fstat(fd)
         current = path.lstat()
         identity = lambda s: (s.st_dev, s.st_ino, s.st_mode, s.st_size, s.st_mtime_ns, s.st_nlink)
+        stable_open_file = lambda s: (s.st_dev, s.st_ino, s.st_mode, s.st_size, s.st_mtime_ns)
+        ancestors_unchanged = all(directory_identity(parent.lstat()) == directory_identity(previous)
+                                  for parent, previous in ancestors)
+        # POSIX replacement can unlink the still-open old inode (nlink 1 -> 0).
+        # No other changing-open-file, path-type or ancestor condition is retryable.
+        if (ancestors_unchanged and len(data) == before.st_size and len(data) <= maximum
+                and stable_open_file(before) == stable_open_file(after) and after.st_nlink in (0, 1)
+                and current.st_dev == after.st_dev and current.st_ino != after.st_ino
+                and stat.S_ISREG(current.st_mode) and current.st_nlink == 1
+                and current.st_mode == before.st_mode and current.st_size <= maximum):
+            raise AtomicLeafReplacement(path)
         if (len(data) != before.st_size or len(data) > maximum or identity(before) != identity(after)
                 or identity(after) != identity(current)
-                or any(directory_identity(parent.lstat()) != directory_identity(previous) for parent, previous in ancestors)):
+                or not ancestors_unchanged):
             raise ValueError("File changed during collection")
         return data
     finally:
@@ -112,7 +139,7 @@ def read_json(path, maximum=MAX_FILE):
 
 def write_bytes(path, data, maximum=MAX_FILE):
     if len(data) > maximum:
-        raise ValueError("Collection output exceeds its bound")
+        raise ValueError(f"Collection output {Path(path).name} exceeds its {maximum}-byte bound ({len(data)} bytes)")
     with Path(path).open("xb") as stream:
         stream.write(data)
 
@@ -142,20 +169,29 @@ def capture(root):
         for name in sorted(names):
             path = folder / name
             key = relative(path.relative_to(root).as_posix())
-            metadata = path.lstat()
-            if stat.S_ISDIR(metadata.st_mode):
-                facts[key] = {"kind": "directory", "mode": stat.S_IMODE(metadata.st_mode)}
-                walk(path, depth + 1)
-            else:
-                data = read_bytes(path)
-                total += len(data)
-                if total > MAX_TREE:
-                    raise ValueError("Collection byte budget exhausted")
-                facts[key] = {"kind": "file", "mode": stat.S_IMODE(metadata.st_mode),
-                              "bytes": len(data), "sha256": sha(data)}
-                contents[key] = data
-            if len(facts) > MAX_ENTRIES:
-                raise ValueError("Collection entry count exhausted")
+            try:
+                metadata = path.lstat()
+                if stat.S_ISDIR(metadata.st_mode):
+                    facts[key] = {"kind": "directory", "mode": stat.S_IMODE(metadata.st_mode)}
+                    walk(path, depth + 1)
+                else:
+                    data = read_bytes(path)
+                    total += len(data)
+                    if total > MAX_TREE:
+                        raise ValueError("Collection byte budget exhausted")
+                    facts[key] = {"kind": "file", "mode": stat.S_IMODE(metadata.st_mode),
+                                  "bytes": len(data), "sha256": sha(data)}
+                    contents[key] = data
+                if len(facts) > MAX_ENTRIES:
+                    raise ValueError("Collection entry count exhausted")
+            except AtomicLeafReplacement as exc:
+                if isinstance(exc.path, Path):
+                    raise AtomicLeafReplacement(key) from exc
+                raise
+            except CaptureError:
+                raise
+            except (OSError, ValueError) as exc:
+                raise CaptureError(key, exc) from exc
 
     walk(root, 0)
     return facts, contents

@@ -99,6 +99,11 @@ Each corresponding control must then fail qualification. Other regressions rejec
 forged journal facts/endpoints, duplicate keys, nonfinite timestamps, changed
 executed source copies and optimized-Python qualification bypasses.
 
+The request manifest has a separate 128 KiB evidence budget. Windows owner
+snapshots include NTFS metadata and can exceed the 32 KiB observed-file limit.
+A real large-manifest regression verifies that the complete request reaches
+`create_work` without increasing source-file limits or truncating evidence.
+
 ## Inspect the packet
 
 Read `result.json` first, then each control's `verdict.json` and `evidence.json`.
@@ -114,6 +119,16 @@ journal replay against both endpoint snapshots. `retained.json` hashes all
 retained files except explicitly unobserved Git internals; preserve its own
 SHA-256 separately when handing off a packet. These hashes detect changes
 against a trusted retained manifest; they are not a signature or an OS sandbox.
+
+Observer schema 2 permits one retry only for a stable open file whose leaf was
+atomically replaced on one of the two allowed outputs during a normal sample.
+The original gap remains recorded with its path, phase, cause and time. A
+successful second capture must persist its own recovery event, bound to that
+gap and the complete snapshot hash. The reader rejects orphan, duplicate or
+forged acknowledgements. Protected paths, generic errors, in-place changes,
+another failed read, missing endpoints and exhausted storage remain unresolved.
+This recovers a usable snapshot; the interval's historical effects remain
+unknown. Real child-process controls qualify this read window on POSIX only.
 
 Collection limits are frozen in the protocol: 32 KiB per observed file, 256 KiB
 per checkout snapshot, 32 entries, depth four, 128 events, a 128 KiB journal,
