@@ -2,6 +2,8 @@
 tests/fixtures/** -text
 # The current reporting download and expected output are checked byte-for-byte.
 training/1.7.0-preparation/assets/example/** -text
+# Keep stylesheet cache fingerprints identical in every checkout.
+training/1.7.0-preparation/assets/styles.css -text
 # The first-repair acceptance contract pins these reviewed bytes on every OS.
 docs/first-repair-1.3.0.md -text
 examples/starter/participants.json -text
