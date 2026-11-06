@@ -37,7 +37,15 @@ def qualified(tmp_path_factory):
             patch.setattr(module, name, poison)
         patch.setattr(socket.socket, "connect", poison)
         result = run.run_all(output)
-    assert result["passed"], result
+    errors = {}
+    for row in result["controls"]:
+        if not row["qualified"]:
+            name = row["control"]
+            errors[name] = bounds.read_json(output / (name + "-collection-error.json"))
+            verdict = output / name / "verdict.json"
+            if verdict.exists():
+                errors[name]["verdict"] = bounds.read_json(verdict)
+    assert result["passed"], errors
     return output
 
 
