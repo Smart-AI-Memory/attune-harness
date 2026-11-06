@@ -6,6 +6,16 @@ not run a competitor, measure model quality or authorize T2–T4, inference,
 publication or a release. Production Harness code and historical campaigns are
 outside this change.
 
+Complete eleven-control qualification requires CPython POSIX and actual platform
+evidence. The study's initial platform is macOS arm64. Windows component checks
+still run, but the
+shared positive collection fixture records an unsupported eligibility receipt
+and skips its dependent qualification checks. Actual Windows runs retained
+staging-leaf `FileNotFoundError` and `PermissionError` gaps after correct owner
+completion. Those outcomes remain unresolved; passing independent Windows
+checks does not qualify the collector. The CLI preserves these failures and
+does not turn them into passing controls.
+
 ## Offline design
 
 Written before implementation, November 6, 2026, against merged main `1b86ec2`.
@@ -171,7 +181,8 @@ paths remain unattributed and may include Harness staging files. They gain no
 writable-metadata allowance. The fixed calibration writer's observer handshake
 does not establish live workflow prevention or full observation coverage.
 
-The tests block model constructors and service connections. The connection guard
+The tests block parent-process model constructors and service connections.
+Fixed command peers use no provider or network client. The connection guard
 permits only the exact standard-library socketpair caller needed for Windows'
 local asyncio self-pipe; direct connections to local services remain blocked.
 

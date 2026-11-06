@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 import socket
 import sys
-from types import SimpleNamespace
 
 import pytest
 
@@ -40,18 +39,35 @@ def offline_connect_guard():
 
 @pytest.fixture(scope="module")
 def qualified(tmp_path_factory):
+    output = (tmp_path_factory.mktemp("failure-recovery") / "packet").resolve()
+    supported = sys.implementation.name == "cpython" and os.name == "posix"
+    eligibility = {"schema_version": 1, "kind": "T1-positive-fixture-eligibility",
+                   "implementation": sys.implementation.name, "os_name": os.name, "sys_platform": sys.platform,
+                   "required": "CPython POSIX", "eligible": supported,
+                   "status": "eligible" if supported else "unsupported_not_run",
+                   "positive_qualification": "not_run_by_eligibility_check"}
+    receipt = output.parent / "eligibility.json"
+    bounds.write_json(receipt, eligibility, maximum=4096)
+    if not supported:
+        pytest.skip("T1 shared positive qualification unsupported/not-run; " + str(receipt) + "; "
+                    + json.dumps(eligibility, ensure_ascii=False, sort_keys=True))
+
     from attune_harness import native, openai_exchange, plan_exchange, review_participants
 
     def poison(*args, **kwargs):
         pytest.fail("Offline controls attempted a provider or network connection")
 
-    output = (tmp_path_factory.mktemp("failure-recovery") / "packet").resolve()
     with pytest.MonkeyPatch.context() as patch:
         for module, name in ((native, "NativeExchange"), (review_participants, "NativeExchange"),
                              (openai_exchange, "OpenAIExchange"), (plan_exchange, "PlanExchange")):
             patch.setattr(module, name, poison)
         patch.setattr(socket.socket, "connect", offline_connect_guard())
         result = run.run_all(output)
+    assert_qualification(result, qualification_errors(output, result))
+    return output
+
+
+def qualification_errors(output, result):
     errors = {}
     for row in result["controls"]:
         if not row["qualified"]:
@@ -75,8 +91,11 @@ def qualified(tmp_path_factory):
                     for field in ("stdout", "stderr"):
                         path = process.with_name("pytest-" + field + ".txt")
                         errors[name]["initial_" + field] = bounds.read_bytes(path).decode("utf-8", errors="replace")[-1500:]
+    return errors
+
+
+def assert_qualification(result, errors):
     assert result["passed"], json.dumps(errors, ensure_ascii=False, indent=2)
-    return output
 
 
 def evidence(packet, control):
@@ -98,7 +117,7 @@ def test_connection_guard_permits_socketpair_but_no_service_connections(monkeypa
                 candidate.connect(address)
 
 
-def test_failed_fixture_reporting_keeps_nested_evidence(tmp_path, monkeypatch):
+def test_failed_fixture_reporting_keeps_nested_evidence(tmp_path):
     """Reporting calibration only; this synthetic refusal is not product behavior."""
     marker = "end-" + bounds.sha(str(tmp_path).encode())
     def failed(output):
@@ -107,9 +126,10 @@ def test_failed_fixture_reporting_keeps_nested_evidence(tmp_path, monkeypatch):
         bounds.write_json(output / "valid-collection-error.json", {"error": "ValueError", "detail": "Synthetic refusal"})
         bounds.write_json(output / "valid/verdict.json", {"outcome": "unresolved", "nested": "x" * 2000 + marker + "z" * 2000})
         return {"passed": False, "controls": [{"control": "valid", "qualified": False}]}
-    monkeypatch.setattr(run, "run_all", failed)
+    output = tmp_path / "packet"
+    result = failed(output)
     with pytest.raises(AssertionError) as caught:
-        qualified.__wrapped__(SimpleNamespace(mktemp=lambda _: tmp_path))
+        assert_qualification(result, qualification_errors(output, result))
     assert marker in str(caught.getrepr(style="short"))
 
 
