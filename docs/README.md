@@ -2,13 +2,21 @@
 
 Start with the [1.7.0 release preparation](release-readiness-1.7.0.md) and
 [installation guide](installation.md). Version 1.7.0 is not published by this
-change; published 1.6.0 remains available. Historical guides keep their original
-source, artifact and observation scope. Designs and specifications retain their approval status.
+change; published 1.6.0 remains available. Superseded guides are listed in the [historical archive](archive/README.md); their original paths and evidence remain intact. Designs and specifications retain their approval status.
 
-Updated on November 4, 2026 for 1.7.0 preparation. Run
+Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded historical documents have separate indexes. Run
 `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
-## Start here
+## Current guides
+
+- [Harness in practice: 1.7.0 training course](../training/README.md): Six HTML lessons using one reporting project, with local exercises and current verification
+- [Install Harness](installation.md): Select a runtime and check it before starting
+- [Choose a workflow](supported-journeys.md): Match your goal to a supported procedure
+- [CLI guide](cli-guide.md): Command arguments, checkpoints and exit codes
+- [Participant funding](participant-funding.md): Select the configured route and review its limits
+- [Migration guide](migration.md): Keep working installations and assess replacement journeys
+
+## Project and technical references
 
 - [Failure-and-recovery comparison specification](specs/failure-recovery-comparison/README.md): Proposed Harness, Superpowers and native Claude Code comparison; no implementation or live trials authorized
 - [Comparison design](specs/failure-recovery-comparison/design.md): Fixed scenarios, fair configurations, independent verdict and recovery evidence
@@ -29,18 +37,11 @@ Updated on November 4, 2026 for 1.7.0 preparation. Run
 
 - [Harness 1.7.0 release notes](release-notes-1.7.0.md): Prepared changes, extended legacy-environment window, funding limits and hydration groundwork
 - [Harness 1.7.0 readiness record](release-readiness-1.7.0.md): Source/artifact identity, candidate checks, documentation dispositions and remaining gates
-- [Historical Harness 1.6.0 preparation](release-preparation-1.6.0.md): Retained preparation evidence and original source/artifact limits
-- [Historical Harness 1.6.0 draft notes](release-notes-1.6.0.md): Preparation scope and retained qualification limits; published facts are in the release record
 
-- [Historical 1.5.1 preparation walkthroughs](tutorials-1.5.1.md): Candidate-wheel observations for intake, plan acceptance, research and saved-draft continuity; retain their original artifact limits
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
 - [Redis option requirements and verification](redis-option-verification.md): Existing recall, scratch and saved-mirror requirements; bounded disposable-service evidence for 1.6.0 preparation and remaining limits
 - [Move from Attune AI to Harness](migration.md): Current migration decisions, separate environments and Windows limits; historical 1.0.0 guidance retained
 - [Writing and entered-text guide](writing-guide.md): Approved Google writing baseline, UI instructions, and user-entered text presentation
-- [Historical first repair with Harness 1.3.0](first-repair-1.3.0.md): Fresh setup, current bound approval, pause/resume and unchanged-check evidence; deterministic participant limits
-- [Historical training walkthroughs for Harness 1.3.0](tutorials-1.3.0.md): Action sequences, visible results and release limits shared with the PowerPoint and HTML tutorials
-- [Historical training walkthroughs for Harness 1.4.0](tutorials-next-release-candidate.md): Save and approve a work request, inspect saved state and reopen forms; source-attributed limits and historical 1.3.0 guidance retained
-- [Historical 1.5.0 candidate walkthroughs](tutorials-1.5.0-candidate.md): Goal-based quick selector for provisional candidate procedures on forms, planning, local evidence and continuity; final released-artifact reconciliation remains required
 
 - [Shepherd](journeys/shepherd.md): Outcome, autonomy, stop conditions and completion evidence
 
@@ -85,20 +86,7 @@ Updated on November 4, 2026 for 1.7.0 preparation. Run
 - [R4: another project's spec state, with a receipt](journeys/r4-legacy-spec-state.md): A plan from another project imported by name, the receipt each conversion leaves, the refusals, and the eight fixtures' origins
 - [Envelopes](envelopes.md): The top-level keys, schema version, status and exit code every verb is pinned to before 1.0
 - [The compatibility list](compatibility.md): What 1.0.0 promises not to change without a deprecation, surface by surface, with the guard for each
-- [1.0.0rc1 release notes](release-notes-1.0.0rc1.md): Candidate scope, evidence limits and observation prerequisites
-- [1.0.0rc2 release notes](release-notes-1.0.0rc2.md): Unconstrained `voyage` and `all` install correction
-- [1.0.0 release notes](release-notes-1.0.0.md): Stable core scope, installation and evidence limits
-- [1.0.1 release notes](release-notes-1.0.1.md): PyPI README link repair; runtime and dependency pins unchanged
-- [1.1.0 release notes](release-notes-1.1.0.md): First-run journey: init, next actions, path refusals, Markdown output, the Claude plugin
-- [1.5.1 draft release notes](release-notes-1.5.1.md): Planned maintenance release for signature validation, assessment evidence and documentation guidance; unpublished
-- [1.5.1 preparation readiness](release-readiness-1.5.1.md): Current source, passing main qualification, candidate documentation observations and remaining release gates
 - [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0): Published source, distribution hashes and installed-package checks
-- [1.5.0 preparation release notes](release-notes-1.5.0.md): Preserved pre-publication scope and installation guidance; use the release record for publication evidence
-- [1.5.0 preparation readiness record](release-readiness-1.5.0.md): Historical component evidence and open parity requirements; its unpublished-candidate wording predates publication
-- [1.4.0 release notes](release-notes-1.4.0.md): Saved forms, consultation additions, compatibility, bounded scope and retained preparation evidence
-- [1.4.0 readiness record](release-readiness-1.4.0.md): Source dependencies, documentation owners and final evidence required before publication
-- [1.3.0 release notes](release-notes-1.3.0.md): `init --for plan` and `init --for fix` write the starter files; example participants finish both journeys
-- [1.2.0 release notes](release-notes-1.2.0.md): Recovery for a participant turn the Claude CLI refused, and init's flag guidance
 - [Release runbook](release-runbook.md): How a release is cut, and the state that lives outside the repository
 - [Coverage measurement](coverage-measurement.md): Supplemental subprocess and platform measurements, their provenance and limits
 - [Library qualification](qualification.md): What the platform jobs qualify and what they do not
@@ -255,7 +243,6 @@ Updated on November 4, 2026 for 1.7.0 preparation. Run
 | [plan-build-task6-results.md](plan-build-task6-results.md) | Plan/build Task 6 — steering, controls and Spec |  |
 | [plan-build-task7-results.md](plan-build-task7-results.md) | Plan/build Task 7 — installed verbs |  |
 | [recovery-workflow-receipt.md](recovery-workflow-receipt.md) | Local Phase 3 recovery receipt — 2026-09-14 | 2026-09-14 |
-| [release-readiness-follow-through-results.md](release-readiness-follow-through-results.md) | Release-readiness follow-through — complete | 2026-09-17 |
 | [review-quality-receipt.md](review-quality-receipt.md) | Documentation-review quality acceptance — 2026-09-14 | 2026-09-14 |
 | [review-workflow-receipt.md](review-workflow-receipt.md) | Local coordinated-review receipt — 2026-09-14 | 2026-09-14 |
 | [sol-review-fix-receipt.md](sol-review-fix-receipt.md) | Four Sol review fixes — September 16, 2026 | September 16, 2026 |
@@ -279,7 +266,6 @@ Updated on November 4, 2026 for 1.7.0 preparation. Run
 | [documentation-maintenance.md](documentation-maintenance.md) | Documentation content maintenance | September 18, 2026 |
 | [fable-review.md](fable-review.md) | Fable and Opus review candidates | September 15, 2026 |
 | [harness-api-budget.md](harness-api-budget.md) | Harness Claude API budget | September 15, 2026 |
-| [harness-release-readiness-direction.md](harness-release-readiness-direction.md) | Harness release readiness — direction and proposed next step | 2026-09-17 |
 | [integrated-rag-architecture.md](integrated-rag-architecture.md) | ADR — Integrated RAG owned by Attune Harness | September 15, 2026 |
 | [memory-documentation-journey.md](memory-documentation-journey.md) | Memory documentation journey: local handoff qualified, native sample pending | 2026-09-17 |
 | [memory-saving.md](memory-saving.md) | Save memories and task intent | 2026-09-26 |
@@ -460,9 +446,7 @@ Session handoffs and starters, kept as written. The directory is ignored on
 
 - [Workspace MCP implementation](specs/release-1.0/workspace-mcp-implementation.md) — M1/M2 candidate boundaries and port evidence.
 
-- [Moving from Attune AI to Harness — historical 1.0.0 guidance](migration-from-attune-ai.md) — Retained pre-release per-journey decisions; use the current migration guide above for 1.5.1 preparation.
 
-## Documentation archive and audit
+## Historical documents
 
 - [Historical documentation archive](archive/README.md): Original versioned instructions and dated evidence, preserved at their existing paths
-- [1.5.1 documentation surface audit](documentation-audit-1.5.1.md): Current preparation, published baseline, ownership, file inventory and remaining checks

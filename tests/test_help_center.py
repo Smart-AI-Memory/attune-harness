@@ -43,14 +43,24 @@ def test_all_current_routes_and_contents_links_work(
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
-        assert (
-            'class="goal-index"'
-            if page.parent.name == "goals"
-            else 'aria-label="On this page"'
-        ) in text
+        assert 'href="/harness/learn/"' not in text
+        if page.parent == directory:
+            assert 'aria-label="On this page"' not in text
+            assert f'Current published setup: <strong>Harness {published_version}</strong>' in text
+        else:
+            assert (
+                'class="goal-index"'
+                if page.parent.name == "goals"
+                else 'aria-label="On this page"'
+            ) in text
         assert 'id="main-content" tabindex="-1"' in text
         assert 'src="/harness/help/code-copy.js"' in text
-        if page.parent.name == "goals":
+        if page.parent == directory:
+            assert "ATTUNE HARNESS · 1.5.1" not in text
+        elif page.parent.name == "1-5-1":
+            assert "Archived guide:" in text
+            assert "published <strong>Harness 1.5.1</strong>" in text
+        elif page.parent.name == "goals":
             assert (
                 "Published guidance."
                 if status == "published"
@@ -81,7 +91,7 @@ def test_all_current_routes_and_contents_links_work(
         assert (
             '<meta name="robots" content="index,follow">'
             if (status == "published" or page.parent.name == "get-started")
-            and page.parent.name not in {"1-5-0", "1-5-1-preparation", "1-7-0-preparation"}
+            and page.parent.name not in {"1-5-0", "1-5-1", "1-5-1-preparation", "1-7-0-preparation"}
             else '<meta name="robots" content="noindex,follow">'
         ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()

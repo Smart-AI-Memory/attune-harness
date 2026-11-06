@@ -258,6 +258,18 @@ def test_existing_shrinking_known_dead_list_and_index_gate_remain(repository):
     assert any('no row for docs/old.md' in item for item in findings)
 
 
+def test_linked_archive_catalog_indexes_historical_documents(repository):
+    root, write = repository
+    write('docs/old.md', '# Earlier guide\n')
+    write('docs/archive/README.md', '# Historical archive\n[Earlier guide](../old.md)\n')
+    write('docs/README.md', '[Current](guide.md)\n[Archive](archive/README.md)\n')
+    assert checker.check(root) == []
+    write('docs/README.md', '[Current](guide.md)\n')
+    findings = checker.check(root)
+    assert any('no row for docs/old.md' in item for item in findings)
+    assert any('no row for docs/archive/README.md' in item for item in findings)
+
+
 def test_readme_pypi_policy_and_actual_command_exit_status(repository):
     root, write = repository
     write('README.md', '# Main\n[Relative](docs/guide.md)\n')
