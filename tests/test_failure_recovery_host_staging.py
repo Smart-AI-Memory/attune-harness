@@ -81,17 +81,22 @@ def actual_owner(root, patch, *, fault=None):
                     probe.write_bytes(b"Foreign calibration effect, not native lineage\n")
                 elif fault == "protected":
                     probe = app / "tests/test_report.py"
-                elif fault == "reused":
+                elif fault in ("reused", "reused-link"):
                     release.set()
                     future.result(timeout=15)
-                    probe.write_bytes(b"A later foreign entry reuses the exact former staging name\n")
+                    if fault == "reused-link":
+                        os.link(app / "src/report.py", probe)
+                    else:
+                        probe.write_bytes(b"A later foreign entry reuses the exact former staging name\n")
                 renamed["source"], renamed["active"] = temporary.name, fault == "rename"
 
                 def disappearing_stat(path, *args, **kwargs):
                     nonlocal fired
                     if not fired and path == probe.name and kwargs.get("dir_fd") is not None:
                         fired = True
-                        if fault in ("foreign", "protected", "reused"):
+                        if fault == "reused-link":
+                            os.unlink(probe)
+                        elif fault in ("foreign", "protected", "reused"):
                             os.replace(probe, root / "calibration-retained-entry")
                         else:
                             release.set()
@@ -148,6 +153,11 @@ def test_actual_owner_lineage_needs_intent_snapshot_and_native_completion(positi
     assert report["coverage"] == "sampled/incomplete" and report["absence_proved"] is False
     assert result["request"]["effects"]["allowed"] == fixture.OUTPUTS
     assert report["host_sensor"]["policy"]["metadata_permission_added"] is False
+    intent = next(item for item in report["host_sensor"]["intents"] if item["source"] == gap["path"])
+    assert gap["enumeration"]["enumeration_started_seconds"] <= intent["monotonic_seconds"] <= gap["enumeration"]["missing_seconds"]
+    policy = report["host_sensor"]["policy"]
+    assert policy["exclusive_gap_cause_proved"] is False and policy["path_incarnation_history"] == "unknown"
+    assert policy["missing_contents"] == "unknown" and policy["recovered"] == "snapshot usability only"
 
 
 @pytest.mark.parametrize("fault", ["capture", "overflow", "unregistered", "foreign", "protected", "reused"])
@@ -168,6 +178,18 @@ def test_actual_failed_rename_intent_is_not_a_completed_effect(tmp_path, monkeyp
     assert report["host_sensor"]["intents"]
     assert receipt["owner_status"] != "completed" and not receipt["qualified"]
     assert bound["host_staging"]["unknown"] and bound["host_staging"]["bindings"] == []
+
+
+def test_same_inode_alias_in_later_enumeration_stays_unresolved(tmp_path, monkeypatch):
+    report, bound, actual, receipt = actual_owner(tmp_path.resolve(), monkeypatch, fault="reused-link")
+    assert receipt["owner_status"] == "completed" and receipt["oracle_passed"] and receipt["protected_unchanged"]
+    gap = report["gaps"][0]
+    intent = next(item for item in report["host_sensor"]["intents"] if item["source"] == gap["path"])
+    final = (Path(actual["request"]["effects"]["root"]) / intent["target"]).stat()
+    assert gap["enumeration"]["entry_inode"] == intent["source_identity"]["inode"] == final.st_ino
+    assert final.st_nlink == 1 and gap["enumeration"]["enumeration_started_seconds"] > intent["monotonic_seconds"]
+    assert not receipt["qualified"]
+    assert not any("host_intent_id" in event.get("recovery", {}) for event in bound["events"])
 
 
 @pytest.mark.parametrize("mutation", ["missing-completion", "duplicate-completion", "origin", "manifest", "item", "duplicate-intent"])

@@ -27,9 +27,12 @@ _INSTALLED = False
 
 
 def policy():
-    return {"id": "native-replacement-lineage-v1", "backend": "cpython-posix-os.rename-audit",
+    return {"id": "native-replacement-lineage-v2", "backend": "cpython-posix-os.rename-audit",
             "max_intents": MAX_INTENTS, "paths": list(PATHS), "metadata_permission_added": False,
             "intent_is_completion": False, "unknown_content_reconstructed": False,
+            "intent_window": "enumeration_started<=intent<=missing_leaf",
+            "exclusive_gap_cause_proved": False, "path_incarnation_history": "unknown",
+            "missing_contents": "unknown", "recovered": "snapshot usability only",
             "max_report_bytes": bounds.MAX_EVIDENCE}
 
 
@@ -176,7 +179,8 @@ def matching_intent(sensor, gap, *, require_healthy=True):
                and intent["source_identity"]["inode"] == witness.get("entry_inode")
                and witness.get("enumeration_started_seconds", float("inf")) <= witness.get("enumeration_finished_seconds", -1)
                <= witness.get("missing_seconds", -1)
-               and intent["monotonic_seconds"] <= witness.get("missing_seconds", -1)]
+               and witness.get("enumeration_started_seconds", float("inf")) <= intent["monotonic_seconds"]
+               <= witness.get("missing_seconds", -1)]
     return matches[0] if len(matches) == 1 else None
 
 
