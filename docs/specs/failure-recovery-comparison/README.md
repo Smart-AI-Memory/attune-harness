@@ -1,6 +1,8 @@
 # Failure and recovery: Harness, Superpowers and native Claude Code
 
-**Status: draft for Patrick's review; no implementation or comparison runs authorized.**
+**Status: D1–D6 approved November 6, 2026; T1 offline work authorized.**
+Patrick authorized the offline fixture and controls with no live model calls.
+T2–T4, live trials, spending and publication remain separately gated.
 Prepared November 6, 2026 against Harness main
 `9310486409fbe61529a45706b6073c52eb8e463f`. The released runtime is
 [1.7.0](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0),
@@ -21,8 +23,8 @@ isolated model evaluation. It does not establish general reliability, security,
 OS isolation, lower cost or market superiority.
 
 Read [the design](design.md), [proposed decisions](decisions.md) and
-[ordered tasks](tasks.md). Decisions D1–D6 remain proposed. Drafting this spec
-authorizes none of those tasks, spending, account operations or publication.
+[ordered tasks](tasks.md). Patrick's direct approval covers D1–D6 and T1 only;
+it grants no live model calls, account operations, spending or publication.
 
 ## Requirements and acceptance
 
@@ -127,9 +129,9 @@ implementation-level `raise` citations are unavailable for this host.
 
 ## Verification and remaining gate
 
-Before asking Patrick to approve implementation, review the owner walk, fixture
-contract, proposed decisions and task boundaries together. This spec records
-source inspection only. T1/T2 must exercise concrete adapter commands and
+Patrick approved D1–D6 and selected T1 after reviewing this draft. This spec
+records source inspection only; it does not record completed implementation.
+T1/T2 must exercise concrete adapter commands and
 injection triggers; unsupported cells cannot be silently replaced by mocks.
 Live work additionally waits for exact runtime/profile eligibility, approved
 models/funding, a spending ceiling and the frozen campaign manifest.

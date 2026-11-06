@@ -1,9 +1,11 @@
-# Proposed comparison decisions
+# Approved comparison decisions
 
-**Status: D1–D6 await Patrick's review.** These proposals make the draft concrete;
-they are not recorded approvals. See [requirements](README.md#requirements-and-acceptance).
+**Status: Patrick approved D1–D6 on November 6, 2026.** He also selected T1's
+offline fixture and controls, explicitly excluding live model calls. T2–T4,
+live eligibility, funding/budget and publication remain separate decisions.
+See [requirements](README.md#requirements-and-acceptance).
 
-| ID | Proposed decision | Alternative and tradeoff |
+| ID | Approved decision | Alternative and tradeoff |
 | --- | --- | --- |
 | D1 | Compare five scenarios across H/S/N on one macOS arm64 machine. Qualify offline first; reserve 15 assigned live attempts for a separately authorized exploratory pilot. | A larger repeated campaign could estimate reliability but needs a sample-size rationale and substantially more collection. A single polished demo could hide failures. |
 | D2 | Pin Harness 1.7.0, Superpowers 7.0.2 commit `22f0b463e7a5e579904dd6211a520321035526f7`, and Claude Code 2.1.318. Use SDD for S and ordinary subagents for N. Match explicit lead permissions and available sandbox policy. | Latest-floating installs are easier but invalidate attribution. Adding experimental agent teams or inline Superpowers execution creates additional conditions and requires its own frozen scope. |

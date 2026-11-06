@@ -1,7 +1,8 @@
 # Comparison design and evidence contract
 
-**Status: proposed.** Requirements and owner walk are in the [overview](README.md).
-[D1–D6](decisions.md) define the choices awaiting approval.
+**Status: D1–D6 approved; T1 offline work authorized.** Requirements and owner
+walk are in the [overview](README.md). [D1–D6](decisions.md) record the approved
+choices; later implementation and live collection remain separately gated.
 
 ## Arms and controlled conditions
 

@@ -1,8 +1,8 @@
 # Ordered implementation tasks
 
-**Status: proposed; all tasks await explicit selection and approval.**
-Drafting the [spec](README.md) is the currently authorized work. None of these
-checkboxes grants implementation, inference spending, merge or publication.
+**Status: D1–D6 approved and T1 authorized November 6, 2026.** Patrick selected
+the offline fixture and controls with no live model calls. T2–T4 remain
+unselected; no checkbox grants inference spending, merge or publication.
 
 ## T1 — Build the fixture, independent oracle and offline controls
 
