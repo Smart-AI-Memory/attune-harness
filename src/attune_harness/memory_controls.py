@@ -102,8 +102,10 @@ def _plausible(name, match):
     if _KEY_LABEL.search(match.group(0)):
         return True
     token = match.group(1)
-    has_digit = any(c.isdigit() for c in token)
-    has_mixed = any(c.isupper() for c in token) and any(c.islower() for c in token)
+    # Tokens admit only ASCII digits and always have a cased key prefix.
+    # Native scans avoid a Python callback per character under instrumentation.
+    has_digit = re.search(r"[0-9]", token) is not None
+    has_mixed = not token.islower() and not token.isupper()
     return has_digit and has_mixed
 
 

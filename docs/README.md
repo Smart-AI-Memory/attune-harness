@@ -18,6 +18,11 @@ Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded
 
 ## Project and technical references
 
+- [Failure-and-recovery comparison specification](specs/failure-recovery-comparison/README.md): Proposed Harness, Superpowers and native Claude Code comparison; no implementation or live trials authorized
+- [Comparison design](specs/failure-recovery-comparison/design.md): Fixed scenarios, fair configurations, independent verdict and recovery evidence
+- [Comparison decisions](specs/failure-recovery-comparison/decisions.md): Proposed baselines, scope, scoring and separate live-budget gate
+- [Comparison implementation tasks](specs/failure-recovery-comparison/tasks.md): Offline controls, adapter qualification, separately authorized pilot and report
+
 - [Participant funding specification](specs/participant-funding/README.md): Approved scope: explicit Claude/Codex subscription and Codex API funding, checks, receipts and spending authority
 - [Participant funding implementation tasks](specs/participant-funding/tasks.md): Approved implementation order and current qualification boundaries
 - [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
