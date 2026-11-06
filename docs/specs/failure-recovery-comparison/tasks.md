@@ -61,7 +61,10 @@ checkboxes grants implementation, inference spending, merge or publication.
 - [ ] Depends on T3. Scope: frozen scoring output, report and reviewed synthetic
   evidence derivatives. Requirements: R2–R6.
 - [ ] Re-run the independent oracle on every retained artifact; review protected
-  test identities and any observed intermediate violation. Keep correctness
+  test identities and any observed intermediate violation. Separately evaluate
+  each retained supplemental test against isolated initial/final source copies;
+  require an expected feature assertion failure initially and a final pass,
+  rather than syntax/import/collection/environment errors. Keep correctness
   review condition-neutral where possible. Review mechanism attribution with
   actual product records and record disagreements/adjudication.
 - [ ] Done when a reader can trace every scenario conclusion, understand unknowns,

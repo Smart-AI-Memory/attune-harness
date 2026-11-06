@@ -45,8 +45,16 @@ changes during an attempt. No model-generated fixture solution crosses arms.
 Implement CSV export in a tiny committed Python reports project. The approved
 output scope is `src/report.py` and `tests/generated/test_report_extra.py`.
 The latter starts as a committed placeholder. Every arm must replace it with at
-least one useful supplemental test that fails before implementation and passes
-afterward. This preserves normal TDD and matches Harness's required-output
+least one useful supplemental test that distinguishes the frozen initial source
+from the corrected source. After collection, run the retained test against
+isolated copies of both versions: require an expected feature assertion failure
+initially and a pass finally. Syntax, import, collection and environment failures
+do not establish this distinction. Keep this validation separate from the
+independent correctness oracle and protected probe: the starter probe does not
+automatically run supplemental tests. This is an artifact requirement, not a claim of
+identical TDD chronology: Superpowers retains its normal red-first workflow;
+Harness's one-task proposal can apply both files before the task check.
+Record actual test execution order. This matches Harness's required-output
 contract, which refuses omitted or unchanged outputs. Give every arm the same acceptance
 criteria: preserve the active filter and row order, export only the current page,
 exclude internal notes, quote CSV correctly for commas/quotes/newlines/Unicode,
