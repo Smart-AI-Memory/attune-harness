@@ -55,11 +55,12 @@ report the gap and stop that affected task for a scope decision.
 
 ## Current command-owner walk and input flow
 
-These are source-checked operations for the future implementation, not a
-copy-and-run campaign. Fixture preparation and the observation controller do not
-exist yet. T1/T2 must produce their concrete paths, manifests and tested commands.
-This table checks current product prerequisites; it does not claim that the
-whole comparison journey has executed. Local source links cite refusal owners;
+This table records the command-owner inspection that informed the spec. The
+[offline T1 fixture and recorder](../../../experiments/failure_recovery/README.md)
+now provide concrete paths, frozen manifests and scripted Harness owner evidence.
+T2 must supply tested live adapter commands and actual trigger/resume evidence.
+The table checks product prerequisites; it does not claim that the whole
+comparison journey has executed. Local source links cite refusal owners;
 closed-source Claude behavior is labeled documented rather than assigned an
 invented public `raise`.
 
