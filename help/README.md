@@ -4,6 +4,21 @@ Harness owns the Help Center's Markdown, version manifest, static renderer and
 verification. The existing public URL remains
 <https://smartaimemory.com/harness/help/> until a separate website cutover.
 
+## Find the source before editing
+
+[The content map](../docs/content-map.json) identifies the authored Help and
+training sources, generated outputs, public entry point and proposed website
+routes. Help lives in `help/`; the six-lesson HTML course lives in `training/`.
+Edit those maintained sources rather than a website copy, temporary preview or
+old worktree handoff. `training/build_course.py` derives interactive HTML, static
+reading pages and presenter scripts from each lesson's JSON.
+
+Use task names in website navigation: **Get started**, **Learn Harness**,
+**Do a task** and **Reference**. Keep **Historical archive** secondary. Archive
+superseded guidance, rather than every older document. Preserve existing URLs
+and evidence; a supported installation or recovery guide remains current while
+it is useful. The proposed training route is not deployed by this source PR.
+
 ## Current onboarding and historical evidence
 
 The goals guide is also canonical Harness content. Port its authored HTML, local

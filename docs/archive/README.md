@@ -1,14 +1,18 @@
 # Historical documentation archive
 
-Use this archive to find instructions and evidence for an older version. These
-records retain their original paths, headings, commands and evidence identities
-so existing citations and bookmarks continue to work. They are not instructions
-for a newly selected 1.5.1 candidate.
+Use this archive for superseded guides, earlier release records and retained
+training examples. These documents preserve what was written and checked for
+their named versions. Their original paths remain valid; do not use an archive
+instruction as the current procedure.
 
-For a package-index installation, use the [published 1.5.0 package reference](https://pypi.org/project/attune-harness/1.5.0/).
-The [1.5.1 documentation audit](../documentation-audit-1.5.1.md) identifies the
-separate preparation guides and their integration gates. Publication of 1.5.1
-has not been verified.
+For current setup and supported workflows, open the [current documentation
+index](../README.md#current-guides). The [current training course](../../training/README.md)
+uses separate 1.7.0 preparation instructions and fresh local checks.
+[Earlier HTML training](../../training/archive/README.md) has its own archive.
+
+A document belongs here when it is superseded, rather than merely old. Active
+installation, recovery and compatibility guidance stays in the current index
+while it remains useful for supported work.
 
 ## Versioned guides and release records
 
@@ -32,10 +36,16 @@ has not been verified.
 | [Four training walkthroughs for Harness 1.3.0](../tutorials-1.3.0.md) | Historical; read with its named source, artifact and version |
 | [Four training walkthroughs for the unpublished Harness 1.5.0 candidate](../tutorials-1.5.0-candidate.md) | Historical; read with its named source, artifact and version |
 | [Training walkthroughs for Harness 1.4.0](../tutorials-next-release-candidate.md) | Historical; read with its named source, artifact and version |
+| [Harness 1.5.1 documentation surface audit](../documentation-audit-1.5.1.md) | Superseded version-specific guidance; retain its original evidence |
+| [Attune Harness 1.5.1 release notes](../release-notes-1.5.1.md) | Superseded version-specific guidance; retain its original evidence |
+| [Harness 1.6.0 — unreleased](../release-notes-1.6.0.md) | Superseded version-specific guidance; retain its original evidence |
+| [Prepare for Harness 1.6.0](../release-preparation-1.6.0.md) | Superseded version-specific guidance; retain its original evidence |
+| [Attune Harness 1.5.1 preparation readiness](../release-readiness-1.5.1.md) | Superseded version-specific guidance; retain its original evidence |
+| [Four training walkthroughs for Harness 1.5.1](../tutorials-1.5.1.md) | Superseded version-specific guidance; retain its original evidence |
 
 ## Dated evidence, designs and decisions
 
-The [documentation index](../README.md#dated-evidence-and-design-notes) retains
+The [technical evidence index](../README.md#dated-evidence-and-design-notes) retains
 the dated results, receipts, design notes and research. Specifications retain
 their own approval and implementation status. An accepted design is not a
 claim of released behavior.
