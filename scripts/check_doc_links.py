@@ -12,7 +12,8 @@ tracked is reported as such: ``git add`` it, or the published tree will not
 have it.
 
 Every tracked ``docs/**/*.md`` other than the index itself must be linked
-from ``docs/README.md``, so a new document cannot land unindexed.
+from ``docs/README.md`` or its linked historical archive catalog, so a new
+document cannot land unindexed. An unlinked archive does not provide coverage.
 
 The root README is also rendered on PyPI, where repository-relative links
 resolve under ``pypi.org/project/attune-harness/`` and fail. Its Markdown
@@ -54,6 +55,7 @@ REFERENCE_USE = re.compile(r'(?<!\\)\[([^\]\n]+)\](?:\[([^\]\n]*)\])?')
 KNOWN_NAME = "known_dead_links.txt"
 HISTORICAL_NAME = "historical_link_exceptions.txt"
 INDEX = "docs/README.md"
+ARCHIVE_INDEX = "docs/archive/README.md"
 SOURCE_SUFFIXES = {'.py', '.pyi', '.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx',
                    '.sh', '.bash', '.ps1', '.yml', '.yaml', '.toml', '.c', '.h',
                    '.cpp', '.rs', '.go'}
@@ -245,6 +247,7 @@ def check(root: Path) -> list[str]:
     seen_historical = set()
     seen_known: set[str] = set()
     indexed: set[str] = set()
+    archived: set[str] = set()
     anchors = {}
     lines = {}
     for path in sorted(files):
@@ -258,6 +261,8 @@ def check(root: Path) -> list[str]:
         for number, target, fragment, raw in links(path, text):
             if path == INDEX:
                 indexed.add(target)
+            elif path == ARCHIVE_INDEX:
+                archived.add(target)
             problem = None
             if target not in present and target in known:
                 seen_known.add(target)
@@ -292,6 +297,8 @@ def check(root: Path) -> list[str]:
         elif target not in seen_known:
             findings.append(f"{KNOWN.name}: nothing links to {target} any more; remove it from the list")
     if INDEX in present:
+        if ARCHIVE_INDEX in indexed:
+            indexed.update(archived)
         for path in sorted(files):
             if path.startswith("docs/") and path.endswith(".md") and path != INDEX and path not in indexed:
                 findings.append(f"{INDEX}: no row for {path}")

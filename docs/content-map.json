@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "source_repository": "Smart-AI-Memory/attune-harness",
+  "checked_on": "2026-11-05",
+  "website_repository": "Smart-AI-Memory/attune-ai",
+  "website_entry": "https://smartaimemory.com/harness/help/",
+  "website_navigation": [
+    {"title": "Get started", "route": "/harness/help/get-started/", "source": "help/get-started.md"},
+    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/1.7.0-preparation/index.html", "delivery": "proposed; not deployed"},
+    {"title": "Do a task", "route": "/harness/help/goals/", "source": "help/goals/guide.html"},
+    {"title": "Reference", "route": "/harness/help/ai-tools-and-integrations/", "source": "help/ai-tools-and-integrations.md"}
+  ],
+  "secondary_navigation": [
+    {"title": "Historical archive", "route": "/harness/help/archive/", "source": "help/archive.md", "training_source": "training/archive/README.md"}
+  ],
+  "help": {
+    "manifest": "help/manifest.json",
+    "authored_sources": "help/",
+    "build": "python3.12 scripts/build_help.py --output <new-output-directory>",
+    "website_importer": "website/scripts/harness-help-export.mjs",
+    "live_observation": "The browser-rendered website Help landing still identifies Harness 1.5.1; its navigation contains no training-course link.",
+    "observation_limit": "Browser inspection of the public Help landing, not deployment-source verification."
+  },
+  "training": {
+    "publication_status": "draft course; Harness 1.7.0 preparation (package unpublished)",
+    "content": "training/1.7.0-preparation/*/lesson.json",
+    "shared_shell": "training/lesson-template.html",
+    "shared_interactions": "training/1.7.0-preparation/assets/app.js",
+    "shared_style": "training/1.7.0-preparation/assets/styles.css",
+    "project": "python3.12 training/build_course.py",
+    "check_projection": "python3.12 training/build_course.py --check",
+    "machine_evidence": "training/1.7.0-preparation/assets/current-checks.json",
+    "offline_practice": "training/1.7.0-preparation/practice.py",
+    "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
+    "development_paths": "training/1.7.0-preparation/development-paths.html",
+    "website_delivery": "Website integration is in preparation; source changes and local previews do not establish production deployment."
+  },
+  "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
+  "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."
+}
