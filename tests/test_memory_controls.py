@@ -85,3 +85,25 @@ def test_the_bare_key_rule_is_linear_on_a_long_run():
     started = time.monotonic()
     assert strict("content", "sk-" + "a" * 200000)
     assert time.monotonic() - started < 1.0
+
+
+@pytest.mark.parametrize("prefix", ["sk-", "sk-ant-"])
+@pytest.mark.parametrize("suffix,lower_blocks,upper_blocks", [
+    ("a1", False, True),
+    ("A1", True, False),
+    ("aA", False, False),
+    ("aA1", True, True),
+    ("İ1", True, False),
+    ("K1", True, False),
+    ("ı1", False, True),
+    ("ſ1", False, True),
+    ("aA²", False, False),  # Unicode digits are outside the token grammar.
+])
+def test_bare_key_case_and_digit_boundaries(prefix, suffix, lower_blocks, upper_blocks):
+    assert strict("content", prefix + "_" * 100 + suffix) is not lower_blocks
+    assert strict("content", prefix.upper() + "_" * 100 + suffix) is not upper_blocks
+
+
+def test_implausible_bare_key_does_not_hide_a_later_secret():
+    text = "sk-" + "a" * 100 + " sk-" + "Aa1" * 40
+    assert not strict("content", text)
