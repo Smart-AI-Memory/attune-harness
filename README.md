@@ -15,12 +15,10 @@ You can inspect what happened and use that record when you continue later.
 Read the 1.7.0
 [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/release-notes-1.7.0.md)
 and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/release-readiness-1.7.0.md).
-The `v1.7.0` documentation links become available after the release tag is
-published. Before then, use these files in the reviewed release checkout.
-Before 1.7.0 publication, use published
-[1.6.0](https://pypi.org/project/attune-harness/1.6.0/) for index installations.
-Its [release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json)
-retains its source, artifacts and verification limits. Each Help Center guide
+The `v1.7.0` documentation links point to the released source.
+[Harness 1.7.0](https://pypi.org/project/attune-harness/1.7.0/) is published on PyPI.
+The [1.6.0 release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json)
+retains that release's source, artifacts and verification limits. Each Help Center guide
 states its own version and publication status. A prepared checkout or passing
 qualification does not establish package publication.
 
@@ -34,7 +32,7 @@ qualification does not establish package publication.
 
 [Explore the benefits](#what-you-can-do) · [Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Help Center](#help-center)
 
-Updated on November 4, 2026.
+Updated on November 6, 2026.
 
 ## What changes in 1.7.0
 
@@ -70,12 +68,10 @@ to choose a procedure and see what it needs.
 
 ## Installation
 
-### Install 1.7.0 after publication
+### Install 1.7.0
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed,
-then install Harness 1.7.0 in its own managed environment **after publication**.
-Before publication, follow the installation guide's
-[reviewed-wheel procedure](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/installation.md#select-a-candidate-without-replacing-a-working-runtime).
+then install Harness 1.7.0 in its own managed environment.
 Keep your working installation and saved records while checking a replacement.
 
 ```sh
@@ -105,7 +101,7 @@ with its qualification evidence.
 
 ### Check a local result
 
-After publication, check the selected package without an API key or model call:
+Check the selected package without an API key or model call:
 
 ```sh
 python3.12 -m venv .venv-harness-170
@@ -146,11 +142,10 @@ Add the marketplace and install the plugin:
 /plugin install attune-harness@attune-harness
 ```
 
-The marketplace still selects version 1.6.0, pinned to the released source at
-`af2159516a67172cc8f2a1ff62213296b1b67112`. Existing installations need a
+The marketplace selects version 1.7.0, pinned to the released source at
+`5159e7a79fbdb84d2982937716043b142534e6e9`. Existing installations need a
 marketplace refresh and plugin update; verify the selected version and source.
-The Python runtime and host plugin are separate installations. The marketplace
-will move to 1.7.0 only through its separate post-publication update.
+The Python runtime and host plugin are separate installations.
 
 The plugin includes Harness workflows, cross-review, roundtable and smart-test
 instructions. It calls the separately installed `attune-harness` runtime.
@@ -284,9 +279,8 @@ provides the detailed requirements and evidence.
 ## Optional integrations
 
 Start with the base package. It includes forms, document verification, local
-Markdown retrieval, testing, MCP serving and token counting. The following
-package selections require the 1.7.0 distribution on your package index after
-publication. Before then, install the exact reviewed local wheel.
+Markdown retrieval, testing, MCP serving and token counting. Select the published
+1.7.0 package with the extras you need:
 
 | You need | Package to select |
 | --- | --- |
@@ -337,7 +331,7 @@ inheritance during that compatibility window.
 
 ## Upgrade and keep a rollback path
 
-When 1.7.0 becomes available, install it in a separate Python 3.12 environment before switching a working
+Install 1.7.0 in a separate Python 3.12 environment before switching a working
 setup. Keep your previous runtime, original participant configuration, saved tasks,
 memory sources and writer/hook settings.
 
@@ -411,7 +405,7 @@ explains what the software checks cover.
 Start with [Get started with Harness 1.6.0](https://smartaimemory.com/harness/help/get-started/)
 to install Harness, check a local result and connect your assistant. Then choose
 your next outcome in the [goals guide](https://smartaimemory.com/harness/help/goals/).
-The Help Center still targets published 1.6.0; these source guides prepare 1.7.0.
+The Help Center still targets published 1.6.0; these source guides describe 1.7.0.
 Website delivery is a separate update;
 check the displayed version before following a guide.
 
