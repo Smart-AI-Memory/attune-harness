@@ -43,9 +43,9 @@ def test_all_current_routes_and_contents_links_work(
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
+        assert 'href="/harness/learn/"' not in text
         if page.parent == directory:
             assert 'aria-label="On this page"' not in text
-            assert 'href="/harness/learn/"' in text
             assert f'Current published setup: <strong>Harness {published_version}</strong>' in text
         else:
             assert (

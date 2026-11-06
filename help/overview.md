@@ -2,8 +2,7 @@
 <p class="help-eyebrow">Guided learning · Harness 1.7.0 preparation</p>
 <h2 id="harness-in-practice">Harness in practice</h2>
 <p>Follow six guided reporting lessons: define a useful result, build a report, return to saved work, review the evidence, prepare a local handoff and improve the tool.</p>
-<p>The course is a draft for the unpublished Harness 1.7.0 package. Its source and local checks are separate from published onboarding.</p>
-<p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/">Start the guided course</a></p>
+<p>The course is a draft for Harness 1.7.0. Its source and local checks are separate from published onboarding. Website delivery is pending.</p>
 </section>
 
 ## Choose what you want to accomplish
