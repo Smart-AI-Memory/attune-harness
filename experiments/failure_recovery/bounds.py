@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import stat
+import time
+from contextlib import contextmanager
 
 from attune_harness.review_contract import parse_json
 
@@ -37,6 +39,32 @@ class CaptureError(ValueError):
     def __init__(self, path, error):
         self.path, self.error = path, type(error).__name__
         super().__init__(str(error)[:200] or self.error)
+
+
+class EnumeratedLeafMissing(ValueError):
+    """An anchored inventory named this entry, then an anchored leaf lookup failed."""
+
+    def __init__(self, path, witness):
+        self.path, self.witness = path, witness
+        super().__init__("enumerated_leaf_missing")
+
+
+@contextmanager
+def _inventory(folder):
+    descriptors = []
+    try:
+        if os.open in os.supports_dir_fd and hasattr(os, "O_NOFOLLOW") and os.scandir in os.supports_fd:
+            flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+            absolute = folder.absolute()
+            descriptors.append(os.open(absolute.anchor, flags))
+            for part in absolute.parts[1:]:
+                descriptors.append(os.open(part, flags, dir_fd=descriptors[-1]))
+            yield descriptors[-1]
+        else:
+            yield folder
+    finally:
+        for descriptor in reversed(descriptors):
+            os.close(descriptor)
 
 
 def sha(data):
@@ -158,40 +186,62 @@ def capture(root):
         nonlocal total
         if depth > MAX_DEPTH:
             raise ValueError("Collection depth exhausted")
-        with os.scandir(folder) as entries:
-            names = []
-            for entry in entries:
-                if folder == root and entry.name == ".git":
-                    continue
-                names.append(entry.name)
-                if len(facts) + len(names) > MAX_ENTRIES:
-                    raise ValueError("Collection entry count exhausted")
-        for name in sorted(names):
-            path = folder / name
-            key = relative(path.relative_to(root).as_posix())
-            try:
-                metadata = path.lstat()
-                if stat.S_ISDIR(metadata.st_mode):
-                    facts[key] = {"kind": "directory", "mode": stat.S_IMODE(metadata.st_mode)}
-                    walk(path, depth + 1)
-                else:
-                    data = read_bytes(path)
-                    total += len(data)
-                    if total > MAX_TREE:
-                        raise ValueError("Collection byte budget exhausted")
-                    facts[key] = {"kind": "file", "mode": stat.S_IMODE(metadata.st_mode),
-                                  "bytes": len(data), "sha256": sha(data)}
-                    contents[key] = data
-                if len(facts) > MAX_ENTRIES:
-                    raise ValueError("Collection entry count exhausted")
-            except AtomicLeafReplacement as exc:
-                if isinstance(exc.path, Path):
-                    raise AtomicLeafReplacement(key) from exc
-                raise
-            except CaptureError:
-                raise
-            except (OSError, ValueError) as exc:
-                raise CaptureError(key, exc) from exc
+        with _inventory(folder) as inventory:
+            anchored = type(inventory) is int
+            parent_identity = lambda s: {"device": s.st_dev, "inode": s.st_ino, "mode": s.st_mode}
+            parent_before = parent_identity(os.fstat(inventory)) if anchored else None
+            enumeration_started = time.monotonic()
+            with os.scandir(inventory) as entries:
+                names = []
+                inodes = {}
+                for entry in entries:
+                    if folder == root and entry.name == ".git":
+                        continue
+                    names.append(entry.name)
+                    if anchored:
+                        inodes[entry.name] = entry.inode()
+                    if len(facts) + len(names) > MAX_ENTRIES:
+                        raise ValueError("Collection entry count exhausted")
+            enumeration_finished = time.monotonic()
+            for name in sorted(names):
+                path = folder / name
+                key = relative(path.relative_to(root).as_posix())
+                try:
+                    metadata = os.stat(name, dir_fd=inventory, follow_symlinks=False) if anchored else path.lstat()
+                    if stat.S_ISDIR(metadata.st_mode):
+                        facts[key] = {"kind": "directory", "mode": stat.S_IMODE(metadata.st_mode)}
+                        walk(path, depth + 1)
+                    else:
+                        data = read_bytes(path)
+                        total += len(data)
+                        if total > MAX_TREE:
+                            raise ValueError("Collection byte budget exhausted")
+                        facts[key] = {"kind": "file", "mode": stat.S_IMODE(metadata.st_mode),
+                                      "bytes": len(data), "sha256": sha(data)}
+                        contents[key] = data
+                    if len(facts) > MAX_ENTRIES:
+                        raise ValueError("Collection entry count exhausted")
+                except AtomicLeafReplacement as exc:
+                    if isinstance(exc.path, Path):
+                        raise AtomicLeafReplacement(key) from exc
+                    raise
+                except (CaptureError, EnumeratedLeafMissing):
+                    raise
+                except FileNotFoundError as exc:
+                    if anchored:
+                        try:
+                            os.stat(name, dir_fd=inventory, follow_symlinks=False)
+                        except FileNotFoundError:
+                            parent_after = parent_identity(os.fstat(inventory))
+                            if parent_before == parent_after == parent_identity(folder.lstat()):
+                                raise EnumeratedLeafMissing(key, {"parent_before": parent_before, "parent_after": parent_after,
+                                    "entry_inode": inodes[name],
+                                    "enumeration_started_seconds": enumeration_started,
+                                    "enumeration_finished_seconds": enumeration_finished,
+                                    "missing_seconds": time.monotonic()}) from exc
+                    raise CaptureError(key, exc) from exc
+                except (OSError, ValueError) as exc:
+                    raise CaptureError(key, exc) from exc
 
     walk(root, 0)
     return facts, contents

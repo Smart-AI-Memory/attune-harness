@@ -24,6 +24,20 @@ SPEC.loader.exec_module(PACKAGE)
 from failure_recovery_test import bounds, fixture, oracle, recorder, run, score, solutions, transient
 
 
+def offline_connect_guard():
+    original = socket.socket.connect
+    socketpair_code = getattr(socket.socketpair, "__code__", None)
+    def connect(sock, address):
+        # Windows' standard-library socketpair is asyncio's local self-pipe.
+        if (socketpair_code is not None and sys._getframe(1).f_code is socketpair_code
+                and isinstance(address, tuple) and len(address) == 2
+                and address[0] in ("127.0.0.1", "::1")
+                and type(address[1]) is int and 0 < address[1] <= 65535):
+            return original(sock, address)
+        pytest.fail("Offline controls attempted a connection outside the standard-library socketpair")
+    return connect
+
+
 @pytest.fixture(scope="module")
 def qualified(tmp_path_factory):
     from attune_harness import native, openai_exchange, plan_exchange, review_participants
@@ -36,7 +50,7 @@ def qualified(tmp_path_factory):
         for module, name in ((native, "NativeExchange"), (review_participants, "NativeExchange"),
                              (openai_exchange, "OpenAIExchange"), (plan_exchange, "PlanExchange")):
             patch.setattr(module, name, poison)
-        patch.setattr(socket.socket, "connect", poison)
+        patch.setattr(socket.socket, "connect", offline_connect_guard())
         result = run.run_all(output)
     errors = {}
     for row in result["controls"]:
@@ -67,6 +81,21 @@ def qualified(tmp_path_factory):
 
 def evidence(packet, control):
     return bounds.read_json(packet / control / "evidence.json", bounds.MAX_EVIDENCE)
+
+
+def test_connection_guard_permits_socketpair_but_no_service_connections(monkeypatch):
+    monkeypatch.setattr(socket.socket, "connect", offline_connect_guard())
+    first, second = socket.socketpair()
+    try:
+        first.sendall(b"local self-pipe")
+        assert second.recv(32) == b"local self-pipe"
+    finally:
+        first.close()
+        second.close()
+    for address in (("127.0.0.1", 11434), ("203.0.113.1", 443)):
+        with socket.socket() as candidate:
+            with pytest.raises(pytest.fail.Exception, match="outside the standard-library socketpair"):
+                candidate.connect(address)
 
 
 def test_failed_fixture_reporting_keeps_nested_evidence(tmp_path, monkeypatch):

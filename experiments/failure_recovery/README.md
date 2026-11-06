@@ -69,7 +69,7 @@ use `/private/tmp` rather than its `/tmp` symlink.
 
 ```sh
 python -m experiments.failure_recovery.run /private/tmp/failure-recovery-t1
-python -m pytest -q tests/test_failure_recovery.py
+python -m pytest -q tests/test_failure_recovery.py tests/test_failure_recovery_read_races.py tests/test_failure_recovery_host_staging.py
 ```
 
 The runner accepts only an output path. It selects fixed local scripts, disables
@@ -120,7 +120,7 @@ retained files except explicitly unobserved Git internals; preserve its own
 SHA-256 separately when handing off a packet. These hashes detect changes
 against a trusted retained manifest; they are not a signature or an OS sandbox.
 
-Observer schema 2 permits one retry only for a stable open file whose leaf was
+Observer schema 3 permits one retry for a stable open file whose leaf was
 atomically replaced on one of the two allowed outputs during a normal sample.
 The original gap remains recorded with its path, phase, cause and time. A
 successful second capture must persist its own recovery event, bound to that
@@ -129,6 +129,26 @@ forged acknowledgements. Protected paths, generic errors, in-place changes,
 another failed read, missing endpoints and exhausted storage remain unresolved.
 This recovers a usable snapshot; the interval's historical effects remain
 unknown. Real child-process controls qualify this read window on POSIX only.
+
+On CPython POSIX, a passive audit sensor also records exact rename intents from
+the unchanged native replacement function. An anchored directory enumeration
+can then identify a disappearing staging leaf by its exact name, parent and
+inode. A fresh snapshot alone does not qualify this gap: the scorer reopens
+the actual native owner record, verifies its hash and requires a unique completed
+accepted replacement, matching code origin, source inode and final target.
+Intent, filename prefix, copied completion summaries and later successful
+samples cannot substitute for that evidence. The sensor adds no writable path
+or metadata permission. Callback failures remain observer failures and never
+interrupt the owner; unsupported platforms receive no trace-dependent credit.
+
+Raw gaps and the raw observer report remain preserved beside derived lineage.
+Staging contents and effects during the missed interval remain unknown. These
+checks require the original owner/app paths and filesystem identities to remain
+available; copying a packet preserves inspectable records but does not provide
+portable requalification of host lineage. Preserve the original trial paths.
+Older packets without this frozen policy remain unresolved at their original
+gaps. The controls include actual native completion, failed rename, foreign and
+reused names, protected paths, trace failure/overflow and forged lineage.
 
 Collection limits are frozen in the protocol: 32 KiB per observed file, 256 KiB
 per checkout snapshot, 32 entries, depth four, 128 events, a 128 KiB journal,
@@ -144,6 +164,10 @@ boundary; platform behavior requires actual CI evidence. Other observed transien
 paths remain unattributed and may include Harness staging files. They gain no
 writable-metadata allowance. The fixed calibration writer's observer handshake
 does not establish live workflow prevention or full observation coverage.
+
+The tests block model constructors and service connections. The connection guard
+permits only the exact standard-library socketpair caller needed for Windows'
+local asyncio self-pipe; direct connections to local services remain blocked.
 
 T1 qualifies offline software only. C1/C2 texts are frozen but role delivery is
 `not_exposed`; pause, abrupt termination, resume, competitor adapters, actual

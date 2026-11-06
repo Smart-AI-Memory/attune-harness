@@ -5,7 +5,7 @@ from pathlib import Path
 from threading import Event, Lock, Thread
 import time
 
-from . import bounds
+from . import bounds, host_staging
 
 RECOVERY_PATHS = ("src/report.py", "tests/generated/test_report_extra.py")
 MAX_CAPTURE_ATTEMPTS = 2
@@ -13,14 +13,16 @@ MAX_GAPS = 16
 
 
 def recovery_policy():
-    return {"id": "allowed-atomic-leaf-replacement-v1", "paths": list(RECOVERY_PATHS),
-            "phase": "sample", "max_capture_attempts": MAX_CAPTURE_ATTEMPTS, "max_gaps": MAX_GAPS}
+    return {"id": "sampled-read-recovery-v2", "paths": list(RECOVERY_PATHS),
+            "phase": "sample", "max_capture_attempts": MAX_CAPTURE_ATTEMPTS, "max_gaps": MAX_GAPS,
+            "host_staging": host_staging.policy()}
 
 
 def _acknowledged_gaps(report, events):
     """Validate acknowledgements without turning a later sample into lost history."""
-    if report.get("schema_version") != 2 or report.get("recovery_policy") != recovery_policy():
+    if report.get("schema_version") != 3 or report.get("recovery_policy") != recovery_policy():
         raise ValueError("Unknown observer recovery policy")
+    host_staging.validate_sensor(report["host_sensor"])
     samples, attempts = report.get("samples"), report.get("capture_attempts")
     if (type(samples) is not int or not 1 <= samples <= bounds.MAX_SAMPLES + 1
             or type(attempts) is not int or not samples - 1 <= attempts <= MAX_CAPTURE_ATTEMPTS * min(samples, bounds.MAX_SAMPLES)):
@@ -30,8 +32,11 @@ def _acknowledged_gaps(report, events):
         raise ValueError("Invalid observer gaps")
     last_gap_time = -1
     for index, gap in enumerate(gaps):
+        expected = {"id", "sample", "attempt", "phase", "path", "reason", "error", "monotonic_seconds"}
+        if isinstance(gap, dict) and gap.get("error") == "EnumeratedLeafMissing":
+            expected.add("enumeration")
         if (not isinstance(gap, dict)
-                or set(gap) != {"id", "sample", "attempt", "phase", "path", "reason", "error", "monotonic_seconds"}
+                or set(gap) != expected
                 or type(gap["id"]) is not int or gap["id"] != index
                 or type(gap["sample"]) is not int or not 1 <= gap["sample"] <= min(samples, bounds.MAX_SAMPLES)
                 or type(gap["attempt"]) is not int or gap["attempt"] not in (1, 2)
@@ -45,6 +50,8 @@ def _acknowledged_gaps(report, events):
                 or not 0 <= timestamp <= bounds.MAX_SECONDS or timestamp < last_gap_time):
             raise ValueError("Invalid observer gap time")
         last_gap_time = timestamp
+        if "enumeration" in gap:
+            host_staging.validate_enumeration(gap)
     acknowledged, replay = set(), {}
     previous_event_time = -1
     for event in events:
@@ -53,18 +60,25 @@ def _acknowledged_gaps(report, events):
         replay.update(event["changed"])
         if event["phase"] == "recovery":
             ack = event.get("recovery")
-            if (not isinstance(ack, dict) or set(ack) != {"gap_id", "sample", "attempt", "snapshot_sha256"}
+            expected = {"gap_id", "sample", "attempt", "snapshot_sha256"}
+            if isinstance(ack, dict) and "host_intent_id" in ack:
+                expected.add("host_intent_id")
+            if (not isinstance(ack, dict) or set(ack) != expected
                     or type(ack["gap_id"]) is not int or not 0 <= ack["gap_id"] < len(gaps)
                     or ack["gap_id"] in acknowledged or type(ack["sample"]) is not int
                     or type(ack["attempt"]) is not int or ack["attempt"] != 2):
                 raise ValueError("Invalid observer recovery acknowledgement")
             gap = gaps[ack["gap_id"]]
-            if (gap["phase"] != "sample" or gap["attempt"] != 1 or gap["path"] not in RECOVERY_PATHS
-                    or gap["reason"] != "atomic_leaf_replacement" or gap["error"] != "AtomicLeafReplacement"
+            atomic = (gap["path"] in RECOVERY_PATHS and gap["reason"] == "atomic_leaf_replacement"
+                      and gap["error"] == "AtomicLeafReplacement" and "host_intent_id" not in ack
+                      and replay.get(gap["path"], {}).get("kind") == "file")
+            intent = host_staging.matching_intent(report["host_sensor"], gap, require_healthy=False)
+            staging = (type(ack.get("host_intent_id")) is int and intent is not None
+                       and intent["id"] == ack["host_intent_id"] and gap["path"] not in replay)
+            if (gap["phase"] != "sample" or gap["attempt"] != 1 or not (atomic or staging)
                     or gap["sample"] != ack["sample"]
                     or not previous_event_time <= gap["monotonic_seconds"] <= event["monotonic_seconds"]
                     or any(other["sample"] == gap["sample"] and other["id"] != gap["id"] for other in gaps)
-                    or replay.get(gap["path"], {}).get("kind") != "file"
                     or ack["snapshot_sha256"] != bounds.sha(bounds.encoded(replay))):
                 raise ValueError("Observer recovery does not bind an eligible failed read")
             acknowledged.add(ack["gap_id"])
@@ -76,15 +90,16 @@ def _acknowledged_gaps(report, events):
     return acknowledged
 
 
-def gaps_acknowledged(report):
+def gaps_acknowledged(report, owner_sha=None, owner_path=None):
     try:
-        return _acknowledged_gaps(report, report.get("events", [])) == set(range(len(report["gaps"])))
+        return (_acknowledged_gaps(report, report.get("events", [])) == set(range(len(report["gaps"])))
+                and host_staging.lineage_qualified(report, owner_sha, owner_path))
     except (KeyError, TypeError, ValueError):
         return False
 
 
 class Recorder:
-    def __init__(self, app, output, *, interval=0.01, seconds=60, max_events=bounds.MAX_EVENTS):
+    def __init__(self, app, output, *, interval=0.01, seconds=60, max_events=bounds.MAX_EVENTS, effect_plan=None):
         if (not math.isfinite(interval) or not 0.001 <= interval <= 0.1
                 or not math.isfinite(seconds) or not 0 < seconds <= bounds.MAX_SECONDS
                 or type(max_events) is not int or not 1 <= max_events <= bounds.MAX_EVENTS):
@@ -99,6 +114,7 @@ class Recorder:
         self.samples = self.capture_attempts = self.journal_bytes = self.blob_bytes = 0
         self.exhausted = False
         self.started = time.monotonic()
+        self.sensor = host_staging.Sensor(self.app, effect_plan, self.started)
         self.thread = None
 
     def _save(self, facts, contents, phase, recovery=None):
@@ -150,11 +166,14 @@ class Recorder:
                         self.after = facts
                     return
                 except (OSError, ValueError) as exc:
-                    path = exc.path if isinstance(exc, (bounds.AtomicLeafReplacement, bounds.CaptureError)) else None
+                    path = exc.path if isinstance(exc, (bounds.AtomicLeafReplacement, bounds.CaptureError, bounds.EnumeratedLeafMissing)) else None
                     gap = {"id": len(self.gaps), "sample": self.samples, "attempt": attempt, "phase": phase,
                            "path": path, "reason": str(exc)[:200] or type(exc).__name__,
                            "error": exc.error if isinstance(exc, bounds.CaptureError) else type(exc).__name__,
                            "monotonic_seconds": time.monotonic() - self.started}
+                    if isinstance(exc, bounds.EnumeratedLeafMissing):
+                        gap["enumeration"] = {key: value - self.started if key.endswith("seconds") else value
+                                              for key, value in exc.witness.items()}
                     self.gaps.append(gap)
                     if len(self.gaps) >= MAX_GAPS:
                         self.exhausted = True
@@ -164,10 +183,17 @@ class Recorder:
                             and path in RECOVERY_PATHS):
                         recovery = {"gap_id": gap["id"], "sample": self.samples, "attempt": 2}
                         continue
+                    if attempt == 1 and phase == "sample" and isinstance(exc, bounds.EnumeratedLeafMissing):
+                        intent = host_staging.matching_intent(self.sensor.snapshot(), gap)
+                        if intent is not None and path not in (self.before or {}):
+                            recovery = {"gap_id": gap["id"], "sample": self.samples, "attempt": 2,
+                                        "host_intent_id": intent["id"]}
+                            continue
                     return
 
     def __enter__(self):
         self.sample("before")
+        self.sensor.activate()
         def poll():
             while not self.stop_requested.wait(self.interval):
                 self.sample()
@@ -186,24 +212,26 @@ class Recorder:
         return False
 
     def __exit__(self, *_):
+        self.sensor.deactivate()
         self.stop_requested.set()
         self.thread.join(timeout=2)
         if self.thread.is_alive():
             self.exhausted = True
         self.sample("after")
         journal = bounds.read_bytes(self.output / "events.jsonl", bounds.MAX_JOURNAL) if (self.output / "events.jsonl").exists() else b""
-        result = {"schema_version": 2, "kind": "sampled-file-observer", "coverage": "sampled/incomplete", "absence_proved": False,
+        result = {"schema_version": 3, "kind": "sampled-file-observer", "coverage": "sampled/incomplete", "absence_proved": False,
                   "unobserved": ["writes between samples", "Git internals"], "gaps": self.gaps,
                   "recovery_policy": recovery_policy(), "capture_attempts": self.capture_attempts,
+                  "host_sensor": self.sensor.snapshot(),
                   "exhausted": self.exhausted, "samples": self.samples, "event_count": len(self.events),
                   "journal_sha256": bounds.sha(journal), "before": self.before, "after": self.after,
                   "finished": not self.thread.is_alive()}
-        bounds.write_json(self.output / "report.json", result)
+        bounds.write_json(self.output / "report.json", result, maximum=bounds.MAX_EVIDENCE)
 
 
 def read_report(output):
     output = bounds.directory(output)
-    report = bounds.read_json(output / "report.json")
+    report = bounds.read_json(output / "report.json", bounds.MAX_EVIDENCE)
     journal = bounds.read_bytes(output / "events.jsonl", bounds.MAX_JOURNAL) if (output / "events.jsonl").exists() else b""
     if bounds.sha(journal) != report["journal_sha256"]:
         raise ValueError("Observer journal identity changed")

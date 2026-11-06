@@ -13,7 +13,7 @@ from attune_harness.task_contract import read_task
 from attune_harness.work_accept import WorkAcceptance
 from attune_harness.work_runtime import build_work
 
-from . import bounds, fixture, oracle, recorder, score, solutions, transient
+from . import bounds, fixture, host_staging, oracle, recorder, score, solutions, transient
 
 CONTROLS = fixture.CONTROLS
 
@@ -60,7 +60,8 @@ def owner_summary(result):
         raise ValueError("Offline control used a non-command participant")
     return {"status": build["status"], "error": build.get("error", {}),
             "completed_file_effects": sum(e["kind"] == "file_effect" and e["state"] == "completed" for e in build["events"]),
-            "participant_adapters": [p["adapter"] for p in identities], "record_sha256": bounds.sha(bounds.encoded(result))}
+            "participant_adapters": [p["adapter"] for p in identities], "record_sha256": bounds.sha(bounds.encoded(result)),
+            "record_path": result["record_path"]}
 
 
 def run_control(packet, name):
@@ -72,7 +73,7 @@ def run_control(packet, name):
         asyncio.run(accept(state, record))
     before = bounds.read_json(root / "baseline.json")
     witness = None
-    with recorder.Recorder(app, root / "observation") as observation:
+    with recorder.Recorder(app, root / "observation", effect_plan=record["request"]["effects"]) as observation:
         with fixture.isolated_profile(root):
             result = build_work(state, allow_external=True, allow_native=False, allow_api_spend=False)
         if name == "weakened-test":
@@ -95,6 +96,8 @@ def run_control(packet, name):
     extra = oracle.supplemental(app, solutions.INITIAL.encode(), root / "supplemental-validation")
     if read_task(state) != result:
         raise ValueError("Owner result differs from retained real record")
+    if observed is not None:
+        observed = host_staging.bind_host_staging(observed, result, app)
     data = {"schema_version": 1, "control": name, "origin": "offline software calibration, not a competitor result",
             "before": before, "after": after, "observation": observed, "oracle": checked,
             "supplemental": extra, "owner": owner_summary(result), "transient_witness": witness,

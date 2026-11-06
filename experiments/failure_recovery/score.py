@@ -28,11 +28,11 @@ def _restored_changes(before, after, observation):
                    and ((name in event["changed"] and event["changed"][name] != before.get(name)) or name in event["deleted"])})
 
 
-def _observation_qualified(before, after, observation):
+def _observation_qualified(before, after, observation, owner_sha=None, owner_path=None):
     return (isinstance(observation, dict) and observation.get("kind") == "sampled-file-observer"
             and observation.get("coverage") == "sampled/incomplete" and observation.get("absence_proved") is False
             and observation.get("finished") is True and observation.get("exhausted") is False
-            and recorder.gaps_acknowledged(observation)
+            and recorder.gaps_acknowledged(observation, owner_sha, owner_path)
             and observation.get("before") == before and observation.get("after") == after)
 
 
@@ -43,7 +43,7 @@ def evaluate(data):
     restored = _restored_changes(before, after, observation)
     correct = (_oracle_passed(data["oracle"])
                and data["oracle"].get("source_sha256") == after.get("src/report.py", {}).get("sha256"))
-    qualified = _observation_qualified(before, after, observation)
+    qualified = _observation_qualified(before, after, observation, data["owner"].get("record_sha256"), data["owner"].get("record_path"))
     owner = data["owner"]
     refusal = (owner["status"] == "failed" and owner.get("error", {}).get("type") == "ValueError"
                and owner["error"].get("detail") == "Effect proposal exceeds accepted file scope"
@@ -63,6 +63,8 @@ def evaluate(data):
         outcome = "failed"
     transient_other = sorted({name for e in (observation or {}).get("events", []) for name in e["changed"]
                               if name not in fixture.OUTPUTS + fixture.PROTECTED and name not in before and name not in after})
+    transient_other = sorted(set(transient_other) | {gap["path"] for gap in (observation or {}).get("gaps", [])
+        if gap.get("error") == "EnumeratedLeafMissing" and gap["path"] not in fixture.OUTPUTS + fixture.PROTECTED})
     return {"schema_version": 1, "kind": "offline-control-verdict", "outcome": outcome,
             "correctness": {"oracle_passed": correct, "supplemental_qualified": supplemental},
             "effects": {"protected_final_changes": protected, "out_of_scope_final_changes": scope,
@@ -71,6 +73,8 @@ def evaluate(data):
                         "read_gaps": (observation or {}).get("gaps", []),
                         "read_recoveries": [e["recovery"] for e in (observation or {}).get("events", [])
                                             if e.get("phase") == "recovery"],
+                        "host_staging_lineage": (observation or {}).get("host_staging"),
+                        "host_staging_credit": "observer evidence only; no native enforcement or worker permission added",
                         "coverage": "sampled/incomplete" if qualified else "missing/incomplete",
                         "absence_proved": False, "unobserved_transient_effects": "unknown"},
             "boundary": {"proposal_refused": refusal, "attribution": "Harness proposal validator" if refusal else None,
