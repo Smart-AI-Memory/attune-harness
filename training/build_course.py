@@ -33,12 +33,12 @@ def project():
         outputs[COURSE / slug / "lesson.json"] = json.dumps(lesson, ensure_ascii=False, indent=2) + "\n"
         outputs[COURSE / slug / "index.html"] = shell
         readable = [f'<h1>{escape(lesson["title"])}</h1>',
-                    '<p>Harness 1.7.0 preparation · current course · November 5, 2026</p>',
+                    '<p>Harness 1.7.0 · current course</p>',
                     f'<p>{escape(lesson["subtitle"])}</p>',
                     '<p>This full-text reading copy does not save answers. '
                     '<a href="./">Open the interactive lesson</a> for saved browser notes.</p>']
         notes = [f'# Presenter notes: {lesson["title"]}', '',
-                 'Current 1.7.0 preparation. Derived from this lesson’s JSON.', '']
+                 'Harness 1.7.0. Derived from this lesson’s JSON.', '']
         for section in sections:
             reading_body = re.sub(
                 r'<label\b[^>]*>(.*?)</label>\s*<textarea\b[^>]*>.*?</textarea>',
@@ -77,8 +77,8 @@ def project():
              '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
              '</div><p class="path-comparison"><a href="development-paths.html">'
              'Compare the paths and their review points</a></p></section>',
-             '<p>Harness 1.7.0 preparation · November 5, 2026. Use the separate reviewed-wheel setup before command practice.</p>',
-             '<p><a href="setup.html">Get ready for the course</a> · <a href="assets/current-checks.json">Current software checks</a></p>',
+             '<p>Harness 1.7.0. Set up a separate environment before command practice.</p>',
+             '<p><a href="setup.html">Get ready for the course</a> · <a href="assets/current-checks.json">November 5 course checks</a></p>',
              '<h2>Follow the learning path</h2>', '<ol>']
     for slug, lesson in zip(SLUGS, lessons):
         cards.append(f'<li><h2><a href="{slug}/">{escape(lesson["title"])}</a></h2><p>{escape(lesson["subtitle"])}</p></li>')

@@ -8,18 +8,24 @@ result, saved work, review, a local handoff and a proposed improvement.
 goal-driven and spec-driven development, with examples and the review points
 both paths share. It is linked from the overview and the first two lessons.
 
-The course targets **1.7.0 preparation**, which is unpublished. Its
-[setup page](1.7.0-preparation/setup.html) selects a separate noneditable wheel
-environment. The lessons use fresh offline checks; they start no model calls.
+The course uses published **Harness 1.7.0**. Its
+[setup page](1.7.0-preparation/setup.html) installs the runtime in a separate
+environment. The command practice runs offline after setup and makes no model calls.
 Superseded material belongs in the separate [historical archive](archive/README.md).
 
 ## Preview the course
 
-From the repository root:
+If you need the course source, clone the public repository:
 
 ```sh
-python3.12 training/build_course.py --check
-python3.12 -m http.server 8768 --bind 127.0.0.1 --directory training
+git clone --depth 1 https://github.com/Smart-AI-Memory/attune-harness.git
+cd attune-harness
+```
+
+From the repository root, start a local preview with uv:
+
+```sh
+uv run --no-project --python 3.12 python -m http.server 8768 --bind 127.0.0.1 --directory training
 ```
 
 Open <http://127.0.0.1:8768/1.7.0-preparation/>. Each lesson has section
@@ -54,7 +60,7 @@ an unfinished reporting project, fixed local command participants, two protected
 test files and an unaccepted request. Accept and build separately as explained
 in lesson 2. No provider SDK or account is used by the practice participants.
 
-The [current check summary](1.7.0-preparation/assets/current-checks.json)
+The [November 5 check summary](1.7.0-preparation/assets/current-checks.json)
 records 77 reporting cases, both completed Harness probes, unchanged protected
 inputs and the resulting sample bytes. It states the runtime and wheel identity.
 These are software checks on macOS; browser/platform coverage and observed
