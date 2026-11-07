@@ -7,9 +7,9 @@ It requires Python 3.12 or later. The
 [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
 lists the published files, their hashes and the checks that ran.
 
-Start with the base package; Redis and Voyage are optional. Keep a working runtime
-and its saved records while checking a replacement. Read the [migration guide](migration.md)
-and the [1.7.0 readiness record](release-readiness-1.7.0.md). The
+Start with the base package. Redis and Voyage are optional. Read the
+[migration guide](migration.md) to keep a working runtime and its saved records
+while checking a replacement. The
 [published 1.6.0 release record](../help/release-1.6.0.json) and
 [historical preparation guide](release-preparation-1.6.0.md) retain their
 original artifact identities and limits.
@@ -131,8 +131,8 @@ The Redis profile installs the pinned Python client. Check the
 recall needs Search, Functions and existing indexed records; scratch and the saved
 mirror have different requirements. The hydration capture, secret-check and
 payload-accounting primitives in 1.7.0 are groundwork. Keep existing writers and
-host hooks; this candidate supplies no supported **`memory hydrate`** command,
-generation publication/cleanup or automatic fresh-session delivery.
+host hooks. A supported **`memory hydrate`** command, generation publication and
+cleanup, and automatic fresh-session delivery remain unfinished.
 
 ## Connect the agent and open a first task
 

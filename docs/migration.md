@@ -1,9 +1,8 @@
 # Move from Attune AI to Harness
 
-Updated on November 4, 2026, for prepared, unpublished Harness 1.7.0.
+Updated on November 7, 2026.
 
-Harness 1.7.0 requires Python 3.12 or later. Published 1.6.0 remains available.
-Follow the
+Harness 1.7.0 is published and requires Python 3.12 or later. Follow the
 [installation guide](installation.md) to select an isolated runtime and check a
 local result.
 
@@ -18,14 +17,14 @@ observations.
 
 ## Prepare to upgrade to 1.7.0
 
-Before publication, install the exact reviewed 1.7.0 local wheel in a separate
-Python 3.12 environment using the [candidate installation procedure](installation.md#select-a-candidate-without-replacing-a-working-runtime).
-The 1.7.0 index-installation examples apply only after publication. The
-[1.6.0 release record](../help/release-1.6.0.json) identifies that older release's
-source and artifacts; published 1.5.1 remains available with its original
-Python 3.10 minimum. Keep the previous
-runtime, original participant registry, memory sources, writer/hook settings and
-saved tasks. Check the needed workflow before changing the runtime your host uses.
+Install published Harness 1.7.0 in a separate Python 3.12 environment using
+[Upgrade and keep a rollback path](installation.md#upgrade-and-keep-a-rollback-path).
+Keep the previous runtime, original participant registry, memory sources, writer
+and hook settings, and saved tasks. Check the needed workflow before changing
+the runtime your host uses.
+
+The [1.6.0 release record](../help/release-1.6.0.json) identifies that older
+release's source and artifacts. Version 1.5.1 retains its Python 3.10 minimum.
 
 Command environment filtering is opt-in. Without an `environment` policy, command
 participants retain full parent inheritance in 1.7.0. The first notice release
@@ -91,7 +90,7 @@ replacement has been validated in your environment.
 
 ## Check the current Windows profile
 
-The 1.7.0 candidate retains native Windows components for captured testing,
+Harness 1.7.0 retains native Windows components for captured testing,
 file-memory reads, saved storage and experimental native-memory transport.
 Windows file-memory reads use the supported local NTFS path profile. Read the
 [current Windows capabilities and limits](supported-journeys.md#windows-capabilities-and-reliability)
@@ -115,10 +114,10 @@ location. Exercise the needed interruption and recovery path without editing
 saved approval or execution evidence. Retain the original environment as a
 fallback until the replacement meets your requirements.
 
-Read the [1.7.0 readiness record](release-readiness-1.7.0.md)
-for candidate evidence and remaining release gates. Existing Help and tutorials
-remain 1.6.0 or historical guidance; separate owner updates and publication
-remain pending. The [historical 1.6.0 preparation guide](release-preparation-1.6.0.md)
+Use the [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+for published artifacts and verification limits. The Help Center rollout is
+separate from package publication. The
+[historical 1.6.0 preparation guide](release-preparation-1.6.0.md)
 retains its original preparation limits. The
 [published 1.5.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1)
 retains its original artifacts and Python minimum. The [documentation archive](https://smartaimemory.com/harness/help/archive/)
