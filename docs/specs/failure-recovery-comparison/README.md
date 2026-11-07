@@ -55,11 +55,12 @@ report the gap and stop that affected task for a scope decision.
 
 ## Current command-owner walk and input flow
 
-These are source-checked operations for the future implementation, not a
-copy-and-run campaign. Fixture preparation and the observation controller do not
-exist yet. T1/T2 must produce their concrete paths, manifests and tested commands.
-This table checks current product prerequisites; it does not claim that the
-whole comparison journey has executed. Local source links cite refusal owners;
+This table records the command-owner inspection that informed the spec. The
+[offline T1 fixture and recorder](../../../experiments/failure_recovery/README.md)
+now provide concrete paths, frozen manifests and scripted Harness owner evidence.
+T2 must supply tested live adapter commands and actual trigger/resume evidence.
+The table checks product prerequisites; it does not claim that the whole
+comparison journey has executed. Local source links cite refusal owners;
 closed-source Claude behavior is labeled documented rather than assigned an
 invented public `raise`.
 
@@ -129,10 +130,12 @@ implementation-level `raise` citations are unavailable for this host.
 
 ## Verification and remaining gate
 
-Patrick approved D1–D6 and selected T1 after reviewing this draft. This spec
-records source inspection only; it does not record completed implementation.
-T1/T2 must exercise concrete adapter commands and
-injection triggers; unsupported cells cannot be silently replaced by mocks.
+Patrick approved D1–D6 and selected T1 after reviewing this draft. The
+[offline T1 controls](../../../experiments/failure_recovery/README.md) implement
+the fixture, real Harness command owners, independent verdict and bounded
+evidence collection. Their receipts qualify software controls only. T2 must
+exercise concrete live adapter commands and injection triggers; unsupported
+cells cannot be silently replaced by mocks.
 Live work additionally waits for exact runtime/profile eligibility, approved
 models/funding, a spending ceiling and the frozen campaign manifest.
 

@@ -6,24 +6,30 @@ unselected; no checkbox grants inference spending, merge or publication.
 
 ## T1 — Build the fixture, independent oracle and offline controls
 
-- [ ] Scope: new `experiments/failure_recovery/` fixture/manifest/recorder modules,
+- [x] Scope: new `experiments/failure_recovery/` fixture/manifest/recorder modules,
   focused tests and documentation. Recheck for existing/pinned paths before
   writing; do not edit historical campaigns. Requirements: R2/R4/R5/R7.
-- [ ] Freeze the CSV source and supplemental-test scope, original visible tests, separate oracle,
+- [x] Freeze the CSV source and supplemental-test scope, original visible tests, separate oracle,
   sentinel, challenge attachments and legitimate metadata policy. Keep task,
   observer and expected-output files outside effects checkouts.
-- [ ] Use real Harness owner APIs with scripted valid, wrong, out-of-scope and
+- [x] Use real Harness owner APIs with scripted valid, wrong, out-of-scope and
   protected-test proposals. Prove scoring catches weakened tests even if a
   worker claims success; retain restored-after-tampering history and unknown
   telemetry states. No fake competitor result is scored as product behavior.
-- [ ] Qualify transient observation with a real local subprocess that changes and
+- [x] Qualify transient observation with a real local subprocess that changes and
   restores a protected test between endpoint snapshots. The recorder must retain
   the intermediate evidence or explicitly report incomplete coverage; synthetic
   event fixtures alone do not prove it can observe transient writes.
-- [ ] Done when named positive/negative controls exercise the recorder and
+- [x] Done when named positive/negative controls exercise the recorder and
   verdict, removing a relevant guard makes its control fail, and all collection
   files have bounded sizes/locations. Receipt types: suite, behavioral and
   evidence-chain. Proposed size: one offline PR; no production runtime change.
+
+Implementation: [offline controls](../../../experiments/failure_recovery/README.md)
+with eleven named controls and six independent guard-removal checks. Focused
+suite, standalone packet identities, full-suite status and actual CI evidence
+belong in the implementation pull request. This completes the T1 software
+boundary; it does not qualify the live adapter or interruption seams below.
 
 ## T2 — Qualify the three adapters and interruption seams
 
