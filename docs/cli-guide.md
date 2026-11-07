@@ -2,20 +2,17 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on November 4, 2026.
+Updated on November 7, 2026.
 
 ## Installation
 
-This source guide prepares Harness 1.7.0, which is not published by this change.
-Read the [release notes](release-notes-1.7.0.md) and
-[readiness record](release-readiness-1.7.0.md). Published Harness 1.6.0 remains
-the installation baseline until publication. Compare installed `COMMAND --help` with
-the [published source guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.6.0/docs/cli-guide.md)
-and the [release record](../help/release-1.6.0.json).
-Historical walkthroughs retain their original version and runtime. See the [workflow guide](supported-journeys.md).
+Harness 1.7.0 is available on [PyPI](https://pypi.org/project/attune-harness/1.7.0/).
+The [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+lists the source, distributions and verification. For an existing installation,
+check `attune-harness COMMAND --help` and use the guide for that release.
+Historical walkthroughs retain their original version and runtime.
 
-After 1.7.0 publication, install it in its own environment. Before publication,
-use the [reviewed local-wheel procedure](installation.md#select-a-candidate-without-replacing-a-working-runtime).
+Install Harness 1.7.0 in its own environment.
 
 ```sh
 uv tool install --python 3.12 'attune-harness==1.7.0'
@@ -26,8 +23,8 @@ acceptance dependencies. Add Redis or Voyage when you need those integrations;
 `all` includes both and excludes `plan-oauth` and experimental native memory.
 The separate [participant funding guide](participant-funding.md) describes
 explicit OpenAI API funding and the `openai-plan` software profile, its exact
-runtime limits and outstanding live qualification. Current 1.7.0 source and
-published 1.6.0 require Python 3.12 or later. Historical releases
+runtime limits and outstanding live qualification. Harness 1.7.0 and 1.6.0
+require Python 3.12 or later. Earlier releases
 retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and

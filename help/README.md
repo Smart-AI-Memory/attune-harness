@@ -34,7 +34,7 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Get started names published 1.6.0; its release record identifies the immutable
+Get started names published 1.7.0; its release record identifies the immutable
 software source, artifacts and check boundaries. The reference guides
 keep their published 1.5.1 identity. Their prerequisite links select the explicit
 1.5.1 practice setup in Get started, which activates that release in an isolated
@@ -86,13 +86,17 @@ Install the documentation dependency in a separate environment:
 python3 -m venv /private/tmp/harness-help-build-env
 /private/tmp/harness-help-build-env/bin/python -m pip install -r help/requirements.txt
 /private/tmp/harness-help-build-env/bin/python scripts/build_help.py --output /private/tmp/harness-help-site
+mkdir -p /private/tmp/harness-help-site/harness/learn
+cp -R training/1.7.0-preparation training/archive /private/tmp/harness-help-site/harness/learn/
 python3 -m http.server 8766 --bind 127.0.0.1 --directory /private/tmp/harness-help-site
 ```
 
 Open <http://127.0.0.1:8766/harness/help/>. Choose unused environment and output
 directories for a new run. Generated output stays outside the repository.
-`build.json` records source hashes for the export. No provider SDK or CLI runtime
-dependency is added by this build dependency.
+`build.json` records source hashes for the Help export. The copied course
+files let you follow the Help-to-lesson links in the same preview. The website
+imports those files separately. The renderer needs no provider SDK or Harness
+runtime.
 
 ## Maintain the guides
 
@@ -114,31 +118,29 @@ The first PR supplies this self-contained site. A separate website PR will
 publish or route to the verified artifact and retire the old implementation
 after the replacement is available. A source PR does not deploy the Help Center.
 
-## Maintain 1.6.0 onboarding and historical guidance
+## Maintain 1.7.0 onboarding and historical guidance
 
-Published 1.6.0 onboarding uses the existing `/harness/help/get-started/`
+Published 1.7.0 onboarding uses the existing `/harness/help/get-started/`
 route with an explicit topic version and published status. The global manifest
 reference remains 1.5.1 so unchanged guides and goal captures keep their original
-identities; `published_version` names the current 1.6.0 release. Each page states
+identities; `published_version` names the current 1.7.0 release. Each page states
 its version and status.
 
-Preserve `1-5-1.md`, `release-1.5.1.json`, historical preparation and verification
-records, goals source and assets byte-for-byte. Add current release evidence in
-`release-1.6.0.json`; do not overwrite older records. Maintained setup links may
-change, while the release record pins the actual source and distributions.
+Preserve the 1.5.1 and 1.6.0 release records, historical verification records
+and goals captures. The 1.7.0 guide links to the
+[GitHub release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+for the published source, artifacts and hashes.
 
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
-validates and imports the static export. Refresh that import and its routing in
-a separate website PR bound to an exact merged Harness commit. A source PR or
-local preview does not deploy the Help Center.
+validates and imports the static export. The current website importer expects
+the 1.6.0 metadata. Update that check and refresh both the Help and training
+exports from the same reviewed, merged Harness commit in the website PR.
+Verify the lesson setup route before serving the refreshed Help navigation.
 
 
-## Review 1.7.0 preparation locally
+## Reproduce 1.7.0 preparation
 
-`1-7-0-preparation.md` is a separate registered preparation topic. Its software
-checkpoint is main `9ece` and rehearsal 41961339343, not a published 1.7.0 package.
-Keep `published_version` at 1.6.0 and the historical reference version at 1.5.1.
-The new page must render as preparation with `noindex,follow`; it must not
-replace current published onboarding, release JSON, historical pages or decks.
-Record new walkthrough outcomes separately and qualify the final changed source
-and built artifacts. Local source/build checks grant no website activation.
+`1-7-0-preparation.md` remains at its original URL under the archive, with
+`noindex,follow`. Its software checkpoint is main `9ece` and rehearsal
+41961339343. Keep the rehearsal results and any published-wheel observations
+separate.

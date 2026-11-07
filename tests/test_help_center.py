@@ -43,7 +43,6 @@ def test_all_current_routes_and_contents_links_work(
     for page in files:
         text = page.read_text()
         assert text.count("<h1>") == 1
-        assert 'href="/harness/learn/"' not in text
         if page.parent == directory:
             assert 'aria-label="On this page"' not in text
             assert f'Current published setup: <strong>Harness {published_version}</strong>' in text
@@ -70,14 +69,14 @@ def test_all_current_routes_and_contents_links_work(
             assert "Harness 1.5.1 preparation before publication" in text
             assert "Archived guide:" in text
         elif page.parent.name == "1-7-0-preparation":
-            assert "Guidance target: <strong>Harness 1.7.0</strong> preparation" in text
-            assert "Unpublished; use published" in text
+            assert "Archived guide:" in text
+            assert "Harness 1.7.0 preparation before publication" in text
         elif page.parent.name == "get-started":
             assert (
-                "published <strong>Harness 1.6.0</strong>"
+                "published <strong>Harness 1.7.0</strong>"
                 in text
             )
-            assert "Get started with Harness 1.6.0" in text
+            assert "Get started with Harness 1.7.0" in text
         else:
             assert (
                 "published <strong>Harness 1.5.0</strong>"
@@ -135,27 +134,30 @@ def test_all_current_routes_and_contents_links_work(
     )
 
 
-def test_160_start_is_prominent_without_relabeling_published_guides(tmp_path):
+def test_170_start_is_prominent_without_relabeling_older_guides(tmp_path):
     builder.build_site(tmp_path / "site")
     root = tmp_path / "site/harness/help"
     start = (root / "get-started/index.html").read_text()
-    assert '<h1>Get started with Harness 1.6.0</h1>' in start
+    assert '<h1>Get started with Harness 1.7.0</h1>' in start
     assert '<meta name="robots" content="index,follow">' in start
     assert (
         '<p class="help-version-note">These instructions describe published '
-        "<strong>Harness 1.6.0</strong>. Check each walkthrough's verification limits.</p>"
+        "<strong>Harness 1.7.0</strong>. Check each walkthrough's verification limits.</p>"
         in start
     )
-    assert "Current release: Harness <strong>1.7.0</strong>" not in start
-    assert 'id="review-170-preparation-separately"' in start
-    assert "Harness 1.7.0 is prepared but unpublished." in start
-    assert "An index install" in start and "of 1.7.0 waits for publication." in start
-    assert 'href="/harness/help/release-1.6.0.json"' in start
-    assert "Current release: Harness <strong>1.6.0</strong>" in start
+    assert "Current release: Harness <strong>1.7.0</strong>" in start
+    practice_link = 'href="/harness/learn/1.7.0-preparation/setup.html"'
+    assert practice_link in start
+    assert start.index(practice_link) < start.index('<h2 id="connect-your-assistant">')
+    landing = (root / "index.html").read_text()
+    archive = (root / "archive/index.html").read_text()
+    assert 'href="/harness/help/1-7-0-preparation/"' not in landing
+    assert 'href="/harness/help/1-7-0-preparation/"' in archive
+    assert 'href="/harness/help/release-1.6.0.json"' in archive
     assert (root / "release-1.6.0.json").read_bytes() == (
         ROOT / "help/release-1.6.0.json"
     ).read_bytes()
-    assert "uv tool install --python 3.12 'attune-harness==1.6.0'" in unescape(
+    assert "uv tool install --python 3.12 'attune-harness==1.7.0'" in unescape(
         start
     )
     assert 'href="/harness/help/get-started/" aria-current="page"' in start
@@ -169,10 +171,12 @@ def test_160_start_is_prominent_without_relabeling_published_guides(tmp_path):
     aliases = builder.PageLinks(start).ids
     assert {
         "set-up-an-isolated-environment",
+        "install-harness-160",
         "choose-the-next-outcome",
         "prepare-the-release-examples",
         "sources-and-verification-limits",
         "prepare-for-160-separately",
+        "review-170-preparation-separately",
     }.issubset(aliases)
     published = (root / "1-5-1/index.html").read_text()
     assert '<h1>Harness 1.5.1 — published guide</h1>' in published

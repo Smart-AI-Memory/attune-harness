@@ -345,7 +345,7 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 f"Archived guide: these instructions describe {original}. "
                 "Keep their original evidence limits. "
                 '<a href="/harness/help/archive/">Browse the archive</a> or '
-                '<a href="/harness/help/get-started/">use current 1.6.0 guidance</a>.'
+                '<a href="/harness/help/get-started/">use current guidance</a>.'
             )
         rendered[slug] = template.substitute(
             title=html.escape(title),

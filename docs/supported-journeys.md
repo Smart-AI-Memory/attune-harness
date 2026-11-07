@@ -1,6 +1,6 @@
 # Choose a Harness workflow
 
-Updated on November 4, 2026, for prepared, unpublished Harness 1.7.0.
+Updated on November 7, 2026, for Harness 1.7.0.
 
 Start a small feature idea with [Complete your first plan and build](cli-guide.md#complete-your-first-plan-and-build).
 Follow the goal through scope review, acceptance, separately authorized execution
@@ -8,17 +8,13 @@ and result inspection. If you need to install Harness first, use the
 [installation guide](installation.md). For other goals, choose a workflow below
 or use the [Help goals guide](https://smartaimemory.com/harness/help/goals/).
 
-The 1.7.0 candidate requires Python 3.12 or later. Use a reviewed local wheel
-before publication; index-installation examples for 1.7.0 apply only after
-publication. See the [candidate release notes](release-notes-1.7.0.md).
-Harness 1.6.0 remains published. Its
-[release record](../help/release-1.6.0.json) identifies the source, artifacts and
-verification limits. Compare your installed command help with the procedure
-before execution; 1.7.0 changes are not part of the published 1.6.0 artifact.
-Earlier [1.5.1 preparation walkthroughs](tutorials-1.5.1.md#choose-a-walkthrough)
-remain historical examples with their original source and runtime. Existing
-Help and tutorial derivatives retain 1.6.0 or historical guidance; separate
-owner updates and publication remain pending.
+Harness 1.7.0 is published and requires Python 3.12 or later. Check your
+installed command help before following a procedure. The
+[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+lists the published artifacts and verification limits. The Help Center rollout
+is separate from package publication. Use the version and runtime named in each
+historical guide, including the
+[1.5.1 preparation walkthroughs](tutorials-1.5.1.md#choose-a-walkthrough).
 
 ## Work
 
@@ -52,17 +48,17 @@ the finite environment policy.
 
 ## Memory
 
-The 1.7.0 candidate retains file-based memory and optional Redis-backed memory.
+Harness 1.7.0 retains file-based memory and optional Redis-backed memory.
 You can read memory files, save memories and keep local working notes without Redis.
 The Redis integration adds access to an existing Redis memory index and shared
 temporary working notes; it requires the `redis` extra and a configured service.
-The [published release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.6.0)
+The [1.6.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.6.0)
 records 77 installed-wheel assertions and two live source regressions on macOS
 arm64 with Redis 7.4.7, Search 2.10.20 and redis-py 5.3.1, including clean-restart
 saved-mirror/AOF confirmation. These checks do not qualify a new writer, automatic
 agent delivery, successful TLS/ACL setup, Windows service installation,
-crash/power-loss behavior or model quality. They qualify the recorded 1.6.0
-artifact, not the new 1.7.0 candidate.
+crash/power-loss behavior or model quality. The results apply to the recorded
+1.6.0 artifact.
 
 For long-term Redis memory, Harness includes readers for existing data. Keep the
 separate writer and startup hooks that prepare and deliver that memory. The
@@ -120,7 +116,7 @@ it does not establish native ARM64 parity or all PowerShell workflows.
 Use these references when you need to inspect the checks or reliability criteria:
 
 - [Published 1.6.0 release record](../help/release-1.6.0.json): source and artifact identities, installed checks and verification limits.
-- [1.7.0 readiness record](release-readiness-1.7.0.md): candidate checks, documentation disposition and remaining release gates; unpublished.
+- [Published 1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0) for published artifacts and their verification limits.
 - [Historical 1.6.0 preparation](release-preparation-1.6.0.md): original prepublication evidence and gates, preserved under their original status.
 - [Documentation archive](https://smartaimemory.com/harness/help/archive/): earlier versioned guides and observations.
 - [Platform qualification](qualification.md): CI matrix and installed-wheel procedures.

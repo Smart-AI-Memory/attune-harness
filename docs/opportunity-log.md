@@ -1,5 +1,34 @@
 # Engineering opportunity log
 
+## First-run walkthrough — November 7, 2026
+
+O-04/O-36 — **R6** lens. The first obstacle was finding an install and practice
+path for the same release. The maintained [Help source](../help/get-started.md)
+and [installation guide](installation.md) now lead from published 1.7.0 to the
+[offline lesson setup](../training/1.7.0-preparation/setup.html). The course
+uses a fresh PyPI environment and gets its examples from the public repository.
+The pre-release Help walkthrough remains in the archive with its rehearsal
+wheel and original evidence.
+
+A local HTTP walkthrough reached the Help landing, Get started, course setup
+and lesson, including its static reading page and sample inputs. On macOS arm64
+with Python 3.12.2, the published wheel matched the
+[release hash](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+and 142 installed files. The lesson moved from draft to accepted to completed.
+Both protected probes passed 77 cases, only `report.py` changed, and the HTML
+matched the expected output byte for byte. The practice used two fixed local
+participant turns and zero model calls.
+
+O-04 remains open at the public Help entrance. The live site still serves the
+older Help export. The next delivery step is to import Help and training from
+the same reviewed, merged Harness commit in the
+[website integration PR](https://github.com/Smart-AI-Memory/attune-ai/pull/2593).
+Done when the hosted Help-to-lesson routes serve the reviewed bytes and the
+[independent first-time walkthrough](release-readiness-1.4.0.md#open-observations-and-publication-boundary)
+records the learner's outcome and where they needed help. The local walkthrough
+establishes the procedure's software behavior. Website merge and deployment
+retain their approval gates.
+
 ## Training and discovery review — November 5, 2026
 
 O-04/O-09/O-16/O-36 — **R6** lens. The broader goal is a user who can find the

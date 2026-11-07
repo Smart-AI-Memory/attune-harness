@@ -1,9 +1,10 @@
 ## Match the practice environment to its evidence
 
-This is a draft written walkthrough for **unpublished Harness 1.7.0**. Published
-onboarding remains [1.6.0](/harness/help/get-started/). The four older practice
-pages retain their [isolated 1.5.1 setup](/harness/help/get-started/#prepare-the-151-practice-examples)
-and original observations. Do not mix those environments or relabel their evidence.
+These walkthroughs use a rehearsal wheel built before Harness 1.7.0 was
+published. For a new installation, [get started with the published
+release](/harness/help/get-started/). The four older practice pages retain their
+[isolated 1.5.1 setup](/harness/help/get-started/#prepare-the-151-practice-examples)
+and original observations.
 
 This preparation uses the reviewed software checkpoint
 `9ecefe8a0fded05b1bb55b2f81d8579725666666` and the wheel from

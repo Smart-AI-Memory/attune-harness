@@ -48,26 +48,29 @@
     },
     {
       "slug": "get-started",
-      "title": "Get started with Harness 1.6.0",
-      "goal": "Install Harness, verify a local result, connect your assistant and choose your first goal.",
+      "title": "Get started with Harness 1.7.0",
+      "goal": "Install Harness, check a local result and build your first report offline.",
       "kind": "task",
-      "version": "1.6.0",
+      "version": "1.7.0",
       "status": "published",
       "legacy_anchors": {
-        "set-up-an-isolated-environment": "install-harness-160",
+        "set-up-an-isolated-environment": "install-harness-170",
+        "install-harness-160": "install-harness-170",
         "choose-the-next-outcome": "choose-goal-driven-development",
         "prepare-the-release-examples": "prepare-the-151-practice-examples",
         "sources-and-verification-limits": "sources-and-verification",
-        "prepare-for-160-separately": "install-harness-160"
+        "prepare-for-160-separately": "install-harness-170",
+        "review-170-preparation-separately": "sources-and-verification"
       }
     },
     {
       "slug": "1-7-0-preparation",
       "title": "Harness 1.7.0 preparation walkthroughs",
-      "goal": "Practice request approval, planning, local research and saved drafts against a recorded unpublished wheel.",
+      "goal": "Read the original preparation walkthroughs and their verification limits.",
       "kind": "task",
       "version": "1.7.0",
-      "status": "preparation"
+      "status": "preparation",
+      "archived": true
     },
     {
       "slug": "start-and-continue",
@@ -150,5 +153,5 @@
     "prepare-for-160-separately": "check-the-version-before-starting"
   },
   "status": "published",
-  "published_version": "1.6.0"
+  "published_version": "1.7.0"
 }
