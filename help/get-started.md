@@ -1,20 +1,25 @@
-## Install Harness 1.6.0
+## Install Harness 1.7.0
 
-Harness 1.6.0 requires Python 3.12 or later. Install
+Harness 1.7.0 requires Python 3.12 or later. Install
 [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed, then use
-its managed environment for the CLI. Version 1.6.0 is available on
-[PyPI](https://pypi.org/project/attune-harness/1.6.0/). Keep your working
-installation and saved records while checking a replacement.
+its managed environment for the CLI. Version 1.7.0 is available on
+[PyPI](https://pypi.org/project/attune-harness/1.7.0/#files). If you already use
+Harness, [check the update in a separate environment](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#upgrade-and-keep-a-rollback-path)
+before switching.
 
 Run these commands in Bash on macOS/Linux or PowerShell on Windows.
+On Windows, the release checks used x64 Python. The binary-only base install
+cannot complete on native Windows ARM64 with Python 3.12. See the
+[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+for the tested Windows configurations.
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.6.0'
+uv tool install --python 3.12 'attune-harness==1.7.0'
 uv tool list --show-paths
 attune-harness --help
 ```
 
-**Expected result:** The tool list shows Harness `1.6.0`, and help lists
+**Expected result:** The tool list shows Harness `1.7.0`, and help lists
 **`init`**, **`plan`**, **`build`**, **`review`**, **`fix`**, **`test`**, **`status`**
 and **`resume`**. If the command is unavailable, follow uv's instructions for
 adding its executable directory to your path.
@@ -41,6 +46,15 @@ Use the same command in Windows PowerShell. No separate environment activation
 or PowerShell activation-policy change is needed. For an alternative setup that
 selects Python directly, follow the [interpreter instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#select-python-for-module-and-fixture-examples).
 
+## Build your first report offline
+
+Open [Get ready for the course](/harness/learn/1.7.0-preparation/setup.html) to
+set up an isolated practice environment, then follow **Build your first report**.
+You review a plan, authorize a local build, and check an HTML report from six
+sample entries. The lesson uses fixed local commands and needs no API key,
+assistant plugin or model call. Download the package and example files before
+working offline.
+
 ## Connect your assistant
 
 Connect the host you use for your project to the runtime you checked above:
@@ -49,7 +63,7 @@ Connect the host you use for your project to the runtime you checked above:
   or [source plugin guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/codex-plugin.md).
   After setup, invoke `$attune-harness` and describe your goal.
 - **Claude Code:** Read the existing [plugin setup instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/README.md#claude-code).
-  The marketplace selects the 1.6.0 skills pinned to the released source.
+  The marketplace selects the 1.7.0 skills pinned to the released source.
   Installing the Python runtime does not update an existing host plugin;
   refresh the marketplace and verify your selected plugin's version and source.
 - **Other integrations or direct commands:** Use the reviewed [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md)
@@ -112,7 +126,7 @@ The [Start and continue](/harness/help/start-and-continue/),
 [Research](/harness/help/research/) and
 [Save and resume](/harness/help/save-and-resume/) practice guides retain their
 published 1.5.1 commands and historical observations. Use this separate setup
-for those guides. The managed 1.6.0 installation above does not activate a
+for those guides. The managed 1.7.0 installation above does not activate a
 1.5.1 Python environment or supply the example checkout.
 
 Open a fresh POSIX shell on macOS or Linux and choose an unused working directory.
@@ -141,33 +155,13 @@ outside the checkout. The examples are source files, not wheel contents.
 These are POSIX practice instructions, not a new Windows shell qualification.
 The [1.5.1 release record](/harness/help/release-1.5.1.json) retains its exact
 artifact identities and original evidence. Use another shell for the managed
-1.6.0 CLI above, or run `deactivate` when finished with the practice environment.
-
-## Review 1.7.0 preparation separately
-
-Harness 1.7.0 is prepared but unpublished. Review the separate
-[1.7.0 preparation walkthroughs](/harness/help/1-7-0-preparation/) before
-choosing that exact practice wheel. Use the
-[1.7.0 installation guidance](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md)
-for a local reviewed wheel, and inspect the
-[readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-readiness-1.7.0.md)
-and [release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-notes-1.7.0.md)
-for exact software evidence and remaining publication gates. An index install
-of 1.7.0 waits for publication. The 1.5.1 practice setup above remains a separate
-historical route; its observations are not 1.7.0 acceptance evidence.
-
-The legacy command environment remains available in 1.7.0, with removal no
-earlier than 1.8.0. API and plan funding have offline software evidence;
-real account/model eligibility, native Keychain interoperability, quota and
-billing remain unestablished. Hydration capture and ledger work is groundwork;
-keep existing writers and host hooks. Source preparation does not deploy Help
-or replace delivered tutorial decks.
+1.7.0 CLI above, or run `deactivate` when finished with the practice environment.
 
 ## Sources and verification
 
-The [1.6.0 release record](/harness/help/release-1.6.0.json) identifies the
-[released source](https://github.com/Smart-AI-Memory/attune-harness/tree/af2159516a67172cc8f2a1ff62213296b1b67112),
-wheel and source archive, hosted qualification and verified index installation.
+The [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+identifies the released source, wheel and source archive, hosted qualification
+and verified index installation.
 Setup links use maintained repository documentation; the release record retains
 the immutable software identity. Each linked historical walkthrough keeps its
 stated version, source and observation limits. Repository fixtures are not

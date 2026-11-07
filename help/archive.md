@@ -1,9 +1,18 @@
 ## Use current guidance first
 
-For new work, [get started with published Harness 1.6.0](/harness/help/get-started/).
+For new work, [get started with published Harness 1.7.0](/harness/help/get-started/).
 This archive keeps earlier guides, candidate instructions and observation records
 available under their original versions. An archived result does not qualify a
 newer artifact or a different platform.
+
+## Harness 1.7.0 preparation
+
+- [Preparation walkthroughs](/harness/help/1-7-0-preparation/) preserve the rehearsal wheel and the original verification limits.
+
+## Published 1.6.0
+
+- [1.6.0 release record](/harness/help/release-1.6.0.json) identifies the released source, artifacts and verification limits.
+- [1.6.0 onboarding source](https://github.com/Smart-AI-Memory/attune-harness/blob/5159e7a79fbdb84d2982937716043b142534e6e9/help/get-started.md) preserves the previous setup procedure.
 
 ## Published 1.5.1
 

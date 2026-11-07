@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_repository": "Smart-AI-Memory/attune-harness",
-  "checked_on": "2026-11-05",
+  "checked_on": "2026-11-07",
   "website_repository": "Smart-AI-Memory/attune-ai",
   "website_entry": "https://smartaimemory.com/harness/help/",
   "website_navigation": [
@@ -18,11 +18,11 @@
     "authored_sources": "help/",
     "build": "python3.12 scripts/build_help.py --output <new-output-directory>",
     "website_importer": "website/scripts/harness-help-export.mjs",
-    "live_observation": "The browser-rendered website Help landing still identifies Harness 1.5.1; its navigation contains no training-course link.",
+    "live_observation": "The website Help landing shows 1.6.0 as current, retains 1.5.1 as its reference, and lacks a training-course link.",
     "observation_limit": "Browser inspection of the public Help landing, not deployment-source verification."
   },
   "training": {
-    "publication_status": "draft course; Harness 1.7.0 preparation (package unpublished)",
+    "publication_status": "Course source uses published Harness 1.7.0. The website import and deployment are pending.",
     "content": "training/1.7.0-preparation/*/lesson.json",
     "shared_shell": "training/lesson-template.html",
     "shared_interactions": "training/1.7.0-preparation/assets/app.js",
