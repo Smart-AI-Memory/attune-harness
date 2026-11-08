@@ -1,6 +1,72 @@
 # Stabilization, release readiness and phased GUI delivery
 
-## Current checkpoint — October 22, 2026
+## Current checkpoint — November 7, 2026
+
+Harness 1.7.0 was published on November 6 and requires Python 3.12 or later.
+The release was built from `5159e7a79fbdb84d2982937716043b142534e6e9`.
+The Claude Code marketplace points to `v1.7.0`. This checkpoint reflects
+`main` at `e889c0c1625b51d9d401469b09b362ceeb955bc6`, including the 1.7.0
+Help and course update and the offline recovery study controls.
+[GitHub release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0) ·
+[PyPI](https://pypi.org/project/attune-harness/1.7.0/) ·
+[Marketplace update](https://github.com/Smart-AI-Memory/attune-harness/pull/341)
+
+The 1.7.0 Help and course source is merged. Update the website import check for
+published 1.7.0 and refresh both exports from that same merged commit. After
+deployment, verify the public routes, course download and served file hashes.
+[Merged Harness source #344](https://github.com/Smart-AI-Memory/attune-harness/pull/344) ·
+[Website draft #2593](https://github.com/Smart-AI-Memory/attune-ai/pull/2593)
+
+Full Windows parity remains deferred. The process stop and recovery drafts
+closed without merging, and deployment of that work remains held. Any future
+implementation needs a supported design that verifies every owned descendant
+has stopped within the existing deadline, with the original assertions and
+fast-child behavior preserved.
+[Windows closure #274](https://github.com/Smart-AI-Memory/attune-harness/pull/274#issuecomment-6316884599) ·
+[Windows closure #279](https://github.com/Smart-AI-Memory/attune-harness/pull/279#issuecomment-6316363242)
+
+## Delivery phases
+
+| Workstream | Delivered | Remaining work or evidence |
+| --- | --- | --- |
+| Release and onboarding | The 1.7.0 package is published, and the Claude Code marketplace catalog pins its tag. The six-lesson course, Help, installation, CLI, migration and workflow guides use published 1.7.0 on `main`. [Training source #340](https://github.com/Smart-AI-Memory/attune-harness/pull/340) · [Onboarding update #344](https://github.com/Smart-AI-Memory/attune-harness/pull/344) | Complete the website rollout described above. The public Help Center still points new users to 1.6.0. [Live Help](https://smartaimemory.com/harness/help/) |
+| Windows parity | Published-wheel checks passed on Windows Server 2022 and 2025. Captured testing, file readers, a saved-store implementation and offline native-memory transport are merged. [October task checkpoint](specs/windows-parity/tasks.md#current-checkpoint--october-21-2026) | Full parity is deferred. Strict stop and recovery, full saved-store acceptance, live native memory, Windows 11 standard-user journeys, and the declared PowerShell journeys remain open. [Windows requirements](specs/windows-parity/design.md) |
+| User observations | Installed software checks and bounded maintainer walkthroughs are recorded. [Observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary) | Record fresh-session memory recall, provenance and exclusion (S3), a named non-programmer's installed walkthrough (S6), and migration rows exercised against the installed artifact (S9). Record a decision for any observation that remains open. |
+| Graphical companion | M1 is complete. Released browser forms support saving, previewing and approving an existing draft. [GUI progress](specs/graphical-companion/progress.md) | Complete M2, including production browser execution and recovery, new-task creation, and standalone assessment. M3 journey coverage and M4 release qualification follow their existing gates. [GUI milestones](specs/graphical-companion/README.md#milestones-and-acceptance) |
+| Memory | All five shared-memory adoption tasks were accepted at revision 23. Version 1.7.0 includes hydration source capture, secret checks and payload accounting. [Shared-memory acceptance](specs/shared-memory-adoption/verification.md#final-acceptance-and-display-caveat) · [Hydration source PR](https://github.com/Smart-AI-Memory/attune-harness/pull/318) | Deliver the hydration command, Redis generation publication and cleanup, packaged startup hook, and host-specific fresh-session evidence. [Hydration tasks](specs/native-memory/hydration-writer/tasks.md#sequential-tasks) |
+| OpenAI funding | Separate API and plan OAuth paths shipped with offline software evidence. The plan OAuth profile is limited to macOS arm64 with CPython 3.12.2. [1.7.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0) | Live account and model eligibility, quota and billing need separate qualification. Claude subscription feasibility remains a separate task. [Subscription tasks](specs/codex-subscription/tasks.md#s6--separately-authorize-minimal-live-route-qualification) |
+| Failure and recovery comparison | T1 is complete. The POSIX evidence qualified all 11 offline controls with zero model calls. Full Windows evidence collection remains unqualified. [T1 PR](https://github.com/Smart-AI-Memory/attune-harness/pull/343) | T2 adapter and interruption qualification, T3 live pilot, and T4 scoring and review remain unselected. Live inference needs separate authorization. [Study tasks](specs/failure-recovery-comparison/tasks.md) |
+| Opportunity maintenance | Review handoffs (D/O-28) and function-body controls (E/O-34/O-35) exist in source. [Opportunity register](opportunity-log.md#current-register) | Keep the register aligned with release and acceptance evidence. The experiment input safeguards in C remain a prerequisite for another paid trial. |
+
+Use the existing scope, merge, spending, deployment and publication gates for
+each workstream. See the [release runbook](release-runbook.md) for release work.
+
+## Where each gate's evidence is
+
+The [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+identifies the source, publish run, distribution hashes, Windows Server
+exact-wheel results, and fresh macOS arm64 installations. The separate Windows
+11 observation used x64 CPython on ARM64 hardware. Native Windows ARM64 and full
+desktop and shell parity remain unqualified. The
+[qualification guide](qualification.md) defines the software checks, and the
+[observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary)
+tracks S3, S6 and S9 separately.
+
+The [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
+retains its own publication and installation evidence. The separate
+[hosted baseline run](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937)
+at `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d` passed 16 jobs, including four
+Windows Server source-suite and four installed-wheel cells across Server
+2022 and 2025 and Python 3.10 and 3.12. The
+[historical 1.2.0 gate index](#historical-gate-evidence-for-120) retains the
+original S1–S9 evidence. Each record applies to its stated artifact, source and
+profile.
+
+## Previous checkpoints
+
+These snapshots retain the status and evidence recorded on their dates.
+
+### October 22, 2026
 
 Version 1.5.0 remains published. Version 1.5.1 is an unpublished maintenance
 preparation against `0f2711b4c88ee4f231f61d71cd70a0c840be6357`. Current-main
@@ -14,7 +80,7 @@ Use the [current walkthroughs](tutorials-1.5.1.md) for preparation, and the
 published version for an installation today. The deferred Windows requirements
 and S3/S6/S9 observations below retain their existing scope.
 
-### Previous checkpoint — October 21, 2026
+### October 21, 2026
 
 Reconciled against main `462d37be4fa06140c62e5f39f3489a4f8785c112`.
 [Version 1.5.0 was published October 19](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0),
@@ -28,39 +94,6 @@ and limits, and the [opportunity register](opportunity-log.md#current-register)
 for scoped next steps. The approved Windows parity specification remains the
 implementation priority. This update neither starts a new feature chain nor
 changes its requirements or authorization.
-
-## Delivery phases
-
-| Existing work | Current checkpoint | Remaining evidence or decision |
-| --- | --- | --- |
-| Release delivery | 1.3.0, 1.4.0 and 1.5.0 have versioned release records. The [1.5.0 record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0) identifies source, distribution hashes and published-install checks. | Each future release still follows the runbook. This documentation review does not repeat publication or install verification. |
-| Windows parity | Testing, file readers, offline native-memory transport and a saved-store implementation checkpoint are merged. See the [current task checkpoint](specs/windows-parity/tasks.md). | Strict stop/recovery, full storage acceptance, live native-memory acceptance, Windows 11 desktop and declared Windows-shell journeys remain open. Hosted component/software success does not close full parity. |
-| User observations | S3/S6/S9 remain open in the [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary); bounded maintainer forms observations retain their own scope. | Collect fresh-session recall/exclusion, a qualifying non-programmer installed walkthrough and installed migration-row observations, or record an explicit disposition. Software checks cannot supply them. |
-| Graphical companion | The released [1.4.0 forms behavior](release-notes-1.4.0.md) continues within 1.5.0. Saving answers and approving a request grant no execution; browser build controls remain unavailable in the released profile. | Preserve the [GUI specification](specs/graphical-companion/README.md) and M2/M3/M4 acceptance gates. Earlier development prototypes do not establish production readiness or a new broadening decision. |
-| Opportunity maintenance | Review handoffs (D/O-28) and function-body controls (E/O-34/O-35) exist in source. | Maintain the current register; verify any remaining evidence gap before selecting work. C remains a prerequisite for another paid trial, not a new allocation. |
-
-The smallest current follow-through is the register/journey reconciliation;
-the most urgent product unit remains the existing Windows investigation.
-Neither this checkpoint nor the historical phase dates dispatches workers,
-authorizes paid calls, changes settings, or grants merge/publication authority.
-
-## Where each gate's evidence is
-
-The [1.5.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0)
-links the production publish run, source and distribution hashes, and reports
-its bounded fresh-install checks. The
-[hosted baseline qualification](https://github.com/Smart-AI-Memory/attune-harness/actions/runs/39205220937)
-passed 16 jobs for `77d5b2b4fe9f3c6285a5b535f4e735103f7e192d`, including
-four Windows Server source-suite and four Windows installed-wheel cells across
-Server 2022/2025 and Python 3.10/3.12. These identities are separate from a later
-documentation head or wheel. This review read the release metadata and hosted
-job conclusions; it did not independently download/replay their artifacts.
-
-S3/S6/S9 remain observations owed, while the
-[Windows task checkpoint](specs/windows-parity/tasks.md) names the deferred
-native requirements. The [historical gate index](#historical-gate-evidence-for-120)
-retains the original S1–S9 evidence, kind labels and 1.2.0 hashes. Consult each
-receipt at its stated source; do not transfer an earlier pass to a later artifact.
 
 ## Historical stabilization plan — October 2026
 

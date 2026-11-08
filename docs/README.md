@@ -75,7 +75,7 @@ Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded
 - [Portable journey design](specs/portable-user-journey/design.md): Proposed host contracts and acceptance criteria
 - [Portable journey tasks](specs/portable-user-journey/tasks.md): Ordered work and verification gates; not yet authorized
 
-- [Release and delivery checkpoints](project-plan.md): Published 1.5.0, planned 1.5.1 and remaining acceptance gaps, with the historical stabilization plan and gate evidence retained
+- [Release and delivery checkpoints](project-plan.md): Published releases, delivered work, and remaining delivery and acceptance evidence
 
 - [Choose a Harness workflow](supported-journeys.md): Find a task, open its procedure and check requirements that affect your choices
 - [Windows reliability reference](windows-reliability.md): Exact reliability requirements and technical evidence
