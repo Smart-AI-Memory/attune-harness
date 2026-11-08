@@ -42,6 +42,31 @@ def _json_record(raw, check_budget):
     return value
 
 
+
+def _source_labels(root, text, occurrences, check_budget):
+    """Sanitize parser failures without changing legacy reads or budget errors."""
+    budget_failure = None
+
+    def observed_budget():
+        nonlocal budget_failure
+        try:
+            check_budget()
+        except Exception as error:
+            budget_failure = error
+            raise
+
+    try:
+        return source_labels(root, text, {}, _observe=occurrences.append,
+                             _check_budget=observed_budget)
+    except Exception as error:
+        if error is budget_failure:
+            raise
+    # Safe YAML constructors can include decoded values outside yaml.YAMLError
+    # (for example an invalid !!int). Raise after leaving the handler so neither
+    # the diagnostic nor its exception context retains the parser failure.
+    raise ValueError('Hydration source security metadata is malformed or unauthorized')
+
+
 def _sidecar(name, text, check_budget):
     if name == 'summaries_by_path.json':
         value = _json_record(text, check_budget)
@@ -179,8 +204,7 @@ def project_snapshot(snapshot, *, check_budget=lambda: None):
             _sidecar(name, text, check_budget)
         else:
             occurrences = []
-            labels = source_labels(roots[entry['root_id']], text, {},
-                                   _observe=occurrences.append, _check_budget=check_budget)
+            labels = _source_labels(roots[entry['root_id']], text, occurrences, check_budget)
             check_budget()
             check_secrets('', occurrences, check_budget=check_budget)
             check_secrets('', labels, check_budget=check_budget)

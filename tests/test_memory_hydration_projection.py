@@ -212,3 +212,33 @@ def test_distinct_root_ids_do_not_silently_collapse_same_projected_file_id(corpu
     sources['sources'].append(dict(root_id='other', layer='file', corpus='demo', path='.'))
     with pytest.raises(ValueError, match='duplicate record identities'):
         projected(corpus)
+
+
+@pytest.mark.parametrize('kind', ['int', 'float', 'timestamp', 'binary', 'bool', 'unknown'])
+def test_malformed_decoding_has_a_sanitized_writer_diagnostic(corpus, kind):
+    import traceback
+    pytest.importorskip('yaml')
+    text = '---\nfuture: !!' + kind + ' "' + ESCAPED + '"\n---\nbody'
+    put(corpus[0], 'notes/b.md', text)
+    with pytest.raises(ValueError) as caught:
+        projected(corpus)
+    assert str(caught.value) == 'Hydration source security metadata is malformed or unauthorized'
+    assert caught.value.__cause__ is None and caught.value.__context__ is None
+    diagnostic = ''.join(traceback.format_exception(caught.type, caught.value, caught.tb))
+    assert TOKEN not in str(caught.value) and ESCAPED not in str(caught.value)
+    assert TOKEN not in diagnostic and ESCAPED not in diagnostic
+
+
+@pytest.mark.parametrize('error_type', [ValueError, TypeError, OverflowError, RecursionError, TimeoutError])
+def test_writer_metadata_boundary_preserves_exact_budget_exception(corpus, monkeypatch, error_type):
+    from attune_harness import memory_hydration_projection as projection
+    failure = error_type('synthetic original budget failure')
+    def budget():
+        raise failure
+    def parsing_with_budget(root, text, metadata, *, _observe, _check_budget):
+        _check_budget()
+        pytest.fail('The original budget failure was swallowed')
+    monkeypatch.setattr(projection, 'source_labels', parsing_with_budget)
+    with pytest.raises(error_type) as caught:
+        projection._source_labels({}, '', [], budget)
+    assert caught.value is failure
