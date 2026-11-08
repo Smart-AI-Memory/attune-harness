@@ -1,3 +1,14 @@
+## Choose a starting path
+
+- [**Check the CLI**](#install-harness-170). Use uv to install the command-line
+  interface, then run a short local check. Use Bash on macOS or Linux, or
+  PowerShell on Windows.
+- [**Build your first offline report**](/harness/learn/1.7.0-preparation/setup.html).
+  Review a plan, run a practice build, and check the HTML report. For command
+  practice, use Bash or another POSIX shell on macOS or Linux with uv and Git.
+  Course setup installs Harness in its own environment. Download the files and
+  packages during setup, then run the practice offline.
+
 ## Install Harness 1.7.0
 
 Harness 1.7.0 requires Python 3.12 or later. Install
