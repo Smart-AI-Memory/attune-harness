@@ -1,24 +1,26 @@
 # Stabilization, release readiness and phased GUI delivery
 
-## Current checkpoint — November 7, 2026
+## Current checkpoint — November 8, 2026
 
 Harness 1.7.0 was published on November 6 and requires Python 3.12 or later.
 The release was built from `5159e7a79fbdb84d2982937716043b142534e6e9`.
 The Claude Code marketplace points to `v1.7.0`. This checkpoint reflects
-`main` at `e889c0c1625b51d9d401469b09b362ceeb955bc6`, including the 1.7.0
-Help and course update and the offline recovery study controls.
+`main` at `a50ccc0beca9916a585c33cf76f01cdda1c511ae`, including the 1.7.0
+Help and course updates and the offline recovery study controls.
 [GitHub release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0) ·
 [PyPI](https://pypi.org/project/attune-harness/1.7.0/) ·
 [Marketplace update](https://github.com/Smart-AI-Memory/attune-harness/pull/341)
 
-The 1.7.0 Help and course source is merged. The website draft imports both
-exports from that commit and checks for a published 1.7.0 manifest. After the
-training fixture follow-up merges, refresh both exports from its merge commit
-and verify the hosted preview. After deployment, verify the public routes,
-course download, and served file hashes.
-[Merged Harness source #344](https://github.com/Smart-AI-Memory/attune-harness/pull/344) ·
-[Training fixture follow-up #346](https://github.com/Smart-AI-Memory/attune-harness/pull/346) ·
-[Website draft #2593](https://github.com/Smart-AI-Memory/attune-ai/pull/2593)
+The website pull request imports 1.7.0 Help and training from the merged
+training fixture follow-up and checks for a published 1.7.0 manifest. The
+preview served the course setup and reading routes. A later review found
+stale release wording in five lesson panels. After the course wording
+correction merges, refresh both exports from its merge commit and verify the
+new preview. After deployment, verify the public routes, course download, and
+served file hashes.
+[Merged training fixture #346](https://github.com/Smart-AI-Memory/attune-harness/pull/346) ·
+[Course wording correction #347](https://github.com/Smart-AI-Memory/attune-harness/pull/347) ·
+[Website PR #2593](https://github.com/Smart-AI-Memory/attune-ai/pull/2593)
 
 Full Windows parity remains deferred. The process stop and recovery drafts
 closed without merging, and deployment of that work remains held. Any future
