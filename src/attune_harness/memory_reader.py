@@ -583,7 +583,7 @@ def _rank_documents(snapshot, query, k):
     return ordered
 
 
-def source_labels(root, text, metadata):
+def source_labels(root, text, metadata, *, _observe=None, _check_budget=lambda: None):
     """Validate source authority using the reader's existing optional YAML parser.
 
     Content exposure policy belongs to the caller. The native reader still
@@ -597,7 +597,7 @@ def source_labels(root, text, metadata):
             parts = re.split(r"(?m)^---[ \t]*$", body, maxsplit=2)
             if len(parts) != 3:
                 raise ValueError("Unterminated source security metadata")
-            loaded = _frontmatter(parts[1])
+            loaded = _frontmatter(parts[1], _observe=_observe, _check_budget=_check_budget)
             if loaded is not None and not isinstance(loaded, dict):
                 raise ValueError("Source security metadata must be an object")
             labels = loaded or {}
@@ -607,7 +607,7 @@ def source_labels(root, text, metadata):
     return labels
 
 
-def _frontmatter(block):
+def _frontmatter(block, *, _observe=None, _check_budget=lambda: None):
     """The frontmatter as a dict: PyYAML when the install has it, a subset parser otherwise.
 
     The subset, for a ``--no-deps`` install: ``key: scalar`` with an unquoted
@@ -621,16 +621,29 @@ def _frontmatter(block):
         yaml = None
     if yaml is not None:
         try:
-            return yaml.safe_load(block)
+            if _observe is None:
+                return yaml.safe_load(block)
+            # Capture the composed graph before the safe constructor flattens
+            # merges or overwrites duplicate keys. Effective labels still come
+            # from that same constructor, with no alternate authority parser.
+            _check_budget()
+            result, occurrences = _observed_yaml(yaml, block, _check_budget)
+            _observe(occurrences)
+            return result
         except yaml.YAMLError as error:
             raise ValueError("Unreadable source security metadata") from error
     result, key, block_join = {}, None, None
+    occurrences = [] if _observe is not None else None
 
     def close_block():  # YAML's clip chomping keeps one trailing newline on a block scalar
         if block_join is not None and key is not None and result.get(key):
             result[key] = result[key] + "\n"
+        if occurrences is not None and key is not None:
+            occurrences.append((key, result[key]))
 
     for raw in block.splitlines():
+        if _observe is not None:
+            _check_budget()
         line = raw.rstrip()
         if not line.strip() or line.lstrip().startswith("#"):
             continue
@@ -662,7 +675,88 @@ def _frontmatter(block):
         else:
             result[key] = None
     close_block()
+    if _observe is not None:
+        _observe(occurrences)
     return result
+
+
+def _observed_yaml(yaml, block, check_budget):
+    """Observe actual safe construction without adding decoding semantics."""
+    from yaml.nodes import MappingNode, ScalarNode
+
+    decoded = {}
+
+    class ObservedLoader(yaml.SafeLoader):
+        def construct_object(self, node, deep=False):
+            check_budget()
+            value = super().construct_object(node, deep=deep)
+            decoded[id(node)] = value
+            return value
+
+    loader = ObservedLoader(block)
+    try:
+        node = loader.get_single_node()
+        if node is None:
+            return None, None
+        # The safe constructor mutates merge mappings. Freeze their original
+        # pairs and alias identities first, without constructing ignored nodes.
+        structure, pending = {}, [node]
+        while pending:
+            check_budget()
+            item = pending.pop()
+            ident = id(item)
+            if ident in structure:
+                continue
+            if isinstance(item, ScalarNode):
+                structure[ident] = ('scalar', item.value)
+            elif isinstance(item, MappingNode):
+                structure[ident] = ('mapping', [(id(k), id(v)) for k, v in item.value])
+                pending.extend(child for pair in item.value for child in pair)
+            else:
+                structure[ident] = ('sequence', [id(child) for child in item.value])
+                pending.extend(item.value)
+        value = loader.construct_document(node)
+        occurrences = _yaml_occurrences(structure, decoded, id(node), check_budget)
+        return value, occurrences
+    finally:
+        loader.dispose()
+
+
+def _yaml_occurrences(structure, decoded, root, check_budget):
+    """Keep semantic scalar labels and every original structural occurrence."""
+    copies, pending, extra = {}, [], []
+    containers = (dict, list, tuple, set, frozenset)
+
+    def reference(ident):
+        check_budget()
+        if ident not in copies:
+            kind, raw = structure[ident]
+            scalar = ident in decoded and not isinstance(decoded[ident], containers)
+            if kind == 'scalar':
+                copies[ident] = decoded[ident] if scalar else raw
+            else:
+                graph = []
+                pending.append((ident, graph))
+                if scalar:
+                    # SafeConstructor accepts scalar-tagged MappingNodes with
+                    # an '=' value key. Keep their actual decoded scalar (also
+                    # when used as a key), AND their ignored original pairs.
+                    copies[ident] = decoded[ident]
+                    extra.append(graph)
+                else:
+                    copies[ident] = graph
+        return copies[ident]
+
+    result = reference(root)
+    while pending:
+        check_budget()
+        ident, target = pending.pop()
+        kind, raw = structure[ident]
+        if kind == 'mapping':
+            target.extend((reference(key), reference(value)) for key, value in raw)
+        else:
+            target.extend(reference(value) for value in raw)
+    return [result, *extra] if extra else result
 
 
 def _uncommented(value):
