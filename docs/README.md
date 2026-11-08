@@ -1,11 +1,10 @@
 # Documentation index
 
-Start with the [1.7.0 release preparation](release-readiness-1.7.0.md) and
-[installation guide](installation.md). Version 1.7.0 is not published by this
-change; published 1.6.0 remains available. Superseded guides are listed in the [historical archive](archive/README.md); their original paths and evidence remain intact. Designs and specifications retain their approval status.
+Follow the [installation guide](installation.md) to get started with the
+published [Harness 1.7.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0).
+Find superseded guides in the [historical archive](archive/README.md).
 
-Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded historical documents have separate indexes. Run
-`scripts/check_doc_links.py` to check tracked local links and index coverage.
+Run `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Current guides
 
@@ -18,9 +17,9 @@ Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded
 
 ## Project and technical references
 
-- [Failure-and-recovery comparison specification](specs/failure-recovery-comparison/README.md): Proposed Harness, Superpowers and native Claude Code comparison; no implementation or live trials authorized
+- [Failure-and-recovery comparison specification](specs/failure-recovery-comparison/README.md) covers Harness, Superpowers, and native Claude Code. The offline controls are complete. Live work requires separate approval.
 - [Comparison design](specs/failure-recovery-comparison/design.md): Fixed scenarios, fair configurations, independent verdict and recovery evidence
-- [Comparison decisions](specs/failure-recovery-comparison/decisions.md): Proposed baselines, scope, scoring and separate live-budget gate
+- [Comparison decisions](specs/failure-recovery-comparison/decisions.md) record approved baselines, scope, and scoring. A live budget requires a separate decision.
 - [Comparison implementation tasks](specs/failure-recovery-comparison/tasks.md): Offline controls, adapter qualification, separately authorized pilot and report
 
 - [Participant funding specification](specs/participant-funding/README.md): Approved scope: explicit Claude/Codex subscription and Codex API funding, checks, receipts and spending authority
@@ -35,8 +34,8 @@ Updated on November 5, 2026 for 1.7.0 preparation. Current guides and superseded
 - [Codex subscription S1 qualification](specs/codex-subscription/s1-qualification.md): Pinned runtime, model-free witnesses and the inference-bound stop gate; support remains unqualified
 - [Direct plan OAuth design](specs/codex-subscription/direct-oauth-design.md): Implemented single-request HTTPS/SSE contract; live account/provider qualification remains separate
 
-- [Harness 1.7.0 release notes](release-notes-1.7.0.md): Prepared changes, extended legacy-environment window, funding limits and hydration groundwork
-- [Harness 1.7.0 readiness record](release-readiness-1.7.0.md): Source/artifact identity, candidate checks, documentation dispositions and remaining gates
+- [Harness 1.7.0 candidate release notes](release-notes-1.7.0.md) record the proposed changes, including legacy environment support, funding limits, and hydration groundwork.
+- [Harness 1.7.0 release preparation record](release-readiness-1.7.0.md) covers the candidate source, artifacts, and checks.
 
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
 - [Redis option requirements and verification](redis-option-verification.md): Existing recall, scratch and saved-mirror requirements; bounded disposable-service evidence for 1.6.0 preparation and remaining limits

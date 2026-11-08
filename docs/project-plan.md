@@ -11,10 +11,13 @@ Help and course update and the offline recovery study controls.
 [PyPI](https://pypi.org/project/attune-harness/1.7.0/) ·
 [Marketplace update](https://github.com/Smart-AI-Memory/attune-harness/pull/341)
 
-The 1.7.0 Help and course source is merged. Update the website import check for
-published 1.7.0 and refresh both exports from that same merged commit. After
-deployment, verify the public routes, course download and served file hashes.
+The 1.7.0 Help and course source is merged. The website draft imports both
+exports from that commit and checks for a published 1.7.0 manifest. After the
+training fixture follow-up merges, refresh both exports from its merge commit
+and verify the hosted preview. After deployment, verify the public routes,
+course download, and served file hashes.
 [Merged Harness source #344](https://github.com/Smart-AI-Memory/attune-harness/pull/344) ·
+[Training fixture follow-up #346](https://github.com/Smart-AI-Memory/attune-harness/pull/346) ·
 [Website draft #2593](https://github.com/Smart-AI-Memory/attune-ai/pull/2593)
 
 Full Windows parity remains deferred. The process stop and recovery drafts
