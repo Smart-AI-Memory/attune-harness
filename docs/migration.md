@@ -26,13 +26,12 @@ the runtime your host uses.
 The [1.6.0 release record](../help/release-1.6.0.json) identifies that older
 release's source and artifacts. Version 1.5.1 retains its Python 3.10 minimum.
 
-Command environment filtering is opt-in. Without an `environment` policy, command
-participants retain full parent inheritance in 1.7.0. The first notice release
-remains 1.6.0; removal is explicitly postponed from 1.7.0 to 1.8.0. The runtime
-NOTICE and machine-readable register use the same 1.6.0/1.8.0 schedule.
-Add named-variable grants through the participant
-configuration's existing preparation and acceptance flow. Version 1.5.1 rejects
-the new `environment` field, so keep its original registry separately.
+Command environment filtering is opt-in. Without an `environment` policy,
+command participants retain full parent inheritance in 1.7.0. See the
+[current deprecation schedule](command-environments.md#migrate-legacy-configurations).
+Add named-variable grants through the participant configuration's existing
+preparation and acceptance flow. Keep the original registry for 1.5.1 because
+that version rejects the `environment` field.
 
 The generation reader requires explicit selection and compatible existing state.
 Keep your hydration writer and host hooks. Version 1.7.0 adds internal source
