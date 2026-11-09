@@ -1,9 +1,8 @@
 # Command participant environments
 
-**Availability:** The opt-in policy shipped in 1.6.0 and is retained in prepared,
-unpublished 1.7.0. The published 1.5.1 package rejects the `environment` field;
-keep its original registry when retaining that runtime for rollback. Version
-1.7.0 keeps legacy inheritance and explicitly postpones removal to 1.8.0.
+Harness introduced the opt-in policy in 1.6.0 and includes it in 1.7.0.
+If you keep 1.5.1 for rollback, use its original registry because 1.5.1
+rejects the `environment` field.
 
 Add `environment` to a trusted `command` participant configuration to opt in to
 `command-env-v1`. The policy applies to consultation, review, assessment, repair,
@@ -98,11 +97,6 @@ Python dispatch emits `CommandEnvironmentDeprecationWarning`. Add the finite
 policy and explicit names, validate the absolute executable, then prepare or
 revise and accept the configuration through its existing owner.
 
-The first notice release remains **1.6.0**. Removal is explicitly postponed
-from **1.7.0** to **1.8.0**. Legacy configurations retain full parent inheritance
-in 1.7.0; adding the policy is opt-in.
-
-The runtime `NOTICE` constant and
-[machine-readable register](deprecations.json) use the same 1.6.0/1.8.0 schedule.
-The postponement preserves compatibility behavior and the at least one minor
-release rule; it does not remove the expiry guard or rewrite older release records.
+Harness will retain full parent environment inheritance through **1.8.0**.
+The earliest removal release is **1.9.0**, and the first notice shipped in
+**1.6.0**. See the [machine-readable deprecation register](deprecations.json).

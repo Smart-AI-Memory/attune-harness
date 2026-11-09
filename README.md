@@ -324,10 +324,9 @@ path and the participant's normal preparation/acceptance flow. Missing named
 variables refuse dispatch. The profile filters environment inheritance; it is
 not an operating-system sandbox.
 
-Legacy configurations still work. The runtime notice and deprecation register
-agree on first notice in 1.6.0 and removal no earlier than 1.8.0. Version 1.7.0
-explicitly postpones the earlier 1.7.0 removal schedule and retains legacy full
-inheritance during that compatibility window.
+Version 1.7.0 retains full parent environment inheritance for configurations
+without an `environment` policy. See [Migrate legacy configurations](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/command-environments.md#migrate-legacy-configurations)
+for the current deprecation schedule.
 
 ## Upgrade and keep a rollback path
 
