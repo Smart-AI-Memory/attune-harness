@@ -42,11 +42,18 @@ $env:ATTUNE_VERSION_CHECK = '0'
 
 Expect `Version: 1.7.0`. Stop if a command reports an error.
 
-Use a checkout of the Harness repository that contains this guide. Set
-`$Source` to its full path, then prepare a new practice project:
+Download the source while you are still online. Clone the Harness repository
+into a new folder outside the practice project:
 
 ```powershell
-$Source = Read-Host 'Enter the full path to your Harness source checkout'
+$Source = Join-Path $Run 'source'
+git clone --depth 1 https://github.com/Smart-AI-Memory/attune-harness.git $Source
+```
+
+If you already have a checkout that contains this guide, set `$Source` to its
+full path instead. Then prepare a new practice project:
+
+```powershell
 $Practice = Join-Path $Run 'practice'
 & $Python -I (Join-Path $Source 'examples\windows-offline-report\prepare.py') $Practice
 $Project = Join-Path $Practice 'project'
