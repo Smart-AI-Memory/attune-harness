@@ -1,4 +1,4 @@
-## Install Harness 1.7.0
+## Install Harness
 
 Harness 1.7.0 requires Python 3.12 or later. Install
 [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed, then use
