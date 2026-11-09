@@ -242,3 +242,26 @@ def test_writer_metadata_boundary_preserves_exact_budget_exception(corpus, monke
     with pytest.raises(error_type) as caught:
         projection._source_labels({}, '', [], budget)
     assert caught.value is failure
+
+
+@pytest.mark.parametrize('relative', ['nodes/n.md', 'notes/a.md'], ids=['curated', 'file'])
+@pytest.mark.parametrize('newline', ['\n', '\r\n'], ids=['lf', 'crlf'])
+def test_bom_frontmatter_projects_without_changing_captured_bytes(corpus, relative, newline):
+    root, config, sources = corpus
+    path = root / relative
+    raw = path.read_text(encoding='utf-8').replace('\n', newline).encode('utf-8')
+    path.write_bytes(raw)
+    baseline = projected(corpus)
+    original = b'\xef\xbb\xbf' + raw
+    path.write_bytes(original)
+    assert projected(corpus) == baseline
+    with capture_sources(config, sources) as snapshot:
+        assert snapshot['entries'][('r', relative)]['data'] == original
+    assert path.read_bytes() == original
+
+
+def test_bom_without_frontmatter_remains_in_indexed_pointer_text(corpus):
+    raw = '\ufeffPointer body without a header.\n'
+    put(corpus[0], 'notes/b.md', raw)
+    result = projected(corpus)
+    assert result['records']['file:demo:b']['fields']['text'] == raw

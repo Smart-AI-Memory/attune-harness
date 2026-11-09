@@ -27,6 +27,11 @@ checkpoints, not automatically to this port.
   effective authority parser. Curated scalar duplicates keep the first literal
   value; file metadata duplicates keep the last. Safe decoded values and ignored
   records still pass complete secret inspection.
+- Accept a single leading UTF-8 BOM when detecting literal frontmatter, matching
+  the authority parser. This deliberately extends the reference delimiter check:
+  valid curated nodes are not skipped and file metadata stays out of indexed body
+  text. Capture hashes and source bytes remain unchanged. A BOM in a pointer
+  without frontmatter stays in its indexed text.
 - Keep curated IDs and family-qualified pointer IDs compatible with the existing
   reader's key mapper. Refuse duplicate IDs rather than collapsing sources with
   the same stem. Refuse file pointers that match more than one authorized root.

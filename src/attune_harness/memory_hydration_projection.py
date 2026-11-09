@@ -93,7 +93,8 @@ def _sidecar(name, text, check_budget):
 
 
 def _literal_header(raw):
-    """Reference delimiter/scalar mapping; this is not the authority parser."""
+    """Literal delimiter/scalar mapping; this is not the authority parser."""
+    raw = raw.removeprefix('\ufeff')  # match the authority parser's optional leading BOM
     if not raw.startswith('---'):
         return None
     end = raw.find('\n---', 3)
