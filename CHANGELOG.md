@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Retain full parent environment inheritance for legacy command participants
+  through 1.8.0. Move the earliest removal from 1.8.0 to 1.9.0. The first notice
+  shipped in 1.6.0.
+
 ## 1.7.0
 
 Prepared for release; publication and exact-main qualification remain separate
