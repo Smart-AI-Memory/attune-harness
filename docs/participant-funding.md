@@ -1,16 +1,16 @@
 # Choose participant funding
 
-This guide describes prepared, unpublished Harness 1.7.0. It adds separate,
-explicit **`openai`** API and **`openai-plan`** subscription adapters while
-preserving an existing participant's transport and authentication. Software
-checks use offline witnesses; real provider accounts, model access, quota and
-billing remain unqualified. See the
+Published Harness 1.7.0 includes separate **`openai`** API and
+**`openai-plan`** subscription adapters and preserves an existing participant's
+transport and authentication.
+Software checks use offline witnesses. Real provider accounts, model access,
+quota and billing remain unqualified. See the
 [approved funding specification](specs/participant-funding/README.md) and
 [subscription software evidence](specs/codex-subscription/evidence.md).
 
 ## Select a route
 
-| Configuration | Candidate behavior |
+| Configuration | Behavior |
 | --- | --- |
 | `adapter: "openai"` with explicit API funding | Send one bounded Responses API request after the owner's per-call admission and fresh spending approval |
 | `adapter: "openai-plan"` with subscription funding and an app-owned profile | Use one admitted HTTPS/SSE request on macOS arm64 / CPython 3.12.2 with the explicit `plan-oauth` extra; live account/model qualification remains open |
@@ -66,18 +66,25 @@ arm64 / CPython 3.12.2; general Python 3.12 support does not widen that profile.
 Offline checks do not establish real consent, Keychain interoperability,
 account eligibility or native Codex allowance equivalence.
 
-Install the exact reviewed local 1.7.0 wheel into a separate environment created
-with that CPython 3.12.2 interpreter. Replace the example path with the reviewed
-wheel path and verify its source and SHA-256 first:
+Create a separate environment with CPython 3.12.2. Install the published
+[Harness 1.7.0 package](https://pypi.org/project/attune-harness/1.7.0/) with the
+`plan-oauth` extra.
+
+```sh
+python -m pip install 'attune-harness[plan-oauth]==1.7.0'
+```
+
+For a local install, verify the wheel's source and SHA-256 against the
+[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0).
+Replace the example path with the verified wheel path.
 
 ```sh
 python -m pip install '/absolute/path/attune_harness-1.7.0-py3-none-any.whl[plan-oauth]'
 ```
 
-After publication, the corresponding index specifier is
-`attune-harness[plan-oauth]==1.7.0`. The `all` extra excludes `plan-oauth`; select
-`all,plan-oauth` explicitly when both sets are needed. Installing dependencies
-does not open consent or authorize provider execution.
+The `plan-oauth` extra is separate from `all`. Select `all,plan-oauth` when
+you need both. Account consent and provider execution each require separate
+authorization.
 
 The profile commands have distinct effects. Use connection or disconnection only
 after explicitly choosing that account operation:
@@ -88,8 +95,8 @@ after explicitly choosing that account operation:
 | **`funding inspect --profile-id <id>`** | Read local nonsecret metadata. Do not refresh, contact a provider or open Keychain. An `available` result describes local metadata, not live entitlement. |
 | **`funding disconnect --profile-id <id>`** | Disable new admission, coordinate active sessions and attempt remote revocation before clearing this profile's credentials. Inspect any unconfirmed revocation result; native CLI login is separate. |
 
-The command prefix is `attune-harness`. For consultation, the candidate accepts
-this participant fragment after replacing both placeholders:
+The command prefix is `attune-harness`. For consultation, replace both
+placeholders before using this participant fragment.
 
 ```json
 {
@@ -106,8 +113,8 @@ the same funding object with its existing `model`, `tools`, `max_turns` and
 workflow's role and tool requirements. Different transports for the same model
 do not create independent review seats.
 
-This implemented candidate guidance supersedes the earlier proposed-config
-statement that validators reject `openai-plan` and `profile_id` in the
+The Harness 1.7.0 configuration supersedes the earlier proposal to reject
+`openai-plan` and `profile_id` in the
 [approved design](specs/codex-subscription/README.md#proposed-user-configuration).
 The original design and its historical observations remain preserved.
 
@@ -197,5 +204,4 @@ Software checks, hosted platform checks and live provider qualification are
 separate evidence. The [task record](specs/participant-funding/tasks.md) states
 which funding steps are complete; the
 [subscription record](specs/codex-subscription/evidence.md) supplies its separate
-software evidence and live gaps. No release or live account/billing qualification
-follows from this guide alone.
+software evidence and live gaps.
