@@ -26,7 +26,7 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 - [Participant funding implementation tasks](specs/participant-funding/tasks.md): Approved implementation order and current qualification boundaries
 - [Participant funding T1 support matrix](specs/participant-funding/t1-support-matrix.md): Version-bound candidate controls, offline witnesses and unqualified subscription enforcement
 - [Participant funding API-first revision](specs/participant-funding/t3-decision.md): Approved direct API adapter and retained native-route limits
-- [Choose participant funding](participant-funding.md): Candidate configuration, spending authority, receipts and unsupported routes
+- [Choose participant funding](participant-funding.md): Configuration, spending authority, receipts and unsupported routes
 - [Subscription OAuth specification](specs/codex-subscription/README.md): Approved direct OAuth/Keychain contract; S2–S5 software implementation is recorded, with live qualification separate
 - [Subscription OAuth tasks](specs/codex-subscription/tasks.md): Profile, direct worker and qualification sequence; retain task-specific approval and evidence limits
 - [Claude subscription feasibility](specs/codex-subscription/claude-feasibility.md): Separate proposed check with no Claude implementation or live-call authority
