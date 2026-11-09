@@ -11,7 +11,7 @@ live model calls, personal hook edits, production Redis writes or publication.
 
 ## Start with the right artifact
 
-Use the [current delivery checkpoint](project-plan.md#current-checkpoint--november-8-2026),
+Use the [current delivery checkpoint](project-plan.md#current-checkpoint--november-9-2026),
 [migration guide](migration.md), and actual selected artifact. Historical GUI
 build receipts and the hydration task list's older Task 1 status are not the
 current runtime capability map.

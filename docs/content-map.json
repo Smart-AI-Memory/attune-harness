@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "source_repository": "Smart-AI-Memory/attune-harness",
-  "checked_on": "2026-11-07",
+  "checked_on": "2026-11-09",
   "website_repository": "Smart-AI-Memory/attune-ai",
   "website_entry": "https://smartaimemory.com/harness/help/",
   "website_navigation": [
     {"title": "Get started", "route": "/harness/help/get-started/", "source": "help/get-started.md"},
-    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/1.7.0-preparation/index.html", "delivery": "proposed; not deployed"},
+    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/1.7.0-preparation/index.html", "delivery": "Live; redirects to the course overview."},
     {"title": "Do a task", "route": "/harness/help/goals/", "source": "help/goals/guide.html"},
     {"title": "Reference", "route": "/harness/help/ai-tools-and-integrations/", "source": "help/ai-tools-and-integrations.md"}
   ],
@@ -18,11 +18,11 @@
     "authored_sources": "help/",
     "build": "python3.12 scripts/build_help.py --output <new-output-directory>",
     "website_importer": "website/scripts/harness-help-export.mjs",
-    "live_observation": "The website Help landing shows 1.6.0 as current, retains 1.5.1 as its reference, and lacks a training-course link.",
-    "observation_limit": "Browser inspection of the public Help landing, not deployment-source verification."
+    "live_observation": "The homepage links to the published 1.7.0 installation guide. Help links to the live course and retains 1.5.1 as its reference.",
+    "observation_limit": "Public routes and import receipts establish website delivery. The independent learner observation remains open."
   },
   "training": {
-    "publication_status": "Course source uses published Harness 1.7.0. The website import and deployment are pending.",
+    "publication_status": "The six-lesson course is live and uses published Harness 1.7.0.",
     "content": "training/1.7.0-preparation/*/lesson.json",
     "shared_shell": "training/lesson-template.html",
     "shared_interactions": "training/1.7.0-preparation/assets/app.js",
@@ -33,7 +33,7 @@
     "offline_practice": "training/1.7.0-preparation/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
     "development_paths": "training/1.7.0-preparation/development-paths.html",
-    "website_delivery": "Website integration is in preparation; source changes and local previews do not establish production deployment."
+    "website_delivery": "The production Help and training receipts identify the same reviewed Harness commit, cba3fd05343d826204addd47b076f82d3dd1d9bd."
   },
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
   "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."
