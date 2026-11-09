@@ -46,6 +46,7 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 
 - [Graphical companion specification](specs/graphical-companion/README.md): Released browser forms boundary and broader future GUI development contract
 - [Graphical companion progress](specs/graphical-companion/progress.md): Historical increments and remaining forms/1.4.0 qualification gaps
+- [Prepare GUI and memory validation](parallel-validation-plan.md): First-time learner procedure, installed migration cases, clean-session recall controls, and platform/accessibility/security/recovery coverage; preparation, not execution evidence
 - [Saved-request GUI journey](specs/saved-request-journey/README.md): Candidate intake, save/reopen, read-only accepted request and populated sample; execution remains separate
 
 - [Source review and roundtable](model-consultation.md): Shared development CLI for both coding hosts, identity limits and bounded dispatch
