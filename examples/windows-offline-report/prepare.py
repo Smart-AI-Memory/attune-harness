@@ -35,8 +35,10 @@ def prepare(destination):
     # The frozen tests compare stdout byte-for-byte, including line endings.
     report = report.replace(ENTRY_POINT, PORTABLE_ENTRY_POINT).replace(CORRECT, UNFINISHED)
 
+    # Claim the destination before creating anything inside it.
+    destination.mkdir()
     project = destination / 'project'
-    project.mkdir(parents=True)
+    project.mkdir()
     for name in ('data', 'expected', 'tests'):
         shutil.copytree(SAMPLE / name, project / name,
                         ignore=shutil.ignore_patterns('__pycache__', '.pytest_cache', '*.pyc'))
@@ -53,7 +55,7 @@ def prepare(destination):
     registry = project / 'participants.json'
     registry.write_text(json.dumps({'schema_version': 1, 'participants': {
         'lead': seat, 'reviewer': seat,
-    }}, indent=2) + '\n', encoding='utf-8')
+    }}, indent=2) + '\n', encoding='utf-8', newline='\n')
     protected = sorted(path.relative_to(project).as_posix()
                        for path in project.rglob('*') if path.is_file() and path != project / 'report.py')
 
@@ -81,7 +83,7 @@ def prepare(destination):
     request = destination / 'task.work.json'
     work = json.loads(request.read_text(encoding='utf-8'))
     work['effects']['protected'] = protected
-    request.write_text(json.dumps(work, indent=2) + '\n', encoding='utf-8')
+    request.write_text(json.dumps(work, indent=2) + '\n', encoding='utf-8', newline='\n')
 
 
 if __name__ == '__main__':

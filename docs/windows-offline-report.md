@@ -4,17 +4,21 @@ Use this quickstart to install Harness, review a plan, and produce a checked
 HTML report from sample data. The practice uses fixed local commands. You need
 internet access for setup, then you can finish offline without a model account.
 
-This is a draft for Harness 1.8.0. Use the published 1.7.0 wheel for the rehearsal
-below. The intended release profile is Windows 11 x64, Python 3.12, a standard
-user account, and a fixed local NTFS drive. See the
-[Windows support limits](supported-journeys.md#windows-capabilities-and-reliability).
+This draft rehearses a proposed Harness 1.8.0 journey with the published 1.7.0
+wheel. The rehearsal ran on Windows 11 ARM64 with emulated x64 Python 3.12.10
+and Windows PowerShell 5.1, using a standard user account and a fixed local
+NTFS drive. It checked the generated HTML bytes. Qualification still requires
+the 1.8.0 candidate wheel on native Windows 11 x64 in Windows PowerShell 5.1
+and PowerShell 7, including opening and inspecting the report in a desktop
+browser. See the [Windows support limits](supported-journeys.md#windows-capabilities-and-reliability).
 
 ## Set up a practice folder
 
 Install Git for Windows and x64 Python 3.12 with the Python launcher. Open
-Windows PowerShell 5.1 or PowerShell 7 as a standard user. Run the commands in
-the same window. The commands call the virtual environment's Python directly,
-so you do not need to activate it.
+Windows PowerShell 5.1 as a standard user for the rehearsal. Use a fresh shell
+without Git environment overrides such as `GIT_DIR`, `GIT_WORK_TREE`, or
+`GIT_INDEX_FILE`. Run the commands in the same window. The commands call the
+virtual environment's Python directly, so you do not need to activate it.
 
 List the installed interpreters and choose the full path to x64 Python 3.12:
 
@@ -42,16 +46,17 @@ $env:ATTUNE_VERSION_CHECK = '0'
 
 Expect `Version: 1.7.0`. Stop if a command reports an error.
 
-Download the source while you are still online. Clone the Harness repository
-into a new folder outside the practice project:
+Download the source while you are still online. If you already have a checkout
+that contains this guide, set `$Source` to its full path. For a guide in a pull
+request, use a checkout of the reviewed revision. Once the guide is on
+`main`, you can clone it into a new folder outside the practice project:
 
 ```powershell
 $Source = Join-Path $Run 'source'
 git clone --depth 1 https://github.com/Smart-AI-Memory/attune-harness.git $Source
 ```
 
-If you already have a checkout that contains this guide, set `$Source` to its
-full path instead. Then prepare a new practice project:
+Prepare a new practice project:
 
 ```powershell
 $Practice = Join-Path $Run 'practice'
@@ -64,8 +69,8 @@ $Registry = Join-Path $Project 'participants.json'
 
 The helper creates a disposable Git project with an unfinished `report.py`,
 the sample CSV, expected results, two test files, and a participant registry.
-The practice copy writes UTF-8 text with LF line endings so the exact output
-checks work in both Windows shells.
+The practice copy uses UTF-8 text with LF line endings for the exact output
+checks.
 The task and request live outside that checkout. Preparation leaves the plan
 unaccepted.
 
@@ -75,10 +80,12 @@ unaccepted.
 & $Python -I -m attune_harness plan --request $Request --project $Project --config $Registry --task-dir $Task
 ```
 
-Expect `draft`, no missing questions, and a `checkpoint_digest`. Read the goal,
-participants, and checks. The plan allows a change to `report.py` and protects
-the data, expected results, tests, pytest configuration, and participant
-registry. Stop if the displayed scope differs.
+Expect `"status": "draft"`, an empty `missing` list, and a
+`checkpoint_digest`. Read the goal, scope, and checks in the preview. Open
+`$Registry` to inspect the two local participants and `$Request` to inspect
+the `effects` field. The only allowed change is to `report.py`. The protected
+files include the data, expected results, tests, pytest configuration, and
+participant registry. Stop if the preview or request differs.
 
 Copy the full `checkpoint_digest` from the preview. Then approve that scope:
 
@@ -91,20 +98,19 @@ Expect `accepted`. The build is a separate decision.
 
 ## Build and check the report
 
-Review the two local participants in `$Registry`. The fixed worker changes one
-line in `report.py`, and the fixed reviewer supplies a protocol response. The
-protected tests check the result. `--allow-external` allows these local command
-participants to run.
+The fixed worker changes one line in `report.py`. The fixed reviewer
+supplies a sample response. The protected tests check the result.
+`--allow-external` allows these local command participants to run.
 
 ```powershell
 & $Python -I -m attune_harness build $Task --allow-external
 & $Python -I -m attune_harness status $Task --format markdown
-git -C $Project diff --name-only
+git -C $Project status --porcelain=v1 --untracked-files=all
 ```
 
-Expect `completed`, passing task and final checks, and only `report.py` in the
-diff. If the build fails or its effects are uncertain, read the saved status
-before taking any recovery action.
+Expect `completed`, passing task and final checks, and a single Git status
+line, ` M report.py`, with a leading space. If the build fails or its effects
+are uncertain, read the saved status before taking any recovery action.
 
 Write the HTML report outside the project, then open it:
 
@@ -114,5 +120,7 @@ $Report = Join-Path $Practice 'activity-report.html'
 Invoke-Item -LiteralPath $Report
 ```
 
-Check for **6 entries** and **270 minutes**. Compare the project totals and date
-range with the CSV. To try again, prepare a new practice directory.
+If `Invoke-Item` opens a different application, open the HTML file directly in
+a desktop browser. Check for **6 entries** and **270 minutes**. Compare the
+project totals and date range with the CSV. To try again, prepare a new
+practice directory.
