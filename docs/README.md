@@ -17,6 +17,9 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 
 ## Project and technical references
 
+- [Harness 1.8.0 release notes](release-notes-1.8.0.md): Compatibility, memory changes and release limits
+- [Harness 1.8.0 readiness record](release-readiness-1.8.0.md): Candidate scope, documentation review and remaining release gates
+
 - [Failure-and-recovery comparison specification](specs/failure-recovery-comparison/README.md) covers Harness, Superpowers, and native Claude Code. The offline controls are complete. Live work requires separate approval.
 - [Comparison design](specs/failure-recovery-comparison/design.md): Fixed scenarios, fair configurations, independent verdict and recovery evidence
 - [Comparison decisions](specs/failure-recovery-comparison/decisions.md) record approved baselines, scope, and scoring. A live budget requires a separate decision.

@@ -1,10 +1,18 @@
 # Changelog
 
-## Unreleased
+## 1.8.0
+
+Requires Python 3.12 or later. See the [release notes](docs/release-notes-1.8.0.md)
+and [readiness record](docs/release-readiness-1.8.0.md).
 
 - Retain full parent environment inheritance for legacy command participants
   through 1.8.0. Move the earliest removal from 1.8.0 to 1.9.0. The first notice
   shipped in 1.6.0.
+- Compose internal guarded memory hydration preparation, including four-layer
+  projection and source freshness checks (#351). Continue using existing
+  writers and host hooks for publication and startup delivery.
+- Reduce repeated pattern scans in memory secret checks while retaining
+  detection of supported bare credential patterns (#342).
 
 ## 1.7.0
 

@@ -21,18 +21,17 @@ Published Harness 1.6.0 and current development source require Python 3.12 or
 later. This matrix targets the minimum supported interpreter without duplicate
 cells. The [published release record](../help/release-1.6.0.json) binds 1.6.0 to
 source `af2159516a67172cc8f2a1ff62213296b1b67112` and its exact artifacts and
-qualification runs. The current candidate's metadata is `1.7.0`; it is unpublished
-and needs its own source, artifact and exact-main qualification. The
-[1.7.0 readiness record](release-readiness-1.7.0.md) separates those results from
-earlier evidence. A version alone does not identify or qualify a wheel.
+qualification runs. The [published 1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+identifies that release's source and artifacts. The
+[1.8.0 candidate](release-readiness-1.8.0.md) needs qualification of its own
+release commit and artifacts. A version alone does not identify or qualify a wheel.
 Earlier Python 3.10 receipts and published 1.5.1
 retain their original artifact/runtime identities and Python minimum.
 
 These hosted jobs provide Windows Server CI evidence. The broader T8 desktop
 contract is separate. A historical Windows 11 standard-user smoke used x64 Python
 under ARM emulation; it does not qualify native ARM64 or all desktop/shell paths.
-The 1.7.0 candidate retains explicit workflow refusals and the existing Windows
-limits; it does not claim complete Windows/POSIX parity.
+The documented workflow refusals and Windows limits continue to apply.
 
 The jobs exercise timeout, cancellation, bounded output, descendant termination,
 lost acknowledgements, crash-released locks and explicit recovery. Windows uses

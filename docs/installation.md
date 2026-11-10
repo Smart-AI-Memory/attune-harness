@@ -1,9 +1,12 @@
 # Install Harness and get started
 
-Updated on November 7, 2026.
+Updated on November 9, 2026.
 
-**Harness 1.7.0 is available on [PyPI](https://pypi.org/project/attune-harness/1.7.0/#files).**
-It requires Python 3.12 or later. The
+For 1.8.0, follow [Check the 1.8.0 candidate](#check-the-180-candidate) to
+install a reviewed wheel before publication or install from PyPI once it lists
+1.8.0. Use Python 3.12 or later for both versions.
+
+For the published 1.7.0 package, use the steps below. The
 [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
 lists the published files, their hashes and the checks that ran.
 
@@ -14,7 +17,9 @@ while checking a replacement. The
 [historical preparation guide](release-preparation-1.6.0.md) retain their
 original artifact identities and limits.
 
-## Install the runtime
+<a id="install-the-runtime"></a>
+
+## Install the 1.7.0 runtime
 
 If Harness is already installed, inspect its version and path with
 `uv tool list --show-paths`. Follow
@@ -199,3 +204,27 @@ To reproduce a preparation result, follow the
 [installation guide at the release tag](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/installation.md#select-a-candidate-without-replacing-a-working-runtime)
 with the exact rehearsal wheel and interpreter named in the observation.
 Use the published wheel for a new installation.
+
+## Check the 1.8.0 candidate
+
+Use the wheel from the reviewed 1.8.0 build. Match its SHA-256 to the build
+record before installing. Keep the published 1.7.0 environment available.
+For example, from the directory containing the wheel, use a new environment
+on macOS or Linux:
+
+```sh
+python3.12 -m venv .venv-harness-180
+.venv-harness-180/bin/python -m pip install ./attune_harness-1.8.0-py3-none-any.whl
+.venv-harness-180/bin/python -c "from importlib.metadata import version; print(version('attune-harness'))"
+.venv-harness-180/bin/python -m attune_harness
+```
+
+Expect `1.8.0` and a JSON receipt with status `verified`. This arithmetic
+example makes no model calls. Record the wheel hash, source commit and
+platform with the result. See the [1.8.0 readiness record](release-readiness-1.8.0.md)
+for the remaining qualification and publication steps.
+
+When [PyPI lists 1.8.0](https://pypi.org/project/attune-harness/1.8.0/#files),
+use `attune-harness==1.8.0` in place of the local wheel path for a fresh index
+install. Use the same version pin in the uv and pipx examples when selecting
+1.8.0.

@@ -1,7 +1,7 @@
-# Harness 1.7.0 host plugin preparation
+# Harness 1.8.0 host plugin preparation
 
 Shared skills and MCP configuration for Claude Code and Codex. These manifests
-prepare version 1.7.0 alongside the Python package. The Claude marketplace
+prepare version 1.8.0 alongside the Python package. The Claude marketplace
 selects the published 1.7.0 release, pinned to its source commit.
 The independent `plugins/attune-harness` Codex package retains its own 0.1.0
 version. These plugin files are separate from the Python wheel.
