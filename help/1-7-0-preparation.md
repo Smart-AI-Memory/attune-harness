@@ -3,7 +3,7 @@
 These walkthroughs use a rehearsal wheel built before Harness 1.7.0 was
 published. For a new installation, [get started with the published
 release](/harness/help/get-started/). The four older practice pages retain their
-[isolated 1.5.1 setup](/harness/help/get-started/#prepare-the-151-practice-examples)
+[isolated 1.5.1 setup](/harness/help/1-5-1/#prepare-the-151-practice-examples)
 and original observations.
 
 This preparation uses the reviewed software checkpoint

@@ -12,6 +12,7 @@ pytest.importorskip(
     "markdown", reason="Install help/requirements.txt for the documentation build"
 )
 ROOT = Path(__file__).resolve().parents[1]
+ARCHIVED_PRACTICE = {"start-and-continue", "plan-and-accept", "research", "save-and-resume"}
 spec = importlib.util.spec_from_file_location(
     "build_help", ROOT / "scripts/build_help.py"
 )
@@ -56,7 +57,7 @@ def test_all_current_routes_and_contents_links_work(
         assert 'src="/harness/help/code-copy.js"' in text
         if page.parent == directory:
             assert "ATTUNE HARNESS · 1.5.1" not in text
-        elif page.parent.name == "1-5-1":
+        elif page.parent.name in {"1-5-1", *ARCHIVED_PRACTICE}:
             assert "Archived guide:" in text
             assert "published <strong>Harness 1.5.1</strong>" in text
         elif page.parent.name == "goals":
@@ -86,7 +87,9 @@ def test_all_current_routes_and_contents_links_work(
         assert (
             '<meta name="robots" content="index,follow">'
             if (status == "published" or page.parent.name == "get-started")
-            and page.parent.name not in {"1-5-0", "1-5-1", "1-5-1-preparation", "1-7-0-preparation"}
+            and page.parent.name not in {
+                "1-5-0", "1-5-1", "1-5-1-preparation", "1-7-0-preparation", *ARCHIVED_PRACTICE
+            }
             else '<meta name="robots" content="noindex,follow">'
         ) in text
     reference = (directory / "ai-tools-and-integrations/index.html").read_text()
@@ -144,7 +147,10 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     connect = start.index('<h2 id="connect-your-assistant">')
     practice_link = 'href="/harness/learn/reporting/setup.html"'
     assert install < verify < connect < start.index(practice_link)
-    assert "compatible Harness" in start
+    assert "practice environment with the current release" in start
+    assert 'href="/harness/learn/reporting/02-build/"' in start
+    assert 'href="/harness/learn/reporting/"' in start
+    assert "attune-harness==1.5.1" not in start
     landing = (root / "index.html").read_text()
     archive = (root / "archive/index.html").read_text()
     assert 'href="/harness/help/1-7-0-preparation/"' not in landing
@@ -170,6 +176,7 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
         "install-harness-170",
         "choose-the-next-outcome",
         "prepare-the-release-examples",
+        "prepare-the-151-practice-examples",
         "sources-and-verification-limits",
         "prepare-for-160-separately",
         "review-170-preparation-separately",
@@ -177,6 +184,16 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     published = (root / "1-5-1/index.html").read_text()
     assert '<h1>Harness 1.5.1 — published guide</h1>' in published
     assert 'published <strong>Harness 1.5.1</strong>' in published
+    archived_setup = 'href="/harness/help/1-5-1/#prepare-the-151-practice-examples"'
+    assert archived_setup in start and archived_setup in archive
+    assert 'id="prepare-the-151-practice-examples"' in published
+    assert "python -m pip install 'attune-harness==1.5.1'" in unescape(published)
+    for slug in ARCHIVED_PRACTICE:
+        link = f'href="/harness/help/{slug}/"'
+        assert link not in start and link not in landing
+        assert link in published
+        assert archived_setup in (root / slug / "index.html").read_text()
+    assert archived_setup in (root / "1-7-0-preparation/index.html").read_text()
     assert (root / "release-1.5.1.json").read_bytes() == (
         ROOT / "help/release-1.5.1.json"
     ).read_bytes()

@@ -22,10 +22,12 @@ Look for `"status": "verified"`. The demo runs locally and needs no API key.
 
 ## Build your first report offline
 
-Open [Get ready for the course](/harness/learn/reporting/setup.html) to set up
-a compatible Harness environment and download the example files. Then follow
-**Build your first report** to review a plan, run a local build, and check an
-HTML report.
+Open [Get ready for the course](/harness/learn/reporting/setup.html) to download
+the example files and set up a practice environment with the current release. Then open
+[Build your first report](/harness/learn/reporting/02-build/) to review a plan,
+run a local build, and check the HTML report. The exercise needs no API key.
+
+To follow all six lessons, open [Harness in practice](/harness/learn/reporting/).
 
 ## Choose goal-driven development
 
@@ -74,49 +76,10 @@ and review the imported scope before acceptance.
   and [optional integrations](https://github.com/Smart-AI-Memory/attune-harness/blob/main/README.md#optional-integrations)
   if you need them.
 
-The [1.5.1 guide](/harness/help/1-5-1/) and [release record](/harness/help/release-1.5.1.json)
-retain that release's installation procedure, source and artifact identities.
-The [documentation archive](/harness/help/archive/) keeps older walkthroughs
-and their original limits.
-
-## Prepare the 1.5.1 practice examples
-
-The [Start and continue](/harness/help/start-and-continue/),
-[Plan and accept](/harness/help/plan-and-accept/),
-[Research](/harness/help/research/) and
-[Save and resume](/harness/help/save-and-resume/) practice guides retain their
-published 1.5.1 commands and historical observations. Use this separate setup
-for those guides.
-
-Open a fresh POSIX shell on macOS or Linux and choose an unused working directory.
-On macOS, use a canonical path under `/private/tmp` rather than the `/tmp` symlink.
-Run:
-
-```sh
-PRACTICE="$PWD/harness-1.5.1-practice"
-mkdir "$PRACTICE"
-cd "$PRACTICE"
-python3.12 -m venv .venv
-. .venv/bin/activate
-python -m pip install 'attune-harness==1.5.1'
-git clone --no-checkout https://github.com/Smart-AI-Memory/attune-harness.git release-source
-R="$(cd release-source && pwd -P)"
-git -C "$R" checkout --detach ebb5b03b8a4398325df7ddabd28c08186451452e
-python -c "from importlib.metadata import version; assert version('attune-harness') == '1.5.1'; print(version('attune-harness'))"
-python -m attune_harness
-```
-
-**Expected result:** Version `1.5.1`, a verified local demonstration receipt, and
-`R` naming the absolute source checkout for that same release. Keep this shell
-open for the practice guide. Its task directories belong beside `release-source`,
-outside the checkout. The examples are source files, not wheel contents.
-
-These are POSIX practice instructions, not a new Windows shell qualification.
-The [1.5.1 release record](/harness/help/release-1.5.1.json) retains its exact
-artifact identities and original evidence. Use another shell for your regular
-CLI, or run `deactivate` when finished with the practice environment.
-
 ## Sources and verification
+
+Find the [archived practice setup](/harness/help/1-5-1/#prepare-the-151-practice-examples)
+and other historical walkthroughs in the [documentation archive](/harness/help/archive/).
 
 Read the [changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/main/CHANGELOG.md)
 for changes and deprecation notices. If an upgrade requires action, see the

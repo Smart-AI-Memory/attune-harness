@@ -21,6 +21,7 @@ newer artifact or a different platform.
 ## Published 1.5.1
 
 - [Harness 1.5.1 guide](/harness/help/1-5-1/): the preserved installation procedure and original limits.
+- [1.5.1 practice setup and walkthroughs](/harness/help/1-5-1/#prepare-the-151-practice-examples).
 - [1.5.1 release record](/harness/help/release-1.5.1.json): the original source, distributions and qualification.
 
 ## Published 1.5.0

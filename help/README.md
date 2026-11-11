@@ -34,14 +34,11 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Get started covers the current base installation. The release history identifies
-each version's software source, artifacts and check boundaries. The reference guides
-keep their published 1.5.1 identity. Their prerequisite links select the explicit
-1.5.1 practice setup in Get started, which activates that release in an isolated
-environment and defines its immutable example checkout as `R`. The separate
-1.7.0 preparation links do not promote those historical observations to new
-acceptance evidence. The manifest distinguishes the current
-published version from that historical reference version.
+Get Started covers the current base installation and links to the maintained
+reporting practice. The four archived 1.5.1 walkthroughs link to the practice
+setup in the published 1.5.1 guide. That setup activates its isolated runtime
+and defines the pinned example checkout as `R`. The release history identifies
+each version's source, artifacts, and check boundaries.
 Published 1.5.0 observations, captures and the preparation record keep their
 original identities. A metadata-only validation wheel remains candidate evidence;
 do not relabel it or an older result as a new published-artifact walkthrough.
