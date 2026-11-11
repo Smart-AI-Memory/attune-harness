@@ -36,6 +36,7 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 
 - [Harness 1.7.0 candidate release notes](release-notes-1.7.0.md) record the proposed changes, including legacy environment support, funding limits, and hydration groundwork.
 - [Harness 1.7.0 release preparation record](release-readiness-1.7.0.md) covers the candidate source, artifacts, and checks.
+- [Draft Windows offline report quickstart](windows-offline-report.md): Rehearse a local report journey for Harness 1.8.0 with the published 1.7.0 wheel.
 
 - [Install Harness and get started](installation.md): Managed base installation, optional integrations, executable checks and separate agent-plugin setup
 - [Redis option requirements and verification](redis-option-verification.md): Existing recall, scratch and saved-mirror requirements; bounded disposable-service evidence for 1.6.0 preparation and remaining limits
