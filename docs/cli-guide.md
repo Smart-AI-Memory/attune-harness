@@ -2,20 +2,20 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on November 7, 2026.
+Updated on November 11, 2026.
 
 ## Installation
 
-Harness 1.7.0 is available on [PyPI](https://pypi.org/project/attune-harness/1.7.0/).
-The [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
-lists the source, distributions and verification. For an existing installation,
+Harness 1.8.0 is available on [PyPI](https://pypi.org/project/attune-harness/1.8.0/).
+See the [1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
+for the source and verified distributions. For an existing installation,
 check `attune-harness COMMAND --help` and use the guide for that release.
 Historical walkthroughs retain their original version and runtime.
 
-Install Harness 1.7.0 in its own environment.
+Install Harness 1.8.0 in its own environment.
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.7.0'
+uv tool install --python 3.12 'attune-harness==1.8.0'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
@@ -23,9 +23,8 @@ acceptance dependencies. Add Redis or Voyage when you need those integrations;
 `all` includes both and excludes `plan-oauth` and experimental native memory.
 The separate [participant funding guide](participant-funding.md) describes
 explicit OpenAI API funding and the `openai-plan` software profile, its exact
-runtime limits and outstanding live qualification. Harness 1.7.0 and 1.6.0
-require Python 3.12 or later. Earlier releases
-retain their original Python minimum.
+runtime limits and outstanding live qualification. Harness 1.8.0 requires
+Python 3.12 or later. Earlier releases retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and
 fixture commands, and separate host-plugin setup. The example below needs no
@@ -149,7 +148,7 @@ are described in the [Codex skill documentation](https://developers.openai.com/c
 If a new skill does not appear, restart Codex.
 
 The CLI must also be installed in the environment the agent uses. The skill
-targets 0.6.0 and checks the selected route's installed help before dispatch.
+checks the selected route's installed help before dispatch.
 It does not add new CLI verbs or install a host plugin, and the Python wheel
 does not contain it. `review` checks a document against evidence; `test` runs
 checks on captured changes. Neither a source-security audit nor test generation
@@ -208,8 +207,8 @@ Before you begin:
   containing Harness and pytest. Activate it so both `attune-harness` and `python`
   use that environment.
 - Obtain the example registry from the source checkout that matches your runtime.
-  For published 1.6.0, use tag `v1.6.0`. The examples are source files and are not
-  included in the installed wheel.
+  For Harness 1.8.0, use tag `v1.8.0`. For Harness 1.6.0, use `v1.6.0`.
+  Find the examples in the source checkout.
 - Use a dedicated, committed Git checkout at `/path/to/repo`. Keep the new task
   directory `~/harness-tasks/starter-plan` and its request outside it. Neither
   output should already exist.
