@@ -6,6 +6,10 @@ Harness 1.7.0 is published and requires Python 3.12 or later. Follow the
 [installation guide](installation.md) to select an isolated runtime and check a
 local result.
 
+To evaluate 1.8.0, follow [Check the 1.8.0 candidate](installation.md#check-the-180-candidate).
+The candidate retains legacy command environment inheritance. Keep the
+existing writer and hooks for Redis publication and session startup.
+
 Attune AI is deprecated. Use Harness for new work and keep an existing working
 setup while checking the workflows you need. The [historical 1.0.0 migration
 guide](migration-from-attune-ai.md) retains its original September 27 scope and

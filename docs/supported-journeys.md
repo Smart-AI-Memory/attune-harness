@@ -32,6 +32,7 @@ Use trusted workers, commands and tests; a captured copy is not a security
 sandbox. For Windows build, repair and testing, read the
 [process reliability limits](#windows-capabilities-and-reliability) before running.
 Legacy command participants retain full parent environment inheritance in 1.7.0.
+The 1.8.0 candidate retains that behavior and moves the earliest removal to 1.9.0.
 See [Migrate legacy configurations](command-environments.md#migrate-legacy-configurations)
 for the current deprecation schedule and how to opt in to the finite environment policy.
 

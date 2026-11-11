@@ -96,8 +96,18 @@ def test_download_runs_the_current_sample(tmp_path):
 
 def test_practice_prepares_both_oracles_without_acceptance_and_preserves_existing_work(tmp_path):
     destination = tmp_path / "practice"
-    invocation = [sys.executable, str(COURSE / "practice.py"), str(destination)]
+    invocation = [sys.executable, "-I", str(COURSE / "practice.py"), str(destination)]
+    installed = subprocess.check_output([
+        sys.executable, "-I", "-c",
+        "from importlib.metadata import version; print(version('attune-harness'))",
+    ], text=True, timeout=10).strip()
     prepared = subprocess.run(invocation, capture_output=True, text=True, timeout=30)
+    if installed != "1.7.0":
+        # The published course intentionally uses its own pinned runtime.
+        assert prepared.returncode != 0
+        assert "Select Python 3.12 or later with installed Harness 1.7.0" in prepared.stderr
+        assert not destination.exists()
+        return
     assert prepared.returncode == 0, prepared.stderr
     result = json.loads(prepared.stdout)
     request = json.loads(Path(result["request"]).read_text(encoding="utf-8"))
