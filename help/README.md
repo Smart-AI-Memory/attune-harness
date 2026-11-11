@@ -34,8 +34,8 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Get started names published 1.7.0; its release record identifies the immutable
-software source, artifacts and check boundaries. The reference guides
+Get started covers the current base installation. The release history identifies
+each version's software source, artifacts and check boundaries. The reference guides
 keep their published 1.5.1 identity. Their prerequisite links select the explicit
 1.5.1 practice setup in Get started, which activates that release in an isolated
 environment and defines its immutable example checkout as `R`. The separate
@@ -118,24 +118,24 @@ The first PR supplies this self-contained site. A separate website PR will
 publish or route to the verified artifact and retire the old implementation
 after the replacement is available. A source PR does not deploy the Help Center.
 
-## Maintain 1.7.0 onboarding and historical guidance
+## Maintain current onboarding and historical guidance
 
-Published 1.7.0 onboarding uses the existing `/harness/help/get-started/`
-route with an explicit topic version and published status. The global manifest
+Current onboarding uses the existing `/harness/help/get-started/` route
+and installs the latest compatible release. The global manifest
 reference remains 1.5.1 so unchanged guides and goal captures keep their original
-identities; `published_version` names the current 1.7.0 release. Each page states
-its version and status.
+identities. `published_version` names the current 1.8.0 release. Versioned
+guides state their own versions and publication status.
 
 Preserve the 1.5.1 and 1.6.0 release records, historical verification records
-and goals captures. The 1.7.0 guide links to the
-[GitHub release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
-for the published source, artifacts and hashes.
+and goals captures. The guide links to the changelog and release history
+for changes and published artifacts. The six-lesson course keeps its
+1.7.0 runtime and separate setup.
 
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
-validates and imports the static export. The current website importer expects
-the 1.6.0 metadata. Update that check and refresh both the Help and training
-exports from the same reviewed, merged Harness commit in the website PR.
-Verify the lesson setup route before serving the refreshed Help navigation.
+validates and imports the static export. For the 1.8.0 cutover, update its
+`published_version` check and refresh both exports from the same reviewed,
+merged Harness commit in the website PR. Verify the 1.8.0 Get Started route
+and the 1.7.0 lesson setup route before serving the refreshed navigation.
 
 
 ## Reproduce 1.7.0 preparation

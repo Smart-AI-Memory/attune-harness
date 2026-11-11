@@ -48,10 +48,10 @@
     },
     {
       "slug": "get-started",
-      "title": "Get started with Harness 1.7.0",
-      "goal": "Install Harness, check a local result and build your first report offline.",
+      "title": "Get started with Harness",
+      "goal": "Install Harness, check a local result and connect your assistant.",
       "kind": "task",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "published",
       "legacy_anchors": {
         "set-up-an-isolated-environment": "install-harness",
@@ -154,5 +154,5 @@
     "prepare-for-160-separately": "check-the-version-before-starting"
   },
   "status": "published",
-  "published_version": "1.7.0"
+  "published_version": "1.8.0"
 }

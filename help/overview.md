@@ -2,7 +2,7 @@
 <p class="help-eyebrow">Guided learning · Harness 1.7.0</p>
 <h2 id="harness-in-practice">Harness in practice</h2>
 <p>Follow six guided reporting lessons: define a useful result, build a report, return to saved work, review the evidence, prepare a local handoff and improve the tool.</p>
-<p>Start with <a href="/harness/help/get-started/">Get started</a> to install Harness and try the first build without a model or API key.</p>
+<p>Open the <a href="/harness/learn/1.7.0-preparation/setup.html">1.7.0 course setup</a> to prepare a separate practice environment and run a local build without a model or API key.</p>
 </section>
 
 ## Choose what you want to accomplish
@@ -13,10 +13,10 @@ build**, or choose planning, implementation, verification or saved work.
 
 ## Check the version before starting
 
-[Get started with Harness 1.7.0](/harness/help/get-started/) to install the
-runtime, check a local result and try your first build. The
-[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
-identifies the published artifacts and their verification limits.
+[Get started with Harness](/harness/help/get-started/) to install the
+runtime, check a local result and connect your assistant. Read the
+[changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/main/CHANGELOG.md)
+for changes and deprecation notices.
 
 Attune AI is deprecated. Use Harness for new work and read the
 [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)

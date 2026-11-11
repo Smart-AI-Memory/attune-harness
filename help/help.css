@@ -63,6 +63,7 @@ body{margin:0}
 
 .help-contents{border:1px solid var(--help-border);border-radius:8px;padding:16px 22px;margin:24px 0 32px;background:var(--help-panel)}
 .help-contents h2{margin:0 0 10px;font-size:1rem}
+.help-contents summary{font-weight:700;cursor:pointer}
 .help-contents ul{padding-left:22px;margin:8px 0}
 .help-contents li{margin:5px 0}
 .help-prose h2,.help-prose h3{scroll-margin-top:24px}
@@ -72,6 +73,7 @@ body{margin:0}
 .help-skip:focus{top:10px}
 .help-anchor{display:block;height:0;scroll-margin-top:24px}
 .help-featured-nav{border:1px solid var(--help-green);border-radius:6px;background:var(--help-panel);margin:16px 0;font-weight:700;padding:12px!important}
+@media(max-width:800px){.help-sidebar:has(.help-featured-nav[aria-current="page"]){display:none}}
 
 .help-course p+p{margin-top:16px}
 .help-course .help-course-action{margin-top:24px}

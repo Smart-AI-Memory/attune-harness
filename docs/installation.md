@@ -13,6 +13,8 @@ when you need them. The
 [historical preparation guide](release-preparation-1.6.0.md) retain their
 original artifact identities and limits.
 
+<a id="install-with-pipx-or-a-virtual-environment"></a>
+
 ## Install 1.8.0 with pipx or a virtual environment
 
 To install an isolated CLI with [pipx](https://pipx.pypa.io/latest/reference/cli.html),

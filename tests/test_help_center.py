@@ -72,11 +72,7 @@ def test_all_current_routes_and_contents_links_work(
             assert "Archived guide:" in text
             assert "Harness 1.7.0 preparation before publication" in text
         elif page.parent.name == "get-started":
-            assert (
-                "published <strong>Harness 1.7.0</strong>"
-                in text
-            )
-            assert "Get started with Harness 1.7.0" in text
+            assert "<h1>Get started with Harness</h1>" in text
         else:
             assert (
                 "published <strong>Harness 1.5.0</strong>"
@@ -134,32 +130,31 @@ def test_all_current_routes_and_contents_links_work(
     )
 
 
-def test_170_start_is_prominent_without_relabeling_older_guides(tmp_path):
+def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     builder.build_site(tmp_path / "site")
     root = tmp_path / "site/harness/help"
     start = (root / "get-started/index.html").read_text()
-    assert '<h1>Get started with Harness 1.7.0</h1>' in start
+    assert '<h1>Get started with Harness</h1>' in start
     assert '<meta name="robots" content="index,follow">' in start
-    assert (
-        '<p class="help-version-note">These instructions describe published '
-        "<strong>Harness 1.7.0</strong>. Check each walkthrough's verification limits.</p>"
-        in start
-    )
-    assert "Current release: Harness <strong>1.7.0</strong>" in start
+    assert 'class="help-version-note"' not in start
+    assert "Current release: Harness <strong>1.8.0</strong>" in start
+    assert '<details class="help-contents"><summary>On this page</summary>' in start
+    install = start.index('<h2 id="install-harness">')
+    verify = start.index('<h2 id="check-a-local-result">')
+    connect = start.index('<h2 id="connect-your-assistant">')
     practice_link = 'href="/harness/learn/1.7.0-preparation/setup.html"'
-    assert practice_link in start
-    assert start.index(practice_link) < start.index('<h2 id="connect-your-assistant">')
+    assert install < verify < connect < start.index(practice_link)
+    assert "The six-lesson reporting course uses Harness 1.7.0." in start
     landing = (root / "index.html").read_text()
     archive = (root / "archive/index.html").read_text()
     assert 'href="/harness/help/1-7-0-preparation/"' not in landing
     assert 'href="/harness/help/1-7-0-preparation/"' in archive
+    assert "Published 1.7.0 onboarding source" in archive
     assert 'href="/harness/help/release-1.6.0.json"' in archive
     assert (root / "release-1.6.0.json").read_bytes() == (
         ROOT / "help/release-1.6.0.json"
     ).read_bytes()
-    assert "uv tool install --python 3.12 'attune-harness==1.7.0'" in unescape(
-        start
-    )
+    assert "uv tool install --python 3.12 attune-harness\n" in unescape(start)
     assert 'href="/harness/help/get-started/" aria-current="page"' in start
     assert '<p class="help-eyebrow">Starter prompt</p>' in start
     assert '<p data-copy-prompt>Use Harness to help me plan an update' in start
@@ -172,6 +167,7 @@ def test_170_start_is_prominent_without_relabeling_older_guides(tmp_path):
     assert {
         "set-up-an-isolated-environment",
         "install-harness-160",
+        "install-harness-170",
         "choose-the-next-outcome",
         "prepare-the-release-examples",
         "sources-and-verification-limits",

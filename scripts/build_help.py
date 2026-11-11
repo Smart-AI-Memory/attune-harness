@@ -347,6 +347,31 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 '<a href="/harness/help/archive/">Browse the archive</a> or '
                 '<a href="/harness/help/get-started/">use current guidance</a>.'
             )
+        page_intro = ""
+        if not is_goals:
+            escaped_title = html.escape(title)
+            page_intro = (
+                '<nav aria-label="Breadcrumb" class="help-breadcrumb">'
+                '<a href="/harness/help/">Help Center</a> / '
+                f'<span aria-current="page">{escaped_title}</span></nav>'
+            )
+            if slug != "get-started":
+                version_label = " · " + html.escape(version) if slug else ""
+                page_intro += f'<p class="help-eyebrow">Attune Harness{version_label}</p>'
+            page_intro += f'<h1>{escaped_title}</h1><p class="help-lead">{html.escape(goal)}</p>'
+            if slug != "get-started":
+                page_intro += f'<p class="help-version-note">{notice}</p>'
+        contents = ""
+        if slug == "get-started":
+            contents = (
+                '<details class="help-contents"><summary>On this page</summary>'
+                f'<nav aria-label="On this page">{renderer.toc}</nav></details>'
+            )
+        elif slug and not is_goals:
+            contents = (
+                '<nav class="help-contents" aria-label="On this page">'
+                f'<h2>On this page</h2>{renderer.toc}</nav>'
+            )
         rendered[slug] = template.substitute(
             title=html.escape(title),
             goal=html.escape(goal),
@@ -377,16 +402,8 @@ def build_site(output: Path, content: Path = CONTENT) -> dict:
                 if t["slug"] == "get-started"
             ),
             body=body,
-            page_intro=(
-                ""
-                if is_goals
-                else f'<nav aria-label="Breadcrumb" class="help-breadcrumb"><a href="/harness/help/">Help Center</a> / <span aria-current="page">{html.escape(title)}</span></nav><p class="help-eyebrow">Attune Harness{(" · " + html.escape(version)) if slug else ""}</p><h1>{html.escape(title)}</h1><p class="help-lead">{html.escape(goal)}</p><p class="help-version-note">{notice}</p>'
-            ),
-            contents=(
-                ""
-                if is_goals or not slug
-                else f'<nav class="help-contents" aria-label="On this page"><h2>On this page</h2>{renderer.toc}</nav>'
-            ),
+            page_intro=page_intro,
+            contents=contents,
             head=(
                 '<link rel="stylesheet" href="/harness/help/goals/goals.css">'
                 if is_goals
