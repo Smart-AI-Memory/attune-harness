@@ -1,25 +1,50 @@
 # Install Harness and get started
 
-Updated on November 9, 2026.
+Updated on November 11, 2026.
 
-For 1.8.0, follow [Check the 1.8.0 candidate](#check-the-180-candidate) to
-install a reviewed wheel before publication or install from PyPI once it lists
-1.8.0. Use Python 3.12 or later for both versions.
+Install [Harness 1.8.0 from PyPI](https://pypi.org/project/attune-harness/1.8.0/)
+with Python 3.12 or later. Follow the [README quickstart](../README.md#install-180)
+to install with uv and check a local result. If you already use Harness,
+[keep a rollback path](../README.md#upgrade-and-keep-a-rollback-path).
 
-For the published 1.7.0 package, use the steps below. The
-[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
-lists the published files, their hashes and the checks that ran.
-
-Start with the base package. Redis and Voyage are optional. Read the
-[migration guide](migration.md) to keep a working runtime and its saved records
-while checking a replacement. The
+Start with the base package. Add [optional integrations](../README.md#optional-integrations)
+when you need them. The
 [published 1.6.0 release record](../help/release-1.6.0.json) and
 [historical preparation guide](release-preparation-1.6.0.md) retain their
 original artifact identities and limits.
 
+## Install 1.8.0 with pipx or a virtual environment
+
+To install an isolated CLI with [pipx](https://pipx.pypa.io/latest/reference/cli.html),
+run:
+
+```sh
+pipx install --python python3.12 'attune-harness==1.8.0'
+attune-harness
+```
+
+On Windows, use the full path to your Python 3.12 executable for `--python`.
+
+To install in a dedicated virtual environment on macOS or Linux, run:
+
+```sh
+python3.12 -m venv .venv-harness-180
+.venv-harness-180/bin/python -m pip install 'attune-harness==1.8.0'
+.venv-harness-180/bin/python -m attune_harness
+```
+
+On Windows, create the environment with `py -3.12 -m venv .venv-harness-180`
+and use `.venv-harness-180\Scripts\python.exe` for the two module commands.
+The demonstration prints a JSON receipt with `"status": "verified"`. For
+platform requirements, see the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability).
+
 <a id="install-the-runtime"></a>
 
 ## Install the 1.7.0 runtime
+
+Use 1.7.0 for the versioned Help Center walkthroughs and course. The
+[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+lists the published files, their hashes and the checks that ran.
 
 If Harness is already installed, inspect its version and path with
 `uv tool list --show-paths`. Follow
@@ -102,8 +127,8 @@ $harnessPython = Join-Path (uv tool dir) 'attune-harness\Scripts\python.exe'
 & $harnessPython -m attune_harness
 ```
 
-Expect Python `3.12.x`, package version `1.7.0`, then a JSON receipt with status
-`verified` for the deterministic arithmetic example. If the listed environment is at a different
+Expect the Python and Harness versions you selected, then a JSON receipt with
+status `verified` for the deterministic arithmetic example. If the listed environment is at a different
 path, use its `bin/python` on macOS/Linux or `Scripts\python.exe` on Windows.
 Substitute that same interpreter for `python` in module and fixture commands
 in the linked guides; for example, use `"$harness_python" -m attune_harness.gui`
@@ -117,10 +142,10 @@ Select a profile when installing or deliberately updating your managed tool.
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.7.0'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.7.0'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.7.0'` |
-| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.7.0'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.8.0'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.8.0'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.8.0'` |
+| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.8.0'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
@@ -163,7 +188,8 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 Compare the selected version and interpreter with the checks above. For
 distribution hashes and platform coverage, read the
-[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0).
+[1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
+and [readiness record](release-readiness-1.8.0.md).
 Earlier observations remain in the
 [documentation archive](https://smartaimemory.com/harness/help/archive/).
 
@@ -171,6 +197,9 @@ Earlier observations remain in the
 <a id="validate-170-and-retain-rollback"></a>
 
 ## Upgrade and keep a rollback path
+
+To upgrade to 1.8.0, follow the [README rollback guidance](../README.md#upgrade-and-keep-a-rollback-path).
+The procedure below uses 1.7.0 for the versioned walkthroughs.
 
 Inspect the current runtime and retain its environment. Before switching your
 host integration, check 1.7.0 in a separate environment. Use an unused path.
@@ -207,8 +236,9 @@ Use the published wheel for a new installation.
 
 ## Check the 1.8.0 candidate
 
-Use the wheel from the reviewed 1.8.0 build. Match its SHA-256 to the build
-record before installing. Keep the published 1.7.0 environment available.
+To reproduce the 1.8.0 release preparation, use the wheel from the reviewed
+build. Match its SHA-256 to the build record before installing. Keep the
+published 1.7.0 environment available.
 For example, from the directory containing the wheel, use a new environment
 on macOS or Linux:
 
@@ -224,7 +254,5 @@ example makes no model calls. Record the wheel hash, source commit and
 platform with the result. See the [1.8.0 readiness record](release-readiness-1.8.0.md)
 for the remaining qualification and publication steps.
 
-When [PyPI lists 1.8.0](https://pypi.org/project/attune-harness/1.8.0/#files),
-use `attune-harness==1.8.0` in place of the local wheel path for a fresh index
-install. Use the same version pin in the uv and pipx examples when selecting
-1.8.0.
+For a new PyPI installation, follow [Install 1.8.0 with pipx or a virtual
+environment](#install-180-with-pipx-or-a-virtual-environment).
