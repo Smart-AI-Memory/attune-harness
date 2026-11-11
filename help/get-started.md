@@ -22,12 +22,10 @@ Look for `"status": "verified"`. The demo runs locally and needs no API key.
 
 ## Build your first report offline
 
-Open [Get ready for the course](/harness/learn/reporting/setup.html) to download
-the example files and set up a practice environment with the current release. Then open
-[Build your first report](/harness/learn/reporting/02-build/) to review a plan,
-run a local build, and check the HTML report. The exercise needs no API key.
-
-To follow all six lessons, open [Harness in practice](/harness/learn/reporting/).
+[Set up the reporting course](/harness/learn/reporting/setup.html) to download
+the example files and prepare a practice environment with the current release.
+Then follow the six lessons to plan, build, and check an HTML report. The
+exercise needs no API key.
 
 ## Choose goal-driven development
 

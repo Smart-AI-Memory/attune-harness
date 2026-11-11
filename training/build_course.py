@@ -121,7 +121,7 @@ def project():
         'Historical training documents',
         '<h1>Historical training documents</h1>'
         '<p>These superseded documents preserve earlier instructions and evidence. '
-        'Use the <a href="../reporting/">maintained course</a> for current practice.</p>'
+        '<a href="../reporting/setup.html">Set up the reporting course</a> for current practice.</p>'
         '<h2>Harness in practice for 1.7.0</h2>'
         '<p><a href="../1.7.0-preparation/">Open the original six-lesson course</a> with its version-specific setup and check records.</p>'
         '<h2>Build your first report</h2>'

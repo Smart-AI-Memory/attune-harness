@@ -23,11 +23,11 @@ in the changelog and link to migration instructions when readers need to act.
 ## One maintained course
 
 Use `training/reporting/` as the source for the six maintained lessons.
-Serve it at `/harness/learn/reporting/` and point the existing
-`/harness/learn/` entry to it. The Help page links to the stable course setup
-route. Update lesson prose and generator labels where they currently name
-1.7.0 as a requirement. Preserve the exercises, protected tests and sample
-output.
+Serve its overview at `/harness/learn/reporting/`. Point the existing
+`/harness/learn/` entry and the Help Center's course links to the stable setup
+page. From setup, continue to the overview. Update lesson prose and generator
+labels where they currently name 1.7.0 as a requirement. Preserve the
+exercises, protected tests and sample output.
 
 Keep `training/1.7.0-preparation/` as a frozen archive. Its local tree
 matches the [deployed source at `e1adfd7`](https://github.com/Smart-AI-Memory/attune-harness/tree/e1adfd7c5b7c838e2a35adf5a5773cd537de1bce/training/1.7.0-preparation),
@@ -136,11 +136,11 @@ hashes. Compare both import receipts to the reviewed commit and verify all
 43 files in the legacy subtree against the prior export. Help publication
 metadata remains independent of the course identity. Keep the frozen 1.7.0
 routes and retarget the existing temporary Learn redirect to the maintained
-course.
+course setup page.
 
 Adapt the [exact-commit website smoke check](https://github.com/Smart-AI-Memory/attune-ai/blob/e52de25e9083fea0181b1e9a23ea95da8fea0e65/website/scripts/harness-preview-smoke.py)
 for the version-neutral heading. Verify the homepage link, Get Started, course
-setup, lesson 2, reading view, practice download, historical deep links, and
+setup, course overview, lesson 2, reading view, practice download, historical deep links, and
 saved progress on the exact website preview. Show Patrick the complete rendered
 Get Started page and its working course link for approval before production
 publication. If the cutover fails, restore the preceding reviewed Help and

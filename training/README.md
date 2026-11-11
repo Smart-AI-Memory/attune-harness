@@ -1,8 +1,9 @@
 # Harness training
 
-Open [Harness in practice](reporting/index.html). Six lessons follow one
-reporting project from a useful goal through a checked result, saved work,
-review, a local handoff and a proposed improvement.
+[Set up the reporting course](reporting/setup.html), then open
+[Harness in practice](reporting/index.html). Six lessons follow one reporting
+project from a useful goal through a checked result, saved work, review, a local
+handoff and a proposed improvement.
 
 [Choose how to start](reporting/development-paths.html) compares goal-driven
 and spec-driven development with examples and review points.

@@ -146,13 +146,14 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     verify = start.index('<h2 id="check-a-local-result">')
     connect = start.index('<h2 id="connect-your-assistant">')
     practice_link = 'href="/harness/learn/reporting/setup.html"'
-    assert install < verify < connect < start.index(practice_link)
+    assert install < verify < connect < start.index(practice_link, connect)
     assert "practice environment with the current release" in start
-    assert 'href="/harness/learn/reporting/02-build/"' in start
-    assert 'href="/harness/learn/reporting/"' in start
+    assert 'href="/harness/learn/reporting/02-build/"' not in start
+    assert 'href="/harness/learn/reporting/"' not in start
     assert "attune-harness==1.5.1" not in start
     landing = (root / "index.html").read_text()
     archive = (root / "archive/index.html").read_text()
+    assert '<p class="help-course-action"><a class="help-featured-nav" ' + practice_link in landing
     assert 'href="/harness/help/1-7-0-preparation/"' not in landing
     assert 'href="/harness/help/1-7-0-preparation/"' in archive
     assert "Published 1.7.0 onboarding source" in archive
@@ -166,9 +167,12 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     assert '<p data-copy-prompt>Use Harness to help me plan an update' in start
     for path in root.rglob("index.html"):
         text = path.read_text()
-        assert text.index(
+        get_started_nav = text.index(
             'class="help-featured-nav" href="/harness/help/get-started/"'
-        ) < text.index('class="help-featured-nav" href="/harness/help/goals/"')
+        )
+        practice_nav = text.index('class="help-featured-nav" ' + practice_link)
+        goals_nav = text.index('class="help-featured-nav" href="/harness/help/goals/"')
+        assert get_started_nav < practice_nav < goals_nav
     aliases = builder.PageLinks(start).ids
     assert {
         "set-up-an-isolated-environment",

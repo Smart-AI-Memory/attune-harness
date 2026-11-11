@@ -131,9 +131,9 @@ setup route and records tested runtime versions separately from its lessons.
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
 validates and imports the static export. For the 1.8.0 cutover, update its
 `published_version` check and refresh both exports from the same reviewed,
-merged Harness commit in the website PR. Verify the Get Started route
-and the maintained course setup route before serving the refreshed
-navigation. Check the frozen 1.7.0 course routes separately.
+merged Harness commit in the website PR. Verify that Get Started and Learn
+lead to course setup and that setup leads to the course overview. Check the
+frozen 1.7.0 course routes separately.
 
 
 ## Reproduce 1.7.0 preparation

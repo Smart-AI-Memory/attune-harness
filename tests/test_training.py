@@ -47,6 +47,11 @@ def test_course_projection_and_static_reading_routes():
     overview = (COURSE / "index.html").read_text()
     assert 'href="development-paths.html#goal-driven"' in overview
     assert 'href="development-paths.html#spec-driven"' in overview
+    setup = (COURSE / "setup.html").read_text(encoding="utf-8")
+    continue_link = '<a href="./">Continue to the reporting course</a>'
+    assert setup.count('href="./"') == 1
+    assert setup.index('assets/reporting-practice.zip') < setup.index('. .venv/bin/activate') < setup.index(continue_link)
+    assert 'href="01-define/"' not in setup and 'href="02-build/"' not in setup
     for slug in builder.SLUGS:
         lesson = json.loads((COURSE / slug / "lesson.json").read_text(encoding="utf-8"))
         legacy_lesson = json.loads((ARCHIVE / slug / "lesson.json").read_text(encoding="utf-8"))

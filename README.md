@@ -15,10 +15,10 @@ You can inspect what happened and use that record when you continue later.
 - [Install Harness 1.8.0](#install-180) to use the current runtime.
 - [Get started in the Help Center](https://smartaimemory.com/harness/help/get-started/)
   to install Harness, check a local result, and connect your assistant.
+- [Set up the reporting course](https://smartaimemory.com/harness/learn/)
+  to plan, build, and check an offline report.
 - [Choose a goal](https://smartaimemory.com/harness/help/goals/) to find a
   guide for the work you want to do.
-- [Take the reporting course](https://smartaimemory.com/harness/learn/)
-  to plan, build, and check an offline report.
 
 Check the version on historical guides before following their commands.
 
