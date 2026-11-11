@@ -139,10 +139,9 @@ Add the marketplace and install the plugin:
 /plugin install attune-harness@attune-harness
 ```
 
-Before the separate marketplace update, the
-[Claude Code catalog](https://github.com/Smart-AI-Memory/attune-harness/blob/main/.claude-plugin/marketplace.json)
-selects `v1.7.0`. Refresh the marketplace and update the plugin when its catalog
-points to `v1.8.0`. Verify the selected version and source.
+The [Claude Code catalog](https://github.com/Smart-AI-Memory/attune-harness/blob/main/.claude-plugin/marketplace.json)
+selects the published `v1.8.0` tag. For an existing installation, refresh the
+marketplace and update the plugin. Verify the selected version and source.
 The Python runtime and host plugin are separate installations.
 
 The plugin includes Harness workflows, cross-review, roundtable and smart-test
