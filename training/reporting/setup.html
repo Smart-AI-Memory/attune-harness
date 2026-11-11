@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Get ready for the course · Attune Harness</title><link rel="stylesheet" href="assets/styles.css"></head>
+<body><main style="max-width:900px;margin:auto;padding:2rem">
+<p><a href="./">Course overview</a></p>
+<h1>Get ready for the course</h1>
+<p>Build and check an HTML report from six sample activity entries. You can preview the <a href="assets/example/expected/activity-report.html">sample report</a> before setting up.</p>
+<h2 id="select-a-practice-runtime">Set up the practice folder</h2>
+<ol>
+<li><a href="assets/reporting-practice.zip" download>Download practice ZIP</a> and extract it into a new folder.</li>
+<li>Open a terminal in the extracted folder that contains <code>practice.py</code>. Use a POSIX shell such as Bash or Zsh on macOS or Linux. Install <a href="https://docs.astral.sh/uv/getting-started/installation/">uv</a> and Git if needed.</li>
+<li>Run these commands to install Harness and pytest in a separate practice environment.</li>
+</ol>
+<pre><code>COURSE_WORK="$(pwd -P)" &amp;&amp;
+uv venv --python 3.12 .venv &amp;&amp;
+uv pip install --python .venv/bin/python -r requirements-practice.txt &amp;&amp;
+. .venv/bin/activate</code></pre>
+<p>Keep this terminal open for lesson 2. The rest of the command practice can run offline.</p>
+<p>If you already have a separate compatible practice environment with Harness and pytest, activate it instead. From the extracted folder, run <code>COURSE_WORK="$(pwd -P)"</code> and keep that terminal open for lesson 2. See the <a href="assets/compatibility.json">tested versions and results</a>.</p>
+<p><a href="02-build/">Continue to Build your first report</a></p>
+<h2>Follow the full course</h2>
+<p>Start with <a href="01-define/">Turn an idea into a useful result</a> to define the reporting goal. Use <strong>Next section</strong> or select a section from the sidebar. Use <strong>Read full lesson</strong> for the text version.</p>
+<p>Lesson 2 prepares a disposable reporting project and a work request for you to review. The command practice uses local participants and protected tests. Lesson controls save notes and progress in your browser. You run commands and approve work in your terminal.</p>
+</main></body></html>

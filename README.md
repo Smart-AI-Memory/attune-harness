@@ -17,11 +17,10 @@ You can inspect what happened and use that record when you continue later.
   to install Harness, check a local result, and connect your assistant.
 - [Choose a goal](https://smartaimemory.com/harness/help/goals/) to find a
   guide for the work you want to do.
-- [Take the Harness 1.7.0 course](https://smartaimemory.com/harness/learn/1.7.0-preparation/)
+- [Take the reporting course](https://smartaimemory.com/harness/learn/)
   to plan, build, and check an offline report.
 
-The course uses Harness 1.7.0. Check the version on each guide before following
-its commands.
+Check the version on historical guides before following their commands.
 
 ## Installation
 

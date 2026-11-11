@@ -1,8 +1,8 @@
 <section class="help-card help-course" aria-labelledby="harness-in-practice">
-<p class="help-eyebrow">Guided learning · Harness 1.7.0</p>
+<p class="help-eyebrow">Guided learning</p>
 <h2 id="harness-in-practice">Harness in practice</h2>
 <p>Follow six guided reporting lessons: define a useful result, build a report, return to saved work, review the evidence, prepare a local handoff and improve the tool.</p>
-<p>Open the <a href="/harness/learn/1.7.0-preparation/setup.html">1.7.0 course setup</a> to prepare a separate practice environment and run a local build without a model or API key.</p>
+<p>Open the <a href="/harness/learn/reporting/setup.html">course setup</a> to run a local build without a model or API key.</p>
 </section>
 
 ## Choose what you want to accomplish

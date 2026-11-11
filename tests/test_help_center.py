@@ -142,9 +142,9 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     install = start.index('<h2 id="install-harness">')
     verify = start.index('<h2 id="check-a-local-result">')
     connect = start.index('<h2 id="connect-your-assistant">')
-    practice_link = 'href="/harness/learn/1.7.0-preparation/setup.html"'
+    practice_link = 'href="/harness/learn/reporting/setup.html"'
     assert install < verify < connect < start.index(practice_link)
-    assert "The six-lesson reporting course uses Harness 1.7.0." in start
+    assert "compatible Harness" in start
     landing = (root / "index.html").read_text()
     archive = (root / "archive/index.html").read_text()
     assert 'href="/harness/help/1-7-0-preparation/"' not in landing

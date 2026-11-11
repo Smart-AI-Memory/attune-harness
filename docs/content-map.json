@@ -6,7 +6,7 @@
   "website_entry": "https://smartaimemory.com/harness/help/",
   "website_navigation": [
     {"title": "Get started", "route": "/harness/help/get-started/", "source": "help/get-started.md"},
-    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/1.7.0-preparation/index.html", "delivery": "Live; redirects to the course overview."},
+    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/reporting/index.html", "delivery": "The current site redirects to the archived 1.7.0 course until the maintained course is published."},
     {"title": "Do a task", "route": "/harness/help/goals/", "source": "help/goals/guide.html"},
     {"title": "Reference", "route": "/harness/help/ai-tools-and-integrations/", "source": "help/ai-tools-and-integrations.md"}
   ],
@@ -22,18 +22,18 @@
     "observation_limit": "Public routes and import receipts establish website delivery. The independent learner observation remains open."
   },
   "training": {
-    "publication_status": "The six-lesson course is live and uses published Harness 1.7.0.",
-    "content": "training/1.7.0-preparation/*/lesson.json",
+    "publication_status": "The maintained course is pending website publication. The original 1.7.0 course remains live.",
+    "content": "training/reporting/*/lesson.json",
     "shared_shell": "training/lesson-template.html",
-    "shared_interactions": "training/1.7.0-preparation/assets/app.js",
-    "shared_style": "training/1.7.0-preparation/assets/styles.css",
+    "shared_interactions": "training/reporting/assets/app.js",
+    "shared_style": "training/reporting/assets/styles.css",
     "project": "python3.12 training/build_course.py",
     "check_projection": "python3.12 training/build_course.py --check",
-    "machine_evidence": "training/1.7.0-preparation/assets/current-checks.json",
-    "offline_practice": "training/1.7.0-preparation/practice.py",
+    "machine_evidence": "training/reporting/assets/compatibility.json",
+    "offline_practice": "training/reporting/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
-    "development_paths": "training/1.7.0-preparation/development-paths.html",
-    "website_delivery": "The production Help and training receipts identify the same reviewed Harness commit, cba3fd05343d826204addd47b076f82d3dd1d9bd."
+    "development_paths": "training/reporting/development-paths.html",
+    "website_delivery": "Import the reviewed, merged Harness source before redirecting the Learn entry to /harness/learn/reporting/. Preserve the legacy source and its original URLs."
   },
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
   "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."

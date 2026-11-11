@@ -1,14 +1,14 @@
 # Documentation index
 
-Follow the [installation guide](installation.md) to get started with the
-published [Harness 1.7.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0).
+Follow [Get started with Harness](../help/get-started.md) to install and verify
+the current release.
 Find superseded guides in the [historical archive](archive/README.md).
 
 Run `scripts/check_doc_links.py` to check tracked local links and index coverage.
 
 ## Current guides
 
-- [Harness in practice: 1.7.0 training course](../training/README.md): Six HTML lessons using one reporting project, with local exercises and current verification
+- [Harness in practice](../training/README.md) follows one reporting project across six lessons.
 - [Install Harness](installation.md): Select a runtime and check it before starting
 - [Choose a workflow](supported-journeys.md): Match your goal to a supported procedure
 - [CLI guide](cli-guide.md): Command arguments, checkpoints and exit codes
@@ -353,6 +353,15 @@ defines the approved Harness-owned writer; implementation is in progress.
 | [specs/release-1.0/addendum-2026-09-23.md](specs/release-1.0/addendum-2026-09-23.md) | Release 1.0.0: addendum, September 23, 2026 | 2026-09-23 |
 | [specs/release-1.0/freeze-design.md](specs/release-1.0/freeze-design.md) | The interface freeze (4.1): design note | 2026-09-23 |
 | [specs/release-1.0/host-surface-design.md](specs/release-1.0/host-surface-design.md) | The host surface: spec on Harness end to end, design note | 2026-09-23 |
+
+### specs/reporting-course-compatibility
+
+| File | Purpose | Date |
+| --- | --- | --- |
+| [Overview](specs/reporting-course-compatibility/README.md) | Scope and learner command walk | 2026-11-11 |
+| [Requirements](specs/reporting-course-compatibility/requirements.md) | Installation, practice compatibility, and preservation | 2026-11-11 |
+| [Design](specs/reporting-course-compatibility/design.md) | Stable course and website delivery | 2026-11-11 |
+| [Implementation tasks](specs/reporting-course-compatibility/tasks.md) | Acceptance evidence and approval gate | 2026-11-11 |
 
 ### specs/shared-memory-adoption
 

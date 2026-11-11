@@ -20,6 +20,13 @@ Look for `"status": "verified"`. The demo runs locally and needs no API key.
 - [Set up Codex](https://github.com/Smart-AI-Memory/attune-harness#codex), then invoke `$attune-harness`.
 - [Set up Claude Code](https://github.com/Smart-AI-Memory/attune-harness#claude-code).
 
+## Build your first report offline
+
+Open [Get ready for the course](/harness/learn/reporting/setup.html) to set up
+a compatible Harness environment and download the example files. Then follow
+**Build your first report** to review a plan, run a local build, and check an
+HTML report.
+
 ## Choose goal-driven development
 
 Read [How people and AI work together](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#how-people-and-ai-work-together)
@@ -54,14 +61,6 @@ The [plan-and-build guide](https://github.com/Smart-AI-Memory/attune-harness/blo
 explains that procedure. If you already have a supported Markdown plan, follow
 the [plan import instructions](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#importing-a-plan-from-another-project)
 and review the imported scope before acceptance.
-
-## Build your first report offline
-
-The six-lesson reporting course uses Harness 1.7.0. Open
-[Get ready for the 1.7.0 course](/harness/learn/1.7.0-preparation/setup.html) to
-create its separate practice environment, then follow **Build your first report**.
-You review a plan, authorize a local build, and check an HTML report from six
-sample entries. Download the package and example files before working offline.
 
 ## Keep a working setup
 

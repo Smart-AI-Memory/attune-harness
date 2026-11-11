@@ -87,7 +87,7 @@ python3 -m venv /private/tmp/harness-help-build-env
 /private/tmp/harness-help-build-env/bin/python -m pip install -r help/requirements.txt
 /private/tmp/harness-help-build-env/bin/python scripts/build_help.py --output /private/tmp/harness-help-site
 mkdir -p /private/tmp/harness-help-site/harness/learn
-cp -R training/1.7.0-preparation training/archive /private/tmp/harness-help-site/harness/learn/
+cp -R training/reporting training/1.7.0-preparation training/archive /private/tmp/harness-help-site/harness/learn/
 python3 -m http.server 8766 --bind 127.0.0.1 --directory /private/tmp/harness-help-site
 ```
 
@@ -128,14 +128,15 @@ guides state their own versions and publication status.
 
 Preserve the 1.5.1 and 1.6.0 release records, historical verification records
 and goals captures. The guide links to the changelog and release history
-for changes and published artifacts. The six-lesson course keeps its
-1.7.0 runtime and separate setup.
+for changes and published artifacts. The six-lesson course has a stable
+setup route and records tested runtime versions separately from its lessons.
 
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
 validates and imports the static export. For the 1.8.0 cutover, update its
 `published_version` check and refresh both exports from the same reviewed,
-merged Harness commit in the website PR. Verify the 1.8.0 Get Started route
-and the 1.7.0 lesson setup route before serving the refreshed navigation.
+merged Harness commit in the website PR. Verify the Get Started route
+and the maintained course setup route before serving the refreshed
+navigation. Check the frozen 1.7.0 course routes separately.
 
 
 ## Reproduce 1.7.0 preparation
