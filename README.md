@@ -10,32 +10,25 @@ what needs your review and uses Harness to carry out the steps you authorize.
 Harness keeps a **receipt**: the output, check results and any errors from a run.
 You can inspect what happened and use that record when you continue later.
 
-**Harness 1.8.0 · Python 3.12 or later**
+## Help Center
 
-Read the 1.8.0
-[release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/release-notes-1.8.0.md)
-and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/release-readiness-1.8.0.md).
-The release links resolve once `v1.8.0` is tagged. Before publication, read the
-same files in the reviewed checkout and install
-[Harness 1.7.0](https://pypi.org/project/attune-harness/1.7.0/) from PyPI.
-The [1.6.0 release record](https://github.com/Smart-AI-Memory/attune-harness/blob/55d61fe2770337e7723f64fa7320ecfd0f7ea386/help/release-1.6.0.json)
-retains that release's source, artifacts and verification limits. Each Help Center guide
-states its own version and publication status. A prepared checkout or passing
-qualification does not establish package publication.
+- [Install Harness 1.8.0](#install-180) to use the current runtime.
+- [Get started with Harness 1.7.0](https://smartaimemory.com/harness/help/get-started/)
+  to install Harness, check a local result, and connect your assistant.
+- [Choose a goal](https://smartaimemory.com/harness/help/goals/) to find a
+  guide for the work you want to do.
+- [Take the hands-on course](https://smartaimemory.com/harness/learn/1.7.0-preparation/)
+  to plan, build, and check an offline report.
 
-- [**Goal-driven development**](#goal-driven-development): Start with the outcome
-  you want, then agree on the work and checks.
-- [**Spec-driven development**](#spec-driven-development): Develop and review
-  requirements before starting work that needs more structure.
-- [**How people and AI work together**](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/cli-guide.md#how-people-and-ai-work-together):
-  You direct the goal and decisions. The AI carries out accepted work and
-  produces evidence you can inspect.
-
-[Explore the benefits](#what-you-can-do) · [Install](#installation) · [Connect your assistant](#use-harness-with-codex-claude-or-other-models) · [Help Center](#help-center)
-
-Updated on November 9, 2026.
+The getting-started guide and course use Harness 1.7.0. Check the version on
+other guides before following their commands.
 
 ## What changes in 1.8.0
+
+[Harness 1.8.0 is available on PyPI](https://pypi.org/project/attune-harness/1.8.0/).
+It requires Python 3.12 or later. For details, see the
+[release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/release-notes-1.8.0.md)
+and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/release-readiness-1.8.0.md).
 
 - [**Keep legacy command configurations working.**](#grant-one-command-the-credential-it-needs)
   Full parent environment inheritance remains available through 1.8.0. Its
@@ -60,16 +53,23 @@ Updated on November 9, 2026.
 Start with the [workflow guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/supported-journeys.md)
 to choose a procedure and see what it needs.
 
+- [**Goal-driven development**](#goal-driven-development) starts with the
+  outcome you want, then defines the work and checks.
+- [**Spec-driven development**](#spec-driven-development) develops and
+  reviews requirements before starting work that needs more structure.
+- [**How people and AI work together**](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/cli-guide.md#how-people-and-ai-work-together)
+  explains how you direct decisions and inspect the results.
+
 ## Installation
 
 <a id="install-170"></a>
+<a id="install-180-after-publication"></a>
 
-### Install 1.8.0 after publication
+### Install 1.8.0
 
-When [PyPI lists 1.8.0](https://pypi.org/project/attune-harness/1.8.0/#files),
-install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed,
-then install Harness in its own managed environment. Before publication, follow
-**Check the 1.8.0 candidate** in `docs/installation.md` in the release checkout.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed,
+then install [Harness 1.8.0](https://pypi.org/project/attune-harness/1.8.0/#files)
+in its own managed environment.
 Keep your working installation and saved records while checking a replacement.
 
 ```sh
@@ -397,13 +397,7 @@ explains what the software checks cover.
 
 <a id="links"></a>
 
-## Help Center
-
-Start with [Get started with Harness 1.7.0](https://smartaimemory.com/harness/help/get-started/)
-to install Harness, check a local result and connect your assistant. Then choose
-your next outcome in the [goals guide](https://smartaimemory.com/harness/help/goals/).
-The published Help and course use 1.7.0. Check the displayed version before
-following a guide.
+## Documentation archive
 
 The [published 1.5.1 guide](https://smartaimemory.com/harness/help/1-5-1/)
 remains available with its original installation instructions and evidence.
