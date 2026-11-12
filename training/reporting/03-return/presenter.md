@@ -2,58 +2,51 @@
 
 Derived from this lesson’s JSON.
 
-## section-1: Pick up the decision, not just the conversation
+## section-1: Open the saved task
 
-When you return, establish what the report should do, what actually happened and whether anything needs action.
+Use the same practice project and Harness environment from lesson 2.
 
-- Ask what the learner would want to know first after a break. Connect the answer to the report and current decision.
-- Use only the current course artifacts and fresh local checks. Opening a supplied example does not establish a new task in the learner’s own project.
+- Use the learner's actual task directory. The generated reply identifies the task and snapshot revision.
+- Expect a read-only briefing. Guide the learner to its Next useful step.
 
-## section-2: Separate three kinds of saved state
+## section-2: Find the information you need
 
-A lesson bookmark, a project file and a Harness record answer different questions.
+Find the saved task, the report and your lesson notes in their respective places.
 
-- Ask which item the learner would inspect to establish an execution result. The output and checks must be considered together.
-- Browser progress is separate from task continuity and cross-agent memory.
+- Ask where the learner would find checks and report output.
 
-## section-3: Ask for a read-only inspection
+## section-3: Read the current briefing
 
-Use the saved path from your earlier work. If it is missing, locate it before running a task command.
+Check that the task and report match the project you meant to reopen.
 
-- The prompt is the main route; terminal syntax is optional. No prior task path is assumed.
-- Use an actual saved task or the supplied fresh check summary. Do not treat a reference artifact as the learner’s own accepted task.
+- Have the learner identify the task before discussing any follow-up work.
 
-## section-4: Ask what each result establishes
+## section-4: Read the checks and findings
 
-The current checks summary tells you what was exercised. Its limits matter as much as its outcome.
+Use the evidence saved with this run.
 
-- Read values from the actual current summary rather than reciting a count from an older record.
-- The optional check should prompt an explanation. It never blocks progression.
+- Read the result of each probe from the actual briefing.
 
-## section-5: Leave a stopping note you can use
+## section-5: Add context if it helps
 
-The saved record shows workflow state. A short note explains the human decision you would otherwise have to reconstruct.
+Start with the generated briefing. Add a short note for a decision or observation that lives outside the task.
 
-- Keep the note short enough to read tomorrow. Missing observations remain missing.
-- Only eligible task profiles accept the continuation format. Verify the task owner’s supported route before creating the note.
+- Use the generated reply first. Add a note only for human context the task record leaves out.
 
-## section-6: Notice when the next step changes scope
+## section-6: Choose the next action
 
-Suppose you return and now want the report to show only Orion. That is a requirement to inspect, not just a reminder.
+Use the result to decide what you need next.
 
-- Give fewer hints. Ask why reading Orion’s existing total differs from changing which rows the report includes.
-- No resume invocation belongs in this lesson. Explain the next decision without reusing a grant.
+- Ask the learner to distinguish reading an existing total from requesting a new filter.
 
-## section-7: Summarize the state in your own words
+## section-7: Record your next decision
 
-A useful return brief tells the next person what is established and why the next action makes sense.
+Capture one next step if you want to keep it with your lesson notes.
 
-- Preserve the learner’s wording. Offer one specific hint only if needed, then ask them to explain their decision.
-- Do not score the length of the note. The goal is a supported next action and enough context to find the right evidence.
+- Accept the learner's wording. A useful note names a decision and the relevant evidence.
 
-## section-8: Return with a decision you can explain
+## section-8: Continue with the report review
 
-You can now say what the work was for, which evidence you inspected and why the next action is warranted.
+Bring the saved briefing and the HTML report to the next lesson.
 
-- Ask for a short return summary in the learner’s own words. The goal is a justified decision, not a green progress counter.
-- Use current course materials only; local browser notes do not substitute for the actual saved task.
+- Carry the same project and task into the review lesson.

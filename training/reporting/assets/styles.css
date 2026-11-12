@@ -111,6 +111,11 @@ textarea.technical, textarea[data-technical] { font-family: var(--mono); font-si
 .copy-status { margin: 0; padding: .65rem 1rem; font-size: .85rem; color: var(--forest); background: #e8eddf; }
 .copy-status:empty { display: none; }
 .copy-block pre { border: 0; border-top: 1px solid #d2dacc; border-radius: 0; margin: 0; background: #f0f2e9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copy-block[data-copy-kind="prompt"] { margin: 1.1rem 0; padding: .3rem 0 .3rem .8rem; border: 0; border-left: 2px solid #8ba083; border-radius: 0; }
+[data-copy-kind="prompt"] .copy-heading { padding: 0; background: none; }
+[data-copy-kind="prompt"] h3 { margin: 0 0 .35rem; }
+[data-copy-kind="prompt"] pre { padding: .25rem 0; margin: 0; border: 0; background: none; white-space: pre-wrap; overflow-wrap: anywhere; }
+[data-copy-kind="prompt"] pre, [data-copy-kind="prompt"] pre code { font-family: inherit; font-size: .95rem; }
 .manual-copy { padding: .9rem 1rem 1rem; background: #fffaf0; border-top: 1px solid #dbd6c8; }
 .manual-copy p { margin-top: 0; font-size: .83rem; }
 .manual-copy label { margin: 0 0 .4rem; font-size: .8rem; }

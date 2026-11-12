@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "checked_on": "2026-11-11",
-  "scope": "The same course setup and lesson 2 commands were run on the published wheels. The runtime was selected by a test-only resolver constraint. These checks exercise the reporting fixture on the listed platform.",
+  "scope": "The same practice setup from Get Started and lesson 2 commands were run on the published wheels. The runtime was selected by a test-only resolver constraint. These checks exercise the reporting fixture on the listed platform.",
   "report": {
     "entries": 6,
     "minutes": 270,

@@ -34,8 +34,8 @@ the Markdown output. Do not add a Next.js or provider runtime to the source buil
 The existing website goals route would shadow the cutover rewrite; its owner
 will retain website entry points while this export owns all Help routes.
 
-Get Started covers the current base installation and links to the maintained
-reporting practice. The four archived 1.5.1 walkthroughs link to the practice
+Get Started covers the current base installation and reporting practice setup.
+The four archived 1.5.1 walkthroughs link to the practice
 setup in the published 1.5.1 guide. That setup activates its isolated runtime
 and defines the pinned example checkout as `R`. The release history identifies
 each version's source, artifacts, and check boundaries.
@@ -131,9 +131,9 @@ setup route and records tested runtime versions separately from its lessons.
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
 validates and imports the static export. For the 1.8.0 cutover, update its
 `published_version` check and refresh both exports from the same reviewed,
-merged Harness commit in the website PR. Verify that Get Started and Learn
-lead to course setup and that setup leads to the course overview. Check the
-frozen 1.7.0 course routes separately.
+merged Harness commit in the website PR. Verify that Learn opens the practice
+setup in Get Started and that the setup links to the course overview. Check
+the frozen 1.7.0 course routes separately.
 
 
 ## Reproduce 1.7.0 preparation

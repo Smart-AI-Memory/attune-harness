@@ -11,6 +11,8 @@ import re
 import subprocess
 from zipfile import ZipFile
 
+from build_help import build_site
+
 
 COURSE = Path(__file__).resolve().parents[1] / "training/reporting"
 CHECKPOINT = "replace-with-your-full-preview-digest"
@@ -29,24 +31,27 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def code_blocks(path):
-    source = path.read_text(encoding="utf-8")
-    return [unescape(block) for block in re.findall(r"<pre><code>(.*?)</code></pre>", source, re.S)]
+def code_blocks(source):
+    return [unescape(block) for block in re.findall(r"<pre><code(?: [^>]*)?>(.*?)</code></pre>", source, re.S)]
 
 
 def check_course(wheel, expected_digest, output):
     require(digest(wheel) == expected_digest, "Wheel does not match the supplied SHA-256")
-    setup, = code_blocks(COURSE / "setup.html")
+    output.mkdir()
+    help_site = output / "help-site"
+    build_site(help_site)
+    start = (help_site / "harness/help/get-started/index.html").read_text(encoding="utf-8")
+    practice_section = start.split('<h2 id="set-up-the-practice-folder">', 1)[1].split('<h2 ', 1)[0]
+    setup, = code_blocks(practice_section)
     lesson_dir = COURSE / "02-build"
     copies = {
         copy["label"]: copy["text"]
         for section in load(lesson_dir / "lesson.json")["sections"]
         for copy in section.get("copies", [])
     }
-    require(list(copies.values()) == code_blocks(lesson_dir / "read.html"),
+    require(list(copies.values()) == code_blocks((lesson_dir / "read.html").read_text(encoding="utf-8")),
             "Interactive copy commands differ from the reading view")
 
-    output.mkdir()
     bundle = output / "bundle"
     bundle.mkdir()
     archive_path = COURSE / "assets/reporting-practice.zip"

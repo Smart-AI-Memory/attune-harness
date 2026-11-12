@@ -145,11 +145,14 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     install = start.index('<h2 id="install-harness">')
     verify = start.index('<h2 id="check-a-local-result">')
     connect = start.index('<h2 id="connect-your-assistant">')
-    practice_link = 'href="/harness/learn/reporting/setup.html"'
-    assert install < verify < connect < start.index(practice_link, connect)
-    assert "practice environment with the current release" in start
+    practice_link = 'href="/harness/help/get-started/#set-up-the-practice-folder"'
+    practice = start.index('<h2 id="set-up-the-practice-folder">')
+    bundle = start.index('href="/harness/learn/reporting/assets/reporting-practice.zip"')
+    activate = start.index('. .venv/bin/activate')
+    continue_course = start.index('href="/harness/learn/reporting/">Continue to the reporting course')
+    assert install < verify < connect < practice < bundle < activate < continue_course
     assert 'href="/harness/learn/reporting/02-build/"' not in start
-    assert 'href="/harness/learn/reporting/"' not in start
+    assert 'href="/harness/learn/reporting/setup.html"' not in start
     assert "attune-harness==1.5.1" not in start
     landing = (root / "index.html").read_text()
     archive = (root / "archive/index.html").read_text()
@@ -163,8 +166,9 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     ).read_bytes()
     assert "uv tool install --python 3.12 attune-harness\n" in unescape(start)
     assert 'href="/harness/help/get-started/" aria-current="page"' in start
-    assert '<p class="help-eyebrow">Starter prompt</p>' in start
+    assert '<p class="help-prompt-label">Example prompt</p>' in start
     assert '<p data-copy-prompt>Use Harness to help me plan an update' in start
+    assert '<p class="help-tip"><strong>Tip</strong> Use <strong><code>status</code>' in start
     for path in root.rglob("index.html"):
         text = path.read_text()
         get_started_nav = text.index(
@@ -180,6 +184,7 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
         "install-harness-170",
         "choose-the-next-outcome",
         "prepare-the-release-examples",
+        "build-your-first-report-offline",
         "prepare-the-151-practice-examples",
         "sources-and-verification-limits",
         "prepare-for-160-separately",

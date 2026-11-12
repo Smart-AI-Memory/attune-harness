@@ -48,10 +48,10 @@ def test_course_projection_and_static_reading_routes():
     assert 'href="development-paths.html#goal-driven"' in overview
     assert 'href="development-paths.html#spec-driven"' in overview
     setup = (COURSE / "setup.html").read_text(encoding="utf-8")
-    continue_link = '<a href="./">Continue to the reporting course</a>'
-    assert setup.count('href="./"') == 1
-    assert setup.index('assets/reporting-practice.zip') < setup.index('. .venv/bin/activate') < setup.index(continue_link)
-    assert 'href="01-define/"' not in setup and 'href="02-build/"' not in setup
+    help_setup = "/harness/help/get-started/#set-up-the-practice-folder"
+    assert help_setup in Links(setup).links
+    assert "select-a-practice-runtime" in Links(setup).ids
+    assert '<pre>' not in setup
     for slug in builder.SLUGS:
         lesson = json.loads((COURSE / slug / "lesson.json").read_text(encoding="utf-8"))
         legacy_lesson = json.loads((ARCHIVE / slug / "lesson.json").read_text(encoding="utf-8"))
@@ -71,6 +71,9 @@ def test_course_projection_and_static_reading_routes():
         assert any(section.get("check") for section in lesson["sections"])
         assert 'href="read.html"' in (COURSE / slug / "index.html").read_text()
         reading = (COURSE / slug / "read.html").read_text()
+        prompt_count = sum(copy.get("kind") == "prompt" for section in lesson["sections"]
+                           for copy in section.get("copies", []))
+        assert reading.count('data-copy-kind="prompt"') == prompt_count
         assert "<textarea" not in reading
         assert "does not save answers" in reading
     for page in COURSE.rglob("*.html"):
@@ -79,7 +82,7 @@ def test_course_projection_and_static_reading_routes():
         parsed = Links(page.read_text(encoding="utf-8"))
         for link in parsed.links:
             url = urlsplit(link)
-            if url.scheme or url.netloc:
+            if url.scheme or url.netloc or link == help_setup:
                 continue
             target = (page.parent / unquote(url.path)).resolve() if url.path else page.resolve()
             if target.is_dir():

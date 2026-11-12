@@ -103,6 +103,7 @@
   function buildCopy(copy, sectionIndex, copyIndex) {
     const group = document.createElement("section");
     group.className = "copy-block";
+    if (copy.kind === "prompt") group.dataset.copyKind = "prompt";
     const heading = document.createElement("div");
     heading.className = "copy-heading";
     const title = document.createElement("h3");

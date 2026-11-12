@@ -2,51 +2,44 @@
 
 Derived from this lesson’s JSON.
 
-## section-1: Ask the next question the report does not answer
+## section-1: Record one opportunity
 
-The report summarizes both projects. A person responsible for Orion may want to see only Orion without manually editing the input.
+A reader responsible for Orion wants a report with only Orion’s activity.
 
-- Start with the user benefit: a project owner wants a focused report.
-- Do not invent or run --project on the unmodified supplied application.
+- Keep the opportunity narrow enough to check. Project filtering is proposed behavior.
 
-## section-2: Know what must stay unchanged
+## section-2: Keep the checked baseline
 
-Inspect the existing result before proposing a new option.
+Use the result you already built and reviewed.
 
-- This command is supported by the supplied parser; a project-filter command is not.
-- Keep current source and input identity with any new local result.
+- Retain the existing report and saved probe results as the comparison point.
 
-## section-3: Make the scope small enough to review
+## section-3: Describe the smallest useful change
 
-A bounded change states what should differ and which existing promises must survive.
+Write the outcome and its boundaries in plain language.
 
-- Allow the learner to challenge the proposed scope or matching rule. Product choices are not answered by the old tests.
-- New acceptance coverage must be authorized and prepared deliberately; do not silently change protected baseline expectations.
+- Leave the interface decision with the learner. Use the current report as the baseline.
 
-## section-4: Choose answers the implementation cannot invent
+## section-4: Write the expected results
 
-Calculate expected project results directly from the original six rows.
+Derive both expectations from the original CSV.
 
-- Have the learner calculate Lumen with fewer hints, then compare with the table.
-- Do not assert a project-filter result exists or add proposed expectations to current execution results.
+- Ask the learner to locate the four Orion rows before evaluating any future implementation.
 
-## section-5: Carry the brief into the supported workflow
+## section-5: Bring the opportunity to your assistant
 
-Use Harness to retain reviewed scope and checks after the product decisions are clear.
+Use the saved task path and the new opportunity to prepare a draft.
 
-- A concrete next request is not an accepted task merely because it is written in a lesson.
-- Use the selected compatible Harness runtime and inspect the current checkpoint.
+- Reuse the existing context. Treat the new improvement as a separate decision.
 
-## section-6: Explain your own next decision
+## section-6: Try the same idea for Lumen
 
-Suppose the intended reader manages Lumen, not Orion. Prepare the smallest revision to the request before asking for implementation.
+Optional practice with one independent answer.
 
-- Use this as a transfer activity: offer the hint only if wanted.
-- Ask for an explanation of the next decision; do not measure confidence or infer capability from a section visit.
+- Use the hint after the learner tries the calculation.
 
-## section-7: Make the next session easy to start
+## section-7: Save the next decision
 
-Finish with a clear account of what is proposed, what is established and what needs a decision.
+Leave enough context to pick up the opportunity later.
 
-- Close with what the learner can now do: define, inspect evidence, preserve context and prepare a bounded next step.
-- No speed, learning-effectiveness or independent-user acceptance result is claimed by completing these lessons.
+- Close with the next decision and the evidence already on hand.

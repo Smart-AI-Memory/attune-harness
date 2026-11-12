@@ -1,7 +1,7 @@
 <section class="help-card help-course" aria-labelledby="harness-in-practice">
 <h2 id="harness-in-practice">Harness in practice</h2>
 <p>Build an HTML report from six sample activity entries. In six lessons, you define the work, build and check the report, and prepare it for someone else. The exercise needs no API key.</p>
-<p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/reporting/setup.html">Set up the reporting course</a></p>
+<p class="help-course-action"><a class="help-featured-nav" href="/harness/help/get-started/#set-up-the-practice-folder">Set up the reporting course</a></p>
 </section>
 
 ## Choose what you want to accomplish

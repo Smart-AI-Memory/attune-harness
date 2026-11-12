@@ -10,8 +10,8 @@
       "navTitle": "See the result",
       "phase": "Plan → Build",
       "title": "Build a report you can explain",
-      "intro": "Turn six synthetic activity entries into a formatted report, while keeping the input and checks protected.",
-      "html": "<p>Open the <a href=\"../assets/example/expected/activity-report.html\" target=\"_blank\" rel=\"noopener\">formatted report</a>. It accounts for <strong>6 entries and 270 minutes</strong>. Orion has 180 minutes and Lumen has 90.</p><p>This lesson uses fixed local command participants to practice the Harness workflow. The worker supplies known reference code; the protocol reviewer does not judge its quality. The protected tests check the actual program. No model or provider is called.</p><p>For real implementation, your assistant needs participants suited to the task and the execution authority you choose. Start with the offline practice to understand the decisions.</p><p><strong>Choose your starting path:</strong> this bounded reporting exercise starts from a clear goal. If your real project has several workflows or unresolved requirements, use <a href=\"../development-paths.html\">the goal-driven and spec-driven reference</a> to choose the preparation it needs before accepting a plan.</p>",
+      "intro": "Turn six synthetic activity entries into an HTML report. Keep the input and tests unchanged.",
+      "html": "<p>Open the <a href=\"../assets/example/expected/activity-report.html\" target=\"_blank\" rel=\"noopener\">sample report</a>. Look for <strong>6 entries and 270 minutes</strong>, with 180 minutes for Orion and 90 for Lumen.</p><p>You will preview the work, approve its scope, run the local build and inspect the result. The practice worker supplies reference code. The local reviewer exercises the review protocol. The tests check the resulting program, and the practice makes no model calls.</p><p>For a project that needs more preparation, compare the <a href=\"../development-paths.html\">goal-driven and spec-driven approaches</a>.</p>",
       "copies": [],
       "presenterNotes": [
         "Ask the learner to explain the useful result and next decision in their own words.",
@@ -23,8 +23,8 @@
       "navTitle": "Prepare the project",
       "phase": "Plan → Build",
       "title": "Start in an isolated practice folder",
-      "intro": "Use the Python 3.12 environment from the course setup.",
-      "html": "<p>Complete the <a href=\"../setup.html#select-a-practice-runtime\">course setup</a> first. Keep the same terminal, with <code>COURSE_WORK</code> set and the course folder open. These commands use a POSIX shell on macOS or Linux.</p><p>The helper creates an unfinished <code>report.py</code>, two test files, the CSV, expected output, a local participant registry and a work request. It initializes a disposable Git checkout. It accepts nothing and starts no build.</p>",
+      "intro": "Use the terminal and Python environment from course setup.",
+      "html": "<p>Complete <a href=\"/harness/help/get-started/#set-up-the-practice-folder\">course setup</a> and keep the extracted folder open in the same terminal, with <code>COURSE_WORK</code> set.</p><p>Run the practice setup command below. It creates the sample project in <code>$PRACTICE/project</code> and writes the draft work request to <code>$PRACTICE/task.work.json</code>. Keep this terminal open for the rest of the lesson.</p>",
       "copies": [
         {
           "label": "practice setup",
@@ -41,8 +41,8 @@
       "navTitle": "Review the plan",
       "phase": "Plan → Build",
       "title": "Ask what may change and how it will be checked",
-      "intro": "Prepare the draft, then inspect its complete scope before deciding.",
-      "html": "<p>Keep the same terminal and <code>PRACTICE</code> value. The task and request live beside the project, outside the checkout whose inputs Harness freezes.</p><p>Expect <code>draft</code>, no missing questions and a <code>checkpoint_digest</code>. Read the goal and both test criteria. Only <code>report.py</code> may change. The tests, input, expected outputs, registry and pytest configuration are protected.</p><p>If anything is wrong, stop and revise through the supported workflow. Editing the original request after preview does not update the saved task.</p>",
+      "intro": "Preview the request and check the proposed scope.",
+      "html": "<p>Run the <strong><code>plan</code></strong> command below. Look for <code>draft</code>, an empty list of missing questions and a <code>checkpoint_digest</code>.</p><p>Confirm that the goal and both test criteria match the exercise. The plan may change only <code>report.py</code>. It protects the CSV, expected reports, tests, participant registry and pytest configuration.</p><p>If the preview needs a correction, stop and revise the request through the supported workflow. Generate a fresh preview before you accept its scope.</p>",
       "copies": [
         {
           "label": "plan preview",
@@ -59,8 +59,8 @@
       "navTitle": "Accept the scope",
       "phase": "Plan → Build",
       "title": "Agree to the exact request",
-      "intro": "Acceptance records the scope you reviewed; execution is another decision.",
-      "html": "<p>Copy the full <code>checkpoint_digest</code> from your own preview into <code>PREVIEW_CHECKPOINT</code>. If the displayed request is correct, accept that checkpoint. Expect <code>accepted</code> and a new current checkpoint.</p><p>You have not completed the implementation by accepting its scope. In a browser intake, <strong>Approve this work request</strong> and <strong>Keep as draft</strong> record the corresponding intent decision; this command practice uses the CLI.</p>",
+      "intro": "Accept the exact draft you reviewed. You authorize execution in the next step.",
+      "html": "<p>If the preview matches the exercise, replace the placeholder in <code>PREVIEW_CHECKPOINT</code> with the full <code>checkpoint_digest</code> from your preview. Run the command below.</p><p>Look for <code>accepted</code> and a new checkpoint. That records your approval of the reviewed scope. You are ready to decide whether to run the build.</p>",
       "copies": [
         {
           "label": "scope acceptance",
@@ -92,8 +92,8 @@
       "navTitle": "Start the practice",
       "phase": "Plan → Build",
       "title": "Give the local commands a bounded go",
-      "intro": "Inspect the registry before authorizing the prepared offline build.",
-      "html": "<p>The practice registry uses two fixed local commands. They make no API or native-model request. Read their configuration and the permitted effects before running the build command.</p><p><code>--allow-external</code> permits these local subprocess participants. It is not a funding grant or a security sandbox. For real model work, review the <a href=\"https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/participant-funding.md\">current participant setup and funding guide</a>; do not infer your route from this fixture.</p><p>Expect <code>completed</code> only after the configured checks actually pass. If the command fails, inspect its saved error and journal before choosing a next action.</p>",
+      "intro": "Review the local participant commands and authorize the practice build.",
+      "html": "<p>Check the two local commands in <code>$PRACTICE/project/participants.json</code> and the effects in the accepted plan. Run <strong><code>build</code></strong> with <code>--allow-external</code> to authorize those commands for this practice run.</p><p>Look for <code>completed</code> after the configured checks pass. If the build fails, read the saved error and journal before choosing what to do next.</p><p>For real model work, check your selected route in the <a href=\"https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/participant-funding.md\">participant setup and funding guide</a>.</p>",
       "copies": [
         {
           "label": "offline build",
@@ -110,8 +110,8 @@
       "navTitle": "Inspect the evidence",
       "phase": "Plan → Build",
       "title": "Separate a completed task from a trustworthy claim",
-      "intro": "Read the saved outcome and the tests that support it.",
-      "html": "<p>Inspect the saved task. Find the permitted file change, task probe and final probe. The <a href=\"../../1.7.0-preparation/assets/current-checks.json\">original 1.7.0 course check</a> recorded 77 cases in the two reporting test files. The fixed reviewer exercises the review protocol. For a real implementation, assess the result against your own criteria.</p><p>Compare the hashes of the input and protected files before and after the build. A passing result supports the cases that ran.</p>",
+      "intro": "Check the saved task for the change and test results.",
+      "html": "<p>Run <strong><code>status</code></strong> below to inspect <code>$PRACTICE/task</code>. Under <strong>Planned tasks</strong>, look for <code>report.py</code> in <strong>Outputs</strong>. Under <strong>Host checks</strong>, look for <strong>Passed</strong> beside <code>probe:change</code> and <code>probe:final</code>.</p><p>The <a href=\"../assets/compatibility.json\">course compatibility results</a> record 77 passing cases per probe in the tested exercise. Use your own task record to see what ran in your environment.</p>",
       "copies": [
         {
           "label": "saved task inspection",
@@ -128,8 +128,8 @@
       "navTitle": "Generate the report",
       "phase": "Plan → Build",
       "title": "Take the checked result into your browser",
-      "intro": "Run the completed program against the unchanged six-row CSV.",
-      "html": "<p>Move into the practice project. Save the report beside the project so the saved work’s input snapshot stays unchanged.</p><p>Expect <code>Saved report to …</code>. Open that file and check 6 entries, 270 minutes, the project totals and the date range against the CSV. If you run this command again, choose a new filename.</p>",
+      "intro": "Generate the report from the unchanged six-row CSV.",
+      "html": "<p>Run the report command below. It writes <code>$PRACTICE/activity-report.html</code> beside the project. Look for <code>Saved report to …</code> and open that file in your browser.</p><p>Check the count, 270 minutes, project totals and date range against the CSV. Choose a new output filename if you run the command again.</p>",
       "copies": [
         {
           "label": "report command",
@@ -147,7 +147,7 @@
       "phase": "Plan → Build",
       "title": "Leave the work ready to inspect tomorrow",
       "intro": "Explain one result, one boundary and the next decision.",
-      "html": "<label for=\"build-review-note\">Your result and next decision</label><textarea id=\"build-review-note\" data-save=\"build-review-note\" rows=\"5\" placeholder=\"What did the checks establish, and what still needs your review?\"></textarea><p>These notes stay in this browser. They do not change or approve the Harness task.</p><p>Continue with <a href=\"../03-return/\">Come back tomorrow</a> to inspect saved work before continuing. Use <a href=\"../04-review/\">Decide whether to trust the report</a> to connect a claim to independent evidence.</p>",
+      "html": "<label for=\"build-review-note\">Your result and next decision</label><textarea id=\"build-review-note\" data-save=\"build-review-note\" rows=\"5\" placeholder=\"What did the checks establish, and what still needs your review?\"></textarea><p>This lesson saves your note in this browser when storage is available. Keep the paths to <code>$PRACTICE/task</code> and <code>$PRACTICE/activity-report.html</code> for the next lessons.</p><p><strong>Next:</strong> Open <strong><a href=\"../03-return/\">Come back tomorrow</a></strong> to return to the saved task.</p>",
       "copies": [],
       "presenterNotes": [
         "Ask the learner to explain the useful result and next decision in their own words.",

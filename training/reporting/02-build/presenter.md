@@ -4,49 +4,49 @@ Derived from this lesson’s JSON.
 
 ## section-1: Build a report you can explain
 
-Turn six synthetic activity entries into a formatted report, while keeping the input and checks protected.
+Turn six synthetic activity entries into an HTML report. Keep the input and tests unchanged.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-2: Start in an isolated practice folder
 
-Use the Python 3.12 environment from the course setup.
+Use the terminal and Python environment from course setup.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-3: Ask what may change and how it will be checked
 
-Prepare the draft, then inspect its complete scope before deciding.
+Preview the request and check the proposed scope.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-4: Agree to the exact request
 
-Acceptance records the scope you reviewed; execution is another decision.
+Accept the exact draft you reviewed. You authorize execution in the next step.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-5: Give the local commands a bounded go
 
-Inspect the registry before authorizing the prepared offline build.
+Review the local participant commands and authorize the practice build.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-6: Separate a completed task from a trustworthy claim
 
-Read the saved outcome and the tests that support it.
+Check the saved task for the change and test results.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.
 
 ## section-7: Take the checked result into your browser
 
-Run the completed program against the unchanged six-row CSV.
+Generate the report from the unchanged six-row CSV.
 
 - Ask the learner to explain the useful result and next decision in their own words.
 - Keep this offline practice distinct from authorizing real project or model work.

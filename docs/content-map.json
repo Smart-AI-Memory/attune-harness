@@ -6,7 +6,7 @@
   "website_entry": "https://smartaimemory.com/harness/help/",
   "website_navigation": [
     {"title": "Get started", "route": "/harness/help/get-started/", "source": "help/get-started.md"},
-    {"title": "Learn Harness", "route": "/harness/learn/", "source": "training/reporting/setup.html", "delivery": "The current site redirects to the archived 1.7.0 course until the maintained course is published."},
+    {"title": "Learn Harness", "route": "/harness/learn/", "source": "help/get-started.md", "delivery": "The current site redirects to the archived 1.7.0 course until the maintained course is published."},
     {"title": "Do a task", "route": "/harness/help/goals/", "source": "help/goals/guide.html"},
     {"title": "Reference", "route": "/harness/help/ai-tools-and-integrations/", "source": "help/ai-tools-and-integrations.md"}
   ],
@@ -33,7 +33,7 @@
     "offline_practice": "training/reporting/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
     "development_paths": "training/reporting/development-paths.html",
-    "website_delivery": "Import the reviewed, merged Harness source before redirecting the Learn entry to /harness/learn/reporting/setup.html. Continue from setup to the course overview. Preserve the legacy source and its original URLs."
+    "website_delivery": "Import the reviewed, merged Harness source before redirecting the Learn entry to /harness/help/get-started/#set-up-the-practice-folder. Continue from setup to the course overview. Preserve the legacy source and its original URLs."
   },
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
   "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."

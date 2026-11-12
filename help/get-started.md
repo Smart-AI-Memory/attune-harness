@@ -20,33 +20,53 @@ Look for `"status": "verified"`. The demo runs locally and needs no API key.
 - [Set up Codex](https://github.com/Smart-AI-Memory/attune-harness#codex), then invoke `$attune-harness`.
 - [Set up Claude Code](https://github.com/Smart-AI-Memory/attune-harness#claude-code).
 
-## Build your first report offline
+## Set up the practice folder
 
-[Set up the reporting course](/harness/learn/reporting/setup.html) to download
-the example files and prepare a practice environment with the current release.
-Then follow the six lessons to plan, build, and check an HTML report. The
-exercise needs no API key.
+Build and check an HTML report from six sample activity entries. You can
+[preview the sample report](/harness/learn/reporting/assets/example/expected/activity-report.html).
+The six lessons use one local project and need no API key.
+
+1. <a href="/harness/learn/reporting/assets/reporting-practice.zip" download>Download practice ZIP</a> and extract it into a new folder.
+2. Open a terminal in the extracted folder that contains `practice.py`. Use
+   Bash or Zsh on macOS or Linux. Install Git if needed.
+3. Run these commands to set up a separate environment with Harness and pytest.
+
+```sh
+COURSE_WORK="$(pwd -P)" &&
+uv venv --python 3.12 .venv &&
+uv pip install --python .venv/bin/python -r requirements-practice.txt &&
+. .venv/bin/activate
+```
+
+If you already have a separate practice environment with Harness and pytest,
+activate it and run `COURSE_WORK="$(pwd -P)"` from the extracted folder. See the
+[tested versions and results](/harness/learn/reporting/assets/compatibility.json).
+
+Keep this terminal open for lesson 2. You can run the rest of the exercise offline.
+
+<p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/reporting/">Continue to the reporting course</a></p>
 
 ## Choose goal-driven development
 
 Read [How people and AI work together](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/cli-guide.md#how-people-and-ai-work-together)
 to understand your decisions and the AI's role in carrying out accepted work.
 
-Start with a small outcome in a project you know. For example, ask your assistant:
+Start with a small outcome in a project you know. Ask your assistant to help
+prepare the plan for your review.
 
 <div class="help-prompt">
-<p class="help-eyebrow">Starter prompt</p>
+<p class="help-prompt-label">Example prompt</p>
 <p data-copy-prompt>Use Harness to help me plan an update to this project. Help me define the goal, affected files and checks before we build.</p>
 </div>
 
-Use [Plan a change](/harness/help/goals/#feature-request) to prepare a clear
-request, or [browse all goals](/harness/help/goals/) to choose review, repair,
-testing or saved work. The existing goals guide keeps its stated version and
-historical screenshots; its prompts and review points help you choose the work.
+Use [Plan a change](/harness/help/goals/#feature-request) to prepare your
+request. [Browse all goals](/harness/help/goals/) to find a guide for review,
+repair, testing, or saved work.
 
-Review the proposed scope, participants and checks before accepting it. Accepting
-a plan records the agreed work; starting a build is a separate action. Use
-**`status`** to inspect saved decisions before continuing.
+Review the proposed scope, participants, and checks before accepting the plan.
+Authorize the build when you are ready to start it.
+
+<p class="help-tip"><strong>Tip</strong> Use <strong><code>status</code></strong> to inspect saved decisions before continuing.</p>
 
 ## Choose spec-driven development
 

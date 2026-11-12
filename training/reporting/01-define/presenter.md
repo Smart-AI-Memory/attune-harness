@@ -18,14 +18,14 @@ The projects and activity are synthetic. The small input makes the target result
 
 ## section-3: Describe what the person needs
 
-A good goal explains the useful result. It does not force you to specify the implementation.
+State what the reader needs from the report. Let the assistant propose how to build it.
 
 - Invite the learner to explain the goal without copying the lesson. Accept their wording rather than rewriting it silently.
 - The prompt asks for preparation. Copying it does not create or accept a Harness task.
 
 ## section-4: Keep one complete useful journey
 
-The first version should read the sample, produce a report and help someone recognize invalid input.
+Agree on the report you will build and the files that may change.
 
 - Ask whether an excluded feature is essential to this reader. If it is, revise the proposed first version before accepting scope.
 - Avoid a file-by-file repository tour. The learner needs to understand the allowed effect and protected expected answers.

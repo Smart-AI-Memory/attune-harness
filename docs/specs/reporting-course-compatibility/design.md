@@ -16,16 +16,17 @@ attune-harness
 Keep the uv prerequisite, Python 3.12 or later, and the expected
 `"status": "verified"` beside the commands. A fresh install selects the
 latest compatible release for the selected Python. Place assistant setup
-after verification. The course is a next step, with Git, pytest, and
-example files introduced on its setup page. Put version-specific changes
+after verification. Introduce Git, pytest, and example files in the practice
+setup section on Get Started. Put version-specific changes
 in the changelog and link to migration instructions when readers need to act.
 
 ## One maintained course
 
 Use `training/reporting/` as the source for the six maintained lessons.
 Serve its overview at `/harness/learn/reporting/`. Point the existing
-`/harness/learn/` entry and the Help Center's course links to the stable setup
-page. From setup, continue to the overview. Update lesson prose and generator
+`/harness/learn/` entry and the Help Center's course links to the practice
+section on Get Started. From setup, continue to the overview. The previous
+`reporting/setup.html` URL links to the same section. Update lesson prose and generator
 labels where they currently name 1.7.0 as a requirement. Preserve the
 exercises, protected tests and sample output.
 
@@ -135,13 +136,13 @@ historical paths. Continue checking exact source identity, file inventory, and
 hashes. Compare both import receipts to the reviewed commit and verify all
 43 files in the legacy subtree against the prior export. Help publication
 metadata remains independent of the course identity. Keep the frozen 1.7.0
-routes and retarget the existing temporary Learn redirect to the maintained
-course setup page.
+routes and retarget the existing temporary Learn redirect to the practice
+section on Get Started.
 
 Adapt the [exact-commit website smoke check](https://github.com/Smart-AI-Memory/attune-ai/blob/e52de25e9083fea0181b1e9a23ea95da8fea0e65/website/scripts/harness-preview-smoke.py)
-for the version-neutral heading. Verify the homepage link, Get Started, course
-setup, course overview, lesson 2, reading view, practice download, historical deep links, and
-saved progress on the exact website preview. Show Patrick the complete rendered
+for the version-neutral heading. Verify the homepage link, Get Started,
+practice setup and download, course overview, lesson 2, reading view,
+historical deep links, and saved progress on the exact website preview. Show Patrick the complete rendered
 Get Started page and its working course link for approval before production
 publication. If the cutover fails, restore the preceding reviewed Help and
 training exports and redirect target together.

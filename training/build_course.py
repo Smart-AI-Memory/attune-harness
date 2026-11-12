@@ -76,11 +76,22 @@ def project():
                 section["html"], flags=re.DOTALL,
             ).replace('These notes stay in this browser.',
                       'In the interactive lesson, these notes stay in your browser.')
+            unplaced_copies = []
+            for copy in section.get("copies", []):
+                block = f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>'
+                if copy.get("kind") == "prompt":
+                    block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+                slot = copy.get("slot")
+                if slot:
+                    marker = f'<div data-copy-slot="{escape(slot)}"></div>'
+                    if reading_body.count(marker) != 1:
+                        raise ValueError(f'{slug}: expected one copy slot {slot}')
+                    reading_body = reading_body.replace(marker, block)
+                else:
+                    unplaced_copies.append(block)
             readable.extend([f'<section id="{section["id"]}">',
                              f'<h2>{escape(section["title"])}</h2>',
-                             f'<p>{escape(section["intro"])}</p>', reading_body])
-            for copy in section.get("copies", []):
-                readable.append(f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>')
+                             f'<p>{escape(section["intro"])}</p>', reading_body, *unplaced_copies])
             if section.get("check"):
                 check = section["check"]
                 readable.append(f'<details><summary>{escape(check["question"])}</summary>')
@@ -107,7 +118,7 @@ def project():
              '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
              '</div><p class="path-comparison"><a href="development-paths.html">'
              'Compare the paths and their review points</a></p></section>',
-             '<p><a href="setup.html">Get ready for the course</a> to download the practice files and set up a separate environment.</p>',
+             '<p><a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the practice folder</a> to download the files and prepare the environment.</p>',
              '<h2>Follow the learning path</h2>', '<ol>']
     for slug, lesson in zip(SLUGS, lessons):
         cards.append(f'<li><h2><a href="{slug}/">{escape(lesson["title"])}</a></h2><p>{escape(lesson["subtitle"])}</p></li>')
@@ -121,7 +132,7 @@ def project():
         'Historical training documents',
         '<h1>Historical training documents</h1>'
         '<p>These superseded documents preserve earlier instructions and evidence. '
-        '<a href="../reporting/setup.html">Set up the reporting course</a> for current practice.</p>'
+        '<a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the reporting course</a> for current practice.</p>'
         '<h2>Harness in practice for 1.7.0</h2>'
         '<p><a href="../1.7.0-preparation/">Open the original six-lesson course</a> with its version-specific setup and check records.</p>'
         '<h2>Build your first report</h2>'

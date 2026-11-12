@@ -2,51 +2,44 @@
 
 Derived from this lesson’s JSON.
 
-## section-1: Decide what makes this report trustworthy
+## section-1: Open the report you built
 
-A useful report gives you an answer you can explain, together with evidence for the parts you cannot check by eye.
+Use the HTML file and saved task from lesson 2.
 
-- Open the actual current-course report. Inspect its numbers rather than relying on a screenshot.
-- The benefit is explaining why a result is supported and naming its limits.
+- Use the learner's generated HTML and saved task whenever they are available.
 
 ## section-2: Check one answer yourself
 
-The six-row fixture is small enough to audit without reading the implementation.
+Derive one expected answer from the CSV before comparing it with the report.
 
-- Let the learner calculate one subtotal. Do not replace the activity with a recital of the answer.
-- The CSV and expected report are primary artifacts; the table is derived from their six rows.
+- Ask the learner to name the four rows and find the corresponding subtotal.
 
-## section-3: Read the recorded result within its scope
+## section-3: Read the evidence from your build
 
-A check is useful when you can identify the input, expected answer, command and actual result.
+Use the saved briefing to see which checks ran and what happened.
 
-- Use the fresh current-checks.json that accompanies this course. Do not import a result from another runtime or source.
-- The current record reports 77 reporting tests in a fresh Python 3.12 environment. Keep its exact source, environment and result with the course.
+- Read the learner's probe results and distinguish them from the archived sample evidence.
 
-## section-4: Turn a concern into a checkable question
+## section-4: Investigate a mismatch
 
-A plausible concern deserves a concrete input and expected result before you decide whether it is a defect.
+If your independent answer and report differ, identify which rows explain the gap.
 
-- Label the missing-row case as illustrative. Do not attribute it to a reviewer or an actual run.
-- Ask what evidence would change the learner’s decision.
+- Use an observed mismatch if one exists.
 
-## section-5: Handle a real finding without changing the answer
+## section-5: Choose a focused response
 
-When evidence establishes a defect, preserve the expectation and make the correction inspectable.
+Use a confirmed mismatch to choose a check or a small correction.
 
-- Keep a hypothetical repair separate from the current software-check result.
-- Changing the expected answer changes the contract; it is not a shortcut to green tests.
+- Keep independent expectations and any observed failure with the proposed correction.
 
-## section-6: Notice when a plausible total is wrong
+## section-6: Try the missing-row example
 
-The omitted-row example lets you practice checking a result with fewer hints.
+Use this hypothetical case to see how a plausible total can still be wrong.
 
-- Keep the optional check nonblocking. Invite an explanation rather than merely choosing an option.
-- The omitted-row numbers are independently calculated expectations, not a software failure report.
+- This is an example to reason about, so keep its hypothetical results out of the learner’s saved evidence.
 
-## section-7: Leave an explanation another person can inspect
+## section-7: Record what the evidence supports
 
-Use a short note to connect the useful result, checked claims and next decision.
+State what you checked, what agreed and what needs another look.
 
-- Ask the learner to name one supported claim and one remaining limit.
-- Keep the note concise and do not score writing style or force a response.
+- Check that the learner uses their actual result and evidence.
