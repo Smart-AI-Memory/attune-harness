@@ -1,6 +1,6 @@
 ## Before you begin
 
-Complete the [1.5.1 practice setup](/harness/help/get-started/#prepare-the-151-practice-examples) in a fresh POSIX shell.
+Complete the [1.5.1 practice setup](/harness/help/1-5-1/#prepare-the-151-practice-examples) in a fresh POSIX shell.
 Keep that isolated published 1.5.1 environment active. `R` is the absolute release checkout
 at commit `ebb5b03b8a4398325df7ddabd28c08186451452e`, as defined by the practice setup; its example files are not in the wheel.
 These examples use a POSIX shell and canonical paths. On macOS, use

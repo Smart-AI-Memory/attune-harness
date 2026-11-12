@@ -13,15 +13,14 @@ You can inspect what happened and use that record when you continue later.
 ## Help Center
 
 - [Install Harness 1.8.0](#install-180) to use the current runtime.
-- [Get started with Harness 1.7.0](https://smartaimemory.com/harness/help/get-started/)
+- [Get started in the Help Center](https://smartaimemory.com/harness/help/get-started/)
   to install Harness, check a local result, and connect your assistant.
+- [Set up the reporting course](https://smartaimemory.com/harness/learn/)
+  to plan, build, and check an offline report.
 - [Choose a goal](https://smartaimemory.com/harness/help/goals/) to find a
   guide for the work you want to do.
-- [Take the Harness 1.7.0 course](https://smartaimemory.com/harness/learn/1.7.0-preparation/)
-  to plan, build, and check an offline report.
 
-The getting-started guide and course use Harness 1.7.0. Check the version on
-other guides before following their commands.
+Check the version on historical guides before following their commands.
 
 ## Installation
 

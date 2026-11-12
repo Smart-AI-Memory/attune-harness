@@ -1,0 +1,20 @@
+# Reporting course compatibility
+
+The [approved requirements](requirements.md) describe the intended change.
+The [design draft](design.md) specifies the proposed setup and compatibility
+checks. This walk records which owners can refuse the course commands.
+A complete run against each selected published runtime is required before the
+course claims compatibility.
+
+## Command owner walk
+
+| Step | Current owner refusal | Required input to the next step |
+| --- | --- | --- |
+| Create or select a course environment | [uv](https://docs.astral.sh/uv/pip/environments/) needs a usable interpreter and the selected environment. [Package installation](https://docs.astral.sh/uv/pip/packages/) needs resolvable dependencies. | Extract the practice bundle into a new directory and set `COURSE_WORK` to its canonical path. Create its local environment with Python 3.12 and install the bundled dependency list, or select an existing environment with the required packages. Finish setup while downloads are available. |
+| Prepare with `python practice.py "$PRACTICE"` | [The practice helper](../../../training/1.7.0-preparation/practice.py#L13) currently rejects every runtime except 1.7.0, Python below 3.12, an existing destination, or a symlinked parent. It also [rejects an overlong generated command argument](../../../training/1.7.0-preparation/practice.py#L54). The proposed preflight checks dependencies and public command options before creating the project. | Use the selected interpreter, Git, the bundled fixtures and a fresh canonical directory. The helper prepares the fixed registry and disposable committed Git project. |
+| Create the request with `init --for plan` inside preparation | [The starter](../../../src/attune_harness/init_cli.py#L327) requires a goal, scope, interpreter and test files. It always refuses an existing task directory. An existing request requires `--force`. | The helper supplies the fixed goal, the single-file scope, the selected Python, both protected test files, and new task and request paths beside the project. Preparation returns the unaccepted request. |
+| Preview with `plan --request` | [Work capture](../../../src/attune_harness/work_contract.py#L340) requires a resolved project and state outside that project. [Registry validation](../../../src/attune_harness/work_contract.py#L289) rejects unbound or unknown participants. | The helper creates the checkout and registry in the project, and puts the request and task beside it. The preview supplies the current checkpoint and unresolved questions. |
+| Accept with `plan --accept --checkpoint` | [The CLI](../../../src/attune_harness/work_cli.py#L475) requires the exact displayed checkpoint. [Acceptance](../../../src/attune_harness/work_contract.py#L591) refuses unresolved material intent and missing required evidence. | The learner inspects the draft and uses its complete checkpoint. The accepted record binds the protected inputs and allowed effect. |
+| Run `build --allow-external` | [The effect owner](../../../src/attune_harness/work_runtime.py#L306) requires current accepted work and the bound registry. [Build preflight](../../../src/attune_harness/work_build.py#L95) requires protected checks, and [dispatch](../../../src/attune_harness/work_build.py#L712) checks participant configuration and authorization. | The learner authorizes the fixed local commands separately. Both protected checks run before the result is recorded as completed. |
+| Inspect with `status --format markdown` | [The saved-work reader](../../../src/attune_harness/work_runtime.py#L281) requires the stored feature-work record. | The same task directory exposes the build journal and verification results. |
+| Create the report with `python report.py` | [The report CLI](../../../training/1.7.0-preparation/assets/example/report.py#L325) refuses unreadable or malformed input and an existing output file. | The checked report program reads the unchanged CSV and writes a fresh HTML file beside the project. Compare the totals and bytes with the expected report. |

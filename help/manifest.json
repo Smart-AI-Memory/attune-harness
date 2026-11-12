@@ -48,17 +48,19 @@
     },
     {
       "slug": "get-started",
-      "title": "Get started with Harness 1.7.0",
-      "goal": "Install Harness, check a local result and build your first report offline.",
+      "title": "Get started with Harness",
+      "goal": "Install Harness, check a local result and connect your assistant.",
       "kind": "task",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "published",
       "legacy_anchors": {
         "set-up-an-isolated-environment": "install-harness",
         "install-harness-160": "install-harness",
         "install-harness-170": "install-harness",
         "choose-the-next-outcome": "choose-goal-driven-development",
-        "prepare-the-release-examples": "prepare-the-151-practice-examples",
+        "prepare-the-release-examples": "set-up-the-practice-folder",
+        "build-your-first-report-offline": "set-up-the-practice-folder",
+        "prepare-the-151-practice-examples": "sources-and-verification",
         "sources-and-verification-limits": "sources-and-verification",
         "prepare-for-160-separately": "install-harness",
         "review-170-preparation-separately": "sources-and-verification"
@@ -78,6 +80,9 @@
       "title": "Start and continue work",
       "goal": "Turn saved draft answers into an intent you can inspect and accept.",
       "kind": "task",
+      "version": "1.5.1",
+      "status": "published",
+      "archived": true,
       "legacy_anchors": {
         "what-happens-when-you-accept-an-intent": "save-review-and-approve-the-request",
         "prepare-a-disposable-form-example": "prepare-and-open-the-practice-form",
@@ -89,6 +94,9 @@
       "title": "Plan and accept work",
       "goal": "Review the exact scope and accept its current checkpoint before execution.",
       "kind": "task",
+      "version": "1.5.1",
+      "status": "published",
+      "archived": true,
       "legacy_anchors": {
         "how-does-a-sample-plan-become-accepted": "preview-and-accept-the-plan",
         "verification-scope": "verification-and-sources"
@@ -99,6 +107,9 @@
       "title": "Research a question",
       "goal": "Find local evidence and recognize what the verification actually checked.",
       "kind": "task",
+      "version": "1.5.1",
+      "status": "published",
+      "archived": true,
       "legacy_anchors": {
         "what-can-you-check-in-a-local-source": "retrieve-sources-and-verify-a-link",
         "verification-scope": "verification-and-sources"
@@ -109,6 +120,9 @@
       "title": "Save and resume",
       "goal": "Keep saved answers across sessions and inspect work before continuing execution.",
       "kind": "task",
+      "version": "1.5.1",
+      "status": "published",
+      "archived": true,
       "legacy_anchors": {
         "what-survives-a-new-form-session": "continue-a-saved-draft",
         "prepare-a-disposable-form-example": "prepare-and-open-the-practice-form",
@@ -154,5 +168,5 @@
     "prepare-for-160-separately": "check-the-version-before-starting"
   },
   "status": "published",
-  "published_version": "1.7.0"
+  "published_version": "1.8.0"
 }

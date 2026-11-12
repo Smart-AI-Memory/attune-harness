@@ -5,7 +5,7 @@ For a separately recorded unpublished wheel, use the
 environment and software evidence separate from the historical reference below.
 
 
-[Get started with published 1.7.0](/harness/help/get-started/) for current
+[Get started with Harness](/harness/help/get-started/) for current
 installation guidance; it requires Python 3.12 or later. This reference retains
 its 1.5.1 dependency and walkthrough identities. Published 1.5.1 retains its
 Python 3.10 minimum. You do not need to install attune-forms separately for the Harness forms

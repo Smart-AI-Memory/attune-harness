@@ -3,14 +3,45 @@
 import argparse
 import hashlib
 from html import escape
+from io import BytesIO
 import json
 from pathlib import Path
 import re
+from stat import S_IFREG
+from zipfile import ZipFile, ZipInfo
 
 
 ROOT = Path(__file__).resolve().parent
-COURSE = ROOT / "1.7.0-preparation"
+COURSE = ROOT / "reporting"
 SLUGS = ("01-define", "02-build", "03-return", "04-review", "05-deliver", "06-improve")
+
+
+PRACTICE_ZIP = COURSE / "assets/reporting-practice.zip"
+PRACTICE_FILES = (
+    "practice.py",
+    "requirements-practice.txt",
+    "assets/example/report.py",
+    "assets/example/pytest.ini",
+    "assets/example/data/activity.csv",
+    "assets/example/expected/activity-report.html",
+    "assets/example/expected/activity-report.txt",
+    "assets/example/tests/test_html_report.py",
+    "assets/example/tests/test_report.py",
+)
+
+
+def practice_bundle():
+    buffer = BytesIO()
+    with ZipFile(buffer, "w") as archive:
+        for name in sorted(PRACTICE_FILES):
+            source = COURSE / name
+            if source.resolve() != source or not source.is_file():
+                raise ValueError(f"Practice bundle requires a regular source file: {name}")
+            entry = ZipInfo(name)
+            entry.create_system = 3
+            entry.external_attr = (S_IFREG | 0o644) << 16
+            archive.writestr(entry, source.read_bytes())
+    return buffer.getvalue()
 
 
 def project():
@@ -33,12 +64,11 @@ def project():
         outputs[COURSE / slug / "lesson.json"] = json.dumps(lesson, ensure_ascii=False, indent=2) + "\n"
         outputs[COURSE / slug / "index.html"] = shell
         readable = [f'<h1>{escape(lesson["title"])}</h1>',
-                    '<p>Harness 1.7.0 · current course</p>',
                     f'<p>{escape(lesson["subtitle"])}</p>',
                     '<p>This full-text reading copy does not save answers. '
                     '<a href="./">Open the interactive lesson</a> for saved browser notes.</p>']
         notes = [f'# Presenter notes: {lesson["title"]}', '',
-                 'Harness 1.7.0. Derived from this lesson’s JSON.', '']
+                 'Derived from this lesson’s JSON.', '']
         for section in sections:
             reading_body = re.sub(
                 r'<label\b[^>]*>(.*?)</label>\s*<textarea\b[^>]*>.*?</textarea>',
@@ -46,11 +76,22 @@ def project():
                 section["html"], flags=re.DOTALL,
             ).replace('These notes stay in this browser.',
                       'In the interactive lesson, these notes stay in your browser.')
+            unplaced_copies = []
+            for copy in section.get("copies", []):
+                block = f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>'
+                if copy.get("kind") == "prompt":
+                    block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+                slot = copy.get("slot")
+                if slot:
+                    marker = f'<div data-copy-slot="{escape(slot)}"></div>'
+                    if reading_body.count(marker) != 1:
+                        raise ValueError(f'{slug}: expected one copy slot {slot}')
+                    reading_body = reading_body.replace(marker, block)
+                else:
+                    unplaced_copies.append(block)
             readable.extend([f'<section id="{section["id"]}">',
                              f'<h2>{escape(section["title"])}</h2>',
-                             f'<p>{escape(section["intro"])}</p>', reading_body])
-            for copy in section.get("copies", []):
-                readable.append(f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>')
+                             f'<p>{escape(section["intro"])}</p>', reading_body, *unplaced_copies])
             if section.get("check"):
                 check = section["check"]
                 readable.append(f'<details><summary>{escape(check["question"])}</summary>')
@@ -77,8 +118,7 @@ def project():
              '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
              '</div><p class="path-comparison"><a href="development-paths.html">'
              'Compare the paths and their review points</a></p></section>',
-             '<p>Harness 1.7.0. Set up a separate environment before command practice.</p>',
-             '<p><a href="setup.html">Get ready for the course</a> · <a href="assets/current-checks.json">November 5 course checks</a></p>',
+             '<p><a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the practice folder</a> to download the files and prepare the environment.</p>',
              '<h2>Follow the learning path</h2>', '<ol>']
     for slug, lesson in zip(SLUGS, lessons):
         cards.append(f'<li><h2><a href="{slug}/">{escape(lesson["title"])}</a></h2><p>{escape(lesson["subtitle"])}</p></li>')
@@ -92,7 +132,9 @@ def project():
         'Historical training documents',
         '<h1>Historical training documents</h1>'
         '<p>These superseded documents preserve earlier instructions and evidence. '
-        'Use the <a href="../1.7.0-preparation/">current course</a> for current practice.</p>'
+        '<a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the reporting course</a> for current practice.</p>'
+        '<h2>Harness in practice for 1.7.0</h2>'
+        '<p><a href="../1.7.0-preparation/">Open the original six-lesson course</a> with its version-specific setup and check records.</p>'
         '<h2>Build your first report</h2>'
         '<p><a href="build-your-first-report-1.5.1-r5.zip">Download the original HTML lesson</a>. '
         'Harness 1.5.1, revision r5 with the folder-step correction, October 29, 2026.</p>'
@@ -103,7 +145,7 @@ def project():
         '<p>The earlier addition-based lesson is recorded in planning material, but '
         'its package was not recovered. The current course has its own reporting lesson.</p>'
         '<p><a href="README.md">Archive inventory and provenance</a></p>',
-        '../1.7.0-preparation/assets/styles.css', None,
+        '../reporting/assets/styles.css', None,
     )
     return outputs
 
@@ -125,13 +167,17 @@ if __name__ == "__main__":
     parser.add_argument("--check", action="store_true", help="Refuse stale derived files without writing")
     args = parser.parse_args()
     expected = project()
+    bundle = practice_bundle()
     if args.check:
         stale = [str(path.relative_to(ROOT)) for path, text in expected.items()
                  if not path.is_file() or path.read_text(encoding="utf-8") != text]
+        if not PRACTICE_ZIP.is_file() or PRACTICE_ZIP.read_bytes() != bundle:
+            stale.append(str(PRACTICE_ZIP.relative_to(ROOT)))
         if stale:
             raise SystemExit("Regenerate the course: " + ", ".join(stale))
-        print(f"{len(expected)} derived course files match their sources")
+        print(f"{len(expected) + 1} derived course files match their sources")
     else:
         for path, text in expected.items():
             path.write_text(text, encoding="utf-8")
-        print(f"Generated {len(expected)} course files")
+        PRACTICE_ZIP.write_bytes(bundle)
+        print(f"Generated {len(expected) + 1} course files")
