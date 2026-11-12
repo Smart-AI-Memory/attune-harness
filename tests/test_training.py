@@ -48,7 +48,9 @@ def test_course_projection_and_static_reading_routes():
     assert 'href="development-paths.html#goal-driven"' in overview
     assert 'href="development-paths.html#spec-driven"' in overview
     setup = (COURSE / "setup.html").read_text(encoding="utf-8")
+    help_overview = "/harness/help/"
     help_setup = "/harness/help/get-started/#set-up-the-practice-folder"
+    assert help_overview in Links(overview).links
     assert help_setup in Links(setup).links
     assert "select-a-practice-runtime" in Links(setup).ids
     assert '<pre>' not in setup
@@ -69,8 +71,11 @@ def test_course_projection_and_static_reading_routes():
         if slug in {"01-define", "02-build"}:
             assert "../development-paths.html" in "".join(s["html"] for s in lesson["sections"])
         assert any(section.get("check") for section in lesson["sections"])
-        assert 'href="read.html"' in (COURSE / slug / "index.html").read_text()
+        interactive = Links((COURSE / slug / "index.html").read_text())
+        assert "read.html" in interactive.links
+        assert help_overview in interactive.links
         reading = (COURSE / slug / "read.html").read_text()
+        assert help_overview in Links(reading).links
         prompt_count = sum(copy.get("kind") == "prompt" for section in lesson["sections"]
                            for copy in section.get("copies", []))
         assert reading.count('data-copy-kind="prompt"') == prompt_count
@@ -82,7 +87,7 @@ def test_course_projection_and_static_reading_routes():
         parsed = Links(page.read_text(encoding="utf-8"))
         for link in parsed.links:
             url = urlsplit(link)
-            if url.scheme or url.netloc or link == help_setup:
+            if url.scheme or url.netloc or link in {help_overview, help_setup}:
                 continue
             target = (page.parent / unquote(url.path)).resolve() if url.path else page.resolve()
             if target.is_dir():

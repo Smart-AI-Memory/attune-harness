@@ -151,12 +151,13 @@ def project():
         'its package was not recovered. The current course has its own reporting lesson.</p>'
         '<p><a href="README.md">Archive inventory and provenance</a></p>',
         '../reporting/assets/styles.css', None,
+        help_url='https://smartaimemory.com/harness/help/',
     )
     return outputs
 
 
-def page(title, content, stylesheet, course):
-    navigation = '<p><a href="https://smartaimemory.com/harness/help/">Help Center</a></p>'
+def page(title, content, stylesheet, course, *, help_url='/harness/help/'):
+    navigation = f'<p><a href="{help_url}">Help Center</a></p>'
     if course:
         navigation += f'<p><a href="{course}">Course overview</a></p>'
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
