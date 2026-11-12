@@ -22,7 +22,7 @@ button:disabled { cursor: default; opacity: .5; }
 [hidden] { display: none !important; }
 :focus-visible { outline: 3px solid #976410; outline-offset: 4px; }
 a { color: #155a48; text-underline-offset: .17em; }
-button { border: 1px solid #b9c4b8; border-radius: 6px; background: #fffdf8; color: var(--forest); padding: .55rem .9rem; font-size: .87rem; line-height: 1.45; font-weight: 650; }
+button, .section-link { border: 1px solid #b9c4b8; border-radius: 6px; background: #fffdf8; color: var(--forest); padding: .55rem .9rem; font-size: .87rem; line-height: 1.45; font-weight: 650; }
 button:hover:not(:disabled) { background: #eaf0e6; border-color: #738e7c; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .skip-link { position: fixed; top: .8rem; left: .8rem; z-index: 10; padding: .55rem 1rem; background: white; color: var(--forest); transform: translateY(-200%); }
@@ -133,6 +133,7 @@ textarea.technical, textarea[data-technical] { font-family: var(--mono); font-si
 .presenter-notes ul { margin-bottom: 0; }
 .section-pagination { display: flex; justify-content: space-between; align-items: center; gap: .7rem; margin-top: 2.7rem; padding-top: 1.4rem; border-top: 1px solid var(--rule); }
 .section-pagination span { color: var(--muted); font-size: .77rem; text-align: center; }
+.section-link { text-decoration: none; }
 .primary-button { color: #fffdf2; background: var(--forest); border-color: var(--forest); }
 .primary-button:hover:not(:disabled) { color: #fffdf2; background: #245b46; border-color: #245b46; }
 .storage-notice, .load-error { padding: .9rem 1.1rem; margin-top: 1.3rem; border: 1px solid #c8ac70; border-radius: 6px; background: #f4ecd8; font-size: .88rem; }
@@ -180,7 +181,7 @@ footer { margin-top: 2rem; padding-top: 1.15rem; border-top: 1px solid var(--rul
   .section-intro { font-size: 1.05rem; }
   .section-pagination { flex-wrap: wrap; margin-top: 2rem; }
   .section-pagination span { flex: 1 0 100%; order: -1; }
-  .section-pagination button { font-size: .8rem; }
+  .section-pagination button, .section-link { font-size: .8rem; }
   th, td { padding: .55rem .6rem; }
 }
 @media (prefers-reduced-motion: reduce) {

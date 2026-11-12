@@ -50,8 +50,10 @@ def project():
     titles = [lesson["title"] for lesson in lessons]
     style_revision = hashlib.sha256((COURSE / "assets/styles.css").read_bytes()).hexdigest()[:12]
     stylesheet = f"assets/styles.css?v={style_revision}"
+    script_revision = hashlib.sha256((COURSE / "assets/app.js").read_bytes()).hexdigest()[:12]
     shell = (ROOT / "lesson-template.html").read_text(encoding="utf-8")
     shell = shell.replace('href="../assets/styles.css"', f'href="../{stylesheet}"')
+    shell = shell.replace('src="../assets/app.js"', f'src="../assets/app.js?v={script_revision}"')
     outputs = {}
     for position, (slug, lesson) in enumerate(zip(SLUGS, lessons), 1):
         sections = lesson["sections"]
