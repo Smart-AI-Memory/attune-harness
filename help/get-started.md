@@ -1,3 +1,5 @@
+<p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/reporting/">Browse the six Harness tutorials</a></p>
+
 ## Install Harness
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed.

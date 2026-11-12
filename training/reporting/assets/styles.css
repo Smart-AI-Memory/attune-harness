@@ -44,7 +44,7 @@ progress::-moz-progress-bar { background: var(--accent); }
 .section-nav a { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) .7rem; align-items: start; gap: .6rem; padding: .56rem .65rem; border-radius: 5px; color: #e0e9e0; font-size: .81rem; line-height: 1.45; text-decoration: none; }
 .section-nav a:hover { background: #214c3e; }
 .section-nav a[aria-current="step"] { background: #f2efdf; color: var(--forest-deep); font-weight: 700; }
-.section-nav a:focus-visible, .sidebar button:focus-visible, .sidebar summary:focus-visible { outline-color: #f0d995; }
+.section-nav a:focus-visible, .course-path a:focus-visible, .sidebar button:focus-visible, .sidebar summary:focus-visible { outline-color: #f0d995; }
 .nav-number { font-size: .72rem; padding-top: .04rem; opacity: .75; font-variant-numeric: tabular-nums; }
 .visit-indicator { font-size: .75rem; }
 .course-path { border-top: 1px solid #4b6857; padding-top: 1rem; font-size: .76rem; color: #d2e0d5; }
@@ -52,6 +52,7 @@ progress::-moz-progress-bar { background: var(--accent); }
 .course-path p { margin: .75rem 0; }
 .course-path ol { padding-left: 1.2rem; }
 .course-path li { margin: .5rem 0; padding-left: .15rem; }
+.course-path li::marker, .course-path a { color: inherit; }
 .course-path .current-course { color: #fff2c9; font-weight: 600; }
 .reset-button { margin-top: 1.5rem; padding: .4rem 0; background: transparent; border: 0; color: #d7e4d8; font-size: .73rem; text-decoration: underline; text-underline-offset: .25em; }
 .reset-button:hover:not(:disabled) { color: white; border: 0; background: transparent; }
