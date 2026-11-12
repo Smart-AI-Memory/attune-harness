@@ -48,7 +48,12 @@ def project():
     lessons = [json.loads((COURSE / slug / "lesson.json").read_text(encoding="utf-8"))
                for slug in SLUGS]
     titles = [lesson["title"] for lesson in lessons]
+    style_revision = hashlib.sha256((COURSE / "assets/styles.css").read_bytes()).hexdigest()[:12]
+    stylesheet = f"assets/styles.css?v={style_revision}"
+    script_revision = hashlib.sha256((COURSE / "assets/app.js").read_bytes()).hexdigest()[:12]
     shell = (ROOT / "lesson-template.html").read_text(encoding="utf-8")
+    shell = shell.replace('href="../assets/styles.css"', f'href="../{stylesheet}"')
+    shell = shell.replace('src="../assets/app.js"', f'src="../assets/app.js?v={script_revision}"')
     outputs = {}
     for position, (slug, lesson) in enumerate(zip(SLUGS, lessons), 1):
         sections = lesson["sections"]
@@ -104,7 +109,12 @@ def project():
         outputs[COURSE / slug / "read.html"] = page(lesson["title"], '\n'.join(readable), '../assets/styles.css', '../')
         outputs[COURSE / slug / "presenter.md"] = '\n'.join(notes).rstrip() + '\n'
     cards = ['<h1>Harness in practice</h1>',
-             '<p>Learn to direct a useful reporting project, inspect its results and choose the next step.</p>',
+             '<p>Follow one reporting project through six tutorials. Start with Tutorial 1 or choose a tutorial to revisit.</p>',
+             '<p><a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the practice folder</a> before running the commands in Tutorial 2.</p>',
+             '<h2>Course tutorials</h2>', '<ol>']
+    for slug, lesson in zip(SLUGS, lessons):
+        cards.append(f'<li><h3><a href="{slug}/">{escape(lesson["title"])}</a></h3><p>{escape(lesson["subtitle"])}</p></li>')
+    cards += ['</ol>',
              '<section class="starting-paths" aria-labelledby="starting-paths-title">',
              '<h2 id="starting-paths-title">Choose how to start</h2>',
              '<div class="development-path-grid">',
@@ -118,15 +128,10 @@ def project():
              '<span class="path-action">Explore the approach <span aria-hidden="true">→</span></span></a>',
              '</div><p class="path-comparison"><a href="development-paths.html">'
              'Compare the paths and their review points</a></p></section>',
-             '<p><a href="/harness/help/get-started/#set-up-the-practice-folder">Set up the practice folder</a> to download the files and prepare the environment.</p>',
-             '<h2>Follow the learning path</h2>', '<ol>']
-    for slug, lesson in zip(SLUGS, lessons):
-        cards.append(f'<li><h2><a href="{slug}/">{escape(lesson["title"])}</a></h2><p>{escape(lesson["subtitle"])}</p></li>')
-    cards += ['</ol>', '<p>Reading progress and notes stay in your browser. Lesson controls do not run commands or approve Harness work.</p>',
+             '<p>Reading progress and notes stay in your browser. Lesson controls do not run commands or approve Harness work.</p>',
               '<p><a href="../archive/">Historical documents</a></p>']
-    style_revision = hashlib.sha256((COURSE / "assets/styles.css").read_bytes()).hexdigest()[:12]
     outputs[COURSE / "index.html"] = page(
-        'Harness in practice', '\n'.join(cards), f'assets/styles.css?v={style_revision}', None,
+        'Harness in practice', '\n'.join(cards), stylesheet, None,
     )
     outputs[ROOT / "archive/index.html"] = page(
         'Historical training documents',
@@ -146,12 +151,13 @@ def project():
         'its package was not recovered. The current course has its own reporting lesson.</p>'
         '<p><a href="README.md">Archive inventory and provenance</a></p>',
         '../reporting/assets/styles.css', None,
+        help_url='https://smartaimemory.com/harness/help/',
     )
     return outputs
 
 
-def page(title, content, stylesheet, course):
-    navigation = '<p><a href="https://smartaimemory.com/harness/help/">Help Center</a></p>'
+def page(title, content, stylesheet, course, *, help_url='/harness/help/'):
+    navigation = f'<p><a href="{help_url}">Help Center</a></p>'
     if course:
         navigation += f'<p><a href="{course}">Course overview</a></p>'
     return ('<!doctype html><html lang="en"><head><meta charset="utf-8">'

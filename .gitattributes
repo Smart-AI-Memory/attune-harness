@@ -5,6 +5,7 @@ training/1.7.0-preparation/** -text
 training/reporting/practice.py -text
 training/reporting/requirements-practice.txt -text
 training/reporting/assets/example/** -text
+training/reporting/assets/app.js -text
 training/reporting/assets/styles.css -text
 # The first-repair acceptance contract pins these reviewed bytes on every OS.
 docs/first-repair-1.3.0.md -text

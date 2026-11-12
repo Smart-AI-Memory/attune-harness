@@ -1,9 +1,10 @@
 # Harness training
 
-[Set up the reporting course](../help/get-started.md#set-up-the-practice-folder), then open
-[Harness in practice](reporting/index.html). Six lessons follow one reporting
+[Open the Harness in practice overview](reporting/index.html) to choose a
+tutorial. Six tutorials follow one reporting
 project from a useful goal through a checked result, saved work, review, a local
-handoff and a proposed improvement.
+handoff and a proposed improvement. [Set up the practice folder](../help/get-started.md#set-up-the-practice-folder)
+before running the commands in Tutorial 2.
 
 [Choose how to start](reporting/development-paths.html) compares goal-driven
 and spec-driven development with examples and review points.

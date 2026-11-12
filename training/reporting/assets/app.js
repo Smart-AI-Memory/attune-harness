@@ -5,6 +5,8 @@
   const sectionHost = byId("lesson-sections");
   const navHost = byId("section-nav");
   const status = byId("lesson-status");
+  const nextSection = byId("next-section");
+  const nextLesson = document.createElement("a");
   const mobile = window.matchMedia("(max-width: 760px)");
   let lesson;
   let currentId;
@@ -85,7 +87,9 @@
       link.querySelector(".visit-indicator").setAttribute("aria-hidden", String(!visited.has(sectionId)));
     }
     byId("previous-section").disabled = index === 0;
-    byId("next-section").disabled = index === lesson.sections.length - 1;
+    const isLastSection = index === lesson.sections.length - 1;
+    nextSection.hidden = isLastSection;
+    nextLesson.hidden = !isLastSection;
     byId("section-position").textContent = `Section ${index + 1} of ${lesson.sections.length}`;
     byId("lesson-progress").value = visited.size;
     byId("progress-label").textContent = `${visited.size} of ${lesson.sections.length} sections visited`;
@@ -325,7 +329,7 @@
       const index = lesson.sections.findIndex((section) => section.id === currentId);
       if (index > 0) navigateTo(lesson.sections[index - 1].id);
     });
-    byId("next-section").addEventListener("click", () => {
+    nextSection.addEventListener("click", () => {
       const index = lesson.sections.findIndex((section) => section.id === currentId);
       if (index < lesson.sections.length - 1) navigateTo(lesson.sections[index + 1].id);
     });
@@ -409,6 +413,11 @@
         });
         byId("course-path").hidden = false;
       }
+      const nextRoute = lesson.courseRoutes?.[lesson.coursePosition];
+      nextLesson.href = nextRoute || "../";
+      nextLesson.textContent = nextRoute ? "Next lesson" : "Back to course overview";
+      nextLesson.className = "section-link primary-button";
+      nextSection.after(nextLesson);
       bindControls();
       const hashId = window.location.hash.slice(1);
       const initialId = articles.has(hashId) ? hashId : currentId || lesson.sections[0].id;
