@@ -11,17 +11,21 @@ live model calls, personal hook edits, production Redis writes or publication.
 
 ## Start with the right artifact
 
-Use the [current delivery checkpoint](project-plan.md#current-checkpoint--november-9-2026),
+Use the [current delivery checkpoint](project-plan.md#current-checkpoint),
 [migration guide](migration.md), and actual selected artifact. Historical GUI
 build receipts and the hydration task list's older Task 1 status are not the
 current runtime capability map.
 
+S6 uses the current 1.8.0 onboarding path. The 1.7.0 cases elsewhere in this
+plan describe their original preparation baseline. Record the artifact selected
+for each observation.
+
 | Track | Source-bound starting point | What can be prepared now |
 | --- | --- | --- |
-| Published learner journey | Harness 1.7.0 is published from `5159e7a79fbdb84d2982937716043b142534e6e9`. The [course](../training/README.md) supplies a POSIX offline reporting exercise. | Recruit a first-time learner, select a supported machine, pin the installed wheel and served course, and schedule the observation. |
+| Published learner journey | Use the published 1.8.0 wheel and the [maintained reporting course](https://smartaimemory.com/harness/learn/reporting/) for the POSIX offline exercise. | Recruit a first-time learner, select a supported machine, record the exact installed wheel and served course, and schedule the observation. |
 | Browser forms | [The release boundary](../tests/test_gui_release.py) permits registered draft intake, preview and intent approval. [The server](../src/attune_harness/gui.py) refuses build flags outside its development profile. | Prepare existing-draft, stale-tab, saved-answer, accessibility and service-boundary cases. Treat production build and recovery cases as blocked on their implementation, not as released features. |
-| Memory | [The generation reader](specs/native-memory/hydration-generation-reader.md) exists. Source capture, secret checks and accounting are groundwork. [Current migration guidance](migration.md) says 1.7.0 has no supported hydration command, publication/cleanup or automatic delivery. | Prepare synthetic source manifests, negative cases, real-service experiments and clean-host observation procedures. Do not present the proposed commands as available in 1.7.0. |
-| Migration | [The current guide](migration.md) defines seven journey rows and rollback boundaries. | Select the exact old/new runtime pair and a disposable copy of each needed journey. Keep every row's outcome separate. |
+| Memory | [The generation reader](specs/native-memory/hydration-generation-reader.md) and private hydration preparation are available. The [1.8.0 release notes](release-notes-1.8.0.md#keep-your-memory-writer-and-host-hooks) describe the work still required for publication, cleanup and automatic delivery. | Prepare synthetic source manifests, negative cases, real-service experiments and clean-host observation procedures. |
+| Migration | The [migration guide](migration.md) defines journey rows and rollback boundaries. | Select the exact old/new runtime pair and a disposable copy of each needed journey. Keep every row's outcome separate. |
 
 Keep validation fixtures and evidence outside implementation worktrees, effect
 checkouts, authorized memory roots and retained environments. Use one isolated
@@ -73,11 +77,18 @@ the instructions does not substitute for this observation.
 
 Offer a 45-minute session with a stop or break whenever the participant wants.
 This is a planning allowance, not a usability target. Use the published
-[Help entry](https://smartaimemory.com/harness/help/) and
-[course setup](https://smartaimemory.com/harness/learn/1.7.0-preparation/setup.html).
+[Help entry](https://smartaimemory.com/harness/help/),
+[Get Started setup](https://smartaimemory.com/harness/help/get-started/#set-up-the-practice-folder)
+and [maintained reporting course](https://smartaimemory.com/harness/learn/reporting/).
 Record the served source receipt, course/example hashes and actual runtime.
 Use a separate Python 3.12 environment and a disposable practice directory.
 Do not replace a working installation or alter a shell security policy.
+
+Record the Harness version in the practice environment separately from any
+managed CLI used for the initial demo. The live setup can resolve a newer
+release. Count the walkthrough toward the 1.8.0 checkpoint when the practice
+environment uses the published 1.8.0 wheel. Record any other observation against
+the version actually used.
 
 For a complete first-install observation, start before setup. If the facilitator
 preinstalls prerequisites, downloads assets or prepares a runtime, record exactly
@@ -98,7 +109,7 @@ checklist, not answers to read to the participant in advance.
 | Case | Prompt to the participant | Observe and retain |
 | --- | --- | --- |
 | L01: find the entry | "You want a report showing where your time went. Find a way to try Harness without paying for model calls." | Entry chosen, confusing terms, whether the participant recognizes the offline example and setup requirements. |
-| L02: install and identify | "Follow the setup. Show how you know which Harness installation you are using." | Actual 1.7.0 distribution, interpreter/import path, successful help and local demo, every installation intervention. A demo is not the reporting task. |
+| L02: install and identify | "Follow the setup. Show how you know which Harness installation you are using." | Practice distribution, interpreter and import path. Record any separate managed CLI and its demo result, plus every installation intervention. Check the learner's generated report in L06. |
 | L03: describe success | "Look at the six sample entries. What should a useful report tell you?" | Participant's own goal and one independently checked total; preserve their wording. Opening the supplied report does not count as building one. |
 | L04: inspect the plan | "Prepare the practice task. Tell me what may change and how you will know it worked." | A new unaccepted task outside the effect checkout; only `report.py` may change; protected input, checks, registry and expected output remain protected. |
 | L05: decide, then execute | "Decide whether the request is acceptable. What happens next?" | Participant distinguishes exact-checkpoint scope acceptance from the separate local-command build grant. No facilitator supplies a stale or copied checkpoint. Record whether that distinction needed a hint. |
