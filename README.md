@@ -105,9 +105,9 @@ for the broader tool list.
 
 ## Planned changes in 1.8.1
 
-- **Copy and paste PowerShell commands with your project paths.** Printed setup,
-  plan and repair previews, review intake, and roundtable preparation preserve
-  spaces, dollar signs, backticks, apostrophes and Unicode characters.
+- **Use Windows paths with spaces and special characters.** Prepared PowerShell
+  commands preserve dollar signs, backticks, apostrophes and Unicode characters
+  in setup, plan and repair previews, review intake, and roundtable preparation.
 - **Keep following options intact.** Paths with spaces and trailing backslashes
   no longer consume the next option in Windows PowerShell 5.1.
 
