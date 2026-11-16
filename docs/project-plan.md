@@ -2,7 +2,7 @@
 
 ## Current checkpoint
 
-Reviewed November 14, 2026.
+Reviewed November 15, 2026.
 
 Harness 1.8.0 was published on November 11 and requires Python 3.12 or later.
 The release was built from `856c4a91f2f8a8857ca004d1946fe2440c40bc62`.
@@ -26,17 +26,46 @@ opened the course overview with all six tutorials.
 [Live Get Started guide](https://smartaimemory.com/harness/help/get-started/) ·
 [Live reporting course](https://smartaimemory.com/harness/learn/reporting/)
 
-Full Windows parity remains deferred. The process stop and recovery drafts
-closed without merging, and deployment of that work remains held. Any future
-implementation needs a supported design that verifies every owned descendant
-has stopped within the existing deadline, with the original assertions and
-fast-child behavior preserved.
+### Windows 11 parity checkpoint
+
+Windows 11 evidence is the current priority. Three runs completed the first
+offline report workflow with the published Harness 1.8.0 wheel on native x64
+Windows 11 Home build 26200, using CPython 3.12.10, a standard user account,
+and local NTFS. The corrected wrapper reads the saved JSON with Python.
+RUN7 and RUN10 passed in Windows PowerShell 5.1 and RUN8 passed in PowerShell 7.
+In each successful run, both protected probes passed 77 tests. All three HTML
+reports matched the tagged fixture byte for byte, and all 21 post-run hashes
+matched their saved baselines across seven protected files per run.
+
+- **RUN9 timeout and recovery.** The first probe timed out at 30 seconds in
+  Windows PowerShell 5.1. The build remains `unresolved` with
+  `timeout_effects_unknown`. The cause and whether every descendant exited
+  remain open. Review the original process trace if available. Otherwise,
+  collect per-test timings and process start and exit events in a fresh task
+  with the same Python 3.12.10 and shell profile and a 30-second limit per probe.
+- **ARM64 evidence.** Review the receipt for the reported ARM64 run and confirm
+  its wheel, Python version and architecture, shell, and outcome.
+- **Full parity.** Finish the remaining standard-user installed-wheel
+  workflows and path quoting cases in both PowerShell versions, verify process
+  shutdown and recovery, complete saved-store acceptance and live native-memory
+  validation, and retain the combined qualification evidence. The 1.8.0 desktop
+  checks use Python 3.12. Python 3.10 belongs to the older qualification matrix.
+  [Windows requirements](specs/windows-parity/design.md) ·
+  [Python qualification profile](specs/windows-parity/tasks.md#prospective-python-minimum--october-25-2026)
+
+The process stop and recovery drafts closed without merging, and deployment of
+that work remains held. Any future implementation needs a supported design
+that verifies every owned descendant has stopped within the existing deadline
+while preserving the original assertions and fast-child behavior.
 [Windows closure #274](https://github.com/Smart-AI-Memory/attune-harness/pull/274#issuecomment-6316884599) ·
 [Windows closure #279](https://github.com/Smart-AI-Memory/attune-harness/pull/279#issuecomment-6316363242)
 
 <a id="next-help-publication"></a>
 
 ### Next Help checkpoint
+
+The first-time learner walkthrough (S6) is deferred while Windows 11 parity
+work takes priority.
 
 Observe a first-time non-programmer following the live Get Started guide and
 maintained reporting course with the published 1.8.0 wheel (S6). Record the
@@ -57,8 +86,8 @@ to the published onboarding path.
 
 | Workstream | Delivered | Remaining work or evidence |
 | --- | --- | --- |
-| Release and onboarding | Harness 1.8.0 is published on PyPI and pinned in the Claude Code marketplace. The public Get Started guide and maintained reporting course are live. [Install guide](installation.md) · [Website rollout #2599](https://github.com/Smart-AI-Memory/attune-ai/pull/2599) | Complete the [independent first-time learner observation](#next-help-checkpoint). |
-| Windows parity | Exact 1.8.0 wheel checks passed on Windows Server 2022 and 2025. Captured testing, file readers, a saved-store implementation and offline native-memory transport are merged. The [Windows offline report quickstart](windows-offline-report.md) retains its 1.7.0 rehearsal. [October task checkpoint](specs/windows-parity/tasks.md#current-checkpoint--october-21-2026) | Full parity is deferred. Strict stop and recovery, full saved-store acceptance, live native memory, Windows 11 standard-user journeys, and the declared PowerShell journeys remain open. [Windows requirements](specs/windows-parity/design.md) |
+| Release and onboarding | Harness 1.8.0 is published on PyPI and pinned in the Claude Code marketplace. The public Get Started guide and maintained reporting course are live. [Install guide](installation.md) · [Website rollout #2599](https://github.com/Smart-AI-Memory/attune-ai/pull/2599) | The [independent first-time learner observation](#next-help-checkpoint) is deferred. |
+| Windows parity | Exact 1.8.0 wheel checks passed on Windows Server 2022 and 2025. The first offline report workflow passed on Windows 11 x64 in both PowerShell versions. Captured testing, file readers, a saved-store implementation and offline native-memory transport are merged. [October task checkpoint](specs/windows-parity/tasks.md#current-checkpoint--october-21-2026) | Full parity remains open. See the [Windows 11 parity checkpoint](#windows-11-parity-checkpoint) for pending desktop, recovery and combined qualification evidence. |
 | User observations | Installed software checks and bounded maintainer walkthroughs are recorded. [Observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary) | Record fresh-session memory recall, provenance and exclusion (S3), a named non-programmer's installed walkthrough (S6), and migration rows exercised against the installed artifact (S9). Record a decision for any observation that remains open. |
 | Graphical companion | M1 is complete. Released browser forms support saving, previewing and approving an existing draft. [GUI progress](specs/graphical-companion/progress.md) | Complete M2, including production browser execution and recovery, new-task creation, and standalone assessment. M3 journey coverage and M4 release qualification follow their existing gates. [GUI milestones](specs/graphical-companion/README.md#milestones-and-acceptance) |
 | Memory | All five shared-memory adoption tasks were accepted at revision 23. Version 1.8.0 includes private four-layer hydration preparation and input freshness checks from #351, building on source capture, secret checks and payload accounting. [Shared-memory acceptance](specs/shared-memory-adoption/verification.md#final-acceptance-and-display-caveat) · [Preparation increment](specs/native-memory/hydration-writer/preparation-increment.md) · [Merged PR #351](https://github.com/Smart-AI-Memory/attune-harness/pull/351) | Complete the supervised hydration command, Redis staging, publication, recovery and cleanup. Then qualify the packaged startup hook and receiving hosts, and document migration. [Hydration tasks](specs/native-memory/hydration-writer/tasks.md#sequential-tasks) |
@@ -73,9 +102,10 @@ each workstream. See the [release runbook](release-runbook.md) for release work.
 
 The [1.8.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
 identifies the source, publish run, distribution hashes, Windows Server
-exact-wheel results, and fresh macOS Python 3.12 installations. The separate
-1.7.0 Windows 11 rehearsal used x64 CPython on ARM64 hardware. Native Windows
-ARM64 and full desktop and shell parity remain unqualified. The
+exact-wheel results, and fresh macOS Python 3.12 installations. The
+[Windows 11 parity checkpoint](#windows-11-parity-checkpoint) records the
+native x64 1.8.0 results. The [Windows offline report quickstart](windows-offline-report.md)
+retains the 1.7.0 rehearsal with x64 CPython on ARM64 hardware. The
 [qualification guide](qualification.md) defines the software checks, and the
 [observation record](release-readiness-1.4.0.md#open-observations-and-publication-boundary)
 tracks S3, S6 and S9 separately.
