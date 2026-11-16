@@ -368,7 +368,8 @@ def test_the_printed_worker_is_lead_even_when_it_does_not_sort_first(tmp_path, c
     (root / 'participants.json').write_text(json.dumps({'schema_version': 1, 'participants': {
         'alpha': PROFILES['demo']['reviewer'], 'lead': PROFILES['demo']['lead']}}), encoding='utf-8')
     code, envelope = init_fix(capsys, root)
-    assert code == 0 and '--worker lead --reviewer alpha --review required' in envelope['next_action'], envelope
+    expected = f'--worker {quote("lead")} --reviewer {quote("alpha")} --review required'
+    assert code == 0 and expected in envelope['next_action'], envelope
 
 
 def test_the_files_init_writes_count_against_the_entry_bound(tmp_path, capsys, monkeypatch):

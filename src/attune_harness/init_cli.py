@@ -20,7 +20,6 @@ import json
 import os
 import shlex
 import shutil
-import subprocess
 from pathlib import Path, PurePosixPath
 
 from .effect_limits import MAX_ENTRIES
@@ -55,8 +54,14 @@ PROFILES = {
 
 
 def quote(value) -> str:
-    """One argument, quoted for the shell this platform's user types into."""
-    return shlex.quote(str(value)) if os.name == 'posix' else subprocess.list2cmdline([str(value)])
+    """One literal argument for POSIX shells or Windows PowerShell/PowerShell 7."""
+    value = str(value)
+    if os.name == 'posix':
+        return shlex.quote(value)
+    # CRT argument quoting is not PowerShell quoting: dollars and backticks
+    # would still expand. PowerShell also treats typographic apostrophes as
+    # string delimiters; double each one without changing the original text.
+    return "'" + value.translate({ord(c): c * 2 for c in "'\u2018\u2019\u201a\u201b"}) + "'"
 
 
 def registry_next_action(project) -> str:

@@ -1,9 +1,12 @@
 """Roundtable starter journey, explicit models and unchanged refusal/write boundaries."""
 # qualify: platform
 
+import base64
 import json
 import os
 from pathlib import Path
+# Keep shell discovery independent of the offline fixture's provider-CLI stub.
+from shutil import which as find_shell
 import subprocess
 import sys
 
@@ -204,8 +207,13 @@ def test_failed_write_preserves_backup_when_target_cannot_be_checked(tmp_path, c
     assert target.read_bytes() == original and backup.read_bytes() == original
 
 
-@pytest.mark.parametrize('name', ['-x', '-file with spaces.py', 'file with spaces.py'])
-def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, name):
+@pytest.mark.parametrize('name', [
+    '-x', '-file with spaces.py', 'file with spaces.py', "file's.py",
+    'file$literal.py', 'file`name.py', 'café 雪.py',
+    *[f'file{quote}name.py' for quote in '\u2018\u2019\u201a\u201b\u201c\u201d\u201e'],
+])
+@pytest.mark.parametrize('engine', ['powershell.exe', 'pwsh.exe'] if os.name == 'nt' else ['posix'])
+def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, name, engine):
     project = tmp_path / 'source with spaces'
     project.mkdir()
     names = [name] if name.startswith('-') else [name, 'another file.py']
@@ -223,10 +231,22 @@ def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, 
     script = launchers / 'cli.py'
     package_root = str(Path(attune_harness.__file__).parent.parent)
     script.write_text(f'import sys\nsys.path.insert(0, {package_root!r})\n'
-                      'from attune_harness.cli import main\nraise SystemExit(main())\n')
+                      'from attune_harness.cli import main\nraise SystemExit(main())\n', encoding='utf-8')
     if os.name == 'nt':
-        launcher = launchers / 'attune-harness.cmd'
-        launcher.write_text(f'@"{sys.executable}" "{script}" %*\n')
+        console = next((path for path in (
+            Path(sys.executable).with_name('attune-harness.exe'),
+            Path(sys.executable).parent / 'Scripts/attune-harness.exe',
+        ) if path.is_file()), None)
+        installed = Path(sys.prefix) / 'Lib/site-packages'
+        if console is not None and Path(package_root).resolve() == installed.resolve():
+            launchers = console.parent
+        else:
+            # Source-suite runs must import the package under test, not an older
+            # wheel beside this interpreter. PS1 preserves PowerShell parsing.
+            launcher = launchers / 'attune-harness.ps1'
+            launcher.write_text(
+                f'& {init_cli.quote(sys.executable)} -I -B -X utf8 {init_cli.quote(script)} @args\n'
+                'exit $LASTEXITCODE\n', encoding='utf-8-sig')
     else:
         launcher = launchers / 'attune-harness'
         launcher.write_text(f'#!/bin/sh\nexec {init_cli.quote(sys.executable)} '
@@ -236,8 +256,22 @@ def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, 
         ('ANTHROPIC_', 'CLAUDE_CODE_OAUTH', 'CLAUDE_CODE_USE_', 'AWS_', 'GOOGLE_', 'OPENAI_'))}
     environment.pop('PYTHONPATH', None)
     environment['PATH'] = str(launchers) + os.pathsep + environment.get('PATH', '')
-    prepared = subprocess.run(result['next_action'], shell=True, cwd=tmp_path,
-                              env=environment, capture_output=True, text=True, timeout=30)
+    if os.name == 'nt':
+        environment['PYTHONIOENCODING'] = 'utf-8'
+        powershell = (Path(os.environ['SystemRoot']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+                      if engine == 'powershell.exe' else find_shell(engine))
+        if powershell is None:
+            pytest.skip('PowerShell 7 is not installed or is not on PATH')
+        command = ('[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n'
+                   + result['next_action'] + '\nexit $LASTEXITCODE\n')
+        encoded = base64.b64encode(command.encode('utf-16-le')).decode('ascii')
+        prepared = subprocess.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive',
+                                   '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded],
+                                  cwd=tmp_path, env=environment, capture_output=True,
+                                  input='', text=True, encoding='utf-8', timeout=30)
+    else:
+        prepared = subprocess.run(result['next_action'], shell=True, cwd=tmp_path,
+                                  env=environment, capture_output=True, text=True, timeout=30)
     assert prepared.returncode == 0, prepared.stdout + prepared.stderr
     assert json.loads(prepared.stdout)['status'] == 'prepared'
     record = json.loads((directory / 'record.json').read_text())
