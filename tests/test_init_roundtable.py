@@ -211,14 +211,16 @@ def test_failed_write_preserves_backup_when_target_cannot_be_checked(tmp_path, c
     '-x', '-file with spaces.py', 'file with spaces.py', "file's.py",
     'file$literal.py', 'file`name.py', 'café 雪.py',
     *[f'file{quote}name.py' for quote in '\u2018\u2019\u201a\u201b\u201c\u201d\u201e'],
+    pytest.param('invalid scope\\', id='refuse-backslash-scope'),
 ])
 @pytest.mark.parametrize('engine', ['powershell.exe', 'pwsh.exe'] if os.name == 'nt' else ['posix'])
-def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, name, engine):
+def test_actual_printed_command_preserves_literal_paths(tmp_path, capsys, name, engine):
     project = tmp_path / 'source with spaces'
     project.mkdir()
     names = [name] if name.startswith('-') else [name, 'another file.py']
     for selected in names:
-        (project / selected).write_text('selected synthetic source\n')
+        if not selected.endswith('\\'):
+            (project / selected).write_text('selected synthetic source\n')
     directory = tmp_path / 'run with spaces'
     scope = [f'--scope={name}'] if name.startswith('-') else ['--scope', *names]
     code, result = init(capsys, project, *scope, '--task-dir', str(directory))
@@ -272,6 +274,13 @@ def test_actual_printed_command_prepares_dash_and_space_paths(tmp_path, capsys, 
     else:
         prepared = subprocess.run(result['next_action'], shell=True, cwd=tmp_path,
                                   env=environment, capture_output=True, text=True, timeout=30)
+    if name.endswith('\\'):
+        assert prepared.returncode == 2, prepared.stdout + prepared.stderr
+        refusal = json.loads(prepared.stdout)
+        assert 'relative POSIX' in refusal['error']['detail'], refusal
+        assert not directory.exists()
+        assert (project / 'roundtable.json').read_bytes() == config
+        return
     assert prepared.returncode == 0, prepared.stdout + prepared.stderr
     assert json.loads(prepared.stdout)['status'] == 'prepared'
     record = json.loads((directory / 'record.json').read_text())
