@@ -5,9 +5,9 @@ Paths with spaces and special characters stay in their intended arguments,
 and trailing backslashes preserve the following option. Python 3.12 or later
 remains required.
 
-Version 1.8.1 is in preparation; 1.8.0 remains the published release. See the
-[1.8.1 readiness record](release-readiness-1.8.1.md) for candidate artifacts,
-checks and publication status.
+Check the [PyPI version listing](https://pypi.org/project/attune-harness/1.8.1/)
+and [1.8.1 readiness record](release-readiness-1.8.1.md) for publication status,
+candidate artifacts and checks.
 
 ## Use your Windows project paths
 

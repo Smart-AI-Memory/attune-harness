@@ -2,12 +2,11 @@
 
 Updated on November 16, 2026.
 
-This guide describes Harness 1.8.1, which is in preparation and requires
-Python 3.12 or later. Use the [candidate-wheel steps](#check-the-181-candidate)
+This guide describes Harness 1.8.1, which requires Python 3.12 or later. Use the [candidate-wheel steps](#check-the-181-candidate)
 before publication. Run the package-index commands below only after
 [PyPI lists 1.8.1](https://pypi.org/project/attune-harness/1.8.1/).
 The [1.8.1 readiness record](release-readiness-1.8.1.md) identifies the candidate
-artifacts and checks. For the current published release, use the
+artifacts and checks. Earlier instructions remain in the
 [1.8.0 installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/installation.md).
 
 Follow the [README quickstart](../README.md#install-181) to install with uv and

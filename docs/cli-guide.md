@@ -6,8 +6,7 @@ Updated on November 16, 2026.
 
 ## Installation
 
-This guide describes Harness 1.8.1, which is in preparation. Before
-publication, use the [candidate-wheel instructions](installation.md#check-the-181-candidate)
+This guide describes Harness 1.8.1. Before publication, use the [candidate-wheel instructions](installation.md#check-the-181-candidate)
 and [readiness record](release-readiness-1.8.1.md). The
 [published 1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
 retains its source and verified distributions. For an existing installation,
