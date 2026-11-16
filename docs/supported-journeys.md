@@ -1,6 +1,6 @@
 # Choose a Harness workflow
 
-Updated on November 7, 2026, for Harness 1.7.0.
+Updated on November 16, 2026, for Harness 1.8.1 preparation.
 
 Start a small feature idea with [Complete your first plan and build](cli-guide.md#complete-your-first-plan-and-build).
 Follow the goal through scope review, acceptance, separately authorized execution
@@ -8,10 +8,11 @@ and result inspection. If you need to install Harness first, use the
 [installation guide](installation.md). For other goals, choose a workflow below
 or use the [Help goals guide](https://smartaimemory.com/harness/help/goals/).
 
-Harness 1.7.0 is published and requires Python 3.12 or later. Check your
-installed command help before following a procedure. The
-[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
-lists the published artifacts and verification limits. The Help Center rollout
+Harness 1.8.1 requires Python 3.12 or later. Check its
+[publication status](release-readiness-1.8.1.md) and your installed command
+help before following a procedure. The
+[1.8.1 release notes](release-notes-1.8.1.md) describe the candidate changes
+and verification limits. The Help Center rollout
 is separate from package publication. Use the version and runtime named in each
 historical guide, including the
 [1.5.1 preparation walkthroughs](tutorials-1.5.1.md#choose-a-walkthrough).
@@ -31,8 +32,8 @@ historical guide, including the
 Use trusted workers, commands and tests; a captured copy is not a security
 sandbox. For Windows build, repair and testing, read the
 [process reliability limits](#windows-capabilities-and-reliability) before running.
-Legacy command participants retain full parent environment inheritance in 1.7.0.
-The 1.8.0 candidate retains that behavior and moves the earliest removal to 1.9.0.
+Legacy command participants retain full parent environment inheritance in 1.8.1.
+The earliest removal remains 1.9.0, as announced in 1.8.0.
 See [Migrate legacy configurations](command-environments.md#migrate-legacy-configurations)
 for the current deprecation schedule and how to opt in to the finite environment policy.
 
@@ -48,7 +49,7 @@ for the current deprecation schedule and how to opt in to the finite environment
 
 ## Memory
 
-Harness 1.7.0 retains file-based memory and optional Redis-backed memory.
+Harness 1.8.1 retains file-based memory and optional Redis-backed memory.
 You can read memory files, save memories and keep local working notes without Redis.
 The Redis integration adds access to an existing Redis memory index and shared
 temporary working notes; it requires the `redis` extra and a configured service.
@@ -93,6 +94,13 @@ remain unfinished.
 
 Windows includes native implementations for captured testing, file-memory reads,
 saved memory and task storage, and experimental native-memory transport.
+
+Version 1.8.1 also preserves literal paths in prepared PowerShell commands,
+including paths with spaces and trailing backslashes in Windows PowerShell 5.1.
+Use the decoded command value from JSON output. See the
+[release notes](release-notes-1.8.1.md#use-your-windows-project-paths) for the
+shell profiles and the [readiness record](release-readiness-1.8.1.md) for evidence.
+
 Choose the setup and reliability conditions for your workflow:
 
 | Workflow | Setup | Reliability consideration |

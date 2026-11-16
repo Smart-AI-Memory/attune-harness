@@ -2,20 +2,22 @@
 
 Full usage for the `attune-harness` commands: arguments, exit codes, supported
 profiles and recovery controls. The [README](../README.md) gives the short version.
-Updated on November 11, 2026.
+Updated on November 16, 2026.
 
 ## Installation
 
-Harness 1.8.0 is available on [PyPI](https://pypi.org/project/attune-harness/1.8.0/).
-See the [1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
-for the source and verified distributions. For an existing installation,
+This guide describes Harness 1.8.1. Before publication, use the [candidate-wheel instructions](installation.md#check-the-181-candidate)
+and [readiness record](release-readiness-1.8.1.md). The
+[published 1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
+retains its source and verified distributions. For an existing installation,
 check `attune-harness COMMAND --help` and use the guide for that release.
 Historical walkthroughs retain their original version and runtime.
 
-Install Harness 1.8.0 in its own environment.
+After [PyPI lists 1.8.1](https://pypi.org/project/attune-harness/1.8.1/), install
+it in its own environment:
 
 ```sh
-uv tool install --python 3.12 'attune-harness==1.8.0'
+uv tool install --python 3.12 'attune-harness==1.8.1'
 ```
 
 The base carries the forms, verification, local retrieval, review, test, MCP and
@@ -23,7 +25,7 @@ acceptance dependencies. Add Redis or Voyage when you need those integrations;
 `all` includes both and excludes `plan-oauth` and experimental native memory.
 The separate [participant funding guide](participant-funding.md) describes
 explicit OpenAI API funding and the `openai-plan` software profile, its exact
-runtime limits and outstanding live qualification. Harness 1.8.0 requires
+runtime limits and outstanding live qualification. Harness 1.8.1 requires
 Python 3.12 or later. Earlier releases retain their original Python minimum.
 The [installation guide](installation.md) covers executable checks, alternatives,
 optional profiles, selection of the managed Python interpreter for module and
@@ -163,6 +165,27 @@ one, otherwise its status, outcome and any refusal, then where the record is
 saved and what to do next. The exit code does not change. `status --format
 markdown` (or `html`) works for every saved task.
 
+### Read a prepared command
+
+The JSON envelope's `next_action` can contain a command, explanatory text or
+both. Parse the JSON before reading that value: the serialized display can
+contain JSON escapes such as `\\` for a backslash, `\"` for a quote or
+`\u00e9` for a Unicode character. Those escapes describe the string; they are
+not the command to paste into a shell. Inspect the decoded value and use only
+its command portion after reviewing the proposed action.
+
+On Windows, prepared commands use PowerShell quoting. Harness 1.8.1 preserves
+literal spaces, dollar signs, backticks, apostrophes and Unicode characters in
+Windows PowerShell 5.1 and PowerShell 7. The formatter also preserves a path's
+trailing backslashes without consuming the next option. Keep the rendered
+quoting intact and use the shell for which the command was prepared; POSIX
+commands use POSIX quoting. See the [Windows capability guidance](supported-journeys.md#windows-capabilities-and-reliability)
+for the tested profiles and remaining limits.
+
+Reading or preparing a command does not accept a plan or authorize execution.
+Inspect the current saved scope and follow the command's existing review and
+execution steps.
+
 ## Get started with a participant registry
 
 `plan`, `review` and `fix` read a participant registry, `participants.json`,
@@ -207,8 +230,9 @@ Before you begin:
   containing Harness and pytest. Activate it so both `attune-harness` and `python`
   use that environment.
 - Obtain the example registry from the source checkout that matches your runtime.
-  For Harness 1.8.0, use tag `v1.8.0`. For Harness 1.6.0, use `v1.6.0`.
-  Find the examples in the source checkout.
+  For a 1.8.1 candidate, use the exact source commit in its readiness record.
+  After release, use tag `v1.8.1`. Historical 1.8.0 and 1.6.0 installations
+  use `v1.8.0` and `v1.6.0`, respectively. Find the examples in that checkout.
 - Use a dedicated, committed Git checkout at `/path/to/repo`. Keep the new task
   directory `~/harness-tasks/starter-plan` and its request outside it. Neither
   output should already exist.

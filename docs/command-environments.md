@@ -97,6 +97,7 @@ Python dispatch emits `CommandEnvironmentDeprecationWarning`. Add the finite
 policy and explicit names, validate the absolute executable, then prepare or
 revise and accept the configuration through its existing owner.
 
-Harness will retain full parent environment inheritance through **1.8.0**.
+The announced compatibility window retains full parent environment inheritance
+through **1.8.0**. Version **1.8.1** also retains that behavior.
 The earliest removal release is **1.9.0**, and the first notice shipped in
 **1.6.0**. See the [machine-readable deprecation register](deprecations.json).

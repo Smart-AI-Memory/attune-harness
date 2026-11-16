@@ -1,8 +1,9 @@
-# Harness 1.8.0 host plugin manifests
+# Harness 1.8.1 host plugin manifests
 
 Shared skills and MCP configuration for Claude Code and Codex. These manifests
-accompany the 1.8.0 Python package. The Claude marketplace selects the
-published `v1.8.0` tag and pins its source commit.
+accompany the 1.8.1 Python package. The Claude marketplace selects the
+published `v1.8.0` tag until the separate post-publication catalog update.
+Check the catalog for the selected version and pinned source commit.
 The independent `plugins/attune-harness` Codex package retains its own 0.1.0
 version. These plugin files are separate from the Python wheel.
 

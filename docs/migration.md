@@ -1,12 +1,14 @@
 # Move from Attune AI to Harness
 
-Updated on November 7, 2026.
+Updated on November 16, 2026, for Harness 1.8.1 preparation.
 
-Harness 1.7.0 is published and requires Python 3.12 or later. Follow the
+Harness 1.8.1 requires Python 3.12 or later. Check its
+[publication status](release-readiness-1.8.1.md), then follow the
 [installation guide](installation.md) to select an isolated runtime and check a
 local result.
 
-To evaluate 1.8.0, follow [Check the 1.8.0 candidate](installation.md#check-the-180-candidate).
+To evaluate 1.8.1 before publication, follow
+[Check the 1.8.1 candidate](installation.md#check-the-181-candidate).
 The candidate retains legacy command environment inheritance. Keep the
 existing writer and hooks for Redis publication and session startup.
 
@@ -19,9 +21,11 @@ observations.
 <a id="candidate-170-migration"></a>
 <a id="upgrade-to-160"></a>
 
-## Prepare to upgrade to 1.7.0
+<a id="prepare-to-upgrade-to-170"></a>
 
-Install published Harness 1.7.0 in a separate Python 3.12 environment using
+## Prepare to upgrade to 1.8.1
+
+Install Harness 1.8.1 in a separate Python 3.12 environment using
 [Upgrade and keep a rollback path](installation.md#upgrade-and-keep-a-rollback-path).
 Keep the previous runtime, original participant registry, memory sources, writer
 and hook settings, and saved tasks. Check the needed workflow before changing
@@ -31,7 +35,7 @@ The [1.6.0 release record](../help/release-1.6.0.json) identifies that older
 release's source and artifacts. Version 1.5.1 retains its Python 3.10 minimum.
 
 Command environment filtering is opt-in. Without an `environment` policy,
-command participants retain full parent inheritance in 1.7.0. See the
+command participants retain full parent inheritance in 1.8.1. See the
 [current deprecation schedule](command-environments.md#migrate-legacy-configurations).
 Add named-variable grants through the participant configuration's existing
 preparation and acceptance flow. Keep the original registry for 1.5.1 because

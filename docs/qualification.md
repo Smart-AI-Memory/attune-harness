@@ -23,7 +23,7 @@ cells. The [published release record](../help/release-1.6.0.json) binds 1.6.0 to
 source `af2159516a67172cc8f2a1ff62213296b1b67112` and its exact artifacts and
 qualification runs. The [published 1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
 identifies that release's source and artifacts. The
-[1.8.0 candidate](release-readiness-1.8.0.md) needs qualification of its own
+[1.8.1 candidate](release-readiness-1.8.1.md) needs qualification of its own
 release commit and artifacts. A version alone does not identify or qualify a wheel.
 Earlier Python 3.10 receipts and published 1.5.1
 retain their original artifact/runtime identities and Python minimum.
