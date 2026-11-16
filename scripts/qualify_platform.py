@@ -666,11 +666,11 @@ def qualify(output, *, coverage_instrumented=False, installed_coverage_partition
         raise ValueError('Installed partitions require Windows instrumented evidence outside the checkout')
     if windows_listing_witness is not None and not installed_coverage_partitions:
         raise ValueError('Listing diagnostics require Windows instrumented installed partitions')
-    # Windows suite budgets include the measured native reader workload.
+    # Windows suite budgets include native readers and the PowerShell matrix.
     # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2520 if coverage_instrumented else 1800
+        suite_timeout = 2520 if coverage_instrumented else 2100
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore

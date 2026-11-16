@@ -18,6 +18,7 @@ never absorbed as an expected failure. See
 # qualify: platform
 
 import ast
+import base64
 import hashlib
 import importlib.util
 import json
@@ -78,7 +79,7 @@ def harness(args, cwd, *, stdout_file=None):
 
 
 def split(command):
-    """A printed command line as argv, read the way this platform's shell reads it."""
+    """Tokenize the fixed documented commands; this does not emulate PowerShell."""
     if os.name == 'posix':
         return shlex.split(command)
     return [token[1:-1] if len(token) > 1 and token[0] == token[-1] == '"' else token
@@ -307,14 +308,36 @@ def test_documented_review_bundled_example(home):
 
 # First-run journey T3: a registry from init, and refusals that name it.
 
-def test_init_writes_a_working_registry(home):
+@pytest.mark.parametrize('project_name', ['', "project space's $literal` café ‘’‚‛"])
+@pytest.mark.parametrize('engine', ['powershell.exe', 'pwsh.exe'] if os.name == 'nt' else ['posix'])
+def test_init_writes_a_working_registry(home, project_name, engine):
     """``init`` writes the registry, and its next action runs exactly as printed."""
+    if project_name:
+        home = home / project_name
+        home.mkdir()
     (home / 'guide.md').write_text('# Guide\n\nThe answer is 42.\n', encoding='utf-8')
     code, envelope, output = harness(['init', '--profile', 'demo'], home)
     assert code == 0 and envelope['status'] == 'created', output
     assert json.loads((home / 'participants.json').read_text(encoding='utf-8'))['schema_version'] == 1
     command = envelope['next_action'].split(': ', 1)[1]
-    code, intake, output = harness(split(command)[1:], home)
+    if os.name == 'nt':
+        env = environment()
+        env['PATH'] = str(CLI.parent) + os.pathsep + env.get('PATH', '')
+        powershell = (Path(os.environ['SystemRoot']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+                      if engine == 'powershell.exe' else shutil.which(engine))
+        if powershell is None:
+            pytest.skip('PowerShell 7 is not installed or is not on PATH')
+        script = ('[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n'
+                  + command + '\nexit $LASTEXITCODE\n')
+        encoded = base64.b64encode(script.encode('utf-16-le')).decode('ascii')
+        result = subprocess.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive',
+                                 '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encoded],
+                                cwd=home, env=env, capture_output=True, input='',
+                                text=True, encoding='utf-8', timeout=120)
+        code, output = result.returncode, result.stdout + result.stderr
+        intake = json.loads(result.stdout)
+    else:
+        code, intake, output = harness(split(command)[1:], home)
     assert code == 1 and intake['status'] == 'draft', output
     assert intake['operation'] == 'task-intake' and intake['markdown'].startswith('## Evidence assessment'), output
 

@@ -131,7 +131,7 @@ jobs:
     # answer empty, which means qualify.
     if: ${{ !cancelled() && needs.changes.outputs.qualify != 'false' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ startsWith(matrix.os, 'windows-') && 35 || 20 }}
+    timeout-minutes: ${{ startsWith(matrix.os, 'windows-') && 40 || 20 }}
     strategy:
       fail-fast: false
       matrix:
