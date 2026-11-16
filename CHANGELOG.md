@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.8.1
+
+Requires Python 3.12 or later. See the [release notes](docs/release-notes-1.8.1.md)
+and [readiness record](docs/release-readiness-1.8.1.md).
+
+- Preserve literal Windows paths in prepared PowerShell commands, including
+  spaces, dollar signs, backticks, apostrophes and Unicode characters.
+- Keep following options intact when a path with spaces ends in a backslash
+  in Windows PowerShell 5.1. Retain PowerShell 7 native argument handling.
+- Give the complete Windows installed-qualification suite measured headroom
+  without changing individual operation deadlines or failure checks.
+- Make the Help Center and reporting course easier to find and follow, with
+  explicit setup, readable lessons and preserved versioned evidence.
+
 ## 1.8.0
 
 Requires Python 3.12 or later. See the [release notes](docs/release-notes-1.8.0.md)

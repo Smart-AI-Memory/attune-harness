@@ -1,11 +1,26 @@
 # Windows reliability reference
 
-Updated on October 21, 2026. Applies to the 1.5.0 implementation and evidence.
+Updated on November 16, 2026. The reliability baseline below retains its
+1.5.0 source and evidence; the PowerShell update has a separate 1.8.1 record.
 
 Use this reference to inspect the reliability requirements and their evidence.
 For task selection and procedures, use the [workflow guide](supported-journeys.md).
 
-## Evidence snapshot
+## PowerShell commands in 1.8.1
+
+Prepared commands preserve literal Windows paths in Windows PowerShell 5.1
+and PowerShell 7. The 5.1 formatter also preserves a trailing backslash after
+whitespace without consuming the next option. This changes command rendering;
+process shutdown, saved-state durability and recovery requirements remain as
+described below. Use the decoded command value when the response is JSON.
+
+The [1.8.1 readiness record](release-readiness-1.8.1.md) separates the earlier
+Windows Server and emulated-x64 Windows 11 checks from the actual release
+artifact checks. It does not qualify native ARM64 Python or all desktop profiles.
+
+<a id="evidence-snapshot"></a>
+
+## Historical 1.5.0 evidence snapshot
 
 Checked against `main` at `4b773a6edb488afbe9b66348b7020c1b40dfbb67`,
 the CLI/source owners and existing journey tests. The

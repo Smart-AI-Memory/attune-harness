@@ -17,6 +17,9 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 
 ## Project and technical references
 
+- [Harness 1.8.1 release notes](release-notes-1.8.1.md): Windows command handling and setup improvements
+- [Harness 1.8.1 readiness record](release-readiness-1.8.1.md): Candidate artifacts, documentation review and publication gates
+
 - [Harness 1.8.0 release notes](release-notes-1.8.0.md): Compatibility, memory changes and release limits
 - [Harness 1.8.0 readiness record](release-readiness-1.8.0.md): Candidate scope, documentation review and remaining release gates
 

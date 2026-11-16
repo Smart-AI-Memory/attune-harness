@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "source_repository": "Smart-AI-Memory/attune-harness",
-  "checked_on": "2026-11-09",
+  "checked_on": "2026-11-16",
   "website_repository": "Smart-AI-Memory/attune-ai",
   "website_entry": "https://smartaimemory.com/harness/help/",
   "website_navigation": [
     {"title": "Get started", "route": "/harness/help/get-started/", "source": "help/get-started.md"},
-    {"title": "Learn Harness", "route": "/harness/learn/", "source": "help/get-started.md", "delivery": "The current site redirects to the archived 1.7.0 course until the maintained course is published."},
+    {"title": "Learn Harness", "route": "/harness/learn/", "source": "help/get-started.md", "delivery": "On November 16, Learn redirected to Get Started, which identifies Harness 1.8.0 as the current release."},
     {"title": "Do a task", "route": "/harness/help/goals/", "source": "help/goals/guide.html"},
     {"title": "Reference", "route": "/harness/help/ai-tools-and-integrations/", "source": "help/ai-tools-and-integrations.md"}
   ],
@@ -18,11 +18,11 @@
     "authored_sources": "help/",
     "build": "python3.12 scripts/build_help.py --output <new-output-directory>",
     "website_importer": "website/scripts/harness-help-export.mjs",
-    "live_observation": "The homepage links to the published 1.7.0 installation guide. Help links to the live course and retains 1.5.1 as its reference.",
-    "observation_limit": "Public routes and import receipts establish website delivery. The independent learner observation remains open."
+    "live_observation": "On November 16, Get Started identified Harness 1.8.0 as the current release, and Learn redirected to that setup page.",
+    "observation_limit": "This review covered Get Started and the Learn redirect using web-cache source crawled the previous day. It does not establish a fresh deployment, 1.8.1 delivery, all course pages or archived-route availability. The independent learner observation remains open."
   },
   "training": {
-    "publication_status": "The maintained course is pending website publication. The original 1.7.0 course remains live.",
+    "publication_status": "The November 16 route check verified the Learn redirect to the 1.8.0 setup guide. Maintained-course pages and archived routes were not reverified; their existing compatibility records retain their original versions.",
     "content": "training/reporting/*/lesson.json",
     "shared_shell": "training/lesson-template.html",
     "shared_interactions": "training/reporting/assets/app.js",
@@ -33,8 +33,16 @@
     "offline_practice": "training/reporting/practice.py",
     "static_reading": "Each lesson has read.html, generated from the same JSON as its interactive page.",
     "development_paths": "training/reporting/development-paths.html",
-    "website_delivery": "Import the reviewed, merged Harness source before redirecting the Learn entry to /harness/help/get-started/#set-up-the-practice-folder. Continue from setup to the course overview. Preserve the legacy source and its original URLs."
+    "website_delivery": "For later website updates, import the reviewed, merged Harness source and verify the existing Learn redirect to Get Started. Check the setup-to-course-overview link and lesson pages separately. Preserve the legacy source and its original URLs."
   },
+  "previous_observations": [
+    {
+      "checked_on": "2026-11-09",
+      "learn_delivery": "The current site redirects to the archived 1.7.0 course until the maintained course is published.",
+      "help_live_observation": "The homepage links to the published 1.7.0 installation guide. Help links to the live course and retains 1.5.1 as its reference.",
+      "training_publication_status": "The maintained course is pending website publication. The original 1.7.0 course remains live."
+    }
+  ],
   "archive_rule": "Archive superseded guidance, not merely old documents. Preserve original paths and evidence. Keep archive material out of current lessons and ordinary search results.",
   "current_version_rule": "Use task names in navigation. Show the selected runtime and publication status as page metadata, with one maintained installation route."
 }

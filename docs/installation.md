@@ -1,11 +1,18 @@
 # Install Harness and get started
 
-Updated on November 11, 2026.
+Updated on November 16, 2026.
 
-Install [Harness 1.8.0 from PyPI](https://pypi.org/project/attune-harness/1.8.0/)
-with Python 3.12 or later. Follow the [README quickstart](../README.md#install-180)
-to install with uv and check a local result. If you already use Harness,
-[keep a rollback path](../README.md#upgrade-and-keep-a-rollback-path).
+This guide describes Harness 1.8.1, which is in preparation and requires
+Python 3.12 or later. Use the [candidate-wheel steps](#check-the-181-candidate)
+before publication. Run the package-index commands below only after
+[PyPI lists 1.8.1](https://pypi.org/project/attune-harness/1.8.1/).
+The [1.8.1 readiness record](release-readiness-1.8.1.md) identifies the candidate
+artifacts and checks. For the current published release, use the
+[1.8.0 installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/installation.md).
+
+Follow the [README quickstart](../README.md#install-181) to install with uv and
+check a local result. If you already use Harness,
+[keep a rollback path](#upgrade-and-keep-a-rollback-path).
 
 Start with the base package. Add [optional integrations](../README.md#optional-integrations)
 when you need them. The
@@ -14,29 +21,31 @@ when you need them. The
 original artifact identities and limits.
 
 <a id="install-with-pipx-or-a-virtual-environment"></a>
+<a id="install-180-with-pipx-or-a-virtual-environment"></a>
 
-## Install 1.8.0 with pipx or a virtual environment
+## Install 1.8.1 with pipx or a virtual environment
 
-To install an isolated CLI with [pipx](https://pipx.pypa.io/latest/reference/cli.html),
-run:
+After publication, install an isolated CLI with
+[pipx](https://pipx.pypa.io/latest/reference/cli.html):
 
 ```sh
-pipx install --python python3.12 'attune-harness==1.8.0'
+pipx install --python python3.12 'attune-harness==1.8.1'
 attune-harness
 ```
 
 On Windows, use the full path to your Python 3.12 executable for `--python`.
 
-To install in a dedicated virtual environment on macOS or Linux, run:
+To install in a new, dedicated virtual environment on macOS or Linux after
+publication, run:
 
 ```sh
-python3.12 -m venv .venv-harness-180
-.venv-harness-180/bin/python -m pip install 'attune-harness==1.8.0'
-.venv-harness-180/bin/python -m attune_harness
+python3.12 -m venv .venv-harness-181
+.venv-harness-181/bin/python -m pip install 'attune-harness==1.8.1'
+.venv-harness-181/bin/python -m attune_harness
 ```
 
-On Windows, create the environment with `py -3.12 -m venv .venv-harness-180`
-and use `.venv-harness-180\Scripts\python.exe` for the two module commands.
+On Windows, create the environment with `py -3.12 -m venv .venv-harness-181`
+and use `.venv-harness-181\Scripts\python.exe` for the two module commands.
 The demonstration prints a JSON receipt with `"status": "verified"`. For
 platform requirements, see the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability).
 
@@ -44,8 +53,10 @@ platform requirements, see the [Windows capability table](supported-journeys.md#
 
 ## Install the 1.7.0 runtime
 
-Use 1.7.0 for the versioned Help Center walkthroughs and course. The
-[1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
+Use 1.7.0 when reproducing the versioned Help Center walkthroughs and archived
+course that name it. The maintained reporting course records its tested runtimes
+in the [compatibility results](../training/reporting/assets/compatibility.json).
+The [1.7.0 release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.7.0)
 lists the published files, their hashes and the checks that ran.
 
 If Harness is already installed, inspect its version and path with
@@ -140,14 +151,16 @@ running those examples; no shell activation is needed.
 
 ## Choose optional integrations when needed
 
-Select a profile when installing or deliberately updating your managed tool.
+After 1.8.1 is published, select a profile when installing or deliberately
+updating your managed tool. Before publication, keep the working published
+profile; use the separate candidate-wheel steps to evaluate the base package.
 
 | You need | Install |
 | --- | --- |
-| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.8.0'` |
-| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.8.0'` |
-| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.8.0'` |
-| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.8.0'` |
+| Forms, verification, local retrieval and the task workflows | `uv tool install --python 3.12 'attune-harness==1.8.1'` |
+| Redis memory access, with a separately configured reachable Redis service | `uv tool install --python 3.12 'attune-harness[redis]==1.8.1'` |
+| Voyage retrieval, with a Voyage API key and separate paid-call authority | `uv tool install --python 3.12 'attune-harness[voyage]==1.8.1'` |
+| Both Redis and Voyage | `uv tool install --python 3.12 'attune-harness[all]==1.8.1'` |
 
 Selecting another profile changes that tool's environment; it does not start a
 Redis service, configure credentials or authorize model calls. `all` excludes
@@ -188,11 +201,13 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 ## Verify your installation
 
-Compare the selected version and interpreter with the checks above. For
-distribution hashes and platform coverage, read the
-[1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
-and [readiness record](release-readiness-1.8.0.md).
-Earlier observations remain in the
+Compare the selected version and interpreter with the checks above. During
+preparation, use the exact wheel hash, source and platform evidence in the
+[1.8.1 readiness record](release-readiness-1.8.1.md). After publication, compare
+with the [1.8.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1)
+as well. A verified arithmetic result does not qualify every workflow or platform.
+The [1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
+retains that version's distribution hashes and checks. Earlier observations remain in the
 [documentation archive](https://smartaimemory.com/harness/help/archive/).
 
 <a id="validate-160-and-retain-rollback"></a>
@@ -200,24 +215,24 @@ Earlier observations remain in the
 
 ## Upgrade and keep a rollback path
 
-To upgrade to 1.8.0, follow the [README rollback guidance](../README.md#upgrade-and-keep-a-rollback-path).
-The procedure below uses 1.7.0 for the versioned walkthroughs.
-
-Inspect the current runtime and retain its environment. Before switching your
-host integration, check 1.7.0 in a separate environment. Use an unused path.
+Inspect the current runtime and retain its environment before switching your
+host integration. During preparation, follow [Check the 1.8.1 candidate](#check-the-181-candidate).
+After 1.8.1 is published, check it in a separate environment with the commands
+below. Use an unused path. For a historical walkthrough, keep the runtime it
+names, including the [1.7.0 setup](#install-the-170-runtime).
 
 ```sh
-python3.12 -m venv .venv-harness-170
-.venv-harness-170/bin/python -m pip install 'attune-harness==1.7.0'
-.venv-harness-170/bin/python -c "from importlib.metadata import version; print(version('attune-harness'))"
-.venv-harness-170/bin/python -m attune_harness
+python3.12 -m venv .venv-harness-181
+.venv-harness-181/bin/python -m pip install 'attune-harness==1.8.1'
+.venv-harness-181/bin/python -c "from importlib.metadata import version; print(version('attune-harness'))"
+.venv-harness-181/bin/python -m attune_harness
 ```
 
-On Windows, use `py -3.12 -m venv .venv-harness-170` and
-`.venv-harness-170\Scripts\python.exe` for each Python command. Expect version
-`1.7.0` and a JSON receipt with a verified arithmetic result. Check the workflow
+On Windows, use `py -3.12 -m venv .venv-harness-181` and
+`.venv-harness-181\Scripts\python.exe` for each Python command. Expect version
+`1.8.1` and a JSON receipt with a verified arithmetic result. Check the workflow
 you need before switching a working installation. A pinned `uv tool upgrade`
-respects its existing version pin; select 1.7.0 explicitly
+respects its existing version pin; select 1.8.1 explicitly
 when updating the managed tool.
 
 Keep the old runtime and its original participant registry for rollback.
@@ -235,6 +250,44 @@ To reproduce a preparation result, follow the
 [installation guide at the release tag](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.7.0/docs/installation.md#select-a-candidate-without-replacing-a-working-runtime)
 with the exact rehearsal wheel and interpreter named in the observation.
 Use the published wheel for a new installation.
+
+## Check the 1.8.1 candidate
+
+Use the exact wheel identified in the [1.8.1 readiness record](release-readiness-1.8.1.md)
+once it is available. Match its SHA-256 to that record before installing.
+Keep your working runtime and use an unused environment path. Run one command
+at a time from the folder containing the wheel; stop if a command fails.
+
+On macOS or Linux:
+
+```sh
+python3.12 -m venv .venv-harness-181-candidate
+.venv-harness-181-candidate/bin/python -m pip install ./attune_harness-1.8.1-py3-none-any.whl
+.venv-harness-181-candidate/bin/python -c "from importlib.metadata import version; print(version('attune-harness'))"
+.venv-harness-181-candidate/bin/python -m attune_harness
+```
+
+On Windows, replace the example path with your selected x64 Python 3.12
+executable. Check the version and platform first; continue only when they show
+Python 3.12 and `win-amd64`. Then create the candidate environment:
+
+```powershell
+$HarnessPython = 'C:\path\to\Python312\python.exe'
+& $HarnessPython -c "import sys, sysconfig; print(sys.version); print(sysconfig.get_platform())"
+& $HarnessPython -m venv .venv-harness-181-candidate
+& '.\.venv-harness-181-candidate\Scripts\python.exe' -m pip install .\attune_harness-1.8.1-py3-none-any.whl
+& '.\.venv-harness-181-candidate\Scripts\python.exe' -c "from importlib.metadata import version; print(version('attune-harness'))"
+& '.\.venv-harness-181-candidate\Scripts\python.exe' -m attune_harness
+```
+
+Use the PowerShell call operator `&` before a variable or quoted executable
+path. A launcher version tag alone does not establish the interpreter architecture.
+
+Expect `1.8.1` and a JSON receipt with status `verified`. The arithmetic example
+makes no model calls. Record the wheel hash, source commit, Python version and
+architecture, operating system and result. This checks the local installation;
+read the readiness record and [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability)
+for the separately tested workflows and remaining limits.
 
 ## Check the 1.8.0 candidate
 
@@ -256,5 +309,7 @@ example makes no model calls. Record the wheel hash, source commit and
 platform with the result. See the [1.8.0 readiness record](release-readiness-1.8.0.md)
 for the remaining qualification and publication steps.
 
-For a new PyPI installation, follow [Install 1.8.0 with pipx or a virtual
-environment](#install-180-with-pipx-or-a-virtual-environment).
+For a new installation after 1.8.1 is published, follow
+[Install 1.8.1 with pipx or a virtual environment](#install-181-with-pipx-or-a-virtual-environment).
+Before publication, use the [published 1.8.0 guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/installation.md)
+or evaluate the separate [1.8.1 candidate](#check-the-181-candidate).
