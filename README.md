@@ -10,6 +10,8 @@ what needs your review and uses Harness to carry out the steps you authorize.
 Harness keeps a **receipt**: the output, check results and any errors from a run.
 You can inspect what happened and use that record when you continue later.
 
+**Release status:** 1.8.1 is in preparation; 1.8.0 remains the published release.
+
 ## Help Center
 
 - [Install Harness 1.8.0](#install-180) to use the current runtime.
@@ -100,6 +102,19 @@ Use the [CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/
 for command-based integrations, MCP setup, arguments and exit codes. Run
 `attune-harness COMMAND --help` for one command or `attune-harness --help-all`
 for the broader tool list.
+
+## Planned changes in 1.8.1
+
+- **Copy and paste PowerShell commands with your project paths.** Printed setup,
+  plan and repair previews, review intake, and roundtable preparation preserve
+  spaces, dollar signs, backticks, apostrophes and Unicode characters.
+- **Keep following options intact.** Paths with spaces and trailing backslashes
+  no longer consume the next option in Windows PowerShell 5.1.
+
+The planned fix supports Windows PowerShell 5.1 and PowerShell 7. See
+[the PowerShell command fix](https://github.com/Smart-AI-Memory/attune-harness/pull/364)
+for the change and [Work on Windows](#work-on-windows) for existing platform
+requirements and limits.
 
 ## What changes in 1.8.0
 
