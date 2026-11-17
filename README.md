@@ -39,9 +39,9 @@ Check the version on historical guides before following their commands.
 if needed. If you already use Harness, [check the update in a separate
 environment](#upgrade-and-keep-a-rollback-path) before switching.
 On Windows, select x64 CPython 3.12 using the
-[installation guide](docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
+[installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
 Native Windows ARM64 Python still needs separately built dependency wheels; see
-[the current results and limits](docs/windows-arm64-validation-1.8.1.md).
+[the current results and limits](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/windows-arm64-validation-1.8.1.md).
 
 On macOS or Linux, install with:
 
@@ -54,7 +54,7 @@ for Redis or Voyage. Keep Harness and Attune AI in separate Python environments
 because they require different MCP SDK versions.
 
 To use pipx or a virtual environment, follow the
-[1.8.1 installation steps](docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
+[1.8.1 installation steps](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
 
 ### Check a local result
 
@@ -121,7 +121,7 @@ for the broader tool list.
   no longer consume the next option in Windows PowerShell 5.1.
 
 The fix covers Windows PowerShell 5.1 and PowerShell 7. Read the
-[1.8.1 release notes](docs/release-notes-1.8.1.md)
+[1.8.1 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/release-notes-1.8.1.md)
 and [published release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1). See
 [the PowerShell command fix](https://github.com/Smart-AI-Memory/attune-harness/pull/364)
 for the change and [Work on Windows](#work-on-windows) for existing platform
@@ -278,7 +278,7 @@ remain separate from those server results. A later native ARM64 experiment
 installed published 1.8.1 with locally built versions of its two pinned
 dependencies and completed bounded local workflows. A binary-only native ARM64
 install from PyPI alone remains blocked. Read the
-[Windows ARM64 results and limits](docs/windows-arm64-validation-1.8.1.md);
+[Windows ARM64 results and limits](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/windows-arm64-validation-1.8.1.md);
 these checks do not qualify every Windows desktop workflow.
 
 The linked guides define supported workflows and remaining storage and recovery limits. The [Windows reliability reference](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/windows-reliability.md)
