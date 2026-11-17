@@ -118,9 +118,9 @@ after the replacement is available. A source PR does not deploy the Help Center.
 ## Maintain current onboarding and historical guidance
 
 Current onboarding uses the existing `/harness/help/get-started/` route
-and installs the latest compatible release. The global manifest
+and explicitly selects published Harness 1.8.1. The global manifest
 reference remains 1.5.1 so unchanged guides and goal captures keep their original
-identities. `published_version` names the current 1.8.0 release. Versioned
+identities. `published_version` names the current 1.8.1 release. Versioned
 guides state their own versions and publication status.
 
 Preserve the 1.5.1 and 1.6.0 release records, historical verification records
@@ -129,7 +129,7 @@ for changes and published artifacts. The six-lesson course has a stable
 setup route and records tested runtime versions separately from its lessons.
 
 The existing website importer in `attune-ai/website/scripts/harness-help-export.mjs`
-validates and imports the static export. For the 1.8.0 cutover, update its
+validates and imports the static export. For the 1.8.1 update, advance its
 `published_version` check and refresh both exports from the same reviewed,
 merged Harness commit in the website PR. Verify that Learn opens the practice
 setup in Get Started and that the setup links to the course overview. Check
