@@ -10,13 +10,12 @@ what needs your review and uses Harness to carry out the steps you authorize.
 Harness keeps a **receipt**: the output, check results and any errors from a run.
 You can inspect what happened and use that record when you continue later.
 
-This README describes Harness 1.8.1. Check the
-[PyPI version listing](https://pypi.org/project/attune-harness/1.8.1/) before
-installing it from the package index.
+[Harness 1.8.1 is published on PyPI](https://pypi.org/project/attune-harness/1.8.1/).
+Install it with Python 3.12 or later using the commands below.
 
 ## Help Center
 
-- [Install Harness 1.8.1](#install-181) after checking its availability.
+- [Install Harness 1.8.1](#install-181) and check a local result.
 - [Get started in the Help Center](https://smartaimemory.com/harness/help/get-started/)
   to install Harness, check a local result, and connect your assistant.
 - [Set up the reporting course](https://smartaimemory.com/harness/learn/)
@@ -39,9 +38,12 @@ Check the version on historical guides before following their commands.
 3.12 or later. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
 if needed. If you already use Harness, [check the update in a separate
 environment](#upgrade-and-keep-a-rollback-path) before switching.
-Run the index installation below once PyPI lists 1.8.1. Before publication,
-use the reviewed local wheel and the candidate installation steps in
-`docs/installation.md` from the same reviewed source checkout.
+On Windows, select x64 CPython 3.12 using the
+[installation guide](docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
+Native Windows ARM64 Python still needs separately built dependency wheels; see
+[the current results and limits](docs/windows-arm64-validation-1.8.1.md).
+
+On macOS or Linux, install with:
 
 ```sh
 uv tool install --python 3.12 'attune-harness==1.8.1'
@@ -52,7 +54,7 @@ for Redis or Voyage. Keep Harness and Attune AI in separate Python environments
 because they require different MCP SDK versions.
 
 To use pipx or a virtual environment, follow the
-[1.8.1 installation steps](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
+[1.8.1 installation steps](docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
 
 ### Check a local result
 
@@ -119,9 +121,8 @@ for the broader tool list.
   no longer consume the next option in Windows PowerShell 5.1.
 
 The fix covers Windows PowerShell 5.1 and PowerShell 7. Read the
-[1.8.1 release notes](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/release-notes-1.8.1.md)
-and [readiness record](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/release-readiness-1.8.1.md).
-Versioned links become available when the release is tagged. See
+[1.8.1 release notes](docs/release-notes-1.8.1.md)
+and [published release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1). See
 [the PowerShell command fix](https://github.com/Smart-AI-Memory/attune-harness/pull/364)
 for the change and [Work on Windows](#work-on-windows) for existing platform
 requirements and limits.
@@ -272,9 +273,13 @@ writes, interruption recovery or power-loss durability.
 
 The merged repair passed installed-package and full-source checks on both
 Windows Server 2022 and 2025 with Python 3.12 in PR #320. Separate supplemental
-coverage passed in the `windows-latest` job. Windows 11 observations
-are a separate standard-user smoke on ARM hardware using x64 Python emulation;
-they do not qualify native ARM64 or all desktop and PowerShell workflows.
+coverage passed in the `windows-latest` job. Windows 11 desktop observations
+remain separate from those server results. A later native ARM64 experiment
+installed published 1.8.1 with locally built versions of its two pinned
+dependencies and completed bounded local workflows. A binary-only native ARM64
+install from PyPI alone remains blocked. Read the
+[Windows ARM64 results and limits](docs/windows-arm64-validation-1.8.1.md);
+these checks do not qualify every Windows desktop workflow.
 
 The linked guides define supported workflows and remaining storage and recovery limits. The [Windows reliability reference](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/windows-reliability.md)
 provides the detailed requirements and evidence.

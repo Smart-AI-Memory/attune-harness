@@ -5,9 +5,10 @@ Paths with spaces and special characters stay in their intended arguments,
 and trailing backslashes preserve the following option. Python 3.12 or later
 remains required.
 
-Check the [PyPI version listing](https://pypi.org/project/attune-harness/1.8.1/)
-and [1.8.1 readiness record](release-readiness-1.8.1.md) for publication status,
-candidate artifacts and checks.
+[Version 1.8.1 is published on PyPI](https://pypi.org/project/attune-harness/1.8.1/).
+The [release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1)
+identifies its artifacts and checks. The
+[readiness record](release-readiness-1.8.1.md) retains the preparation evidence.
 
 ## Use your Windows project paths
 
@@ -33,23 +34,23 @@ readability, setup guidance and navigation. Open
 Harness, then [set up the reporting course](https://smartaimemory.com/harness/learn/).
 
 The course retains its published 1.7.0 and 1.8.0 compatibility records and
-historical walkthroughs. The readiness record tracks candidate review and any
-separate website update; these documentation changes do not establish a new
-1.8.1 website delivery.
+historical walkthroughs. Those records describe the versions tested; they are
+not new 1.8.1 course qualification. Website delivery has its own source and
+import records, separate from package publication.
 
 ## Install and keep a rollback path
 
-After publication, select `attune-harness==1.8.1` explicitly in a separate
-Python 3.12 environment. During preparation, use only the exact candidate
-artifact identified in the readiness record once it is available. Keep your
-working runtime, participant registry, saved tasks and memory setup until you
-have checked the workflows you use.
+Select `attune-harness==1.8.1` explicitly in a separate Python 3.12 environment.
+Keep your working runtime, participant registry, saved tasks and memory setup
+until you have checked the workflows you use.
 
 Existing Windows profile, process-recovery, storage and optional-provider
 limits still apply. Follow the [installation guide](installation.md) and
 [Windows capability guidance](supported-journeys.md#windows-capabilities-and-reliability).
-The Windows 11 observations use x64 Python under ARM64 emulation; they do not
-qualify native ARM64 Python or every Windows desktop workflow.
+The later [Windows ARM64 validation](windows-arm64-validation-1.8.1.md) installed
+the published wheel with locally built, exact pinned dependencies and completed
+bounded native workflows. That result does not make a binary-only native ARM64
+installation from PyPI available or qualify every Windows desktop workflow.
 
 The [1.8.0 release notes](release-notes-1.8.0.md) retain the earlier command
 environment and memory changes. Package publication, the Claude Code

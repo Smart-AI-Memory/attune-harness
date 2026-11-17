@@ -3,10 +3,20 @@
 ## Install Harness
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed.
-Harness requires Python 3.12 or later.
+[Harness 1.8.1 is published on PyPI](https://pypi.org/project/attune-harness/1.8.1/)
+and requires Python 3.12 or later. Keep a working installation intact while
+[checking an upgrade in a separate environment](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#upgrade-and-keep-a-rollback-path).
+
+On Windows, select x64 CPython 3.12 using the
+[installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment)
+and check the [current compatibility results](https://smartaimemory.com/harness/windows/).
+Native Windows ARM64 Python still requires separately built dependency wheels;
+the Python version alone does not select the architecture.
+
+On macOS or Linux, install with:
 
 ```sh
-uv tool install --python 3.12 attune-harness
+uv tool install --python 3.12 'attune-harness==1.8.1'
 ```
 
 ## Check a local result
@@ -90,7 +100,7 @@ and review the imported scope before acceptance.
   before switching. See the [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
   for saved tasks, memory, and host settings.
 - If your shell can't find the command, [add the uv tool directory to your path](https://docs.astral.sh/uv/concepts/tools/#tool-executables).
-  See the [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-with-pipx-or-a-virtual-environment)
+  See the [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment)
   for pipx and virtual environments.
 - Check the [supported Windows configurations](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/supported-journeys.md#windows-capabilities-and-reliability)
   and [optional integrations](https://github.com/Smart-AI-Memory/attune-harness/blob/main/README.md#optional-integrations)

@@ -140,7 +140,7 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     assert '<h1>Get started with Harness</h1>' in start
     assert '<meta name="robots" content="index,follow">' in start
     assert 'class="help-version-note"' not in start
-    assert "Current release: Harness <strong>1.8.0</strong>" in start
+    assert "Current release: Harness <strong>1.8.1</strong>" in start
     assert '<details class="help-contents"><summary>On this page</summary>' in start
     install = start.index('<h2 id="install-harness">')
     verify = start.index('<h2 id="check-a-local-result">')
@@ -164,7 +164,7 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     assert (root / "release-1.6.0.json").read_bytes() == (
         ROOT / "help/release-1.6.0.json"
     ).read_bytes()
-    assert "uv tool install --python 3.12 attune-harness\n" in unescape(start)
+    assert "uv tool install --python 3.12 'attune-harness==1.8.1'\n" in unescape(start)
     assert 'href="/harness/help/get-started/" aria-current="page"' in start
     assert '<p class="help-prompt-label">Example prompt</p>' in start
     assert '<p data-copy-prompt>Use Harness to help me plan an update' in start

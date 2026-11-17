@@ -46,7 +46,8 @@ not grant execution authority or authorize spending.
 
 ## Read guidance for your version
 
-- [Harness 1.5.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1) and [getting started](/harness/help/1-5-1/): current installation and limits.
+- [Get started with Harness](/harness/help/get-started/): current installation and limits.
+- [Harness 1.5.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.1) and [1.5.1 guide](/harness/help/1-5-1/): historical installation and evidence.
 - [Harness 1.5.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.5.0) and [1.5.0 CLI reference](https://github.com/Smart-AI-Memory/attune-harness/blob/7caa86ab6d476e9599b08ff75a81bc816e60c382/docs/cli-guide.md): historical release guidance.
 - [Current main documentation — development](https://github.com/Smart-AI-Memory/attune-harness/tree/main/docs): may describe newer work; compare its version and evidence before using it.
 - [Prototypes — unreleased](https://github.com/Smart-AI-Memory/attune-harness/tree/main/prototypes): design exploration, not released help.
@@ -57,7 +58,7 @@ General workspace navigation and a browser specification editor remain outside t
 
 ## Changes and chronology
 
-The [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/CHANGELOG.md) records the sequence. Published 1.5.0 introduced the stated Windows components while deferring full parity. Published 1.5.1 adds signature-input validation, completed-assessment evidence presentation and documentation/continuation checks. Historical 1.3.0, candidate and 1.5.0 observations retain their original source and artifact identities. Read the [1.5.1 guide](/harness/help/1-5-1/) for current installation and limits.
+The [released changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/ebb5b03b8a4398325df7ddabd28c08186451452e/CHANGELOG.md) records the sequence. Published 1.5.0 introduced the stated Windows components while deferring full parity. Published 1.5.1 adds signature-input validation, completed-assessment evidence presentation and documentation/continuation checks. Historical 1.3.0, candidate and 1.5.0 observations retain their original source and artifact identities. Read the [1.5.1 guide](/harness/help/1-5-1/) for that release's historical instructions, or [Get started](/harness/help/get-started/) for current installation and limits.
 
 ## Sources and verification limits
 

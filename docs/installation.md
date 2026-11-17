@@ -2,11 +2,10 @@
 
 Updated on November 16, 2026.
 
-This guide describes Harness 1.8.1, which requires Python 3.12 or later. Use the [candidate-wheel steps](#check-the-181-candidate)
-before publication. Run the package-index commands below only after
-[PyPI lists 1.8.1](https://pypi.org/project/attune-harness/1.8.1/).
-The [1.8.1 readiness record](release-readiness-1.8.1.md) identifies the candidate
-artifacts and checks. Earlier instructions remain in the
+[Harness 1.8.1 is published on PyPI](https://pypi.org/project/attune-harness/1.8.1/)
+and requires Python 3.12 or later. The
+[release record](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1)
+identifies its published artifacts and checks. Earlier instructions remain in the
 [1.8.0 installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/installation.md).
 
 Follow the [README quickstart](../README.md#install-181) to install with uv and
@@ -24,7 +23,7 @@ original artifact identities and limits.
 
 ## Install 1.8.1 with pipx or a virtual environment
 
-After publication, install an isolated CLI with
+Install an isolated CLI with
 [pipx](https://pipx.pypa.io/latest/reference/cli.html):
 
 ```sh
@@ -34,8 +33,7 @@ attune-harness
 
 On Windows, use the full path to your Python 3.12 executable for `--python`.
 
-To install in a new, dedicated virtual environment on macOS or Linux after
-publication, run:
+To install in a new, dedicated virtual environment on macOS or Linux, run:
 
 ```sh
 python3.12 -m venv .venv-harness-181
@@ -43,8 +41,13 @@ python3.12 -m venv .venv-harness-181
 .venv-harness-181/bin/python -m attune_harness
 ```
 
-On Windows, create the environment with `py -3.12 -m venv .venv-harness-181`
-and use `.venv-harness-181\Scripts\python.exe` for the two module commands.
+On Windows, select x64 CPython 3.12 and create the environment with
+`py -V:3.12-64 -m venv .venv-harness-181`. Use
+`.venv-harness-181\Scripts\python.exe` for the two module commands.
+Check that the selected interpreter reports `win-amd64`; an ARM64 device can
+run x64 Python under emulation. Native ARM64 Python still needs separately
+built dependencies for the pinned base package. See the
+[native ARM64 installation results](windows-arm64-validation-1.8.1.md).
 The demonstration prints a JSON receipt with `"status": "verified"`. For
 platform requirements, see the [Windows capability table](supported-journeys.md#windows-capabilities-and-reliability).
 
@@ -150,9 +153,8 @@ running those examples; no shell activation is needed.
 
 ## Choose optional integrations when needed
 
-After 1.8.1 is published, select a profile when installing or deliberately
-updating your managed tool. Before publication, keep the working published
-profile; use the separate candidate-wheel steps to evaluate the base package.
+Select a profile when installing or deliberately updating your managed tool.
+Check a new version in a separate environment before replacing a working setup.
 
 | You need | Install |
 | --- | --- |
@@ -200,11 +202,12 @@ the form; saved work is stored in its task directory, not in the launcher URL.
 
 ## Verify your installation
 
-Compare the selected version and interpreter with the checks above. During
-preparation, use the exact wheel hash, source and platform evidence in the
-[1.8.1 readiness record](release-readiness-1.8.1.md). After publication, compare
-with the [1.8.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1)
-as well. A verified arithmetic result does not qualify every workflow or platform.
+Compare the selected version and interpreter with the checks above and the
+[1.8.1 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.1).
+The [readiness record](release-readiness-1.8.1.md) preserves the earlier candidate
+checks; the [ARM64 validation summary](windows-arm64-validation-1.8.1.md) records
+the later native experiment. A verified arithmetic result does not qualify every
+workflow or platform.
 The [1.8.0 release](https://github.com/Smart-AI-Memory/attune-harness/releases/tag/v1.8.0)
 retains that version's distribution hashes and checks. Earlier observations remain in the
 [documentation archive](https://smartaimemory.com/harness/help/archive/).
@@ -215,8 +218,7 @@ retains that version's distribution hashes and checks. Earlier observations rema
 ## Upgrade and keep a rollback path
 
 Inspect the current runtime and retain its environment before switching your
-host integration. During preparation, follow [Check the 1.8.1 candidate](#check-the-181-candidate).
-After 1.8.1 is published, check it in a separate environment with the commands
+host integration. Check 1.8.1 in a separate environment with the commands
 below. Use an unused path. For a historical walkthrough, keep the runtime it
 names, including the [1.7.0 setup](#install-the-170-runtime).
 
@@ -227,7 +229,7 @@ python3.12 -m venv .venv-harness-181
 .venv-harness-181/bin/python -m attune_harness
 ```
 
-On Windows, use `py -3.12 -m venv .venv-harness-181` and
+On Windows, select x64 Python with `py -V:3.12-64 -m venv .venv-harness-181` and
 `.venv-harness-181\Scripts\python.exe` for each Python command. Expect version
 `1.8.1` and a JSON receipt with a verified arithmetic result. Check the workflow
 you need before switching a working installation. A pinned `uv tool upgrade`
@@ -252,8 +254,11 @@ Use the published wheel for a new installation.
 
 ## Check the 1.8.1 candidate
 
-Use the exact wheel identified in the [1.8.1 readiness record](release-readiness-1.8.1.md)
-once it is available. Match its SHA-256 to that record before installing.
+This historical procedure reproduces release preparation. For a new installation,
+use the [published package](#install-181-with-pipx-or-a-virtual-environment).
+To reproduce a candidate result, use the exact wheel identified in the
+[1.8.1 readiness record](release-readiness-1.8.1.md). Match its SHA-256 to that
+record before installing.
 Keep your working runtime and use an unused environment path. Run one command
 at a time from the folder containing the wheel; stop if a command fails.
 
@@ -308,7 +313,5 @@ example makes no model calls. Record the wheel hash, source commit and
 platform with the result. See the [1.8.0 readiness record](release-readiness-1.8.0.md)
 for the remaining qualification and publication steps.
 
-For a new installation after 1.8.1 is published, follow
+For a new installation, follow
 [Install 1.8.1 with pipx or a virtual environment](#install-181-with-pipx-or-a-virtual-environment).
-Before publication, use the [published 1.8.0 guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.0/docs/installation.md)
-or evaluate the separate [1.8.1 candidate](#check-the-181-candidate).
