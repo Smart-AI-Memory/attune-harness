@@ -17,6 +17,18 @@ SLUGS = ("01-define", "02-build", "03-return", "04-review", "05-deliver", "06-im
 
 
 PRACTICE_ZIP = COURSE / "assets/reporting-practice.zip"
+EXAMPLE_ZIP = COURSE / "assets/reporting-example.zip"
+EXAMPLE_FILES = (
+    "README.md",
+    "current-checks.json",
+    "report.py",
+    "pytest.ini",
+    "data/activity.csv",
+    "expected/activity-report.html",
+    "expected/activity-report.txt",
+    "tests/test_html_report.py",
+    "tests/test_report.py",
+)
 PRACTICE_FILES = (
     "practice.py",
     "requirements-practice.txt",
@@ -30,18 +42,51 @@ PRACTICE_FILES = (
 )
 
 
-def practice_bundle():
+def _bundle(root, names):
     buffer = BytesIO()
     with ZipFile(buffer, "w") as archive:
-        for name in sorted(PRACTICE_FILES):
-            source = COURSE / name
+        for name in sorted(names):
+            source = root / name
             if source.resolve() != source or not source.is_file():
-                raise ValueError(f"Practice bundle requires a regular source file: {name}")
+                raise ValueError(f"Course bundle requires a regular source file: {name}")
             entry = ZipInfo(name)
             entry.create_system = 3
             entry.external_attr = (S_IFREG | 0o644) << 16
             archive.writestr(entry, source.read_bytes())
     return buffer.getvalue()
+
+
+def practice_bundle():
+    return _bundle(COURSE, PRACTICE_FILES)
+
+
+def example_bundle():
+    return _bundle(COURSE / "assets/example", EXAMPLE_FILES)
+
+
+def reading_copy(copy: dict) -> str:
+    """Validate a copy block and render every authored shell variant without JS."""
+    if not isinstance(copy, dict) or any(
+        not isinstance(copy.get(key), str) for key in ("label", "text")
+    ):
+        raise ValueError("Invalid copy content")
+    powershell = copy.get("powershell")
+    if "powershell" in copy and (
+        not isinstance(powershell, str) or not powershell.strip()
+        or copy.get("kind") == "prompt"
+    ):
+        raise ValueError("Invalid PowerShell copy content")
+    block = f'<h3>{escape(copy["label"])}</h3>'
+    if powershell is not None:
+        block += ('<h4>macOS/Linux — Bash or Zsh</h4>'
+                  f'<pre><code>{escape(copy["text"])}</code></pre>'
+                  '<h4>Windows PowerShell 5.1 or 7</h4>'
+                  f'<pre><code>{escape(powershell)}</code></pre>')
+    else:
+        block += f'<pre><code>{escape(copy["text"])}</code></pre>'
+    if copy.get("kind") == "prompt":
+        block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+    return block
 
 
 def project():
@@ -83,9 +128,7 @@ def project():
                       'In the interactive lesson, these notes stay in your browser.')
             unplaced_copies = []
             for copy in section.get("copies", []):
-                block = f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>'
-                if copy.get("kind") == "prompt":
-                    block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+                block = reading_copy(copy)
                 slot = copy.get("slot")
                 if slot:
                     marker = f'<div data-copy-slot="{escape(slot)}"></div>'
@@ -173,17 +216,19 @@ if __name__ == "__main__":
     parser.add_argument("--check", action="store_true", help="Refuse stale derived files without writing")
     args = parser.parse_args()
     expected = project()
-    bundle = practice_bundle()
+    bundles = {PRACTICE_ZIP: practice_bundle(), EXAMPLE_ZIP: example_bundle()}
     if args.check:
         stale = [str(path.relative_to(ROOT)) for path, text in expected.items()
                  if not path.is_file() or path.read_text(encoding="utf-8") != text]
-        if not PRACTICE_ZIP.is_file() or PRACTICE_ZIP.read_bytes() != bundle:
-            stale.append(str(PRACTICE_ZIP.relative_to(ROOT)))
+        for path, bundle in bundles.items():
+            if not path.is_file() or path.read_bytes() != bundle:
+                stale.append(str(path.relative_to(ROOT)))
         if stale:
             raise SystemExit("Regenerate the course: " + ", ".join(stale))
-        print(f"{len(expected) + 1} derived course files match their sources")
+        print(f"{len(expected) + len(bundles)} derived course files match their sources")
     else:
         for path, text in expected.items():
             path.write_text(text, encoding="utf-8")
-        PRACTICE_ZIP.write_bytes(bundle)
-        print(f"Generated {len(expected) + 1} course files")
+        for path, bundle in bundles.items():
+            path.write_bytes(bundle)
+        print(f"Generated {len(expected) + len(bundles)} course files")

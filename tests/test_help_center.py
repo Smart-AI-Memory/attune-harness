@@ -148,9 +148,13 @@ def test_current_start_is_prominent_without_relabeling_older_guides(tmp_path):
     practice_link = 'href="/harness/help/get-started/#set-up-the-practice-folder"'
     practice = start.index('<h2 id="set-up-the-practice-folder">')
     bundle = start.index('href="/harness/learn/reporting/assets/reporting-practice.zip"')
-    activate = start.index('. .venv/bin/activate')
+    select_python = start.index('COURSE_PYTHON=')
     continue_course = start.index('href="/harness/learn/reporting/">Continue to the reporting course')
-    assert install < verify < connect < practice < bundle < activate < continue_course
+    assert install < verify < practice < bundle < select_python < continue_course < connect
+    assert '.venv/bin/activate' not in start
+    assert 'Activate.ps1' not in start
+    assert 'cpython-3.12-windows-x86_64-none' in start
+    assert '.venv\\Scripts\\python.exe' in start
     assert 'href="/harness/learn/reporting/02-build/"' not in start
     assert 'href="/harness/learn/reporting/setup.html"' not in start
     assert "attune-harness==1.5.1" not in start
