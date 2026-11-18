@@ -20,6 +20,7 @@ Run `scripts/check_doc_links.py` to check tracked local links and index coverage
 - [Harness 1.8.1 release notes](release-notes-1.8.1.md): Windows command handling and setup improvements
 - [Harness 1.8.1 readiness record](release-readiness-1.8.1.md): Candidate artifacts, documentation review and publication gates
 - [Harness 1.8.1 Windows ARM64 validation](windows-arm64-validation-1.8.1.md): Bounded native results with locally built dependencies, retained failures and remaining installation limits
+- [Harness 1.8.1 Windows course validation](windows-course-validation-1.8.1.md): Corrected reporting-course results in both PowerShell versions, with native-machine and browser limits
 
 - [Harness 1.8.0 release notes](release-notes-1.8.0.md): Compatibility, memory changes and release limits
 - [Harness 1.8.0 readiness record](release-readiness-1.8.0.md): Candidate scope, documentation review and remaining release gates
