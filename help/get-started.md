@@ -65,11 +65,16 @@ course environment. Keep an existing working installation intact.
 
 ### Create the course environment
 
-1. <a href="/harness/learn/reporting/assets/reporting-practice.zip" download>Download practice ZIP</a> and extract it into a new folder.
+1. <a href="/harness/learn/reporting/assets/reporting-practice.zip" download>Download practice ZIP</a> and extract it into a new folder. On Windows, select the downloaded ZIP in File Explorer and click **Extract All**. Choose a new folder on a fixed local NTFS drive, outside shared or synchronized folders. Do not run the course from inside the ZIP.
 2. Open a terminal in the extracted folder that contains `practice.py` and
    `requirements-practice.txt`. Keep the extracted files together. Use a folder
    on your local drive, outside a shared or synchronized folder. On Windows,
    use a fixed local NTFS drive.
+   On Windows, navigate into the extracted folders until you see `practice.py`
+   and `requirements-practice.txt`. Select the File Explorer address bar, type
+   `powershell`, and press **Enter** to open Windows PowerShell in that folder.
+   If you use PowerShell 7, open it in that same folder. Use a normal,
+   non-elevated terminal.
 3. Follow the commands for your shell below. Stop if a command reports an error;
    do not continue to the next step. Use a fresh extracted folder if it already
    contains a `.venv` that you want to keep.
