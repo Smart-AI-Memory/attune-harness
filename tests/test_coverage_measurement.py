@@ -542,7 +542,9 @@ def test_full_measurement_timeout_retains_active_phase(tmp_path, monkeypatch, ph
 
     def bounded_child(argv, **kwargs):
         assert kwargs['timeout'] == (1500 if measurement.platform.system() == 'Darwin' else 1800 if measurement.platform.system() == 'Linux' else 1200)
-        kwargs['timeout'] = 3  # Only this deliberately stalled fixture is short.
+        # Allow instrumented interpreter startup before the one-second watchdog.
+        # The fixture still stalls for 30 seconds and must be killed below.
+        kwargs['timeout'] = 10
         return real_run(argv, **kwargs)
 
     monkeypatch.setattr(measurement, 'subprocess', SimpleNamespace(
