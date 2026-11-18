@@ -1,5 +1,10 @@
 <p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/reporting/">Browse the six Harness tutorials</a></p>
 
+Choose your starting point:
+
+- For the reporting course, [set up the practice folder](#set-up-the-practice-folder). That setup includes its own Harness installation.
+- For a quick local demo, [install Harness](#install-harness), then [check a local result](#check-a-local-result).
+
 ## Install Harness
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed.
@@ -7,11 +12,17 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if needed.
 and requires Python 3.12 or later. Keep a working installation intact while
 [checking an upgrade in a separate environment](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#upgrade-and-keep-a-rollback-path).
 
-On Windows, select x64 CPython 3.12 using the
-[installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment)
-and check the [current compatibility results](https://smartaimemory.com/harness/windows/).
-Native Windows ARM64 Python still requires separately built dependency wheels;
-the Python version alone does not select the architecture.
+Choose the commands for your terminal. On Windows, open **Windows PowerShell**
+or **PowerShell 7** as your normal user. This route selects x64 Python explicitly,
+including on an ARM64 Windows device where it runs under emulation.
+
+```powershell
+uv tool install --python cpython-3.12-windows-x86_64-none 'attune-harness==1.8.1'
+```
+
+Native Windows ARM64 Python requires separately built dependency wheels. See the
+[current compatibility results](https://smartaimemory.com/harness/windows/) and
+[other installation options](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/installation.md#install-181-with-pipx-or-a-virtual-environment).
 
 On macOS or Linux, install with:
 
@@ -25,38 +36,113 @@ uv tool install --python 3.12 'attune-harness==1.8.1'
 attune-harness
 ```
 
-Look for `"status": "verified"`. The demo runs locally and needs no API key.
-
-## Connect your assistant
-
-- [Set up Codex](https://github.com/Smart-AI-Memory/attune-harness#codex), then invoke `$attune-harness`.
-- [Set up Claude Code](https://github.com/Smart-AI-Memory/attune-harness#claude-code).
+Look for `"status": "verified"`. This is the local demo, not a completed course
+build. You can complete the reporting exercise without an assistant account or
+API key. If the command is not found, follow the
+[uv tool path instructions](https://docs.astral.sh/uv/concepts/tools/#the-bin-directory).
 
 ## Set up the practice folder
 
 Build and check an HTML report from six sample activity entries. You can
 [preview the sample report](/harness/learn/reporting/assets/example/expected/activity-report.html).
-The six lessons use one local project and need no API key.
+The six lessons use one local project and need no API key. The sample shows what
+you will build; viewing it does not verify your own installation or report.
+
+### Check the prerequisites
+
+You need **uv** and **Git** before preparing the practice project. Run:
+
+```text
+uv --version
+git --version
+```
+
+Both commands must print a version. If either is missing, install
+[uv](https://docs.astral.sh/uv/getting-started/installation/) or
+[Git](https://git-scm.com/downloads), then open a new terminal and check again.
+The next step selects Python 3.12 and installs Harness and pytest into a separate
+course environment. Keep an existing working installation intact.
+
+### Create the course environment
 
 1. <a href="/harness/learn/reporting/assets/reporting-practice.zip" download>Download practice ZIP</a> and extract it into a new folder.
-2. Open a terminal in the extracted folder that contains `practice.py`. Use
-   Bash or Zsh on macOS or Linux. Install Git if needed.
-3. Run these commands to set up a separate environment with Harness and pytest.
+2. Open a terminal in the extracted folder that contains `practice.py` and
+   `requirements-practice.txt`. Keep the extracted files together. Use a folder
+   on your local drive, outside a shared or synchronized folder. On Windows,
+   use a fixed local NTFS drive.
+3. Follow the commands for your shell below. Stop if a command reports an error;
+   do not continue to the next step. Use a fresh extracted folder if it already
+   contains a `.venv` that you want to keep.
+
+**Windows PowerShell 5.1 or 7**
+
+Create the environment with x64 CPython 3.12:
+
+```powershell
+$COURSE_WORK = (Get-Location).Path
+uv venv --python cpython-3.12-windows-x86_64-none .venv
+```
+
+After uv reports that it created the environment, install the course packages:
+
+```powershell
+$COURSE_PYTHON = Join-Path $COURSE_WORK '.venv\Scripts\python.exe'
+uv pip install --python $COURSE_PYTHON -r requirements-practice.txt 'attune-harness==1.8.1'
+```
+
+Check the selected environment:
+
+```powershell
+& $COURSE_PYTHON -c "import sys, sysconfig; from importlib.metadata import version; print(sys.executable); print(sys.version); print(sysconfig.get_platform()); print('Harness', version('attune-harness')); print('pytest', version('pytest'))"
+```
+
+Look for Python 3.12, `win-amd64`, Harness 1.8.1 and pytest 9.1.1. The executable
+must be inside this folder's `.venv`. No activation script or execution-policy
+change is needed: the course calls this Python executable directly.
+
+**macOS/Linux — Bash or Zsh**
 
 ```sh
 COURSE_WORK="$(pwd -P)" &&
 uv venv --python 3.12 .venv &&
-uv pip install --python .venv/bin/python -r requirements-practice.txt &&
-. .venv/bin/activate
+COURSE_PYTHON="$COURSE_WORK/.venv/bin/python" &&
+uv pip install --python "$COURSE_PYTHON" -r requirements-practice.txt 'attune-harness==1.8.1'
 ```
 
-If you already have a separate practice environment with Harness and pytest,
-activate it and run `COURSE_WORK="$(pwd -P)"` from the extracted folder. See the
-[tested versions and results](/harness/learn/reporting/assets/compatibility.json).
+Then check the environment:
 
-Keep this terminal open for lesson 2. You can run the rest of the exercise offline.
+```sh
+"$COURSE_PYTHON" -c "import sys; from importlib.metadata import version; print(sys.executable); print(sys.version); print('Harness', version('attune-harness')); print('pytest', version('pytest'))"
+```
+
+Look for Python 3.12, Harness 1.8.1 and pytest 9.1.1, with the executable inside
+this folder's `.venv`. No activation is needed.
+
+If you already have a separate compatible environment, set `COURSE_WORK` to the
+extracted course folder and `COURSE_PYTHON` to that environment's full Python
+path using your shell's syntax. Check its versions before continuing. The
+[tested versions and results](/harness/learn/reporting/assets/compatibility.json)
+identify actual recorded runs; installation alone does not qualify the course.
+
+Keep this terminal open for lesson 2. Choose the same **Command shell** in the
+course. You can run the rest of the reporting exercise offline. Lesson 2 first
+prepares a draft; you review its checkpoint and authorize the build separately.
+If preparation stops, keep the practice folder. Copy the exact command and
+printed error when asking your assistant, teammate or
+[Harness support](https://github.com/Smart-AI-Memory/attune-harness/issues) for help.
+If the error names a `practice-diagnostics-*` folder, keep it too: `failure.json`
+identifies the failed step, and `stdout.bin` and `stderr.bin` preserve the original
+output for investigation. Agree on the next action before making another attempt.
 
 <p class="help-course-action"><a class="help-featured-nav" href="/harness/learn/reporting/">Continue to the reporting course</a></p>
+
+## Connect your assistant
+
+This is optional for the local reporting exercise. Connect an assistant when
+you are ready to work on your own project:
+
+- [Set up Codex](https://github.com/Smart-AI-Memory/attune-harness#codex), then invoke `$attune-harness`.
+- [Set up Claude Code](https://github.com/Smart-AI-Memory/attune-harness#claude-code).
 
 ## Choose goal-driven development
 

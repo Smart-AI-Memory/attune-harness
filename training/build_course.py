@@ -44,6 +44,31 @@ def practice_bundle():
     return buffer.getvalue()
 
 
+def reading_copy(copy: dict) -> str:
+    """Validate a copy block and render every authored shell variant without JS."""
+    if not isinstance(copy, dict) or any(
+        not isinstance(copy.get(key), str) for key in ("label", "text")
+    ):
+        raise ValueError("Invalid copy content")
+    powershell = copy.get("powershell")
+    if "powershell" in copy and (
+        not isinstance(powershell, str) or not powershell.strip()
+        or copy.get("kind") == "prompt"
+    ):
+        raise ValueError("Invalid PowerShell copy content")
+    block = f'<h3>{escape(copy["label"])}</h3>'
+    if powershell is not None:
+        block += ('<h4>macOS/Linux — Bash or Zsh</h4>'
+                  f'<pre><code>{escape(copy["text"])}</code></pre>'
+                  '<h4>Windows PowerShell 5.1 or 7</h4>'
+                  f'<pre><code>{escape(powershell)}</code></pre>')
+    else:
+        block += f'<pre><code>{escape(copy["text"])}</code></pre>'
+    if copy.get("kind") == "prompt":
+        block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+    return block
+
+
 def project():
     lessons = [json.loads((COURSE / slug / "lesson.json").read_text(encoding="utf-8"))
                for slug in SLUGS]
@@ -83,9 +108,7 @@ def project():
                       'In the interactive lesson, these notes stay in your browser.')
             unplaced_copies = []
             for copy in section.get("copies", []):
-                block = f'<h3>{escape(copy["label"])}</h3><pre><code>{escape(copy["text"])}</code></pre>'
-                if copy.get("kind") == "prompt":
-                    block = f'<section class="copy-block" data-copy-kind="prompt">{block}</section>'
+                block = reading_copy(copy)
                 slot = copy.get("slot")
                 if slot:
                     marker = f'<div data-copy-slot="{escape(slot)}"></div>'

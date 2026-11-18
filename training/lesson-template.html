@@ -41,6 +41,15 @@
         <div class="lesson-meta"><span class="eyebrow">Guided walkthrough</span><span class="revision-label" id="revision-label">Reporting course</span></div>
         <h1 id="lesson-title">Harness in practice</h1>
         <p class="lesson-subtitle" id="lesson-subtitle">Loading the lesson…</p>
+        <div class="shell-choice">
+          <label for="command-shell">Command shell</label>
+          <select id="command-shell" aria-describedby="command-shell-hint" disabled>
+            <option value="posix">macOS/Linux — Bash or Zsh</option>
+            <option value="powershell">Windows PowerShell 5.1 or 7</option>
+          </select>
+          <p id="command-shell-hint">Choose the shell used in your terminal. This changes command examples only.</p>
+          <p id="shell-storage-notice" role="status" hidden></p>
+        </div>
         <div class="lesson-tools" role="group" aria-label="Lesson views">
           <button id="presenter-toggle" type="button" aria-pressed="false" aria-describedby="presenter-hint" disabled>Presenter notes</button>
           <button id="print-lesson" type="button" disabled>Print lesson</button>
