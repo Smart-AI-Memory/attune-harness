@@ -29,7 +29,7 @@ def run_cli(arguments, cwd, engine):
         return harness(arguments, cwd)
     executable = (Path(os.environ['SystemRoot']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
                   if engine == 'powershell.exe' else shutil.which(engine))
-    assert executable and Path(executable).is_file(), f'T6 requires {engine} on Windows'
+    assert executable and Path(executable).is_file(), f'Windows journeys require {engine}'
     major = 5 if engine == 'powershell.exe' else 7
     command = '& ' + ' '.join(quote(value) for value in [str(CLI), *arguments])
     script = (
