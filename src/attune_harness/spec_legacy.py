@@ -54,6 +54,30 @@ def read_plan(path):
         ) from error
 
 
+def _task_blocks(content):
+    blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
+    if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
+        raise ValueError("Legacy plan must contain complete nonempty task blocks")
+    try:
+        nodes = [ET.fromstring(block) for block in blocks]
+    except ET.ParseError as error:
+        raise ValueError(
+            f"Legacy plan has a task block that is not well-formed XML ({error}). "
+            "Fix that block, or split the plan and import the other tasks."
+        ) from error
+    return blocks, nodes
+
+
+def has_unmapped_task_context(content):
+    """Check the bound artifact, including drafts imported before this gate."""
+    _, nodes = _task_blocks(content)
+    return any(
+        context.attrib or len(context) or any(text.strip() for text in context.itertext())
+        for node in nodes
+        for context in node.findall("context")
+    )
+
+
 def legacy_plan(path, raw=None):
     """Read a plan with Harness's own reader; retain its fields and disclose everything ignored.
 
@@ -65,16 +89,7 @@ def legacy_plan(path, raw=None):
     if raw is None:
         raw = read_plan(path)
     content = plan_content(raw)
-    blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
-    if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
-        raise ValueError("Legacy plan must contain complete nonempty task blocks")
-    try:
-        nodes = [ET.fromstring(block) for block in blocks]
-    except ET.ParseError as error:
-        raise ValueError(
-            f"Legacy plan has a task block that is not well-formed XML ({error}). "
-            "Fix that block, or split the plan and import the other tasks."
-        ) from error
+    blocks, nodes = _task_blocks(content)
     # The blocks were read once, above, and each has just parsed on its own, so
     # the reader sees exactly them: no second read, and nothing outside a block
     # (prose, a state comment) can change how a task is read.

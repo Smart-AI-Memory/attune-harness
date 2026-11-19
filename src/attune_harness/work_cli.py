@@ -447,7 +447,17 @@ def _guidance(record, result):
             "Supply the missing answers against this checkpoint using plan --answers.",
         )
     from .work_accept import SPEC_APPROVAL
-    from .work_contract import _supported
+    from .work_contract import _supported, require_mapped_legacy_context
+
+    try:
+        require_mapped_legacy_context(record["request"])
+    except ValueError as exc:
+        result["readiness_error"] = str(exc)
+        return (
+            "Draft acceptance is blocked by unmapped imported task context.",
+            True,
+            str(exc),
+        )
 
     supported = [SPEC_APPROVAL] + [
         c["control"]
