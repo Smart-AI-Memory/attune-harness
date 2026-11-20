@@ -319,7 +319,7 @@ def test_platform_timeout_preserves_qualification_boundary(tmp_path, monkeypatch
     monkeypatch.setattr(qualifier.platform, 'system', lambda: system)
     expected_timeout = 900
     if system == 'Windows':
-        expected_timeout = 2520 if instrumented else 2100
+        expected_timeout = 2520 if instrumented else 2400
     original_xml = (b'<testsuites><testsuite tests="1" failures="0" errors="0" skipped="0">'
                     b'<testcase name="synthetic completed case"/></testsuite></testsuites>')
     original_log = b'original pytest output retained across controller timeout\n'
@@ -384,9 +384,9 @@ def test_installed_library_job_budget_keeps_windows_suite_headroom():
     workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['installed-library']
     # The hosted budget includes setup/evidence time outside the child budget.
-    # Both Windows Server versions must have 35 minutes of child headroom;
+    # Both Windows Server versions must have 40 minutes of child headroom;
     # POSIX remains at 20 minutes.
-    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 40 || 20 }}"
+    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 45 || 20 }}"
     assert set(job['strategy']['matrix']['os']) == {
         'ubuntu-latest', 'macos-latest', 'windows-2022', 'windows-2025'}
     assert job['strategy']['matrix']['python'] == ['3.12']

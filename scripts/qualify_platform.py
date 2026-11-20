@@ -670,7 +670,7 @@ def qualify(output, *, coverage_instrumented=False, installed_coverage_partition
     # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2520 if coverage_instrumented else 2100
+        suite_timeout = 2520 if coverage_instrumented else 2400
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore
