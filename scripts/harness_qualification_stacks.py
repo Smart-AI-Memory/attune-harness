@@ -64,6 +64,8 @@ def _installed_witness(config, *, finished=False):
         identity = qualifier['installed_partition_identity'](context['deadline_monotonic'])
         if identity != context['identity']:
             raise ValueError('Installed pytest child differs from the frozen wheel or inputs')
+        if not finished:
+            config._harness_installed_partition_owner = qualifier['_partition_owner']
         witness.update(status='verified', context_sha256=hashlib.sha256(raw).hexdigest(),
                        consumer_cwd=cwd, temporary_root=temporary, pid=os.getpid(),
                        timing_epoch_monotonic=config._harness_timing_epoch,
@@ -89,10 +91,9 @@ def pytest_installed_collection(config, items):
         raise pytest.UsageError('Installed coverage requires exactly two partitions')
     collected = [item.nodeid for item in items]
     selected, deselected = [], []
+    partition_owner = config._harness_installed_partition_owner
     for item in items:
-        module = item.nodeid.split('::', 1)[0]
-        owner = hashlib.sha256(module.encode('utf-8')).digest()[0] % 2
-        (selected if owner == index else deselected).append(item)
+        (selected if partition_owner(item.nodeid) == index else deselected).append(item)
     manifest = {'schema_version': 1, 'shard': {'index': index, 'count': count},
                 'admission': 'post_pytest_selection', 'collected': collected,
                 'selected': [item.nodeid for item in selected],
