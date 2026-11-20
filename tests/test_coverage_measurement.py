@@ -397,7 +397,7 @@ def test_full_suite_covers_both_windows_servers_on_supported_python():
 
     workflow = SCRIPT.parents[1] / '.github/workflows/qualification.yml'
     job = yaml.safe_load(workflow.read_text())['jobs']['full-suite']
-    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 55 || 15 }}"
+    assert job['timeout-minutes'] == "${{ startsWith(matrix.os, 'windows-') && 55 || 20 }}"
     windows_rows = {
         (row['os'], row['python'])
         for row in job['strategy']['matrix']['include']
