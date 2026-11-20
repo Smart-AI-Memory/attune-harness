@@ -74,8 +74,21 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    `README.md` against the selected shipping source and package metadata. Check
    version/status wording, install instructions, feature and limit claims, and
    the actual destinations and content of tutorial/documentation links. Current
-   guidance must remain accurate after publication; label older guidance before
-   the click. Record this review in the existing documentation-readiness evidence.
+   guidance must remain accurate after publication. Check the current install
+   snippets and follow version-specific links in the repository README, the
+   README as rendered for PyPI, the Help Center's Get Started and Dependencies
+   pages, and the Learn entry point. Before publication, check the prepared
+   versions of these pages against the candidate wheel metadata and reviewed
+   documentation targets; mark links that cannot resolve until tagging or
+   deployment as pending. Keep archived instructions pinned to their original
+   releases and point readers to current guidance. Record these checks in the
+   existing documentation-readiness evidence. For final releases the build
+   job checks the reviewed source and wheel's embedded README, current
+   installation guide and Help source before either upload approval. The
+   `install-guidance.json` receipt records the result. This does not follow
+   not-yet-published links. An RC rehearsal does not replace current final
+   installation guidance. Resolve any mismatch before
+   requesting publication.
    **Documentation readiness is part of preparation for every new version
    publication.** Apply the [writing and entered-text guide](writing-guide.md)
    when creating or revising content. Update affected official topics and their
@@ -122,7 +135,11 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    be reused, even after deleting the release.
 7. **Verify.** Compare PyPI's SHA-256 for both files with the `SHA256SUMS` in
    that run's `release-evidence` artifact, then install from the index and run
-   `scripts/check_installed.py`.
+   `scripts/check_installed.py`. For a final release, require the workflow's
+   **Verify clean installs from production PyPI** job to pass before advancing.
+   It installs the base and Redis profiles in separate clean environments and
+   checks the review wheel hash, dependency pins and `pip check`. Download its
+   `production-pypi-install-evidence` artifact from the same run.
 8. **Tag and release.** Create a signed annotated tag `vX.Y.Z` at the release
    SHA, push it, and create the GitHub Release from it with `--verify-tag`,
    attaching the two files from the publish run. Do this straight after step 7:
@@ -136,14 +153,62 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    unreleased `main`. `tests/test_claude_plugin.py` checks the pin against the
    tag when tags are present. Users receive it on their next marketplace
    update, because the version changed.
-10. **Verify public distribution.** Check that PyPI installs `X.Y.Z`, GitHub's
-    latest release lists `vX.Y.Z` with the verified files, and Claude Code
-    selects the same tag and commit after a marketplace refresh. Open the live
-    Help Center's Get Started page, its dependency reference and the Learn
-    entry point. Confirm that their current install instructions select `X.Y.Z`
-    and that version-specific links resolve. Record the public URLs and results
-    in the release handoff. If Help or training changed, use the website
-    import and publication process in [the Help Center guide](../help/README.md).
+10. **Verify public distribution.** Check that GitHub's latest release lists
+    `vX.Y.Z` with the verified files and Claude Code selects the same tag and
+    commit after a marketplace refresh. If Help or
+    training changed, use the website import and publication process in
+    [the Help Center guide](../help/README.md).
+
+    After the PyPI release and any website deployment, repeat step 1's
+    install-snippet and link checks on the public pages, including the rendered
+    PyPI README. Confirm that current instructions select `X.Y.Z` and that each
+    version-specific link resolves to the intended content for that release.
+
+    Smoke-test the documented base install and each extra named in a current
+    install snippet. Use a fresh virtual environment with a supported Python
+    for each install. Install from production PyPI, not a local wheel or
+    editable checkout. Use
+    the same environment's Python to run `python -m pip check` and confirm the
+    installed Harness version is `X.Y.Z`. Read the exact direct Attune pins from
+    the published Harness distribution's `Requires-Dist` metadata and compare
+    them with the installed package versions. For example, inspect the metadata
+    with:
+
+    ```sh
+    python -c 'from importlib.metadata import requires; print(*requires("attune-harness"), sep="\n")'
+    ```
+
+    Use `python -m pip show` with the distribution names from those pins to
+    read the installed versions. Compare against the published pins for the
+    selected install, not the latest versions of those packages on PyPI.
+    Installing an extra does not authorize provider calls.
+
+    Before marking the handoff complete, run this read-only check from the
+    release checkout using the build wheel and both production install receipts
+    from the same workflow run (not prior receipts):
+
+    ```sh
+    python scripts/check_release_install_guidance.py website \
+      --release-sha <40-char SHA> --version X.Y.Z \
+      --wheel dist/attune_harness-X.Y.Z-py3-none-any.whl \
+      --installed-evidence production-pypi-install-evidence/base.json \
+                           production-pypi-install-evidence/redis.json \
+      --report website-release-evidence.json
+    ```
+
+    A missing, unchecked or disagreeing result keeps the release handoff open.
+    This command is independent of the separately authorized website deploy.
+    It checks the authoritative public PyPI README from PyPI's versioned JSON
+    against the verified release wheel, along with live website examples, links
+    and reachable tag-based destinations. Check PyPI HTML rendering, follow the
+    link anchors and check the intended content separately. No remote state
+    makes an unrun cross-repository check automatically pass.
+
+    Record the public URLs and link results, commands, Python and Harness
+    versions, expected and installed Attune dependency versions, and install
+    and `pip check` results in the release handoff. Keep the handoff open if a
+    current snippet, destination, install or dependency check disagrees with
+    the release.
 11. **Reopen development.** A pull request moves `main` to the next `.dev0`
    version, so a build from `main` cannot be mistaken for the release.
 
