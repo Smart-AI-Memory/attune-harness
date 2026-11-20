@@ -141,6 +141,8 @@
       "title": "Dependencies and reference",
       "goal": "Choose the required integration and find guidance for the version you use.",
       "kind": "reference",
+      "version": "1.8.1",
+      "status": "published",
       "legacy_anchors": {
         "what-a-normal-130-install-supplies": "what-the-inspected-base-install-supplies",
         "what-a-normal-150-install-supplies": "what-the-inspected-base-install-supplies"

@@ -155,11 +155,12 @@ runner keep their existing modes. Dependencies, exclusions and operation limits
 remain unchanged.
 
 Both pytest children collect the same selection after the existing `-k` filter.
-Module-path hashing assigns each admitted case to one child while preserving
-module order. The aggregate requires matching admitted lists, disjoint complete
-subsets, exact-once case start/end journals and successful terminal/JUnit
-accounting, including skips and subtests. It derives counts from the admitted
-cases rather than a fixed historical total.
+The Windows memory and saved-store journey modules run in shard 1 to balance
+the measured workload. The other modules use module-path hashing. Each module
+runs in one child in collection order. The aggregate requires matching admitted
+lists, disjoint complete subsets, exact-once case start/end journals and
+successful terminal/JUnit accounting, including skips and subtests. It derives
+counts from the admitted cases rather than a fixed historical total.
 
 Each child runs outside the checkout with a separate temporary root, pytest base
 directory and retained stdout/stderr files. Each verifies its actual imported

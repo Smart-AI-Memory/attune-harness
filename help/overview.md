@@ -13,9 +13,10 @@ build**, or choose planning, implementation, verification or saved work.
 ## Check the version before starting
 
 [Get started with Harness](/harness/help/get-started/) to install the
-runtime, check a local result and connect your assistant. Read the
-[changelog](https://github.com/Smart-AI-Memory/attune-harness/blob/main/CHANGELOG.md)
-for changes and deprecation notices.
+runtime, check a local result and connect your assistant. Find the current
+[release files and notes](https://github.com/Smart-AI-Memory/attune-harness/releases/latest)
+and check the [dependency reference](/harness/help/dependencies/) before adding
+an integration.
 
 Attune AI is deprecated. Use Harness for new work and read the
 [migration guide](https://github.com/Smart-AI-Memory/attune-harness/blob/main/docs/migration.md)
