@@ -136,7 +136,15 @@ gh api repos/Smart-AI-Memory/attune-harness/environments/pypi/deployment-branch-
    unreleased `main`. `tests/test_claude_plugin.py` checks the pin against the
    tag when tags are present. Users receive it on their next marketplace
    update, because the version changed.
-10. **Reopen development.** A pull request moves `main` to the next `.dev0`
+10. **Verify public distribution.** Check that PyPI installs `X.Y.Z`, GitHub's
+    latest release lists `vX.Y.Z` with the verified files, and Claude Code
+    selects the same tag and commit after a marketplace refresh. Open the live
+    Help Center's Get Started page, its dependency reference and the Learn
+    entry point. Confirm that their current install instructions select `X.Y.Z`
+    and that version-specific links resolve. Record the public URLs and results
+    in the release handoff. If Help or training changed, use the website
+    import and publication process in [the Help Center guide](../help/README.md).
+11. **Reopen development.** A pull request moves `main` to the next `.dev0`
    version, so a build from `main` cannot be mistaken for the release.
 
 ## Documentation readiness
