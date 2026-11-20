@@ -7,19 +7,19 @@
   },
   "metadata": {
     "description": "Attune Harness for Claude Code: plan, build, review, fix and test with checks fixed in advance and saved evidence.",
-    "version": "1.8.0"
+    "version": "1.8.1"
   },
   "plugins": [
     {
       "name": "attune-harness",
-      "description": "Run Attune Harness task workflows from Claude Code: plan, build, evidence review, scoped repair, testing a change, and inspecting or resuming saved tasks. Also includes independent cross-review, roundtable and test-gap skills. Install the Harness CLI from PyPI with uv tool install --python 3.12 'attune-harness==1.8.0'. Redis and Voyage are optional. Installing the plugin authorizes no paid calls.",
+      "description": "Run Attune Harness task workflows from Claude Code: plan, build, evidence review, scoped repair, testing a change, and inspecting or resuming saved tasks. Also includes independent cross-review, roundtable and test-gap skills. Install the Harness CLI from PyPI with uv tool install --python 3.12 'attune-harness==1.8.1'. Redis and Voyage are optional. Installing the plugin authorizes no paid calls.",
       "source": {
         "source": "github",
         "repo": "Smart-AI-Memory/attune-harness",
-        "ref": "v1.8.0",
-        "sha": "856c4a91f2f8a8857ca004d1946fe2440c40bc62"
+        "ref": "v1.8.1",
+        "sha": "f2baa8b1f9c0acaab2109cbc7facfb029c596586"
       },
-      "version": "1.8.0",
+      "version": "1.8.1",
       "author": {
         "name": "Smart AI Memory",
         "email": "admin@smartaimemory.com"
