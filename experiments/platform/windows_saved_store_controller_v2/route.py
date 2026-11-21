@@ -27,7 +27,7 @@ PROTOCOL = {'helper.ps1': {'source': 'experiments/platform/windows_saved_store_g
                    'sha256': '6b33976fcc9e7c1bcf276f82c9d4e0ad1d795008a74fb3c4343d86a7573c430a',
                    'bytes': 54462},
  'requirements-workflow.lock': {'source': 'requirements-workflow.lock',
-                                'sha256': '60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad',
+                                'sha256': '3fe60fc3b0c254bed29722df8ea8c904512dcf3d9a8a0a202dd448bd18e080e2',
                                 'bytes': 451},
  'requirements-voyage.lock': {'source': 'requirements-voyage.lock',
                               'sha256': 'ec50266e00bb2bf673973b7d051da9bb962d0713904c6f7258c416a5b1dc63da',
@@ -42,7 +42,7 @@ PROTOCOL = {'helper.ps1': {'source': 'experiments/platform/windows_saved_store_g
                              'sha256': '84f43680576915e1e8716902d85acc6b2ae63a4451eb55f5eaddabbf9806c09c',
                              'bytes': 225},
  'controller-inputs.json': {'source': 'experiments/platform/windows_saved_store_controller_v2/inputs.json',
-                            'sha256': 'bde8f6184d407e2bc84e90d9e8e6932c0c59803dde34f9bef8ce52ed23a91496',
+                            'sha256': '3666a46efe60a8d90a4aa50891cc47da86264e25bf93d28d1dbfa2d600119e5f',
                             'bytes': 1539}}
 REPORTS = {'stage': 'component-stage.json', 'create': 'projection-created.json',
            'verify': 'projection-verified.json', 'build': 'projection-build.json',

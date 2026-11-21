@@ -218,16 +218,21 @@ def test_relocated_task_and_review_readers_preserve_authority_boundaries(relocat
     def no_participant(*_args, **_kwargs):
         pytest.fail("Retained review attempted participant dispatch")
 
-    completed_path = target / "review-completed/record.json"
-    before = completed_path.read_bytes()
-    resumed = resume_review(target / "review-completed", target / "review-request.json",
-                            target / "participants.json", context["completed"]["checkpoint_digest"],
-                            exchange_factory=no_participant)
-    assert resumed["status"] == "completed" and completed_path.read_bytes() == before
-    with pytest.raises(ValueError, match="Accepted request, registry or source snapshot changed"):
-        resume_review(target / "review-paused", target / "review-request.json",
-                      target / "participants.json", context["paused"]["checkpoint_digest"],
-                      exchange_factory=no_participant)
+    from attune_harness.features import FeatureUnavailable
+
+    for status in ("completed", "paused"):
+        directory = target / f"review-{status}"
+        record_path = directory / "record.json"
+        before = record_path.read_bytes()
+        with pytest.raises(
+            FeatureUnavailable,
+            match="^This record has no supported recovery profile; old records remain inspectable$",
+        ):
+            resume_review(directory, target / "review-request.json",
+                          target / "participants.json", context[status]["checkpoint_digest"],
+                          exchange_factory=no_participant)
+        assert record_path.read_bytes() == before
+        assert inspect_run(directory)["status"] == status
 
 
 @pytest.mark.skipif(os.name != "posix", reason="candidate writer used POSIX saved/effects profile")

@@ -212,7 +212,8 @@ def store_task_request(request, target):
     return record
 
 
-def read_task(directory):
+def read_task(directory, *, for_inspection=False):
+    """Validate saved data; historical execution evidence is inspection-only."""
     directory = safe_storage(directory)
     if (directory / 'record.json').is_symlink():
         raise ValueError('Task record cannot be a symlink')
@@ -234,7 +235,7 @@ def read_task(directory):
     if 'execution' in record:
         from .task_policies import RUNTIME_PROFILE, validate_execution
         expected_recovery['runtime'] = {'kind':'repair','version':1} if 'repair' in record['request'] else RUNTIME_PROFILE
-        validate_execution(record)
+        validate_execution(record, for_inspection=for_inspection)
     elif record['status'] not in ('draft', 'accepted'):
         raise ValueError('Execution state requires a runtime record')
     if record['recovery'] != expected_recovery:

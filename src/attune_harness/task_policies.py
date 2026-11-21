@@ -147,15 +147,21 @@ def execute_task(directory, *, checkpoint=None, max_operations=None, exchange_fa
         return task
 
 
-def validate_execution(task):
+def validate_execution(task, *, for_inspection=False):
     from .recovery import validate_events
     execution = task['execution']
     request = task['request']
+    expected_profile = engine_profile(request['registry'])
+    saved_profile = execution['recovery']['profile']
+    profile_matches = saved_profile == expected_profile
+    # This upgrade preserves old evidence, not authority to resume or replay it.
+    if for_inspection is True and expected_profile.get('verify') == '0.6.1':
+        profile_matches = profile_matches or saved_profile == {**expected_profile, 'verify': '0.6.0'}
     if (execution['operation'] != ('fix' if 'repair' in request else 'review') or execution['schema_version'] != 1 or
             execution['status'] != task['status'] or execution['run_id'] != request['task_id'] or
             execution['requirement_revision'] != digest(request) or
             execution['record_path'] != task['record_path'] or execution['registry'] != request['registry'] or
-            execution['recovery']['profile'] != engine_profile(request['registry'])):
+            not profile_matches):
         raise ValueError('Execution differs from accepted task identity/profile')
     expected = {role: {'participant_id': a['participant_id'], 'attempt_id': a['assignment_id']}
                 for role, a in task['bindings']['assessment']['assignments'].items()}
@@ -181,7 +187,7 @@ def validate_execution(task):
 
 
 def inspect_task(directory):
-    task = read_task(directory)
+    task = read_task(directory, for_inspection=True)
     if task.get('task_profile') == 'pytest-change-v1':
         from .test_change import present_test_task
         return present_test_task(task)

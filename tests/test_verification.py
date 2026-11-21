@@ -73,8 +73,9 @@ def test_missing_dependency_is_actionable_even_without_input_files(tmp_path, mon
     assert json.loads(output.read_text()) == result
 
 
-def test_wrong_dependency_version_never_invokes_library(project, monkeypatch):
-    monkeypatch.setattr('attune_harness.features.version', lambda _: '0.5.0')
+@pytest.mark.parametrize('installed_version', ['0.5.0', '0.6.0', '0.6.2'])
+def test_wrong_dependency_version_never_invokes_library(project, monkeypatch, installed_version):
+    monkeypatch.setattr('attune_harness.features.version', lambda _: installed_version)
     with pytest.raises(FeatureUnavailable, match='unsupported'):
         verify_document(*project)
 
