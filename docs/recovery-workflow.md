@@ -44,7 +44,13 @@ Resume requires the original request and registry again. Their accepted revision
 document/context hashes and the complete bounded Markdown source snapshot must
 match. Missing/wrong feature dependencies fail visibly. Native or command profiles
 require `--allow-external` on each execution call; a stored switch is not reused as
-credential or spending approval. Completed runs are returned without invoking any
+credential or spending approval. Resume also requires the saved engine profile to
+match the current qualified dependencies, including Verify's exact version. This
+check precedes completed-run replay. After a Verify upgrade from 0.6.0 to 0.6.1,
+inspect older records with **`inspect-review`**; use their original runtime for
+resume. Do not rewrite saved profiles to bypass the check.
+
+Completed runs with a matching engine profile are returned without invoking any
 participants. Inspection and completed-run replay are historical evidence, not a
 fresh verification of external state.
 

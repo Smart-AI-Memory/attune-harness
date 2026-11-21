@@ -5,7 +5,7 @@ from types import ModuleType
 
 ENTRY_COUNT = 56
 INPUT_PATH = 'experiments/platform/windows_saved_store_controller_v2/inputs.json'
-INPUT_SHA = 'bde8f6184d407e2bc84e90d9e8e6932c0c59803dde34f9bef8ce52ed23a91496'
+INPUT_SHA = '3666a46efe60a8d90a4aa50891cc47da86264e25bf93d28d1dbfa2d600119e5f'
 BASE_PATH = 'experiments/platform/windows_saved_store_ack_gate_v1.py'
 BASE_SHA = '5322b81ab10bf83634685a245b535d6e1d06ff1682a941101f10116564450651'
 

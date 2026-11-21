@@ -32,7 +32,7 @@ classifiers = [
 # each missing piece instead of failing.
 dependencies = [
     "attune-forms==0.17.0",
-    "attune-verify==0.6.0",
+    "attune-verify==0.6.1",
     "attune-rag==1.2.0",
     "mcp==2.2.0",
     "tiktoken==0.12.0",
