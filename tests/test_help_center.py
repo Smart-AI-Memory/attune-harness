@@ -74,6 +74,10 @@ def test_all_current_routes_and_contents_links_work(
             assert "Harness 1.7.0 preparation before publication" in text
         elif page.parent.name == "get-started":
             assert "<h1>Get started with Harness</h1>" in text
+        elif page.parent.name == "dependencies":
+            assert "published <strong>Harness 1.8.1</strong>" in text
+            assert "attune-harness[redis]==1.8.1" in text
+            assert "attune-harness[redis]==1.5.1" not in text
         else:
             assert (
                 "published <strong>Harness 1.5.0</strong>"
@@ -86,7 +90,7 @@ def test_all_current_routes_and_contents_links_work(
             ) in text
         assert (
             '<meta name="robots" content="index,follow">'
-            if (status == "published" or page.parent.name == "get-started")
+            if (status == "published" or page.parent.name in {"get-started", "dependencies"})
             and page.parent.name not in {
                 "1-5-0", "1-5-1", "1-5-1-preparation", "1-7-0-preparation", *ARCHIVED_PRACTICE
             }

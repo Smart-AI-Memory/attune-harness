@@ -9,7 +9,7 @@ import pytest
 from attune_harness.memory_saved import SavedError, SavedStore
 from test_memory_saved import request, SCOPE
 
-pytestmark = pytest.mark.skipif(os.name != "posix", reason="POSIX saved-store profile")
+pytestmark = pytest.mark.skipif(os.name not in ("posix", "nt"), reason="Local saved-store profile")
 
 
 @pytest.mark.parametrize("damage", [
@@ -17,11 +17,13 @@ pytestmark = pytest.mark.skipif(os.name != "posix", reason="POSIX saved-store pr
     "current_summary", "missing_replay", "replay_digest", "index_status",
 ])
 def test_corrupt_history_refuses_reads_and_new_writes_without_repair(tmp_path, damage):
+    # Canonicalize the trusted fixture path, preserving the store's native admission.
+    tmp_path = tmp_path.resolve(strict=True)
     store = SavedStore(tmp_path / "store")
     first = store.save(request())["record"]
     store.revise(first["id"], {"content": "Revised by the user"}, SCOPE, "two", 1)
     path = store.root / "state.json"
-    state = json.loads(path.read_text())
+    state = json.loads(path.read_text(encoding="utf-8"))
     record = state["records"][first["id"]]
     if damage == "initial_operation":
         record["history"][0]["operation"] = "revise"
@@ -40,7 +42,7 @@ def test_corrupt_history_refuses_reads_and_new_writes_without_repair(tmp_path, d
         state["operations"]["one"]["digest"] = "z" * 64
     else:
         state["index"][first["id"]] = "invented"
-    path.write_text(json.dumps(state))
+    path.write_text(json.dumps(state), encoding="utf-8")
     before = path.read_bytes()
     restarted = SavedStore(store.root)
     for operation in (
@@ -55,6 +57,7 @@ def test_corrupt_history_refuses_reads_and_new_writes_without_repair(tmp_path, d
 
 
 def test_reused_request_cannot_overwrite_or_resurrect_withdrawn_memory(tmp_path):
+    tmp_path = tmp_path.resolve(strict=True)
     store = SavedStore(tmp_path / "store")
     original = store.save(request())
     identity = original["record"]["id"]

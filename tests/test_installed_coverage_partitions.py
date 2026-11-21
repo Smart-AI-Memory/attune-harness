@@ -204,6 +204,35 @@ def test_real_children_retain_installed_identity_post_k_union_subtests_and_names
         output / f'shard-{fixture_project["probe_owner"]}' / 'plugin-probe.json').read_bytes()
 
 
+def test_windows_journey_modules_run_once_on_the_lighter_installed_shard(fixture_project, tmp_path, monkeypatch):
+    modules = ('test_windows_memory_journey.py', 'test_windows_saved_journey.py')
+    for name in modules:
+        module = fixture_project['tests'] / name
+        module.write_text(
+            'def test_first_journey(): pass\ndef test_second_journey(): pass\n',
+            encoding='utf-8',
+        )
+        fixture_project['command'].append(str(module))
+
+    output = tmp_path / 'evidence'
+    result, _ = execute(fixture_project, output, monkeypatch)
+    assert result.returncode == 0, (output / 'installed-suite.json').read_text()
+
+    first, second = [
+        json.loads((output / f'shard-{index}' / 'collection.json').read_text())
+        for index in range(2)
+    ]
+    moved_cases = {
+        f'tests/{module}::{case}'
+        for module in modules
+        for case in ('test_first_journey', 'test_second_journey')
+    }
+    assert moved_cases.isdisjoint(first['selected'])
+    assert moved_cases.issubset(second['selected'])
+    assert first['collected'] == second['collected']
+    assert sorted(first['selected'] + second['selected']) == sorted(first['collected'])
+
+
 @pytest.fixture
 def completed_evidence(fixture_project, tmp_path, monkeypatch):
     output = tmp_path / 'valid-evidence'

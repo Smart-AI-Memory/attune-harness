@@ -130,7 +130,11 @@ def installed_partition_identity(deadline):
 
 
 def _partition_owner(nodeid):
-    return hashlib.sha256(nodeid.split('::', 1)[0].encode('utf-8')).digest()[0] % 2
+    module = nodeid.split('::', 1)[0]
+    # Retained Windows runs put both slow journey modules on the busier worker.
+    if module in ('tests/test_windows_memory_journey.py', 'tests/test_windows_saved_journey.py'):
+        return 1
+    return hashlib.sha256(module.encode('utf-8')).digest()[0] % 2
 
 
 def _clock_number(value, label):
@@ -670,7 +674,7 @@ def qualify(output, *, coverage_instrumented=False, installed_coverage_partition
     # Individual operation deadlines stay unchanged.
     suite_timeout = 900
     if platform.system() == 'Windows':
-        suite_timeout = 2520 if coverage_instrumented else 2100
+        suite_timeout = 2520 if coverage_instrumented else 2400
     import attune_harness
     from attune_harness.process import invoke
     from attune_harness.review_store import RunStore

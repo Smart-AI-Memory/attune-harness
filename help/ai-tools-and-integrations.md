@@ -1,3 +1,7 @@
+For Harness 1.8.1, use the [released CLI guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/cli-guide.md)
+and [supported workflows](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/supported-journeys.md).
+The command examples on this page document 1.5.1.
+
 ## Typical use
 
 These groups describe who usually initiates work. People and AI can use the CLI;

@@ -1,3 +1,7 @@
+For Harness 1.8.1, check the [installation guide](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/installation.md),
+[dependency reference](/harness/help/dependencies/), or [supported workflows](https://github.com/Smart-AI-Memory/attune-harness/blob/v1.8.1/docs/supported-journeys.md).
+The examples below retain their original release and preparation context.
+
 ## The private form link stopped working
 
 The form listener must remain running. A stopped listener invalidates its link.
@@ -29,7 +33,7 @@ an older submission or edit task evidence to bypass the refusal.
 
 1. Check the installed distribution in the interpreter you selected: `python -c "from importlib.metadata import version; print(version('attune-harness'))"`.
 2. Read the selected route's `--help` and the actual diagnostic. Follow the installed interface if it differs from this guide.
-3. Compare your installation with [the release dependency map](/harness/help/dependencies/). A `--no-deps` installation omits the normal base dependencies; restore the normal install in a disposable isolated environment.
+3. Compare your installation with the [dependency map for your version](/harness/help/dependencies/#read-guidance-for-your-version). A `--no-deps` installation omits the normal base dependencies; restore the normal install in a disposable isolated environment.
 
 **Expected result:** The CLI and interpreter refer to one environment. Optional
 integrations are installed only for the requested journey. Do not upgrade a
