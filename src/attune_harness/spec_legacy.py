@@ -54,6 +54,59 @@ def read_plan(path):
         ) from error
 
 
+class _TaskTreeBuilder(ET.TreeBuilder):
+    """Retain comments only below an unmapped task-level context element."""
+
+    def __init__(self):
+        super().__init__(insert_comments=True)
+        self._depth = 0
+        self._in_context = False
+
+    def start(self, tag, attrs):
+        self._depth += 1
+        if self._depth == 2:
+            self._in_context = tag == "context"
+        return super().start(tag, attrs)
+
+    def end(self, tag):
+        if self._depth == 2:
+            self._in_context = False
+        self._depth -= 1
+        return super().end(tag)
+
+    def comment(self, text):
+        if self._in_context:
+            return super().comment(text)
+        return None
+
+
+def _task_blocks(content):
+    blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
+    if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
+        raise ValueError("Legacy plan must contain complete nonempty task blocks")
+    try:
+        nodes = [
+            ET.fromstring(block, parser=ET.XMLParser(target=_TaskTreeBuilder()))
+            for block in blocks
+        ]
+    except ET.ParseError as error:
+        raise ValueError(
+            f"Legacy plan has a task block that is not well-formed XML ({error}). "
+            "Fix that block, or split the plan and import the other tasks."
+        ) from error
+    return blocks, nodes
+
+
+def has_unmapped_task_context(content):
+    """Check the bound artifact, including drafts imported before this gate."""
+    _, nodes = _task_blocks(content)
+    return any(
+        context.attrib or len(context) or any(text.strip() for text in context.itertext())
+        for node in nodes
+        for context in node.findall("context")
+    )
+
+
 def legacy_plan(path, raw=None):
     """Read a plan with Harness's own reader; retain its fields and disclose everything ignored.
 
@@ -65,16 +118,7 @@ def legacy_plan(path, raw=None):
     if raw is None:
         raw = read_plan(path)
     content = plan_content(raw)
-    blocks = re.findall(r"<task\b[^>]*>.*?</task>", content, re.S)
-    if not blocks or len(blocks) != len(re.findall(r"<task\b", content)):
-        raise ValueError("Legacy plan must contain complete nonempty task blocks")
-    try:
-        nodes = [ET.fromstring(block) for block in blocks]
-    except ET.ParseError as error:
-        raise ValueError(
-            f"Legacy plan has a task block that is not well-formed XML ({error}). "
-            "Fix that block, or split the plan and import the other tasks."
-        ) from error
+    blocks, nodes = _task_blocks(content)
     # The blocks were read once, above, and each has just parsed on its own, so
     # the reader sees exactly them: no second read, and nothing outside a block
     # (prose, a state comment) can change how a task is read.

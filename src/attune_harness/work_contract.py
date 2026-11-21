@@ -727,6 +727,20 @@ def check_work_fresh(record: dict) -> None:
         assert_snapshot(request["effects"], request["effects"]["before"])
 
 
+def require_mapped_legacy_context(request):
+    """An import disclosure does not make context part of the work contract."""
+    if "legacy" not in request:
+        return
+    from .spec_legacy import has_unmapped_task_context
+
+    if has_unmapped_task_context(request["legacy"]["content"]):
+        raise ValueError(
+            "Imported task has unmapped <context>. Review the import disclosures. "
+            "Move any requirements into supported intent or task fields, then remove "
+            "the unmapped block, reimport the plan, and review the new checkpoint."
+        )
+
+
 def bind_work_acceptance(
     directory, decision: dict, *, supported_controls=(), collector=None
 ) -> dict:
@@ -741,6 +755,7 @@ def bind_work_acceptance(
                 "Work must be an unaccepted draft; do not replay a decision"
             )
         check_work_fresh(record)
+        require_mapped_legacy_context(record["request"])
         record.update(
             status="accepted",
             acceptance={

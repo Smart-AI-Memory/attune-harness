@@ -363,6 +363,16 @@ A task directory may not sit behind a symlink. That rules out `/tmp` on macOS,
 which links to `/private/tmp`; the refusal names the link and the resolved path
 to use instead.
 
+### Resolve unmapped legacy task context
+
+A legacy plan can retain a task's `<context>` block without including it in the
+worker's instructions. The preview shows this block in `import_disclosures`,
+and a nonempty block prevents approval. Review the disclosure. Move any
+requirements into supported work intent or task fields, remove the unmapped
+block from the source plan, and use `plan --reimport` with the current
+checkpoint. Review the new checkpoint before you approve it. Harness does not
+copy imported context into the work contract automatically.
+
 ### Importing a plan from another project
 
 A plan from another project, outside the checkout, is imported by naming it
