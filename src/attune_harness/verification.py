@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .features import read_text, report, require_feature
 
-VERIFY_VERSION = '0.6.0'
+VERIFY_VERSION = '0.6.1'
 
 
 def verify_document(document: Path, context_file: Path) -> dict:

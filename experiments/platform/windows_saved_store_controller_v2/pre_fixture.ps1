@@ -77,7 +77,7 @@ $pinsJson = @'
   "requirements-redis.lock": "84f43680576915e1e8716902d85acc6b2ae63a4451eb55f5eaddabbf9806c09c",
   "requirements-tokens.lock": "6351570c2dabef01106388ab7291bab9f52866f6bdbec1eb36f036929b39472d",
   "requirements-voyage.lock": "ec50266e00bb2bf673973b7d051da9bb962d0713904c6f7258c416a5b1dc63da",
-  "requirements-workflow.lock": "60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad",
+  "requirements-workflow.lock": "3fe60fc3b0c254bed29722df8ea8c904512dcf3d9a8a0a202dd448bd18e080e2",
   "tests/.gitattributes": "69778c577642ecd3fe7b8c329dff6948d7ccb7fd8afde301711b12e63ccdbf8d",
   "tests/fixtures/windows_saved_store_component_v1/inputs-bde.zip": "c0c4ec0f8c274ec0782bc19844bf7a5cbdb600c4cb678ea70e3ad8773d703fe4",
   "tests/fixtures/windows_saved_store_component_v1/protocol.zip": "c4d27a6c8f3ad50dbe08f8d181d958ed8c5bad4542f1bce1f8146e3cabe667bb",
@@ -96,10 +96,10 @@ $pinsJson = @'
   "experiments/platform/windows_saved_store_standard_user_gui_proposal_v4.ps1": "0f8bc51e984dedd5cace1c6c93e5278dd24273b077fc8e39b98e8099baa276c8",
   "experiments/platform/windows_saved_store_ack_gate_v1.py": "5322b81ab10bf83634685a245b535d6e1d06ff1682a941101f10116564450651",
   "experiments/platform/windows_saved_store_controller_v2/.gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
-  "experiments/platform/windows_saved_store_controller_v2/inputs.json": "bde8f6184d407e2bc84e90d9e8e6932c0c59803dde34f9bef8ce52ed23a91496",
-  "experiments/platform/windows_saved_store_controller_v2/route.py": "3bd4c6eb79b395f9660dc82ae1ab3734fd6bcd44239911ba5084d27a8b0170d5",
-  "experiments/platform/windows_saved_store_controller_v2/entry.py": "10faaf2b76c6f9180691248c0e20053210df4b828e2ad927e070b4a0a8861027",
-  "experiments/platform/windows_saved_store_controller_v2/preflight.ps1": "fb61a075166c22616d9f85acfc362e2b57dd765e29cd318ef1c42d5e217f1cdf",
+  "experiments/platform/windows_saved_store_controller_v2/inputs.json": "3666a46efe60a8d90a4aa50891cc47da86264e25bf93d28d1dbfa2d600119e5f",
+  "experiments/platform/windows_saved_store_controller_v2/route.py": "1cb667e42ab065c569add0445b0680cad4650503123a9e1500453caad2e93ba3",
+  "experiments/platform/windows_saved_store_controller_v2/entry.py": "abdf2231135145b0131d439858212a1de22ecdf13d1634dcba82e4706f1e8472",
+  "experiments/platform/windows_saved_store_controller_v2/preflight.ps1": "b0f6eb5393e913a89630557d2bafc09f0955857f1776928173af1cc3c5f379df",
   "tests/test_windows_saved_store_controller_v2.py": "a35ef8f9ff59f2f6214b005deb5eb6c03f80acdbacc3dbcda7e4af006fdeba3f",
   "tests/fixtures/windows_saved_store_controller_v2.zip": "da481265cf79a5ba4c05f370bc861309b16fd51bb0145aab48ca2646cae94f07",
   "experiments/platform/windows_saved_store_component_account_tail_v2.ps1": "d6ca9401a6435acf93bf8996755b8873863e541d65d6b0d42099d1d9ec4d3a96"
@@ -137,7 +137,7 @@ $entryCode = @'
 import hashlib,json,pathlib,sys,types
 source,repo,owned,pins,expected,output=sys.argv[1:]
 raw=pathlib.Path(source).read_bytes()
-if len(raw)>1048576 or hashlib.sha256(raw).hexdigest()!='10faaf2b76c6f9180691248c0e20053210df4b828e2ad927e070b4a0a8861027': raise ValueError('gate_source_refused')
+if len(raw)>1048576 or hashlib.sha256(raw).hexdigest()!='abdf2231135145b0131d439858212a1de22ecdf13d1634dcba82e4706f1e8472': raise ValueError('gate_source_refused')
 m=types.ModuleType('t2_account_entry');m.__file__=source;exec(compile(raw,source,'exec'),m.__dict__)
 report={'status':'entry_incomplete','accounts_or_credentials_created':False,'failure_type':None}
 with pathlib.Path(output).open('x',encoding='ascii') as stream:

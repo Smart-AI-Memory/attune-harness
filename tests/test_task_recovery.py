@@ -225,3 +225,121 @@ def test_refused_turn_retry_is_limited_to_one(case):
             control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)
     with pytest.raises(ValueError, match='limit exhausted'):
         control_task(case[2], 'reconcile', event_id=event['event_id'], retry_refused=True)
+
+
+def legacy_verify_task(case, state):
+    """Synthetic old-profile fixture; actual cross-runtime writers need installed qualification."""
+    from attune_harness.verification import VERIFY_VERSION
+
+    assert VERIFY_VERSION == '0.6.1'
+    draft(case)
+    accept_task(case[2], response(case[2]))
+    task = execute_task(case[2], **({} if state == 'completed' else {'max_operations': 2}))
+    assert task['status'] == ('completed' if state == 'completed' else 'paused')
+    task['execution']['recovery']['profile']['verify'] = '0.6.0'
+    if state == 'running':
+        task['status'] = task['execution']['status'] = 'running'
+    RunStore(case[2], existing=True).save(task)
+    return task
+
+
+@pytest.mark.parametrize('state', ['paused', 'completed', 'running'])
+def test_ordinary_status_reads_legacy_verify_evidence_without_execution(case, capsys, monkeypatch, state):
+    from attune_harness import recovery, retrieval, task_policies, verification
+
+    task = legacy_verify_task(case, state)
+    before = (case[2] / 'record.json').read_bytes()
+    evidence = copy.deepcopy(task['execution'])
+    calls = []
+
+    def forbidden(*args, **kwargs):
+        calls.append((args, kwargs))
+        pytest.fail('Historical status or refused control attempted execution or persistence')
+
+    monkeypatch.setattr(RunStore, 'save', forbidden)
+    monkeypatch.setattr(task_policies, 'check_fresh', forbidden)
+    monkeypatch.setattr(task_policies, 'prepare_task', forbidden)
+    monkeypatch.setattr(retrieval, 'retrieve_sources', forbidden)
+    monkeypatch.setattr(verification, 'verify_document', forbidden)
+    monkeypatch.setattr(recovery, 'reconcile_record', forbidden)
+    monkeypatch.setattr(recovery, 'transfer_record', forbidden)
+    monkeypatch.setattr(recovery, 'cancel_record', forbidden)
+
+    assert main(['status', str(case[2])]) == 0
+    shown = json.loads(capsys.readouterr().out)
+    assert shown['task_profile'] == 'assessment-intake-v1'
+    assert shown['status'] == ('unresolved' if state == 'running' else state)
+    if state == 'running':
+        assert shown['persisted_status'] == 'running'
+    assert shown['request'] == task['request']
+    assert shown['acceptance'] == task['acceptance']
+    assert shown['bindings'] == task['bindings']
+    assert shown['checkpoint_digest'] == task['checkpoint_digest']
+    assert shown['execution'] == evidence
+    assert (case[2] / 'record.json').read_bytes() == before
+
+    with pytest.raises(ValueError, match='Execution differs from accepted task identity/profile'):
+        read_task(case[2])
+    with pytest.raises(ValueError, match='Execution differs from accepted task identity/profile'):
+        execute_task(case[2], exchange_factory=forbidden)
+    for action, options in [
+        ('cancel', {'reason': 'Do not change old evidence'}),
+        ('transfer', {'participant_id': 'beta', 'reason': 'Do not transfer old evidence'}),
+        ('reconcile', {'event_id': evidence['events'][0]['event_id'], 'retry_read_only': True}),
+    ]:
+        with pytest.raises(ValueError, match='Execution differs from accepted task identity/profile'):
+            control_task(case[2], action, **options)
+        assert (case[2] / 'record.json').read_bytes() == before
+
+    for arguments in [
+        ['resume'],
+        ['cancel-task', '--reason', 'Do not change old evidence'],
+        ['transfer-task', '--assessor', 'beta', '--reason', 'Do not transfer old evidence'],
+        ['reconcile-task', '--event', evidence['events'][0]['event_id'], '--retry-read-only'],
+    ]:
+        assert main([arguments[0], str(case[2]), *arguments[1:]]) == 2
+        refused = json.loads(capsys.readouterr().out)
+        assert refused['status'] == 'failed'
+        assert refused['error']['detail'] == 'Execution differs from accepted task identity/profile'
+        assert (case[2] / 'record.json').read_bytes() == before
+    assert calls == []
+
+
+@pytest.mark.parametrize('damage', [
+    'verify', 'rag', 'protocol', 'version', 'extra-profile', 'missing-profile',
+    'execution-id', 'assignment', 'event', 'acceptance', 'owner', 'checkpoint',
+])
+def test_legacy_verify_status_retains_identity_and_integrity_checks(case, capsys, damage):
+    task = legacy_verify_task(case, 'paused')
+    execution = task['execution']
+    profile = execution['recovery']['profile']
+    if damage == 'verify':
+        profile['verify'] = '0.6.2'
+    elif damage == 'rag':
+        profile['rag'] = '9.9.9'
+    elif damage == 'protocol':
+        profile['turn_protocol_sha256'] = '0' * 64
+    elif damage == 'version':
+        profile['version'] = 99
+    elif damage == 'extra-profile':
+        profile['extra'] = 'unsupported'
+    elif damage == 'missing-profile':
+        profile.pop('verify')
+    elif damage == 'execution-id':
+        execution['run_id'] = 'foreign-task'
+    elif damage == 'assignment':
+        execution['recovery']['assignments']['assessor']['participant_id'] = 'beta'
+    elif damage == 'event':
+        execution['events'][0]['state'] = 'unsupported'
+    elif damage == 'acceptance':
+        task['acceptance']['request_digest'] = '0' * 64
+    elif damage == 'owner':
+        task['record_path'] = execution['record_path'] = str(case[2] / 'foreign.json')
+    RunStore(case[2], existing=True).save(task)
+    if damage == 'checkpoint':
+        task['checkpoint_digest'] = '0' * 64
+        (case[2] / 'record.json').write_text(json.dumps(task), encoding='utf-8')
+    before = (case[2] / 'record.json').read_bytes()
+    assert main(['status', str(case[2])]) == 2
+    assert json.loads(capsys.readouterr().out)['status'] == 'failed'
+    assert (case[2] / 'record.json').read_bytes() == before

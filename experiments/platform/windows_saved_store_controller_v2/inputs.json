@@ -13,7 +13,7 @@
   "locks": {
     "requirements-workflow.lock": {
       "source": "requirements-workflow.lock",
-      "sha256": "60ba53cfeba53c784331a689f948c5cbd046ed20f4e84fd6023eacf0ff656fad",
+      "sha256": "3fe60fc3b0c254bed29722df8ea8c904512dcf3d9a8a0a202dd448bd18e080e2",
       "bytes": 451
     },
     "requirements-voyage.lock": {
