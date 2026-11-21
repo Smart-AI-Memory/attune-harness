@@ -5,6 +5,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import re
 from urllib.error import HTTPError
 
 import pytest
@@ -158,7 +159,17 @@ def test_workflow_keeps_production_and_testpypi_routes_separate():
     assert "repository-url: https://test.pypi.org/legacy/" in workflow
     assert "gh api \"repos/$GITHUB_REPOSITORY/environments/testpypi\"" in workflow
     assert '[[ "$GITHUB_SHA" == "$RELEASE_SHA" ]]' in workflow
-    assert workflow.count("PIP_CONFIG_FILE: /dev/null") == 2
+    jobs = dict(re.findall(r"^  ([a-z_][a-z_-]*):\n((?:(?!^  [^ \n]).*\n)*)", workflow.split("\njobs:\n", 1)[1], re.M))
+    for job_name in ("build", "verify_testpypi", "verify_pypi_install"):
+        assert "\n    env:\n" in jobs[job_name]
+        env = jobs[job_name].split("\n    env:\n", 1)[1].split("\n    steps:", 1)[0]
+        assert "      PIP_CONFIG_FILE: /dev/null" in env.splitlines(), job_name
+    production_verify = jobs["verify_pypi_install"].splitlines()
+    assert "    if: inputs.publish && inputs.target == 'pypi' && !contains(inputs.version, 'rc')" in production_verify
+    assert "    needs: [build, publish]" in production_verify
+    testpypi_verify = jobs["verify_testpypi"].splitlines()
+    assert "    if: inputs.publish && inputs.target == 'testpypi'" in testpypi_verify
+    assert "    needs: publish_testpypi" in testpypi_verify
     assert "--isolated --disable-pip-version-check install --no-cache-dir --index-url https://pypi.org/simple/" in workflow
     assert "This publication path requires a final or release-candidate version" in production
     assert "check_release_candidate.py" in workflow
