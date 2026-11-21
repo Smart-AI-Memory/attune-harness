@@ -62,6 +62,7 @@ from .work_contract import (
     create_work,
     decision_binding,
     missing_information,
+    require_mapped_legacy_context,
     revise_work,
 )
 
@@ -500,6 +501,10 @@ class WorkAcceptance:
                     "required-controls", "PASS", "Every required control has a supporting runner"
                 )
             )
+        try:
+            require_mapped_legacy_context(request)
+        except ValueError as exc:
+            receipts.append(_receipt("legacy-task-context", "BLOCKED", str(exc)))
         return receipts
 
     @staticmethod

@@ -113,3 +113,100 @@ def test_a_plan_outside_the_project_is_refused_before_anything_is_written(work, 
     assert code == 2
     assert "Legacy plan must be a regular file inside the project" in json.dumps(envelope)
     assert not directory.exists()
+
+
+def import_with_context(work, tmp_path, context, capsys):
+    root, config, _ = work
+    target = write_plan(root)
+    plan = target.read_text(encoding="utf-8")
+    target.write_text(plan.replace("</objective>", "</objective>" + context, 1), encoding="utf-8")
+    directory = tmp_path / "work"
+    code, envelope = run(
+        ["plan", "--task-dir", str(directory), "--project", str(root), "--config", str(config),
+         "--request", str(request_file(tmp_path, work[2])), "--import-plan", str(target)],
+        capsys,
+    )
+    assert code == 0, envelope
+    return target, directory, envelope
+
+
+def test_unmapped_context_remains_visible_and_blocks_direct_cli_approval(work, tmp_path, capsys):
+    _, directory, preview = import_with_context(
+        work, tmp_path, "<context>Preserve the baseline and require a separate approval.</context>", capsys
+    )
+    record = read_task(directory)
+    assert "Preserve the baseline" in record["request"]["legacy"]["content"]
+    assert any("Preserve the baseline" in entry for entry in preview["import_disclosures"])
+    assert "<context>" in preview["readiness_error"]
+    code, envelope = run(
+        ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]],
+        capsys,
+    )
+    assert code == 2
+    assert "<context>" in json.dumps(envelope)
+    assert read_task(directory) == record
+
+
+def test_authoritative_bind_refuses_preexisting_context_and_allows_explicit_remapping(work, tmp_path, capsys):
+    from attune_harness.work_accept import reimport_plan
+    from attune_harness.work_contract import bind_work_acceptance, revise_work
+    from test_work_contract import decision
+
+    context = "<context><requirement>Keep the original output.</requirement></context>"
+    target, directory, _ = import_with_context(work, tmp_path, context, capsys)
+    record = read_task(directory)
+    with pytest.raises(ValueError, match=r"unmapped <context>"):
+        bind_work_acceptance(directory, decision(record))
+    assert read_task(directory) == record
+
+    # Deliberately move the requirement to the supported intent, then remove
+    # the unsupported XML and reimport it against the current checkpoint.
+    revised = revise_work(
+        directory, checkpoint=record["checkpoint_digest"],
+        changes={"intent": {"constraints": ["Keep the original output."]}},
+    )
+    with pytest.raises(ValueError, match=r"unmapped <context>"):
+        bind_work_acceptance(directory, decision(revised))
+    target.write_text(target.read_text(encoding="utf-8").replace(context, ""), encoding="utf-8")
+    revised = reimport_plan(directory, checkpoint=revised["checkpoint_digest"])
+    assert context in revised["history"][0]["request"]["legacy"]["content"]
+    accepted = bind_work_acceptance(directory, decision(revised))
+    assert accepted["request"]["intent"]["constraints"] == ["Keep the original output."]
+    assert accepted["status"] == "accepted"
+
+
+def test_comment_only_task_context_remains_disclosed_and_cannot_grant_approval(work, tmp_path, capsys):
+    from attune_harness.work_contract import bind_work_acceptance
+    from test_work_contract import decision
+
+    context = "<context> <!-- Keep the existing report format. --> </context>"
+    _, directory, preview = import_with_context(work, tmp_path, context, capsys)
+    assert any("<!-- Keep the existing report format. -->" in entry for entry in preview["import_disclosures"])
+    assert "unmapped <context>" in preview["readiness_error"]
+    record = read_task(directory)
+    code, envelope = run(
+        ["plan", "--task-dir", str(directory), "--accept", "--checkpoint", record["checkpoint_digest"]],
+        capsys,
+    )
+    assert code == 2
+    assert "unmapped <context>" in json.dumps(envelope)
+    with pytest.raises(ValueError, match=r"unmapped <context>"):
+        bind_work_acceptance(directory, decision(record))
+    assert read_task(directory) == record
+
+
+def test_empty_context_and_unrelated_opaque_metadata_do_not_block(work, tmp_path, capsys):
+    from attune_harness.work_contract import bind_work_acceptance
+    from test_work_contract import decision
+
+    _, directory, preview = import_with_context(
+        work, tmp_path,
+        "<context> \n </context><!-- Outside task context. -->"
+        "<notes>Not imported.<!-- Inside unrelated opaque XML. --></notes>",
+        capsys,
+    )
+    assert any("Not imported." in entry for entry in preview["import_disclosures"])
+    assert all("Inside unrelated" not in entry and "Outside task" not in entry
+               for entry in preview["import_disclosures"])
+    record = read_task(directory)
+    assert bind_work_acceptance(directory, decision(record))["status"] == "accepted"
