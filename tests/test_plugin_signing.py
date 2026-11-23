@@ -34,7 +34,7 @@ import pytest
 from attune_harness import extensions as ext
 from attune_harness import plugin_signing as signing
 from attune_harness.features import FeatureUnavailable
-from attune_harness.process import ProcessResult, invoke
+from attune_harness.process import ProcessResult, ProcessShutdownError, invoke
 from attune_harness.retrieval import retrieve_sources
 from attune_harness.review import review
 from attune_harness.review_contract import load_registry
@@ -101,17 +101,51 @@ def spelled(path):
     return signing.gpg_path(path, gpg_style())
 
 
-def run_gpg(home, *args):
+def _invoke_gpg(home, *args):
     """One bounded gpg call in a scratch home, through the same primitive the host uses.
 
     Paths reach gpg spelled as the verifier spells them for this build: Git for
     Windows' MSYS gpg treats a backslashed or a C:/ home as relative and cannot
     start its agent from it (D29.1's first two findings).
     """
-    result = invoke((gpg_or_fail(), '--batch', '--no-tty', '--homedir', spelled(home), *args), '',
-                    cwd=home, timeout=SIGNER_SETUP_TIMEOUT, max_output_bytes=1_048_576)
+    return invoke((gpg_or_fail(), '--batch', '--no-tty', '--homedir', spelled(home), *args), '',
+                  cwd=home, timeout=SIGNER_SETUP_TIMEOUT, max_output_bytes=1_048_576)
+
+
+def run_gpg(home, *args):
+    result = _invoke_gpg(home, *args)
     assert result.failure in (None, 'nonzero_exit') and result.returncode == 0, (args, result)
     return result
+
+
+def _signing_output(result, fingerprint):
+    """Project GPG output to fixed labels and small integers; never copy free text."""
+    statuses = signing._status(result.stdout)
+    excerpt = []
+    recognized = 0
+    for keyword, *fields in statuses:
+        if keyword == 'INV_SGNR':
+            reason = fields[0] if fields else ''
+            record = {'status': keyword, 'reason': int(reason) if re.fullmatch(r'[0-9]{1,3}', reason) else None}
+        elif keyword == 'KEY_CONSIDERED':
+            flags = fields[1] if len(fields) > 1 else ''
+            record = {'status': keyword, 'flags': int(flags) if re.fullmatch(r'[0-9]{1,3}', flags) else None,
+                      'matches_created_key': fields[0] == fingerprint if fields and fingerprint else None}
+        elif keyword in ('NO_SECKEY', 'BEGIN_SIGNING', 'SIG_CREATED', 'FAILURE'):
+            record = {'status': keyword}
+        else:
+            continue
+        recognized += 1
+        # Even twelve of the longest projected entries fit the 2 KiB excerpt budget.
+        if len(excerpt) < 12:
+            excerpt.append(record)
+    return {
+        'capture': 'complete' if result.failure == 'nonzero_exit' else 'partial_or_unknown',
+        'captured_status_count': len(statuses), 'filtered_status_count': len(statuses) - recognized,
+        'status_excerpt': excerpt, 'excerpt_truncated': recognized > len(excerpt),
+        'stderr_present': bool(result.stderr),
+        'stderr_mentions_unusable_default_key': 'no default secret key: Unusable secret key' in result.stderr,
+    }
 
 
 def _guard_msys_agent_sockets(home):
@@ -189,11 +223,13 @@ class Signer:
         # The status line names the new key; a listing call is not needed.
         self.fingerprint = next(line.split()[3] for line in created.stdout.splitlines()
                                 if line.startswith('[GNUPG:] KEY_CREATED'))
+        self.creation_returncode = created.returncode
         self.public_key = self._export()
 
     def _export(self):
         target = self.home / 'public.asc'
-        run_gpg(self.home, '--armor', '--yes', '--output', spelled(target), '--export', self.fingerprint)
+        exported = run_gpg(self.home, '--armor', '--yes', '--output', spelled(target), '--export', self.fingerprint)
+        self.export_returncode = exported.returncode
         return target.read_bytes().decode('ascii')
 
     @property
@@ -203,13 +239,51 @@ class Signer:
     def sign(self, data: bytes, *, at=None, armor=True) -> bytes:
         return self.produce(data, '--detach-sign', at=at, armor=armor)
 
+    def _note_signing_failure(self, error, operation, result):
+        try:
+            fingerprint = self.fingerprint if re.fullmatch(signing.FINGERPRINT, self.fingerprint) else None
+            version = re.match(r'gpg \(GnuPG\) ([0-9]{1,3}(?:\.[0-9]{1,3}){1,3})\b', STYLE.get('version', ''))
+            style = STYLE.get('path_style')
+            record = {
+                'schema': 'gpg-fixture-failure-v1', 'operation': operation, 'selector': 'gpg_default',
+                'gpg_version': version[1] if version else None,
+                'path_style': style if style in ('native', 'posix') else None,
+                'timeout_seconds': SIGNER_SETUP_TIMEOUT, 'created_fingerprint': fingerprint,
+                'creation_returncode': self.creation_returncode, 'public_export_returncode': self.export_returncode,
+                'failure': 'shutdown_unconfirmed' if result is None else result.failure,
+                'returncode': None if result is None else result.returncode,
+                'output': None if result is None else _signing_output(result, fingerprint),
+            }
+            note = json.dumps(record, ensure_ascii=True, separators=(',', ':'))
+            if len(note) <= 8192:
+                error.add_note(note)
+        except Exception:
+            # Diagnostic formatting is best effort; the caller raises the original failure.
+            pass
+
+    def _run_signing(self, operation, args):
+        try:
+            result = _invoke_gpg(self.home, '--status-fd', '1', *args)
+        except ProcessShutdownError as error:
+            self._note_signing_failure(error, operation, None)
+            raise
+        if result.failure not in (None, 'nonzero_exit') or result.returncode != 0:
+            # A timeout can carry the return code observed after stopping the process.
+            error = AssertionError(f'GPG fixture {operation}: failure={result.failure}, returncode={result.returncode}')
+            self._note_signing_failure(error, operation, result)
+            raise error
+
     def produce(self, data: bytes, *flags, at=None, armor=True) -> bytes:
         """gpg's output over ``data`` for the given flags: a detached signature, or an inline or clearsigned message."""
         source, target = self.home / 'signed.bin', self.home / 'signed.out'
         source.write_bytes(data)
         faked = ('--faked-system-time', at) if at else self.faked
-        run_gpg(self.home, *faked, '--passphrase', '', '--pinentry-mode', 'loopback', *(['--armor'] if armor else []),
+        args = (*faked, '--passphrase', '', '--pinentry-mode', 'loopback', *(['--armor'] if armor else []),
                 '--yes', '--output', spelled(target), *flags, spelled(source))
+        if flags in (('--detach-sign',), ('--sign',), ('--clearsign',)):
+            self._run_signing(flags[0], args)
+        else:
+            run_gpg(self.home, *args)
         return target.read_bytes()
 
     def block_with(self, other) -> str:
@@ -627,6 +701,98 @@ def test_signer_setup_probe_refuses_failure_without_caching(monkeypatch, failure
         gpg_style()
     assert STYLE == signing.PROBED == {}
     assert len(homes) == 1 and not homes[0].exists()
+
+
+@pytest.mark.parametrize('flags,failure,returncode', [
+    (('--detach-sign',), 'nonzero_exit', 2),
+    (('--sign',), 'timeout_effects_unknown', 0),
+    (('--clearsign',), 'shutdown_unconfirmed', None),
+    (('--detach-sign',), None, 0),
+    (('--store', '-z', '9'), None, 0),
+])
+def test_signing_fixture_reports_only_bounded_evidence(monkeypatch, tmp_path, flags, failure, returncode):
+    fingerprint = 'A' * 40
+    private = 'private-🗝-fixture@example.invalid'
+    shutdown = ProcessShutdownError(OSError('synthetic stop failure'))
+    calls = []
+
+    def fixture_process(argv, prompt, *, cwd, timeout, max_output_bytes):
+        calls.append(argv)
+        assert cwd == tmp_path and prompt == '' and timeout == 120 and max_output_bytes == 1_048_576
+        assert argv[:5] == ('fixture-gpg', '--batch', '--no-tty', '--homedir', str(tmp_path))
+        if '--quick-generate-key' in argv:
+            return ProcessResult(argv, 0, f'[GNUPG:] KEY_CREATED B {fingerprint}\n', '')
+        target = Path(argv[argv.index('--output') + 1])
+        if '--export' in argv:
+            assert argv[-1] == fingerprint
+            target.write_bytes(b'synthetic public export')
+        elif failure == 'shutdown_unconfirmed':
+            raise shutdown
+        elif failure:
+            status = (f'[GNUPG:] INV_SGNR 9 {private}\n'
+                      f'[GNUPG:] KEY_CONSIDERED {fingerprint} 3\n'
+                      f'[GNUPG:] {private}\n' + '[GNUPG:] BEGIN_SIGNING\n' * 30)
+            return ProcessResult(argv, returncode, status, 'no default secret key: Unusable secret key ' + private, failure)
+        else:
+            target.write_bytes(b'fixture output')
+        return ProcessResult(argv, 0, '', '')
+
+    monkeypatch.setattr(tempfile, 'mkdtemp', lambda **kwargs: str(tmp_path))
+    monkeypatch.setitem(globals(), 'GPGCONF', None)
+    monkeypatch.setitem(globals(), 'GPG', 'fixture-gpg')
+    monkeypatch.setitem(globals(), 'STYLE', {'style': 'native', 'path_style': 'native', 'version': 'gpg (GnuPG) 2.4.9'})
+    monkeypatch.setitem(globals(), 'spelled', str)
+    monkeypatch.setitem(globals(), 'invoke', fixture_process)
+    signer = Signer('synthetic')
+    if failure:
+        with pytest.raises(ProcessShutdownError if failure == 'shutdown_unconfirmed' else AssertionError) as caught:
+            signer.produce(b'payload', *flags)
+        note, = caught.value.__notes__
+        assert note in caught.exconly()  # the Qualification failure journal saves this exception summary
+        assert len(note.encode()) <= 8192
+        for excluded in (private, str(tmp_path)):
+            assert json.dumps(excluded)[1:-1] not in note
+        report = json.loads(note)
+        assert report['operation'] == flags[0] and report['selector'] == 'gpg_default'
+        assert report['failure'] == failure and report['returncode'] == returncode
+        assert report['created_fingerprint'] == fingerprint
+        assert report['creation_returncode'] == report['public_export_returncode'] == 0
+        output = report['output']
+        if failure == 'shutdown_unconfirmed':
+            assert caught.value is shutdown and output is None
+        else:
+            assert len(json.dumps(output).encode()) <= 2048
+            assert output['capture'] == ('complete' if failure == 'nonzero_exit' else 'partial_or_unknown')
+            assert output['captured_status_count'] == 33 and output['filtered_status_count'] == 1
+            assert len(output['status_excerpt']) == 12 and output['excerpt_truncated']
+            assert output['status_excerpt'][:2] == [{'status': 'INV_SGNR', 'reason': 9},
+                                                    {'status': 'KEY_CONSIDERED', 'flags': 3, 'matches_created_key': True}]
+            assert output['stderr_mentions_unusable_default_key']
+    else:
+        assert signer.produce(b'payload', *flags) == b'fixture output'
+    assert len(calls) == 3
+    signing_call = calls[-1]
+    assert '--local-user' not in signing_call
+    assert signing_call.count('--status-fd') == int(flags[0] != '--store')
+    if '--status-fd' in signing_call:
+        assert signing_call[signing_call.index('--status-fd') + 1] == '1'
+
+
+def test_signing_diagnostic_fault_preserves_failure(monkeypatch, tmp_path):
+    signer = object.__new__(Signer)
+    signer.home, signer.fingerprint = tmp_path, 'A' * 40
+    signer.creation_returncode = signer.export_returncode = 0
+    result = ProcessResult((), 2, '', 'private diagnostic', 'nonzero_exit')
+    monkeypatch.setitem(globals(), '_invoke_gpg', lambda *args: result)
+
+    def broken_output(*args):
+        raise ValueError('formatter failed')
+
+    monkeypatch.setitem(globals(), '_signing_output', broken_output)
+    with pytest.raises(AssertionError) as caught:
+        signer._run_signing('--detach-sign', ())
+    assert str(caught.value) == 'GPG fixture --detach-sign: failure=nonzero_exit, returncode=2'
+    assert not getattr(caught.value, '__notes__', [])
 
 
 def test_gpg_absent_from_path_is_a_named_refusal(case, plugin, tmp_path, signers, monkeypatch):
