@@ -1,10 +1,9 @@
 """Plan/build verbs over one work owner and the existing Spec decision grammar."""
 
 import asyncio
-import json
 from pathlib import Path
 
-from .features import read_text
+from .features import print_json_report, read_text
 from .command_environment import annotate, selected_configurations
 from .recovery import UnresolvedOperation
 from .review_contract import parse_json
@@ -693,7 +692,7 @@ def execute(args):
             record = read_task(args.task_dir)
             retain_questions(record, result["questions"])
             result["decision"] = retained_decision(record)
-        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        print_json_report(result)
         return exit_code(result)
     except Exception as exc:
         return _error(exc, args.task_dir)
@@ -737,7 +736,7 @@ def _error(exc, directory=None):
             or "readiness_error" in current
         ):
             result["next_action"] = current["next_action"]
-    print(json.dumps(result, ensure_ascii=False, allow_nan=False))
+    print_json_report(result, indent=None)
     return 2
 
 
@@ -778,7 +777,7 @@ def execute_control(args):
                 "This control is not qualified for feature work; pause at a durable operation boundary"
             )
         result = present(args.task_dir, inspect_only=args.command == "status")
-        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        print_json_report(result)
         return 0 if args.command == "status" else exit_code(result)
     except Exception as exc:
         return _error(exc, args.task_dir)

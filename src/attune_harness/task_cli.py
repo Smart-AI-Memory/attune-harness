@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import time
 
+from .features import print_json_report
 from .review_contract import parse_json
 from .command_environment import annotate, notice_texts, selected_configurations
 from .task_contract import (accept_task, answer_names, check_fresh, create_task,
@@ -162,7 +163,7 @@ def execute_intake(args):
             result = execute_task(directory, max_operations=args.pause_after,
                                   **({'allow_api_spend': True} if getattr(args, 'allow_api_spend', False) else {}))
         result = annotate(result, selected_configurations(result))
-        print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
+        print_json_report(result)
         return 0 if result['status'] in ('accepted', 'completed') else (1 if result['status'] in ('draft', 'paused') else 2)
     except Exception as exc:
         failure = {'schema_version': 1, 'operation': 'task-intake', 'status': 'failed',
@@ -279,7 +280,7 @@ def execute_control(args):
                 from .human_output import document, markdown
                 print(markdown(result) if args.format == 'markdown' else document(result), end='')
             return 0
-        print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
+        print_json_report(result)
         if args.command == 'status':
             return 0
         if result.get('task_profile') == 'pytest-change-v1':

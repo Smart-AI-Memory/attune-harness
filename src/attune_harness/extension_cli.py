@@ -1,9 +1,8 @@
 """Lifecycle CLI for explicit, local data-only extension bundles and signed plugin bundles."""
 
-import json
 from pathlib import Path
 
-from .features import FeatureUnavailable, report
+from .features import FeatureUnavailable, print_json_report, report
 
 
 def add_commands(sub):
@@ -42,5 +41,5 @@ def execute(args):
     except Exception as exc:
         result = report('extension', 'unavailable' if isinstance(exc, FeatureUnavailable) else 'failed',
                         error={'type': type(exc).__name__, 'detail': str(exc)})
-    print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+    print_json_report(result)
     return 2 if result['status'] in ('failed', 'unavailable') else 0

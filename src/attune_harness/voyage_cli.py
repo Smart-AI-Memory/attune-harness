@@ -1,9 +1,8 @@
 """Offline planning and explicitly authorized index/retrieval commands."""
 
-import json
 from pathlib import Path
 
-from .features import report
+from .features import print_json_report, report
 from .review_contract import digest
 
 
@@ -44,7 +43,7 @@ def execute(args):
                                  include_docs=args.include_docs, structured_paths=args.structured_path)
             # The prepared config is the envelope and the input `index plan --config` reads
             # back; load_config refuses unknown keys, so no status is added here (D27.2 amended).
-            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+            print_json_report(result)
             return 0
         cfg = load_config(args.config)
         if args.command == 'retrieval-task':
@@ -58,5 +57,5 @@ def execute(args):
             result = build_index(cfg, base_generation=getattr(args, 'base_generation', None), allow_provider=args.allow_provider)
     except Exception as exc:
         result = report(args.command, 'failed', error={'type': type(exc).__name__, 'detail': str(exc)})
-    print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+    print_json_report(result)
     return 2 if result.get('status') == 'failed' else 0
