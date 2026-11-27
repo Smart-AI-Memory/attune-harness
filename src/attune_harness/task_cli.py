@@ -2,6 +2,7 @@
 
 import copy
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -10,6 +11,34 @@ from .review_contract import parse_json
 from .command_environment import annotate, notice_texts, selected_configurations
 from .task_contract import (accept_task, answer_names, check_fresh, create_task,
                             clear_template_cache, form_revision, read_task, task_template)
+
+def _terminal(stream):
+    try:
+        if stream is None or not stream.isatty():
+            return False
+    except (OSError, ValueError):
+        return False
+    if os.name != 'nt':
+        return True
+
+    # The Windows CRT reports character devices such as NUL as terminals.
+    import ctypes
+    from ctypes import wintypes
+    import msvcrt
+
+    try:
+        handle = msvcrt.get_osfhandle(stream.fileno())
+    except (AttributeError, OSError, ValueError):
+        return False
+    mode = wintypes.DWORD()
+    return bool(ctypes.windll.kernel32.GetConsoleMode(
+        wintypes.HANDLE(handle), ctypes.byref(mode)))
+
+
+def interactive_intake():
+    """Prompt only when the user can both see and answer the questions."""
+    return _terminal(sys.stdout) and _terminal(sys.stdin)
+
 
 def present_task(directory, *, bypass=False):
     started = time.perf_counter_ns()
@@ -142,7 +171,7 @@ def execute_intake(args):
             presented = present_task(directory, bypass=args.bypass_intake_cache)
             response = presented['submission']
             response['permissions'] = {'external': args.allow_external, 'provider': args.allow_provider}
-            if sys.stdin.isatty() and not args.accept:
+            if not args.accept and interactive_intake():
                 print(presented['markdown'])
                 for notice in notice_texts(presented):
                     print(notice)
