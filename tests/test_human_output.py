@@ -121,7 +121,65 @@ def test_a_continuation_note_stays_feature_work_only(tmp_path, capsys):
 
 
 def test_interactive_intake_is_refused_in_markdown(tmp_path, capsys, monkeypatch):
-    monkeypatch.setattr(sys.stdin, 'isatty', lambda: True)
+    monkeypatch.setattr('attune_harness.task_cli.interactive_intake', lambda: True)
     with pytest.raises(SystemExit) as error:
         main(['review', '--goal', 'Check', '--format', 'markdown'])
     assert error.value.code == 2 and 'interactive intake prompts' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('output_format', ['json', 'markdown'])
+def test_review_with_redirected_output_returns_unaccepted_draft(tmp_path, capsys, monkeypatch, output_format):
+    # A launcher can inherit terminal input while collecting the draft from stdout.
+    monkeypatch.chdir(tmp_path)
+    assert main(['init', '--profile', 'demo']) == 0
+    capsys.readouterr()
+    monkeypatch.setattr(sys.stdin, 'isatty', lambda: True)
+    directory = tmp_path / 'draft'
+    code = main(['review', '--goal', 'Check the guide', '--task-dir', str(directory),
+                 '--intake-only', '--format', output_format])
+    output = capsys.readouterr().out
+    assert code == 1
+    if output_format == 'json':
+        envelope = json.loads(output)
+        assert envelope['status'] == 'draft' and envelope['submission']['accepted'] is False
+    else:
+        assert '**Saved record:**' in output
+    record = json.loads((directory / 'record.json').read_text(encoding='utf-8'))
+    assert record['status'] == 'draft' and record['events'] == []
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='requires real Windows console and NUL handles')
+def test_windows_console_and_nul_intake(tmp_path, capsys, monkeypatch):
+    from pathlib import Path
+    import attune_harness
+
+    monkeypatch.chdir(tmp_path)
+    assert main(['init', '--profile', 'demo']) == 0
+    capsys.readouterr()
+    # Give the child its own console even on a headless CI runner. Keep stderr
+    # available to pytest and never read from a person's keyboard.
+    script = """
+import os, sys
+from attune_harness.cli import main
+from attune_harness.task_cli import interactive_intake
+
+with open('CONIN$') as keyboard, os.fdopen(os.open('CONOUT$', os.O_RDWR), 'w') as screen:
+    sys.stdin, sys.stdout = keyboard, screen
+    assert interactive_intake()
+    with open(os.devnull, 'w') as sink:
+        sys.stdout = sink
+        assert not interactive_intake()
+    sys.stdout = screen
+    with open(os.devnull) as empty:
+        sys.stdin = empty
+        assert main(['review', '--goal', 'Check guide', '--intake-only', '--task-dir', 'draft']) == 1
+    sys.stdin, sys.stdout = sys.__stdin__, sys.__stdout__
+"""
+    # Exercise the same source or installed wheel that this pytest run imported.
+    env = dict(os.environ, PYTHONPATH=str(Path(attune_harness.__file__).resolve().parents[1]))
+    result = subprocess.run([sys.executable, '-c', script], env=env,
+                            stdin=subprocess.DEVNULL, capture_output=True, timeout=30,
+                            creationflags=subprocess.CREATE_NEW_CONSOLE)
+    assert result.returncode == 0, result.stderr
+    record = json.loads((tmp_path / 'draft' / 'record.json').read_text(encoding='utf-8'))
+    assert record['status'] == 'draft' and record['events'] == []

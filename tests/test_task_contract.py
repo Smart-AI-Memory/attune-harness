@@ -448,7 +448,7 @@ def test_symlink_refusal_names_the_link_and_the_path_to_use(tmp_path):
 
 def test_declined_interactive_intake_remains_unaccepted(case, monkeypatch, capsys):
     import builtins
-    monkeypatch.setattr(sys.stdin, 'isatty', lambda: True)
+    monkeypatch.setattr('attune_harness.task_cli.interactive_intake', lambda: True)
     supplied = iter(['Useful evidence assessment', 'quartz', 'project/guide.md', 'context.json',
                      'project', 'alpha', 'n'])
     monkeypatch.setattr(builtins, 'input', lambda _: next(supplied))
@@ -459,7 +459,7 @@ def test_declined_interactive_intake_remains_unaccepted(case, monkeypatch, capsy
 
 def test_interactive_complete_intake_is_accepted_without_dispatch(case, monkeypatch, capsys):
     import builtins
-    monkeypatch.setattr(sys.stdin, 'isatty', lambda: True)
+    monkeypatch.setattr('attune_harness.task_cli.interactive_intake', lambda: True)
     supplied = iter(['Useful evidence assessment', 'quartz', 'project/guide.md', 'context.json',
                      'project', 'alpha', 'yes'])
     monkeypatch.setattr(builtins, 'input', lambda _: next(supplied))

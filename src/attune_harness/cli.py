@@ -91,8 +91,10 @@ def main(argv: list[str] | None = None) -> int:
         return execute_consultation(args)
     from .human_output import VERBS, run
     if args.command in VERBS and args.format == 'markdown':
-        if (args.command in ('review', 'fix') and sys.stdin.isatty() and not args.accept
-                and args.task_response is None and (args.command == 'fix' or args.goal is not None)):
+        from .task_cli import interactive_intake
+        if (args.command in ('review', 'fix') and not args.accept
+                and args.task_response is None and (args.command == 'fix' or args.goal is not None)
+                and interactive_intake()):
             parser.error('--format markdown cannot show the interactive intake prompts; '
                          'pass --accept or answer with --task-response')
         return run(lambda: dispatch(args, parser))
