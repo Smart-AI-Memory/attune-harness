@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from .features import print_json_report
 from .test_change import (
     accept_test_task,
     create_test_task,
@@ -120,11 +121,7 @@ def execute(args) -> int:
             result = execute_test_task(args.task_dir, max_operations=args.pause_after)
         else:
             result = present_test_task(task)
-        print(
-            json.dumps(
-                public_test_task(result), indent=2, ensure_ascii=False, allow_nan=False
-            )
-        )
+        print_json_report(public_test_task(result))
         return exit_code(result)
     except Exception as exc:
         from .process import ProcessShutdownError

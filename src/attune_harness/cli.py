@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .features import FeatureUnavailable, output_path, report, write_report
+from .features import FeatureUnavailable, output_path, print_json_report, report, write_report
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -166,7 +166,7 @@ def dispatch(args, parser) -> int:
             result = inspect_session(args.session_dir)
         except Exception as exc:
             result = report('mcp-inspect', 'failed', error={'type': type(exc).__name__, 'detail': str(exc)})
-        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        print_json_report(result)
         return 0 if result['status'] == 'completed' else 2
     if args.command == 'mcp-serve':
         import asyncio
@@ -247,7 +247,7 @@ def dispatch(args, parser) -> int:
             write_report(args.output, result, protected)
     except (OSError, ValueError, TypeError) as exc:
         result = report(args.command, 'failed', error={'type': type(exc).__name__, 'detail': f'Report write failed: {exc}'})
-    print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+    print_json_report(result)
     if result['status'] in ('verified', 'retrieved'):
         return 0
     return 1 if result['status'] in ('refuted', 'unknown', 'no_results') else 2

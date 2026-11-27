@@ -1,9 +1,8 @@
 """CLI surfaces for the bounded evidence-review journey."""
 
-import json
 from pathlib import Path
 
-from .features import FeatureUnavailable, report
+from .features import FeatureUnavailable, print_json_report, report
 from .command_environment import annotate, selected_configurations
 from .review_contract import load_registry, review_form
 from .review_store import inspect_run
@@ -95,7 +94,7 @@ def execute(args) -> int:
         result = report(args.command, 'unresolved' if isinstance(exc, (UnresolvedOperation, PaidStageUnresolved)) else 'failed',
                         error={'type': type(exc).__name__, 'detail': str(exc)})
     result = annotate(result, selected_configurations(result))
-    print(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2))
+    print_json_report(result)
     if result['status'] == 'ready':
         return 0
     if result['status'] in ('paused', 'cancelled'):

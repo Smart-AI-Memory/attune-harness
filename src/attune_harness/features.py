@@ -1,9 +1,11 @@
 """Optional local feature contracts; importing this module needs no extras."""
 
+import codecs
 import importlib
 import json
 import os
 import re
+import sys
 import tempfile
 import time
 from importlib.metadata import PackageNotFoundError, requires, version
@@ -42,6 +44,13 @@ def report(operation: str, status: str, **fields) -> dict:
     """Tool-operation envelope, separate from model task completion receipts."""
     return {"schema_version": 1, "request_id": str(uuid4()),
             "operation": operation, "status": status, **fields}
+
+
+def print_json_report(value: dict, *, indent: int | None = 2) -> None:
+    """Keep UTF-8 output readable and other console encodings lossless."""
+    encoding = getattr(sys.stdout, 'encoding', None)
+    escape = encoding is not None and codecs.lookup(encoding).name != 'utf-8'
+    print(json.dumps(value, indent=indent, ensure_ascii=escape, allow_nan=False))
 
 
 def deprecation_entry(entry: dict) -> dict:
