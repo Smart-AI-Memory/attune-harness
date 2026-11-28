@@ -158,8 +158,11 @@ Completed turns replay retained results without a new model call.
 
 Pass the flag again when a later execution or resume has pending API calls.
 Saved approval evidence is historical, not a reusable grant. Completed calls
-replay their retained results without spending again. A refusal before dispatch
-stays prepared, records `not_started` and needs no uncertain-call reconciliation.
+replay their retained results without spending again. If a consultation lacks fresh API spending approval, **`source-review run`** and
+**`roundtable run`** report `refused`. In the saved record, the run status is
+`paused`. The pending turn stays in the `prepared` phase, and its funding
+evidence records `dispatch_outcome: not_started`. This refusal needs no
+uncertain-call reconciliation.
 Timeouts or lost results after launch remain uncertain under the existing
 recovery rules. Missing usage never triggers an automatic retry.
 
